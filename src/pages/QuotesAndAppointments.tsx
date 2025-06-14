@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import QuoteForm from '@/components/QuoteForm';
@@ -6,6 +5,8 @@ import AppointmentBooking from '@/components/AppointmentBooking';
 import PricingGrid from '@/components/PricingGrid';
 import ChatInterface from '@/components/ChatInterface';
 import RepairTracking from '@/components/RepairTracking';
+import PriceComparator from '@/components/PriceComparator';
+import AdvancedSearch from '@/components/AdvancedSearch';
 
 const QuotesAndAppointments = () => {
   const [selectedQuoteId, setSelectedQuoteId] = useState<string>('');
