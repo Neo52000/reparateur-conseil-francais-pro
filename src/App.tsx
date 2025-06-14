@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +18,7 @@ import RepairerAuth from "./pages/RepairerAuth";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import AdminFeaturesPage from "./pages/AdminFeaturesPage";
+import ScrapingAIPage from "./pages/ScrapingAIPage";
 
 const queryClient = new QueryClient();
 
@@ -48,8 +50,11 @@ const App = () => (
           <Route path="/client-space" element={<ClientSpace />} />
           <Route path="/repairer-space" element={<RepairerSpace />} />
           
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          {/* Routes admin */}
           <Route path="/admin/features" element={<AdminFeaturesPage />} />
+          <Route path="/admin/scraping-ai" element={<ScrapingAIPage />} />
+          
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

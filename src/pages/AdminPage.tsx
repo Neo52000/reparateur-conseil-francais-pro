@@ -3,6 +3,7 @@ import React from 'react';
 import AdminDashboard from '@/components/AdminDashboard';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { Settings, Brain } from 'lucide-react';
 
 // Import experimental comps
 import ReferralInvite from '@/components/ReferralInvite';
@@ -33,10 +34,23 @@ const AdminPage = () => {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => window.location.href='/admin/features'} variant="secondary">
-                Gérer fonctionnalités par plan
+              <Button 
+                onClick={() => navigate('/admin/features')} 
+                variant="secondary"
+                size="sm"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Fonctionnalités
               </Button>
-              <Button onClick={handleFakeSignOut} variant="outline">
+              <Button 
+                onClick={() => navigate('/admin/scraping-ai')} 
+                variant="default"
+                size="sm"
+              >
+                <Brain className="h-4 w-4 mr-2" />
+                Scraping IA
+              </Button>
+              <Button onClick={handleFakeSignOut} variant="outline" size="sm">
                 Déconnexion
               </Button>
             </div>
