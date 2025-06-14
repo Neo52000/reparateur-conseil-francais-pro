@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Crown, Star, Zap, Users, TrendingUp } from 'lucide-react';
+import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Plus, Edit } from 'lucide-react';
 
 interface SubscriptionData {
   id: string;
@@ -23,20 +24,53 @@ interface SubscriptionData {
   price_yearly: number | null;
 }
 
+interface RepairerData {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  subscription_tier: string;
+  subscribed: boolean;
+  total_repairs: number;
+  rating: number;
+  created_at: string;
+}
+
 const AdminDashboard = () => {
   const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
+  const [repairers, setRepairers] = useState<RepairerData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'subscriptions' | 'repairers'>('subscriptions');
   const [stats, setStats] = useState({
     totalSubscriptions: 0,
     activeSubscriptions: 0,
     monthlyRevenue: 0,
-    yearlyRevenue: 0
+    yearlyRevenue: 0,
+    totalRepairers: 0,
+    activeRepairers: 0
   });
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchSubscriptions();
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      await Promise.all([fetchSubscriptions(), fetchRepairers()]);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les données",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchSubscriptions = async () => {
     try {
@@ -49,7 +83,7 @@ const AdminDashboard = () => {
 
       setSubscriptions(data || []);
       
-      // Calculate stats
+      // Calculate subscription stats
       const total = data?.length || 0;
       const active = data?.filter(sub => sub.subscribed).length || 0;
       const monthlyRev = data?.reduce((sum, sub) => {
@@ -65,22 +99,74 @@ const AdminDashboard = () => {
         return sum;
       }, 0) || 0;
 
-      setStats({
+      setStats(prev => ({
+        ...prev,
         totalSubscriptions: total,
         activeSubscriptions: active,
         monthlyRevenue: monthlyRev,
         yearlyRevenue: yearlyRev
-      });
+      }));
 
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les abonnements",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchRepairers = async () => {
+    try {
+      // Mock data for repairers - in real app, this would come from a repairers table
+      const mockRepairers: RepairerData[] = [
+        {
+          id: 'test-repairer-001',
+          name: 'TechRepair Pro',
+          email: 'tech@repair.fr',
+          phone: '+33 1 23 45 67 89',
+          city: 'Paris',
+          subscription_tier: 'premium',
+          subscribed: true,
+          total_repairs: 156,
+          rating: 4.9,
+          created_at: '2023-01-15T10:00:00Z'
+        },
+        {
+          id: 'test-repairer-002',
+          name: 'Mobile Fix Express',
+          email: 'contact@mobilefix.fr',
+          phone: '+33 1 98 76 54 32',
+          city: 'Lyon',
+          subscription_tier: 'basic',
+          subscribed: true,
+          total_repairs: 89,
+          rating: 4.5,
+          created_at: '2023-02-20T14:30:00Z'
+        },
+        {
+          id: 'test-repairer-003',
+          name: 'Smartphone Clinic',
+          email: 'info@smartphoneclinic.fr',
+          phone: '+33 1 11 22 33 44',
+          city: 'Marseille',
+          subscription_tier: 'free',
+          subscribed: false,
+          total_repairs: 23,
+          rating: 4.2,
+          created_at: '2023-03-10T09:15:00Z'
+        }
+      ];
+
+      setRepairers(mockRepairers);
+      
+      const totalRepairers = mockRepairers.length;
+      const activeRepairers = mockRepairers.filter(r => r.subscribed).length;
+      
+      setStats(prev => ({
+        ...prev,
+        totalRepairers,
+        activeRepairers
+      }));
+
+    } catch (error) {
+      console.error('Error fetching repairers:', error);
     }
   };
 
@@ -102,16 +188,25 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div>Chargement...</div>
+        <div className="flex items-center space-x-2">
+          <RefreshCw className="h-6 w-6 animate-spin" />
+          <span>Chargement...</span>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Backoffice Admin</h1>
-        <p className="text-gray-600">Gestion des abonnements partenaires</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Backoffice Administrateur</h1>
+          <p className="text-gray-600">Gestion de la plateforme RepairHub</p>
+        </div>
+        <Button onClick={fetchData} variant="outline">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Actualiser
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -120,8 +215,8 @@ const AdminDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Abonnements</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalSubscriptions}</p>
+                <p className="text-sm font-medium text-gray-600">Total Réparateurs</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalRepairers}</p>
               </div>
               <Users className="h-8 w-8 text-blue-600" />
             </div>
@@ -132,8 +227,8 @@ const AdminDashboard = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Abonnements Actifs</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.activeSubscriptions}</p>
+                <p className="text-sm font-medium text-gray-600">Réparateurs Actifs</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.activeRepairers}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-600" />
             </div>
@@ -165,70 +260,161 @@ const AdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Subscriptions Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Abonnements Partenaires</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Partenaire</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Plan</TableHead>
-                <TableHead>Facturation</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Fin d'abonnement</TableHead>
-                <TableHead>Date de création</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {subscriptions.map((subscription) => {
-                const tierInfo = getTierInfo(subscription.subscription_tier);
-                return (
-                  <TableRow key={subscription.id}>
-                    <TableCell>
-                      {subscription.first_name || subscription.last_name ? 
-                        `${subscription.first_name || ''} ${subscription.last_name || ''}`.trim() :
-                        'N/A'
-                      }
-                    </TableCell>
-                    <TableCell>{subscription.email}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        {tierInfo.icon}
-                        <Badge className={tierInfo.color}>
-                          {tierInfo.name}
+      {/* Navigation Tabs */}
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+        <button
+          onClick={() => setActiveTab('subscriptions')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'subscriptions'
+              ? 'bg-white text-gray-900 shadow'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Abonnements
+        </button>
+        <button
+          onClick={() => setActiveTab('repairers')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'repairers'
+              ? 'bg-white text-gray-900 shadow'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Réparateurs
+        </button>
+      </div>
+
+      {/* Content based on active tab */}
+      {activeTab === 'subscriptions' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Gestion des Abonnements</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Réparateur</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Facturation</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Fin d'abonnement</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {subscriptions.map((subscription) => {
+                  const tierInfo = getTierInfo(subscription.subscription_tier);
+                  return (
+                    <TableRow key={subscription.id}>
+                      <TableCell>
+                        {subscription.first_name || subscription.last_name ? 
+                          `${subscription.first_name || ''} ${subscription.last_name || ''}`.trim() :
+                          subscription.repairer_id
+                        }
+                      </TableCell>
+                      <TableCell>{subscription.email}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          {tierInfo.icon}
+                          <Badge className={tierInfo.color}>
+                            {tierInfo.name}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {subscription.billing_cycle === 'yearly' ? 'Annuelle' : 'Mensuelle'}
                         </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {subscription.billing_cycle === 'yearly' ? 'Annuelle' : 'Mensuelle'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={subscription.subscribed ? "default" : "secondary"}>
-                        {subscription.subscribed ? 'Actif' : 'Inactif'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {subscription.subscription_end 
-                        ? new Date(subscription.subscription_end).toLocaleDateString()
-                        : 'N/A'
-                      }
-                    </TableCell>
-                    <TableCell>
-                      {new Date(subscription.created_at).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={subscription.subscribed ? "default" : "secondary"}>
+                          {subscription.subscribed ? 'Actif' : 'Inactif'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {subscription.subscription_end 
+                          ? new Date(subscription.subscription_end).toLocaleDateString()
+                          : 'N/A'
+                        }
+                      </TableCell>
+                      <TableCell>
+                        <Button size="sm" variant="outline">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'repairers' && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Gestion des Réparateurs</CardTitle>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Ajouter un réparateur
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nom</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Téléphone</TableHead>
+                  <TableHead>Ville</TableHead>
+                  <TableHead>Abonnement</TableHead>
+                  <TableHead>Réparations</TableHead>
+                  <TableHead>Note</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {repairers.map((repairer) => {
+                  const tierInfo = getTierInfo(repairer.subscription_tier);
+                  return (
+                    <TableRow key={repairer.id}>
+                      <TableCell className="font-medium">{repairer.name}</TableCell>
+                      <TableCell>{repairer.email}</TableCell>
+                      <TableCell>{repairer.phone}</TableCell>
+                      <TableCell>{repairer.city}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          {tierInfo.icon}
+                          <Badge className={tierInfo.color}>
+                            {tierInfo.name}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell>{repairer.total_repairs}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-1">
+                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                          <span>{repairer.rating}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
