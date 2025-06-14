@@ -29,7 +29,9 @@ const ClientAuthForm = () => {
         if (error) {
           toast({
             title: "Erreur de connexion",
-            description: error.message,
+            description: error.message === 'Invalid login credentials' 
+              ? "Email ou mot de passe incorrect" 
+              : error.message,
             variant: "destructive"
           });
         } else {
@@ -81,25 +83,29 @@ const ClientAuthForm = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <>
-              <div>
-                <Label htmlFor="firstName">Prénom</Label>
-                <Input
-                  id="firstName"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required={!isLogin}
-                />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Nom</Label>
-                <Input
-                  id="lastName"
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required={!isLogin}
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label htmlFor="firstName">Prénom</Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required={!isLogin}
+                    placeholder="Jean"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Nom</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required={!isLogin}
+                    placeholder="Dupont"
+                  />
+                </div>
               </div>
               <div>
                 <Label htmlFor="phone">Téléphone</Label>
@@ -111,7 +117,7 @@ const ClientAuthForm = () => {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="pl-10"
-                    placeholder="+33 6 12 34 56 78"
+                    placeholder="06 12 34 56 78"
                   />
                 </div>
               </div>
@@ -127,6 +133,7 @@ const ClientAuthForm = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="pl-10"
+                placeholder="votre@email.fr"
                 required
               />
             </div>
@@ -138,6 +145,7 @@ const ClientAuthForm = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
               required
             />
           </div>
@@ -151,7 +159,7 @@ const ClientAuthForm = () => {
             onClick={() => setIsLogin(!isLogin)}
             className="text-blue-600"
           >
-            {isLogin ? "Pas de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
+            {isLogin ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
           </Button>
         </div>
       </CardContent>

@@ -2,40 +2,44 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Star, 
-  Euro, 
-  Clock, 
-  MapPin,
-  Filter,
-  X
-} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { X, Filter } from 'lucide-react';
 
 const SearchFilters = () => {
+  const [priceRange, setPriceRange] = useState([0, 300]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState([50]);
-  const [distance, setDistance] = useState([10]);
-  const [minRating, setMinRating] = useState(0);
-  const [openNow, setOpenNow] = useState(false);
-  const [fastResponse, setFastResponse] = useState(false);
+  const [rating, setRating] = useState<number | null>(null);
+  const [availability, setAvailability] = useState<string>('');
 
   const services = [
-    'Écran cassé', 'Batterie', 'Connecteur charge', 'Réparation eau',
-    'Appareil photo', 'Haut-parleur', 'Micro', 'Vitre arrière',
-    'Boutons', 'Capteurs', 'Logiciel', 'Déblocage'
+    'Écran cassé',
+    'Batterie défaillante',
+    'Problème de charge',
+    'Dégât des eaux',
+    'Appareil photo',
+    'Haut-parleur',
+    'Boutons défaillants',
+    'Problème logiciel'
   ];
 
   const brands = [
-    'iPhone', 'Samsung', 'Xiaomi', 'Huawei', 'OnePlus',
-    'Google Pixel', 'Oppo', 'Vivo', 'Nothing', 'Fairphone'
+    'Apple',
+    'Samsung',
+    'Huawei',
+    'Xiaomi',
+    'OnePlus',
+    'Google',
+    'Sony',
+    'Oppo'
   ];
 
-  const toggleService = (service: string) => {
+  const handleServiceToggle = (service: string) => {
     setSelectedServices(prev => 
       prev.includes(service) 
         ? prev.filter(s => s !== service)
@@ -43,7 +47,7 @@ const SearchFilters = () => {
     );
   };
 
-  const toggleBrand = (brand: string) => {
+  const handleBrandToggle = (brand: string) => {
     setSelectedBrands(prev => 
       prev.includes(brand) 
         ? prev.filter(b => b !== brand)
@@ -51,219 +55,153 @@ const SearchFilters = () => {
     );
   };
 
-  const clearAllFilters = () => {
+  const clearFilters = () => {
+    setPriceRange([0, 300]);
     setSelectedServices([]);
     setSelectedBrands([]);
-    setPriceRange([50]);
-    setDistance([10]);
-    setMinRating(0);
-    setOpenNow(false);
-    setFastResponse(false);
+    setRating(null);
+    setAvailability('');
   };
 
   const activeFiltersCount = selectedServices.length + selectedBrands.length + 
-    (minRating > 0 ? 1 : 0) + (openNow ? 1 : 0) + (fastResponse ? 1 : 0);
+    (rating ? 1 : 0) + (availability ? 1 : 0);
 
   return (
     <Card>
-      <CardHeader className="pb-4">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-lg flex items-center">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center">
             <Filter className="h-5 w-5 mr-2" />
             Filtres de recherche
-            {activeFiltersCount > 0 && (
-              <Badge className="ml-2" variant="secondary">
-                {activeFiltersCount}
-              </Badge>
-            )}
-          </CardTitle>
+          </div>
           {activeFiltersCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-              <X className="h-4 w-4 mr-1" />
-              Effacer tout
-            </Button>
+            <Badge variant="secondary">{activeFiltersCount} filtre(s) actif(s)</Badge>
           )}
-        </div>
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Services */}
-          <div className="space-y-3">
-            <h3 className="font-medium text-gray-900">Services</h3>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {services.map((service) => (
-                <div key={service} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`service-${service}`}
-                    checked={selectedServices.includes(service)}
-                    onCheckedChange={() => toggleService(service)}
-                  />
-                  <label
-                    htmlFor={`service-${service}`}
-                    className="text-sm text-gray-700 cursor-pointer"
-                  >
-                    {service}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Marques */}
-          <div className="space-y-3">
-            <h3 className="font-medium text-gray-900">Marques</h3>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {brands.map((brand) => (
-                <div key={brand} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`brand-${brand}`}
-                    checked={selectedBrands.includes(brand)}
-                    onCheckedChange={() => toggleBrand(brand)}
-                  />
-                  <label
-                    htmlFor={`brand-${brand}`}
-                    className="text-sm text-gray-700 cursor-pointer"
-                  >
-                    {brand}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Prix et Distance */}
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <h3 className="font-medium text-gray-900 flex items-center">
-                <Euro className="h-4 w-4 mr-1" />
-                Prix maximum
-              </h3>
-              <div className="space-y-2">
-                <Slider
-                  value={priceRange}
-                  onValueChange={setPriceRange}
-                  max={200}
-                  min={20}
-                  step={10}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>20€</span>
-                  <span className="font-medium">{priceRange[0]}€</span>
-                  <span>200€</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="font-medium text-gray-900 flex items-center">
-                <MapPin className="h-4 w-4 mr-1" />
-                Distance
-              </h3>
-              <div className="space-y-2">
-                <Slider
-                  value={distance}
-                  onValueChange={setDistance}
-                  max={50}
-                  min={1}
-                  step={1}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>1km</span>
-                  <span className="font-medium">{distance[0]}km</span>
-                  <span>50km</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Options rapides */}
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <h3 className="font-medium text-gray-900 flex items-center">
-                <Star className="h-4 w-4 mr-1" />
-                Note minimum
-              </h3>
-              <Select value={minRating.toString()} onValueChange={(value) => setMinRating(Number(value))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Toutes les notes" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">Toutes les notes</SelectItem>
-                  <SelectItem value="3">3 étoiles et +</SelectItem>
-                  <SelectItem value="4">4 étoiles et +</SelectItem>
-                  <SelectItem value="4.5">4.5 étoiles et +</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="font-medium text-gray-900">Options</h3>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="open-now"
-                    checked={openNow}
-                    onCheckedChange={(checked) => setOpenNow(checked as boolean)}
-                  />
-                  <label htmlFor="open-now" className="text-sm text-gray-700 cursor-pointer">
-                    Ouvert maintenant
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="fast-response"
-                    checked={fastResponse}
-                    onCheckedChange={(checked) => setFastResponse(checked as boolean)}
-                  />
-                  <label htmlFor="fast-response" className="text-sm text-gray-700 cursor-pointer flex items-center">
-                    <Clock className="h-4 w-4 mr-1" />
-                    Réponse rapide (&lt; 1h)
-                  </label>
-                </div>
-              </div>
+        {/* Fourchette de prix */}
+        <div>
+          <Label className="text-sm font-medium">Prix de réparation (€)</Label>
+          <div className="mt-2">
+            <Slider
+              value={priceRange}
+              onValueChange={setPriceRange}
+              max={300}
+              min={0}
+              step={10}
+              className="w-full"
+            />
+            <div className="flex justify-between text-sm text-gray-500 mt-1">
+              <span>{priceRange[0]}€</span>
+              <span>{priceRange[1]}€</span>
             </div>
           </div>
         </div>
 
-        {/* Selected Filters Display */}
+        {/* Type de service */}
+        <div>
+          <Label className="text-sm font-medium mb-3 block">Type de réparation</Label>
+          <div className="grid grid-cols-1 gap-2">
+            {services.map((service) => (
+              <div key={service} className="flex items-center space-x-2">
+                <Checkbox
+                  id={service}
+                  checked={selectedServices.includes(service)}
+                  onCheckedChange={() => handleServiceToggle(service)}
+                />
+                <Label htmlFor={service} className="text-sm">{service}</Label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Marques */}
+        <div>
+          <Label className="text-sm font-medium mb-3 block">Marques spécialisées</Label>
+          <div className="grid grid-cols-2 gap-2">
+            {brands.map((brand) => (
+              <div key={brand} className="flex items-center space-x-2">
+                <Checkbox
+                  id={brand}
+                  checked={selectedBrands.includes(brand)}
+                  onCheckedChange={() => handleBrandToggle(brand)}
+                />
+                <Label htmlFor={brand} className="text-sm">{brand}</Label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Note minimale */}
+        <div>
+          <Label className="text-sm font-medium">Note minimale</Label>
+          <Select value={rating?.toString() || ''} onValueChange={(value) => setRating(value ? Number(value) : null)}>
+            <SelectTrigger className="mt-2">
+              <SelectValue placeholder="Toutes les notes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Toutes les notes</SelectItem>
+              <SelectItem value="4">4+ étoiles</SelectItem>
+              <SelectItem value="4.5">4.5+ étoiles</SelectItem>
+              <SelectItem value="5">5 étoiles uniquement</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Disponibilité */}
+        <div>
+          <Label className="text-sm font-medium">Disponibilité</Label>
+          <Select value={availability} onValueChange={setAvailability}>
+            <SelectTrigger className="mt-2">
+              <SelectValue placeholder="Toutes disponibilités" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Toutes disponibilités</SelectItem>
+              <SelectItem value="today">Disponible aujourd'hui</SelectItem>
+              <SelectItem value="week">Cette semaine</SelectItem>
+              <SelectItem value="urgent">Réparation express</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Actions */}
+        <div className="flex space-x-2 pt-4">
+          <Button className="flex-1">
+            Appliquer les filtres
+          </Button>
+          <Button variant="outline" onClick={clearFilters}>
+            <X className="h-4 w-4 mr-2" />
+            Effacer
+          </Button>
+        </div>
+
+        {/* Filtres actifs */}
         {(selectedServices.length > 0 || selectedBrands.length > 0) && (
-          <div className="border-t pt-4">
-            <h4 className="text-sm font-medium text-gray-900 mb-3">Filtres sélectionnés :</h4>
+          <div className="pt-4 border-t">
+            <Label className="text-sm font-medium mb-2 block">Filtres actifs :</Label>
             <div className="flex flex-wrap gap-2">
               {selectedServices.map((service) => (
-                <Badge
-                  key={service}
-                  variant="secondary"
-                  className="cursor-pointer"
-                  onClick={() => toggleService(service)}
-                >
+                <Badge key={service} variant="secondary" className="text-xs">
                   {service}
-                  <X className="h-3 w-3 ml-1" />
+                  <X 
+                    className="h-3 w-3 ml-1 cursor-pointer" 
+                    onClick={() => handleServiceToggle(service)}
+                  />
                 </Badge>
               ))}
               {selectedBrands.map((brand) => (
-                <Badge
-                  key={brand}
-                  variant="outline"
-                  className="cursor-pointer"
-                  onClick={() => toggleBrand(brand)}
-                >
+                <Badge key={brand} variant="secondary" className="text-xs">
                   {brand}
-                  <X className="h-3 w-3 ml-1" />
+                  <X 
+                    className="h-3 w-3 ml-1 cursor-pointer" 
+                    onClick={() => handleBrandToggle(brand)}
+                  />
                 </Badge>
               ))}
             </div>
           </div>
         )}
-
-        {/* Apply Filters Button */}
-        <div className="border-t pt-4">
-          <Button className="w-full">
-            Appliquer les filtres ({activeFiltersCount})
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );
