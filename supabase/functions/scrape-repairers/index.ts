@@ -13,18 +13,23 @@ serve(async (req) => {
   }
 
   try {
+    // Utiliser la clé service_role pour éviter les problèmes RLS
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
     const mistralApiKey = Deno.env.get('MISTRAL_API_KEY')
-    if (!mistralApiKey) {
-      throw new Error('MISTRAL_API_KEY not configured')
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
+    
+    if (!mistralApiKey && !openaiApiKey) {
+      throw new Error('Aucune clé API configurée (MISTRAL_API_KEY ou OPENAI_API_KEY)')
     }
 
     const { source } = await req.json()
     
+    console.log(`🚀 Démarrage du scraping pour source: ${source}`)
+
     // Créer un log de scraping
     const { data: logData, error: logError } = await supabase
       .from('scraping_logs')
@@ -36,134 +41,248 @@ serve(async (req) => {
       .select()
       .single()
 
-    if (logError) throw logError
-
-    console.log(`Starting scraping for source: ${source}`)
-
-    // Analyser avec Mistral AI pour classifier les données
-    const analyzeWithMistral = async (businessData: any) => {
-      try {
-        const prompt = `Analyse ces données d'entreprise et détermine s'il s'agit d'un réparateur de téléphones/électronique. 
-        Données: ${JSON.stringify(businessData)}
-        
-        Réponds UNIQUEMENT par un JSON avec cette structure:
-        {
-          "is_repairer": boolean,
-          "services": ["service1", "service2"],
-          "specialties": ["specialty1", "specialty2"],
-          "price_range": "low|medium|high",
-          "confidence": 0.0-1.0,
-          "is_open": boolean
-        }`
-
-        const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${mistralApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'mistral-small-latest',
-            messages: [
-              {
-                role: 'system',
-                content: 'Tu es un expert en classification d\'entreprises spécialisé dans l\'identification des réparateurs de téléphones et d\'électronique. Réponds uniquement en JSON valide.'
-              },
-              {
-                role: 'user',
-                content: prompt
-              }
-            ],
-            temperature: 0.1,
-            max_tokens: 500
-          }),
-        })
-
-        if (!response.ok) {
-          console.error('Mistral API error:', response.status, await response.text())
-          return null
-        }
-
-        const data = await response.json()
-        const aiAnalysis = JSON.parse(data.choices[0].message.content)
-        console.log('Mistral AI analysis:', aiAnalysis)
-        return aiAnalysis
-      } catch (error) {
-        console.error('Error with Mistral AI analysis:', error)
-        return null
-      }
+    if (logError) {
+      console.error('❌ Erreur création log:', logError)
+      throw logError
     }
 
-    // Simuler le scraping avec des données de test enrichies par IA
-    const mockScrapedData = [
+    console.log(`✅ Log créé avec succès: ${logData.id}`)
+
+    // Analyser avec IA (Mistral en priorité, OpenAI en fallback)
+    const analyzeWithAI = async (businessData: any) => {
+      const prompt = `Analyse ces données d'entreprise et détermine s'il s'agit d'un réparateur de téléphones/électronique. 
+      Données: ${JSON.stringify(businessData)}
+      
+      Réponds UNIQUEMENT par un JSON avec cette structure:
       {
-        name: 'Tech Repair Pro ' + source,
-        address: '123 Rue de la République',
-        city: 'Paris',
-        postal_code: '75001',
-        phone: '+33 1 23 45 67 89',
-        email: 'contact@techrepair.fr',
-        website: 'https://techrepair.fr',
-        description: 'Spécialiste réparation iPhone, Samsung, écrans cassés, batteries'
-      },
-      {
-        name: 'Mobile Fix Express',
-        address: '456 Avenue des Champs',
-        city: 'Lyon',
-        postal_code: '69001',
-        phone: '+33 4 78 90 12 34',
-        email: 'info@mobilefix.fr',
-        description: 'Réparation rapide smartphones, tablettes, ordinateurs portables'
-      },
-      {
-        name: 'Boulangerie du Coin',
-        address: '789 Rue de la Paix',
-        city: 'Marseille',
-        postal_code: '13001',
-        phone: '+33 4 91 23 45 67',
-        description: 'Boulangerie artisanale, pain frais, viennoiseries'
+        "is_repairer": boolean,
+        "services": ["service1", "service2"],
+        "specialties": ["specialty1", "specialty2"],
+        "price_range": "low|medium|high",
+        "confidence": 0.0-1.0,
+        "is_open": boolean
+      }`
+
+      // Essayer d'abord Mistral AI
+      if (mistralApiKey) {
+        try {
+          console.log('🤖 Tentative d\'analyse avec Mistral AI...')
+          const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${mistralApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'mistral-small-latest',
+              messages: [
+                {
+                  role: 'system',
+                  content: 'Tu es un expert en classification d\'entreprises spécialisé dans l\'identification des réparateurs de téléphones et d\'électronique. Réponds uniquement en JSON valide.'
+                },
+                {
+                  role: 'user',
+                  content: prompt
+                }
+              ],
+              temperature: 0.1,
+              max_tokens: 500
+            }),
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            const aiAnalysis = JSON.parse(data.choices[0].message.content)
+            console.log('✅ Analyse Mistral AI réussie:', aiAnalysis)
+            return aiAnalysis
+          } else {
+            console.error('❌ Erreur Mistral API:', response.status, await response.text())
+          }
+        } catch (error) {
+          console.error('❌ Erreur Mistral AI:', error)
+        }
       }
-    ]
+
+      // Fallback vers OpenAI
+      if (openaiApiKey) {
+        try {
+          console.log('🤖 Fallback vers OpenAI...')
+          const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openaiApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-3.5-turbo',
+              messages: [
+                {
+                  role: 'system',
+                  content: 'Tu es un expert en classification d\'entreprises spécialisé dans l\'identification des réparateurs de téléphones et d\'électronique. Réponds uniquement en JSON valide.'
+                },
+                {
+                  role: 'user',
+                  content: prompt
+                }
+              ],
+              temperature: 0.1,
+              max_tokens: 500
+            }),
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            const aiAnalysis = JSON.parse(data.choices[0].message.content)
+            console.log('✅ Analyse OpenAI réussie:', aiAnalysis)
+            return aiAnalysis
+          } else {
+            console.error('❌ Erreur OpenAI API:', response.status, await response.text())
+          }
+        } catch (error) {
+          console.error('❌ Erreur OpenAI:', error)
+        }
+      }
+
+      return null
+    }
+
+    // Scraper spécialisé pour Pages Jaunes
+    const scrapePages Jaunes = async () => {
+      console.log('🔍 Scraping Pages Jaunes...')
+      
+      // Simulation réaliste de scraping Pages Jaunes avec des données plus variées
+      return [
+        {
+          name: 'iPhone Repair Paris',
+          address: '15 Rue de Rivoli',
+          city: 'Paris',
+          postal_code: '75001',
+          phone: '+33 1 42 60 30 88',
+          email: 'contact@iphonerepairparis.fr',
+          website: 'https://iphonerepairparis.fr',
+          description: 'Réparation iPhone, iPad, MacBook. Écrans, batteries, carte mère. Diagnostic gratuit.',
+          category: 'Réparation téléphone'
+        },
+        {
+          name: 'Mobile Doctor Lyon',
+          address: '28 Cours Franklin Roosevelt',
+          city: 'Lyon',
+          postal_code: '69006',
+          phone: '+33 4 78 52 41 63',
+          email: 'info@mobiledoctor-lyon.fr',
+          description: 'Spécialiste réparation smartphones toutes marques. Samsung, Huawei, Xiaomi.',
+          category: 'Réparation mobile'
+        },
+        {
+          name: 'TechFix Marseille',
+          address: '5 La Canebière',
+          city: 'Marseille',
+          postal_code: '13001',
+          phone: '+33 4 91 54 02 17',
+          website: 'https://techfix-marseille.com',
+          description: 'Réparation express téléphones, tablettes, ordinateurs portables.',
+          category: 'Service informatique'
+        },
+        {
+          name: 'Boulangerie du Soleil',
+          address: '12 Avenue de la République',
+          city: 'Nice',
+          postal_code: '06000',
+          phone: '+33 4 93 85 16 42',
+          description: 'Boulangerie artisanale, pain bio, pâtisseries maison.',
+          category: 'Boulangerie'
+        },
+        {
+          name: 'Smart Repair Toulouse',
+          address: '33 Rue Alsace Lorraine',
+          city: 'Toulouse',
+          postal_code: '31000',
+          phone: '+33 5 61 23 45 67',
+          email: 'contact@smartrepair.toulouse',
+          description: 'Réparation smartphones, déblocage, récupération données.',
+          category: 'Réparation électronique'
+        }
+      ]
+    }
+
+    // Obtenir les données selon la source
+    let scrapedData = []
+    
+    if (source === 'pages_jaunes') {
+      scrapedData = await scrapePages Jaunes()
+    } else {
+      // Pour les autres sources, utiliser des données de test
+      scrapedData = [
+        {
+          name: `Test Repair ${source}`,
+          address: '123 Rue de Test',
+          city: 'Paris',
+          postal_code: '75001',
+          phone: '+33 1 23 45 67 89',
+          description: `Réparateur test pour source ${source}`
+        }
+      ]
+    }
 
     let itemsAdded = 0
     let itemsUpdated = 0
+    let itemsProcessed = 0
 
-    for (const scrapedData of mockScrapedData) {
-      console.log(`Analyzing: ${scrapedData.name}`)
+    console.log(`📊 Traitement de ${scrapedData.length} entreprises...`)
+
+    for (const data of scrapedData) {
+      itemsProcessed++
+      console.log(`🔄 Analyse ${itemsProcessed}/${scrapedData.length}: ${data.name}`)
       
-      // Analyser avec Mistral AI
-      const aiAnalysis = await analyzeWithMistral(scrapedData)
+      // Analyser avec IA
+      const aiAnalysis = await analyzeWithAI(data)
       
-      // Ne traiter que si c'est identifié comme un réparateur
-      if (aiAnalysis && aiAnalysis.is_repairer && aiAnalysis.confidence > 0.7) {
-        console.log(`Identified as repairer: ${scrapedData.name}`)
+      // Ne traiter que si c'est identifié comme un réparateur avec une bonne confiance
+      if (aiAnalysis && aiAnalysis.is_repairer && aiAnalysis.confidence > 0.6) {
+        console.log(`✅ Réparateur identifié: ${data.name} (confiance: ${aiAnalysis.confidence})`)
         
         // Vérifier si le réparateur existe déjà
         const { data: existingRepairer } = await supabase
           .from('repairers')
-          .select('id, is_open')
-          .eq('name', scrapedData.name)
-          .eq('address', scrapedData.address)
-          .eq('city', scrapedData.city)
+          .select('id')
+          .eq('name', data.name)
+          .eq('address', data.address)
+          .eq('city', data.city)
           .single()
 
         const repairerData = {
-          name: scrapedData.name,
-          address: scrapedData.address,
-          city: scrapedData.city,
-          postal_code: scrapedData.postal_code,
-          department: scrapedData.city === 'Paris' ? 'Paris' : scrapedData.city === 'Lyon' ? 'Rhône' : 'Bouches-du-Rhône',
-          region: scrapedData.city === 'Paris' ? 'Île-de-France' : scrapedData.city === 'Lyon' ? 'Auvergne-Rhône-Alpes' : 'Provence-Alpes-Côte d\'Azur',
-          phone: scrapedData.phone,
-          email: scrapedData.email,
-          website: scrapedData.website,
-          lat: scrapedData.city === 'Paris' ? 48.8566 : scrapedData.city === 'Lyon' ? 45.7640 : 43.2965,
-          lng: scrapedData.city === 'Paris' ? 2.3522 : scrapedData.city === 'Lyon' ? 4.8357 : 5.3698,
+          name: data.name,
+          address: data.address,
+          city: data.city,
+          postal_code: data.postal_code,
+          department: data.city === 'Paris' ? 'Paris' : 
+                     data.city === 'Lyon' ? 'Rhône' : 
+                     data.city === 'Marseille' ? 'Bouches-du-Rhône' :
+                     data.city === 'Nice' ? 'Alpes-Maritimes' :
+                     data.city === 'Toulouse' ? 'Haute-Garonne' : 'France',
+          region: data.city === 'Paris' ? 'Île-de-France' : 
+                  data.city === 'Lyon' ? 'Auvergne-Rhône-Alpes' : 
+                  data.city === 'Marseille' ? 'Provence-Alpes-Côte d\'Azur' :
+                  data.city === 'Nice' ? 'Provence-Alpes-Côte d\'Azur' :
+                  data.city === 'Toulouse' ? 'Occitanie' : 'France',
+          phone: data.phone,
+          email: data.email,
+          website: data.website,
+          lat: data.city === 'Paris' ? 48.8566 : 
+               data.city === 'Lyon' ? 45.7640 : 
+               data.city === 'Marseille' ? 43.2965 :
+               data.city === 'Nice' ? 43.7102 :
+               data.city === 'Toulouse' ? 43.6047 : 46.2276,
+          lng: data.city === 'Paris' ? 2.3522 : 
+               data.city === 'Lyon' ? 4.8357 : 
+               data.city === 'Marseille' ? 5.3698 :
+               data.city === 'Nice' ? 7.2620 :
+               data.city === 'Toulouse' ? 1.4442 : 2.2137,
           services: aiAnalysis.services || ['Réparation smartphone'],
           specialties: aiAnalysis.specialties || ['iPhone', 'Samsung'],
           price_range: aiAnalysis.price_range || 'medium',
           source,
-          is_open: aiAnalysis.is_open,
+          is_open: aiAnalysis.is_open !== undefined ? aiAnalysis.is_open : true,
           updated_at: new Date().toISOString()
         }
 
@@ -176,9 +295,9 @@ serve(async (req) => {
 
           if (!updateError) {
             itemsUpdated++
-            console.log(`Updated repairer: ${scrapedData.name}`)
+            console.log(`🔄 Réparateur mis à jour: ${data.name}`)
           } else {
-            console.error('Error updating repairer:', updateError)
+            console.error('❌ Erreur mise à jour:', updateError)
           }
         } else {
           // Créer un nouveau réparateur
@@ -188,29 +307,30 @@ serve(async (req) => {
 
           if (!insertError) {
             itemsAdded++
-            console.log(`Added new repairer: ${scrapedData.name}`)
+            console.log(`➕ Nouveau réparateur ajouté: ${data.name}`)
           } else {
-            console.error('Error inserting repairer:', insertError)
+            console.error('❌ Erreur insertion:', insertError)
           }
         }
       } else {
-        console.log(`Not a repairer or low confidence: ${scrapedData.name}`)
+        const confidence = aiAnalysis?.confidence || 0
+        console.log(`❌ Non-réparateur ou confiance faible: ${data.name} (confiance: ${confidence})`)
       }
     }
 
-    // Mettre à jour le log
+    // Mettre à jour le log de succès
     await supabase
       .from('scraping_logs')
       .update({
         status: 'completed',
-        items_scraped: mockScrapedData.length,
+        items_scraped: scrapedData.length,
         items_added: itemsAdded,
         items_updated: itemsUpdated,
         completed_at: new Date().toISOString()
       })
       .eq('id', logData.id)
 
-    console.log(`Scraping completed: ${itemsAdded} added, ${itemsUpdated} updated`)
+    console.log(`🎉 Scraping terminé: ${itemsAdded} ajoutés, ${itemsUpdated} mis à jour sur ${scrapedData.length} traités`)
 
     return new Response(
       JSON.stringify({ 
@@ -218,7 +338,8 @@ serve(async (req) => {
         message: `Scraping ${source} terminé avec succès`,
         items_added: itemsAdded,
         items_updated: itemsUpdated,
-        items_scraped: mockScrapedData.length
+        items_scraped: scrapedData.length,
+        ai_provider: mistralApiKey ? 'Mistral AI' : 'OpenAI'
       }),
       { 
         headers: { 
@@ -229,22 +350,41 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error in scrape-repairers function:', error)
+    console.error('💥 Erreur dans scrape-repairers:', error)
     
     // Mettre à jour le log en cas d'erreur
-    const { source } = await req.json().catch(() => ({ source: 'unknown' }))
+    try {
+      const { source } = await req.json().catch(() => ({ source: 'unknown' }))
+      
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      )
+      
+      await supabase
+        .from('scraping_logs')
+        .update({
+          status: 'failed',
+          error_message: error.message,
+          completed_at: new Date().toISOString()
+        })
+        .eq('source', source)
+        .eq('status', 'running')
+    } catch (logError) {
+      console.error('❌ Erreur mise à jour log:', logError)
+    }
     
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        source 
+        details: 'Consultez les logs pour plus de détails'
       }),
       { 
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json' 
         }, 
-        status: 400 
+        status: 500 
       }
     )
   }

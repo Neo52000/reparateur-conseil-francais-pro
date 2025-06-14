@@ -50,26 +50,38 @@ export const useScrapingStatus = () => {
 
   const startScraping = async (source: string) => {
     try {
-      const { error } = await supabase.functions.invoke('scrape-repairers', {
+      console.log(`🚀 Démarrage du scraping pour: ${source}`);
+      
+      const { data, error } = await supabase.functions.invoke('scrape-repairers', {
         body: { source }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erreur Edge Function:', error);
+        throw error;
+      }
+
+      console.log('✅ Réponse Edge Function:', data);
 
       toast({
-        title: "Scraping démarré",
-        description: `Le scraping de ${source} a été lancé en arrière-plan.`
+        title: "✅ Scraping démarré",
+        description: `Le scraping de ${source} a été lancé avec succès. ${data?.ai_provider ? `IA utilisée: ${data.ai_provider}` : ''}`,
       });
 
       // Rafraîchir les logs après un délai
       setTimeout(fetchLogs, 2000);
+      
+      return data;
     } catch (error) {
-      console.error('Error starting scraping:', error);
+      console.error('💥 Erreur start scraping:', error);
+      
       toast({
-        title: "Erreur",
-        description: "Impossible de démarrer le scraping.",
+        title: "❌ Erreur de scraping",
+        description: error.message || "Impossible de démarrer le scraping. Vérifiez les logs.",
         variant: "destructive"
       });
+      
+      throw error;
     }
   };
 
@@ -78,12 +90,13 @@ export const useScrapingStatus = () => {
 
     // Écouter les changements en temps réel
     const subscription = supabase
-      .channel('scraping_logs')
+      .channel('scraping_logs_realtime')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'scraping_logs'
-      }, () => {
+      }, (payload) => {
+        console.log('🔄 Changement temps réel détecté:', payload);
         fetchLogs();
       })
       .subscribe();
