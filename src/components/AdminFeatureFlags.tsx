@@ -47,7 +47,7 @@ const FEATURES = [
   { key: "integrated_chat", name: "Chat intégré entre clients et réparateurs" },
   { key: "automatic_reminders", name: "Rappels automatiques" },
   { key: "client_support", name: "Support client" },
-  // ... fonctionnalités déjà listées précédemment (éviter les doublons si besoin) ...
+  // Fonctionnalités existantes
   { key: "parts_marketplace", name: "Marketplace de pièces détachées" },
   { key: "ai_prediag", name: "Pré-diagnostic IA" },
   { key: "time_slot_booking", name: "Prise de rendez-vous intelligente" },
@@ -55,7 +55,41 @@ const FEATURES = [
   { key: "analytics", name: "Rapports et analytics avancés" },
   { key: "referral_program", name: "Programme de parrainage" },
   { key: "billing_invoice", name: "Facturation intégrée" },
-  { key: "repair_tracking", name: "Suivi de réparation temps réel" }
+  { key: "repair_tracking", name: "Suivi de réparation temps réel" },
+  // Fonctionnalités écologiques
+  { key: "eco_score", name: "Score écologique des réparateurs" },
+  { key: "carbon_impact", name: "Calcul d'impact carbone évité" },
+  { key: "recycling_program", name: "Programme de recyclage des pièces" },
+  { key: "eco_certifications", name: "Certifications environnementales" },
+  { key: "green_parts", name: "Pièces reconditionnées et éco-responsables" },
+  { key: "sustainability_reports", name: "Rapports de durabilité" },
+  // Gamification et engagement
+  { key: "badges_system", name: "Système de badges et récompenses" },
+  { key: "monthly_rankings", name: "Classements mensuels des réparateurs" },
+  { key: "community_challenges", name: "Défis communautaires" },
+  { key: "ambassador_program", name: "Programme ambassadeur" },
+  { key: "achievement_unlocks", name: "Déblocage de réalisations" },
+  { key: "leaderboards", name: "Tableaux de classement interactifs" },
+  { key: "reward_points", name: "Système de points récompense" },
+  // Gestion multi-ateliers
+  { key: "multi_workshop_management", name: "Gestion multi-ateliers" },
+  { key: "centralized_inventory", name: "Inventaire centralisé multi-sites" },
+  { key: "inter_workshop_transfers", name: "Transferts entre ateliers" },
+  { key: "unified_reporting", name: "Rapports unifiés multi-ateliers" },
+  { key: "workshop_performance", name: "Performance par atelier" },
+  { key: "resource_allocation", name: "Allocation des ressources inter-ateliers" },
+  { key: "franchise_management", name: "Gestion de franchise" },
+  // Analyse avancée
+  { key: "predictive_analytics", name: "Analyse prédictive" },
+  { key: "market_trends", name: "Tendances de marché en temps réel" },
+  { key: "customer_behavior", name: "Analyse comportementale des clients" },
+  { key: "demand_forecasting", name: "Prévision de la demande" },
+  { key: "price_optimization", name: "Optimisation dynamique des prix" },
+  { key: "competitive_analysis", name: "Analyse concurrentielle" },
+  { key: "sentiment_analysis", name: "Analyse de sentiment des avis" },
+  { key: "custom_dashboards", name: "Tableaux de bord personnalisables" },
+  { key: "data_export", name: "Export de données avancé" },
+  { key: "real_time_metrics", name: "Métriques en temps réel" }
 ];
 
 interface FeatureFlag {
@@ -154,7 +188,12 @@ export default function AdminFeatureFlags() {
     <Card>
       <CardHeader>
         <CardTitle>Gestion des fonctionnalités par plan</CardTitle>
-        <div className="text-muted-foreground text-sm mt-1">Activez ou désactivez les différentes fonctionnalités pour chaque plan d’abonnement.</div>
+        <div className="text-muted-foreground text-sm mt-1">
+          Activez ou désactivez les différentes fonctionnalités pour chaque plan d'abonnement.
+          <div className="mt-2 text-xs font-medium">
+            📊 {FEATURES.length} fonctionnalités disponibles
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <Table>
