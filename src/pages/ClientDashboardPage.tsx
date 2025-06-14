@@ -9,6 +9,8 @@ const ClientDashboardPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('🎯 ClientDashboardPage state:', { loading, hasUser: !!user, role: profile?.role });
+    
     if (!loading) {
       console.log('ClientDashboardPage - User:', user?.id, 'Profile role:', profile?.role);
       
@@ -28,7 +30,11 @@ const ClientDashboardPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div>Chargement...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div>Chargement de votre espace client...</div>
+          <div className="text-sm text-gray-500 mt-2">Vérification de votre profil en cours</div>
+        </div>
       </div>
     );
   }

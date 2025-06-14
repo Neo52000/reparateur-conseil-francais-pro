@@ -10,7 +10,10 @@ const AdminPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('🎯 AdminPage state:', { loading, hasUser: !!user, isAdmin, role: profile?.role });
+    
     if (!loading && (!user || !isAdmin)) {
+      console.log('🚫 Unauthorized access to admin page, redirecting to home');
       navigate('/');
     }
   }, [user, isAdmin, loading, navigate]);
@@ -23,7 +26,11 @@ const AdminPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div>Chargement...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 mx-auto mb-4"></div>
+          <div>Chargement de l'espace administrateur...</div>
+          <div className="text-sm text-gray-500 mt-2">Vérification des permissions en cours</div>
+        </div>
       </div>
     );
   }
