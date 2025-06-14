@@ -50,16 +50,16 @@ const ScrapingResults = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"view" | "edit">("view");
   const [selectedRepairer, setSelectedRepairer] = useState<RepairerResult | null>(null);
-  // Nouveau state pour menu de changement de statut batch
   const [statusChangeOpen, setStatusChangeOpen] = useState(false);
-  // Supprime statusToSet, on passe le statut directement à la fonction
 
   useEffect(() => {
     loadResults();
   }, []);
 
   const loadResults = async () => {
+    console.log("[ScrapingResults] Chargement des résultats...");
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('repairers')
         .select('*')
@@ -68,7 +68,10 @@ const ScrapingResults = () => {
 
       if (error) throw error;
       console.log("[ScrapingResults] Données récupérées:", data);
-      setResults(data || []);
+      console.log("[ScrapingResults] Nombre de résultats:", data?.length || 0);
+      
+      // Force un nouveau tableau pour déclencher le re-render
+      setResults([...(data || [])]);
     } catch (error) {
       console.error('Error loading results:', error);
       toast({
@@ -84,12 +87,18 @@ const ScrapingResults = () => {
   const handleChangeStatusSelected = async (newStatus: "verified" | "unverified") => {
     if (!supabase || selectedItems.length === 0) return;
     const isVerified = newStatus === "verified";
+    
+    console.log("[ScrapingResults] Changement de statut:", { selectedItems, newStatus, isVerified });
+    
     try {
       const { error } = await supabase
         .from('repairers')
         .update({ is_verified: isVerified })
         .in('id', selectedItems);
+      
       if (error) throw error;
+
+      console.log("[ScrapingResults] Statut mis à jour avec succès");
 
       toast({
         title: "Modification du statut réussie",
@@ -98,8 +107,15 @@ const ScrapingResults = () => {
 
       setSelectedItems([]);
       setStatusChangeOpen(false);
-      loadResults();
+      
+      // Attendre un petit délai puis recharger
+      setTimeout(() => {
+        console.log("[ScrapingResults] Rechargement après mise à jour du statut");
+        loadResults();
+      }, 500);
+      
     } catch (error) {
+      console.error("[ScrapingResults] Erreur lors du changement de statut:", error);
       toast({
         title: "Erreur",
         description: "Impossible de modifier le statut.",
@@ -152,7 +168,7 @@ const ScrapingResults = () => {
       });
 
       setSelectedItems([]);
-      loadResults();
+      setTimeout(() => loadResults(), 500);
     } catch (error) {
       toast({
         title: "Erreur",
@@ -179,7 +195,7 @@ const ScrapingResults = () => {
       });
 
       setSelectedItems([]);
-      loadResults();
+      setTimeout(() => loadResults(), 500);
     } catch (error) {
       toast({
         title: "Erreur",
@@ -259,7 +275,6 @@ const ScrapingResults = () => {
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Vérifier
                 </Button>
-                {/* --- Bouton modifier le statut par lot --- */}
                 <div className="relative inline-block">
                   <Button
                     size="sm"
@@ -297,7 +312,6 @@ const ScrapingResults = () => {
                     </div>
                   )}
                 </div>
-                {/* --- fin nouveau bouton */}
                 <Button size="sm" variant="outline">
                   <Download className="h-4 w-4 mr-1" />
                   Exporter
@@ -466,7 +480,7 @@ const ScrapingResults = () => {
           </Table>
         </CardContent>
       </Card>
-      {/* Modal "voir / modifier" */}
+      
       <RepairerModal
         repairer={selectedRepairer}
         open={modalOpen}
