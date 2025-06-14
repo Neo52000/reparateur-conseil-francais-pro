@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,7 +51,12 @@ const ChatInterface = ({ conversationId, userType, subscription }: ChatInterface
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      // Type assertion to ensure sender_type matches our interface
+      const typedMessages = (data || []).map(msg => ({
+        ...msg,
+        sender_type: msg.sender_type as 'user' | 'repairer'
+      }));
+      setMessages(typedMessages);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -67,7 +71,11 @@ const ChatInterface = ({ conversationId, userType, subscription }: ChatInterface
         table: 'chat_messages',
         filter: `conversation_id=eq.${conversationId}`
       }, (payload) => {
-        setMessages(prev => [...prev, payload.new as Message]);
+        const newMsg = {
+          ...payload.new,
+          sender_type: payload.new.sender_type as 'user' | 'repairer'
+        } as Message;
+        setMessages(prev => [...prev, newMsg]);
       })
       .subscribe();
 
