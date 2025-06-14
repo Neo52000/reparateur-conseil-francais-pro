@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MapPin, Navigation } from 'lucide-react';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 // Mock data pour les réparateurs
 const mockRepairers = [
@@ -47,22 +49,121 @@ const mockRepairers = [
 
 const RepairersMap = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<any>(null);
-  const [mapboxToken, setMapboxToken] = useState('');
-  const [showTokenInput, setShowTokenInput] = useState(true);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const [mapboxToken, setMapboxToken] = useState('pk.eyJ1IjoicmVpbmU1MiIsImEiOiJjbGtwaWt0cmUxdnA1M2RvM3FwczNhanNsIn0.rBZMbfsCAqHl-FjytxpYYQ');
+  const [showTokenInput, setShowTokenInput] = useState(false);
   const [selectedRepairer, setSelectedRepairer] = useState<any>(null);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
   const initializeMap = () => {
-    if (!mapContainer.current || !mapboxToken) return;
+    if (!mapContainer.current || !mapboxToken || map.current) return;
 
-    // Simulated map initialization
-    console.log('Initializing map with token:', mapboxToken);
+    // Set the access token
+    mapboxgl.accessToken = mapboxToken;
     
-    // Hide token input once map is initialized
-    setShowTokenInput(false);
-    
-    // Mock map markers
-    console.log('Adding markers for repairers:', mockRepairers);
+    // Initialize the map
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [2.3522, 48.8566], // Paris center
+      zoom: 6
+    });
+
+    // Add navigation controls
+    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    // Add markers for each repairer
+    mockRepairers.forEach((repairer) => {
+      // Create a custom marker element
+      const markerElement = document.createElement('div');
+      markerElement.className = 'custom-marker';
+      markerElement.style.width = '30px';
+      markerElement.style.height = '30px';
+      markerElement.style.borderRadius = '50%';
+      markerElement.style.backgroundColor = '#3B82F6';
+      markerElement.style.border = '2px solid white';
+      markerElement.style.cursor = 'pointer';
+      markerElement.style.display = 'flex';
+      markerElement.style.alignItems = 'center';
+      markerElement.style.justifyContent = 'center';
+      markerElement.style.color = 'white';
+      markerElement.style.fontSize = '12px';
+      markerElement.style.fontWeight = 'bold';
+      markerElement.innerHTML = '📱';
+
+      // Create popup content
+      const popupContent = `
+        <div class="p-3">
+          <h3 class="font-semibold text-lg">${repairer.name}</h3>
+          <p class="text-sm text-gray-600 mb-2">${repairer.address}</p>
+          <div class="flex items-center mb-2">
+            <span class="text-yellow-500">★</span>
+            <span class="ml-1 text-sm">${repairer.rating} (${repairer.reviewCount} avis)</span>
+          </div>
+          <div class="text-sm">
+            <p><strong>Services:</strong> ${repairer.services.join(', ')}</p>
+            <p><strong>Prix:</strong> ${repairer.averagePrice}</p>
+            <p><strong>Temps de réponse:</strong> ${repairer.responseTime}</p>
+          </div>
+        </div>
+      `;
+
+      // Create popup
+      const popup = new mapboxgl.Popup({
+        offset: 25,
+        closeButton: true,
+        closeOnClick: false
+      }).setHTML(popupContent);
+
+      // Create marker and add to map
+      new mapboxgl.Marker(markerElement)
+        .setLngLat([repairer.lng, repairer.lat])
+        .setPopup(popup)
+        .addTo(map.current!);
+
+      // Add click event to marker
+      markerElement.addEventListener('click', () => {
+        setSelectedRepairer(repairer);
+      });
+    });
+
+    console.log('Map initialized with', mockRepairers.length, 'markers');
+  };
+
+  const getUserLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation([longitude, latitude]);
+          
+          if (map.current) {
+            // Add user location marker
+            const userMarker = document.createElement('div');
+            userMarker.className = 'user-location-marker';
+            userMarker.style.width = '20px';
+            userMarker.style.height = '20px';
+            userMarker.style.borderRadius = '50%';
+            userMarker.style.backgroundColor = '#10B981';
+            userMarker.style.border = '3px solid white';
+            userMarker.style.boxShadow = '0 0 0 2px #10B981';
+
+            new mapboxgl.Marker(userMarker)
+              .setLngLat([longitude, latitude])
+              .addTo(map.current);
+
+            // Center map on user location
+            map.current.flyTo({
+              center: [longitude, latitude],
+              zoom: 12
+            });
+          }
+        },
+        (error) => {
+          console.error('Error getting user location:', error);
+        }
+      );
+    }
   };
 
   useEffect(() => {
@@ -110,42 +211,14 @@ const RepairersMap = () => {
       <CardHeader className="pb-3">
         <div className="flex justify-between items-center">
           <CardTitle className="text-lg">Réparateurs à proximité</CardTitle>
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" onClick={getUserLocation}>
             <Navigation className="h-4 w-4 mr-2" />
             Ma position
           </Button>
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div ref={mapContainer} className="w-full h-[400px] bg-gray-100 rounded-lg relative">
-          {/* Mock map content */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center space-y-4">
-              <MapPin className="h-16 w-16 text-blue-600 mx-auto" />
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">Carte interactive</h3>
-                <p className="text-sm text-gray-600">
-                  {mockRepairers.length} réparateurs trouvés dans la zone
-                </p>
-              </div>
-              
-              {/* Mock markers */}
-              <div className="space-y-2">
-                {mockRepairers.map((repairer) => (
-                  <div 
-                    key={repairer.id}
-                    className="bg-white p-2 rounded shadow-sm border text-left cursor-pointer hover:bg-blue-50"
-                    onClick={() => setSelectedRepairer(repairer)}
-                  >
-                    <div className="font-medium text-sm">{repairer.name}</div>
-                    <div className="text-xs text-gray-600">{repairer.address}</div>
-                    <div className="text-xs text-yellow-600">★ {repairer.rating} ({repairer.reviewCount})</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <div ref={mapContainer} className="w-full h-[400px] bg-gray-100 rounded-lg" />
       </CardContent>
     </Card>
   );
