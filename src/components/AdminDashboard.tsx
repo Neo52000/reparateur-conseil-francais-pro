@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Plus, Edit } from 'lucide-react';
+import ScrapingControl from './ScrapingControl';
 
 interface SubscriptionData {
   id: string;
@@ -41,7 +41,7 @@ const AdminDashboard = () => {
   const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
   const [repairers, setRepairers] = useState<RepairerData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'subscriptions' | 'repairers'>('subscriptions');
+  const [activeTab, setActiveTab] = useState<'subscriptions' | 'repairers' | 'scraping'>('subscriptions');
   const [stats, setStats] = useState({
     totalSubscriptions: 0,
     activeSubscriptions: 0,
@@ -282,6 +282,16 @@ const AdminDashboard = () => {
         >
           Réparateurs
         </button>
+        <button
+          onClick={() => setActiveTab('scraping')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'scraping'
+              ? 'bg-white text-gray-900 shadow'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Scraping IA
+        </button>
       </div>
 
       {/* Content based on active tab */}
@@ -414,6 +424,39 @@ const AdminDashboard = () => {
             </Table>
           </CardContent>
         </Card>
+      )}
+
+      {activeTab === 'scraping' && (
+        <div className="space-y-6">
+          <ScrapingControl />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Configuration du Scraping IA</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <h3 className="font-medium text-blue-900 mb-2">Fonctionnalités du Scraping IA</h3>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Détection automatique de nouveaux réparateurs</li>
+                    <li>• Analyse IA des informations de contact et services</li>
+                    <li>• Détection des établissements fermés définitivement</li>
+                    <li>• Classification automatique des services proposés</li>
+                    <li>• Mise à jour des informations existantes</li>
+                  </ul>
+                </div>
+                
+                <div className="p-4 bg-orange-50 rounded-lg">
+                  <h3 className="font-medium text-orange-900 mb-2">Configuration requise</h3>
+                  <p className="text-sm text-orange-800">
+                    Pour utiliser cette fonctionnalité, une clé API OpenAI est nécessaire pour l'analyse IA des données scrapées.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

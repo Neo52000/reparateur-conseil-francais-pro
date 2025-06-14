@@ -310,6 +310,90 @@ export type Database = {
           },
         ]
       }
+      repairers: {
+        Row: {
+          address: string
+          city: string
+          created_at: string
+          department: string | null
+          email: string | null
+          id: string
+          is_open: boolean | null
+          is_verified: boolean | null
+          lat: number | null
+          lng: number | null
+          name: string
+          opening_hours: Json | null
+          phone: string | null
+          postal_code: string
+          price_range: string | null
+          rating: number | null
+          region: string | null
+          response_time: string | null
+          review_count: number | null
+          scraped_at: string
+          services: string[] | null
+          source: string
+          specialties: string[] | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address: string
+          city: string
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          id?: string
+          is_open?: boolean | null
+          is_verified?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          name: string
+          opening_hours?: Json | null
+          phone?: string | null
+          postal_code: string
+          price_range?: string | null
+          rating?: number | null
+          region?: string | null
+          response_time?: string | null
+          review_count?: number | null
+          scraped_at?: string
+          services?: string[] | null
+          source: string
+          specialties?: string[] | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string
+          city?: string
+          created_at?: string
+          department?: string | null
+          email?: string | null
+          id?: string
+          is_open?: boolean | null
+          is_verified?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          opening_hours?: Json | null
+          phone?: string | null
+          postal_code?: string
+          price_range?: string | null
+          rating?: number | null
+          region?: string | null
+          response_time?: string | null
+          review_count?: number | null
+          scraped_at?: string
+          services?: string[] | null
+          source?: string
+          specialties?: string[] | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           comment: string | null
@@ -347,6 +431,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      scraping_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          items_added: number | null
+          items_scraped: number | null
+          items_updated: number | null
+          source: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          items_added?: number | null
+          items_scraped?: number | null
+          items_updated?: number | null
+          source: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          items_added?: number | null
+          items_scraped?: number | null
+          items_updated?: number | null
+          source?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
       }
       subscription_plans: {
         Row: {
