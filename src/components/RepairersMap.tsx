@@ -1,18 +1,21 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMapbox } from '@/hooks/useMapbox';
 import { useGeolocation } from '@/hooks/useGeolocation';
-import { MOCK_REPAIRERS } from '@/constants/repairers';
 import MapboxTokenInput from './MapboxTokenInput';
 import MapControls from './MapControls';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { useRepairers } from '@/hooks/useRepairers';
+import { RepairerDB } from '@/lib/supabase';
 
 const RepairersMap = () => {
   const [mapboxToken, setMapboxToken] = useState('pk.eyJ1IjoicmVpbmU1MiIsImEiOiJjbGtwaWt0cmUxdnA1M2RvM3FwczNhanNsIn0.rBZMbfsCAqHl-FjytxpYYQ');
   const [showTokenInput, setShowTokenInput] = useState(false);
+  const [searchFilters, setSearchFilters] = useState({});
 
-  const { mapContainer, map, selectedRepairer, initializeMap } = useMapbox(mapboxToken, MOCK_REPAIRERS);
+  // Utiliser les vraies données Supabase au lieu des données mockées
+  const { repairers, loading } = useRepairers(searchFilters);
+  const { mapContainer, map, selectedRepairer, initializeMap } = useMapbox(mapboxToken, repairers);
   const { userLocation, isLocating, getUserLocation } = useGeolocation(map);
 
   const handleInitialize = () => {

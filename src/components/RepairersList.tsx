@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,73 +11,18 @@ import {
   ExternalLink,
   Heart
 } from 'lucide-react';
+import { useRepairers } from '@/hooks/useRepairers';
+import { RepairerDB } from '@/lib/supabase';
 
 interface RepairersListProps {
   compact?: boolean;
+  filters?: any;
 }
 
-// Mock data étendue
-const mockRepairers = [
-  {
-    id: 1,
-    name: "TechFix Pro",
-    address: "123 Rue de la République, 75001 Paris",
-    distance: "0.5 km",
-    rating: 4.8,
-    reviewCount: 245,
-    services: ["iPhone", "Samsung", "iPad", "Xiaomi"],
-    specialties: ["Écran", "Batterie", "Réparation eau"],
-    priceRange: "€€",
-    responseTime: "< 1h",
-    isOpen: true,
-    openUntil: "19h00",
-    phone: "01 42 36 54 78",
-    website: "www.techfixpro.fr",
-    image: "/placeholder.svg",
-    verified: true,
-    promotions: ["Premier diagnostic gratuit"]
-  },
-  {
-    id: 2,
-    name: "Mobile Repair Center",
-    address: "45 Avenue Victor Hugo, 69002 Lyon",
-    distance: "1.2 km",
-    rating: 4.6,
-    reviewCount: 182,
-    services: ["iPhone", "Huawei", "OnePlus", "Google Pixel"],
-    specialties: ["Connecteur", "Caméra", "Haut-parleur"],
-    priceRange: "€",
-    responseTime: "< 2h",
-    isOpen: true,
-    openUntil: "18h30",
-    phone: "04 78 92 45 67",
-    website: "www.mobilerepair-lyon.fr",
-    image: "/placeholder.svg",
-    verified: true,
-    promotions: []
-  },
-  {
-    id: 3,
-    name: "QuickFix Mobile",
-    address: "78 Boulevard de la Canebière, 13001 Marseille",
-    distance: "2.1 km",
-    rating: 4.9,
-    reviewCount: 156,
-    services: ["iPhone", "Samsung", "Google Pixel", "Nothing"],
-    specialties: ["Réparation express", "Pièces premium"],
-    priceRange: "€€€",
-    responseTime: "< 30min",
-    isOpen: false,
-    openUntil: "Fermé - Ouvre à 9h00",
-    phone: "04 91 54 32 18",
-    website: "www.quickfix-marseille.com",
-    image: "/placeholder.svg",
-    verified: true,
-    promotions: ["Garantie 2 ans", "Réparation en 30min"]
-  }
-];
+const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters }) => {
+  // Utiliser les vraies données Supabase
+  const { repairers, loading, error } = useRepairers(filters);
 
-const RepairersList: React.FC<RepairersListProps> = ({ compact = false }) => {
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center">
@@ -95,17 +39,15 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false }) => {
     );
   };
 
-  const RepairerCard = ({ repairer }: { repairer: any }) => (
+  const RepairerCard = ({ repairer }: { repairer: RepairerDB }) => (
     <Card className="hover:shadow-lg transition-shadow">
       <CardContent className="p-4">
         <div className="flex space-x-4">
           {/* Image */}
           <div className="flex-shrink-0">
-            <img
-              src={repairer.image}
-              alt={repairer.name}
-              className="w-16 h-16 bg-gray-200 rounded-lg object-cover"
-            />
+            <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">📱</span>
+            </div>
           </div>
 
           {/* Main Content */}
@@ -116,24 +58,25 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false }) => {
                   <h3 className="text-lg font-semibold text-gray-900 truncate">
                     {repairer.name}
                   </h3>
-                  {repairer.verified && (
+                  {repairer.is_verified && (
                     <Badge variant="secondary" className="text-xs">
                       Vérifié
                     </Badge>
                   )}
                 </div>
                 
-                <div className="flex items-center mt-1">
-                  {renderStars(repairer.rating)}
-                  <span className="ml-2 text-sm text-gray-600">
-                    {repairer.reviewCount} avis
-                  </span>
-                </div>
+                {repairer.rating && (
+                  <div className="flex items-center mt-1">
+                    {renderStars(repairer.rating)}
+                    <span className="ml-2 text-sm text-gray-600">
+                      {repairer.review_count || 0} avis
+                    </span>
+                  </div>
+                )}
 
                 <div className="flex items-center mt-2 text-sm text-gray-600">
                   <MapPin className="h-4 w-4 mr-1" />
-                  <span className="truncate">{repairer.address}</span>
-                  <span className="ml-2 font-medium">{repairer.distance}</span>
+                  <span className="truncate">{repairer.address}, {repairer.city}</span>
                 </div>
 
                 {/* Services */}
@@ -152,30 +95,25 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false }) => {
 
                 {/* Quick Info */}
                 <div className="flex items-center space-x-4 mt-3 text-sm">
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1 text-green-600" />
-                    <span className="text-green-600">{repairer.responseTime}</span>
-                  </div>
+                  {repairer.response_time && (
+                    <div className="flex items-center">
+                      <Clock className="h-4 w-4 mr-1 text-green-600" />
+                      <span className="text-green-600">{repairer.response_time}</span>
+                    </div>
+                  )}
                   <div className="flex items-center">
                     <Euro className="h-4 w-4 mr-1 text-gray-600" />
-                    <span className="text-gray-600">{repairer.priceRange}</span>
+                    <span className="text-gray-600">
+                      {repairer.price_range === 'low' ? '€' : repairer.price_range === 'medium' ? '€€' : '€€€'}
+                    </span>
                   </div>
-                  <div className={`flex items-center ${repairer.isOpen ? 'text-green-600' : 'text-red-600'}`}>
-                    <div className={`w-2 h-2 rounded-full mr-1 ${repairer.isOpen ? 'bg-green-600' : 'bg-red-600'}`} />
-                    <span className="text-xs">{repairer.openUntil}</span>
-                  </div>
+                  {repairer.is_open !== undefined && (
+                    <div className={`flex items-center ${repairer.is_open ? 'text-green-600' : 'text-red-600'}`}>
+                      <div className={`w-2 h-2 rounded-full mr-1 ${repairer.is_open ? 'bg-green-600' : 'bg-red-600'}`} />
+                      <span className="text-xs">{repairer.is_open ? 'Ouvert' : 'Fermé'}</span>
+                    </div>
+                  )}
                 </div>
-
-                {/* Promotions */}
-                {repairer.promotions.length > 0 && (
-                  <div className="mt-2">
-                    {repairer.promotions.map((promo: string, index: number) => (
-                      <Badge key={index} className="mr-1 bg-orange-100 text-orange-800 text-xs">
-                        {promo}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
               </div>
 
               {/* Actions */}
@@ -183,10 +121,12 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false }) => {
                 <Button size="sm">
                   Voir profil
                 </Button>
-                <Button size="sm" variant="outline">
-                  <Phone className="h-4 w-4 mr-1" />
-                  Appeler
-                </Button>
+                {repairer.phone && (
+                  <Button size="sm" variant="outline">
+                    <Phone className="h-4 w-4 mr-1" />
+                    Appeler
+                  </Button>
+                )}
                 {!compact && (
                   <Button size="sm" variant="ghost">
                     <Heart className="h-4 w-4" />
@@ -200,12 +140,44 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false }) => {
     </Card>
   );
 
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <Card key={i} className="animate-pulse">
+            <CardContent className="p-4">
+              <div className="flex space-x-4">
+                <div className="w-16 h-16 bg-gray-200 rounded-lg"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-full"></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-4 text-center">
+          <p className="text-red-600">Erreur lors du chargement des réparateurs</p>
+          <p className="text-sm text-gray-500 mt-2">{error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {compact && (
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold text-gray-900">
-            {mockRepairers.length} réparateurs trouvés
+            {repairers.length} réparateurs trouvés
           </h3>
           <Button variant="outline" size="sm">
             <ExternalLink className="h-4 w-4 mr-1" />
@@ -214,11 +186,20 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false }) => {
         </div>
       )}
 
-      {mockRepairers.map((repairer) => (
-        <RepairerCard key={repairer.id} repairer={repairer} />
-      ))}
+      {repairers.length === 0 ? (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p className="text-gray-500">Aucun réparateur trouvé pour cette recherche</p>
+            <p className="text-sm text-gray-400 mt-2">Essayez d'élargir vos critères de recherche</p>
+          </CardContent>
+        </Card>
+      ) : (
+        repairers.map((repairer) => (
+          <RepairerCard key={repairer.id} repairer={repairer} />
+        ))
+      )}
 
-      {!compact && (
+      {!compact && repairers.length > 0 && (
         <div className="text-center py-6">
           <Button variant="outline">
             Charger plus de résultats
