@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -12,6 +11,43 @@ type PlanName = "Gratuit" | "Basique" | "Premium" | "Enterprise";
 const PLANS: PlanName[] = ["Gratuit", "Basique", "Premium", "Enterprise"];
 
 const FEATURES = [
+  // Fonctionnalités implémentées
+  { key: "search_brand_model", name: "Recherche par marque ET modèle spécifique" },
+  { key: "filter_issue_type", name: "Filtres par type de panne" },
+  { key: "geolocation", name: "Géolocalisation automatique" },
+  { key: "sorting_advanced", name: "Tri par distance, prix, délai ou note" },
+  // Fonctionnalités client
+  { key: "client_dashboard", name: "Espace client complet avec tableau de bord" },
+  { key: "repair_history", name: "Historique des réparations" },
+  { key: "appointments_management", name: "Gestion des rendez-vous" },
+  { key: "favorites_system", name: "Système de favoris" },
+  { key: "loyalty_program", name: "Programme de fidélité avec points" },
+  // Système de tarification
+  { key: "price_comparator", name: "Comparateur de prix entre réparateurs" },
+  { key: "market_analysis", name: "Analyse du marché avec statistiques" },
+  { key: "public_pricing_grid", name: "Grille tarifaire publique" },
+  { key: "savings_calculator", name: "Calcul d'économies par rapport à la moyenne" },
+  // Outils pour réparateurs
+  { key: "repairer_dashboard", name: "Tableau de bord réparateur complet" },
+  { key: "orders_management", name: "Gestion des commandes avec statuts" },
+  { key: "billing_system", name: "Système de facturation intégré" },
+  { key: "parts_inventory", name: "Gestion des stocks de pièces" },
+  { key: "repair_scheduling", name: "Planification des réparations" },
+  // Analyse et reporting
+  { key: "performance_stats", name: "Statistiques de performance" },
+  { key: "financial_reports", name: "Rapports financiers (CA, marge)" },
+  { key: "business_dashboards", name: "Tableaux de bord métier" },
+  { key: "detailed_analytics", name: "Analytics détaillé" },
+  // Authentification et profils
+  { key: "personal_spaces", name: "Espaces personnels clients et réparateurs" },
+  { key: "review_system", name: "Système de revues et notes" },
+  { key: "profiles_history", name: "Profils complets avec historique" },
+  // Communication
+  { key: "realtime_notifications", name: "Système de notifications en temps réel" },
+  { key: "integrated_chat", name: "Chat intégré entre clients et réparateurs" },
+  { key: "automatic_reminders", name: "Rappels automatiques" },
+  { key: "client_support", name: "Support client" },
+  // ... fonctionnalités déjà listées précédemment (éviter les doublons si besoin) ...
   { key: "parts_marketplace", name: "Marketplace de pièces détachées" },
   { key: "ai_prediag", name: "Pré-diagnostic IA" },
   { key: "time_slot_booking", name: "Prise de rendez-vous intelligente" },
@@ -19,8 +55,7 @@ const FEATURES = [
   { key: "analytics", name: "Rapports et analytics avancés" },
   { key: "referral_program", name: "Programme de parrainage" },
   { key: "billing_invoice", name: "Facturation intégrée" },
-  { key: "repair_tracking", name: "Suivi de réparation temps réel" },
-  // Ajouter ici les nouvelles fonctionnalités si besoin
+  { key: "repair_tracking", name: "Suivi de réparation temps réel" }
 ];
 
 interface FeatureFlag {
