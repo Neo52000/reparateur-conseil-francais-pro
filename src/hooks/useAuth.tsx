@@ -11,6 +11,16 @@ interface Profile {
   role: string | null;
 }
 
+interface UserSignUpData {
+  first_name?: string;
+  last_name?: string;
+  role?: string;
+  phone?: string;
+  business_name?: string;
+  address?: string;
+  website?: string;
+}
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -66,7 +76,7 @@ export const useAuth = () => {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, userData?: { first_name?: string; last_name?: string; role?: string }) => {
+  const signUp = async (email: string, password: string, userData?: UserSignUpData) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
