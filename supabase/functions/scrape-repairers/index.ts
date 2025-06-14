@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -276,7 +275,9 @@ serve(async (req) => {
           .eq('name', data.name)
           .eq('address', data.address)
           .eq('city', data.city)
-          .single()
+          .maybeSingle();
+
+        const now = new Date().toISOString();
 
         const repairerData = {
           name: data.name,
@@ -311,8 +312,11 @@ serve(async (req) => {
           price_range: aiAnalysis.price_range || 'medium',
           source,
           is_open: aiAnalysis.is_open !== undefined ? aiAnalysis.is_open : true,
-          updated_at: new Date().toISOString()
-        }
+          scraped_at: now, // <-- SCRAPED_AT à maintenant (critique pour le front)
+          updated_at: now
+        };
+
+        console.log('📝 Données à sauvegarder:', repairerData)
 
         if (existingRepairer) {
           // Mettre à jour le réparateur existant
