@@ -50,6 +50,9 @@ const ScrapingResults = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"view" | "edit">("view");
   const [selectedRepairer, setSelectedRepairer] = useState<RepairerResult | null>(null);
+  // Nouveau state pour menu de changement de statut batch
+  const [statusChangeOpen, setStatusChangeOpen] = useState(false);
+  const [statusToSet, setStatusToSet] = useState<"verified" | "unverified" | null>(null);
 
   useEffect(() => {
     loadResults();
@@ -75,6 +78,36 @@ const ScrapingResults = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // --- Nouvelle fonction de changement de statut par lot ---
+  const handleChangeStatusSelected = async () => {
+    if (!supabase || selectedItems.length === 0 || statusToSet === null) return;
+    const newStatus = statusToSet === "verified";
+    try {
+      const { error } = await supabase
+        .from('repairers')
+        .update({ is_verified: newStatus })
+        .in('id', selectedItems);
+
+      if (error) throw error;
+
+      toast({
+        title: "Modification du statut réussie",
+        description: `${selectedItems.length} entreprise(s) ${newStatus ? "vérifiées" : "remises en attente"}.`
+      });
+
+      setSelectedItems([]);
+      setStatusChangeOpen(false);
+      setStatusToSet(null);
+      loadResults();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le statut.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -229,6 +262,51 @@ const ScrapingResults = () => {
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Vérifier
                 </Button>
+                {/* --- Bouton modifier le statut par lot --- */}
+                <div className="relative inline-block">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setStatusChangeOpen((v) => !v)}
+                  >
+                    <XCircle className="h-4 w-4 mr-1" />
+                    Changer le statut
+                  </Button>
+                  {statusChangeOpen && (
+                    <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded shadow z-50">
+                      <button
+                        className="flex items-center w-full px-4 py-2 hover:bg-gray-50 text-green-700"
+                        type="button"
+                        onClick={() => {
+                          setStatusToSet("verified");
+                          setTimeout(handleChangeStatusSelected, 100); // tirer la màj après setState
+                        }}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Marquer comme vérifié
+                      </button>
+                      <button
+                        className="flex items-center w-full px-4 py-2 hover:bg-gray-50 text-gray-700"
+                        type="button"
+                        onClick={() => {
+                          setStatusToSet("unverified");
+                          setTimeout(handleChangeStatusSelected, 100);
+                        }}
+                      >
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Remettre en attente
+                      </button>
+                      <button
+                        className="flex items-center w-full px-4 py-2 hover:bg-gray-50 text-gray-500"
+                        type="button"
+                        onClick={() => setStatusChangeOpen(false)}
+                      >
+                        Annuler
+                      </button>
+                    </div>
+                  )}
+                </div>
+                {/* --- fin nouveau bouton */}
                 <Button size="sm" variant="outline">
                   <Download className="h-4 w-4 mr-1" />
                   Exporter
