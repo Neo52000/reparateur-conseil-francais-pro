@@ -72,7 +72,6 @@ export const useAuth = () => {
           if (mounted) {
             setProfile(profileData);
             console.log('📝 Profile set:', profileData);
-            console.log('🔑 Is Admin?', profileData?.role === 'admin');
           }
         } catch (error) {
           console.error('💥 Error in profile fetch:', error);
@@ -87,9 +86,10 @@ export const useAuth = () => {
         }
       }
       
+      // Important: Always set loading to false after processing
       if (mounted) {
         setLoading(false);
-        console.log('✅ Auth loading complete');
+        console.log('✅ Auth loading complete', { hasUser: !!session?.user, hasProfile: !!profile });
       }
     };
 
@@ -118,6 +118,9 @@ export const useAuth = () => {
       } catch (error) {
         console.error('💥 Exception during session check:', error);
         if (mounted) {
+          setUser(null);
+          setSession(null);
+          setProfile(null);
           setLoading(false);
         }
       }
@@ -134,16 +137,28 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     console.log('🔐 Attempting sign in for:', email);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) {
-      console.error('❌ Sign in error:', error);
-    } else {
-      console.log('✅ Sign in successful');
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('❌ Sign in error:', error);
+        setLoading(false);
+      } else {
+        console.log('✅ Sign in successful');
+        // Loading will be set to false by the auth state change handler
+      }
+      
+      return { error };
+    } catch (error) {
+      console.error('💥 Exception during sign in:', error);
+      setLoading(false);
+      return { error };
     }
-    return { error };
   };
 
   const signUp = async (email: string, password: string, userData?: UserSignUpData) => {

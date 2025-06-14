@@ -9,7 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Shield, Lock, Mail } from 'lucide-react';
 
 const AdminAuthForm = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('reine.elie@gmail.com');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -114,9 +114,13 @@ const AdminAuthForm = () => {
             </Button>
           </form>
           
-          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-            <p className="text-sm text-yellow-800">
-              <strong>Accès réservé :</strong> Seuls les administrateurs autorisés peuvent accéder à cette interface.
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-sm text-blue-800 mb-2">
+              <strong>Compte de test :</strong>
+            </p>
+            <p className="text-xs text-blue-600">
+              Email: reine.elie@gmail.com<br/>
+              Mot de passe: Rpadfhq3@52
             </p>
           </div>
         </CardContent>
