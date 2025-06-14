@@ -1,29 +1,20 @@
 
-import React, { useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import React from 'react';
 import AdminDashboard from '@/components/AdminDashboard';
-import AdminAuthForm from '@/components/AdminAuthForm';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const AdminPage = () => {
-  const { user, profile, loading, signOut, isAdmin } = useAuth();
+  const navigate = useNavigate();
 
-  console.log('🔧 AdminPage render:', { 
-    hasUser: !!user, 
-    profile: profile ? { role: profile.role, email: profile.email } : null, 
-    loading, 
-    isAdmin 
-  });
-
-  const handleSignOut = async () => {
-    console.log('👋 Admin signing out...');
-    await signOut();
+  const handleFakeSignOut = () => {
+    // Nettoie tout trace d'auth Supabase local (juste au cas où - safe to no-op si non connecté)
+    localStorage.removeItem('supabase.auth.token');
+    sessionStorage.removeItem('supabase.auth.token');
+    // Redirige vers la page d'accueil
+    navigate('/');
   };
 
-  // ACCÈS TEMPORAIRE SANS AUTHENTIFICATION
-  // TODO: Remettre l'authentification plus tard
-  console.log('⚠️ ACCÈS ADMIN TEMPORAIRE ACTIVÉ - PAS D\'AUTHENTIFICATION REQUISE');
-  
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -38,15 +29,12 @@ const AdminPage = () => {
                 ⚠️ Mode développement - Authentification désactivée
               </div>
             </div>
-            {user && (
-              <Button onClick={handleSignOut} variant="outline">
-                Déconnexion
-              </Button>
-            )}
+            <Button onClick={handleFakeSignOut} variant="outline">
+              Déconnexion
+            </Button>
           </div>
         </div>
       </header>
-      
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <AdminDashboard />
       </main>
