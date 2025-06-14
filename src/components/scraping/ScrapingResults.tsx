@@ -52,7 +52,7 @@ const ScrapingResults = () => {
   const [selectedRepairer, setSelectedRepairer] = useState<RepairerResult | null>(null);
   // Nouveau state pour menu de changement de statut batch
   const [statusChangeOpen, setStatusChangeOpen] = useState(false);
-  const [statusToSet, setStatusToSet] = useState<"verified" | "unverified" | null>(null);
+  // Supprime statusToSet, on passe le statut directement à la fonction
 
   useEffect(() => {
     loadResults();
@@ -81,26 +81,23 @@ const ScrapingResults = () => {
     }
   };
 
-  // --- Nouvelle fonction de changement de statut par lot ---
-  const handleChangeStatusSelected = async () => {
-    if (!supabase || selectedItems.length === 0 || statusToSet === null) return;
-    const newStatus = statusToSet === "verified";
+  const handleChangeStatusSelected = async (newStatus: "verified" | "unverified") => {
+    if (!supabase || selectedItems.length === 0) return;
+    const isVerified = newStatus === "verified";
     try {
       const { error } = await supabase
         .from('repairers')
-        .update({ is_verified: newStatus })
+        .update({ is_verified: isVerified })
         .in('id', selectedItems);
-
       if (error) throw error;
 
       toast({
         title: "Modification du statut réussie",
-        description: `${selectedItems.length} entreprise(s) ${newStatus ? "vérifiées" : "remises en attente"}.`
+        description: `${selectedItems.length} entreprise(s) ${isVerified ? "vérifiées" : "remises en attente"}.`
       });
 
       setSelectedItems([]);
       setStatusChangeOpen(false);
-      setStatusToSet(null);
       loadResults();
     } catch (error) {
       toast({
@@ -277,10 +274,7 @@ const ScrapingResults = () => {
                       <button
                         className="flex items-center w-full px-4 py-2 hover:bg-gray-50 text-green-700"
                         type="button"
-                        onClick={() => {
-                          setStatusToSet("verified");
-                          setTimeout(handleChangeStatusSelected, 100); // tirer la màj après setState
-                        }}
+                        onClick={() => handleChangeStatusSelected("verified")}
                       >
                         <CheckCircle className="h-4 w-4 mr-2" />
                         Marquer comme vérifié
@@ -288,10 +282,7 @@ const ScrapingResults = () => {
                       <button
                         className="flex items-center w-full px-4 py-2 hover:bg-gray-50 text-gray-700"
                         type="button"
-                        onClick={() => {
-                          setStatusToSet("unverified");
-                          setTimeout(handleChangeStatusSelected, 100);
-                        }}
+                        onClick={() => handleChangeStatusSelected("unverified")}
                       >
                         <XCircle className="h-4 w-4 mr-2" />
                         Remettre en attente
