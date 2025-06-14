@@ -9,21 +9,23 @@ const RepairerDashboardPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('🎯 RepairerDashboardPage state:', { loading, hasUser: !!user, role: profile?.role });
+    if (loading) return;
     
-    if (!loading) {
-      console.log('RepairerDashboardPage - User:', user?.id, 'Profile role:', profile?.role);
-      
-      if (!user) {
-        console.log('No user, redirecting to repairer auth');
-        navigate('/repairer/auth');
-      } else if (profile && profile.role === 'client') {
-        console.log('User is client, redirecting to client dashboard');
+    if (!user) {
+      navigate('/repairer/auth');
+      return;
+    }
+
+    // Si l'utilisateur a un rôle mais n'est pas réparateur
+    if (profile?.role && profile.role !== 'repairer') {
+      if (profile.role === 'client') {
         navigate('/client');
-      } else if (profile && profile.role !== 'repairer' && profile.role !== null) {
-        console.log('User has invalid role for repairer space:', profile.role);
+      } else if (profile.role === 'admin') {
+        navigate('/admin');
+      } else {
         navigate('/');
       }
+      return;
     }
   }, [user, loading, profile, navigate]);
 
@@ -33,7 +35,6 @@ const RepairerDashboardPage = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
           <div>Chargement de votre espace réparateur...</div>
-          <div className="text-sm text-gray-500 mt-2">Vérification de votre profil en cours</div>
         </div>
       </div>
     );
@@ -43,12 +44,7 @@ const RepairerDashboardPage = () => {
     return null;
   }
 
-  // Si l'utilisateur est connecté mais n'a pas encore de profil ou a le bon rôle
-  if (!profile || profile.role === 'repairer' || profile.role === null) {
-    return <RepairerDashboard />;
-  }
-
-  return null;
+  return <RepairerDashboard />;
 };
 
 export default RepairerDashboardPage;

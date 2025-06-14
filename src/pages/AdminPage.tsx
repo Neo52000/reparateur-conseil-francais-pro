@@ -10,13 +10,25 @@ const AdminPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('🎯 AdminPage state:', { loading, hasUser: !!user, isAdmin, role: profile?.role });
-    
-    if (!loading && (!user || !isAdmin)) {
-      console.log('🚫 Unauthorized access to admin page, redirecting to home');
+    if (loading) return;
+
+    if (!user) {
       navigate('/');
+      return;
     }
-  }, [user, isAdmin, loading, navigate]);
+
+    if (!isAdmin) {
+      // Rediriger selon le rôle
+      if (profile?.role === 'client') {
+        navigate('/client');
+      } else if (profile?.role === 'repairer') {
+        navigate('/repairer');
+      } else {
+        navigate('/');
+      }
+      return;
+    }
+  }, [user, isAdmin, loading, profile, navigate]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -29,7 +41,6 @@ const AdminPage = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 mx-auto mb-4"></div>
           <div>Chargement de l'espace administrateur...</div>
-          <div className="text-sm text-gray-500 mt-2">Vérification des permissions en cours</div>
         </div>
       </div>
     );

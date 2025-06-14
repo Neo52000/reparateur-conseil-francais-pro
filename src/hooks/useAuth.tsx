@@ -29,7 +29,6 @@ export const useAuth = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      console.log('🔍 Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -37,20 +36,18 @@ export const useAuth = () => {
         .single();
       
       if (error) {
-        console.error('❌ Error fetching profile:', error);
+        console.error('Error fetching profile:', error);
         return null;
       }
       
-      console.log('✅ Profile fetched successfully:', data);
       return data;
     } catch (error) {
-      console.error('💥 Exception fetching profile:', error);
+      console.error('Exception fetching profile:', error);
       return null;
     }
   };
 
   useEffect(() => {
-    console.log('🚀 Initializing auth system...');
     let isSubscriptionActive = true;
     
     // Set up auth state listener
@@ -58,78 +55,55 @@ export const useAuth = () => {
       async (event, session) => {
         if (!isSubscriptionActive) return;
         
-        console.log('🔄 Auth state change:', event, 'User ID:', session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          console.log('👤 User found, fetching profile...');
           const profileData = await fetchProfile(session.user.id);
           if (isSubscriptionActive) {
             setProfile(profileData);
-            console.log('📋 Profile set:', profileData?.role || 'no role');
           }
         } else {
-          console.log('👤 No user, clearing profile');
           if (isSubscriptionActive) {
             setProfile(null);
           }
         }
         
         if (isSubscriptionActive) {
-          console.log('✅ Auth loading complete');
           setLoading(false);
         }
       }
     );
 
-    // Check for existing session with timeout
+    // Check for existing session
     const initializeAuth = async () => {
       try {
-        console.log('🔍 Checking for existing session...');
-        
-        // Add a timeout to prevent infinite loading
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Session check timeout')), 10000);
-        });
-        
-        const sessionPromise = supabase.auth.getSession();
-        
-        const { data: { session }, error } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]) as any;
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (!isSubscriptionActive) return;
         
         if (error) {
-          console.error('❌ Error getting session:', error);
+          console.error('Error getting session:', error);
           setLoading(false);
           return;
         }
-        
-        console.log('📱 Initial session check:', session?.user?.id || 'No session');
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          console.log('👤 Initial user found, fetching profile...');
           const profileData = await fetchProfile(session.user.id);
           if (isSubscriptionActive) {
             setProfile(profileData);
-            console.log('📋 Initial profile set:', profileData?.role || 'no role');
           }
         }
         
         if (isSubscriptionActive) {
-          console.log('✅ Initial auth check complete');
           setLoading(false);
         }
       } catch (error) {
-        console.error('💥 Exception during auth initialization:', error);
+        console.error('Exception during auth initialization:', error);
         if (isSubscriptionActive) {
-          console.log('⚠️ Setting loading to false due to error');
           setLoading(false);
         }
       }
@@ -138,28 +112,20 @@ export const useAuth = () => {
     initializeAuth();
 
     return () => {
-      console.log('🧹 Cleaning up auth subscription');
       isSubscriptionActive = false;
       subscription.unsubscribe();
     };
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    console.log('🔐 Attempting sign in for:', email);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    if (error) {
-      console.error('❌ Sign in error:', error);
-    } else {
-      console.log('✅ Sign in successful');
-    }
     return { error };
   };
 
   const signUp = async (email: string, password: string, userData?: UserSignUpData) => {
-    console.log('📝 Attempting sign up for:', email);
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -170,34 +136,15 @@ export const useAuth = () => {
         data: userData
       }
     });
-    if (error) {
-      console.error('❌ Sign up error:', error);
-    } else {
-      console.log('✅ Sign up successful');
-    }
     return { error };
   };
 
   const signOut = async () => {
-    console.log('🚪 Signing out...');
     const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('❌ Sign out error:', error);
-    } else {
-      console.log('✅ Sign out successful');
-    }
     return { error };
   };
 
   const isAdmin = profile?.role === 'admin';
-
-  console.log('🎯 Current auth state:', {
-    loading,
-    hasUser: !!user,
-    hasProfile: !!profile,
-    role: profile?.role,
-    isAdmin
-  });
 
   return {
     user,
