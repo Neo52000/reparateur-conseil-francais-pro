@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import RepairerModal from "./RepairerModal";
 import ScrapingFilters from './ScrapingFilters';
 import ScrapingBulkActions from './ScrapingBulkActions';
@@ -23,6 +24,7 @@ interface RepairerResult {
 
 const ScrapingResults = () => {
   const { toast } = useToast();
+  const { user, session, isAdmin } = useAuth();
   const [results, setResults] = useState<RepairerResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,7 +32,7 @@ const ScrapingResults = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"view" | "edit">("view");
+  const [modalMode, setModalMode<"view" | "edit">("view");
   const [selectedRepairer, setSelectedRepairer] = useState<RepairerResult | null>(null);
 
   useEffect(() => {
@@ -68,7 +70,38 @@ const ScrapingResults = () => {
     }
   };
 
+  const checkAuthAndPermissions = () => {
+    console.log("[ScrapingResults] Vérification auth:", { 
+      user: !!user, 
+      session: !!session, 
+      isAdmin,
+      userId: user?.id 
+    });
+
+    if (!user || !session) {
+      toast({
+        title: "Non authentifié",
+        description: "Vous devez être connecté pour effectuer cette action.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!isAdmin) {
+      toast({
+        title: "Permissions insuffisantes",
+        description: "Vous devez être administrateur pour effectuer cette action.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const handleChangeStatusSelected = async (newStatus: "verified" | "unverified") => {
+    if (!checkAuthAndPermissions()) return;
+
     if (selectedItems.length === 0) {
       toast({
         title: "Aucune sélection",
@@ -80,28 +113,20 @@ const ScrapingResults = () => {
 
     const isVerified = newStatus === "verified";
     
-    console.log("[ScrapingResults] Tentative de changement de statut:", { 
+    console.log("[ScrapingResults] Changement de statut:", { 
       selectedItems, 
       newStatus, 
       isVerified,
-      itemCount: selectedItems.length 
+      itemCount: selectedItems.length,
+      userRole: isAdmin ? 'admin' : 'non-admin'
     });
     
     try {
-      // Vérifier d'abord l'état actuel de l'utilisateur
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      console.log("[ScrapingResults] Utilisateur actuel:", user);
-      
-      if (authError) {
-        console.error("[ScrapingResults] Erreur d'authentification:", authError);
-        throw new Error("Problème d'authentification");
-      }
-
       const { data: updateData, error: updateError } = await supabase
         .from('repairers')
         .update({ is_verified: isVerified })
         .in('id', selectedItems)
-        .select(); // Ajouter select pour voir le résultat
+        .select();
 
       if (updateError) {
         console.error("[ScrapingResults] Erreur lors de la mise à jour:", updateError);
@@ -109,7 +134,6 @@ const ScrapingResults = () => {
       }
 
       console.log("[ScrapingResults] Données mises à jour:", updateData);
-      console.log("[ScrapingResults] Nombre d'éléments mis à jour:", updateData?.length || 0);
 
       toast({
         title: "Modification du statut réussie",
@@ -122,7 +146,7 @@ const ScrapingResults = () => {
       setTimeout(() => {
         console.log("[ScrapingResults] Rechargement après mise à jour du statut");
         loadResults();
-      }, 100);
+      }, 500);
       
     } catch (error: any) {
       console.error("[ScrapingResults] Erreur lors du changement de statut:", error);
@@ -139,6 +163,8 @@ const ScrapingResults = () => {
   };
 
   const handleDeleteSelected = async () => {
+    if (!checkAuthAndPermissions()) return;
+
     if (selectedItems.length === 0) {
       toast({
         title: "Aucune sélection",
@@ -154,20 +180,11 @@ const ScrapingResults = () => {
     });
 
     try {
-      // Vérifier d'abord l'état actuel de l'utilisateur
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      console.log("[ScrapingResults] Utilisateur actuel pour suppression:", user);
-      
-      if (authError) {
-        console.error("[ScrapingResults] Erreur d'authentification:", authError);
-        throw new Error("Problème d'authentification");
-      }
-
       const { data: deleteData, error: deleteError } = await supabase
         .from('repairers')
         .delete()
         .in('id', selectedItems)
-        .select(); // Ajouter select pour voir ce qui a été supprimé
+        .select();
 
       if (deleteError) {
         console.error("[ScrapingResults] Erreur lors de la suppression:", deleteError);
@@ -175,7 +192,6 @@ const ScrapingResults = () => {
       }
 
       console.log("[ScrapingResults] Données supprimées:", deleteData);
-      console.log("[ScrapingResults] Nombre d'éléments supprimés:", deleteData?.length || 0);
 
       toast({
         title: "Suppression réussie",
@@ -188,7 +204,7 @@ const ScrapingResults = () => {
       setTimeout(() => {
         console.log("[ScrapingResults] Rechargement après suppression");
         loadResults();
-      }, 100);
+      }, 500);
       
     } catch (error: any) {
       console.error("[ScrapingResults] Erreur lors de la suppression:", error);
@@ -238,6 +254,24 @@ const ScrapingResults = () => {
     setModalMode("edit");
     setModalOpen(true);
   };
+
+  // Show authentication message if user is not authenticated
+  if (!user) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-600 mb-4">Vous devez être connecté pour accéder à cette section.</p>
+      </div>
+    );
+  }
+
+  // Show permission message if user is not admin
+  if (!isAdmin) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-600 mb-4">Accès réservé aux administrateurs.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
