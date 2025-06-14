@@ -125,6 +125,36 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          role: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          role?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quotes: {
         Row: {
           contact_email: string
@@ -220,6 +250,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          profile_id: string | null
           repairer_id: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
@@ -235,6 +266,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          profile_id?: string | null
           repairer_id: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -250,6 +282,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          profile_id?: string | null
           repairer_id?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
@@ -261,6 +294,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "repairer_subscriptions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "repairer_subscriptions_subscription_plan_id_fkey"
             columns: ["subscription_plan_id"]
@@ -346,7 +386,25 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_subscription_overview: {
+        Row: {
+          billing_cycle: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string | null
+          last_name: string | null
+          plan_name: string | null
+          price_monthly: number | null
+          price_yearly: number | null
+          repairer_id: string | null
+          subscribed: boolean | null
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
