@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -48,17 +47,20 @@ const ScrapingResults = () => {
         .order('scraped_at', { ascending: false })
         .limit(100);
 
-      if (error) throw error;
+      if (error) {
+        console.error("[ScrapingResults] Erreur lors du chargement:", error);
+        throw error;
+      }
+      
       console.log("[ScrapingResults] Données récupérées:", data);
       console.log("[ScrapingResults] Nombre de résultats:", data?.length || 0);
       
-      // Force un nouveau tableau pour déclencher le re-render
       setResults([...(data || [])]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading results:', error);
       toast({
         title: "Erreur de chargement",
-        description: "Impossible de charger les résultats.",
+        description: error.message || "Impossible de charger les résultats.",
         variant: "destructive"
       });
     } finally {
@@ -67,39 +69,132 @@ const ScrapingResults = () => {
   };
 
   const handleChangeStatusSelected = async (newStatus: "verified" | "unverified") => {
-    if (!supabase || selectedItems.length === 0) return;
+    if (selectedItems.length === 0) {
+      toast({
+        title: "Aucune sélection",
+        description: "Veuillez sélectionner des éléments avant de changer le statut.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const isVerified = newStatus === "verified";
     
-    console.log("[ScrapingResults] Changement de statut:", { selectedItems, newStatus, isVerified });
+    console.log("[ScrapingResults] Tentative de changement de statut:", { 
+      selectedItems, 
+      newStatus, 
+      isVerified,
+      itemCount: selectedItems.length 
+    });
     
     try {
-      const { error } = await supabase
+      // Vérifier d'abord l'état actuel de l'utilisateur
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log("[ScrapingResults] Utilisateur actuel:", user);
+      
+      if (authError) {
+        console.error("[ScrapingResults] Erreur d'authentification:", authError);
+        throw new Error("Problème d'authentification");
+      }
+
+      const { data: updateData, error: updateError } = await supabase
         .from('repairers')
         .update({ is_verified: isVerified })
-        .in('id', selectedItems);
-      
-      if (error) throw error;
+        .in('id', selectedItems)
+        .select(); // Ajouter select pour voir le résultat
 
-      console.log("[ScrapingResults] Statut mis à jour avec succès");
+      if (updateError) {
+        console.error("[ScrapingResults] Erreur lors de la mise à jour:", updateError);
+        throw updateError;
+      }
+
+      console.log("[ScrapingResults] Données mises à jour:", updateData);
+      console.log("[ScrapingResults] Nombre d'éléments mis à jour:", updateData?.length || 0);
 
       toast({
         title: "Modification du statut réussie",
-        description: `${selectedItems.length} entreprise(s) ${isVerified ? "vérifiées" : "remises en attente"}.`
+        description: `${updateData?.length || selectedItems.length} entreprise(s) ${isVerified ? "vérifiées" : "remises en attente"}.`
       });
 
       setSelectedItems([]);
       
-      // Attendre un petit délai puis recharger
+      // Recharger immédiatement
       setTimeout(() => {
         console.log("[ScrapingResults] Rechargement après mise à jour du statut");
         loadResults();
-      }, 500);
+      }, 100);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("[ScrapingResults] Erreur lors du changement de statut:", error);
       toast({
         title: "Erreur",
-        description: "Impossible de modifier le statut.",
+        description: error.message || "Impossible de modifier le statut. Vérifiez vos permissions.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleVerifySelected = async () => {
+    await handleChangeStatusSelected("verified");
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedItems.length === 0) {
+      toast({
+        title: "Aucune sélection",
+        description: "Veuillez sélectionner des éléments avant de supprimer.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log("[ScrapingResults] Tentative de suppression:", { 
+      selectedItems,
+      itemCount: selectedItems.length 
+    });
+
+    try {
+      // Vérifier d'abord l'état actuel de l'utilisateur
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      console.log("[ScrapingResults] Utilisateur actuel pour suppression:", user);
+      
+      if (authError) {
+        console.error("[ScrapingResults] Erreur d'authentification:", authError);
+        throw new Error("Problème d'authentification");
+      }
+
+      const { data: deleteData, error: deleteError } = await supabase
+        .from('repairers')
+        .delete()
+        .in('id', selectedItems)
+        .select(); // Ajouter select pour voir ce qui a été supprimé
+
+      if (deleteError) {
+        console.error("[ScrapingResults] Erreur lors de la suppression:", deleteError);
+        throw deleteError;
+      }
+
+      console.log("[ScrapingResults] Données supprimées:", deleteData);
+      console.log("[ScrapingResults] Nombre d'éléments supprimés:", deleteData?.length || 0);
+
+      toast({
+        title: "Suppression réussie",
+        description: `${deleteData?.length || selectedItems.length} entreprise(s) supprimée(s).`
+      });
+
+      setSelectedItems([]);
+      
+      // Recharger immédiatement
+      setTimeout(() => {
+        console.log("[ScrapingResults] Rechargement après suppression");
+        loadResults();
+      }, 100);
+      
+    } catch (error: any) {
+      console.error("[ScrapingResults] Erreur lors de la suppression:", error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de supprimer les entreprises. Vérifiez vos permissions.",
         variant: "destructive"
       });
     }
@@ -129,60 +224,6 @@ const ScrapingResults = () => {
       setSelectedItems([]);
     } else {
       setSelectedItems(filteredResults.map(r => r.id));
-    }
-  };
-
-  const handleVerifySelected = async () => {
-    if (!supabase || selectedItems.length === 0) return;
-
-    try {
-      const { error } = await supabase
-        .from('repairers')
-        .update({ is_verified: true })
-        .in('id', selectedItems);
-
-      if (error) throw error;
-
-      toast({
-        title: "Vérification réussie",
-        description: `${selectedItems.length} entreprises vérifiées.`
-      });
-
-      setSelectedItems([]);
-      setTimeout(() => loadResults(), 500);
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de vérifier les entreprises.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleDeleteSelected = async () => {
-    if (!supabase || selectedItems.length === 0) return;
-
-    try {
-      const { error } = await supabase
-        .from('repairers')
-        .delete()
-        .in('id', selectedItems);
-
-      if (error) throw error;
-
-      toast({
-        title: "Suppression réussie",
-        description: `${selectedItems.length} entreprises supprimées.`
-      });
-
-      setSelectedItems([]);
-      setTimeout(() => loadResults(), 500);
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer les entreprises.",
-        variant: "destructive"
-      });
     }
   };
 
