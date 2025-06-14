@@ -32,7 +32,7 @@ const ScrapingResults = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode<"view" | "edit">("view");
+  const [modalMode, setModalMode] = useState<"view" | "edit">("view");
   const [selectedRepairer, setSelectedRepairer] = useState<RepairerResult | null>(null);
 
   useEffect(() => {
