@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 interface Message {
   id: string;
   message: string;
-  sender_type: string; // Changed from 'user' | 'repairer' to string to match Supabase type
+  sender_type: 'user' | 'repairer';
   created_at: string;
   sender_id: string;
 }
