@@ -22,10 +22,12 @@ const QuotesAndAppointments = () => {
         </div>
 
         <Tabs defaultValue="quote" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="quote">Demander un devis</TabsTrigger>
             <TabsTrigger value="appointment">Prendre RDV</TabsTrigger>
             <TabsTrigger value="pricing">Tarifs</TabsTrigger>
+            <TabsTrigger value="comparator">Comparateur</TabsTrigger>
+            <TabsTrigger value="search">Recherche avancée</TabsTrigger>
             <TabsTrigger value="chat">Chat</TabsTrigger>
             <TabsTrigger value="tracking">Suivi</TabsTrigger>
           </TabsList>
@@ -44,6 +46,14 @@ const QuotesAndAppointments = () => {
 
           <TabsContent value="pricing">
             <PricingGrid />
+          </TabsContent>
+
+          <TabsContent value="comparator">
+            <PriceComparator />
+          </TabsContent>
+
+          <TabsContent value="search">
+            <AdvancedSearch onSearch={(filters) => console.log('Search filters:', filters)} />
           </TabsContent>
 
           <TabsContent value="chat">
