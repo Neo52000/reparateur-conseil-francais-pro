@@ -43,7 +43,19 @@ export default function AdminFeatureFlags() {
       .from("feature_flags_by_plan")
       .select("*")
       .then(({ data, error }) => {
-        setFlags(data ?? []);
+        // Force-cast plan_name to PlanName (it is ensured by our PLANS const)
+        if (data) {
+          setFlags(
+            data
+              .filter(flag => PLANS.includes(flag.plan_name as PlanName))
+              .map(flag => ({
+                ...flag,
+                plan_name: flag.plan_name as PlanName
+              }))
+          );
+        } else {
+          setFlags([]);
+        }
         setLoading(false);
         if (error) toast({ title: "Erreur chargement", description: error.message });
       });
@@ -139,7 +151,11 @@ export default function AdminFeatureFlags() {
             ))}
           </TableBody>
         </Table>
-        <Button onClick={handleSave} loading={saving} className="mt-6">
+        <Button
+          onClick={handleSave}
+          disabled={saving}
+          className="mt-6"
+        >
           {saving ? "Enregistrement…" : "Enregistrer"}
         </Button>
       </CardContent>
