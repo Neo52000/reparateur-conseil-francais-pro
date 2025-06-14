@@ -21,6 +21,13 @@ export interface Repairer {
   description?: string;
 }
 
+export const MAP_CONFIG = {
+  DEFAULT_CENTER: [2.3522, 48.8566] as [number, number],
+  DEFAULT_ZOOM: 11,
+  USER_LOCATION_ZOOM: 15,
+  FLY_TO_DURATION: 2000
+};
+
 export const mockRepairers: Repairer[] = [
   {
     id: '1',
@@ -126,6 +133,58 @@ export const mockRepairers: Repairer[] = [
     responseTime: '< 6h',
     description: 'Réparation toutes marques chinoises. Prix compétitifs et service de qualité.',
     images: ['/placeholder.svg']
+  }
+];
+
+// Mock repairers with modern format matching expected structure
+export const MOCK_REPAIRERS = [
+  {
+    id: '1',
+    name: 'TechRepair Pro',
+    address: '15 Rue de Rivoli',
+    lat: 48.8566,
+    lng: 2.3522,
+    rating: 4.8,
+    reviewCount: 342,
+    services: ['iPhone', 'Samsung', 'Réparation écran', 'Batterie'],
+    averagePrice: '€€',
+    responseTime: '< 2h'
+  },
+  {
+    id: '2',
+    name: 'iRepair Express',
+    address: '28 Boulevard Saint-Germain',
+    lat: 48.8499,
+    lng: 2.3457,
+    rating: 4.6,
+    reviewCount: 256,
+    services: ['Apple', 'Réparation écran', 'Dégât des eaux', 'Récupération données'],
+    averagePrice: '€€',
+    responseTime: '< 1h'
+  },
+  {
+    id: '3',
+    name: 'Mobile Care Lyon',
+    address: '42 Rue de la République',
+    lat: 45.7640,
+    lng: 4.8357,
+    rating: 4.7,
+    reviewCount: 189,
+    services: ['Toutes marques', 'Batterie', 'Écran', 'Réparation logicielle'],
+    averagePrice: '€',
+    responseTime: '< 3h'
+  },
+  {
+    id: '4',
+    name: 'SmartFix Marseille',
+    address: '67 La Canebière',
+    lat: 43.2965,
+    lng: 5.3698,
+    rating: 4.5,
+    reviewCount: 423,
+    services: ['Samsung', 'Xiaomi', 'OnePlus', 'Problèmes réseau'],
+    averagePrice: '€€',
+    responseTime: '< 4h'
   }
 ];
 

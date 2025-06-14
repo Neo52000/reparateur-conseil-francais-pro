@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FileText, Upload, Smartphone } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -92,18 +92,19 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
         return;
       }
 
+      // Match the exact table schema for quotes
       const { error } = await supabase
         .from('quotes')
         .insert({
           user_id: user.id,
           repairer_id: repairerId,
-          device_type: formData.deviceType,
           device_brand: formData.brand,
           device_model: formData.model,
-          problem_description: `${formData.problem}: ${formData.description}`,
-          urgency_level: formData.urgency,
-          estimated_budget: formData.budget ? parseFloat(formData.budget) : null,
-          preferred_contact_method: formData.contactMethod
+          issue_type: formData.problem,
+          issue_description: `${formData.problem}: ${formData.description}`,
+          contact_email: user.email || '',
+          contact_phone: '',
+          estimated_price: formData.budget ? parseFloat(formData.budget) : null
         });
 
       if (error) throw error;
@@ -288,7 +289,7 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
             <Checkbox
               id="terms"
               checked={acceptsTerms}
-              onCheckedChange={setAcceptsTerms}
+              onCheckedChange={(checked) => setAcceptsTerms(checked === true)}
             />
             <Label htmlFor="terms" className="text-sm">
               J'accepte les conditions d'utilisation et la politique de confidentialité
