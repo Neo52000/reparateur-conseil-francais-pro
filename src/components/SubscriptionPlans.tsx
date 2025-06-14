@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Check, Star, Zap, Crown } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
+
+type SubscriptionPlan = Tables<'subscription_plans'>;
 
 interface Plan {
   id: string;
@@ -36,7 +39,15 @@ const SubscriptionPlans = ({ repairerId = 'demo', userEmail = 'demo@example.com'
       .order('price_monthly', { ascending: true });
 
     if (data && !error) {
-      setPlans(data);
+      // Convert the Supabase data to our Plan interface
+      const convertedPlans: Plan[] = data.map((plan: SubscriptionPlan) => ({
+        id: plan.id,
+        name: plan.name,
+        price_monthly: plan.price_monthly,
+        price_yearly: plan.price_yearly,
+        features: Array.isArray(plan.features) ? plan.features as string[] : []
+      }));
+      setPlans(convertedPlans);
     }
   };
 
