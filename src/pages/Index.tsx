@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,8 @@ import {
   Smartphone,
   Shield,
   FileText,
-  Calendar
+  Calendar,
+  User
 } from 'lucide-react';
 import RepairersMap from '@/components/RepairersMap';
 import RepairersList from '@/components/RepairersList';
@@ -25,7 +25,7 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [viewMode, setViewMode<'map' | 'list'>('map');
 
   const quickStats = [
     { label: 'Réparateurs partenaires', value: '150+', icon: Smartphone },
@@ -40,46 +40,80 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 flex items-center">
-                <Shield className="h-8 w-8 text-blue-600 mr-2" />
-                <h1 className="text-xl font-bold text-gray-900">TechRepair Advisor</h1>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link to="/quotes-appointments">
-                <Button variant="outline">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Devis & RDV
-                </Button>
-              </Link>
-              <Link to="/partner-dashboard">
-                <Button variant="outline">
-                  <Phone className="h-4 w-4 mr-2" />
-                  Espace partenaire
-                </Button>
-              </Link>
+      {/* Hero Section with Role Selection */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              RepairHub - Votre plateforme de réparation
+            </h1>
+            <p className="text-xl text-gray-600 mb-8">
+              Connectez clients et réparateurs pour un service optimal
+            </p>
+            
+            {/* Choix du type d'utilisateur */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              <Card className="hover:shadow-lg transition-shadow border-blue-200">
+                <CardHeader className="bg-blue-50">
+                  <CardTitle className="flex items-center justify-center text-blue-800">
+                    <User className="h-6 w-6 mr-2" />
+                    Je suis un Client
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <CardDescription className="mb-4">
+                    Trouvez le meilleur réparateur près de chez vous, comparez les prix et suivez vos réparations.
+                  </CardDescription>
+                  <ul className="text-sm text-gray-600 mb-6 space-y-2">
+                    <li>• Recherche et comparaison de réparateurs</li>
+                    <li>• Demande de devis gratuit</li>
+                    <li>• Prise de rendez-vous en ligne</li>
+                    <li>• Suivi en temps réel</li>
+                  </ul>
+                  <Link to="/client/auth">
+                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                      Accéder à l'espace client
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-shadow border-orange-200">
+                <CardHeader className="bg-orange-50">
+                  <CardTitle className="flex items-center justify-center text-orange-800">
+                    <Smartphone className="h-6 w-6 mr-2" />
+                    Je suis un Réparateur
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <CardDescription className="mb-4">
+                    Développez votre activité, gérez vos clients et optimisez votre planning.
+                  </CardDescription>
+                  <ul className="text-sm text-gray-600 mb-6 space-y-2">
+                    <li>• Gestion des demandes client</li>
+                    <li>• Tableau de bord business</li>
+                    <li>• Planning et facturation</li>
+                    <li>• Visibilité accrue</li>
+                  </ul>
+                  <Link to="/repairer/auth">
+                    <Button className="w-full bg-orange-600 hover:bg-orange-700">
+                      Accéder à l'espace réparateur
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
-      
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
+        {/* Search Section for visitors */}
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Trouvez le meilleur réparateur près de chez vous
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Recherche rapide de réparateurs
           </h2>
-          <p className="text-lg text-gray-600 mb-6">
-            Comparez les réparateurs, consultez les avis clients et choisissez selon vos critères
-          </p>
-
+          
           {/* Search Bar */}
           <div className="max-w-2xl mx-auto mb-6">
             <div className="flex space-x-4">
@@ -139,7 +173,7 @@ const Index = () => {
           ))}
         </div>
 
-        {/* Controls */}
+        {/* Controls and Map/List */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-4">
             <Button

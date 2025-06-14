@@ -12,6 +12,10 @@ import NotFound from "./pages/NotFound";
 import Navigation from "./components/Navigation";
 import ClientSpace from "./pages/ClientSpace";
 import RepairerSpace from "./pages/RepairerSpace";
+import ClientAuth from "./pages/ClientAuth";
+import RepairerAuth from "./pages/RepairerAuth";
+import ClientDashboardPage from "./pages/ClientDashboardPage";
+import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 
 const queryClient = new QueryClient();
 
@@ -24,12 +28,25 @@ const App = () => (
         <Navigation />
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/partner-dashboard" element={<PartnerDashboard />} />
+          
+          {/* Routes clients */}
+          <Route path="/client/auth" element={<ClientAuth />} />
+          <Route path="/client" element={<ClientDashboardPage />} />
+          
+          {/* Routes réparateurs */}
+          <Route path="/repairer/auth" element={<RepairerAuth />} />
+          <Route path="/repairer" element={<RepairerDashboardPage />} />
+          
+          {/* Routes communes */}
           <Route path="/quotes-appointments" element={<QuotesAndAppointments />} />
+          
+          {/* Routes anciennes (à supprimer plus tard) */}
+          <Route path="/partner-dashboard" element={<PartnerDashboard />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/client-space" element={<ClientSpace />} />
           <Route path="/repairer-space" element={<RepairerSpace />} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
