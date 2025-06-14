@@ -32,9 +32,14 @@ const AdminPage = () => {
                 ⚠️ Mode développement - Authentification désactivée
               </div>
             </div>
-            <Button onClick={handleFakeSignOut} variant="outline">
-              Déconnexion
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => window.location.href='/admin/features'} variant="secondary">
+                Gérer fonctionnalités par plan
+              </Button>
+              <Button onClick={handleFakeSignOut} variant="outline">
+                Déconnexion
+              </Button>
+            </div>
           </div>
         </div>
       </header>

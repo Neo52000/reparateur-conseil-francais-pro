@@ -193,6 +193,30 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_flags_by_plan: {
+        Row: {
+          enabled: boolean
+          feature_key: string
+          id: string
+          plan_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          enabled?: boolean
+          feature_key: string
+          id?: string
+          plan_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          enabled?: boolean
+          feature_key?: string
+          id?: string
+          plan_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       notification_settings: {
         Row: {
           email_enabled: boolean | null

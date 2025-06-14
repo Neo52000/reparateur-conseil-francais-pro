@@ -16,6 +16,7 @@ import ClientAuth from "./pages/ClientAuth";
 import RepairerAuth from "./pages/RepairerAuth";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
+import AdminFeaturesPage from "./pages/AdminFeaturesPage";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
           <Route path="/repairer-space" element={<RepairerSpace />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/admin/features" element={<AdminFeaturesPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
