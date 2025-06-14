@@ -22,7 +22,7 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode<'map' | 'list'>('map');
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
 
   const quickStats = [
     { label: 'Réparateurs partenaires', value: '150+', icon: Smartphone },
