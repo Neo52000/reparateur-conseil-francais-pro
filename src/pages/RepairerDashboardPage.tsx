@@ -10,10 +10,17 @@ const RepairerDashboardPage = () => {
 
   useEffect(() => {
     if (!loading) {
+      console.log('RepairerDashboardPage - User:', user?.id, 'Profile role:', profile?.role);
+      
       if (!user) {
+        console.log('No user, redirecting to repairer auth');
         navigate('/repairer/auth');
-      } else if (profile?.role === 'client') {
+      } else if (profile && profile.role === 'client') {
+        console.log('User is client, redirecting to client dashboard');
         navigate('/client');
+      } else if (profile && profile.role !== 'repairer' && profile.role !== null) {
+        console.log('User has invalid role for repairer space:', profile.role);
+        navigate('/');
       }
     }
   }, [user, loading, profile, navigate]);
@@ -26,11 +33,16 @@ const RepairerDashboardPage = () => {
     );
   }
 
-  if (!user || profile?.role !== 'repairer') {
+  if (!user) {
     return null;
   }
 
-  return <RepairerDashboard />;
+  // Si l'utilisateur est connecté mais n'a pas encore de profil ou a le bon rôle
+  if (!profile || profile.role === 'repairer' || profile.role === null) {
+    return <RepairerDashboard />;
+  }
+
+  return null;
 };
 
 export default RepairerDashboardPage;
