@@ -51,10 +51,13 @@ export const useAuth = () => {
 
   useEffect(() => {
     console.log('🚀 Initializing auth system...');
+    let isSubscriptionActive = true;
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!isSubscriptionActive) return;
+        
         console.log('🔄 Auth state change:', event, 'User ID:', session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
@@ -62,23 +65,42 @@ export const useAuth = () => {
         if (session?.user) {
           console.log('👤 User found, fetching profile...');
           const profileData = await fetchProfile(session.user.id);
-          setProfile(profileData);
-          console.log('📋 Profile set:', profileData?.role || 'no role');
+          if (isSubscriptionActive) {
+            setProfile(profileData);
+            console.log('📋 Profile set:', profileData?.role || 'no role');
+          }
         } else {
           console.log('👤 No user, clearing profile');
-          setProfile(null);
+          if (isSubscriptionActive) {
+            setProfile(null);
+          }
         }
         
-        console.log('✅ Auth loading complete');
-        setLoading(false);
+        if (isSubscriptionActive) {
+          console.log('✅ Auth loading complete');
+          setLoading(false);
+        }
       }
     );
 
-    // Check for existing session
+    // Check for existing session with timeout
     const initializeAuth = async () => {
       try {
         console.log('🔍 Checking for existing session...');
-        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        // Add a timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Session check timeout')), 10000);
+        });
+        
+        const sessionPromise = supabase.auth.getSession();
+        
+        const { data: { session }, error } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as any;
+        
+        if (!isSubscriptionActive) return;
         
         if (error) {
           console.error('❌ Error getting session:', error);
@@ -94,15 +116,22 @@ export const useAuth = () => {
         if (session?.user) {
           console.log('👤 Initial user found, fetching profile...');
           const profileData = await fetchProfile(session.user.id);
-          setProfile(profileData);
-          console.log('📋 Initial profile set:', profileData?.role || 'no role');
+          if (isSubscriptionActive) {
+            setProfile(profileData);
+            console.log('📋 Initial profile set:', profileData?.role || 'no role');
+          }
         }
         
-        console.log('✅ Initial auth check complete');
-        setLoading(false);
+        if (isSubscriptionActive) {
+          console.log('✅ Initial auth check complete');
+          setLoading(false);
+        }
       } catch (error) {
         console.error('💥 Exception during auth initialization:', error);
-        setLoading(false);
+        if (isSubscriptionActive) {
+          console.log('⚠️ Setting loading to false due to error');
+          setLoading(false);
+        }
       }
     };
 
@@ -110,6 +139,7 @@ export const useAuth = () => {
 
     return () => {
       console.log('🧹 Cleaning up auth subscription');
+      isSubscriptionActive = false;
       subscription.unsubscribe();
     };
   }, []);
