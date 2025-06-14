@@ -147,7 +147,7 @@ serve(async (req) => {
     }
 
     // Scraper spécialisé pour Pages Jaunes
-    const scrapePages Jaunes = async () => {
+    const scrapePagesJaunes = async () => {
       console.log('🔍 Scraping Pages Jaunes...')
       
       // Simulation réaliste de scraping Pages Jaunes avec des données plus variées
@@ -209,7 +209,7 @@ serve(async (req) => {
     let scrapedData = []
     
     if (source === 'pages_jaunes') {
-      scrapedData = await scrapePages Jaunes()
+      scrapedData = await scrapePagesJaunes()
     } else {
       // Pour les autres sources, utiliser des données de test
       scrapedData = [
