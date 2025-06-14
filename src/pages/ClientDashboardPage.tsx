@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import ClientDashboard from '@/components/ClientDashboard';
 
 const ClientDashboardPage = () => {
-  const { user, loading, profile } = useAuth();
+  const { user, loading, profile, canAccessClient, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,18 +16,16 @@ const ClientDashboardPage = () => {
       return;
     }
 
-    // Si l'utilisateur a un rôle mais n'est pas client
-    if (profile?.role && profile.role !== 'client') {
-      if (profile.role === 'repairer') {
+    // Vérifier si l'utilisateur peut accéder à l'interface client
+    if (!canAccessClient) {
+      if (profile?.role === 'repairer') {
         navigate('/repairer');
-      } else if (profile.role === 'admin') {
-        navigate('/admin');
       } else {
         navigate('/');
       }
       return;
     }
-  }, [user, loading, profile, navigate]);
+  }, [user, loading, profile, canAccessClient, navigate]);
 
   if (loading) {
     return (
@@ -40,11 +38,34 @@ const ClientDashboardPage = () => {
     );
   }
 
-  if (!user) {
+  if (!user || !canAccessClient) {
     return null;
   }
 
-  return <ClientDashboard />;
+  return (
+    <div>
+      {/* Bandeau admin pour indiquer le mode test */}
+      {isAdmin && profile?.role === 'admin' && (
+        <div className="bg-blue-100 border-b border-blue-300 p-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="bg-blue-600 text-white px-2 py-1 rounded text-sm font-medium mr-3">
+                MODE ADMIN
+              </div>
+              <span className="text-blue-800 font-medium">Test Interface Client</span>
+            </div>
+            <button
+              onClick={() => navigate('/admin')}
+              className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+            >
+              Retour Admin
+            </button>
+          </div>
+        </div>
+      )}
+      <ClientDashboard />
+    </div>
+  );
 };
 
 export default ClientDashboardPage;

@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import RepairerDashboard from '@/components/RepairerDashboard';
 
 const RepairerDashboardPage = () => {
-  const { user, loading, profile } = useAuth();
+  const { user, loading, profile, canAccessRepairer, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,18 +16,16 @@ const RepairerDashboardPage = () => {
       return;
     }
 
-    // Si l'utilisateur a un rôle mais n'est pas réparateur
-    if (profile?.role && profile.role !== 'repairer') {
-      if (profile.role === 'client') {
+    // Vérifier si l'utilisateur peut accéder à l'interface réparateur
+    if (!canAccessRepairer) {
+      if (profile?.role === 'client') {
         navigate('/client');
-      } else if (profile.role === 'admin') {
-        navigate('/admin');
       } else {
         navigate('/');
       }
       return;
     }
-  }, [user, loading, profile, navigate]);
+  }, [user, loading, profile, canAccessRepairer, navigate]);
 
   if (loading) {
     return (
@@ -40,11 +38,34 @@ const RepairerDashboardPage = () => {
     );
   }
 
-  if (!user) {
+  if (!user || !canAccessRepairer) {
     return null;
   }
 
-  return <RepairerDashboard />;
+  return (
+    <div>
+      {/* Bandeau admin pour indiquer le mode test */}
+      {isAdmin && profile?.role === 'admin' && (
+        <div className="bg-orange-100 border-b border-orange-300 p-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="bg-orange-600 text-white px-2 py-1 rounded text-sm font-medium mr-3">
+                MODE ADMIN
+              </div>
+              <span className="text-orange-800 font-medium">Test Interface Réparateur</span>
+            </div>
+            <button
+              onClick={() => navigate('/admin')}
+              className="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700"
+            >
+              Retour Admin
+            </button>
+          </div>
+        </div>
+      )}
+      <RepairerDashboard />
+    </div>
+  );
 };
 
 export default RepairerDashboardPage;

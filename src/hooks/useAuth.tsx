@@ -173,13 +173,20 @@ export const useAuth = () => {
     return { error };
   };
 
+  // Helper functions for access control
   const isAdmin = profile?.role === 'admin';
+  const canAccessClient = profile?.role === 'client' || profile?.role === 'admin';
+  const canAccessRepairer = profile?.role === 'repairer' || profile?.role === 'admin';
+  const canAccessAdmin = profile?.role === 'admin';
 
   console.log('🔐 Current auth state:', { 
     hasUser: !!user, 
     hasProfile: !!profile, 
     profileRole: profile?.role,
     isAdmin, 
+    canAccessClient,
+    canAccessRepairer,
+    canAccessAdmin,
     loading 
   });
 
@@ -191,6 +198,9 @@ export const useAuth = () => {
     signIn,
     signUp,
     signOut,
-    isAdmin
+    isAdmin,
+    canAccessClient,
+    canAccessRepairer,
+    canAccessAdmin
   };
 };

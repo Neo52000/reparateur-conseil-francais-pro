@@ -7,7 +7,7 @@ import NotificationSystem from './NotificationSystem';
 import { User, Wrench, Shield } from 'lucide-react';
 
 const Navigation = () => {
-  const { user, isAdmin, signOut, profile } = useAuth();
+  const { user, isAdmin, signOut, profile, canAccessClient, canAccessRepairer, canAccessAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,6 +18,7 @@ const Navigation = () => {
 
   const isClientPath = location.pathname.startsWith('/client');
   const isRepairerPath = location.pathname.startsWith('/repairer');
+  const isAdminPath = location.pathname.startsWith('/admin');
 
   return (
     <nav className="bg-white shadow-sm">
@@ -28,7 +29,7 @@ const Navigation = () => {
               RepairHub
             </Link>
             
-            {!isClientPath && !isRepairerPath && (
+            {!isClientPath && !isRepairerPath && !isAdminPath && (
               <div className="hidden md:flex space-x-4">
                 <Link to="/" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
                   Accueil
@@ -39,34 +40,40 @@ const Navigation = () => {
               </div>
             )}
 
-            {/* Navigation spécifique selon le rôle */}
-            {user && profile?.role === 'client' && isClientPath && (
+            {/* Navigation pour les utilisateurs connectés avec accès multiple */}
+            {user && (canAccessClient || canAccessRepairer || canAccessAdmin) && (
               <div className="hidden md:flex space-x-4">
-                <Link to="/client" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
-                  Mon Dashboard
-                </Link>
+                {canAccessClient && (
+                  <Link to="/client" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                    <User className="h-4 w-4 mr-1" />
+                    Client
+                    {isAdmin && profile?.role === 'admin' && (
+                      <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-1 rounded">Test</span>
+                    )}
+                  </Link>
+                )}
+                
+                {canAccessRepairer && (
+                  <Link to="/repairer" className="text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                    <Wrench className="h-4 w-4 mr-1" />
+                    Réparateur
+                    {isAdmin && profile?.role === 'admin' && (
+                      <span className="ml-1 text-xs bg-orange-100 text-orange-600 px-1 rounded">Test</span>
+                    )}
+                  </Link>
+                )}
+
+                {canAccessAdmin && (
+                  <Link to="/admin" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                    <Shield className="h-4 w-4 mr-1" />
+                    Admin
+                  </Link>
+                )}
+
                 <Link to="/quotes-appointments" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
                   Devis & RDV
                 </Link>
               </div>
-            )}
-
-            {user && profile?.role === 'repairer' && isRepairerPath && (
-              <div className="hidden md:flex space-x-4">
-                <Link to="/repairer" className="text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium">
-                  Mon Dashboard
-                </Link>
-                <Link to="/quotes-appointments" className="text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium">
-                  Gestion Devis
-                </Link>
-              </div>
-            )}
-
-            {isAdmin && (
-              <Link to="/admin" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
-                <Shield className="h-4 w-4 mr-1" />
-                Admin
-              </Link>
             )}
           </div>
           
@@ -75,9 +82,14 @@ const Navigation = () => {
             
             {user ? (
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-700">
-                  {profile?.first_name} {profile?.last_name}
-                </span>
+                <div className="text-right">
+                  <span className="text-sm text-gray-700">
+                    {profile?.first_name} {profile?.last_name}
+                  </span>
+                  {isAdmin && (
+                    <div className="text-xs text-blue-600 font-medium">Administrateur</div>
+                  )}
+                </div>
                 <Button onClick={handleSignOut} variant="outline">
                   Déconnexion
                 </Button>
