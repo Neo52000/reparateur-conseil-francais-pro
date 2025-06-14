@@ -29,6 +29,7 @@ export const useAuth = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -40,6 +41,7 @@ export const useAuth = () => {
         return null;
       }
       
+      console.log('Profile fetched:', data);
       return data;
     } catch (error) {
       console.error('Exception fetching profile:', error);
@@ -48,71 +50,63 @@ export const useAuth = () => {
   };
 
   useEffect(() => {
-    let isSubscriptionActive = true;
+    console.log('🔧 Setting up auth listener');
+    let mounted = true;
     
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!isSubscriptionActive) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          const profileData = await fetchProfile(session.user.id);
-          if (isSubscriptionActive) {
-            setProfile(profileData);
-          }
-        } else {
-          if (isSubscriptionActive) {
-            setProfile(null);
-          }
+    // Fonction pour gérer les changements d'état d'auth
+    const handleAuthChange = async (event: string, session: Session | null) => {
+      console.log('🔄 Auth state changed:', event, session?.user?.email);
+      
+      if (!mounted) return;
+      
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const profileData = await fetchProfile(session.user.id);
+        if (mounted) {
+          setProfile(profileData);
         }
-        
-        if (isSubscriptionActive) {
-          setLoading(false);
+      } else {
+        if (mounted) {
+          setProfile(null);
         }
       }
-    );
+      
+      if (mounted) {
+        setLoading(false);
+      }
+    };
 
-    // Check for existing session
-    const initializeAuth = async () => {
+    // Configurer l'écouteur d'état d'auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange);
+
+    // Vérifier la session existante
+    const checkSession = async () => {
       try {
+        console.log('🔍 Checking existing session');
         const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (!isSubscriptionActive) return;
         
         if (error) {
           console.error('Error getting session:', error);
-          setLoading(false);
-          return;
         }
         
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          const profileData = await fetchProfile(session.user.id);
-          if (isSubscriptionActive) {
-            setProfile(profileData);
-          }
-        }
-        
-        if (isSubscriptionActive) {
-          setLoading(false);
+        if (mounted) {
+          await handleAuthChange('INITIAL_SESSION', session);
         }
       } catch (error) {
-        console.error('Exception during auth initialization:', error);
-        if (isSubscriptionActive) {
+        console.error('Exception during session check:', error);
+        if (mounted) {
           setLoading(false);
         }
       }
     };
 
-    initializeAuth();
+    checkSession();
 
     return () => {
-      isSubscriptionActive = false;
+      console.log('🧹 Cleaning up auth subscription');
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -145,6 +139,8 @@ export const useAuth = () => {
   };
 
   const isAdmin = profile?.role === 'admin';
+
+  console.log('🔐 Auth state:', { user: !!user, profile, loading, isAdmin });
 
   return {
     user,
