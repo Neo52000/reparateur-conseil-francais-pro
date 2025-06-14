@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -27,9 +26,39 @@ export const useScrapingResults = () => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   const loadResults = async () => {
-    console.log("[ScrapingResults] Chargement des résultats...");
+    console.log("[useScrapingResults] 🔄 Début du chargement des résultats...");
+    console.log("[useScrapingResults] État auth:", { 
+      hasUser: !!user, 
+      hasSession: !!session, 
+      isAdmin,
+      userId: user?.id 
+    });
+
     try {
       setLoading(true);
+      
+      // Vérification de la session Supabase
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      console.log("[useScrapingResults] Session Supabase:", { 
+        hasSession: !!sessionData.session,
+        sessionError: sessionError?.message 
+      });
+
+      // Test de connexion à la base de données
+      console.log("[useScrapingResults] 🔍 Test de connexion à la base...");
+      const { count, error: countError } = await supabase
+        .from('repairers')
+        .select('*', { count: 'exact', head: true });
+
+      if (countError) {
+        console.error("[useScrapingResults] ❌ Erreur de connexion:", countError);
+        throw new Error(`Erreur de connexion à la base: ${countError.message}`);
+      }
+
+      console.log("[useScrapingResults] ✅ Connexion OK, nombre total d'enregistrements:", count);
+
+      // Requête principale
+      console.log("[useScrapingResults] 🔍 Exécution de la requête principale...");
       const { data, error } = await supabase
         .from('repairers')
         .select('*')
@@ -37,28 +66,40 @@ export const useScrapingResults = () => {
         .limit(100);
 
       if (error) {
-        console.error("[ScrapingResults] Erreur lors du chargement:", error);
+        console.error("[useScrapingResults] ❌ Erreur lors du chargement:", error);
+        console.error("[useScrapingResults] Détails de l'erreur:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
       
-      console.log("[ScrapingResults] Données récupérées:", data);
-      console.log("[ScrapingResults] Nombre de résultats:", data?.length || 0);
+      console.log("[useScrapingResults] ✅ Données récupérées:", data);
+      console.log("[useScrapingResults] 📊 Nombre de résultats:", data?.length || 0);
+      
+      if (data && data.length > 0) {
+        console.log("[useScrapingResults] 📝 Premier résultat:", data[0]);
+      }
       
       setResults([...(data || [])]);
     } catch (error: any) {
-      console.error('Error loading results:', error);
+      console.error('[useScrapingResults] 💥 Erreur complète:', error);
       toast({
         title: "Erreur de chargement",
         description: error.message || "Impossible de charger les résultats.",
         variant: "destructive"
       });
+      setResults([]);
     } finally {
       setLoading(false);
+      console.log("[useScrapingResults] ✅ Chargement terminé");
     }
   };
 
   const checkAuthAndPermissions = () => {
-    console.log("[ScrapingResults] Vérification auth:", { 
+    console.log("[useScrapingResults] 🔐 Vérification auth:", { 
       user: !!user, 
       session: !!session, 
       isAdmin,
@@ -100,7 +141,7 @@ export const useScrapingResults = () => {
 
     const isVerified = newStatus === "verified";
     
-    console.log("[ScrapingResults] Changement de statut:", { 
+    console.log("[useScrapingResults] 🔄 Changement de statut:", { 
       selectedItems, 
       newStatus, 
       isVerified,
@@ -116,11 +157,11 @@ export const useScrapingResults = () => {
         .select();
 
       if (updateError) {
-        console.error("[ScrapingResults] Erreur lors de la mise à jour:", updateError);
+        console.error("[useScrapingResults] ❌ Erreur lors de la mise à jour:", updateError);
         throw updateError;
       }
 
-      console.log("[ScrapingResults] Données mises à jour:", updateData);
+      console.log("[useScrapingResults] ✅ Données mises à jour:", updateData);
 
       toast({
         title: "Modification du statut réussie",
@@ -130,12 +171,12 @@ export const useScrapingResults = () => {
       setSelectedItems([]);
       
       setTimeout(() => {
-        console.log("[ScrapingResults] Rechargement après mise à jour du statut");
+        console.log("[useScrapingResults] 🔄 Rechargement après mise à jour du statut");
         loadResults();
       }, 500);
       
     } catch (error: any) {
-      console.error("[ScrapingResults] Erreur lors du changement de statut:", error);
+      console.error("[useScrapingResults] ❌ Erreur lors du changement de statut:", error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de modifier le statut. Vérifiez vos permissions.",
@@ -156,7 +197,7 @@ export const useScrapingResults = () => {
       return;
     }
 
-    console.log("[ScrapingResults] Tentative de suppression:", { 
+    console.log("[useScrapingResults] 🗑️ Tentative de suppression:", { 
       selectedItems,
       itemCount: selectedItems.length 
     });
@@ -169,11 +210,11 @@ export const useScrapingResults = () => {
         .select();
 
       if (deleteError) {
-        console.error("[ScrapingResults] Erreur lors de la suppression:", deleteError);
+        console.error("[useScrapingResults] ❌ Erreur lors de la suppression:", deleteError);
         throw deleteError;
       }
 
-      console.log("[ScrapingResults] Données supprimées:", deleteData);
+      console.log("[useScrapingResults] ✅ Données supprimées:", deleteData);
 
       toast({
         title: "Suppression réussie",
@@ -183,12 +224,12 @@ export const useScrapingResults = () => {
       setSelectedItems([]);
       
       setTimeout(() => {
-        console.log("[ScrapingResults] Rechargement après suppression");
+        console.log("[useScrapingResults] 🔄 Rechargement après suppression");
         loadResults();
       }, 500);
       
     } catch (error: any) {
-      console.error("[ScrapingResults] Erreur lors de la suppression:", error);
+      console.error("[useScrapingResults] ❌ Erreur lors de la suppression:", error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible de supprimer les entreprises. Vérifiez vos permissions.",

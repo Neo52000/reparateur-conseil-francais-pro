@@ -5,6 +5,9 @@ import ScrapingFilters from './ScrapingFilters';
 import ScrapingBulkActions from './ScrapingBulkActions';
 import ScrapingResultsTable from './ScrapingResultsTable';
 import RepairerModal from "./RepairerModal";
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const ScrapingOperations = () => {
   const {
@@ -67,8 +70,31 @@ const ScrapingOperations = () => {
     await handleChangeStatusSelected("verified");
   };
 
+  // Affichage d'erreur si aucun résultat n'est trouvé et que le chargement est terminé
+  const showNoResults = !loading && results.length === 0;
+
   return (
     <div className="space-y-6">
+      {showNoResults && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>
+              Aucun résultat de scraping trouvé. Les données pourraient ne pas avoir été chargées ou il y a un problème de permissions.
+            </span>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={loadResults}
+              className="ml-4"
+            >
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Réessayer
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <ScrapingFilters
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
