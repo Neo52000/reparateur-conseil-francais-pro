@@ -9,6 +9,211 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          appointment_date: string
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          notes: string | null
+          quote_id: string | null
+          repairer_id: string
+          status: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          appointment_date: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          quote_id?: string | null
+          repairer_id: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          appointment_date?: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          quote_id?: string | null
+          repairer_id?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          file_url: string | null
+          id: string
+          message: string
+          message_type: string | null
+          sender_id: string | null
+          sender_type: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          message: string
+          message_type?: string | null
+          sender_id?: string | null
+          sender_type: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          file_url?: string | null
+          id?: string
+          message?: string
+          message_type?: string | null
+          sender_id?: string | null
+          sender_type?: string
+        }
+        Relationships: []
+      }
+      pricing_grid: {
+        Row: {
+          average_price: number
+          created_at: string
+          device_brand: string
+          device_model: string
+          id: string
+          issue_type: string
+          max_price: number
+          min_price: number
+          updated_at: string
+        }
+        Insert: {
+          average_price: number
+          created_at?: string
+          device_brand: string
+          device_model: string
+          id?: string
+          issue_type: string
+          max_price: number
+          min_price: number
+          updated_at?: string
+        }
+        Update: {
+          average_price?: number
+          created_at?: string
+          device_brand?: string
+          device_model?: string
+          id?: string
+          issue_type?: string
+          max_price?: number
+          min_price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      quotes: {
+        Row: {
+          contact_email: string
+          contact_phone: string | null
+          created_at: string
+          device_brand: string
+          device_model: string
+          estimated_price: number | null
+          id: string
+          issue_description: string
+          issue_type: string
+          repairer_id: string | null
+          response_message: string | null
+          status: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          contact_email: string
+          contact_phone?: string | null
+          created_at?: string
+          device_brand: string
+          device_model: string
+          estimated_price?: number | null
+          id?: string
+          issue_description: string
+          issue_type: string
+          repairer_id?: string | null
+          response_message?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          contact_email?: string
+          contact_phone?: string | null
+          created_at?: string
+          device_brand?: string
+          device_model?: string
+          estimated_price?: number | null
+          id?: string
+          issue_description?: string
+          issue_type?: string
+          repairer_id?: string | null
+          response_message?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      repair_tracking: {
+        Row: {
+          created_at: string
+          estimated_completion: string | null
+          id: string
+          quote_id: string | null
+          repairer_id: string
+          status: string
+          status_message: string | null
+        }
+        Insert: {
+          created_at?: string
+          estimated_completion?: string | null
+          id?: string
+          quote_id?: string | null
+          repairer_id: string
+          status: string
+          status_message?: string | null
+        }
+        Update: {
+          created_at?: string
+          estimated_completion?: string | null
+          id?: string
+          quote_id?: string | null
+          repairer_id?: string
+          status?: string
+          status_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_tracking_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       repairer_subscriptions: {
         Row: {
           billing_cycle: string | null
@@ -61,6 +266,44 @@ export type Database = {
             columns: ["subscription_plan_id"]
             isOneToOne: false
             referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          quote_id: string | null
+          rating: number
+          repairer_id: string
+          user_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          quote_id?: string | null
+          rating: number
+          repairer_id: string
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          quote_id?: string | null
+          rating?: number
+          repairer_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
             referencedColumns: ["id"]
           },
         ]

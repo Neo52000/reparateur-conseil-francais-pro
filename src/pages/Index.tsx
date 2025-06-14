@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,9 @@ import {
   Phone,
   Clock,
   Smartphone,
-  Shield
+  Shield,
+  FileText,
+  Calendar
 } from 'lucide-react';
 import RepairersMap from '@/components/RepairersMap';
 import RepairersList from '@/components/RepairersList';
@@ -48,6 +51,12 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <Link to="/quotes-appointments">
+                <Button variant="outline">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Devis & RDV
+                </Button>
+              </Link>
               <Link to="/partner-dashboard">
                 <Button variant="outline">
                   <Phone className="h-4 w-4 mr-2" />
