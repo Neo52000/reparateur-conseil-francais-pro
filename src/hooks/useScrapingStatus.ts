@@ -31,8 +31,14 @@ export const useScrapingStatus = () => {
 
       if (error) throw error;
 
-      setLogs(data || []);
-      setIsScrapingRunning(data?.some(log => log.status === 'running') || false);
+      // Cast the data to our ScrapingLog type, ensuring status is properly typed
+      const typedLogs: ScrapingLog[] = (data || []).map(log => ({
+        ...log,
+        status: log.status as 'running' | 'completed' | 'failed'
+      }));
+
+      setLogs(typedLogs);
+      setIsScrapingRunning(typedLogs.some(log => log.status === 'running') || false);
     } catch (error) {
       console.error('Error fetching scraping logs:', error);
       setLogs([]);
