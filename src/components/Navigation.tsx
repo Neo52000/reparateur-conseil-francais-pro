@@ -5,15 +5,43 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import NotificationSystem from './NotificationSystem';
 import { User, Wrench, Shield } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const Navigation = () => {
   const { user, isAdmin, signOut, profile, canAccessClient, canAccessRepairer, canAccessAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
+    try {
+      console.log('🔄 Initiating sign out from Navigation...');
+      const { error } = await signOut();
+      
+      if (error) {
+        console.error('❌ Sign out failed:', error);
+        toast({
+          title: "Erreur de déconnexion",
+          description: "Une erreur s'est produite lors de la déconnexion",
+          variant: "destructive"
+        });
+      } else {
+        console.log('✅ Sign out successful, redirecting to home...');
+        toast({
+          title: "Déconnexion réussie",
+          description: "Vous avez été déconnecté avec succès"
+        });
+        // Force redirect to home page
+        navigate('/', { replace: true });
+      }
+    } catch (error) {
+      console.error('💥 Exception during sign out:', error);
+      toast({
+        title: "Erreur de déconnexion",
+        description: "Une erreur inattendue s'est produite",
+        variant: "destructive"
+      });
+    }
   };
 
   const isClientPath = location.pathname.startsWith('/client');
