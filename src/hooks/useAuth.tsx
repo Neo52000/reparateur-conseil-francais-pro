@@ -53,6 +53,7 @@ export const useAuth = () => {
   useEffect(() => {
     console.log('🔧 Setting up auth listener');
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
     
     const handleAuthChange = async (event: string, session: Session | null) => {
       console.log('🔄 Auth state changed:', { event, userEmail: session?.user?.email, sessionExists: !!session });
@@ -96,7 +97,7 @@ export const useAuth = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange);
 
-    // Check existing session
+    // Check existing session with timeout fallback
     const checkSession = async () => {
       try {
         console.log('🔍 Checking existing session...');
@@ -104,6 +105,7 @@ export const useAuth = () => {
         
         if (error) {
           console.error('❌ Error getting session:', error);
+          // Don't let this block the loading state
           if (mounted) {
             setLoading(false);
           }
@@ -126,11 +128,20 @@ export const useAuth = () => {
       }
     };
 
+    // Set up a timeout to ensure loading state doesn't get stuck
+    timeoutId = setTimeout(() => {
+      if (mounted && loading) {
+        console.log('⏰ Auth check timeout, forcing loading to false');
+        setLoading(false);
+      }
+    }, 3000); // 3 second timeout
+
     checkSession();
 
     return () => {
       console.log('🧹 Cleaning up auth subscription');
       mounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);
