@@ -9,7 +9,98 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      repairer_subscriptions: {
+        Row: {
+          billing_cycle: string | null
+          created_at: string
+          email: string
+          id: string
+          repairer_id: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscribed: boolean
+          subscription_end: string | null
+          subscription_plan_id: string | null
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          billing_cycle?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          repairer_id: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_plan_id?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          billing_cycle?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          repairer_id?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_plan_id?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repairer_subscriptions_subscription_plan_id_fkey"
+            columns: ["subscription_plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          features: Json
+          id: string
+          name: string
+          price_monthly: number
+          price_yearly: number
+          stripe_price_id_monthly: string | null
+          stripe_price_id_yearly: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          features?: Json
+          id?: string
+          name: string
+          price_monthly: number
+          price_yearly: number
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_yearly?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          features?: Json
+          id?: string
+          name?: string
+          price_monthly?: number
+          price_yearly?: number
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_yearly?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

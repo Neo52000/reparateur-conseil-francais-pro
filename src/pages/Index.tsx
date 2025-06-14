@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,12 +16,13 @@ import {
 import RepairersMap from '@/components/RepairersMap';
 import RepairersList from '@/components/RepairersList';
 import SearchFilters from '@/components/SearchFilters';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [viewMode, setViewMode<'map' | 'list'>('map');
 
   const quickStats = [
     { label: 'Réparateurs partenaires', value: '150+', icon: Smartphone },
@@ -48,15 +48,19 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline">
-                <Phone className="h-4 w-4 mr-2" />
-                Devenir partenaire
-              </Button>
+              <Link to="/partner-dashboard">
+                <Button variant="outline">
+                  <Phone className="h-4 w-4 mr-2" />
+                  Espace partenaire
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
       </header>
 
+      
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Hero Section */}
         <div className="text-center mb-8">

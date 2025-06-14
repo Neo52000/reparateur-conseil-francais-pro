@@ -39,106 +39,145 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
     );
   };
 
-  const RepairerCard = ({ repairer }: { repairer: RepairerDB }) => (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex space-x-4">
-          {/* Image */}
-          <div className="flex-shrink-0">
-            <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">📱</span>
+  // Function to blur sensitive information based on subscription tier
+  const getDisplayInfo = (repairer: RepairerDB, subscriptionTier = 'free') => {
+    const isBasicOrHigher = ['basic', 'premium', 'enterprise'].includes(subscriptionTier);
+    const isPremiumOrHigher = ['premium', 'enterprise'].includes(subscriptionTier);
+    
+    return {
+      address: isBasicOrHigher ? repairer.address : `${repairer.city} (adresse masquée)`,
+      phone: isBasicOrHigher ? repairer.phone : '•••••••••••',
+      email: isBasicOrHigher ? repairer.email : '•••••@••••••',
+      showQuoteButton: isPremiumOrHigher,
+      showContactInfo: isBasicOrHigher
+    };
+  };
+
+  const RepairerCard = ({ repairer }: { repairer: RepairerDB }) => {
+    // For demo purposes, we'll randomly assign subscription tiers
+    const subscriptionTier = ['free', 'basic', 'premium', 'enterprise'][Math.floor(Math.random() * 4)];
+    const displayInfo = getDisplayInfo(repairer, subscriptionTier);
+
+    const getTierBadge = (tier: string) => {
+      switch (tier) {
+        case 'basic':
+          return <Badge variant="outline" className="text-blue-600 border-blue-600">Basique</Badge>;
+        case 'premium':
+          return <Badge variant="outline" className="text-purple-600 border-purple-600">Premium</Badge>;
+        case 'enterprise':
+          return <Badge variant="outline" className="text-yellow-600 border-yellow-600">Enterprise</Badge>;
+        default:
+          return null;
+      }
+    };
+
+    return (
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardContent className="p-4">
+          <div className="flex space-x-4">
+            {/* Image */}
+            <div className="flex-shrink-0">
+              <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                <span className="text-2xl">📱</span>
+              </div>
             </div>
-          </div>
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2">
-                  <h3 className="text-lg font-semibold text-gray-900 truncate">
-                    {repairer.name}
-                  </h3>
-                  {repairer.is_verified && (
-                    <Badge variant="secondary" className="text-xs">
-                      Vérifié
-                    </Badge>
-                  )}
-                </div>
-                
-                {repairer.rating && (
-                  <div className="flex items-center mt-1">
-                    {renderStars(repairer.rating)}
-                    <span className="ml-2 text-sm text-gray-600">
-                      {repairer.review_count || 0} avis
-                    </span>
+            {/* Main Content */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <h3 className="text-lg font-semibold text-gray-900 truncate">
+                      {repairer.name}
+                    </h3>
+                    {repairer.is_verified && (
+                      <Badge variant="secondary" className="text-xs">
+                        Vérifié
+                      </Badge>
+                    )}
+                    {getTierBadge(subscriptionTier)}
                   </div>
-                )}
-
-                <div className="flex items-center mt-2 text-sm text-gray-600">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  <span className="truncate">{repairer.address}, {repairer.city}</span>
-                </div>
-
-                {/* Services */}
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {repairer.services.slice(0, compact ? 2 : 4).map((service: string, index: number) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {service}
-                    </Badge>
-                  ))}
-                  {repairer.services.length > (compact ? 2 : 4) && (
-                    <Badge variant="outline" className="text-xs">
-                      +{repairer.services.length - (compact ? 2 : 4)}
-                    </Badge>
+                  
+                  {repairer.rating && displayInfo.showContactInfo && (
+                    <div className="flex items-center mt-1">
+                      {renderStars(repairer.rating)}
+                      <span className="ml-2 text-sm text-gray-600">
+                        {repairer.review_count || 0} avis
+                      </span>
+                    </div>
                   )}
-                </div>
 
-                {/* Quick Info */}
-                <div className="flex items-center space-x-4 mt-3 text-sm">
-                  {repairer.response_time && (
+                  <div className="flex items-center mt-2 text-sm text-gray-600">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    <span className="truncate">{displayInfo.address}, {repairer.city}</span>
+                  </div>
+
+                  {/* Services */}
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {repairer.services.slice(0, compact ? 2 : 4).map((service: string, index: number) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {service}
+                      </Badge>
+                    ))}
+                    {repairer.services.length > (compact ? 2 : 4) && (
+                      <Badge variant="outline" className="text-xs">
+                        +{repairer.services.length - (compact ? 2 : 4)}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Quick Info */}
+                  <div className="flex items-center space-x-4 mt-3 text-sm">
+                    {repairer.response_time && displayInfo.showContactInfo && (
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-1 text-green-600" />
+                        <span className="text-green-600">{repairer.response_time}</span>
+                      </div>
+                    )}
                     <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1 text-green-600" />
-                      <span className="text-green-600">{repairer.response_time}</span>
+                      <Euro className="h-4 w-4 mr-1 text-gray-600" />
+                      <span className="text-gray-600">
+                        {repairer.price_range === 'low' ? '€' : repairer.price_range === 'medium' ? '€€' : '€€€'}
+                      </span>
                     </div>
-                  )}
-                  <div className="flex items-center">
-                    <Euro className="h-4 w-4 mr-1 text-gray-600" />
-                    <span className="text-gray-600">
-                      {repairer.price_range === 'low' ? '€' : repairer.price_range === 'medium' ? '€€' : '€€€'}
-                    </span>
+                    {repairer.is_open !== undefined && displayInfo.showContactInfo && (
+                      <div className={`flex items-center ${repairer.is_open ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className={`w-2 h-2 rounded-full mr-1 ${repairer.is_open ? 'bg-green-600' : 'bg-red-600'}`} />
+                        <span className="text-xs">{repairer.is_open ? 'Ouvert' : 'Fermé'}</span>
+                      </div>
+                    )}
                   </div>
-                  {repairer.is_open !== undefined && (
-                    <div className={`flex items-center ${repairer.is_open ? 'text-green-600' : 'text-red-600'}`}>
-                      <div className={`w-2 h-2 rounded-full mr-1 ${repairer.is_open ? 'bg-green-600' : 'bg-red-600'}`} />
-                      <span className="text-xs">{repairer.is_open ? 'Ouvert' : 'Fermé'}</span>
-                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-col space-y-2 ml-4">
+                  <Button size="sm">
+                    Voir profil
+                  </Button>
+                  {displayInfo.showContactInfo && displayInfo.phone && (
+                    <Button size="sm" variant="outline">
+                      <Phone className="h-4 w-4 mr-1" />
+                      Appeler
+                    </Button>
+                  )}
+                  {displayInfo.showQuoteButton && (
+                    <Button size="sm" variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      Demander un devis
+                    </Button>
+                  )}
+                  {!compact && (
+                    <Button size="sm" variant="ghost">
+                      <Heart className="h-4 w-4" />
+                    </Button>
                   )}
                 </div>
               </div>
-
-              {/* Actions */}
-              <div className="flex flex-col space-y-2 ml-4">
-                <Button size="sm">
-                  Voir profil
-                </Button>
-                {repairer.phone && (
-                  <Button size="sm" variant="outline">
-                    <Phone className="h-4 w-4 mr-1" />
-                    Appeler
-                  </Button>
-                )}
-                {!compact && (
-                  <Button size="sm" variant="ghost">
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+      </Card>
+    );
+  };
 
   if (loading) {
     return (
