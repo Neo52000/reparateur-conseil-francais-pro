@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase, ScrapingLog } from '@/lib/supabase';
+import { supabase, ScrapingLog, isSupabaseConfigured } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
 export const useScrapingStatus = () => {
@@ -10,6 +10,12 @@ export const useScrapingStatus = () => {
   const { toast } = useToast();
 
   const fetchLogs = async () => {
+    if (!supabase) {
+      setLogs([]);
+      setLoading(false);
+      setIsScrapingRunning(false);
+      return;
+    }
     try {
       const { data, error } = await supabase
         .from('scraping_logs')
@@ -23,12 +29,22 @@ export const useScrapingStatus = () => {
       setIsScrapingRunning(data?.some(log => log.status === 'running') || false);
     } catch (error) {
       console.error('Error fetching scraping logs:', error);
+      setLogs([]);
+      setIsScrapingRunning(false);
     } finally {
       setLoading(false);
     }
   };
 
   const startScraping = async (source: string) => {
+    if (!supabase) {
+      toast({
+        title: "Erreur",
+        description: "Supabase n'est pas configuré. Impossible de démarrer le scraping.",
+        variant: "destructive"
+      });
+      return;
+    }
     try {
       const { error } = await supabase.functions.invoke('scrape-repairers', {
         body: { source }
@@ -53,6 +69,13 @@ export const useScrapingStatus = () => {
   };
 
   useEffect(() => {
+    if (!supabase) {
+      setLogs([]);
+      setLoading(false);
+      setIsScrapingRunning(false);
+      return;
+    }
+
     fetchLogs();
 
     // Écouter les changements en temps réel
