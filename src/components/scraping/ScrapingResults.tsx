@@ -24,7 +24,7 @@ interface RepairerResult {
 
 const ScrapingResults = () => {
   const { toast } = useToast();
-  const { user, session, isAdmin } = useAuth();
+  const { user, session, isAdmin, profile, loading: authLoading } = useAuth();
   const [results, setResults] = useState<RepairerResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,9 +35,22 @@ const ScrapingResults = () => {
   const [modalMode, setModalMode] = useState<"view" | "edit">("view");
   const [selectedRepairer, setSelectedRepairer] = useState<RepairerResult | null>(null);
 
+  // Debug les informations d'authentification
   useEffect(() => {
-    loadResults();
-  }, []);
+    console.log("[ScrapingResults] Auth state:", { 
+      user: !!user, 
+      session: !!session, 
+      isAdmin,
+      profile: profile ? { role: profile.role, email: profile.email } : null,
+      authLoading 
+    });
+  }, [user, session, isAdmin, profile, authLoading]);
+
+  useEffect(() => {
+    if (!authLoading) {
+      loadResults();
+    }
+  }, [authLoading]);
 
   const loadResults = async () => {
     console.log("[ScrapingResults] Chargement des résultats...");
@@ -255,6 +268,15 @@ const ScrapingResults = () => {
     setModalOpen(true);
   };
 
+  // Afficher un message de chargement pendant l'authentification
+  if (authLoading) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-600 mb-4">Vérification des permissions...</p>
+      </div>
+    );
+  }
+
   // Show authentication message if user is not authenticated
   if (!user) {
     return (
@@ -269,12 +291,21 @@ const ScrapingResults = () => {
     return (
       <div className="text-center py-8">
         <p className="text-gray-600 mb-4">Accès réservé aux administrateurs.</p>
+        <p className="text-sm text-gray-500">
+          Profil actuel: {profile?.role || 'non défini'} | Email: {profile?.email}
+        </p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      <div className="bg-green-50 border border-green-200 rounded-md p-4">
+        <p className="text-sm text-green-800">
+          ✅ Connecté en tant qu'administrateur : {profile?.email}
+        </p>
+      </div>
+
       <ScrapingFilters
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}

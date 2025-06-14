@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { Shield, Lock, Mail } from 'lucide-react';
 
 const AdminAuthForm = () => {
@@ -13,7 +14,16 @@ const AdminAuthForm = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const { signIn } = useAuth();
+  const { signIn, user, isAdmin } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirection automatique si l'utilisateur est déjà connecté et admin
+  useEffect(() => {
+    if (user && isAdmin) {
+      console.log('✅ User is authenticated and admin, staying on admin page');
+      // L'utilisateur est déjà connecté et admin, pas besoin de redirection
+    }
+  }, [user, isAdmin, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +48,7 @@ const AdminAuthForm = () => {
           title: "Connexion admin réussie",
           description: "Bienvenue dans l'interface d'administration"
         });
+        // La redirection sera gérée par useEffect quand user et isAdmin seront mis à jour
       }
     } catch (error) {
       console.error('💥 Exception during admin login:', error);
