@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import RepairerModal from "./RepairerModal";
 
 interface RepairerResult {
   id: string;
@@ -46,6 +47,9 @@ const ScrapingResults = () => {
   const [sourceFilter, setSourceFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"view" | "edit">("view");
+  const [selectedRepairer, setSelectedRepairer] = useState<RepairerResult | null>(null);
 
   useEffect(() => {
     loadResults();
@@ -362,10 +366,26 @@ const ScrapingResults = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-1">
-                        <Button size="sm" variant="ghost">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setSelectedRepairer(result);
+                            setModalMode("view");
+                            setModalOpen(true);
+                          }}
+                        >
                           <Eye className="h-3 w-3" />
                         </Button>
-                        <Button size="sm" variant="ghost">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setSelectedRepairer(result);
+                            setModalMode("edit");
+                            setModalOpen(true);
+                          }}
+                        >
                           <Edit className="h-3 w-3" />
                         </Button>
                       </div>
@@ -377,6 +397,14 @@ const ScrapingResults = () => {
           </Table>
         </CardContent>
       </Card>
+      {/* Modal "voir / modifier" */}
+      <RepairerModal
+        repairer={selectedRepairer}
+        open={modalOpen}
+        mode={modalMode}
+        onClose={() => setModalOpen(false)}
+        onUpdated={loadResults}
+      />
     </div>
   );
 };
