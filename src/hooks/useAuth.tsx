@@ -29,7 +29,8 @@ export const useAuth = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      console.log('Fetching profile for user:', userId);
+      console.log('🔍 Fetching profile for user:', userId);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -37,14 +38,14 @@ export const useAuth = () => {
         .single();
       
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('❌ Error fetching profile:', error);
         return null;
       }
       
-      console.log('Profile fetched:', data);
+      console.log('✅ Profile fetched successfully:', data);
       return data;
     } catch (error) {
-      console.error('Exception fetching profile:', error);
+      console.error('💥 Exception fetching profile:', error);
       return null;
     }
   };
@@ -53,21 +54,34 @@ export const useAuth = () => {
     console.log('🔧 Setting up auth listener');
     let mounted = true;
     
-    // Fonction pour gérer les changements d'état d'auth
     const handleAuthChange = async (event: string, session: Session | null) => {
-      console.log('🔄 Auth state changed:', event, session?.user?.email);
+      console.log('🔄 Auth state changed:', { event, userEmail: session?.user?.email, sessionExists: !!session });
       
-      if (!mounted) return;
+      if (!mounted) {
+        console.log('⚠️ Component unmounted, skipping auth state change');
+        return;
+      }
       
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        const profileData = await fetchProfile(session.user.id);
-        if (mounted) {
-          setProfile(profileData);
+        console.log('👤 User found, fetching profile for:', session.user.id);
+        try {
+          const profileData = await fetchProfile(session.user.id);
+          if (mounted) {
+            setProfile(profileData);
+            console.log('📝 Profile set:', profileData);
+            console.log('🔑 Is Admin?', profileData?.role === 'admin');
+          }
+        } catch (error) {
+          console.error('💥 Error in profile fetch:', error);
+          if (mounted) {
+            setProfile(null);
+          }
         }
       } else {
+        console.log('❌ No user found, clearing profile');
         if (mounted) {
           setProfile(null);
         }
@@ -75,27 +89,34 @@ export const useAuth = () => {
       
       if (mounted) {
         setLoading(false);
+        console.log('✅ Auth loading complete');
       }
     };
 
-    // Configurer l'écouteur d'état d'auth
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange);
 
-    // Vérifier la session existante
+    // Check existing session
     const checkSession = async () => {
       try {
-        console.log('🔍 Checking existing session');
+        console.log('🔍 Checking existing session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Error getting session:', error);
+          console.error('❌ Error getting session:', error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
         }
+        
+        console.log('🔄 Initial session check:', { sessionExists: !!session, userEmail: session?.user?.email });
         
         if (mounted) {
           await handleAuthChange('INITIAL_SESSION', session);
         }
       } catch (error) {
-        console.error('Exception during session check:', error);
+        console.error('💥 Exception during session check:', error);
         if (mounted) {
           setLoading(false);
         }
@@ -112,14 +133,21 @@ export const useAuth = () => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    console.log('🔐 Attempting sign in for:', email);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    if (error) {
+      console.error('❌ Sign in error:', error);
+    } else {
+      console.log('✅ Sign in successful');
+    }
     return { error };
   };
 
   const signUp = async (email: string, password: string, userData?: UserSignUpData) => {
+    console.log('📝 Attempting sign up for:', email);
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -134,13 +162,26 @@ export const useAuth = () => {
   };
 
   const signOut = async () => {
+    console.log('👋 Signing out...');
     const { error } = await supabase.auth.signOut();
+    if (!error) {
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      console.log('✅ Sign out successful');
+    }
     return { error };
   };
 
   const isAdmin = profile?.role === 'admin';
 
-  console.log('🔐 Auth state:', { user: !!user, profile, loading, isAdmin });
+  console.log('🔐 Current auth state:', { 
+    hasUser: !!user, 
+    hasProfile: !!profile, 
+    profileRole: profile?.role,
+    isAdmin, 
+    loading 
+  });
 
   return {
     user,
