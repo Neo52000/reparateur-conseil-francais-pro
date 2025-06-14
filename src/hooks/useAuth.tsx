@@ -2,53 +2,15 @@
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-
-interface Profile {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  role: string | null;
-}
-
-interface UserSignUpData {
-  first_name?: string;
-  last_name?: string;
-  role?: string;
-  phone?: string;
-  business_name?: string;
-  address?: string;
-  website?: string;
-}
+import { authService } from '@/services/authService';
+import { profileService } from '@/services/profileService';
+import type { Profile, UserSignUpData } from '@/types/auth';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      console.log('🔍 Fetching profile for user:', userId);
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      
-      if (error) {
-        console.error('❌ Error fetching profile:', error);
-        return null;
-      }
-      
-      console.log('✅ Profile fetched successfully:', data);
-      return data;
-    } catch (error) {
-      console.error('💥 Exception fetching profile:', error);
-      return null;
-    }
-  };
 
   useEffect(() => {
     console.log('🔧 Setting up auth listener');
@@ -69,7 +31,7 @@ export const useAuth = () => {
       if (session?.user) {
         console.log('👤 User found, fetching profile for:', session.user.id);
         try {
-          const profileData = await fetchProfile(session.user.id);
+          const profileData = await profileService.fetchProfile(session.user.id);
           if (mounted) {
             setProfile(profileData);
             console.log('📝 Profile set:', profileData);
@@ -99,32 +61,18 @@ export const useAuth = () => {
 
     // Check existing session with timeout fallback
     const checkSession = async () => {
-      try {
-        console.log('🔍 Checking existing session...');
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('❌ Error getting session:', error);
-          // Don't let this block the loading state
-          if (mounted) {
-            setLoading(false);
-          }
-          return;
-        }
-        
-        console.log('🔄 Initial session check:', { sessionExists: !!session, userEmail: session?.user?.email });
-        
+      const { session, error } = await authService.getSession();
+      
+      if (error) {
+        // Don't let this block the loading state
         if (mounted) {
-          await handleAuthChange('INITIAL_SESSION', session);
-        }
-      } catch (error) {
-        console.error('💥 Exception during session check:', error);
-        if (mounted) {
-          setUser(null);
-          setSession(null);
-          setProfile(null);
           setLoading(false);
         }
+        return;
+      }
+      
+      if (mounted) {
+        await handleAuthChange('INITIAL_SESSION', session);
       }
     };
 
@@ -147,72 +95,39 @@ export const useAuth = () => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    console.log('🔐 Attempting sign in for:', email);
     setLoading(true);
     
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (error) {
-        console.error('❌ Sign in error:', error);
-        setLoading(false);
-      } else {
-        console.log('✅ Sign in successful');
-        // Loading will be set to false by the auth state change handler
-      }
-      
-      return { error };
-    } catch (error) {
-      console.error('💥 Exception during sign in:', error);
+    const result = await authService.signIn(email, password);
+    
+    if (result.error) {
       setLoading(false);
-      return { error };
     }
+    // Loading will be set to false by the auth state change handler on success
+    
+    return result;
   };
 
   const signUp = async (email: string, password: string, userData?: UserSignUpData) => {
-    console.log('📝 Attempting sign up for:', email);
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: userData
-      }
-    });
-    return { error };
+    return await authService.signUp(email, password, userData);
   };
 
   const signOut = async () => {
-    console.log('👋 Signing out...');
     setLoading(true);
     
-    try {
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error('❌ Sign out error:', error);
-        setLoading(false);
-        return { error };
-      }
-      
-      // Clear state immediately
-      setUser(null);
-      setSession(null);
-      setProfile(null);
+    const result = await authService.signOut();
+    
+    if (result.error) {
       setLoading(false);
-      
-      console.log('✅ Sign out successful');
-      return { error: null };
-    } catch (error) {
-      console.error('💥 Exception during sign out:', error);
-      setLoading(false);
-      return { error };
+      return result;
     }
+    
+    // Clear state immediately
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+    setLoading(false);
+    
+    return result;
   };
 
   // Helper functions for access control
