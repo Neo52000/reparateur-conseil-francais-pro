@@ -9,6 +9,86 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_pre_diagnostic_chats: {
+        Row: {
+          ended_at: string | null
+          id: string
+          started_at: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_pre_diagnostic_messages: {
+        Row: {
+          chat_id: string
+          id: string
+          message: string
+          sender: string
+          timestamp: string | null
+        }
+        Insert: {
+          chat_id: string
+          id?: string
+          message: string
+          sender: string
+          timestamp?: string | null
+        }
+        Update: {
+          chat_id?: string
+          id?: string
+          message?: string
+          sender?: string
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_pre_diagnostic_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "ai_pre_diagnostic_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      analytics_events: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           appointment_date: string
@@ -56,6 +136,30 @@ export type Database = {
           },
         ]
       }
+      booking_rules: {
+        Row: {
+          enabled: boolean | null
+          id: string
+          repairer_id: string
+          rule: Json
+          updated_at: string | null
+        }
+        Insert: {
+          enabled?: boolean | null
+          id?: string
+          repairer_id: string
+          rule: Json
+          updated_at?: string | null
+        }
+        Update: {
+          enabled?: boolean | null
+          id?: string
+          repairer_id?: string
+          rule?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           conversation_id: string
@@ -88,6 +192,166 @@ export type Database = {
           sender_type?: string
         }
         Relationships: []
+      }
+      notification_settings: {
+        Row: {
+          email_enabled: boolean | null
+          push_enabled: boolean | null
+          sms_enabled: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          email_enabled?: boolean | null
+          push_enabled?: boolean | null
+          sms_enabled?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          email_enabled?: boolean | null
+          push_enabled?: boolean | null
+          sms_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          is_read: boolean | null
+          message: string | null
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          title?: string
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      parts_catalog: {
+        Row: {
+          brand: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          model: string | null
+          name: string
+          part_number: string | null
+          price: number | null
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          model?: string | null
+          name: string
+          part_number?: string | null
+          price?: number | null
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          model?: string | null
+          name?: string
+          part_number?: string | null
+          price?: number | null
+        }
+        Relationships: []
+      }
+      parts_inventory: {
+        Row: {
+          id: string
+          part_id: string
+          quantity: number
+          repairer_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          part_id: string
+          quantity?: number
+          repairer_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          part_id?: string
+          quantity?: number
+          repairer_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parts_inventory_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parts_orders: {
+        Row: {
+          created_at: string | null
+          id: string
+          part_id: string
+          quantity: number
+          repairer_id: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          part_id: string
+          quantity?: number
+          repairer_id: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          part_id?: string
+          quantity?: number
+          repairer_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parts_orders_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pricing_grid: {
         Row: {
@@ -203,6 +467,36 @@ export type Database = {
           status?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          referred_email: string
+          referrer_id: string
+          reward_claimed: boolean | null
+          status: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          referred_email: string
+          referrer_id: string
+          reward_claimed?: boolean | null
+          status?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          referred_email?: string
+          referrer_id?: string
+          reward_claimed?: boolean | null
+          status?: string | null
         }
         Relationships: []
       }
@@ -504,6 +798,30 @@ export type Database = {
           stripe_price_id_monthly?: string | null
           stripe_price_id_yearly?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      time_slots: {
+        Row: {
+          end_time: string
+          id: string
+          is_booked: boolean | null
+          repairer_id: string
+          start_time: string
+        }
+        Insert: {
+          end_time: string
+          id?: string
+          is_booked?: boolean | null
+          repairer_id: string
+          start_time: string
+        }
+        Update: {
+          end_time?: string
+          id?: string
+          is_booked?: boolean | null
+          repairer_id?: string
+          start_time?: string
         }
         Relationships: []
       }

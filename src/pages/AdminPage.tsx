@@ -4,14 +4,17 @@ import AdminDashboard from '@/components/AdminDashboard';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
+// Import experimental comps
+import ReferralInvite from '@/components/ReferralInvite';
+import PartsMarketplace from '@/components/PartsMarketplace';
+import AIPreDiagChatBox from '@/components/AIPreDiagChatBox';
+
 const AdminPage = () => {
   const navigate = useNavigate();
 
   const handleFakeSignOut = () => {
-    // Nettoie tout trace d'auth Supabase local (juste au cas où - safe to no-op si non connecté)
     localStorage.removeItem('supabase.auth.token');
     sessionStorage.removeItem('supabase.auth.token');
-    // Redirige vers la page d'accueil
     navigate('/');
   };
 
@@ -37,6 +40,14 @@ const AdminPage = () => {
       </header>
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <AdminDashboard />
+        <section className="bg-white rounded shadow mt-10 p-5">
+          <h2 className="text-xl font-bold mb-4">Zone expérimentale</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="border rounded p-3"><ReferralInvite /></div>
+            <div className="border rounded p-3"><PartsMarketplace /></div>
+            <div className="border rounded p-3"><AIPreDiagChatBox /></div>
+          </div>
+        </section>
       </main>
     </div>
   );
