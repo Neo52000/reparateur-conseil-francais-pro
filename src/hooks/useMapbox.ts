@@ -1,3 +1,4 @@
+
 import { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useToast } from '@/hooks/use-toast';
@@ -105,25 +106,6 @@ export const useMapbox = (mapboxToken: string, repairers: RepairerDB[]) => {
       initializeMap();
     }
   }, [mapboxToken]);
-
-  const createMarkerElement = () => {
-    const markerElement = document.createElement('div');
-    markerElement.className = 'custom-marker';
-    markerElement.style.width = '30px';
-    markerElement.style.height = '30px';
-    markerElement.style.borderRadius = '50%';
-    markerElement.style.backgroundColor = '#3B82F6';
-    markerElement.style.border = '2px solid white';
-    markerElement.style.cursor = 'pointer';
-    markerElement.style.display = 'flex';
-    markerElement.style.alignItems = 'center';
-    markerElement.style.justifyContent = 'center';
-    markerElement.style.color = 'white';
-    markerElement.style.fontSize = '12px';
-    markerElement.style.fontWeight = 'bold';
-    markerElement.innerHTML = '📱';
-    return markerElement;
-  };
 
   return {
     mapContainer,
