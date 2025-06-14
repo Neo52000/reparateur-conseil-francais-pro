@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { supabase, RepairerDB } from '@/lib/supabase';
+import { supabase, RepairerDB, isSupabaseConfigured } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { MOCK_REPAIRERS } from '@/constants/repairers';
 
 export interface SearchFilters {
   services?: string[];
@@ -15,6 +16,34 @@ export interface SearchFilters {
   postalCode?: string;
 }
 
+// Fonction pour convertir les données mockées au format RepairerDB
+const convertMockToRepairersDB = (mockRepairers: any[]): RepairerDB[] => {
+  return mockRepairers.map((repairer, index) => ({
+    id: repairer.id.toString(),
+    name: repairer.name,
+    address: repairer.address,
+    city: repairer.address.split(',')[1]?.trim() || 'Paris',
+    postal_code: '75001',
+    department: '75',
+    region: 'Île-de-France',
+    phone: '+33123456789',
+    lat: repairer.lat,
+    lng: repairer.lng,
+    rating: repairer.rating,
+    review_count: repairer.reviewCount,
+    services: repairer.services,
+    specialties: repairer.services,
+    price_range: repairer.averagePrice === '€' ? 'low' : repairer.averagePrice === '€€' ? 'medium' : 'high',
+    response_time: repairer.responseTime,
+    is_verified: true,
+    is_open: true,
+    source: 'manual' as const,
+    scraped_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    created_at: new Date().toISOString()
+  }));
+};
+
 export const useRepairers = (filters?: SearchFilters, userLocation?: [number, number]) => {
   const [repairers, setRepairers] = useState<RepairerDB[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +54,15 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
     try {
       setLoading(true);
       setError(null);
+
+      // Si Supabase n'est pas configuré, utiliser les données mockées
+      if (!isSupabaseConfigured() || !supabase) {
+        console.log('Supabase not configured, using mock data');
+        const mockData = convertMockToRepairersDB(MOCK_REPAIRERS);
+        setRepairers(mockData);
+        setLoading(false);
+        return;
+      }
 
       let query = supabase
         .from('repairers')
@@ -81,6 +119,10 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
         description: errorMessage,
         variant: "destructive"
       });
+      
+      // Utiliser les données mockées en cas d'erreur
+      const mockData = convertMockToRepairersDB(MOCK_REPAIRERS);
+      setRepairers(mockData);
     } finally {
       setLoading(false);
     }
