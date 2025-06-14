@@ -4,61 +4,53 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
-  PlayCircle, 
-  StopCircle, 
-  PauseCircle,
-  RefreshCw,
+  Play, 
+  Square, 
+  RefreshCw, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
   Brain,
-  TrendingUp,
-  Database,
-  CheckCircle,
-  XCircle,
-  Clock,
   Zap,
   Target,
-  Globe,
-  Bot,
-  AlertTriangle
+  Settings,
+  TestTube
 } from 'lucide-react';
 import { useScrapingStatus } from '@/hooks/useScrapingStatus';
+import { useToast } from '@/hooks/use-toast';
 
 const ScrapingExecution = () => {
-  const { logs, loading, isScrapingRunning, startScraping } = useScrapingStatus();
-  const [selectedSources, setSelectedSources] = useState<string[]>([]);
+  const { toast } = useToast();
+  const { logs, loading, isScrapingRunning, startScraping, refetch } = useScrapingStatus();
+  const [selectedSources, setSelectedSources] = useState<string[]>(['pages_jaunes']);
+  const [isTestMode, setIsTestMode] = useState(false);
 
-  const sources = [
+  const availableSources = [
     { 
       id: 'pages_jaunes', 
       name: 'Pages Jaunes', 
-      icon: '📞', 
-      description: 'Annuaire français spécialisé',
-      estimatedItems: '~500 entreprises réelles',
-      quality: 'Haute'
+      icon: '📞',
+      description: 'Annuaire professionnel français'
     },
     { 
       id: 'google_places', 
       name: 'Google Places', 
-      icon: '🗺️', 
-      description: 'API Google My Business',
-      estimatedItems: '~1,000 entreprises',
-      quality: 'Très haute'
-    },
-    { 
-      id: 'facebook', 
-      name: 'Facebook Business', 
-      icon: '📘', 
-      description: 'Pages entreprises Facebook',
-      estimatedItems: '~300 entreprises',
-      quality: 'Moyenne'
+      icon: '🗺️',
+      description: 'Base de données Google My Business'
     },
     { 
       id: 'yelp', 
-      name: 'Yelp Business', 
-      icon: '⭐', 
-      description: 'Avis et entreprises Yelp',
-      estimatedItems: '~200 entreprises',
-      quality: 'Haute'
+      name: 'Yelp', 
+      icon: '⭐',
+      description: 'Plateforme d\'avis consommateurs'
+    },
+    { 
+      id: 'facebook', 
+      name: 'Facebook', 
+      icon: '📘',
+      description: 'Pages entreprises Facebook'
     }
   ];
 
@@ -71,231 +63,208 @@ const ScrapingExecution = () => {
   };
 
   const handleStartScraping = async () => {
-    if (selectedSources.length === 0) return;
-    
-    for (const source of selectedSources) {
-      try {
+    if (selectedSources.length === 0) {
+      toast({
+        title: "Aucune source sélectionnée",
+        description: "Veuillez sélectionner au moins une source de données.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      for (const source of selectedSources) {
+        console.log(`🚀 Lancement du scraping pour: ${source}`);
         await startScraping(source);
-      } catch (error) {
-        console.error(`Erreur scraping ${source}:`, error);
+        
+        // Petit délai entre les sources pour éviter la surcharge
+        if (selectedSources.length > 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
+    } catch (error) {
+      console.error('❌ Erreur lors du lancement du scraping:', error);
+    }
+  };
+
+  const handleTestScraping = async () => {
+    setIsTestMode(true);
+    toast({
+      title: "🧪 Mode test activé",
+      description: "Lancement du scraping de test avec 5 résultats simulés...",
+    });
+
+    try {
+      // Test avec une source simple
+      await startScraping('pages_jaunes');
+      
+      setTimeout(() => {
+        setIsTestMode(false);
+        toast({
+          title: "✅ Test terminé",
+          description: "Le test de scraping s'est bien déroulé. Vérifiez les résultats dans l'onglet Résultats.",
+        });
+      }, 3000);
+    } catch (error) {
+      setIsTestMode(false);
+      console.error('❌ Erreur test scraping:', error);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'failed': return 'bg-red-100 text-red-800';
+      case 'running': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'running':
-        return <RefreshCw className="h-4 w-4 animate-spin text-blue-600" />;
-      case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'failed':
-        return <XCircle className="h-4 w-4 text-red-600" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-400" />;
+      case 'completed': return <CheckCircle className="h-4 w-4" />;
+      case 'failed': return <XCircle className="h-4 w-4" />;
+      case 'running': return <RefreshCw className="h-4 w-4 animate-spin" />;
+      default: return <Clock className="h-4 w-4" />;
     }
   };
 
-  const getTotalStats = () => {
-    const completedLogs = logs.filter(log => log.status === 'completed');
-    const totalAdded = completedLogs.reduce((sum, log) => sum + (log.items_added || 0), 0);
-    const totalUpdated = completedLogs.reduce((sum, log) => sum + (log.items_updated || 0), 0);
-    const totalScraped = completedLogs.reduce((sum, log) => sum + (log.items_scraped || 0), 0);
+  const formatDuration = (startedAt: string, completedAt?: string) => {
+    const start = new Date(startedAt);
+    const end = completedAt ? new Date(completedAt) : new Date();
+    const diffMs = end.getTime() - start.getTime();
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMinutes = Math.floor(diffSeconds / 60);
     
-    // Calculer la précision IA
-    const successfulClassifications = totalAdded + totalUpdated;
-    const precision = totalScraped > 0 ? Math.round((successfulClassifications / totalScraped) * 100) : 0;
-    
-    return { totalAdded, totalUpdated, totalScraped, precision };
+    if (diffMinutes > 0) {
+      return `${diffMinutes}m ${diffSeconds % 60}s`;
+    }
+    return `${diffSeconds}s`;
   };
-
-  const { totalAdded, totalUpdated, totalScraped, precision } = getTotalStats();
 
   return (
     <div className="space-y-6">
-      {/* Stats en temps réel avec IA */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-600">Ajoutés</p>
-                <p className="text-3xl font-bold text-blue-900">{totalAdded}</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-600">Mis à jour</p>
-                <p className="text-3xl font-bold text-green-900">{totalUpdated}</p>
-              </div>
-              <RefreshCw className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-600">Traités</p>
-                <p className="text-3xl font-bold text-purple-900">{totalScraped}</p>
-              </div>
-              <Database className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-orange-600">Précision IA</p>
-                <p className="text-3xl font-bold text-orange-900">{precision}%</p>
-              </div>
-              <Brain className="h-8 w-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Configuration IA */}
+      {/* Configuration et contrôles */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Bot className="h-5 w-5 mr-2" />
-            Configuration IA Multi-Modèles
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Brain className="h-6 w-6 mr-2 text-blue-600" />
+              Centre de Contrôle IA
+            </div>
+            <div className="flex items-center space-x-2">
+              {isScrapingRunning && (
+                <Badge className="bg-blue-100 text-blue-800 animate-pulse">
+                  <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                  En cours
+                </Badge>
+              )}
+              <Badge variant="outline" className="text-green-600">
+                <Zap className="h-3 w-3 mr-1" />
+                IA Active
+              </Badge>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-purple-900">🤖 Mistral AI</h4>
-                <Badge variant="default">Priorité 1</Badge>
-              </div>
-              <p className="text-sm text-purple-700">Classification précise des entreprises</p>
-              <p className="text-xs text-purple-600 mt-1">Modèle: mistral-small-latest</p>
-            </div>
-            
-            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-green-900">🧠 OpenAI</h4>
-                <Badge variant="outline">Fallback</Badge>
-              </div>
-              <p className="text-sm text-green-700">Analyse de secours automatique</p>
-              <p className="text-xs text-green-600 mt-1">Modèle: gpt-3.5-turbo</p>
-            </div>
-          </div>
-          
-          <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-            <div className="flex items-center text-amber-800">
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              <span className="text-sm font-medium">Système de fallback automatique activé</span>
-            </div>
-            <p className="text-xs text-amber-700 mt-1">
-              En cas d'échec de Mistral AI, le système bascule automatiquement sur OpenAI
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Sélection des sources améliorée */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Target className="h-5 w-5 mr-2" />
-            Sources de Scraping
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {sources.map((source) => (
-              <div
-                key={source.id}
-                className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                  selectedSources.includes(source.id)
-                    ? 'border-blue-500 bg-blue-50 shadow-md'
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                }`}
-                onClick={() => handleSourceToggle(source.id)}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">{source.icon}</span>
-                    <div>
-                      <h4 className="font-medium">{source.name}</h4>
-                      <p className="text-xs text-gray-500">{source.description}</p>
-                    </div>
-                  </div>
-                  {selectedSources.includes(source.id) && (
-                    <CheckCircle className="h-5 w-5 text-blue-600" />
-                  )}
-                </div>
-                
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-600">{source.estimatedItems}</span>
-                  <Badge 
-                    variant={source.quality === 'Très haute' ? 'default' : 
-                            source.quality === 'Haute' ? 'secondary' : 'outline'}
-                    className="text-xs"
+          <div className="space-y-6">
+            {/* Sélection des sources */}
+            <div>
+              <h3 className="text-lg font-medium mb-3 flex items-center">
+                <Target className="h-5 w-5 mr-2" />
+                Sources de données
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {availableSources.map((source) => (
+                  <div
+                    key={source.id}
+                    className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
+                      selectedSources.includes(source.id) 
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => handleSourceToggle(source.id)}
                   >
-                    {source.quality}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 flex space-x-3">
-            <Button
-              onClick={handleStartScraping}
-              disabled={isScrapingRunning || selectedSources.length === 0}
-              className="flex-1"
-            >
-              <PlayCircle className="h-4 w-4 mr-2" />
-              Démarrer le Scraping IA
-            </Button>
-            <Button
-              variant="outline"
-              disabled={!isScrapingRunning}
-            >
-              <PauseCircle className="h-4 w-4 mr-2" />
-              Pause
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={!isScrapingRunning}
-            >
-              <StopCircle className="h-4 w-4 mr-2" />
-              Arrêter
-            </Button>
-          </div>
-
-          {isScrapingRunning && (
-            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-blue-900">Scraping en cours...</span>
-                <div className="flex items-center text-blue-700">
-                  <Brain className="h-4 w-4 mr-1 animate-pulse" />
-                  <span className="text-xs">IA Active</span>
-                </div>
-              </div>
-              <Progress value={75} className="mb-2" />
-              <div className="flex items-center justify-between text-xs text-blue-700">
-                <span>Classification automatique des entreprises...</span>
-                <span>Mistral AI + OpenAI</span>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-2xl">{source.icon}</span>
+                      <input
+                        type="checkbox"
+                        checked={selectedSources.includes(source.id)}
+                        onChange={() => {}}
+                        className="h-4 w-4 text-blue-600 rounded"
+                      />
+                    </div>
+                    <h4 className="font-medium text-sm">{source.name}</h4>
+                    <p className="text-xs text-gray-500 mt-1">{source.description}</p>
+                  </div>
+                ))}
               </div>
             </div>
-          )}
+
+            {/* Contrôles d'exécution */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center space-x-4">
+                <Button
+                  onClick={handleStartScraping}
+                  disabled={isScrapingRunning || selectedSources.length === 0}
+                  className="flex items-center space-x-2"
+                >
+                  <Play className="h-4 w-4" />
+                  <span>Lancer le Scraping</span>
+                </Button>
+                
+                <Button
+                  onClick={handleTestScraping}
+                  disabled={isScrapingRunning || isTestMode}
+                  variant="outline"
+                  className="flex items-center space-x-2 border-green-300 text-green-700 hover:bg-green-50"
+                >
+                  <TestTube className="h-4 w-4" />
+                  <span>{isTestMode ? 'Test en cours...' : 'Test (5 résultats)'}</span>
+                </Button>
+
+                <Button
+                  onClick={refetch}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Actualiser</span>
+                </Button>
+              </div>
+
+              <div className="text-sm text-gray-600">
+                {selectedSources.length} source(s) sélectionnée(s)
+              </div>
+            </div>
+
+            {/* Configuration IA */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-900 mb-2 flex items-center">
+                <Settings className="h-4 w-4 mr-2" />
+                Configuration IA
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="font-medium text-blue-800">Modèle principal:</span>
+                  <p className="text-blue-700">Mistral AI (Small)</p>
+                </div>
+                <div>
+                  <span className="font-medium text-blue-800">Fallback:</span>
+                  <p className="text-blue-700">OpenAI GPT-3.5</p>
+                </div>
+                <div>
+                  <span className="font-medium text-blue-800">Seuil confiance:</span>
+                  <p className="text-blue-700">60%</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Historique avec informations IA */}
+      {/* Historique des exécutions */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -305,65 +274,72 @@ const ScrapingExecution = () => {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8">
-              <RefreshCw className="h-8 w-8 animate-spin mx-auto text-gray-400" />
-              <p className="text-gray-500 mt-2">Chargement...</p>
+            <div className="flex items-center justify-center py-8">
+              <RefreshCw className="h-6 w-6 animate-spin mr-2" />
+              Chargement de l'historique...
             </div>
           ) : logs.length === 0 ? (
-            <div className="text-center py-8">
-              <Globe className="h-12 w-12 mx-auto text-gray-300" />
-              <p className="text-gray-500 mt-2">Aucun scraping effectué</p>
+            <div className="text-center py-8 text-gray-500">
+              <Brain className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p>Aucune exécution trouvée</p>
+              <p className="text-sm">Lancez votre premier scraping pour voir l'historique</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {logs.slice(0, 5).map((log) => (
-                <div key={log.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    {getStatusIcon(log.status)}
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium">{log.source}</span>
-                        <Badge 
-                          variant={
-                            log.status === 'completed' ? 'default' : 
-                            log.status === 'failed' ? 'destructive' : 'secondary'
-                          }
-                        >
-                          {log.status}
-                        </Badge>
-                        {log.status === 'completed' && (
-                          <Badge variant="outline" className="text-xs">
-                            <Brain className="h-3 w-3 mr-1" />
-                            IA
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {new Date(log.started_at).toLocaleString('fr-FR')}
-                      </div>
-                      {log.error_message && (
-                        <div className="text-xs text-red-600 mt-1">
-                          {log.error_message}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Résultats</TableHead>
+                  <TableHead>Durée</TableHead>
+                  <TableHead>Démarré le</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <span className="text-xl mr-2">
+                          {availableSources.find(s => s.id === log.source)?.icon || '📊'}
+                        </span>
+                        <div>
+                          <div className="font-medium">{log.source}</div>
+                          {log.error_message && (
+                            <div className="text-xs text-red-600 mt-1">
+                              {log.error_message.slice(0, 50)}...
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium">
-                      +{log.items_added || 0} • ↻{log.items_updated || 0}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {log.items_scraped || 0} traités
-                    </div>
-                    {log.status === 'completed' && log.items_scraped > 0 && (
-                      <div className="text-xs text-green-600">
-                        {Math.round(((log.items_added + log.items_updated) / log.items_scraped) * 100)}% précision
                       </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(log.status)}>
+                        {getStatusIcon(log.status)}
+                        <span className="ml-1 capitalize">{log.status}</span>
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div>📊 {log.items_scraped || 0} analysés</div>
+                        <div className="text-green-600">➕ {log.items_added || 0} ajoutés</div>
+                        <div className="text-blue-600">🔄 {log.items_updated || 0} mis à jour</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-gray-600">
+                        {formatDuration(log.started_at, log.completed_at)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-gray-600">
+                        {new Date(log.started_at).toLocaleString('fr-FR')}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
