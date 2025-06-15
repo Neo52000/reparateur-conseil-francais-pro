@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { Wrench, Phone, Mail, MapPin, Globe, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const RepairerAuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -22,6 +22,7 @@ const RepairerAuthForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
   const { signIn, signUp } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +42,7 @@ const RepairerAuthForm = () => {
             title: "Connexion réussie",
             description: "Bienvenue dans votre espace réparateur"
           });
+          // Pas besoin de navigate ici : la redirection est prise en charge par le hook useAuth + RepairerSpace
         }
       } else {
         const { error } = await signUp(email, password, {
@@ -63,6 +65,10 @@ const RepairerAuthForm = () => {
             title: "Inscription réussie",
             description: "Vérifiez votre email pour confirmer votre compte"
           });
+          // Redirection après inscription réussie réparateur
+          setTimeout(() => {
+            navigate('/repairer/plans'); // La route de la page d’abonnement (adapte si le path diffère)
+          }, 800);
         }
       }
     } catch (error) {
