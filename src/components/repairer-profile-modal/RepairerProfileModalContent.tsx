@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,9 @@ interface RepairerProfileModalContentProps {
   onClose: () => void;
 }
 
-const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = ({
+const RepairerProfileModalContent: React.FC<
+  RepairerProfileModalContentProps & { saving?: boolean }
+> = ({
   profile,
   isEditing,
   isAdmin = false,
@@ -30,7 +31,8 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
   onEdit,
   onSave,
   onCancel,
-  onClose
+  onClose,
+  saving = false
 }) => {
   const handleRequestQuote = () => {
     // In real app, this would open quote form or navigate to quote page
@@ -58,6 +60,9 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
           onCancel={onCancel}
           isAdmin={isAdmin}
         />
+        {saving && (
+          <div className="text-xs text-blue-800 pt-2">Enregistrement en cours...</div>
+        )}
       </DialogContent>
     );
   }

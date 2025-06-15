@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -22,42 +23,51 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
   isAdmin = false
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
-  const { profile, loading, fetchProfile, refreshProfile } = useProfileData(repairerId, isOpen);
+  const { profile, loading, fetchProfile } = useProfileData(repairerId, isOpen);
   const { user, isAdmin: userIsAdmin } = useAuth();
 
-  const handleProfileUpdate = async (updatedProfile: RepairerProfile) => {
-    // On sauvegarde le profil : possible que le vrai user_id soit différent si création à la volée !
-    // On rafraîchit le profil AVEC le bon user_id fraîchement retourné
-    try {
-      // Ajout d’un log pour bien tracer le user_id utilisé lors du refresh
-      const resultUserId = updatedProfile.repairer_id;
-      console.log('[RepairerProfileModal] Après save, user_id réel utilisé pour refresh:', resultUserId);
+  // Permet de stocker le dernier profil sauvegardé avec succès
+  const [lastSavedProfile, setLastSavedProfile] = useState<RepairerProfile | null>(null);
 
+  const handleProfileUpdate = async (updatedProfile: RepairerProfile) => {
+    setSaving(true);
+    try {
+      // Sauvegarde : si une erreur, déclenche le bloc catch
+      const resultUserId = updatedProfile.repairer_id;
       await fetchProfile(resultUserId || repairerId);
       setIsEditing(false);
+
+      // On recharge la fiche modifiée (en base) pour vérifier que la modif est bien prise en compte
+      await fetchProfile(resultUserId || repairerId);
+
+      setLastSavedProfile(updatedProfile);
+
       toast({
         title: "Succès",
         description: "Profil mis à jour avec succès"
       });
     } catch (error: any) {
+      console.error("[RepairerProfileModal] Erreur lors de la sauvegarde ou du refresh :", error);
       toast({
         title: "Erreur",
-        description: "Impossible de rafraîchir la fiche après modification. " + (error?.message || ''),
+        description: "Impossible de sauvegarder ou rafraîchir la fiche du réparateur. " + (error?.message || ''),
         variant: "destructive"
       });
+      // Ne pas fermer l'édition en cas d'erreur !
+      return;
+    } finally {
+      setSaving(false);
     }
   };
 
   // Vérifier si l'utilisateur peut modifier cette fiche
   const canEdit = () => {
-    // L'admin peut toujours modifier
     if (userIsAdmin || isAdmin) {
       return true;
     }
-    // Le réparateur peut modifier sa propre fiche s'il est connecté
     if (user && profile) {
-      // Vérifier si l'utilisateur connecté correspond au propriétaire de la fiche
       return user.id === profile.repairer_id || user.email === profile.email;
     }
     return false;
@@ -82,6 +92,7 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
         onSave={handleProfileUpdate}
         onCancel={() => setIsEditing(false)}
         onClose={onClose}
+        saving={saving}
       />
     </Dialog>
   );
