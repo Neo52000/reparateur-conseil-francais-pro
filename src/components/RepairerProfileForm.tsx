@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,11 +60,12 @@ const RepairerProfileForm: React.FC<RepairerProfileFormProps> = ({
     setLoading(true);
 
     try {
+      console.log('Attempting to save profile:', formData);
+      
       // Vérifier si c'est un profil mocké (ID commence par "mock-")
       const isMockProfile = profile.id.startsWith('mock-');
       
       if (isMockProfile) {
-        // Pour les profils mockés, simuler la sauvegarde
         console.log('Simulating save for mock profile:', formData);
         
         // Simuler un délai de sauvegarde
@@ -83,46 +83,86 @@ const RepairerProfileForm: React.FC<RepairerProfileFormProps> = ({
           title: "Succès",
           description: "Profil de test mis à jour (simulation)",
         });
-      } else {
-        // Pour les vrais profils, utiliser Supabase
-        const { data, error } = await supabase
+        
+        return;
+      }
+
+      // Préparer les données pour la sauvegarde
+      const profileData = {
+        user_id: formData.user_id,
+        business_name: formData.business_name,
+        siret_number: formData.siret_number || null,
+        description: formData.description || null,
+        address: formData.address,
+        city: formData.city,
+        postal_code: formData.postal_code,
+        phone: formData.phone,
+        email: formData.email,
+        website: formData.website || null,
+        facebook_url: formData.facebook_url || null,
+        instagram_url: formData.instagram_url || null,
+        linkedin_url: formData.linkedin_url || null,
+        twitter_url: formData.twitter_url || null,
+        has_qualirepar_label: formData.has_qualirepar_label,
+        repair_types: formData.repair_types,
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('Profile data to save:', profileData);
+
+      // D'abord essayer de mettre à jour un profil existant
+      const { data: existingProfile, error: fetchError } = await supabase
+        .from('repairer_profiles')
+        .select('id')
+        .eq('user_id', formData.user_id)
+        .maybeSingle();
+
+      console.log('Existing profile check:', { existingProfile, fetchError });
+
+      let result;
+      
+      if (existingProfile) {
+        // Mettre à jour le profil existant
+        console.log('Updating existing profile with ID:', existingProfile.id);
+        result = await supabase
           .from('repairer_profiles')
-          .update({
-            business_name: formData.business_name,
-            siret_number: formData.siret_number || null,
-            description: formData.description || null,
-            address: formData.address,
-            city: formData.city,
-            postal_code: formData.postal_code,
-            phone: formData.phone,
-            email: formData.email,
-            website: formData.website || null,
-            facebook_url: formData.facebook_url || null,
-            instagram_url: formData.instagram_url || null,
-            linkedin_url: formData.linkedin_url || null,
-            twitter_url: formData.twitter_url || null,
-            has_qualirepar_label: formData.has_qualirepar_label,
-            repair_types: formData.repair_types,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', profile.id)
+          .update(profileData)
+          .eq('id', existingProfile.id)
           .select()
           .single();
-
-        if (error) throw error;
-
-        onSave(data);
-        
-        toast({
-          title: "Succès",
-          description: "Profil mis à jour avec succès",
-        });
+      } else {
+        // Créer un nouveau profil
+        console.log('Creating new profile for user_id:', formData.user_id);
+        result = await supabase
+          .from('repairer_profiles')
+          .insert([profileData])
+          .select()
+          .single();
       }
+
+      console.log('Save result:', result);
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      const savedProfile = {
+        ...result.data,
+        id: result.data.id,
+      };
+
+      onSave(savedProfile);
+      
+      toast({
+        title: "Succès",
+        description: existingProfile ? "Profil mis à jour avec succès" : "Profil créé avec succès",
+      });
+
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('Error saving profile:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de mettre à jour le profil",
+        description: "Impossible de sauvegarder le profil",
         variant: "destructive"
       });
     } finally {
