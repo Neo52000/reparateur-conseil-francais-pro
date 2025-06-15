@@ -1,16 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Plus, Edit, ArrowLeft, Eye } from 'lucide-react';
+import { RefreshCw, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SubscriptionPlans from '@/components/SubscriptionPlans';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
+import RepairersStats from '@/components/repairers/RepairersStats';
+import RepairersTable from '@/components/repairers/RepairersTable';
+import SubscriptionsTable from '@/components/repairers/SubscriptionsTable';
 
 interface SubscriptionData {
   id: string;
@@ -176,21 +177,6 @@ const RepairersManagementPage = () => {
     }
   };
 
-  const getTierInfo = (tier: string) => {
-    switch (tier) {
-      case 'free':
-        return { name: 'Gratuit', color: 'bg-gray-100 text-gray-800', icon: null };
-      case 'basic':
-        return { name: 'Basique', color: 'bg-blue-100 text-blue-800', icon: <Star className="h-4 w-4" /> };
-      case 'premium':
-        return { name: 'Premium', color: 'bg-purple-100 text-purple-800', icon: <Zap className="h-4 w-4" /> };
-      case 'enterprise':
-        return { name: 'Enterprise', color: 'bg-yellow-100 text-yellow-800', icon: <Crown className="h-4 w-4" /> };
-      default:
-        return { name: 'Inconnu', color: 'bg-gray-100 text-gray-800', icon: null };
-    }
-  };
-
   const handleViewProfile = (repairerId: string) => {
     setSelectedRepairerId(repairerId);
     setProfileModalOpen(true);
@@ -238,58 +224,8 @@ const RepairersManagementPage = () => {
       </header>
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Réparateurs</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalRepairers}</p>
-                </div>
-                <Users className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
+        <RepairersStats stats={stats} />
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Réparateurs Actifs</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeRepairers}</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Revenus Mensuels</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.monthlyRevenue.toFixed(2)}€</p>
-                </div>
-                <Crown className="h-8 w-8 text-purple-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Revenus Annuels</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.yearlyRevenue.toFixed(2)}€</p>
-                </div>
-                <Star className="h-8 w-8 text-yellow-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tabs for different sections */}
         <Tabs defaultValue="repairers" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
@@ -298,148 +234,15 @@ const RepairersManagementPage = () => {
           </TabsList>
 
           <TabsContent value="repairers">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Gestion des Réparateurs</CardTitle>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter un réparateur
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nom</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Téléphone</TableHead>
-                      <TableHead>Ville</TableHead>
-                      <TableHead>Abonnement</TableHead>
-                      <TableHead>Réparations</TableHead>
-                      <TableHead>Note</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {repairers.map((repairer) => {
-                      const tierInfo = getTierInfo(repairer.subscription_tier);
-                      return (
-                        <TableRow key={repairer.id}>
-                          <TableCell className="font-medium">{repairer.name}</TableCell>
-                          <TableCell>{repairer.email}</TableCell>
-                          <TableCell>{repairer.phone}</TableCell>
-                          <TableCell>{repairer.city}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              {tierInfo.icon}
-                              <Badge className={tierInfo.color}>
-                                {tierInfo.name}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell>{repairer.total_repairs}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-1">
-                              <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                              <span>{repairer.rating}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleViewProfile(repairer.id)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="outline">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+            <RepairersTable repairers={repairers} onViewProfile={handleViewProfile} />
           </TabsContent>
 
           <TabsContent value="subscriptions">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestion des Abonnements</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Réparateur</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Plan</TableHead>
-                      <TableHead>Facturation</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead>Fin d'abonnement</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {subscriptions.map((subscription) => {
-                      const tierInfo = getTierInfo(subscription.subscription_tier);
-                      return (
-                        <TableRow key={subscription.id}>
-                          <TableCell>
-                            {subscription.first_name || subscription.last_name ? 
-                              `${subscription.first_name || ''} ${subscription.last_name || ''}`.trim() :
-                              subscription.repairer_id
-                            }
-                          </TableCell>
-                          <TableCell>{subscription.email}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              {tierInfo.icon}
-                              <Badge className={tierInfo.color}>
-                                {tierInfo.name}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {subscription.billing_cycle === 'yearly' ? 'Annuelle' : 'Mensuelle'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={subscription.subscribed ? "default" : "secondary"}>
-                              {subscription.subscribed ? 'Actif' : 'Inactif'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {subscription.subscription_end 
-                              ? new Date(subscription.subscription_end).toLocaleDateString()
-                              : 'N/A'
-                            }
-                          </TableCell>
-                          <TableCell>
-                            <Button size="sm" variant="outline">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+            <SubscriptionsTable subscriptions={subscriptions} />
           </TabsContent>
 
           <TabsContent value="plans">
             <Card>
-              <CardHeader>
-                <CardTitle>Plans d'abonnement</CardTitle>
-              </CardHeader>
               <CardContent>
                 <SubscriptionPlans />
               </CardContent>
@@ -448,7 +251,6 @@ const RepairersManagementPage = () => {
         </Tabs>
       </main>
 
-      {/* Modal pour afficher le profil du réparateur */}
       {selectedRepairerId && (
         <RepairerProfileModal
           isOpen={profileModalOpen}
