@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { CalendarDays, CalendarClock, X, Plus } from "lucide-react";
+import { CalendarDays, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { useAuth } from "@/hooks/useAuth";
 import { format, isSameDay } from "date-fns";
 import { fr } from "date-fns/locale/fr";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+// Sous-composants
+import AppointmentListForDay from "./AppointmentListForDay";
+import CreateAppointmentPopover from "./CreateAppointmentPopover";
 
 type Appointment = {
   id: string;
@@ -73,7 +73,7 @@ export default function RepairerAppointmentsCalendar() {
     if (!profile?.id || !selectedDate) return;
     setLoading(true);
 
-    // Combine date et heure :
+    // Combine date et heure :
     const [h, m] = newTime.split(":").map(Number);
     const dateWithTime = new Date(selectedDate);
     dateWithTime.setHours(h, m, 0, 0);
@@ -137,89 +137,31 @@ export default function RepairerAppointmentsCalendar() {
         </div>
         {/* Liste des rendez-vous pour la journée */}
         <div className="flex-1">
-          <h3 className="text-lg font-semibold flex items-center mb-2"><CalendarDays className="h-5 w-5 mr-2" /> Rendez-vous du jour</h3>
-          {appointmentsForDay.length === 0 ? (
-            <div className="text-gray-500 text-sm p-4 bg-gray-50 rounded-lg">
-              Aucun rendez-vous ce jour.<br />Utilisez le bouton <b>Ajouter</b> pour planifier un nouveau créneau.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {appointmentsForDay.map(a => (
-                <div
-                  key={a.id}
-                  className="p-3 flex items-center bg-blue-50 hover:bg-blue-100 rounded shadow-sm border border-blue-100 relative"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 font-medium">
-                      <CalendarClock className="h-4 w-4" />
-                      {format(new Date(a.appointment_date), "p", { locale: fr })} – {a.service || "Consultation"}
-                    </div>
-                    {/* Plus d'infos (client, téléphone) à ajouter si on relie à un utilisateur */}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500 hover:bg-red-100 ml-2"
-                    onClick={() => handleDelete(a.id)}
-                    disabled={loading}
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          )}
+          <h3 className="text-lg font-semibold flex items-center mb-2">
+            <CalendarDays className="h-5 w-5 mr-2" /> Rendez-vous du jour
+          </h3>
+          <AppointmentListForDay
+            appointments={appointmentsForDay}
+            loading={loading}
+            onDelete={handleDelete}
+          />
         </div>
       </div>
       {/* Modale création rapide */}
       <Popover open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <PopoverContent className="w-[320px] p-4 pointer-events-auto">
-          <form onSubmit={handleCreateAppointment} className="space-y-3">
-            <h4 className="font-bold text-lg mb-2">Créer un rendez-vous&nbsp;{selectedDate && format(selectedDate, "PPP", { locale: fr })}</h4>
-            <div>
-              <label className="block text-sm font-medium mb-1">Heure</label>
-              <input
-                type="time"
-                className="w-full border rounded p-2"
-                value={newTime}
-                onChange={e => setNewTime(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Durée (minutes)</label>
-              <input
-                type="number"
-                className="w-full border rounded p-2"
-                min={15}
-                max={360}
-                step={15}
-                value={newDuration}
-                onChange={e => setNewDuration(Number(e.target.value))}
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Objet / service</label>
-              <input
-                type="text"
-                className="w-full border rounded p-2"
-                value={newService}
-                onChange={e => setNewService(e.target.value)}
-                placeholder="Consultation, réparation, etc."
-                required
-              />
-            </div>
-            <div className="flex gap-2 pt-2">
-              <Button type="button" variant="secondary" onClick={() => setShowCreateModal(false)}>
-                Annuler
-              </Button>
-              <Button type="submit" className="bg-blue-600 text-white">
-                Enregistrer
-              </Button>
-            </div>
-          </form>
-        </PopoverContent>
+        <CreateAppointmentPopover
+          show={showCreateModal}
+          selectedDate={selectedDate}
+          newTime={newTime}
+          newDuration={newDuration}
+          newService={newService}
+          loading={loading}
+          onTimeChange={setNewTime}
+          onDurationChange={setNewDuration}
+          onServiceChange={setNewService}
+          onClose={() => setShowCreateModal(false)}
+          onSubmit={handleCreateAppointment}
+        />
       </Popover>
     </div>
   );
