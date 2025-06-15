@@ -10,7 +10,7 @@ import {
   Euro,
   Heart
 } from 'lucide-react';
-import { RepairerDB } from '@/lib/supabase';
+import { RepairerDB } from '@/hooks/useRepairers';
 import ClaimProfileBanner from '../ClaimProfileBanner';
 import StarRating from './StarRating';
 import { getDisplayInfo, getTierBadge } from '@/utils/subscriptionDisplay';

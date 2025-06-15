@@ -2,7 +2,7 @@
 import { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useToast } from '@/hooks/use-toast';
-import { RepairerDB } from '@/lib/supabase';
+import { RepairerDB } from '@/hooks/useRepairers';
 import { MAP_CONFIG } from '@/constants/repairers';
 
 export const useMapbox = (mapboxToken: string, repairers: RepairerDB[]) => {
