@@ -19,7 +19,6 @@ const Footer = () => {
               Espace Réparateur
             </Link>
           </div>
-
           {/* Contact */}
           <div>
             <h4 className="text-lg font-semibold mb-4">Contact</h4>
@@ -68,10 +67,12 @@ const Footer = () => {
                   Rejoignez notre annuaire et développez votre activité avec RepairHub
                 </p>
               </div>
-              <Button className="bg-white text-blue-600 hover:bg-gray-100 font-semibold">
-                <UserPlus className="h-4 w-4 mr-2" />
-                Inscrivez-vous gratuitement
-              </Button>
+              <Link to="/repairer/auth">
+                <Button className="bg-white text-blue-600 hover:bg-gray-100 font-semibold">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Inscrivez-vous gratuitement
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -87,3 +88,4 @@ const Footer = () => {
 };
 
 export default Footer;
+
