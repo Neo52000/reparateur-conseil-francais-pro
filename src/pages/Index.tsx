@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,10 +62,10 @@ const Index = () => {
       <div className="relative h-screen bg-cover bg-center" style={{
         backgroundImage: "url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')"
       }}>
-        {/* Overlay noir avec pointer-events-none pour ne pas bloquer les interactions */}
-        <div className="absolute inset-0 bg-black bg-opacity-50 pointer-events-none"></div>
+        {/* Overlay noir */}
+        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
         
-        <div className="relative z-10 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">
+        <div className="relative z-20 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h1 className="text-5xl md:text-6xl font-bold mb-4">
               RepairHub
@@ -76,8 +75,8 @@ const Index = () => {
             </p>
           </div>
 
-          {/* Barre de recherche sur l'image avec pointer-events-auto pour restaurer les interactions */}
-          <div className="w-full max-w-2xl z-50 pointer-events-auto">
+          {/* Barre de recherche sur l'image */}
+          <div className="w-full max-w-2xl relative z-30">
             <div className="bg-white rounded-lg p-6 shadow-xl">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
                 Recherche rapide de réparateurs
@@ -85,24 +84,24 @@ const Index = () => {
               
               <div className="flex flex-col space-y-4">
                 <div className="relative">
-                  <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
                   <Input
                     placeholder="Rechercher un service (ex: écran cassé iPhone 14)"
                     value={searchTerm}
                     onChange={handleServiceChange}
-                    className="pl-10"
+                    className="pl-10 relative z-10 bg-white"
                   />
                 </div>
                 <div className="relative">
-                  <MapPin className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  <MapPin className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
                   <Input
                     placeholder="Ville ou code postal"
                     value={selectedLocation}
                     onChange={handleLocationChange}
-                    className="pl-10"
+                    className="pl-10 relative z-10 bg-white"
                   />
                 </div>
-                <Button className="w-full" size="lg" onClick={handleQuickSearch}>
+                <Button className="w-full relative z-10" size="lg" onClick={handleQuickSearch}>
                   Rechercher
                 </Button>
               </div>
