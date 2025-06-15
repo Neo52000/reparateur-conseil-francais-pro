@@ -57,8 +57,8 @@ const Index = () => {
         
         <div className="relative z-20 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <div className="mb-4">
-              <Logo variant="full" size="lg" className="brightness-0 invert mx-auto" />
+            <div className="mb-6 flex justify-center">
+              <Logo variant="full" size="xl" className="brightness-0 invert" />
             </div>
             <p className="text-xl md:text-2xl mb-8">
               Trouvez le meilleur réparateur près de chez vous
