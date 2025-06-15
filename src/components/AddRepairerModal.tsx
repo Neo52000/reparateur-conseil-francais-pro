@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AddRepairerModalProps {
   isOpen: boolean;
@@ -16,18 +17,11 @@ interface AddRepairerModalProps {
 }
 
 const REPAIR_TYPES = [
-  { value: 'telephone', label: 'Téléphone' },
-  { value: 'montre', label: 'Montre' },
-  { value: 'console', label: 'Console' },
-  { value: 'ordinateur', label: 'Ordinateur' },
-  { value: 'autres', label: 'Autres' }
-];
-
-const SUBSCRIPTION_TIERS = [
-  { value: 'free', label: 'Gratuit' },
-  { value: 'basic', label: 'Basique' },
-  { value: 'premium', label: 'Premium' },
-  { value: 'enterprise', label: 'Enterprise' }
+  { value: 'Réparation téléphone', label: 'Téléphone' },
+  { value: 'Réparation montre', label: 'Montre' },
+  { value: 'Réparation console', label: 'Console' },
+  { value: 'Réparation ordinateur', label: 'Ordinateur' },
+  { value: 'Autres réparations', label: 'Autres' }
 ];
 
 const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
@@ -44,17 +38,14 @@ const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
     address: '',
     city: '',
     postal_code: '',
-    siret_number: '',
-    description: '',
+    department: '',
+    region: '',
     website: '',
-    facebook_url: '',
-    instagram_url: '',
-    linkedin_url: '',
-    twitter_url: '',
-    has_qualirepar_label: false,
-    repair_types: [] as string[],
-    subscription_tier: 'free',
-    subscribed: true
+    services: [] as string[],
+    specialties: [] as string[],
+    price_range: 'medium' as 'low' | 'medium' | 'high',
+    response_time: '24h',
+    is_verified: true
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,11 +53,40 @@ const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
     setLoading(true);
 
     try {
-      // Simuler l'ajout d'un nouveau réparateur
-      console.log('Adding new repairer:', formData);
+      console.log('Adding new repairer to database:', formData);
       
-      // Simuler un délai de sauvegarde
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Insérer le nouveau réparateur dans la base de données
+      const { data, error } = await supabase
+        .from('repairers')
+        .insert([{
+          name: formData.business_name,
+          address: formData.address,
+          city: formData.city,
+          postal_code: formData.postal_code,
+          department: formData.department || formData.postal_code.substring(0, 2),
+          region: formData.region || 'France',
+          phone: formData.phone,
+          email: formData.email,
+          website: formData.website,
+          services: formData.services,
+          specialties: formData.specialties,
+          price_range: formData.price_range,
+          response_time: formData.response_time,
+          is_verified: formData.is_verified,
+          source: 'manual',
+          // Coordonnées par défaut (Paris) - en production, vous pourriez utiliser une API de géocodage
+          lat: 48.8566,
+          lng: 2.3522,
+          rating: 4.5,
+          review_count: 0
+        }])
+        .select();
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('Repairer added successfully:', data);
       
       toast({
         title: "Succès",
@@ -84,17 +104,14 @@ const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
         address: '',
         city: '',
         postal_code: '',
-        siret_number: '',
-        description: '',
+        department: '',
+        region: '',
         website: '',
-        facebook_url: '',
-        instagram_url: '',
-        linkedin_url: '',
-        twitter_url: '',
-        has_qualirepar_label: false,
-        repair_types: [],
-        subscription_tier: 'free',
-        subscribed: true
+        services: [],
+        specialties: [],
+        price_range: 'medium',
+        response_time: '24h',
+        is_verified: true
       });
       
     } catch (error) {
@@ -109,16 +126,16 @@ const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
     }
   };
 
-  const handleRepairTypeChange = (type: string, checked: boolean) => {
+  const handleServiceChange = (service: string, checked: boolean) => {
     if (checked) {
       setFormData(prev => ({
         ...prev,
-        repair_types: [...prev.repair_types, type]
+        services: [...prev.services, service]
       }));
     } else {
       setFormData(prev => ({
         ...prev,
-        repair_types: prev.repair_types.filter(t => t !== type)
+        services: prev.services.filter(s => s !== service)
       }));
     }
   };
@@ -133,7 +150,7 @@ const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="business_name">Nom commercial *</Label>
+              <Label htmlFor="business_name">Nom du réparateur *</Label>
               <Input
                 id="business_name"
                 value={formData.business_name}
@@ -143,33 +160,33 @@ const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Téléphone *</Label>
+              <Label htmlFor="phone">Téléphone</Label>
               <Input
                 id="phone"
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="siret_number">N° SIRET</Label>
+              <Label htmlFor="website">Site web</Label>
               <Input
-                id="siret_number"
-                value={formData.siret_number}
-                onChange={(e) => setFormData(prev => ({ ...prev, siret_number: e.target.value }))}
+                id="website"
+                type="url"
+                value={formData.website}
+                onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                placeholder="https://"
               />
             </div>
 
@@ -204,100 +221,46 @@ const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="subscription_tier">Type d'abonnement</Label>
-              <Select value={formData.subscription_tier} onValueChange={(value) => setFormData(prev => ({ ...prev, subscription_tier: value }))}>
+              <Label htmlFor="price_range">Gamme de prix</Label>
+              <Select value={formData.price_range} onValueChange={(value: 'low' | 'medium' | 'high') => setFormData(prev => ({ ...prev, price_range: value }))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {SUBSCRIPTION_TIERS.map((tier) => (
-                    <SelectItem key={tier.value} value={tier.value}>
-                      {tier.label}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="low">€ (Économique)</SelectItem>
+                  <SelectItem value="medium">€€ (Moyen)</SelectItem>
+                  <SelectItem value="high">€€€ (Premium)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="website">Site web</Label>
-              <Input
-                id="website"
-                type="url"
-                value={formData.website}
-                onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                placeholder="https://"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              rows={3}
-              placeholder="Décrivez l'activité du réparateur..."
-            />
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="font-semibold">Réseaux sociaux</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="facebook_url">Facebook</Label>
-                <Input
-                  id="facebook_url"
-                  value={formData.facebook_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, facebook_url: e.target.value }))}
-                  placeholder="https://facebook.com/..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="instagram_url">Instagram</Label>
-                <Input
-                  id="instagram_url"
-                  value={formData.instagram_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, instagram_url: e.target.value }))}
-                  placeholder="https://instagram.com/..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="linkedin_url">LinkedIn</Label>
-                <Input
-                  id="linkedin_url"
-                  value={formData.linkedin_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, linkedin_url: e.target.value }))}
-                  placeholder="https://linkedin.com/..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="twitter_url">Twitter</Label>
-                <Input
-                  id="twitter_url"
-                  value={formData.twitter_url}
-                  onChange={(e) => setFormData(prev => ({ ...prev, twitter_url: e.target.value }))}
-                  placeholder="https://twitter.com/..."
-                />
-              </div>
+              <Label htmlFor="response_time">Délai de réponse</Label>
+              <Select value={formData.response_time} onValueChange={(value) => setFormData(prev => ({ ...prev, response_time: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="2h">2h</SelectItem>
+                  <SelectItem value="24h">24h</SelectItem>
+                  <SelectItem value="48h">48h</SelectItem>
+                  <SelectItem value="72h">72h</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           <div className="space-y-4">
-            <h3 className="font-semibold">Types de réparations proposées</h3>
+            <h3 className="font-semibold">Services proposés</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {REPAIR_TYPES.map((type) => (
                 <div key={type.value} className="flex items-center space-x-2">
                   <Checkbox
-                    id={`new-${type.value}`}
-                    checked={formData.repair_types.includes(type.value)}
-                    onCheckedChange={(checked) => handleRepairTypeChange(type.value, checked as boolean)}
+                    id={`service-${type.value}`}
+                    checked={formData.services.includes(type.value)}
+                    onCheckedChange={(checked) => handleServiceChange(type.value, checked as boolean)}
                   />
-                  <Label htmlFor={`new-${type.value}`}>{type.label}</Label>
+                  <Label htmlFor={`service-${type.value}`}>{type.label}</Label>
                 </div>
               ))}
             </div>
@@ -306,20 +269,11 @@ const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Checkbox
-                id="has_qualirepar_label"
-                checked={formData.has_qualirepar_label}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, has_qualirepar_label: checked as boolean }))}
+                id="is_verified"
+                checked={formData.is_verified}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_verified: checked as boolean }))}
               />
-              <Label htmlFor="has_qualirepar_label">Possède le label QualiRépar</Label>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="subscribed"
-                checked={formData.subscribed}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, subscribed: checked as boolean }))}
-              />
-              <Label htmlFor="subscribed">Abonnement actif</Label>
+              <Label htmlFor="is_verified">Réparateur vérifié</Label>
             </div>
           </div>
 

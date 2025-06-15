@@ -97,7 +97,43 @@ export const useRepairersData = () => {
 
   const fetchRepairers = async () => {
     try {
-      // Mock data for repairers - in real app, this would come from a repairers table
+      // Récupérer les réparateurs depuis la base de données
+      const { data: repairersData, error: repairersError } = await supabase
+        .from('repairers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (repairersError) throw repairersError;
+
+      // Convertir les données pour correspondre à l'interface RepairerData
+      const processedRepairers: RepairerData[] = (repairersData || []).map((repairer) => ({
+        id: repairer.id,
+        name: repairer.name,
+        email: repairer.email || 'Non renseigné',
+        phone: repairer.phone || 'Non renseigné',
+        city: repairer.city,
+        subscription_tier: 'free', // Valeur par défaut pour l'instant
+        subscribed: repairer.is_verified || false,
+        total_repairs: Math.floor(Math.random() * 200), // Données simulées pour l'instant
+        rating: repairer.rating || 4.5,
+        created_at: repairer.created_at
+      }));
+
+      setRepairers(processedRepairers);
+      
+      const totalRepairers = processedRepairers.length;
+      const activeRepairers = processedRepairers.filter(r => r.subscribed).length;
+      
+      setStats(prev => ({
+        ...prev,
+        totalRepairers,
+        activeRepairers
+      }));
+
+    } catch (error) {
+      console.error('Error fetching repairers:', error);
+      
+      // En cas d'erreur, utiliser des données mockées de fallback
       const mockRepairers: RepairerData[] = [
         {
           id: 'test-repairer-001',
@@ -147,9 +183,6 @@ export const useRepairersData = () => {
         totalRepairers,
         activeRepairers
       }));
-
-    } catch (error) {
-      console.error('Error fetching repairers:', error);
     }
   };
 
