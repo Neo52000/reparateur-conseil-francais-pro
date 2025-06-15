@@ -1,5 +1,4 @@
 
-
 export interface RepairerProfile {
   id: string;
   repairer_id: string;
@@ -33,9 +32,12 @@ export interface RepairerProfile {
   pickup_service?: boolean;
   pricing_info?: {
     diagnosis_fee?: number;
+    diagnostic_fee?: number; // Alias for diagnosis_fee
     hourly_rate?: number;
     travel_fee?: number;
     warranty_included?: boolean;
+    min_repair_cost?: number;
+    free_quote?: boolean;
   };
   languages_spoken?: string[];
   payment_methods?: string[];
