@@ -31,7 +31,29 @@ export const useAuth = () => {
       if (session?.user) {
         console.log('👤 User found, fetching profile for:', session.user.id);
         try {
-          const profileData = await profileService.fetchProfile(session.user.id);
+          // Essayer de récupérer le profil existant
+          let profileData = await profileService.fetchProfile(session.user.id);
+          
+          // Si pas de profil, essayer de le créer à partir des métadonnées utilisateur
+          if (!profileData && session.user.user_metadata) {
+            console.log('📝 No profile found, creating from user metadata');
+            const userData = {
+              email: session.user.email,
+              first_name: session.user.user_metadata.first_name,
+              last_name: session.user.user_metadata.last_name,
+              role: session.user.user_metadata.role || 'user'
+            };
+            
+            try {
+              profileData = await profileService.createProfile(session.user.id, userData);
+              console.log('✅ Profile created from metadata:', profileData);
+            } catch (createError) {
+              console.error('❌ Error creating profile:', createError);
+              // Essayer de récupérer à nouveau au cas où il aurait été créé par un trigger
+              profileData = await profileService.fetchProfile(session.user.id);
+            }
+          }
+          
           if (mounted) {
             setProfile(profileData);
             console.log('📝 Profile set:', profileData);
@@ -61,18 +83,26 @@ export const useAuth = () => {
 
     // Check existing session with timeout fallback
     const checkSession = async () => {
-      const { session, error } = await authService.getSession();
-      
-      if (error) {
-        // Don't let this block the loading state
+      try {
+        console.log('🔍 Checking existing session...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ Error getting session:', error);
+          if (mounted) {
+            setLoading(false);
+          }
+          return;
+        }
+        
+        if (mounted) {
+          await handleAuthChange('INITIAL_SESSION', session);
+        }
+      } catch (error) {
+        console.error('💥 Exception during session check:', error);
         if (mounted) {
           setLoading(false);
         }
-        return;
-      }
-      
-      if (mounted) {
-        await handleAuthChange('INITIAL_SESSION', session);
       }
     };
 
@@ -82,7 +112,7 @@ export const useAuth = () => {
         console.log('⏰ Auth check timeout, forcing loading to false');
         setLoading(false);
       }
-    }, 3000); // 3 second timeout
+    }, 5000); // 5 second timeout
 
     checkSession();
 
@@ -96,10 +126,12 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
+    console.log('🔑 Starting sign in process for:', email);
     
     const result = await authService.signIn(email, password);
     
     if (result.error) {
+      console.error('❌ Sign in failed:', result.error);
       setLoading(false);
     }
     // Loading will be set to false by the auth state change handler on success
@@ -113,10 +145,12 @@ export const useAuth = () => {
 
   const signOut = async () => {
     setLoading(true);
+    console.log('👋 Starting sign out process');
     
     const result = await authService.signOut();
     
     if (result.error) {
+      console.error('❌ Sign out failed:', result.error);
       setLoading(false);
       return result;
     }
@@ -126,6 +160,7 @@ export const useAuth = () => {
     setSession(null);
     setProfile(null);
     setLoading(false);
+    console.log('✅ Sign out completed');
     
     return result;
   };
