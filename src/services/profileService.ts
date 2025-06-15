@@ -7,14 +7,41 @@ export const profileService = {
     console.log('🔍 Fetching profile for user:', userId);
     
     try {
+      // Vérifier d'abord la session Supabase
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      console.log('📋 Session check before profile fetch:', { 
+        hasSession: !!sessionData.session, 
+        sessionError: sessionError?.message 
+      });
+
+      if (sessionError) {
+        console.error('❌ Session error before profile fetch:', sessionError);
+        throw new Error(`Session error: ${sessionError.message}`);
+      }
+
+      if (!sessionData.session) {
+        console.error('❌ No active session for profile fetch');
+        throw new Error('No active session');
+      }
+
+      console.log('🔎 Executing profile query for user:', userId);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
 
+      console.log('📊 Raw profile query result:', { data, error });
+
       if (error) {
         console.error('❌ Error fetching profile:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
 
