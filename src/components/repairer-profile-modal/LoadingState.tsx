@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { RefreshCw } from 'lucide-react';
 
 interface LoadingStateProps {
   isOpen: boolean;
@@ -10,12 +11,16 @@ interface LoadingStateProps {
 const LoadingState: React.FC<LoadingStateProps> = ({ isOpen, onClose }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent aria-describedby="loading-description">
         <DialogHeader>
-          <DialogTitle>Chargement en cours</DialogTitle>
+          <DialogTitle>Chargement...</DialogTitle>
+          <DialogDescription id="loading-description">
+            Récupération des informations du profil réparateur en cours.
+          </DialogDescription>
         </DialogHeader>
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <RefreshCw className="h-8 w-8 animate-spin text-blue-500" />
+          <span className="ml-2">Chargement du profil...</span>
         </div>
       </DialogContent>
     </Dialog>

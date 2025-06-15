@@ -60,10 +60,10 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
   // Vue d'édition
   if (isEditing) {
     return (
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="edit-profile-description">
         <DialogHeader>
           <DialogTitle>Modifier le profil réparateur</DialogTitle>
-          <DialogDescription>
+          <DialogDescription id="edit-profile-description">
             Modifiez les informations de votre fiche réparateur puis cliquez sur "Enregistrer".
           </DialogDescription>
         </DialogHeader>
@@ -87,10 +87,10 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
   // Vue administrateur
   if (isAdmin && canEdit) {
     return (
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="admin-profile-description">
         <DialogHeader>
           <DialogTitle>Profil du réparateur</DialogTitle>
-          <DialogDescription>
+          <DialogDescription id="admin-profile-description">
             Mode administrateur : consultez ou modifiez la fiche de ce réparateur.
           </DialogDescription>
           <RepairerProfileHeader
@@ -123,10 +123,10 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
 
   // Vue client - design amélioré
   return (
-    <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto">
+    <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto" aria-describedby="client-profile-description">
       <DialogHeader>
         <DialogTitle>Profil réparateur</DialogTitle>
-        <DialogDescription>
+        <DialogDescription id="client-profile-description">
           Découvrez les informations détaillées sur ce réparateur, ses services et ses avis clients.
         </DialogDescription>
       </DialogHeader>
