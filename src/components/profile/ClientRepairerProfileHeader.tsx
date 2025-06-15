@@ -13,12 +13,13 @@ import {
   Calendar
 } from 'lucide-react';
 import { RepairerProfile } from '@/types/repairerProfile';
+import { useToast } from '@/hooks/use-toast';
 
 interface ClientRepairerProfileHeaderProps {
   profile: RepairerProfile;
-  onRequestQuote: () => void;
-  onCallRepairer: () => void;
-  onBookAppointment: () => void;
+  onRequestQuote?: () => void;
+  onCallRepairer?: () => void;
+  onBookAppointment?: () => void;
 }
 
 const ClientRepairerProfileHeader: React.FC<ClientRepairerProfileHeaderProps> = ({
@@ -27,9 +28,44 @@ const ClientRepairerProfileHeader: React.FC<ClientRepairerProfileHeaderProps> = 
   onCallRepairer,
   onBookAppointment
 }) => {
+  const { toast } = useToast();
+
   // Mock rating data - in real app this would come from reviews
   const rating = 4.8;
   const reviewCount = 127;
+
+  const handleRequestQuote = () => {
+    if (onRequestQuote) {
+      onRequestQuote();
+    } else {
+      toast({
+        title: "Demande de devis",
+        description: "Fonction déclenchée (aucune action liée)",
+      });
+    }
+  };
+
+  const handleCallRepairer = () => {
+    if (onCallRepairer) {
+      onCallRepairer();
+    } else {
+      toast({
+        title: "Appel réparateur",
+        description: "Fonction déclenchée (aucune action liée)",
+      });
+    }
+  };
+
+  const handleBookAppointment = () => {
+    if (onBookAppointment) {
+      onBookAppointment();
+    } else {
+      toast({
+        title: "Prise de rendez-vous",
+        description: "Fonction déclenchée (aucune action liée)",
+      });
+    }
+  };
 
   return (
     <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-6 mb-6">
@@ -98,8 +134,8 @@ const ClientRepairerProfileHeader: React.FC<ClientRepairerProfileHeaderProps> = 
         {/* Action Buttons */}
         <div className="flex flex-col gap-3 lg:w-64">
           <Button 
-            onClick={onRequestQuote}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3"
+            onClick={handleRequestQuote}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 transition-colors duration-150 hover-scale"
             size="lg"
           >
             <MessageCircle className="h-5 w-5 mr-2" />
@@ -108,17 +144,17 @@ const ClientRepairerProfileHeader: React.FC<ClientRepairerProfileHeaderProps> = 
           
           <div className="flex gap-2">
             <Button 
-              onClick={onCallRepairer}
+              onClick={handleCallRepairer}
               variant="outline"
-              className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50"
+              className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50 transition-colors duration-150 hover-scale"
             >
               <Phone className="h-4 w-4 mr-2" />
               Appeler
             </Button>
             <Button 
-              onClick={onBookAppointment}
+              onClick={handleBookAppointment}
               variant="outline"
-              className="flex-1 border-green-200 text-green-700 hover:bg-green-50"
+              className="flex-1 border-green-200 text-green-700 hover:bg-green-50 transition-colors duration-150 hover-scale"
             >
               <Calendar className="h-4 w-4 mr-2" />
               RDV
@@ -136,3 +172,4 @@ const ClientRepairerProfileHeader: React.FC<ClientRepairerProfileHeaderProps> = 
 };
 
 export default ClientRepairerProfileHeader;
+
