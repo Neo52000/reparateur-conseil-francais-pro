@@ -60,7 +60,7 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
       // Créer un profil mocké basé sur les données du réparateur
       return {
         id: repairerId,
-        repairer_id: repairerId, // Ensure repairer_id is included
+        repairer_id: repairerId,
         business_name: repairer.name,
         description: `${repairer.name} est un réparateur professionnel spécialisé dans la réparation d'appareils électroniques. Avec une expertise reconnue et des années d'expérience, nous offrons des services de qualité pour tous vos besoins de réparation.`,
         address: repairer.address,
@@ -86,6 +86,31 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
     }
   };
 
+  const mapDatabaseProfileToInterface = (dbProfile: any): RepairerProfile => {
+    return {
+      id: dbProfile.id,
+      repairer_id: dbProfile.user_id, // Map user_id to repairer_id
+      business_name: dbProfile.business_name,
+      siret_number: dbProfile.siret_number,
+      description: dbProfile.description,
+      address: dbProfile.address,
+      city: dbProfile.city,
+      postal_code: dbProfile.postal_code,
+      phone: dbProfile.phone,
+      email: dbProfile.email,
+      website: dbProfile.website,
+      facebook_url: dbProfile.facebook_url,
+      instagram_url: dbProfile.instagram_url,
+      linkedin_url: dbProfile.linkedin_url,
+      twitter_url: dbProfile.twitter_url,
+      has_qualirepar_label: dbProfile.has_qualirepar_label,
+      repair_types: dbProfile.repair_types,
+      profile_image_url: dbProfile.profile_image_url,
+      created_at: dbProfile.created_at,
+      updated_at: dbProfile.updated_at
+    };
+  };
+
   const fetchProfile = async () => {
     setLoading(true);
     try {
@@ -95,7 +120,7 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
       const { data, error } = await supabase
         .from('repairer_profiles')
         .select('*')
-        .eq('repairer_id', repairerId)
+        .eq('user_id', repairerId)
         .maybeSingle();
 
       if (error && !error.message.includes('invalid input syntax for type uuid')) {
@@ -104,7 +129,8 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
 
       if (data) {
         console.log('Profile found in Supabase:', data);
-        setProfile(data);
+        const mappedProfile = mapDatabaseProfileToInterface(data);
+        setProfile(mappedProfile);
       } else {
         console.log('No profile in Supabase, trying to create from repairer data...');
         
