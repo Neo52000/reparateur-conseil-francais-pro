@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import AddRepairerModal from '@/components/AddRepairerModal';
 import RepairerTableRow from './RepairerTableRow';
 import BulkActionsBar from './BulkActionsBar';
+import { supabase } from "@/integrations/supabase/client";
 
 interface RepairerData {
   id: string;
@@ -54,18 +55,26 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
   const handleDeleteRepairer = async (repairerId: string) => {
     setLoading(repairerId);
     try {
-      // Simulation de suppression
-      console.log('Suppression du réparateur:', repairerId);
+      // Suppression réelle du réparateur dans Supabase
+      const { error } = await supabase
+        .from("repairers")
+        .delete()
+        .eq("id", repairerId);
+
+      if (error) {
+        throw error;
+      }
+
       toast({
         title: "Succès",
         description: "Réparateur supprimé avec succès"
       });
       onRefresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de la suppression:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer le réparateur",
+        description: error?.message || "Impossible de supprimer le réparateur",
         variant: "destructive"
       });
     } finally {
