@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface RepairerProfile {
   id: string;
-  user_id: string;
+  repairer_id: string; // Changé de user_id à repairer_id
   business_name: string;
   siret_number: string | null;
   description: string | null;
@@ -89,7 +89,7 @@ const RepairerProfileForm: React.FC<RepairerProfileFormProps> = ({
 
       // Préparer les données pour la sauvegarde
       const profileData = {
-        user_id: formData.user_id,
+        repairer_id: formData.repairer_id, // Changé de user_id à repairer_id
         business_name: formData.business_name,
         siret_number: formData.siret_number || null,
         description: formData.description || null,
@@ -114,7 +114,7 @@ const RepairerProfileForm: React.FC<RepairerProfileFormProps> = ({
       const { data: existingProfile, error: fetchError } = await supabase
         .from('repairer_profiles')
         .select('id')
-        .eq('user_id', formData.user_id)
+        .eq('repairer_id', formData.repairer_id) // Changé de user_id à repairer_id
         .maybeSingle();
 
       console.log('Existing profile check:', { existingProfile, fetchError });
@@ -132,7 +132,7 @@ const RepairerProfileForm: React.FC<RepairerProfileFormProps> = ({
           .single();
       } else {
         // Créer un nouveau profil
-        console.log('Creating new profile for user_id:', formData.user_id);
+        console.log('Creating new profile for repairer_id:', formData.repairer_id);
         result = await supabase
           .from('repairer_profiles')
           .insert([profileData])

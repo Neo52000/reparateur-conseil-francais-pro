@@ -59,7 +59,7 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
       // Créer un profil mocké basé sur les données du réparateur
       return {
         id: repairerId,
-        user_id: repairerId,
+        repairer_id: repairerId, // Changé de user_id à repairer_id
         business_name: repairer.name,
         description: `${repairer.name} est un réparateur professionnel spécialisé dans la réparation d'appareils électroniques. Avec une expertise reconnue et des années d'expérience, nous offrons des services de qualité pour tous vos besoins de réparation.`,
         address: repairer.address,
@@ -94,7 +94,7 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
       const { data, error } = await supabase
         .from('repairer_profiles')
         .select('*')
-        .eq('user_id', repairerId)
+        .eq('repairer_id', repairerId) // Changé de user_id à repairer_id
         .maybeSingle();
 
       if (error && !error.message.includes('invalid input syntax for type uuid')) {
