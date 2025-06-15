@@ -9,7 +9,6 @@ import { Settings, Brain } from 'lucide-react';
 
 // Import experimental comps
 import ReferralInvite from '@/components/ReferralInvite';
-import PartsMarketplace from '@/components/PartsMarketplace';
 import AIPreDiagChatBox from '@/components/AIPreDiagChatBox';
 
 const AdminPage = () => {
@@ -69,9 +68,8 @@ const AdminPage = () => {
         <AdminDashboard />
         <section className="bg-white rounded shadow mt-10 p-5">
           <h2 className="text-xl font-bold mb-4">Zone expérimentale</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="border rounded p-3"><ReferralInvite /></div>
-            <div className="border rounded p-3"><PartsMarketplace /></div>
             <div className="border rounded p-3"><AIPreDiagChatBox /></div>
           </div>
         </section>
