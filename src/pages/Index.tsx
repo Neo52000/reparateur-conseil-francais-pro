@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,18 +9,14 @@ import {
   MapPin, 
   Filter,
   Star,
-  Phone,
   Clock,
   Smartphone,
-  Shield,
-  FileText,
-  Calendar,
-  User
+  Shield
 } from 'lucide-react';
 import RepairersMap from '@/components/RepairersMap';
 import RepairersList from '@/components/RepairersList';
 import SearchFilters from '@/components/SearchFilters';
-import { Link } from 'react-router-dom';
+import Footer from '@/components/Footer';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,7 +37,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-      {/* Hero Section with Role Selection */}
+      {/* Hero Section */}
       <div className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center mb-8">
@@ -48,111 +45,72 @@ const Index = () => {
               RepairHub - Votre plateforme de réparation
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              Connectez clients et réparateurs pour un service optimal
+              Trouvez le meilleur réparateur près de chez vous
             </p>
-            
-            {/* Choix du type d'utilisateur */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              <Card className="hover:shadow-lg transition-shadow border-blue-200">
-                <CardHeader className="bg-blue-50">
-                  <CardTitle className="flex items-center justify-center text-blue-800">
-                    <User className="h-6 w-6 mr-2" />
-                    Je suis un Client
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <CardDescription className="mb-4">
-                    Trouvez le meilleur réparateur près de chez vous, comparez les prix et suivez vos réparations.
-                  </CardDescription>
-                  <ul className="text-sm text-gray-600 mb-6 space-y-2">
-                    <li>• Recherche et comparaison de réparateurs</li>
-                    <li>• Demande de devis gratuit</li>
-                    <li>• Prise de rendez-vous en ligne</li>
-                    <li>• Suivi en temps réel</li>
-                  </ul>
-                  <Link to="/client/auth">
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                      Accéder à l'espace client
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow border-orange-200">
-                <CardHeader className="bg-orange-50">
-                  <CardTitle className="flex items-center justify-center text-orange-800">
-                    <Smartphone className="h-6 w-6 mr-2" />
-                    Je suis un Réparateur
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <CardDescription className="mb-4">
-                    Développez votre activité, gérez vos clients et optimisez votre planning.
-                  </CardDescription>
-                  <ul className="text-sm text-gray-600 mb-6 space-y-2">
-                    <li>• Gestion des demandes client</li>
-                    <li>• Tableau de bord business</li>
-                    <li>• Planning et facturation</li>
-                    <li>• Visibilité accrue</li>
-                  </ul>
-                  <Link to="/repairer/auth">
-                    <Button className="w-full bg-orange-600 hover:bg-orange-700">
-                      Accéder à l'espace réparateur
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Section for visitors */}
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Recherche rapide de réparateurs
-          </h2>
-          
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto mb-6">
-            <div className="flex space-x-4">
-              <div className="flex-1 relative">
-                <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <Input
-                  placeholder="Rechercher un service (ex: écran cassé iPhone 14)"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <div className="relative">
-                <MapPin className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <Input
-                  placeholder="Ville ou code postal"
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="pl-10 w-48"
-                />
-              </div>
-              <Button>
-                Rechercher
-              </Button>
-            </div>
+        {/* Section de recherche avec image */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Image côté gauche */}
+          <div className="flex items-center justify-center">
+            <img 
+              src="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+              alt="Réparation électronique" 
+              className="rounded-lg shadow-lg max-w-full h-auto"
+            />
           </div>
 
-          {/* Popular Services */}
-          <div className="flex flex-wrap justify-center gap-2 mb-6">
-            <span className="text-sm text-gray-600 mr-2">Services populaires :</span>
-            {popularServices.map((service, index) => (
-              <Badge 
-                key={index} 
-                variant="secondary" 
-                className="cursor-pointer hover:bg-blue-100"
-              >
-                {service}
-              </Badge>
-            ))}
+          {/* Recherche côté droit */}
+          <div className="flex flex-col justify-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Recherche rapide de réparateurs
+            </h2>
+            
+            {/* Search Bar */}
+            <div className="mb-6">
+              <div className="flex flex-col space-y-4">
+                <div className="relative">
+                  <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="Rechercher un service (ex: écran cassé iPhone 14)"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="relative">
+                  <MapPin className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="Ville ou code postal"
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Button className="w-full">
+                  Rechercher
+                </Button>
+              </div>
+            </div>
+
+            {/* Popular Services */}
+            <div className="space-y-2">
+              <span className="text-sm text-gray-600">Services populaires :</span>
+              <div className="flex flex-wrap gap-2">
+                {popularServices.map((service, index) => (
+                  <Badge 
+                    key={index} 
+                    variant="secondary" 
+                    className="cursor-pointer hover:bg-blue-100"
+                  >
+                    {service}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -209,8 +167,8 @@ const Index = () => {
           </div>
         )}
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content - Carte */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
           {viewMode === 'map' ? (
             <>
               <div className="lg:col-span-2">
@@ -227,6 +185,9 @@ const Index = () => {
           )}
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
