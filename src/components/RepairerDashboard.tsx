@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,8 +14,11 @@ import {
   TrendingUp,
   Users,
   Clock,
-  Star
+  Star,
+  LogOut
 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import OverviewTabSection from "./repairer-dashboard/OverviewTabSection";
 import OrdersTabSection from "./repairer-dashboard/OrdersTabSection";
 import CalendarTabSection from "./repairer-dashboard/CalendarTabSection";
@@ -25,6 +29,8 @@ import ProfileTabSection from "./repairer-dashboard/ProfileTabSection";
 
 const RepairerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
 
   // Données mockées pour la démo
   const repairerData = {
@@ -94,12 +100,28 @@ const RepairerDashboard = () => {
     ]
   };
 
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/repairer/auth', { replace: true });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Tableau de bord Réparateur</h1>
-          <p className="text-gray-600 mt-2">{repairerData.profile.name}</p>
+        {/* Top bar with title, name and logout button */}
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Tableau de bord Réparateur</h1>
+            <p className="text-gray-600 mt-2">{repairerData.profile.name}</p>
+          </div>
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className="self-end flex items-center gap-2 border-orange-600 text-orange-600 hover:bg-orange-50"
+          >
+            <LogOut className="h-5 w-5" />
+            <span>Déconnexion</span>
+          </Button>
         </div>
 
         {/* Stats Overview */}
@@ -201,3 +223,4 @@ const RepairerDashboard = () => {
 };
 
 export default RepairerDashboard;
+
