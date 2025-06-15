@@ -61,33 +61,63 @@ const RepairerProfileForm: React.FC<RepairerProfileFormProps> = ({
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from('repairer_profiles')
-        .update({
-          business_name: formData.business_name,
-          siret_number: formData.siret_number || null,
-          description: formData.description || null,
-          address: formData.address,
-          city: formData.city,
-          postal_code: formData.postal_code,
-          phone: formData.phone,
-          email: formData.email,
-          website: formData.website || null,
-          facebook_url: formData.facebook_url || null,
-          instagram_url: formData.instagram_url || null,
-          linkedin_url: formData.linkedin_url || null,
-          twitter_url: formData.twitter_url || null,
-          has_qualirepar_label: formData.has_qualirepar_label,
-          repair_types: formData.repair_types,
+      // Vérifier si c'est un profil mocké (ID commence par "mock-")
+      const isMockProfile = profile.id.startsWith('mock-');
+      
+      if (isMockProfile) {
+        // Pour les profils mockés, simuler la sauvegarde
+        console.log('Simulating save for mock profile:', formData);
+        
+        // Simuler un délai de sauvegarde
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Créer un profil mis à jour avec les nouvelles données
+        const updatedProfile = {
+          ...formData,
           updated_at: new Date().toISOString()
-        })
-        .eq('id', profile.id)
-        .select()
-        .single();
+        };
+        
+        onSave(updatedProfile);
+        
+        toast({
+          title: "Succès",
+          description: "Profil de test mis à jour (simulation)",
+        });
+      } else {
+        // Pour les vrais profils, utiliser Supabase
+        const { data, error } = await supabase
+          .from('repairer_profiles')
+          .update({
+            business_name: formData.business_name,
+            siret_number: formData.siret_number || null,
+            description: formData.description || null,
+            address: formData.address,
+            city: formData.city,
+            postal_code: formData.postal_code,
+            phone: formData.phone,
+            email: formData.email,
+            website: formData.website || null,
+            facebook_url: formData.facebook_url || null,
+            instagram_url: formData.instagram_url || null,
+            linkedin_url: formData.linkedin_url || null,
+            twitter_url: formData.twitter_url || null,
+            has_qualirepar_label: formData.has_qualirepar_label,
+            repair_types: formData.repair_types,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', profile.id)
+          .select()
+          .single();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      onSave(data);
+        onSave(data);
+        
+        toast({
+          title: "Succès",
+          description: "Profil mis à jour avec succès",
+        });
+      }
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
