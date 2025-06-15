@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -70,8 +69,13 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
       return `${subscription.first_name || ''} ${subscription.last_name || ''}`.trim();
     }
     
-    // Last fallback to email prefix (more user-friendly than UUID)
-    return subscription.email.split('@')[0];
+    // Last fallback to email prefix (more user-friendly than UUID), but check if email exists
+    if (subscription.email) {
+      return subscription.email.split('@')[0];
+    }
+    
+    // Ultimate fallback to repairer_id if everything else is null
+    return subscription.repairer_id;
   };
 
   const handleToggleSubscription = async (subscriptionId: string, currentStatus: boolean) => {
@@ -153,7 +157,7 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
                   <TableCell>
                     {getRepairerDisplayName(subscription)}
                   </TableCell>
-                  <TableCell>{subscription.email}</TableCell>
+                  <TableCell>{subscription.email || 'N/A'}</TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       {tierInfo.icon}
