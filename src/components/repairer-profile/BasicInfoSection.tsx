@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -54,13 +53,16 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ formData, setFormDa
       if (formData.years_experience && formData.years_experience > 0) {
         trustSignals.push(`${formData.years_experience} ans d'expérience`);
       }
+
+      // Define warranty labels mapping
+      const warrantyLabels: Record<string, string> = {
+        '3_mois': '3 mois de garantie',
+        '6_mois': '6 mois de garantie',
+        '1_an': '1 an de garantie',
+        '2_ans': '2 ans de garantie'
+      };
+
       if (formData.warranty_duration) {
-        const warrantyLabels: Record<string, string> = {
-          '3_mois': '3 mois de garantie',
-          '6_mois': '6 mois de garantie',
-          '1_an': '1 an de garantie',
-          '2_ans': '2 ans de garantie'
-        };
         trustSignals.push(warrantyLabels[formData.warranty_duration] || 'garantie incluse');
       }
 
