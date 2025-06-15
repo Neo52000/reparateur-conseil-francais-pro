@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AddRepairerModal from '@/components/AddRepairerModal';
 import RepairerTableRow from './RepairerTableRow';
+import BulkActionsBar from './BulkActionsBar';
 
 interface RepairerData {
   id: string;
@@ -33,6 +33,15 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
   const [loading, setLoading] = useState<string | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  // Ref for the "select-all" checkbox to set indeterminate prop
+  const selectAllRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (selectAllRef.current) {
+      selectAllRef.current.indeterminate =
+        selectedIds.length > 0 && selectedIds.length < repairers.length;
+    }
+  }, [selectedIds, repairers.length]);
 
   const handleDeleteRepairer = async (repairerId: string) => {
     setLoading(repairerId);
@@ -83,7 +92,6 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
   };
 
   const allChecked = repairers.length > 0 && selectedIds.length === repairers.length;
-  const isIndeterminate = selectedIds.length > 0 && selectedIds.length < repairers.length;
 
   const handleCheckAll = (checked: boolean) => {
     setSelectedIds(checked ? repairers.map(r => r.id) : []);
@@ -93,6 +101,55 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
     setSelectedIds((ids) =>
       checked ? [...ids, repairerId] : ids.filter((id) => id !== repairerId)
     );
+  };
+
+  // HANDLERS BULK :
+  const handleBulkSetActive = async (isActive: boolean) => {
+    setLoading('bulk');
+    try {
+      // Ici on simule le changement pour chaque ID sélectionné
+      for (const repairerId of selectedIds) {
+        await handleToggleStatus(repairerId, !isActive); // !isActive car on souhaite setter à cette valeur
+      }
+      toast({
+        title: "Succès",
+        description: `Statut ${isActive ? 'activé' : 'désactivé'} pour ${selectedIds.length} réparateur(s)`
+      });
+      setSelectedIds([]);
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le statut en masse",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer les réparateurs sélectionnés ? Cette action est irréversible.")) return;
+    setLoading('bulk');
+    try {
+      for (const repairerId of selectedIds) {
+        await handleDeleteRepairer(repairerId);
+      }
+      toast({
+        title: "Succès",
+        description: `${selectedIds.length} réparateur(s) supprimé(s)`
+      });
+      setSelectedIds([]);
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer des réparateurs",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(null);
+    }
   };
 
   return (
@@ -106,14 +163,24 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
           </Button>
         </CardHeader>
         <CardContent>
+          {/* Bulk Actions Bar */}
+          {selectedIds.length > 0 && (
+            <BulkActionsBar
+              selectedCount={selectedIds.length}
+              onSetActive={handleBulkSetActive}
+              onDelete={handleBulkDelete}
+              disableActions={!!loading}
+            />
+          )}
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>
                   <Checkbox
+                    ref={selectAllRef}
                     checked={allChecked}
-                    indeterminate={isIndeterminate}
                     onCheckedChange={(checked) => handleCheckAll(Boolean(checked))}
+                    aria-label="Tout sélectionner"
                   />
                 </TableHead>
                 <TableHead>Nom</TableHead>
@@ -144,7 +211,6 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
           </Table>
         </CardContent>
       </Card>
-
       <AddRepairerModal
         isOpen={addModalOpen}
         onClose={() => setAddModalOpen(false)}
