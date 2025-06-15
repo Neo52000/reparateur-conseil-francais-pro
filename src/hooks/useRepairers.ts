@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase, RepairerDB, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export interface SearchFilters {
@@ -15,6 +15,34 @@ export interface SearchFilters {
   postalCode?: string;
 }
 
+export interface RepairerDB {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  postal_code: string;
+  department: string;
+  region: string;
+  phone?: string;
+  website?: string;
+  email?: string;
+  lat: number;
+  lng: number;
+  rating?: number;
+  review_count?: number;
+  services: string[];
+  specialties: string[];
+  price_range: 'low' | 'medium' | 'high';
+  response_time?: string;
+  opening_hours?: Record<string, string>;
+  is_verified: boolean;
+  is_open?: boolean;
+  source: 'pages_jaunes' | 'google_places' | 'manual';
+  scraped_at: string;
+  updated_at: string;
+  created_at: string;
+}
+
 export const useRepairers = (filters?: SearchFilters, userLocation?: [number, number]) => {
   const [repairers, setRepairers] = useState<RepairerDB[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,15 +54,8 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
       setLoading(true);
       setError(null);
       
-      console.log('useRepairers - Fetching from Supabase only...');
-      console.log('useRepairers - Supabase configured:', isSupabaseConfigured());
+      console.log('useRepairers - Fetching from Supabase...');
 
-      if (!isSupabaseConfigured() || !supabase) {
-        throw new Error('Supabase n\'est pas configuré');
-      }
-
-      console.log('useRepairers - Building Supabase query...');
-      
       let query = supabase
         .from('repairers')
         .select('*')
