@@ -32,7 +32,6 @@ interface SubscriptionData {
   plan_name: string | null;
   price_monthly: number | null;
   price_yearly: number | null;
-  business_name?: string | null;
 }
 
 interface SubscriptionsTableProps {
@@ -57,21 +56,6 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
       default:
         return { name: 'Inconnu', color: 'bg-gray-100 text-gray-800', icon: null };
     }
-  };
-
-  const getRepairerDisplayName = (subscription: SubscriptionData) => {
-    // Prioritize business name from repairer profiles
-    if (subscription.business_name) {
-      return subscription.business_name;
-    }
-    
-    // Fallback to first/last name
-    if (subscription.first_name || subscription.last_name) {
-      return `${subscription.first_name || ''} ${subscription.last_name || ''}`.trim();
-    }
-    
-    // Last fallback to email prefix (more user-friendly than UUID)
-    return subscription.email.split('@')[0];
   };
 
   const handleToggleSubscription = async (subscriptionId: string, currentStatus: boolean) => {
@@ -151,7 +135,10 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
               return (
                 <TableRow key={subscription.id}>
                   <TableCell>
-                    {getRepairerDisplayName(subscription)}
+                    {subscription.first_name || subscription.last_name ? 
+                      `${subscription.first_name || ''} ${subscription.last_name || ''}`.trim() :
+                      subscription.repairer_id
+                    }
                   </TableCell>
                   <TableCell>{subscription.email}</TableCell>
                   <TableCell>
