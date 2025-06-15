@@ -40,7 +40,6 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
 
   const createMockProfileFromRepairer = async (repairerId: string): Promise<RepairerProfile | null> => {
     try {
-      // Récupérer le réparateur depuis la base de données Supabase
       const { data: repairer, error } = await supabase
         .from('repairers')
         .select('*')
@@ -57,7 +56,6 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
         return null;
       }
 
-      // Créer un profil mocké basé sur les données du réparateur
       return {
         id: repairerId,
         repairer_id: repairerId,
@@ -86,37 +84,11 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
     }
   };
 
-  const mapDatabaseProfileToInterface = (dbProfile: any): RepairerProfile => {
-    return {
-      id: dbProfile.id,
-      repairer_id: dbProfile.user_id, // Map user_id to repairer_id
-      business_name: dbProfile.business_name,
-      siret_number: dbProfile.siret_number,
-      description: dbProfile.description,
-      address: dbProfile.address,
-      city: dbProfile.city,
-      postal_code: dbProfile.postal_code,
-      phone: dbProfile.phone,
-      email: dbProfile.email,
-      website: dbProfile.website,
-      facebook_url: dbProfile.facebook_url,
-      instagram_url: dbProfile.instagram_url,
-      linkedin_url: dbProfile.linkedin_url,
-      twitter_url: dbProfile.twitter_url,
-      has_qualirepar_label: dbProfile.has_qualirepar_label,
-      repair_types: dbProfile.repair_types,
-      profile_image_url: dbProfile.profile_image_url,
-      created_at: dbProfile.created_at,
-      updated_at: dbProfile.updated_at
-    };
-  };
-
   const fetchProfile = async () => {
     setLoading(true);
     try {
       console.log('Fetching profile for repairer ID:', repairerId);
       
-      // D'abord essayer de récupérer le profil depuis Supabase
       const { data, error } = await supabase
         .from('repairer_profiles')
         .select('*')
@@ -129,19 +101,39 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
 
       if (data) {
         console.log('Profile found in Supabase:', data);
-        const mappedProfile = mapDatabaseProfileToInterface(data);
+        // Map database fields to our interface
+        const mappedProfile: RepairerProfile = {
+          id: data.id,
+          repairer_id: data.user_id,
+          business_name: data.business_name,
+          siret_number: data.siret_number,
+          description: data.description,
+          address: data.address,
+          city: data.city,
+          postal_code: data.postal_code,
+          phone: data.phone,
+          email: data.email,
+          website: data.website,
+          facebook_url: data.facebook_url,
+          instagram_url: data.instagram_url,
+          linkedin_url: data.linkedin_url,
+          twitter_url: data.twitter_url,
+          has_qualirepar_label: data.has_qualirepar_label,
+          repair_types: data.repair_types,
+          profile_image_url: data.profile_image_url,
+          created_at: data.created_at,
+          updated_at: data.updated_at
+        };
         setProfile(mappedProfile);
       } else {
         console.log('No profile in Supabase, trying to create from repairer data...');
         
-        // Créer un profil depuis les données du réparateur dans la DB
         const profileFromRepairer = await createMockProfileFromRepairer(repairerId);
         
         if (profileFromRepairer) {
           console.log('Created profile from repairer data:', profileFromRepairer);
           setProfile(profileFromRepairer);
         } else {
-          // En dernier recours, essayer les profils mockés existants
           const mockProfile = getMockProfile(repairerId);
           if (mockProfile) {
             console.log('Using existing mock profile:', mockProfile);
@@ -155,7 +147,6 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
     } catch (error) {
       console.error('Error fetching profile:', error);
       
-      // En cas d'erreur, essayer de créer un profil depuis les données du réparateur
       const fallbackProfile = await createMockProfileFromRepairer(repairerId);
       if (fallbackProfile) {
         setProfile(fallbackProfile);

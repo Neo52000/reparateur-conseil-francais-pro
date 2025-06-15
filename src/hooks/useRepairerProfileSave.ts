@@ -22,9 +22,9 @@ export const useRepairerProfileSave = () => {
       };
     }
 
-    // Préparer les données pour la sauvegarde - mapper repairer_id vers user_id pour la DB
-    const profileData = {
-      user_id: formData.repairer_id, // Map repairer_id to user_id for database
+    // Préparer les données pour Supabase - mapper repairer_id vers user_id
+    const supabaseData = {
+      user_id: formData.repairer_id,
       business_name: formData.business_name,
       siret_number: formData.siret_number || null,
       description: formData.description || null,
@@ -43,9 +43,9 @@ export const useRepairerProfileSave = () => {
       updated_at: new Date().toISOString()
     };
 
-    console.log('Profile data to save:', profileData);
+    console.log('Supabase data to save:', supabaseData);
 
-    // D'abord essayer de mettre à jour un profil existant
+    // Vérifier si un profil existe déjà
     const { data: existingProfile, error: fetchError } = await supabase
       .from('repairer_profiles')
       .select('id')
@@ -61,7 +61,7 @@ export const useRepairerProfileSave = () => {
       console.log('Updating existing profile with ID:', existingProfile.id);
       result = await supabase
         .from('repairer_profiles')
-        .update(profileData)
+        .update(supabaseData)
         .eq('id', existingProfile.id)
         .select()
         .single();
@@ -70,7 +70,7 @@ export const useRepairerProfileSave = () => {
       console.log('Creating new profile for repairer_id:', formData.repairer_id);
       result = await supabase
         .from('repairer_profiles')
-        .insert(profileData)
+        .insert(supabaseData)
         .select()
         .single();
     }
@@ -78,15 +78,36 @@ export const useRepairerProfileSave = () => {
     console.log('Save result:', result);
 
     if (result.error) {
+      console.error('Supabase save error:', result.error);
       throw result.error;
     }
 
-    // Map the response back to our interface format
-    return {
-      ...result.data,
-      repairer_id: result.data.user_id, // Map user_id back to repairer_id
+    // Mapper la réponse vers notre interface
+    const savedProfile: RepairerProfile = {
       id: result.data.id,
+      repairer_id: result.data.user_id,
+      business_name: result.data.business_name,
+      siret_number: result.data.siret_number,
+      description: result.data.description,
+      address: result.data.address,
+      city: result.data.city,
+      postal_code: result.data.postal_code,
+      phone: result.data.phone,
+      email: result.data.email,
+      website: result.data.website,
+      facebook_url: result.data.facebook_url,
+      instagram_url: result.data.instagram_url,
+      linkedin_url: result.data.linkedin_url,
+      twitter_url: result.data.twitter_url,
+      has_qualirepar_label: result.data.has_qualirepar_label,
+      repair_types: result.data.repair_types,
+      profile_image_url: result.data.profile_image_url,
+      created_at: result.data.created_at,
+      updated_at: result.data.updated_at
     };
+
+    console.log('Mapped saved profile:', savedProfile);
+    return savedProfile;
   };
 
   return { saveProfile };
