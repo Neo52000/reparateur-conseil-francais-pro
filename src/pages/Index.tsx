@@ -17,6 +17,7 @@ import RepairersMap from '@/components/RepairersMap';
 import RepairersList from '@/components/RepairersList';
 import SearchFilters from '@/components/SearchFilters';
 import Footer from '@/components/Footer';
+import Logo from '@/components/Logo';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
@@ -56,9 +57,9 @@ const Index = () => {
         
         <div className="relative z-20 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h1 className="text-5xl md:text-6xl font-bold mb-4">
-              RepairHub
-            </h1>
+            <div className="mb-4">
+              <Logo variant="full" size="lg" className="brightness-0 invert mx-auto" />
+            </div>
             <p className="text-xl md:text-2xl mb-8">
               Trouvez le meilleur réparateur près de chez vous
             </p>
