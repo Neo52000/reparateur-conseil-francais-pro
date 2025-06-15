@@ -18,6 +18,9 @@ export interface RepairerProfile {
   has_qualirepar_label: boolean;
   repair_types: string[];
   profile_image_url: string | null;
+  // Allow geo_lat/lng on repairer profiles
+  geo_lat?: number;
+  geo_lng?: number;
   
   // Nouveaux champs administrables par le réparateur
   opening_hours?: {

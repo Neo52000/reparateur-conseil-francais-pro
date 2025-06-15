@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { CalendarDays, CalendarClock, X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { useAuth } from "@/hooks/useAuth";
 import { format, isSameDay } from "date-fns";
-import fr from "date-fns/locale/fr";
+import { fr } from "date-fns/locale/fr";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -215,7 +214,7 @@ export default function RepairerAppointmentsCalendar() {
               <Button type="button" variant="secondary" onClick={() => setShowCreateModal(false)}>
                 Annuler
               </Button>
-              <Button type="submit" className="bg-blue-600 text-white" loading={loading}>
+              <Button type="submit" className="bg-blue-600 text-white">
                 Enregistrer
               </Button>
             </div>
