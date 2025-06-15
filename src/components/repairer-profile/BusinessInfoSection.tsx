@@ -5,13 +5,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RepairerProfile, LANGUAGES, PAYMENT_METHODS, CERTIFICATIONS } from '@/types/repairerProfile';
+import { RepairerProfile, LANGUAGES, PAYMENT_METHODS } from '@/types/repairerProfile';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface BusinessInfoSectionProps {
   formData: RepairerProfile;
   setFormData: React.Dispatch<React.SetStateAction<RepairerProfile>>;
 }
+
+// Simplified approvals list
+const APPROVALS = [
+  { value: 'apple', label: 'Agréé Apple' },
+  { value: 'samsung', label: 'Agréé Samsung' }
+];
 
 const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({ formData, setFormData }) => {
   const handleArrayFieldChange = (field: keyof RepairerProfile, value: string, checked: boolean) => {
@@ -37,6 +43,33 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({ formData, set
         [field]: field === 'free_quote' ? value === 'true' : parseFloat(value) || 0
       }
     }));
+  };
+
+  const handleCustomApprovalChange = (value: string) => {
+    const currentCertifications = formData.certifications || [];
+    const otherCertifications = currentCertifications.filter(cert => cert !== 'apple' && cert !== 'samsung');
+    
+    if (value.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        certifications: [...otherCertifications, 'apple', 'samsung'].filter(cert => 
+          (cert === 'apple' && currentCertifications.includes('apple')) ||
+          (cert === 'samsung' && currentCertifications.includes('samsung')) ||
+          (cert !== 'apple' && cert !== 'samsung')
+        ).concat(value.trim())
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        certifications: currentCertifications.filter(cert => cert === 'apple' || cert === 'samsung')
+      }));
+    }
+  };
+
+  const getCustomApprovalValue = () => {
+    const currentCertifications = formData.certifications || [];
+    const customCert = currentCertifications.find(cert => cert !== 'apple' && cert !== 'samsung');
+    return customCert || '';
   };
 
   return (
@@ -242,23 +275,33 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({ formData, set
         </CardContent>
       </Card>
 
-      {/* Certifications */}
+      {/* Agréments */}
       <Card>
         <CardHeader>
-          <CardTitle>Certifications et agréments</CardTitle>
+          <CardTitle>Agréments</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {CERTIFICATIONS.map((cert) => (
-              <div key={cert.value} className="flex items-center space-x-2">
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {APPROVALS.map((approval) => (
+              <div key={approval.value} className="flex items-center space-x-2">
                 <Checkbox
-                  id={cert.value}
-                  checked={(formData.certifications || []).includes(cert.value)}
-                  onCheckedChange={(checked) => handleArrayFieldChange('certifications', cert.value, checked as boolean)}
+                  id={approval.value}
+                  checked={(formData.certifications || []).includes(approval.value)}
+                  onCheckedChange={(checked) => handleArrayFieldChange('certifications', approval.value, checked as boolean)}
                 />
-                <Label htmlFor={cert.value}>{cert.label}</Label>
+                <Label htmlFor={approval.value}>{approval.label}</Label>
               </div>
             ))}
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="custom_approval">Agréé (à compléter par le réparateur)</Label>
+            <Input
+              id="custom_approval"
+              value={getCustomApprovalValue()}
+              onChange={(e) => handleCustomApprovalChange(e.target.value)}
+              placeholder="Entrez votre agrément personnalisé"
+            />
           </div>
         </CardContent>
       </Card>
