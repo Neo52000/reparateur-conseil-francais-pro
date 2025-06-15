@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -80,7 +81,8 @@ const Index = () => {
                       console.log('Service input changed:', e.target.value);
                       setSearchTerm(e.target.value);
                     }}
-                    className="pl-10 relative z-10 bg-white"
+                    className="pl-10 bg-white text-gray-900 border border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    style={{ color: '#1f2937' }}
                   />
                 </div>
                 <div className="relative">
@@ -92,10 +94,11 @@ const Index = () => {
                       console.log('Location input changed:', e.target.value);
                       setSelectedLocation(e.target.value);
                     }}
-                    className="pl-10 relative z-10 bg-white"
+                    className="pl-10 bg-white text-gray-900 border border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    style={{ color: '#1f2937' }}
                   />
                 </div>
-                <Button className="w-full relative z-10" size="lg" onClick={handleQuickSearch}>
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" size="lg" onClick={handleQuickSearch}>
                   Rechercher
                 </Button>
               </div>
