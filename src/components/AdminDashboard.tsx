@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -115,50 +116,38 @@ const AdminDashboard = () => {
 
   const fetchRepairers = async () => {
     try {
-      // Mock data for repairers - in real app, this would come from a repairers table
-      const mockRepairers: RepairerData[] = [
-        {
-          id: 'test-repairer-001',
-          name: 'TechRepair Pro',
-          email: 'tech@repair.fr',
-          phone: '+33 1 23 45 67 89',
-          city: 'Paris',
-          subscription_tier: 'premium',
-          subscribed: true,
-          total_repairs: 156,
-          rating: 4.9,
-          created_at: '2023-01-15T10:00:00Z'
-        },
-        {
-          id: 'test-repairer-002',
-          name: 'Mobile Fix Express',
-          email: 'contact@mobilefix.fr',
-          phone: '+33 1 98 76 54 32',
-          city: 'Lyon',
-          subscription_tier: 'basic',
-          subscribed: true,
-          total_repairs: 89,
-          rating: 4.5,
-          created_at: '2023-02-20T14:30:00Z'
-        },
-        {
-          id: 'test-repairer-003',
-          name: 'Smartphone Clinic',
-          email: 'info@smartphoneclinic.fr',
-          phone: '+33 1 11 22 33 44',
-          city: 'Marseille',
-          subscription_tier: 'free',
-          subscribed: false,
-          total_repairs: 23,
-          rating: 4.2,
-          created_at: '2023-03-10T09:15:00Z'
-        }
-      ];
-
-      setRepairers(mockRepairers);
+      console.log('Fetching repairers from Supabase...');
       
-      const totalRepairers = mockRepairers.length;
-      const activeRepairers = mockRepairers.filter(r => r.subscribed).length;
+      const { data, error } = await supabase
+        .from('repairers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Repairers data from Supabase:', data);
+
+      // Convertir les données de la table repairers vers le format RepairerData
+      const repairersData: RepairerData[] = (data || []).map(repairer => ({
+        id: repairer.id,
+        name: repairer.name,
+        email: repairer.email || 'Non renseigné',
+        phone: repairer.phone || 'Non renseigné',
+        city: repairer.city,
+        subscription_tier: 'free', // Par défaut, à améliorer avec une vraie liaison
+        subscribed: false, // Par défaut, à améliorer avec une vraie liaison
+        total_repairs: 0, // À calculer depuis une table de réparations
+        rating: repairer.rating || 0,
+        created_at: repairer.created_at
+      }));
+
+      setRepairers(repairersData);
+      
+      const totalRepairers = repairersData.length;
+      const activeRepairers = repairersData.filter(r => r.subscribed).length;
       
       setStats(prev => ({
         ...prev,
@@ -168,6 +157,11 @@ const AdminDashboard = () => {
 
     } catch (error) {
       console.error('Error fetching repairers:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les réparateurs",
+        variant: "destructive"
+      });
     }
   };
 
@@ -377,55 +371,64 @@ const AdminDashboard = () => {
             </Button>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nom</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Téléphone</TableHead>
-                  <TableHead>Ville</TableHead>
-                  <TableHead>Abonnement</TableHead>
-                  <TableHead>Réparations</TableHead>
-                  <TableHead>Note</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {repairers.map((repairer) => {
-                  const tierInfo = getTierInfo(repairer.subscription_tier);
-                  return (
-                    <TableRow key={repairer.id}>
-                      <TableCell className="font-medium">{repairer.name}</TableCell>
-                      <TableCell>{repairer.email}</TableCell>
-                      <TableCell>{repairer.phone}</TableCell>
-                      <TableCell>{repairer.city}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          {tierInfo.icon}
-                          <Badge className={tierInfo.color}>
-                            {tierInfo.name}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>{repairer.total_repairs}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                          <span>{repairer.rating}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+            {repairers.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Aucun réparateur trouvé</p>
+                <p className="text-sm text-gray-400 mt-2">
+                  Les réparateurs scrapés ou ajoutés manuellement apparaîtront ici
+                </p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nom</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Téléphone</TableHead>
+                    <TableHead>Ville</TableHead>
+                    <TableHead>Abonnement</TableHead>
+                    <TableHead>Réparations</TableHead>
+                    <TableHead>Note</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {repairers.map((repairer) => {
+                    const tierInfo = getTierInfo(repairer.subscription_tier);
+                    return (
+                      <TableRow key={repairer.id}>
+                        <TableCell className="font-medium">{repairer.name}</TableCell>
+                        <TableCell>{repairer.email}</TableCell>
+                        <TableCell>{repairer.phone}</TableCell>
+                        <TableCell>{repairer.city}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {tierInfo.icon}
+                            <Badge className={tierInfo.color}>
+                              {tierInfo.name}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell>{repairer.total_repairs}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                            <span>{repairer.rating}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button size="sm" variant="outline">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       )}
