@@ -44,18 +44,6 @@ const Index = () => {
     });
   };
 
-  const handleServiceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    console.log('Service input changed:', value);
-    setSearchTerm(value);
-  };
-
-  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    console.log('Location input changed:', value);
-    setSelectedLocation(value);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
       {/* Hero Section avec image pleine largeur et recherche dessus */}
@@ -88,7 +76,10 @@ const Index = () => {
                   <Input
                     placeholder="Rechercher un service (ex: écran cassé iPhone 14)"
                     value={searchTerm}
-                    onChange={handleServiceChange}
+                    onChange={(e) => {
+                      console.log('Service input changed:', e.target.value);
+                      setSearchTerm(e.target.value);
+                    }}
                     className="pl-10 relative z-10 bg-white"
                   />
                 </div>
@@ -97,7 +88,10 @@ const Index = () => {
                   <Input
                     placeholder="Ville ou code postal"
                     value={selectedLocation}
-                    onChange={handleLocationChange}
+                    onChange={(e) => {
+                      console.log('Location input changed:', e.target.value);
+                      setSelectedLocation(e.target.value);
+                    }}
                     className="pl-10 relative z-10 bg-white"
                   />
                 </div>
