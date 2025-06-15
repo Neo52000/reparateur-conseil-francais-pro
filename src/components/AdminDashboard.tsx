@@ -128,10 +128,21 @@ const AdminDashboard = () => {
         throw error;
       }
 
-      console.log('Repairers data from Supabase:', data);
+      console.log('Raw repairers data from Supabase:', data);
+
+      if (!data || data.length === 0) {
+        console.log('No repairers found in database');
+        setRepairers([]);
+        setStats(prev => ({
+          ...prev,
+          totalRepairers: 0,
+          activeRepairers: 0
+        }));
+        return;
+      }
 
       // Convertir les données de la table repairers vers le format RepairerData
-      const repairersData: RepairerData[] = (data || []).map(repairer => ({
+      const repairersData: RepairerData[] = data.map(repairer => ({
         id: repairer.id,
         name: repairer.name,
         email: repairer.email || 'Non renseigné',
@@ -144,6 +155,7 @@ const AdminDashboard = () => {
         created_at: repairer.created_at
       }));
 
+      console.log('Processed repairers data:', repairersData);
       setRepairers(repairersData);
       
       const totalRepairers = repairersData.length;
@@ -299,64 +311,70 @@ const AdminDashboard = () => {
             <CardTitle>Gestion des Abonnements</CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Réparateur</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Plan</TableHead>
-                  <TableHead>Facturation</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Fin d'abonnement</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {subscriptions.map((subscription) => {
-                  const tierInfo = getTierInfo(subscription.subscription_tier);
-                  return (
-                    <TableRow key={subscription.id}>
-                      <TableCell>
-                        {subscription.first_name || subscription.last_name ? 
-                          `${subscription.first_name || ''} ${subscription.last_name || ''}`.trim() :
-                          subscription.repairer_id
-                        }
-                      </TableCell>
-                      <TableCell>{subscription.email}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          {tierInfo.icon}
-                          <Badge className={tierInfo.color}>
-                            {tierInfo.name}
+            {subscriptions.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Aucun abonnement trouvé</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Réparateur</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Plan</TableHead>
+                    <TableHead>Facturation</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Fin d'abonnement</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {subscriptions.map((subscription) => {
+                    const tierInfo = getTierInfo(subscription.subscription_tier);
+                    return (
+                      <TableRow key={subscription.id}>
+                        <TableCell>
+                          {subscription.first_name || subscription.last_name ? 
+                            `${subscription.first_name || ''} ${subscription.last_name || ''}`.trim() :
+                            subscription.repairer_id
+                          }
+                        </TableCell>
+                        <TableCell>{subscription.email}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            {tierInfo.icon}
+                            <Badge className={tierInfo.color}>
+                              {tierInfo.name}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {subscription.billing_cycle === 'yearly' ? 'Annuelle' : 'Mensuelle'}
                           </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {subscription.billing_cycle === 'yearly' ? 'Annuelle' : 'Mensuelle'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={subscription.subscribed ? "default" : "secondary"}>
-                          {subscription.subscribed ? 'Actif' : 'Inactif'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {subscription.subscription_end 
-                          ? new Date(subscription.subscription_end).toLocaleDateString()
-                          : 'N/A'
-                        }
-                      </TableCell>
-                      <TableCell>
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={subscription.subscribed ? "default" : "secondary"}>
+                            {subscription.subscribed ? 'Actif' : 'Inactif'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {subscription.subscription_end 
+                            ? new Date(subscription.subscription_end).toLocaleDateString()
+                            : 'N/A'
+                          }
+                        </TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="outline">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       )}
@@ -377,6 +395,10 @@ const AdminDashboard = () => {
                 <p className="text-sm text-gray-400 mt-2">
                   Les réparateurs scrapés ou ajoutés manuellement apparaîtront ici
                 </p>
+                <Button onClick={fetchData} className="mt-4" variant="outline">
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Actualiser les données
+                </Button>
               </div>
             ) : (
               <Table>
