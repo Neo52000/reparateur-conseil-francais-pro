@@ -3,6 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RepairersTable from './RepairersTable';
 import SubscriptionsTable from './SubscriptionsTable';
+import PromoCodesSection from './PromoCodesSection';
 
 interface RepairerData {
   id: string;
@@ -47,27 +48,32 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
   onRefresh
 }) => {
   return (
-    <Tabs defaultValue="repairers" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
-        <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
-      </TabsList>
+    <div className="space-y-6">
+      <Tabs defaultValue="repairers" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
+          <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
+        </TabsList>
 
-      <TabsContent value="repairers">
-        <RepairersTable 
-          repairers={repairers} 
-          onViewProfile={onViewProfile}
-          onRefresh={onRefresh}
-        />
-      </TabsContent>
+        <TabsContent value="repairers">
+          <RepairersTable 
+            repairers={repairers} 
+            onViewProfile={onViewProfile}
+            onRefresh={onRefresh}
+          />
+        </TabsContent>
 
-      <TabsContent value="subscriptions">
-        <SubscriptionsTable 
-          subscriptions={subscriptions}
-          onRefresh={onRefresh}
-        />
-      </TabsContent>
-    </Tabs>
+        <TabsContent value="subscriptions">
+          <SubscriptionsTable 
+            subscriptions={subscriptions}
+            onRefresh={onRefresh}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {/* Section des codes promo en dessous des onglets */}
+      <PromoCodesSection />
+    </div>
   );
 };
 
