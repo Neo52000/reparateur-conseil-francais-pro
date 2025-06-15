@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,6 @@ import RepairersMap from '@/components/RepairersMap';
 import RepairersList from '@/components/RepairersList';
 import SearchFilters from '@/components/SearchFilters';
 import Footer from '@/components/Footer';
-// Ajout de l'import du toast
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
@@ -25,7 +23,7 @@ const Index = () => {
   const [selectedLocation, setSelectedLocation] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
-  const { toast } = useToast(); // Hook toast
+  const { toast } = useToast();
 
   const quickStats = [
     { label: 'Réparateurs partenaires', value: '150+', icon: Smartphone },
@@ -38,13 +36,12 @@ const Index = () => {
     'Écran cassé', 'Batterie', 'Réparation eau', 'Connecteur charge', 'Appareil photo', 'Haut-parleur'
   ];
 
-  // Handler recherche rapide
   const handleQuickSearch = () => {
+    console.log('Button clicked - searchTerm:', searchTerm, 'selectedLocation:', selectedLocation);
     toast({
       title: "Recherche rapide",
-      description: `Service : "${searchTerm}" / Localisation : "${selectedLocation}"`,
+      description: `Service : "${searchTerm}" / Localisation : "${selectedLocation}"`,
     });
-    // ici vous pouvez ajouter la logique réelle de recherche
   };
 
   return (
@@ -53,7 +50,9 @@ const Index = () => {
       <div className="relative h-screen bg-cover bg-center" style={{
         backgroundImage: "url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')"
       }}>
-        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+        {/* Overlay noir avec pointer-events-none pour ne pas bloquer les interactions */}
+        <div className="absolute inset-0 bg-black bg-opacity-50 pointer-events-none"></div>
+        
         <div className="relative z-10 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <h1 className="text-5xl md:text-6xl font-bold mb-4">
@@ -64,8 +63,8 @@ const Index = () => {
             </p>
           </div>
 
-          {/* Barre de recherche sur l'image */}
-          <div className="w-full max-w-2xl z-20"> {/* Z-index élevé */}
+          {/* Barre de recherche sur l'image avec pointer-events-auto pour restaurer les interactions */}
+          <div className="w-full max-w-2xl z-50 pointer-events-auto">
             <div className="bg-white rounded-lg p-6 shadow-xl">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
                 Recherche rapide de réparateurs
@@ -73,25 +72,25 @@ const Index = () => {
               
               <div className="flex flex-col space-y-4">
                 <div className="relative">
-                  <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
                   <Input
                     placeholder="Rechercher un service (ex: écran cassé iPhone 14)"
                     value={searchTerm}
                     onChange={(e) => { 
+                      console.log('Service input changed:', e.target.value);
                       setSearchTerm(e.target.value);
-                      console.log('searchTerm:', e.target.value);
                     }}
                     className="pl-10"
                   />
                 </div>
                 <div className="relative">
-                  <MapPin className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <MapPin className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
                   <Input
                     placeholder="Ville ou code postal"
                     value={selectedLocation}
                     onChange={(e) => { 
+                      console.log('Location input changed:', e.target.value);
                       setSelectedLocation(e.target.value);
-                      console.log('selectedLocation:', e.target.value);
                     }}
                     className="pl-10"
                   />
@@ -185,4 +184,3 @@ const Index = () => {
 };
 
 export default Index;
-
