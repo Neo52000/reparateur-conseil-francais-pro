@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Plus, Edit } from 'lucide-react';
 import ScrapingControl from './ScrapingControl';
+import ClientAccessControl from './ClientAccessControl';
 
 interface SubscriptionData {
   id: string;
@@ -208,6 +209,9 @@ const AdminDashboard = () => {
           Actualiser
         </Button>
       </div>
+
+      {/* Client Access Control - Added at the top for visibility */}
+      <ClientAccessControl />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

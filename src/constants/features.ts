@@ -1,4 +1,3 @@
-
 import { PlanName, Feature } from "@/types/featureFlags";
 
 /**
@@ -10,6 +9,9 @@ export const PLANS: PlanName[] = ["Gratuit", "Basique", "Premium", "Enterprise"]
  * Toutes les fonctionnalités disponibles organisées par catégorie
  */
 export const FEATURES: Feature[] = [
+  // Contrôle système
+  { key: "client_access_enabled", name: "Accès client global", category: "Système" },
+
   // Fonctionnalités de base déjà implémentées
   { key: "search_brand_model", name: "Recherche par marque ET modèle spécifique", category: "Base" },
   { key: "filter_issue_type", name: "Filtres par type de panne", category: "Base" },
