@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Database } from 'lucide-react';
 import { useRepairers } from '@/hooks/useRepairers';
 import RepairerProfileModal from './RepairerProfileModal';
 import RepairerCard from './repairers/RepairerCard';
@@ -18,9 +18,8 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
 
   const { repairers, loading, error } = useRepairers(filters);
 
-  // Logs pour le debugging
-  console.log('RepairersList - Received repairers:', repairers);
-  console.log('RepairersList - Repairers count:', repairers.length);
+  console.log('RepairersList - Real repairers received:', repairers);
+  console.log('RepairersList - Real repairers count:', repairers.length);
   console.log('RepairersList - Loading:', loading);
   console.log('RepairersList - Error:', error);
 
@@ -61,9 +60,16 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
     console.log('RepairersList - Rendering error state:', error);
     return (
       <Card>
-        <CardContent className="p-4 text-center">
-          <p className="text-red-600">Erreur lors du chargement des réparateurs</p>
-          <p className="text-sm text-gray-500 mt-2">{error}</p>
+        <CardContent className="p-6 text-center">
+          <Database className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-red-600 mb-2">
+            Erreur de connexion à la base de données
+          </h3>
+          <p className="text-red-600 mb-2">Impossible de charger les réparateurs</p>
+          <p className="text-sm text-gray-500">{error}</p>
+          <p className="text-xs text-gray-400 mt-4">
+            Vérifiez que Supabase est configuré correctement
+          </p>
         </CardContent>
       </Card>
     );
@@ -77,7 +83,7 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
         {compact && (
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-gray-900">
-              {repairers.length} réparateurs trouvés
+              {repairers.length} réparateur{repairers.length !== 1 ? 's' : ''} trouvé{repairers.length !== 1 ? 's' : ''}
             </h3>
             <Button variant="outline" size="sm">
               <ExternalLink className="h-4 w-4 mr-1" />
@@ -89,13 +95,21 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
         {repairers.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
-              <p className="text-gray-500">Aucun réparateur trouvé pour cette recherche</p>
-              <p className="text-sm text-gray-400 mt-2">Essayez d'élargir vos critères de recherche</p>
+              <Database className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                Aucun réparateur trouvé
+              </h3>
+              <p className="text-gray-500 mb-2">
+                Aucune donnée réelle de réparateur n'est disponible dans la base de données
+              </p>
+              <p className="text-sm text-gray-400">
+                Ajoutez des réparateurs via l'interface d'administration ou vérifiez la configuration Supabase
+              </p>
             </CardContent>
           </Card>
         ) : (
           repairers.map((repairer, index) => {
-            console.log(`RepairersList - Rendering repairer ${index + 1}:`, {
+            console.log(`RepairersList - Rendering real repairer ${index + 1}:`, {
               id: repairer.id,
               name: repairer.name,
               city: repairer.city

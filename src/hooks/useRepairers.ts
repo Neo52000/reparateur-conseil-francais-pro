@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { supabase, RepairerDB, isSupabaseConfigured } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { MOCK_REPAIRERS } from '@/constants/repairers';
 
 export interface SearchFilters {
   services?: string[];
@@ -16,34 +15,6 @@ export interface SearchFilters {
   postalCode?: string;
 }
 
-// Fonction pour convertir les données mockées au format RepairerDB
-const convertMockToRepairersDB = (mockRepairers: any[]): RepairerDB[] => {
-  return mockRepairers.map((repairer, index) => ({
-    id: repairer.id.toString(),
-    name: repairer.name,
-    address: repairer.address,
-    city: repairer.address.split(',')[1]?.trim() || 'Paris',
-    postal_code: '75001',
-    department: '75',
-    region: 'Île-de-France',
-    phone: '+33123456789',
-    lat: repairer.lat,
-    lng: repairer.lng,
-    rating: repairer.rating,
-    review_count: repairer.reviewCount,
-    services: repairer.services,
-    specialties: repairer.services,
-    price_range: repairer.averagePrice === '€' ? 'low' : repairer.averagePrice === '€€' ? 'medium' : 'high',
-    response_time: repairer.responseTime,
-    is_verified: true,
-    is_open: true,
-    source: 'manual' as const,
-    scraped_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    created_at: new Date().toISOString()
-  }));
-};
-
 export const useRepairers = (filters?: SearchFilters, userLocation?: [number, number]) => {
   const [repairers, setRepairers] = useState<RepairerDB[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,112 +26,96 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
       setLoading(true);
       setError(null);
       
-      console.log('useRepairers - Fetching repairers...');
+      console.log('useRepairers - Fetching from Supabase only...');
       console.log('useRepairers - Supabase configured:', isSupabaseConfigured());
 
-      // Toujours essayer de récupérer les données de Supabase d'abord
-      if (isSupabaseConfigured() && supabase) {
-        console.log('useRepairers - Fetching from Supabase...');
-        
-        let query = supabase
-          .from('repairers')
-          .select('*')
-          .order('rating', { ascending: false });
+      if (!isSupabaseConfigured() || !supabase) {
+        throw new Error('Supabase n\'est pas configuré');
+      }
 
-        // Appliquer les filtres
-        if (filters?.city) {
-          query = query.ilike('city', `%${filters.city}%`);
-        }
+      console.log('useRepairers - Building Supabase query...');
+      
+      let query = supabase
+        .from('repairers')
+        .select('*')
+        .order('rating', { ascending: false });
 
-        if (filters?.postalCode) {
-          query = query.like('postal_code', `${filters.postalCode}%`);
-        }
+      // Appliquer les filtres
+      if (filters?.city) {
+        query = query.ilike('city', `%${filters.city}%`);
+      }
 
-        if (filters?.services && filters.services.length > 0) {
-          query = query.overlaps('services', filters.services);
-        }
+      if (filters?.postalCode) {
+        query = query.like('postal_code', `${filters.postalCode}%`);
+      }
 
-        if (filters?.minRating) {
-          query = query.gte('rating', filters.minRating);
-        }
+      if (filters?.services && filters.services.length > 0) {
+        query = query.overlaps('services', filters.services);
+      }
 
-        if (filters?.priceRange) {
-          query = query.eq('price_range', filters.priceRange);
-        }
+      if (filters?.minRating) {
+        query = query.gte('rating', filters.minRating);
+      }
 
-        // Limiter les résultats pour les performances
-        query = query.limit(100);
+      if (filters?.priceRange) {
+        query = query.eq('price_range', filters.priceRange);
+      }
 
-        const { data, error: fetchError } = await query;
+      // Limiter les résultats pour les performances
+      query = query.limit(100);
 
-        if (fetchError) {
-          console.error('useRepairers - Supabase error:', fetchError);
-          throw fetchError;
-        }
+      const { data, error: fetchError } = await query;
 
-        console.log('useRepairers - Supabase data received:', data);
-        console.log('useRepairers - Supabase data length:', data?.length);
-        
+      if (fetchError) {
+        console.error('useRepairers - Supabase error:', fetchError);
+        throw fetchError;
+      }
+
+      console.log('useRepairers - Supabase data received:', data);
+      console.log('useRepairers - Supabase data length:', data?.length || 0);
+      
+      if (data && data.length > 0) {
         // Log détaillé de chaque réparateur
-        if (data && data.length > 0) {
-          data.forEach((repairer, index) => {
-            console.log(`useRepairers - Repairer ${index + 1}:`, {
-              id: repairer.id,
-              name: repairer.name,
-              city: repairer.city,
-              services: repairer.services
-            });
+        data.forEach((repairer, index) => {
+          console.log(`useRepairers - Real Repairer ${index + 1}:`, {
+            id: repairer.id,
+            name: repairer.name,
+            city: repairer.city,
+            services: repairer.services
+          });
+        });
+
+        // Calculer la distance si la position utilisateur est disponible
+        let processedData = data;
+        if (userLocation && filters?.distance) {
+          processedData = data.filter(repairer => {
+            if (!repairer.lat || !repairer.lng) return false;
+            const distance = calculateDistance(
+              userLocation[1], userLocation[0],
+              repairer.lat, repairer.lng
+            );
+            return distance <= (filters.distance || 50);
           });
         }
 
-        if (data && data.length > 0) {
-          // Calculer la distance si la position utilisateur est disponible
-          let processedData = data;
-          if (userLocation && filters?.distance) {
-            processedData = data.filter(repairer => {
-              const distance = calculateDistance(
-                userLocation[1], userLocation[0],
-                repairer.lat, repairer.lng
-              );
-              return distance <= (filters.distance || 50);
-            });
-          }
-
-          console.log('useRepairers - Setting repairers from Supabase:', processedData);
-          setRepairers(processedData);
-          setLoading(false);
-          return;
-        }
+        console.log('useRepairers - Setting real repairers from Supabase:', processedData);
+        setRepairers(processedData);
+      } else {
+        console.log('useRepairers - No data found in Supabase');
+        setRepairers([]);
       }
-
-      // Si pas de données Supabase, utiliser les données mockées
-      console.log('useRepairers - Using mock data');
-      console.log('useRepairers - MOCK_REPAIRERS:', MOCK_REPAIRERS);
-      const mockData = convertMockToRepairersDB(MOCK_REPAIRERS);
-      console.log('useRepairers - Mock data converted:', mockData);
-      
-      // Log détaillé de chaque réparateur mocké
-      mockData.forEach((repairer, index) => {
-        console.log(`useRepairers - Mock Repairer ${index + 1}:`, {
-          id: repairer.id,
-          name: repairer.name,
-          city: repairer.city,
-          services: repairer.services
-        });
-      });
-      
-      setRepairers(mockData);
       
     } catch (err) {
-      console.error('useRepairers - Error:', err);
+      console.error('useRepairers - Error fetching real data:', err);
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des réparateurs';
       setError(errorMessage);
+      setRepairers([]);
       
-      // Utiliser les données mockées en cas d'erreur
-      console.log('useRepairers - Fallback to mock data due to error');
-      const mockData = convertMockToRepairersDB(MOCK_REPAIRERS);
-      console.log('useRepairers - Fallback mock data:', mockData);
-      setRepairers(mockData);
+      toast({
+        title: "Erreur",
+        description: errorMessage,
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -184,8 +139,8 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
   };
 
   // Log final avant le retour
-  console.log('useRepairers - Final repairers state:', repairers);
-  console.log('useRepairers - Final repairers count:', repairers.length);
+  console.log('useRepairers - Final real repairers state:', repairers);
+  console.log('useRepairers - Final real repairers count:', repairers.length);
 
   return {
     repairers,
