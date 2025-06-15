@@ -11,23 +11,37 @@ import SocialMediaSection from './SocialMediaSection';
 import RepairServicesSection from './RepairServicesSection';
 import BusinessInfoSection from './BusinessInfoSection';
 
+/**
+ * Formulaire principal pour l'édition des profils réparateurs
+ * Gère l'état local du formulaire et la sauvegarde
+ */
 const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
   profile,
   onSave,
   onCancel,
   isAdmin = false
 }) => {
-  const [formData, setFormData] = useState(profile);
+  const [formData, setFormData] = useState<RepairerProfile>(profile);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { saveProfile } = useRepairerProfileSave();
 
+  /**
+   * Gère la soumission du formulaire
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('📝 Form submission started...');
+    console.log('📄 Form data to save:', formData);
+    
     setLoading(true);
 
     try {
+      // Sauvegarder le profil via le hook
       const savedProfile = await saveProfile(formData, profile);
+      console.log('✅ Profile saved, calling onSave callback...');
+      
+      // Appeler le callback de sauvegarde
       onSave(savedProfile);
 
       toast({
@@ -35,7 +49,7 @@ const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
         description: "Profil mis à jour avec succès",
       });
     } catch (error: any) {
-      console.error('Error saving profile:', error);
+      console.error('❌ Error saving profile:', error);
       toast({
         title: "Erreur",
         description: error?.message || "Impossible de sauvegarder le profil",
@@ -46,7 +60,12 @@ const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
     }
   };
 
+  /**
+   * Gère les changements de types de réparation
+   */
   const handleRepairTypeChange = (type: string, checked: boolean) => {
+    console.log('🔧 Repair type change:', { type, checked });
+    
     if (checked) {
       setFormData(prev => ({
         ...prev,
@@ -97,10 +116,21 @@ const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
       </Tabs>
 
       <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => {
+            console.log('❌ Form canceled');
+            onCancel();
+          }}
+          disabled={loading}
+        >
           Annuler
         </Button>
-        <Button type="submit" disabled={loading}>
+        <Button 
+          type="submit" 
+          disabled={loading}
+        >
           {loading ? 'Enregistrement...' : 'Enregistrer'}
         </Button>
       </div>

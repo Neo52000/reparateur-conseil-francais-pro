@@ -1,60 +1,68 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { RepairerProfile } from '@/types/repairerProfile';
 
-const createUserIfNotExists = async (
-  email: string,
-  first_name?: string,
-  last_name?: string,
-  phone?: string
-): Promise<string | null> => {
-  try {
-    // Obtenir la session courante pour les headers d'autorisation
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json"
-    };
-    
-    // Ajouter l'autorisation si une session existe
-    if (session?.access_token) {
-      headers["Authorization"] = `Bearer ${session.access_token}`;
-    }
-    
-    console.log('Calling create-repairer-user with:', { email, first_name, phone });
-    
-    const res = await fetch(
-      "https://nbugpbakfkyvvjzgfjmw.functions.supabase.co/create-repairer-user",
-      {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ email, first_name, last_name, phone }),
-      }
-    );
-    
-    const data = await res.json();
-    console.log('Response from create-repairer-user:', { status: res.status, data });
-    
-    if (!res.ok || data?.error) {
-      const msg = data?.error || `Erreur HTTP ${res.status}`;
-      console.error('Edge function error:', msg);
-      throw new Error(msg);
-    }
-    
-    return data.user_id as string;
-  } catch (error) {
-    console.error('Error in createUserIfNotExists:', error);
-    throw error;
-  }
-};
-
+/**
+ * Hook pour la sauvegarde des profils réparateurs
+ * Gère la création d'utilisateurs et la sauvegarde des profils dans Supabase
+ */
 export const useRepairerProfileSave = () => {
-  const saveProfile = async (formData: RepairerProfile, originalProfile: RepairerProfile): Promise<RepairerProfile> => {
-    console.log('Attempting to save profile:', formData);
+  /**
+   * Crée un utilisateur réparateur s'il n'existe pas déjà
+   */
+  const createUserIfNotExists = async (
+    email: string,
+    first_name?: string,
+    last_name?: string,
+    phone?: string
+  ): Promise<string | null> => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json"
+      };
+      
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`;
+      }
+      
+      console.log('🔧 Creating user with data:', { email, first_name, phone });
+      
+      const res = await fetch(
+        "https://nbugpbakfkyvvjzgfjmw.functions.supabase.co/create-repairer-user",
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ email, first_name, last_name, phone }),
+        }
+      );
+      
+      const data = await res.json();
+      console.log('📥 User creation response:', { status: res.status, data });
+      
+      if (!res.ok || data?.error) {
+        throw new Error(data?.error || `Erreur HTTP ${res.status}`);
+      }
+      
+      return data.user_id as string;
+    } catch (error) {
+      console.error('❌ Error creating user:', error);
+      throw error;
+    }
+  };
 
-    // Si c'est un profil mock (existant)
-    const isMockProfile = originalProfile.id.startsWith('mock-');
-    if (isMockProfile) {
-      console.log('Simulating save for mock profile:', formData);
+  /**
+   * Sauvegarde le profil réparateur dans Supabase
+   */
+  const saveProfile = async (formData: RepairerProfile, originalProfile: RepairerProfile): Promise<RepairerProfile> => {
+    console.log('💾 Starting profile save process...');
+    console.log('📝 Form data:', formData);
+    console.log('📄 Original profile:', originalProfile);
+
+    // Gestion des profils mock (pour les tests)
+    if (originalProfile.id.startsWith('mock-')) {
+      console.log('🎭 Mock profile detected, simulating save');
       await new Promise(resolve => setTimeout(resolve, 500));
       return {
         ...formData,
@@ -62,35 +70,43 @@ export const useRepairerProfileSave = () => {
       };
     }
 
-    // Recherche si un profil existe déjà sur ce repairer_id
-    let userId = formData.repairer_id;
-
     try {
-      const { data: existingProfile } = await supabase
+      let userId = formData.repairer_id;
+      console.log('🔍 Looking for existing profile with user_id:', userId);
+
+      // Vérifier si un profil existe déjà
+      const { data: existingProfile, error: searchError } = await supabase
         .from('repairer_profiles')
         .select('id, user_id')
         .eq('user_id', userId)
         .maybeSingle();
 
-      console.log('Existing profile found:', existingProfile);
-
-      // Si profil non trouvé, s'assurer que l'utilisateur existe sinon le créer
-      if (!existingProfile) {
-        console.log('No existing profile found, creating user...');
-        userId = await createUserIfNotExists(
-          formData.email,
-          formData?.business_name ?? "",
-          undefined,
-          formData?.phone ?? ""
-        );
-        
-        if (!userId) {
-          throw new Error("Impossible de créer ou récupérer l'utilisateur");
-        }
+      if (searchError) {
+        console.error('❌ Error searching for existing profile:', searchError);
+        throw searchError;
       }
 
-      // Data à envoyer : on log le siret_number envoyé pour debug
-      const supabaseData = {
+      console.log('📋 Existing profile search result:', existingProfile);
+
+      // Si aucun profil existant, créer l'utilisateur
+      if (!existingProfile) {
+        console.log('👤 No existing profile, creating user...');
+        const createdUserId = await createUserIfNotExists(
+          formData.email,
+          formData.business_name,
+          undefined,
+          formData.phone
+        );
+        
+        if (!createdUserId) {
+          throw new Error("Impossible de créer ou récupérer l'utilisateur");
+        }
+        userId = createdUserId;
+        console.log('✅ User created/retrieved with ID:', userId);
+      }
+
+      // Préparer les données pour Supabase
+      const profileData = {
         user_id: userId,
         business_name: formData.business_name,
         siret_number: formData.siret_number || null,
@@ -105,28 +121,49 @@ export const useRepairerProfileSave = () => {
         instagram_url: formData.instagram_url || null,
         linkedin_url: formData.linkedin_url || null,
         twitter_url: formData.twitter_url || null,
-        has_qualirepar_label: formData.has_qualirepar_label,
-        repair_types: formData.repair_types,
+        has_qualirepar_label: formData.has_qualirepar_label || false,
+        repair_types: formData.repair_types || [],
         updated_at: new Date().toISOString()
       };
 
-      console.log('Sending data to Supabase:', supabaseData);
+      console.log('📤 Sending profile data to Supabase:', profileData);
 
-      // Mettre à jour aussi la table repairers si on a des coordonnées géographiques
+      // Sauvegarder ou mettre à jour le profil
+      let result;
+      if (existingProfile) {
+        console.log('🔄 Updating existing profile...');
+        result = await supabase
+          .from('repairer_profiles')
+          .update(profileData)
+          .eq('id', existingProfile.id)
+          .select()
+          .single();
+      } else {
+        console.log('🆕 Creating new profile...');
+        result = await supabase
+          .from('repairer_profiles')
+          .insert(profileData)
+          .select()
+          .single();
+      }
+
+      console.log('📥 Supabase operation result:', result);
+
+      if (result.error) {
+        console.error('❌ Supabase save error:', result.error);
+        throw new Error(result.error.message || "Erreur lors de l'enregistrement");
+      }
+
+      // Mettre à jour la table repairers si coordonnées géographiques disponibles
       if (formData.geo_lat && formData.geo_lng) {
-        console.log('Updating repairer coordinates:', {
-          lat: formData.geo_lat,
-          lng: formData.geo_lng
-        });
-
-        // Chercher le réparateur correspondant dans la table repairers
-        const { data: existingRepairer } = await supabase
+        console.log('🗺️ Updating geographic coordinates...');
+        const { data: repairer } = await supabase
           .from('repairers')
           .select('id')
           .eq('email', formData.email)
           .maybeSingle();
 
-        if (existingRepairer) {
+        if (repairer) {
           await supabase
             .from('repairers')
             .update({
@@ -136,42 +173,11 @@ export const useRepairerProfileSave = () => {
               city: formData.city,
               postal_code: formData.postal_code
             })
-            .eq('id', existingRepairer.id);
+            .eq('id', repairer.id);
         }
       }
 
-      let result;
-      if (existingProfile) {
-        console.log('Updating existing profile with ID:', existingProfile.id);
-        result = await supabase
-          .from('repairer_profiles')
-          .update(supabaseData)
-          .eq('id', existingProfile.id)
-          .select()
-          .single();
-        console.log('Update result from Supabase:', result);
-      } else {
-        console.log('Creating new profile for user_id:', userId);
-        // Utiliser upsert au lieu d'insert pour éviter les doublons
-        result = await supabase
-          .from('repairer_profiles')
-          .upsert(supabaseData, { 
-            onConflict: 'user_id',
-            ignoreDuplicates: false 
-          })
-          .select()
-          .single();
-        console.log('Upsert result from Supabase:', result);
-      }
-
-      if (result.error) {
-        console.error('Supabase save error:', result.error);
-        throw new Error(result.error.message || "Erreur lors de l'enregistrement");
-      }
-
-      // Affichage du siret modifié dans la réponse
-      console.log('Saved profile siret_number:', result.data?.siret_number);
-
+      // Mapper les données de retour vers l'interface RepairerProfile
       const savedProfile: RepairerProfile = {
         id: result.data.id,
         repairer_id: result.data.user_id,
@@ -195,13 +201,12 @@ export const useRepairerProfileSave = () => {
         updated_at: result.data.updated_at
       };
 
-      console.log('Profile saved successfully:', savedProfile);
+      console.log('✅ Profile saved successfully:', savedProfile);
       return savedProfile;
       
-    } catch (error) {
-      // Affichage du message exact de l'erreur
-      console.error('Error in saveProfile:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('❌ Error in saveProfile:', error);
+      throw new Error(error.message || "Erreur lors de la sauvegarde du profil");
     }
   };
 

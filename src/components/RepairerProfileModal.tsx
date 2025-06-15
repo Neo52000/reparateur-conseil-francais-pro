@@ -16,6 +16,10 @@ interface RepairerProfileModalProps {
   isAdmin?: boolean;
 }
 
+/**
+ * Modal pour afficher et éditer les profils réparateurs
+ * Gère l'état d'édition, la sauvegarde et le rafraîchissement des données
+ */
 const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
   isOpen,
   onClose,
@@ -28,42 +32,41 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
   const { profile, loading, fetchProfile } = useProfileData(repairerId, isOpen);
   const { user, isAdmin: userIsAdmin } = useAuth();
 
-  // Permet de stocker le dernier profil sauvegardé avec succès
-  const [lastSavedProfile, setLastSavedProfile] = useState<RepairerProfile | null>(null);
-
+  /**
+   * Gère la mise à jour du profil
+   */
   const handleProfileUpdate = async (updatedProfile: RepairerProfile) => {
+    console.log('🔄 Starting profile update process...');
     setSaving(true);
+    
     try {
-      // Sauvegarde : si une erreur, déclenche le bloc catch
-      const resultUserId = updatedProfile.repairer_id;
-      await fetchProfile(resultUserId || repairerId);
+      // La sauvegarde est gérée dans le formulaire lui-même
+      // Ici on rafraîchit simplement les données et ferme l'édition
+      await fetchProfile(updatedProfile.repairer_id || repairerId);
       setIsEditing(false);
 
-      // On recharge la fiche modifiée (en base) pour vérifier que la modif est bien prise en compte
-      await fetchProfile(resultUserId || repairerId);
-
-      setLastSavedProfile(updatedProfile);
-
+      console.log('✅ Profile update completed successfully');
+      
       toast({
         title: "Succès",
         description: "Profil mis à jour avec succès"
       });
     } catch (error: any) {
-      console.error("[RepairerProfileModal] Erreur lors de la sauvegarde ou du refresh :", error);
+      console.error('❌ Error during profile update:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de sauvegarder ou rafraîchir la fiche du réparateur. " + (error?.message || ''),
+        description: error?.message || "Impossible de mettre à jour le profil",
         variant: "destructive"
       });
-      // Ne pas fermer l'édition en cas d'erreur !
-      return;
     } finally {
       setSaving(false);
     }
   };
 
-  // Vérifier si l'utilisateur peut modifier cette fiche
-  const canEdit = () => {
+  /**
+   * Vérifie si l'utilisateur peut modifier cette fiche
+   */
+  const canEdit = (): boolean => {
     if (userIsAdmin || isAdmin) {
       return true;
     }
@@ -73,6 +76,7 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
     return false;
   };
 
+  // États de chargement et d'erreur
   if (loading) {
     return <LoadingState isOpen={isOpen} onClose={onClose} />;
   }
@@ -88,13 +92,20 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
         isEditing={isEditing}
         isAdmin={userIsAdmin || isAdmin}
         canEdit={canEdit()}
-        onEdit={() => setIsEditing(true)}
+        onEdit={() => {
+          console.log('📝 Starting edit mode...');
+          setIsEditing(true);
+        }}
         onSave={handleProfileUpdate}
-        onCancel={() => setIsEditing(false)}
+        onCancel={() => {
+          console.log('❌ Canceling edit mode...');
+          setIsEditing(false);
+        }}
         onClose={onClose}
         saving={saving}
       />
     </Dialog>
   );
 };
+
 export default RepairerProfileModal;

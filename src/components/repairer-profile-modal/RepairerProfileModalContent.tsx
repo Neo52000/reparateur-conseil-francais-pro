@@ -23,6 +23,10 @@ interface RepairerProfileModalContentProps {
   saving?: boolean;
 }
 
+/**
+ * Contenu de la modal du profil réparateur
+ * Affiche différentes vues selon le mode (édition, admin, client)
+ */
 const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = ({
   profile,
   isEditing,
@@ -34,43 +38,53 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
   onClose,
   saving = false
 }) => {
+  /**
+   * Actions pour les clients
+   */
   const handleRequestQuote = () => {
-    // In real app, this would open quote form or navigate to quote page
-    console.log('Request quote for:', profile.business_name);
+    console.log('📞 Quote requested for:', profile.business_name);
+    // TODO: Implémenter la demande de devis
   };
 
   const handleCallRepairer = () => {
-    window.location.href = `tel:${profile.phone}`;
+    if (profile.phone) {
+      window.location.href = `tel:${profile.phone}`;
+    }
   };
 
   const handleBookAppointment = () => {
-    // In real app, this would open booking modal or navigate to booking page
-    console.log('Book appointment with:', profile.business_name);
+    console.log('📅 Appointment booking for:', profile.business_name);
+    // TODO: Implémenter la prise de rendez-vous
   };
 
+  // Vue d'édition
   if (isEditing) {
     return (
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Modifier le profil réparateur</DialogTitle>
           <DialogDescription>
-            Modifiez les informations de votre fiche revendeur puis cliquez sur "Enregistrer".
+            Modifiez les informations de votre fiche réparateur puis cliquez sur "Enregistrer".
           </DialogDescription>
         </DialogHeader>
+        
         <RepairerProfileForm
           profile={profile}
           onSave={onSave}
           onCancel={onCancel}
           isAdmin={isAdmin}
         />
+        
         {saving && (
-          <div className="text-xs text-blue-800 pt-2">Enregistrement en cours...</div>
+          <div className="text-xs text-blue-800 pt-2">
+            Enregistrement en cours...
+          </div>
         )}
       </DialogContent>
     );
   }
 
-  // Show admin view for admins
+  // Vue administrateur
   if (isAdmin && canEdit) {
     return (
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -107,7 +121,7 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
     );
   }
 
-  // Client view - new beautiful design
+  // Vue client - design amélioré
   return (
     <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto">
       <DialogHeader>
@@ -116,6 +130,7 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
           Découvrez les informations détaillées sur ce réparateur, ses services et ses avis clients.
         </DialogDescription>
       </DialogHeader>
+      
       <div className="space-y-8 p-2">
         <ClientRepairerProfileHeader
           profile={profile}
@@ -129,7 +144,7 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
         <ClientTestimonialsSection businessName={profile.business_name} />
         <ClientContactSection profile={profile} />
 
-        {/* Sticky bottom actions for mobile */}
+        {/* Actions mobiles sticky */}
         <div className="lg:hidden sticky bottom-0 bg-white border-t p-4 -mx-2 flex space-x-3">
           <Button 
             onClick={handleRequestQuote}
@@ -146,7 +161,7 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
           </Button>
         </div>
 
-        {/* Close button */}
+        {/* Bouton de fermeture */}
         <div className="flex justify-center pt-4">
           <Button onClick={onClose} variant="ghost" className="text-gray-500">
             Fermer
@@ -158,4 +173,3 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
 };
 
 export default RepairerProfileModalContent;
-
