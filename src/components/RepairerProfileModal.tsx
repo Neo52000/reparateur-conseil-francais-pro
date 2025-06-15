@@ -9,7 +9,8 @@ import RepairerProfileHeader from './profile/RepairerProfileHeader';
 import GeneralInfoTab from './profile/GeneralInfoTab';
 import ContactSocialTab from './profile/ContactSocialTab';
 import ServicesTab from './profile/ServicesTab';
-import { RepairerProfile, getMockProfile } from '@/services/mockRepairerProfiles';
+import { RepairerProfile } from '@/types/repairerProfile';
+import { getMockProfile } from '@/services/mockRepairerProfiles';
 import { useRepairers } from '@/hooks/useRepairers';
 
 interface RepairerProfileModalProps {
@@ -59,7 +60,7 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
       // Créer un profil mocké basé sur les données du réparateur
       return {
         id: repairerId,
-        repairer_id: repairerId, // Changé de user_id à repairer_id
+        repairer_id: repairerId,
         business_name: repairer.name,
         description: `${repairer.name} est un réparateur professionnel spécialisé dans la réparation d'appareils électroniques. Avec une expertise reconnue et des années d'expérience, nous offrons des services de qualité pour tous vos besoins de réparation.`,
         address: repairer.address,
@@ -94,7 +95,7 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
       const { data, error } = await supabase
         .from('repairer_profiles')
         .select('*')
-        .eq('repairer_id', repairerId) // Changé de user_id à repairer_id
+        .eq('repairer_id', repairerId)
         .maybeSingle();
 
       if (error && !error.message.includes('invalid input syntax for type uuid')) {
@@ -118,7 +119,12 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
           const mockProfile = getMockProfile(repairerId);
           if (mockProfile) {
             console.log('Using existing mock profile:', mockProfile);
-            setProfile(mockProfile);
+            // Convert mock profile to new interface format
+            const convertedProfile: RepairerProfile = {
+              ...mockProfile,
+              repairer_id: mockProfile.user_id || repairerId
+            };
+            setProfile(convertedProfile);
           } else {
             console.log('No profile data available for repairer:', repairerId);
             setProfile(null);
