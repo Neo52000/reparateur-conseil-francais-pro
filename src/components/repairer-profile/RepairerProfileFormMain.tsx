@@ -27,16 +27,16 @@ const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
     try {
       const savedProfile = await saveProfile(formData, profile);
       onSave(savedProfile);
-      
+
       toast({
         title: "Succès",
         description: "Profil mis à jour avec succès",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving profile:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de sauvegarder le profil",
+        description: error?.message || "Impossible de sauvegarder le profil",
         variant: "destructive"
       });
     } finally {

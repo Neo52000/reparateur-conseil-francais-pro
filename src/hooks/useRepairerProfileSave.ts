@@ -5,24 +5,17 @@ import { RepairerProfile } from '@/types/repairerProfile';
 export const useRepairerProfileSave = () => {
   const saveProfile = async (formData: RepairerProfile, originalProfile: RepairerProfile): Promise<RepairerProfile> => {
     console.log('Attempting to save profile:', formData);
-    
-    // Vérifier si c'est un profil mocké (ID commence par "mock-")
+
     const isMockProfile = originalProfile.id.startsWith('mock-');
-    
     if (isMockProfile) {
       console.log('Simulating save for mock profile:', formData);
-      
-      // Simuler un délai de sauvegarde
       await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Créer un profil mis à jour avec les nouvelles données
       return {
         ...formData,
         updated_at: new Date().toISOString()
       };
     }
 
-    // Préparer les données pour Supabase - mapper repairer_id vers user_id
     const supabaseData = {
       user_id: formData.repairer_id,
       business_name: formData.business_name,
@@ -45,7 +38,6 @@ export const useRepairerProfileSave = () => {
 
     console.log('Supabase data to save:', supabaseData);
 
-    // Vérifier si un profil existe déjà
     const { data: existingProfile, error: fetchError } = await supabase
       .from('repairer_profiles')
       .select('id')
@@ -55,9 +47,8 @@ export const useRepairerProfileSave = () => {
     console.log('Existing profile check:', { existingProfile, fetchError });
 
     let result;
-    
+
     if (existingProfile) {
-      // Mettre à jour le profil existant
       console.log('Updating existing profile with ID:', existingProfile.id);
       result = await supabase
         .from('repairer_profiles')
@@ -66,7 +57,6 @@ export const useRepairerProfileSave = () => {
         .select()
         .single();
     } else {
-      // Créer un nouveau profil
       console.log('Creating new profile for repairer_id:', formData.repairer_id);
       result = await supabase
         .from('repairer_profiles')
@@ -79,10 +69,14 @@ export const useRepairerProfileSave = () => {
 
     if (result.error) {
       console.error('Supabase save error:', result.error);
+      // Ajoute le message d'erreur technique pour le remonter côté composant
+      // Précision explicite sur la contrainte de clé étrangère
+      if (String(result.error.message).includes('violates foreign key constraint')) {
+        throw new Error("Impossible d'enregistrer le profil : le réparateur sélectionné n'a pas encore de compte utilisateur créé dans Supabase.");
+      }
       throw result.error;
     }
 
-    // Mapper la réponse vers notre interface
     const savedProfile: RepairerProfile = {
       id: result.data.id,
       repairer_id: result.data.user_id,
@@ -112,3 +106,4 @@ export const useRepairerProfileSave = () => {
 
   return { saveProfile };
 };
+
