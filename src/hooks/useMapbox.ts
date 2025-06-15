@@ -42,6 +42,8 @@ export const useMapbox = (mapboxToken: string, repairers: RepairerDB[]) => {
   const createMarkerElement = (repairer: RepairerDB) => {
     const markerElement = document.createElement('div');
     markerElement.className = 'custom-marker';
+    
+    // Styles de base pour éviter tout déplacement
     markerElement.style.cssText = `
       width: 32px;
       height: 32px;
@@ -56,23 +58,21 @@ export const useMapbox = (mapboxToken: string, repairers: RepairerDB[]) => {
       font-size: 14px;
       font-weight: bold;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      transition: all 0.2s ease;
-      transform-origin: center center;
+      position: relative;
+      z-index: 1;
     `;
     markerElement.innerHTML = '📱';
     
-    // Effet hover amélioré qui ne déplace pas le marqueur
-    markerElement.addEventListener('mouseenter', () => {
-      markerElement.style.transform = 'scale(1.1)';
-      markerElement.style.zIndex = '1000';
-      markerElement.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
-    });
-    
-    markerElement.addEventListener('mouseleave', () => {
-      markerElement.style.transform = 'scale(1)';
-      markerElement.style.zIndex = '1';
-      markerElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-    });
+    // Utiliser des pseudo-éléments CSS pour l'effet hover sans affecter la position
+    const style = document.createElement('style');
+    style.textContent = `
+      .custom-marker:hover {
+        background-color: #2563EB !important;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+        z-index: 1000 !important;
+      }
+    `;
+    document.head.appendChild(style);
     
     return markerElement;
   };
