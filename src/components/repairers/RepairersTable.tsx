@@ -35,6 +35,14 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   // Ref for the "select-all" checkbox to set indeterminate prop
   const selectAllRef = useRef<HTMLInputElement>(null);
+  const selectAllInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (selectAllInputRef.current) {
+      selectAllInputRef.current.indeterminate =
+        selectedIds.length > 0 && selectedIds.length < repairers.length;
+    }
+  }, [selectedIds, repairers.length]);
 
   useEffect(() => {
     if (selectAllRef.current) {
@@ -176,12 +184,22 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
             <TableHeader>
               <TableRow>
                 <TableHead>
-                  {/* FIX: Only pass ref to Checkbox, not to TableHead! */}
                   <Checkbox
-                    ref={selectAllRef}
                     checked={allChecked}
-                    onCheckedChange={(checked) => handleCheckAll(Boolean(checked))}
+                    onCheckedChange={(checked) =>
+                      handleCheckAll(Boolean(checked))
+                    }
                     aria-label="Tout sélectionner"
+                    ref={(el) => {
+                      // el is the outer button; find the input inside and set the ref
+                      if (el) {
+                        const input =
+                          el.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
+                        selectAllInputRef.current = input;
+                      } else {
+                        selectAllInputRef.current = null;
+                      }
+                    }}
                   />
                 </TableHead>
                 <TableHead>Nom</TableHead>
