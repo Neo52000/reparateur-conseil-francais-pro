@@ -18,6 +18,7 @@ import ClientDashboardPage from "./pages/ClientDashboardPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import QuotesAndAppointments from "./pages/QuotesAndAppointments";
+import RepairerPlans from "./pages/RepairerPlans";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/client-auth" element={<ClientAuth />} />
           <Route path="/repairer/auth" element={<RepairerAuth />} />
+          <Route path="/repairer/plans" element={<RepairerPlans />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/admin/features" element={<AdminFeaturesPage />} />
           <Route path="/admin/repairers" element={<RepairersManagementPage />} />
