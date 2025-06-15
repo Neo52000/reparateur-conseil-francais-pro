@@ -5,7 +5,7 @@ import AdminAuthForm from '@/components/AdminAuthForm';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Settings, Brain } from 'lucide-react';
+import { Settings, Brain, Users } from 'lucide-react';
 
 // Import experimental comps
 import ReferralInvite from '@/components/ReferralInvite';
@@ -48,6 +48,14 @@ const AdminPage = () => {
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Fonctionnalités
+              </Button>
+              <Button 
+                onClick={() => navigate('/admin/repairers')} 
+                variant="secondary"
+                size="sm"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Réparateurs
               </Button>
               <Button 
                 onClick={() => navigate('/admin/scraping-ai')} 
