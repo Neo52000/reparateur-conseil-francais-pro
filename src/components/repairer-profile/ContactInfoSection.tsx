@@ -35,20 +35,31 @@ const ContactInfoSection: React.FC<ContactInfoSectionProps> = ({ formData, setFo
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 md:col-span-2">
         <Label htmlFor="address">Adresse *</Label>
         <AddressAutocompleteInput
           value={formData.address}
           required
-          onChange={({ address, city, postal_code }) => {
+          onChange={({ address, city, postal_code, lat, lng, department_code }) => {
+            console.log('Updating form data with address info:', {
+              address, city, postal_code, lat, lng, department_code
+            });
+            
             setFormData(prev => ({
               ...prev,
               address: address,
               city: city || prev.city,
-              postal_code: postal_code || prev.postal_code
+              postal_code: postal_code || prev.postal_code,
+              // Stocker les coordonnées pour la géolocalisation
+              ...(lat && lng && { 
+                geo_lat: lat, 
+                geo_lng: lng 
+              }),
+              // Calculer le département à partir du code postal si disponible
+              ...(department_code && { department: department_code })
             }));
           }}
-          placeholder="ex : 10 rue de Paris, Lyon"
+          placeholder="ex : 10 rue de Paris, Lyon"
         />
       </div>
 

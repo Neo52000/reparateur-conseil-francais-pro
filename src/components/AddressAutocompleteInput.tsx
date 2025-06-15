@@ -5,7 +5,14 @@ import { useAddressAutocomplete } from "@/hooks/useAddressAutocomplete";
 
 interface Props {
   value: string;
-  onChange: (value: { address: string; city?: string; postal_code?: string }) => void;
+  onChange: (value: { 
+    address: string; 
+    city?: string; 
+    postal_code?: string;
+    lat?: number;
+    lng?: number;
+    department_code?: string;
+  }) => void;
   placeholder?: string;
   required?: boolean;
 }
@@ -24,10 +31,23 @@ const AddressAutocompleteInput: React.FC<Props> = ({
   const handleSelect = (sugg: any) => {
     setInput(sugg.label);
     setShow(false);
+    
+    console.log('Address selected:', {
+      address: sugg.label,
+      city: sugg.city,
+      postal_code: sugg.postal_code,
+      lat: sugg.lat,
+      lng: sugg.lng,
+      department_code: sugg.department_code
+    });
+    
     onChange({
       address: sugg.label,
       city: sugg.city,
-      postal_code: sugg.postal_code
+      postal_code: sugg.postal_code,
+      lat: sugg.lat,
+      lng: sugg.lng,
+      department_code: sugg.department_code
     });
   };
 
@@ -59,8 +79,11 @@ const AddressAutocompleteInput: React.FC<Props> = ({
                 handleSelect(sugg);
               }}
             >
-              {sugg.label}
-              <span className="block text-gray-400">{sugg.postal_code} {sugg.city}</span>
+              <div className="font-medium">{sugg.value}</div>
+              <div className="text-gray-500 text-xs">
+                {sugg.postal_code} {sugg.city}
+                {sugg.context && ` • ${sugg.context}`}
+              </div>
             </div>
           ))}
           {!loading && suggestions.length === 0 && (

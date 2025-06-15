@@ -45,7 +45,10 @@ const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
     specialties: [] as string[],
     price_range: 'medium' as 'low' | 'medium' | 'high',
     response_time: '24h',
-    is_verified: true
+    is_verified: true,
+    // Ajouter les coordonnées géographiques
+    geo_lat: null as number | null,
+    geo_lng: null as number | null
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,9 +77,9 @@ const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
           response_time: formData.response_time,
           is_verified: formData.is_verified,
           source: 'manual',
-          // Coordonnées par défaut (Paris) - en production, vous pourriez utiliser une API de géocodage
-          lat: 48.8566,
-          lng: 2.3522,
+          // Utiliser les vraies coordonnées géographiques si disponibles
+          lat: formData.geo_lat || 48.8566,
+          lng: formData.geo_lng || 2.3522,
           rating: 4.5,
           review_count: 0
         }])
@@ -111,7 +114,9 @@ const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
         specialties: [],
         price_range: 'medium',
         response_time: '24h',
-        is_verified: true
+        is_verified: true,
+        geo_lat: null,
+        geo_lng: null
       });
       
     } catch (error) {
@@ -190,18 +195,24 @@ const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <Label htmlFor="address">Adresse *</Label>
               <AddressAutocompleteInput
                 value={formData.address}
                 required
-                onChange={({ address, city, postal_code }) => {
+                onChange={({ address, city, postal_code, lat, lng, department_code }) => {
+                  console.log('Address autocomplete data:', {
+                    address, city, postal_code, lat, lng, department_code
+                  });
+                  
                   setFormData(prev => ({
                     ...prev,
                     address: address,
-                    // Si la ville/code postal sont aussi detectés, auto-rempli :
                     city: city || prev.city,
-                    postal_code: postal_code || prev.postal_code
+                    postal_code: postal_code || prev.postal_code,
+                    department: department_code || prev.department,
+                    geo_lat: lat || prev.geo_lat,
+                    geo_lng: lng || prev.geo_lng
                   }));
                 }}
                 placeholder="ex: 10 rue de Paris, Lyon"

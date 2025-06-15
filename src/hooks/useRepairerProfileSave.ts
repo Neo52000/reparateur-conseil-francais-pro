@@ -111,6 +111,34 @@ export const useRepairerProfileSave = () => {
         updated_at: new Date().toISOString()
       };
 
+      // Mettre à jour aussi la table repairers si on a des coordonnées géographiques
+      if (formData.geo_lat && formData.geo_lng) {
+        console.log('Updating repairer coordinates:', {
+          lat: formData.geo_lat,
+          lng: formData.geo_lng
+        });
+
+        // Chercher le réparateur correspondant dans la table repairers
+        const { data: existingRepairer } = await supabase
+          .from('repairers')
+          .select('id')
+          .eq('email', formData.email)
+          .maybeSingle();
+
+        if (existingRepairer) {
+          await supabase
+            .from('repairers')
+            .update({
+              lat: formData.geo_lat,
+              lng: formData.geo_lng,
+              address: formData.address,
+              city: formData.city,
+              postal_code: formData.postal_code
+            })
+            .eq('id', existingRepairer.id);
+        }
+      }
+
       // Utiliser upsert pour gérer les cas de création et mise à jour
       let result;
       if (existingProfile) {
