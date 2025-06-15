@@ -74,11 +74,11 @@ export const useRepairerProfileSave = () => {
       let userId = formData.repairer_id;
       console.log('🔍 Looking for existing profile with user_id:', userId);
 
-      // Vérifier si un profil existe déjà
+      // Vérifier si un profil existe déjà en cherchant par user_id ET par email
       const { data: existingProfile, error: searchError } = await supabase
         .from('repairer_profiles')
         .select('id, user_id')
-        .eq('user_id', userId)
+        .or(`user_id.eq.${userId},email.eq.${formData.email}`)
         .maybeSingle();
 
       if (searchError) {
@@ -131,7 +131,7 @@ export const useRepairerProfileSave = () => {
       // Sauvegarder ou mettre à jour le profil
       let result;
       if (existingProfile) {
-        console.log('🔄 Updating existing profile...');
+        console.log('🔄 Updating existing profile with ID:', existingProfile.id);
         result = await supabase
           .from('repairer_profiles')
           .update(profileData)
