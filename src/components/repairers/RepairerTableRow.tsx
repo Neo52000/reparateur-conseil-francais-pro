@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Star } from 'lucide-react';
 import SubscriptionTierBadge from './SubscriptionTierBadge';
 import RepairerTableActions from './RepairerTableActions';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface RepairerData {
   id: string;
@@ -25,6 +26,8 @@ interface RepairerTableRowProps {
   onViewProfile: (repairerId: string) => void;
   onToggleStatus: (repairerId: string, currentStatus: boolean) => void;
   onDelete: (repairerId: string) => void;
+  checked: boolean;
+  onCheck: (checked: boolean) => void;
 }
 
 const RepairerTableRow: React.FC<RepairerTableRowProps> = ({
@@ -32,10 +35,19 @@ const RepairerTableRow: React.FC<RepairerTableRowProps> = ({
   loading,
   onViewProfile,
   onToggleStatus,
-  onDelete
+  onDelete,
+  checked,
+  onCheck,
 }) => {
   return (
     <TableRow>
+      <TableCell>
+        <Checkbox
+          checked={checked}
+          onCheckedChange={value => onCheck(Boolean(value))}
+          aria-label="Sélectionner le réparateur"
+        />
+      </TableCell>
       <TableCell className="font-medium">{repairer.name}</TableCell>
       <TableCell>{repairer.email}</TableCell>
       <TableCell>{repairer.phone}</TableCell>

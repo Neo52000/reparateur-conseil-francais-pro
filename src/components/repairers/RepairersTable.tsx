@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AddRepairerModal from '@/components/AddRepairerModal';
@@ -31,19 +32,17 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const handleDeleteRepairer = async (repairerId: string) => {
     setLoading(repairerId);
     try {
-      // En réalité, on devrait supprimer de la vraie table des réparateurs
-      // Pour l'instant, on simule juste une suppression
+      // Simulation de suppression
       console.log('Suppression du réparateur:', repairerId);
-      
       toast({
         title: "Succès",
         description: "Réparateur supprimé avec succès"
       });
-      
       onRefresh();
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
@@ -60,14 +59,12 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
   const handleToggleStatus = async (repairerId: string, currentStatus: boolean) => {
     setLoading(repairerId);
     try {
-      // Simulation du changement de statut
+      // Simuler changement de statut
       console.log('Changement de statut pour:', repairerId, 'vers:', !currentStatus);
-      
       toast({
         title: "Succès",
         description: `Statut ${!currentStatus ? 'activé' : 'désactivé'} avec succès`
       });
-      
       onRefresh();
     } catch (error) {
       console.error('Erreur lors du changement de statut:', error);
@@ -85,6 +82,19 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
     onRefresh();
   };
 
+  const allChecked = repairers.length > 0 && selectedIds.length === repairers.length;
+  const isIndeterminate = selectedIds.length > 0 && selectedIds.length < repairers.length;
+
+  const handleCheckAll = (checked: boolean) => {
+    setSelectedIds(checked ? repairers.map(r => r.id) : []);
+  };
+
+  const handleCheckOne = (repairerId: string, checked: boolean) => {
+    setSelectedIds((ids) =>
+      checked ? [...ids, repairerId] : ids.filter((id) => id !== repairerId)
+    );
+  };
+
   return (
     <>
       <Card>
@@ -99,6 +109,13 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>
+                  <Checkbox
+                    checked={allChecked}
+                    indeterminate={isIndeterminate}
+                    onCheckedChange={(checked) => handleCheckAll(Boolean(checked))}
+                  />
+                </TableHead>
                 <TableHead>Nom</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Téléphone</TableHead>
@@ -119,6 +136,8 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
                   onViewProfile={onViewProfile}
                   onToggleStatus={handleToggleStatus}
                   onDelete={handleDeleteRepairer}
+                  checked={selectedIds.includes(repairer.id)}
+                  onCheck={(checked) => handleCheckOne(repairer.id, checked)}
                 />
               ))}
             </TableBody>
