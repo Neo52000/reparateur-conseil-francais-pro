@@ -176,6 +176,7 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
             <TableHeader>
               <TableRow>
                 <TableHead>
+                  {/* FIX: Only pass ref to Checkbox, not to TableHead! */}
                   <Checkbox
                     ref={selectAllRef}
                     checked={allChecked}
