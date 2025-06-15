@@ -2,10 +2,34 @@
 import { supabase } from '@/integrations/supabase/client';
 import { RepairerProfile } from '@/types/repairerProfile';
 
+const createUserIfNotExists = async (
+  email: string,
+  first_name?: string,
+  last_name?: string,
+  phone?: string
+): Promise<string | null> => {
+  // Appelle la fonction edge Supabase pour créer/utiliser l’utilisateur
+  const res = await fetch(
+    "https://nbugpbakfkyvvjzgfjmw.functions.supabase.co/create-repairer-user",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, first_name, last_name, phone }),
+    }
+  );
+  const data = await res.json();
+  if (!res.ok || data?.error) {
+    const msg = data?.error || "Erreur lors de la création du compte réparateur";
+    throw new Error(msg);
+  }
+  return data.user_id as string;
+};
+
 export const useRepairerProfileSave = () => {
   const saveProfile = async (formData: RepairerProfile, originalProfile: RepairerProfile): Promise<RepairerProfile> => {
     console.log('Attempting to save profile:', formData);
 
+    // Si c’est un profil mock (existant)
     const isMockProfile = originalProfile.id.startsWith('mock-');
     if (isMockProfile) {
       console.log('Simulating save for mock profile:', formData);
@@ -16,8 +40,30 @@ export const useRepairerProfileSave = () => {
       };
     }
 
+    // Recherche si un profil existe déjà sur ce repairer_id
+    let userId = formData.repairer_id;
+
+    const { data: existingProfile } = await supabase
+      .from('repairer_profiles')
+      .select('id, user_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    // Si profil non trouvé, s’assurer que l’utilisateur existe sinon le créer
+    if (!existingProfile) {
+      // Cherche par email dans auth.users via edge function (plus sûr)
+      userId = await createUserIfNotExists(
+        formData.email,
+        // Optionnellement on peut améliorer : enregistrer nom/phone depuis nouveaux champs pro
+        formData?.business_name ?? "",
+        undefined,
+        formData?.phone ?? ""
+      );
+    }
+
+    // Structure des données à enregistrer dans Supabase
     const supabaseData = {
-      user_id: formData.repairer_id,
+      user_id: userId,
       business_name: formData.business_name,
       siret_number: formData.siret_number || null,
       description: formData.description || null,
@@ -36,18 +82,8 @@ export const useRepairerProfileSave = () => {
       updated_at: new Date().toISOString()
     };
 
-    console.log('Supabase data to save:', supabaseData);
-
-    const { data: existingProfile, error: fetchError } = await supabase
-      .from('repairer_profiles')
-      .select('id')
-      .eq('user_id', formData.repairer_id)
-      .maybeSingle();
-
-    console.log('Existing profile check:', { existingProfile, fetchError });
-
+    // Vérifie si le repairer_profiles existe déjà : update sinon insert
     let result;
-
     if (existingProfile) {
       console.log('Updating existing profile with ID:', existingProfile.id);
       result = await supabase
@@ -57,7 +93,7 @@ export const useRepairerProfileSave = () => {
         .select()
         .single();
     } else {
-      console.log('Creating new profile for repairer_id:', formData.repairer_id);
+      console.log('Creating new profile for repairer_id/user_id:', userId);
       result = await supabase
         .from('repairer_profiles')
         .insert(supabaseData)
@@ -65,14 +101,10 @@ export const useRepairerProfileSave = () => {
         .single();
     }
 
-    console.log('Save result:', result);
-
     if (result.error) {
       console.error('Supabase save error:', result.error);
-      // Ajoute le message d'erreur technique pour le remonter côté composant
-      // Précision explicite sur la contrainte de clé étrangère
       if (String(result.error.message).includes('violates foreign key constraint')) {
-        throw new Error("Impossible d'enregistrer le profil : le réparateur sélectionné n'a pas encore de compte utilisateur créé dans Supabase.");
+        throw new Error("Impossible d'enregistrer le profil : le compte utilisateur n’a pas pu être créé ou une erreur s’est produite.");
       }
       throw result.error;
     }
@@ -106,4 +138,3 @@ export const useRepairerProfileSave = () => {
 
   return { saveProfile };
 };
-
