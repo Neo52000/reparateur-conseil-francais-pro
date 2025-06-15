@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { RefreshCw, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import SubscriptionPlans from '@/components/SubscriptionPlans';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
 import RepairersStats from '@/components/repairers/RepairersStats';
 import RepairersTable from '@/components/repairers/RepairersTable';
@@ -227,10 +225,9 @@ const RepairersManagementPage = () => {
         <RepairersStats stats={stats} />
 
         <Tabs defaultValue="repairers" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
             <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
-            <TabsTrigger value="plans">Plans d'abonnement</TabsTrigger>
           </TabsList>
 
           <TabsContent value="repairers">
@@ -239,14 +236,6 @@ const RepairersManagementPage = () => {
 
           <TabsContent value="subscriptions">
             <SubscriptionsTable subscriptions={subscriptions} />
-          </TabsContent>
-
-          <TabsContent value="plans">
-            <Card>
-              <CardContent>
-                <SubscriptionPlans />
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </main>
