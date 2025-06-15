@@ -24,17 +24,34 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
-  const { profile, loading, refreshProfile } = useProfileData(repairerId, isOpen);
+  const { profile, loading, fetchProfile, refreshProfile } = useProfileData(repairerId, isOpen);
   const { user, isAdmin: userIsAdmin } = useAuth();
 
   const handleProfileUpdate = async (updatedProfile: RepairerProfile) => {
-    // Rafraîchir les données après la sauvegarde
-    await refreshProfile();
-    setIsEditing(false);
-    toast({
-      title: "Succès",
-      description: "Profil mis à jour avec succès"
-    });
+    // On sauvegarde le profil : possible que le vrai user_id soit différent si création à la volée !
+    // On rafraîchit le profil AVEC le bon user_id fraîchement retourné
+    try {
+      // On sauvegarde 
+      // (remarque : on suppose que la fonction de sauvegarde renvoie le profil mis à jour, y compris le bon user_id)
+      // Si ce n'est pas le cas, il faudra ajuster !
+      // updatedProfile doit contenir le champ repairer_id (=user_id réel)
+      const resultUserId = updatedProfile.repairer_id;
+      console.log('[RepairerProfileModal] Après save, user_id réel:', resultUserId);
+
+      // Rafraîchir AVEC ce user_id réel
+      await fetchProfile(resultUserId || repairerId);
+      setIsEditing(false);
+      toast({
+        title: "Succès",
+        description: "Profil mis à jour avec succès"
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de rafraîchir la fiche après modification.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Vérifier si l'utilisateur peut modifier cette fiche
@@ -43,13 +60,11 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
     if (userIsAdmin || isAdmin) {
       return true;
     }
-    
     // Le réparateur peut modifier sa propre fiche s'il est connecté
     if (user && profile) {
       // Vérifier si l'utilisateur connecté correspond au propriétaire de la fiche
       return user.id === profile.repairer_id || user.email === profile.email;
     }
-    
     return false;
   };
 

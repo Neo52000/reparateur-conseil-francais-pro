@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -12,7 +11,7 @@ interface UseProfileDataResult {
   refreshProfile: () => Promise<void>;
 }
 
-export const useProfileData = (repairerId: string, isOpen: boolean): UseProfileDataResult => {
+export const useProfileData = (repairerId: string, isOpen: boolean): UseProfileDataResult & { fetchProfile: (targetId?: string) => Promise<void> } => {
   const [profile, setProfile] = useState<RepairerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -86,15 +85,16 @@ export const useProfileData = (repairerId: string, isOpen: boolean): UseProfileD
     }
   };
 
-  const fetchProfile = async () => {
+  // fetchProfile prend maintenant optionnellement un nouvel id à requêter
+  const fetchProfile = async (targetId?: string) => {
     setLoading(true);
     try {
-      console.log('Fetching profile for repairer ID:', repairerId);
-      
+      const queryId = targetId || repairerId;
+      console.log('Fetching profile for repairer ID:', queryId);
       const { data, error } = await supabase
         .from('repairer_profiles')
         .select('*')
-        .eq('user_id', repairerId)
+        .eq('user_id', queryId)
         .maybeSingle();
 
       if (error && !error.message.includes('invalid input syntax for type uuid')) {
@@ -102,32 +102,23 @@ export const useProfileData = (repairerId: string, isOpen: boolean): UseProfileD
       }
 
       if (data) {
-        console.log('Profile found in Supabase:', data);
         const mappedProfile = mapDatabaseProfileToInterface(data);
         setProfile(mappedProfile);
       } else {
-        console.log('No profile in Supabase, trying to create from repairer data...');
-        
-        const profileFromRepairer = await createMockProfileFromRepairer(repairerId);
-        
+        const profileFromRepairer = await createMockProfileFromRepairer(queryId);
         if (profileFromRepairer) {
-          console.log('Created profile from repairer data:', profileFromRepairer);
           setProfile(profileFromRepairer);
         } else {
-          const mockProfile = getMockProfile(repairerId);
+          const mockProfile = getMockProfile(queryId);
           if (mockProfile) {
-            console.log('Using existing mock profile:', mockProfile);
             setProfile(mockProfile);
           } else {
-            console.log('No profile data available for repairer:', repairerId);
             setProfile(null);
           }
         }
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
-      
-      const fallbackProfile = await createMockProfileFromRepairer(repairerId);
+      const fallbackProfile = await createMockProfileFromRepairer(targetId || repairerId);
       if (fallbackProfile) {
         setProfile(fallbackProfile);
       } else {
