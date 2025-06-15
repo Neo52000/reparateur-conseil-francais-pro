@@ -1,36 +1,16 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface SubscriptionData {
-  id: string;
-  repairer_id: string;
-  email: string;
-  subscription_tier: string;
-  billing_cycle: string;
-  subscribed: boolean;
-  subscription_end: string | null;
-  created_at: string;
-  first_name: string | null;
-  last_name: string | null;
-  plan_name: string | null;
-  price_monthly: number | null;
-  price_yearly: number | null;
-}
-
-interface RepairerData {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  city: string;
-  subscription_tier: string;
-  subscribed: boolean;
-  total_repairs: number;
-  rating: number;
-  created_at: string;
-}
+import { 
+  fetchSubscriptions, 
+  calculateSubscriptionStats, 
+  SubscriptionData 
+} from '@/services/subscriptionDataService';
+import { 
+  fetchRepairersData, 
+  getMockRepairersData, 
+  RepairerData 
+} from '@/services/repairersDataService';
 
 interface Stats {
   totalSubscriptions: number;
@@ -55,106 +35,21 @@ export const useRepairersData = () => {
   });
   const { toast } = useToast();
 
-  const fetchSubscriptions = async () => {
+  const loadSubscriptions = async () => {
     try {
-      const { data, error } = await supabase
-        .from('admin_subscription_overview')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setSubscriptions(data || []);
+      const data = await fetchSubscriptions();
+      setSubscriptions(data);
       
-      // Calculate subscription stats
-      const total = data?.length || 0;
-      const active = data?.filter(sub => sub.subscribed).length || 0;
-      const monthlyRev = data?.reduce((sum, sub) => {
-        if (sub.subscribed && sub.billing_cycle === 'monthly') {
-          return sum + (sub.price_monthly || 0);
-        }
-        return sum;
-      }, 0) || 0;
-      const yearlyRev = data?.reduce((sum, sub) => {
-        if (sub.subscribed && sub.billing_cycle === 'yearly') {
-          return sum + (sub.price_yearly || 0);
-        }
-        return sum;
-      }, 0) || 0;
-
-      setStats(prev => ({
-        ...prev,
-        totalSubscriptions: total,
-        activeSubscriptions: active,
-        monthlyRevenue: monthlyRev,
-        yearlyRevenue: yearlyRev
-      }));
-
+      const subscriptionStats = calculateSubscriptionStats(data);
+      setStats(prev => ({ ...prev, ...subscriptionStats }));
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
     }
   };
 
-  const fetchRepairers = async () => {
+  const loadRepairers = async () => {
     try {
-      // Récupérer les réparateurs depuis la base de données
-      const { data: repairersData, error: repairersError } = await supabase
-        .from('repairers')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (repairersError) throw repairersError;
-
-      // Récupérer les abonnements existants pour faire la liaison
-      const { data: subscriptionsData, error: subscriptionsError } = await supabase
-        .from('repairer_subscriptions')
-        .select('*');
-
-      if (subscriptionsError) {
-        console.error('Error fetching subscriptions for repairers:', subscriptionsError);
-      }
-
-      // Convertir les données pour correspondre à l'interface RepairerData
-      const processedRepairers: RepairerData[] = (repairersData || []).map((repairer) => {
-        // Chercher un abonnement correspondant basé sur l'email
-        const subscription = subscriptionsData?.find(sub => sub.email === repairer.email);
-        
-        return {
-          id: repairer.id,
-          name: repairer.name,
-          email: repairer.email || 'Non renseigné',
-          phone: repairer.phone || 'Non renseigné',
-          city: repairer.city,
-          subscription_tier: subscription?.subscription_tier || 'free',
-          subscribed: subscription?.subscribed || false,
-          total_repairs: Math.floor(Math.random() * 200), // Données simulées pour l'instant
-          rating: repairer.rating || 4.5,
-          created_at: repairer.created_at
-        };
-      });
-
-      // Créer automatiquement des abonnements gratuits pour les réparateurs sans abonnement
-      for (const repairer of repairersData || []) {
-        if (repairer.email && !subscriptionsData?.find(sub => sub.email === repairer.email)) {
-          console.log('Creating free subscription for repairer:', repairer.email);
-          
-          // Créer un abonnement gratuit pour ce réparateur
-          const { error: insertError } = await supabase
-            .from('repairer_subscriptions')
-            .insert({
-              email: repairer.email,
-              repairer_id: repairer.id,
-              subscription_tier: 'free',
-              subscribed: true,
-              billing_cycle: 'monthly'
-            });
-
-          if (insertError) {
-            console.error('Error creating free subscription:', insertError);
-          }
-        }
-      }
-
+      const processedRepairers = await fetchRepairersData();
       setRepairers(processedRepairers);
       
       const totalRepairers = processedRepairers.length;
@@ -165,50 +60,11 @@ export const useRepairersData = () => {
         totalRepairers,
         activeRepairers
       }));
-
     } catch (error) {
       console.error('Error fetching repairers:', error);
       
       // En cas d'erreur, utiliser des données mockées de fallback
-      const mockRepairers: RepairerData[] = [
-        {
-          id: 'test-repairer-001',
-          name: 'TechRepair Pro',
-          email: 'tech@repair.fr',
-          phone: '+33 1 23 45 67 89',
-          city: 'Paris',
-          subscription_tier: 'premium',
-          subscribed: true,
-          total_repairs: 156,
-          rating: 4.9,
-          created_at: '2023-01-15T10:00:00Z'
-        },
-        {
-          id: 'test-repairer-002',
-          name: 'Mobile Fix Express',
-          email: 'contact@mobilefix.fr',
-          phone: '+33 1 98 76 54 32',
-          city: 'Lyon',
-          subscription_tier: 'basic',
-          subscribed: true,
-          total_repairs: 89,
-          rating: 4.5,
-          created_at: '2023-02-20T14:30:00Z'
-        },
-        {
-          id: 'test-repairer-003',
-          name: 'Smartphone Clinic',
-          email: 'info@smartphoneclinic.fr',
-          phone: '+33 1 11 22 33 44',
-          city: 'Marseille',
-          subscription_tier: 'free',
-          subscribed: false,
-          total_repairs: 23,
-          rating: 4.2,
-          created_at: '2023-03-10T09:15:00Z'
-        }
-      ];
-
+      const mockRepairers = getMockRepairersData();
       setRepairers(mockRepairers);
       
       const totalRepairers = mockRepairers.length;
@@ -225,7 +81,7 @@ export const useRepairersData = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      await Promise.all([fetchSubscriptions(), fetchRepairers()]);
+      await Promise.all([loadSubscriptions(), loadRepairers()]);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
