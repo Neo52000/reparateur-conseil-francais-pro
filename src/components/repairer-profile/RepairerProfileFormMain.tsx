@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { RepairerProfile, RepairerProfileFormProps } from '@/types/repairerProfile';
 import { useRepairerProfileSave } from '@/hooks/useRepairerProfileSave';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BasicInfoSection from './BasicInfoSection';
 import ContactInfoSection from './ContactInfoSection';
 import SocialMediaSection from './SocialMediaSection';
 import RepairServicesSection from './RepairServicesSection';
+import BusinessInfoSection from './BusinessInfoSection';
 
 const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
   profile,
@@ -60,14 +62,39 @@ const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <BasicInfoSection formData={formData} setFormData={setFormData} />
-      <ContactInfoSection formData={formData} setFormData={setFormData} />
-      <SocialMediaSection formData={formData} setFormData={setFormData} />
-      <RepairServicesSection 
-        formData={formData} 
-        setFormData={setFormData}
-        onRepairTypeChange={handleRepairTypeChange}
-      />
+      <Tabs defaultValue="basic" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="basic">Général</TabsTrigger>
+          <TabsTrigger value="contact">Contact</TabsTrigger>
+          <TabsTrigger value="services">Services</TabsTrigger>
+          <TabsTrigger value="business">Entreprise</TabsTrigger>
+          <TabsTrigger value="social">Réseaux</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="basic" className="space-y-4">
+          <BasicInfoSection formData={formData} setFormData={setFormData} />
+        </TabsContent>
+
+        <TabsContent value="contact" className="space-y-4">
+          <ContactInfoSection formData={formData} setFormData={setFormData} />
+        </TabsContent>
+
+        <TabsContent value="services" className="space-y-4">
+          <RepairServicesSection 
+            formData={formData} 
+            setFormData={setFormData}
+            onRepairTypeChange={handleRepairTypeChange}
+          />
+        </TabsContent>
+
+        <TabsContent value="business" className="space-y-4">
+          <BusinessInfoSection formData={formData} setFormData={setFormData} />
+        </TabsContent>
+
+        <TabsContent value="social" className="space-y-4">
+          <SocialMediaSection formData={formData} setFormData={setFormData} />
+        </TabsContent>
+      </Tabs>
 
       <div className="flex justify-end space-x-2 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
