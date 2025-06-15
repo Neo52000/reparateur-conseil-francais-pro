@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
 
 export interface SearchFilters {
   services?: string[];
@@ -15,32 +16,12 @@ export interface SearchFilters {
   postalCode?: string;
 }
 
-export interface RepairerDB {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  postal_code: string;
-  department: string;
-  region: string;
-  phone?: string;
-  website?: string;
-  email?: string;
-  lat: number;
-  lng: number;
-  rating?: number;
-  review_count?: number;
-  services: string[];
-  specialties: string[];
+// Utiliser le type généré par Supabase
+type SupabaseRepairer = Database['public']['Tables']['repairers']['Row'];
+
+// Interface pour l'affichage avec les types appropriés
+export interface RepairerDB extends Omit<SupabaseRepairer, 'price_range'> {
   price_range: 'low' | 'medium' | 'high';
-  response_time?: string;
-  opening_hours?: Record<string, string>;
-  is_verified: boolean;
-  is_open?: boolean;
-  source: 'pages_jaunes' | 'google_places' | 'manual';
-  scraped_at: string;
-  updated_at: string;
-  created_at: string;
 }
 
 export const useRepairers = (filters?: SearchFilters, userLocation?: [number, number]) => {
@@ -106,21 +87,29 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
           });
         });
 
+        // Convertir les données Supabase vers notre format avec validation du price_range
+        const processedData: RepairerDB[] = data.map(repairer => ({
+          ...repairer,
+          price_range: (repairer.price_range === 'low' || repairer.price_range === 'medium' || repairer.price_range === 'high') 
+            ? repairer.price_range 
+            : 'medium' // valeur par défaut si invalide
+        }));
+
         // Calculer la distance si la position utilisateur est disponible
-        let processedData = data;
+        let filteredData = processedData;
         if (userLocation && filters?.distance) {
-          processedData = data.filter(repairer => {
+          filteredData = processedData.filter(repairer => {
             if (!repairer.lat || !repairer.lng) return false;
             const distance = calculateDistance(
               userLocation[1], userLocation[0],
-              repairer.lat, repairer.lng
+              Number(repairer.lat), Number(repairer.lng)
             );
             return distance <= (filters.distance || 50);
           });
         }
 
-        console.log('useRepairers - Setting real repairers from Supabase:', processedData);
-        setRepairers(processedData);
+        console.log('useRepairers - Setting real repairers from Supabase:', filteredData);
+        setRepairers(filteredData);
       } else {
         console.log('useRepairers - No data found in Supabase');
         setRepairers([]);
