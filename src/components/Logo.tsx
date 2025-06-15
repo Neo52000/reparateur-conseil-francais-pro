@@ -33,9 +33,9 @@ const Logo: React.FC<LogoProps> = ({ className = '', variant = 'full', size = 'm
           <circle cx="40" cy="40" r="35" fill="url(#modernGradient)" />
           
           {/* Mobile phone */}
-          <rect x="30" y="20" width="20" height="35" rx="4" fill="white" />
+          <rect x="30" y="20" width="20" height="35" rx="4" fill="white" stroke="#E5E7EB" strokeWidth="1" />
           <rect x="32" y="24" width="16" height="24" rx="1" fill="#1E40AF" />
-          <circle cx="40" cy="52" r="2" fill="white" />
+          <circle cx="40" cy="52" r="2" fill="#6B7280" />
           
           {/* Animated signal waves */}
           <g className="animate-pulse">
@@ -73,24 +73,30 @@ const Logo: React.FC<LogoProps> = ({ className = '', variant = 'full', size = 'm
           xmlns="http://www.w3.org/2000/svg"
           className="transition-transform duration-300 hover:scale-110 drop-shadow-lg"
         >
-          {/* Background circle with gradient */}
+          {/* Background circle with gradient - no white fill */}
           <circle cx="40" cy="40" r="35" fill="url(#logoGradient)" />
           
-          {/* Mobile phone */}
-          <rect x="30" y="20" width="20" height="35" rx="4" fill="white" />
+          {/* Mobile phone avec contour visible */}
+          <rect x="30" y="20" width="20" height="35" rx="4" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="1" />
           <rect x="32" y="24" width="16" height="24" rx="1" fill="#1E40AF" />
-          <circle cx="40" cy="52" r="2" fill="white" />
+          <circle cx="40" cy="52" r="2" fill="#64748B" />
+          
+          {/* Écran avec reflet */}
+          <rect x="33" y="25" width="14" height="22" rx="1" fill="#3B82F6" />
+          <rect x="34" y="26" width="6" height="2" rx="1" fill="#60A5FA" opacity="0.7" />
           
           {/* Animated signal waves */}
           <g className="animate-pulse">
-            <path d="M55 30C58 33 58 47 55 50" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" fill="none" />
+            <path d="M55 30C58 33 58 47 55 50" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" fill="none" />
             <path d="M58 35C60 37 60 43 58 45" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" fill="none" />
+            <path d="M61 38C62 39 62 41 61 42" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" fill="none" />
           </g>
           
-          {/* Repair tools animation */}
+          {/* Repair tools animation - clé et tournevis */}
           <g className="animate-bounce" style={{ animationDelay: '0.5s', animationDuration: '2s' }}>
-            <path d="M20 25L23 22L20 19" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" />
+            <path d="M20 25L23 22L20 19" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" />
             <path d="M25 30L28 27L25 24" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="18" cy="28" r="1.5" fill="#F59E0B" />
           </g>
           
           <defs>
@@ -105,20 +111,20 @@ const Logo: React.FC<LogoProps> = ({ className = '', variant = 'full', size = 'm
 
       {/* Text part */}
       {variant === 'full' ? (
-        <div className="flex items-baseline">
+        <div className="flex items-baseline space-x-1">
           <span className={`${textSize} font-bold leading-tight`}>
             <span className="text-blue-600">Top</span>
             <span className="text-orange-600">Réparateurs</span>
           </span>
-          <span className="text-sm text-gray-600 ml-1">.fr</span>
+          <span className="text-sm text-gray-600">.fr</span>
         </div>
       ) : (
-        <div className="flex items-baseline">
+        <div className="flex items-baseline space-x-1">
           <span className={`${textSize} font-bold`}>
             <span className="text-blue-600">Top</span>
             <span className="text-orange-600">Réparateurs</span>
           </span>
-          <span className="text-sm text-gray-600 ml-1">.fr</span>
+          <span className="text-sm text-gray-600">.fr</span>
         </div>
       )}
     </div>
