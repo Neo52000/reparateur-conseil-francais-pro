@@ -45,7 +45,7 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
     // Le réparateur peut modifier sa propre fiche s'il est connecté
     if (user && profile) {
       // Vérifier si l'utilisateur connecté correspond au propriétaire de la fiche
-      return user.id === profile.repairer_id || user.email === profile.email;
+      return user.id === profile.user_id || user.email === profile.email;
     }
     
     return false;

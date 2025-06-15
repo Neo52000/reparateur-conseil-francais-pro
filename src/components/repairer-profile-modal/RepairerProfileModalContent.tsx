@@ -1,13 +1,14 @@
 
 import React from 'react';
 import { DialogContent, DialogHeader } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import RepairerProfileForm from '@/components/RepairerProfileForm';
 import RepairerProfileHeader from '@/components/profile/RepairerProfileHeader';
-import GeneralInfoTab from '@/components/profile/GeneralInfoTab';
-import ContactSocialTab from '@/components/profile/ContactSocialTab';
-import ServicesTab from '@/components/profile/ServicesTab';
+import ClientRepairerProfileHeader from '@/components/profile/ClientRepairerProfileHeader';
+import ClientAboutSection from '@/components/profile/ClientAboutSection';
+import ClientServicesSection from '@/components/profile/ClientServicesSection';
+import ClientContactSection from '@/components/profile/ClientContactSection';
+import ClientTestimonialsSection from '@/components/profile/ClientTestimonialsSection';
 import { RepairerProfile } from '@/types/repairerProfile';
 
 interface RepairerProfileModalContentProps {
@@ -31,6 +32,20 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
   onCancel,
   onClose
 }) => {
+  const handleRequestQuote = () => {
+    // In real app, this would open quote form or navigate to quote page
+    console.log('Request quote for:', profile.business_name);
+  };
+
+  const handleCallRepairer = () => {
+    window.location.href = `tel:${profile.phone}`;
+  };
+
+  const handleBookAppointment = () => {
+    // In real app, this would open booking modal or navigate to booking page
+    console.log('Book appointment with:', profile.business_name);
+  };
+
   if (isEditing) {
     return (
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -47,39 +62,81 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
     );
   }
 
+  // Show admin view for admins
+  if (isAdmin && canEdit) {
+    return (
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <RepairerProfileHeader
+            profile={profile}
+            onEdit={canEdit ? onEdit : undefined}
+          />
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Admin can see the old tabbed view for editing purposes */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-sm text-yellow-800">
+              <strong>Mode administrateur :</strong> Vous voyez la vue simplifiée. 
+              Les clients voient une version améliorée de cette fiche.
+            </p>
+          </div>
+          
+          <ClientAboutSection profile={profile} />
+          <ClientServicesSection profile={profile} />
+          <ClientContactSection profile={profile} />
+        </div>
+
+        <div className="flex justify-end pt-4">
+          <Button onClick={onClose} variant="outline">
+            Fermer
+          </Button>
+        </div>
+      </DialogContent>
+    );
+  }
+
+  // Client view - new beautiful design
   return (
-    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-      <DialogHeader>
-        <RepairerProfileHeader
+    <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto">
+      <div className="space-y-8 p-2">
+        {/* Client-focused header */}
+        <ClientRepairerProfileHeader
           profile={profile}
-          onEdit={canEdit ? onEdit : undefined}
+          onRequestQuote={handleRequestQuote}
+          onCallRepairer={handleCallRepairer}
+          onBookAppointment={handleBookAppointment}
         />
-      </DialogHeader>
 
-      <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="general">Informations générales</TabsTrigger>
-          <TabsTrigger value="contact">Contact & Réseaux</TabsTrigger>
-          <TabsTrigger value="services">Services</TabsTrigger>
-        </TabsList>
+        {/* Main content sections */}
+        <ClientAboutSection profile={profile} />
+        <ClientServicesSection profile={profile} />
+        <ClientTestimonialsSection businessName={profile.business_name} />
+        <ClientContactSection profile={profile} />
 
-        <TabsContent value="general">
-          <GeneralInfoTab profile={profile} />
-        </TabsContent>
+        {/* Sticky bottom actions for mobile */}
+        <div className="lg:hidden sticky bottom-0 bg-white border-t p-4 -mx-2 flex space-x-3">
+          <Button 
+            onClick={handleRequestQuote}
+            className="flex-1 bg-blue-600 hover:bg-blue-700"
+          >
+            Devis gratuit
+          </Button>
+          <Button 
+            onClick={handleCallRepairer}
+            variant="outline"
+            className="flex-1"
+          >
+            Appeler
+          </Button>
+        </div>
 
-        <TabsContent value="contact">
-          <ContactSocialTab profile={profile} />
-        </TabsContent>
-
-        <TabsContent value="services">
-          <ServicesTab profile={profile} />
-        </TabsContent>
-      </Tabs>
-
-      <div className="flex justify-end pt-4">
-        <Button onClick={onClose} variant="outline">
-          Fermer
-        </Button>
+        {/* Close button */}
+        <div className="flex justify-center pt-4">
+          <Button onClick={onClose} variant="ghost" className="text-gray-500">
+            Fermer
+          </Button>
+        </div>
       </div>
     </DialogContent>
   );
