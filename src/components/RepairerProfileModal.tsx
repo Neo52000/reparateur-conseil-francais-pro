@@ -24,11 +24,12 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
-  const { profile, loading } = useProfileData(repairerId, isOpen);
+  const { profile, loading, refreshProfile } = useProfileData(repairerId, isOpen);
   const { user, isAdmin: userIsAdmin } = useAuth();
 
-  const handleProfileUpdate = (updatedProfile: RepairerProfile) => {
+  const handleProfileUpdate = async (updatedProfile: RepairerProfile) => {
     setIsEditing(false);
+    await refreshProfile(); // Rafraîchir les données après la sauvegarde
     toast({
       title: "Succès",
       description: "Profil mis à jour avec succès"

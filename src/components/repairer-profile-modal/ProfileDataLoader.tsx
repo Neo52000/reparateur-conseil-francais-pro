@@ -9,6 +9,7 @@ interface UseProfileDataResult {
   profile: RepairerProfile | null;
   loading: boolean;
   fetchProfile: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 export const useProfileData = (repairerId: string, isOpen: boolean): UseProfileDataResult => {
@@ -141,11 +142,15 @@ export const useProfileData = (repairerId: string, isOpen: boolean): UseProfileD
     }
   };
 
+  const refreshProfile = async () => {
+    await fetchProfile();
+  };
+
   useEffect(() => {
     if (isOpen && repairerId) {
       fetchProfile();
     }
   }, [isOpen, repairerId]);
 
-  return { profile, loading, fetchProfile };
+  return { profile, loading, fetchProfile, refreshProfile };
 };
