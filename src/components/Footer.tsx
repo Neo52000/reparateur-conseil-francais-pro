@@ -67,7 +67,7 @@ const Footer = () => {
                   Rejoignez notre annuaire et développez votre activité avec RepairHub
                 </p>
               </div>
-              <Link to="/repairer/auth">
+              <Link to="/repairer/plans">
                 <Button className="bg-white text-blue-600 hover:bg-gray-100 font-semibold">
                   <UserPlus className="h-4 w-4 mr-2" />
                   Inscrivez-vous gratuitement
