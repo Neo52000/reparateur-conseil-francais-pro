@@ -28,8 +28,9 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
   const { user, isAdmin: userIsAdmin } = useAuth();
 
   const handleProfileUpdate = async (updatedProfile: RepairerProfile) => {
+    // Rafraîchir les données après la sauvegarde
+    await refreshProfile();
     setIsEditing(false);
-    await refreshProfile(); // Rafraîchir les données après la sauvegarde
     toast({
       title: "Succès",
       description: "Profil mis à jour avec succès"
