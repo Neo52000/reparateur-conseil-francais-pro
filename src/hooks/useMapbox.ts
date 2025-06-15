@@ -15,39 +15,118 @@ export const useMapbox = (mapboxToken: string, repairers: RepairerDB[]) => {
     const displayPrice = repairer.price_range === 'low' ? '€' : repairer.price_range === 'medium' ? '€€' : '€€€';
     
     return `
-      <div class="p-3">
-        <h3 class="font-semibold text-lg">${repairer.name}</h3>
-        <p class="text-sm text-gray-600 mb-2">${repairer.address}, ${repairer.city}</p>
-        <div class="flex items-center mb-2">
-          <span class="text-yellow-500">★</span>
-          <span class="ml-1 text-sm">${repairer.rating || 'N/A'} (${repairer.review_count || 0} avis)</span>
-        </div>
-        <div class="text-sm">
-          <p><strong>Services:</strong> ${repairer.services.join(', ')}</p>
+      <div class="p-4 min-w-[280px]">
+        <h3 class="font-semibold text-lg mb-2">${repairer.name}</h3>
+        <p class="text-sm text-gray-600 mb-3">${repairer.address}, ${repairer.city}</p>
+        ${repairer.rating ? `
+          <div class="flex items-center mb-3">
+            <span class="text-yellow-500 mr-1">★</span>
+            <span class="text-sm">${repairer.rating}/5 (${repairer.review_count || 0} avis)</span>
+          </div>
+        ` : ''}
+        <div class="text-sm space-y-1">
+          <p><strong>Services:</strong> ${repairer.services && repairer.services.length > 0 ? repairer.services.join(', ') : 'Réparation générale'}</p>
           <p><strong>Prix:</strong> ${displayPrice}</p>
-          <p><strong>Temps de réponse:</strong> ${repairer.response_time || 'N/A'}</p>
+          ${repairer.response_time ? `<p><strong>Temps de réponse:</strong> ${repairer.response_time}</p>` : ''}
+          ${repairer.phone ? `<p><strong>Téléphone:</strong> ${repairer.phone}</p>` : ''}
+        </div>
+        <div class="mt-3 pt-3 border-t">
+          <button class="w-full bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors" onclick="window.parent.postMessage({type: 'viewProfile', repairerId: '${repairer.id}'}, '*')">
+            Voir le profil
+          </button>
         </div>
       </div>
     `;
   };
 
-  const createMarkerElement = () => {
+  const createMarkerElement = (repairer: RepairerDB) => {
     const markerElement = document.createElement('div');
     markerElement.className = 'custom-marker';
-    markerElement.style.width = '30px';
-    markerElement.style.height = '30px';
-    markerElement.style.borderRadius = '50%';
-    markerElement.style.backgroundColor = '#3B82F6';
-    markerElement.style.border = '2px solid white';
-    markerElement.style.cursor = 'pointer';
-    markerElement.style.display = 'flex';
-    markerElement.style.alignItems = 'center';
-    markerElement.style.justifyContent = 'center';
-    markerElement.style.color = 'white';
-    markerElement.style.fontSize = '12px';
-    markerElement.style.fontWeight = 'bold';
+    markerElement.style.cssText = `
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #3B82F6;
+      border: 3px solid white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      transition: transform 0.2s ease;
+    `;
     markerElement.innerHTML = '📱';
+    
+    // Effet hover
+    markerElement.addEventListener('mouseenter', () => {
+      markerElement.style.transform = 'scale(1.1)';
+    });
+    
+    markerElement.addEventListener('mouseleave', () => {
+      markerElement.style.transform = 'scale(1)';
+    });
+    
     return markerElement;
+  };
+
+  const clearMap = () => {
+    if (map.current) {
+      // Supprimer tous les markers et popups existants
+      const markers = document.querySelectorAll('.custom-marker');
+      markers.forEach(marker => marker.remove());
+      
+      // Fermer tous les popups ouverts
+      const popups = document.querySelectorAll('.mapboxgl-popup');
+      popups.forEach(popup => popup.remove());
+    }
+  };
+
+  const addMarkersToMap = () => {
+    if (!map.current || !repairers.length) return;
+
+    console.log('Adding markers for', repairers.length, 'repairers');
+
+    repairers.forEach((repairer, index) => {
+      // Vérifier que le réparateur a des coordonnées valides
+      if (!repairer.lat || !repairer.lng) {
+        console.warn(`Repairer ${repairer.name} has invalid coordinates:`, { lat: repairer.lat, lng: repairer.lng });
+        return;
+      }
+
+      const markerElement = createMarkerElement(repairer);
+      const popupContent = createPopupContent(repairer);
+
+      const popup = new mapboxgl.Popup({
+        offset: 35,
+        closeButton: true,
+        closeOnClick: false,
+        maxWidth: '320px'
+      }).setHTML(popupContent);
+
+      const marker = new mapboxgl.Marker(markerElement)
+        .setLngLat([Number(repairer.lng), Number(repairer.lat)])
+        .setPopup(popup)
+        .addTo(map.current!);
+
+      // Event listener pour le clic sur le marker
+      markerElement.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setSelectedRepairer(repairer);
+        console.log('Marker clicked for repairer:', repairer.name);
+        
+        // Centrer la carte sur le marker cliqué
+        map.current?.flyTo({
+          center: [Number(repairer.lng), Number(repairer.lat)],
+          zoom: Math.max(map.current.getZoom(), 14),
+          duration: 1000
+        });
+      });
+
+      console.log(`Added marker ${index + 1} for ${repairer.name} at [${repairer.lng}, ${repairer.lat}]`);
+    });
   };
 
   const initializeMap = () => {
@@ -65,32 +144,24 @@ export const useMapbox = (mapboxToken: string, repairers: RepairerDB[]) => {
 
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-      repairers.forEach((repairer) => {
-        const markerElement = createMarkerElement();
-        const popupContent = createPopupContent(repairer);
+      map.current.on('load', () => {
+        console.log('Map loaded, adding markers...');
+        addMarkersToMap();
+      });
 
-        const popup = new mapboxgl.Popup({
-          offset: 25,
-          closeButton: true,
-          closeOnClick: false
-        }).setHTML(popupContent);
-
-        new mapboxgl.Marker(markerElement)
-          .setLngLat([repairer.lng, repairer.lat])
-          .setPopup(popup)
-          .addTo(map.current!);
-
-        markerElement.addEventListener('click', () => {
-          setSelectedRepairer(repairer);
-        });
+      // Écouter les messages pour ouvrir les profils
+      window.addEventListener('message', (event) => {
+        if (event.data.type === 'viewProfile') {
+          setSelectedRepairer(repairers.find(r => r.id === event.data.repairerId) || null);
+        }
       });
 
       toast({
         title: "Carte initialisée",
-        description: "La carte Mapbox a été chargée avec succès.",
+        description: `Carte chargée avec ${repairers.length} réparateurs.`,
       });
 
-      console.log('Map initialized with', repairers.length, 'markers');
+      console.log('Map initialized successfully');
     } catch (error) {
       console.error('Error initializing map:', error);
       toast({
@@ -101,10 +172,26 @@ export const useMapbox = (mapboxToken: string, repairers: RepairerDB[]) => {
     }
   };
 
+  // Effet pour réinitialiser les markers quand les repairers changent
+  useEffect(() => {
+    if (map.current && repairers.length > 0) {
+      console.log('Repairers data changed, updating markers...');
+      clearMap();
+      addMarkersToMap();
+    }
+  }, [repairers]);
+
   useEffect(() => {
     if (mapboxToken.trim()) {
       initializeMap();
     }
+
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
   }, [mapboxToken]);
 
   return {
