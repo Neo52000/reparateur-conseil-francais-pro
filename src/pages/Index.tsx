@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,12 +17,15 @@ import RepairersMap from '@/components/RepairersMap';
 import RepairersList from '@/components/RepairersList';
 import SearchFilters from '@/components/SearchFilters';
 import Footer from '@/components/Footer';
+// Ajout de l'import du toast
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const { toast } = useToast(); // Hook toast
 
   const quickStats = [
     { label: 'Réparateurs partenaires', value: '150+', icon: Smartphone },
@@ -33,6 +37,15 @@ const Index = () => {
   const popularServices = [
     'Écran cassé', 'Batterie', 'Réparation eau', 'Connecteur charge', 'Appareil photo', 'Haut-parleur'
   ];
+
+  // Handler recherche rapide
+  const handleQuickSearch = () => {
+    toast({
+      title: "Recherche rapide",
+      description: `Service : "${searchTerm}" / Localisation : "${selectedLocation}"`,
+    });
+    // ici vous pouvez ajouter la logique réelle de recherche
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
@@ -52,7 +65,7 @@ const Index = () => {
           </div>
 
           {/* Barre de recherche sur l'image */}
-          <div className="w-full max-w-2xl">
+          <div className="w-full max-w-2xl z-20"> {/* Z-index élevé */}
             <div className="bg-white rounded-lg p-6 shadow-xl">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
                 Recherche rapide de réparateurs
@@ -64,7 +77,10 @@ const Index = () => {
                   <Input
                     placeholder="Rechercher un service (ex: écran cassé iPhone 14)"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => { 
+                      setSearchTerm(e.target.value);
+                      console.log('searchTerm:', e.target.value);
+                    }}
                     className="pl-10"
                   />
                 </div>
@@ -73,11 +89,14 @@ const Index = () => {
                   <Input
                     placeholder="Ville ou code postal"
                     value={selectedLocation}
-                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    onChange={(e) => { 
+                      setSelectedLocation(e.target.value);
+                      console.log('selectedLocation:', e.target.value);
+                    }}
                     className="pl-10"
                   />
                 </div>
-                <Button className="w-full" size="lg">
+                <Button className="w-full" size="lg" onClick={handleQuickSearch}>
                   Rechercher
                 </Button>
               </div>
@@ -166,3 +185,4 @@ const Index = () => {
 };
 
 export default Index;
+
