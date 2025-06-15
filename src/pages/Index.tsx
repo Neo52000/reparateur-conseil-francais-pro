@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,18 @@ const Index = () => {
     });
   };
 
+  const handleServiceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    console.log('Service input changed:', value);
+    setSearchTerm(value);
+  };
+
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    console.log('Location input changed:', value);
+    setSelectedLocation(value);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
       {/* Hero Section avec image pleine largeur et recherche dessus */}
@@ -76,10 +89,7 @@ const Index = () => {
                   <Input
                     placeholder="Rechercher un service (ex: écran cassé iPhone 14)"
                     value={searchTerm}
-                    onChange={(e) => { 
-                      console.log('Service input changed:', e.target.value);
-                      setSearchTerm(e.target.value);
-                    }}
+                    onChange={handleServiceChange}
                     className="pl-10"
                   />
                 </div>
@@ -88,10 +98,7 @@ const Index = () => {
                   <Input
                     placeholder="Ville ou code postal"
                     value={selectedLocation}
-                    onChange={(e) => { 
-                      console.log('Location input changed:', e.target.value);
-                      setSelectedLocation(e.target.value);
-                    }}
+                    onChange={handleLocationChange}
                     className="pl-10"
                   />
                 </div>
