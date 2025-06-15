@@ -562,6 +562,75 @@ export type Database = {
           },
         ]
       }
+      repairer_profiles: {
+        Row: {
+          address: string
+          business_name: string
+          city: string
+          created_at: string
+          description: string | null
+          email: string
+          facebook_url: string | null
+          has_qualirepar_label: boolean | null
+          id: string
+          instagram_url: string | null
+          linkedin_url: string | null
+          phone: string
+          postal_code: string
+          profile_image_url: string | null
+          repair_types: string[] | null
+          siret_number: string | null
+          twitter_url: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          address: string
+          business_name: string
+          city: string
+          created_at?: string
+          description?: string | null
+          email: string
+          facebook_url?: string | null
+          has_qualirepar_label?: boolean | null
+          id?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          phone: string
+          postal_code: string
+          profile_image_url?: string | null
+          repair_types?: string[] | null
+          siret_number?: string | null
+          twitter_url?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          address?: string
+          business_name?: string
+          city?: string
+          created_at?: string
+          description?: string | null
+          email?: string
+          facebook_url?: string | null
+          has_qualirepar_label?: boolean | null
+          id?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          phone?: string
+          postal_code?: string
+          profile_image_url?: string | null
+          repair_types?: string[] | null
+          siret_number?: string | null
+          twitter_url?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       repairer_subscriptions: {
         Row: {
           billing_cycle: string | null

@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Plus, Edit, ArrowLeft } from 'lucide-react';
+import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Plus, Edit, ArrowLeft, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SubscriptionPlans from '@/components/SubscriptionPlans';
+import RepairerProfileModal from '@/components/RepairerProfileModal';
 
 interface SubscriptionData {
   id: string;
@@ -45,6 +46,8 @@ const RepairersManagementPage = () => {
   const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
   const [repairers, setRepairers] = useState<RepairerData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [stats, setStats] = useState({
     totalSubscriptions: 0,
     activeSubscriptions: 0,
@@ -186,6 +189,11 @@ const RepairersManagementPage = () => {
       default:
         return { name: 'Inconnu', color: 'bg-gray-100 text-gray-800', icon: null };
     }
+  };
+
+  const handleViewProfile = (repairerId: string) => {
+    setSelectedRepairerId(repairerId);
+    setProfileModalOpen(true);
   };
 
   if (loading) {
@@ -338,6 +346,13 @@ const RepairersManagementPage = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex space-x-2">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleViewProfile(repairer.id)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
                               <Button size="sm" variant="outline">
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -432,6 +447,19 @@ const RepairersManagementPage = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Modal pour afficher le profil du réparateur */}
+      {selectedRepairerId && (
+        <RepairerProfileModal
+          isOpen={profileModalOpen}
+          onClose={() => {
+            setProfileModalOpen(false);
+            setSelectedRepairerId(null);
+          }}
+          repairerId={selectedRepairerId}
+          isAdmin={true}
+        />
+      )}
     </div>
   );
 };
