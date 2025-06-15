@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import {
 import { useRepairers } from '@/hooks/useRepairers';
 import { RepairerDB } from '@/lib/supabase';
 import ClaimProfileBanner from './ClaimProfileBanner';
+import RepairerProfileModal from './RepairerProfileModal';
 
 interface RepairersListProps {
   compact?: boolean;
@@ -21,8 +22,21 @@ interface RepairersListProps {
 }
 
 const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters }) => {
+  const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
   // Utiliser les vraies données Supabase
   const { repairers, loading, error } = useRepairers(filters);
+
+  const handleViewProfile = (repairerId: string) => {
+    setSelectedRepairerId(repairerId);
+    setIsProfileModalOpen(true);
+  };
+
+  const handleCloseProfileModal = () => {
+    setIsProfileModalOpen(false);
+    setSelectedRepairerId(null);
+  };
 
   const renderStars = (rating: number) => {
     return (
@@ -40,7 +54,6 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
     );
   };
 
-  // Function to blur sensitive information based on subscription tier
   const getDisplayInfo = (repairer: RepairerDB, subscriptionTier = 'free') => {
     const isBasicOrHigher = ['basic', 'premium', 'enterprise'].includes(subscriptionTier);
     const isPremiumOrHigher = ['premium', 'enterprise'].includes(subscriptionTier);
@@ -153,7 +166,7 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
 
                 {/* Actions */}
                 <div className="flex flex-col space-y-2 ml-4">
-                  <Button size="sm">
+                  <Button size="sm" onClick={() => handleViewProfile(repairer.id)}>
                     Voir profil
                   </Button>
                   {displayInfo.showContactInfo && displayInfo.phone && (
@@ -219,40 +232,51 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
   }
 
   return (
-    <div className="space-y-4">
-      {compact && (
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-900">
-            {repairers.length} réparateurs trouvés
-          </h3>
-          <Button variant="outline" size="sm">
-            <ExternalLink className="h-4 w-4 mr-1" />
-            Voir tout
-          </Button>
-        </div>
-      )}
+    <>
+      <div className="space-y-4">
+        {compact && (
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {repairers.length} réparateurs trouvés
+            </h3>
+            <Button variant="outline" size="sm">
+              <ExternalLink className="h-4 w-4 mr-1" />
+              Voir tout
+            </Button>
+          </div>
+        )}
 
-      {repairers.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p className="text-gray-500">Aucun réparateur trouvé pour cette recherche</p>
-            <p className="text-sm text-gray-400 mt-2">Essayez d'élargir vos critères de recherche</p>
-          </CardContent>
-        </Card>
-      ) : (
-        repairers.map((repairer) => (
-          <RepairerCard key={repairer.id} repairer={repairer} />
-        ))
-      )}
+        {repairers.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <p className="text-gray-500">Aucun réparateur trouvé pour cette recherche</p>
+              <p className="text-sm text-gray-400 mt-2">Essayez d'élargir vos critères de recherche</p>
+            </CardContent>
+          </Card>
+        ) : (
+          repairers.map((repairer) => (
+            <RepairerCard key={repairer.id} repairer={repairer} />
+          ))
+        )}
 
-      {!compact && repairers.length > 0 && (
-        <div className="text-center py-6">
-          <Button variant="outline">
-            Charger plus de résultats
-          </Button>
-        </div>
+        {!compact && repairers.length > 0 && (
+          <div className="text-center py-6">
+            <Button variant="outline">
+              Charger plus de résultats
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Modal de profil */}
+      {selectedRepairerId && (
+        <RepairerProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={handleCloseProfileModal}
+          repairerId={selectedRepairerId}
+        />
       )}
-    </div>
+    </>
   );
 };
 
