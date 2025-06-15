@@ -56,17 +56,22 @@ export const useMapbox = (mapboxToken: string, repairers: RepairerDB[]) => {
       font-size: 14px;
       font-weight: bold;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      transition: transform 0.2s ease;
+      transition: all 0.2s ease;
+      transform-origin: center center;
     `;
     markerElement.innerHTML = '📱';
     
-    // Effet hover
+    // Effet hover amélioré qui ne déplace pas le marqueur
     markerElement.addEventListener('mouseenter', () => {
       markerElement.style.transform = 'scale(1.1)';
+      markerElement.style.zIndex = '1000';
+      markerElement.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
     });
     
     markerElement.addEventListener('mouseleave', () => {
       markerElement.style.transform = 'scale(1)';
+      markerElement.style.zIndex = '1';
+      markerElement.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
     });
     
     return markerElement;
