@@ -54,73 +54,85 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
     try {
       setLoading(true);
       setError(null);
+      
+      console.log('useRepairers - Fetching repairers...');
+      console.log('useRepairers - Supabase configured:', isSupabaseConfigured());
 
-      // Si Supabase n'est pas configuré, utiliser les données mockées
-      if (!isSupabaseConfigured() || !supabase) {
-        console.log('Supabase not configured, using mock data');
-        const mockData = convertMockToRepairersDB(MOCK_REPAIRERS);
-        setRepairers(mockData);
-        setLoading(false);
-        return;
+      // Toujours essayer de récupérer les données de Supabase d'abord
+      if (isSupabaseConfigured() && supabase) {
+        console.log('useRepairers - Fetching from Supabase...');
+        
+        let query = supabase
+          .from('repairers')
+          .select('*')
+          .order('rating', { ascending: false });
+
+        // Appliquer les filtres
+        if (filters?.city) {
+          query = query.ilike('city', `%${filters.city}%`);
+        }
+
+        if (filters?.postalCode) {
+          query = query.like('postal_code', `${filters.postalCode}%`);
+        }
+
+        if (filters?.services && filters.services.length > 0) {
+          query = query.overlaps('services', filters.services);
+        }
+
+        if (filters?.minRating) {
+          query = query.gte('rating', filters.minRating);
+        }
+
+        if (filters?.priceRange) {
+          query = query.eq('price_range', filters.priceRange);
+        }
+
+        // Limiter les résultats pour les performances
+        query = query.limit(100);
+
+        const { data, error: fetchError } = await query;
+
+        if (fetchError) {
+          console.error('useRepairers - Supabase error:', fetchError);
+          throw fetchError;
+        }
+
+        console.log('useRepairers - Supabase data received:', data);
+
+        if (data && data.length > 0) {
+          // Calculer la distance si la position utilisateur est disponible
+          let processedData = data;
+          if (userLocation && filters?.distance) {
+            processedData = data.filter(repairer => {
+              const distance = calculateDistance(
+                userLocation[1], userLocation[0],
+                repairer.lat, repairer.lng
+              );
+              return distance <= (filters.distance || 50);
+            });
+          }
+
+          console.log('useRepairers - Setting repairers from Supabase:', processedData);
+          setRepairers(processedData);
+          setLoading(false);
+          return;
+        }
       }
 
-      let query = supabase
-        .from('repairers')
-        .select('*')
-        .eq('is_verified', true)
-        .order('rating', { ascending: false });
-
-      // Appliquer les filtres
-      if (filters?.city) {
-        query = query.ilike('city', `%${filters.city}%`);
-      }
-
-      if (filters?.postalCode) {
-        query = query.like('postal_code', `${filters.postalCode}%`);
-      }
-
-      if (filters?.services && filters.services.length > 0) {
-        query = query.overlaps('services', filters.services);
-      }
-
-      if (filters?.minRating) {
-        query = query.gte('rating', filters.minRating);
-      }
-
-      if (filters?.priceRange) {
-        query = query.eq('price_range', filters.priceRange);
-      }
-
-      // Limiter les résultats pour les performances
-      query = query.limit(100);
-
-      const { data, error: fetchError } = await query;
-
-      if (fetchError) throw fetchError;
-
-      // Calculer la distance si la position utilisateur est disponible
-      let processedData = data || [];
-      if (userLocation && filters?.distance) {
-        processedData = processedData.filter(repairer => {
-          const distance = calculateDistance(
-            userLocation[1], userLocation[0],
-            repairer.lat, repairer.lng
-          );
-          return distance <= (filters.distance || 50);
-        });
-      }
-
-      setRepairers(processedData);
+      // Si pas de données Supabase, utiliser les données mockées
+      console.log('useRepairers - Using mock data');
+      const mockData = convertMockToRepairersDB(MOCK_REPAIRERS);
+      console.log('useRepairers - Mock data:', mockData);
+      setRepairers(mockData);
+      
     } catch (err) {
+      console.error('useRepairers - Error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des réparateurs';
       setError(errorMessage);
-      toast({
-        title: "Erreur",
-        description: errorMessage,
-        variant: "destructive"
-      });
       
       // Utiliser les données mockées en cas d'erreur
+      console.log('useRepairers - Fallback to mock data due to error');
       const mockData = convertMockToRepairersDB(MOCK_REPAIRERS);
       setRepairers(mockData);
     } finally {
@@ -129,6 +141,7 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
   };
 
   useEffect(() => {
+    console.log('useRepairers - Effect triggered, filters:', filters);
     fetchRepairers();
   }, [filters, userLocation]);
 
