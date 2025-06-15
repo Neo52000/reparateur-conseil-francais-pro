@@ -4,6 +4,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { RepairerProfile } from '@/types/repairerProfile';
 import { useProfileData } from './repairer-profile-modal/ProfileDataLoader';
+import { useAuth } from '@/hooks/useAuth';
 import LoadingState from './repairer-profile-modal/LoadingState';
 import NotFoundState from './repairer-profile-modal/NotFoundState';
 import RepairerProfileModalContent from './repairer-profile-modal/RepairerProfileModalContent';
@@ -24,6 +25,7 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
   const { profile, loading } = useProfileData(repairerId, isOpen);
+  const { user, isAdmin: userIsAdmin } = useAuth();
 
   const handleProfileUpdate = (updatedProfile: RepairerProfile) => {
     setIsEditing(false);
@@ -31,6 +33,22 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
       title: "Succès",
       description: "Profil mis à jour avec succès"
     });
+  };
+
+  // Vérifier si l'utilisateur peut modifier cette fiche
+  const canEdit = () => {
+    // L'admin peut toujours modifier
+    if (userIsAdmin || isAdmin) {
+      return true;
+    }
+    
+    // Le réparateur peut modifier sa propre fiche s'il est connecté
+    if (user && profile) {
+      // Vérifier si l'utilisateur connecté correspond au propriétaire de la fiche
+      return user.id === profile.repairer_id || user.email === profile.email;
+    }
+    
+    return false;
   };
 
   if (loading) {
@@ -46,7 +64,8 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
       <RepairerProfileModalContent
         profile={profile}
         isEditing={isEditing}
-        isAdmin={isAdmin}
+        isAdmin={userIsAdmin || isAdmin}
+        canEdit={canEdit()}
         onEdit={() => setIsEditing(true)}
         onSave={handleProfileUpdate}
         onCancel={() => setIsEditing(false)}

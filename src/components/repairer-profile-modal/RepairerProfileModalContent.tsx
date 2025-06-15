@@ -14,6 +14,7 @@ interface RepairerProfileModalContentProps {
   profile: RepairerProfile;
   isEditing: boolean;
   isAdmin?: boolean;
+  canEdit?: boolean;
   onEdit: () => void;
   onSave: (profile: RepairerProfile) => void;
   onCancel: () => void;
@@ -24,6 +25,7 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
   profile,
   isEditing,
   isAdmin = false,
+  canEdit = false,
   onEdit,
   onSave,
   onCancel,
@@ -50,7 +52,7 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
       <DialogHeader>
         <RepairerProfileHeader
           profile={profile}
-          onEdit={onEdit}
+          onEdit={canEdit ? onEdit : undefined}
         />
       </DialogHeader>
 

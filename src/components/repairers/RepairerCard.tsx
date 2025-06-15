@@ -11,6 +11,7 @@ import {
   Heart
 } from 'lucide-react';
 import { RepairerDB } from '@/hooks/useRepairers';
+import { useAuth } from '@/hooks/useAuth';
 import ClaimProfileBanner from '../ClaimProfileBanner';
 import StarRating from './StarRating';
 import { getDisplayInfo, getTierBadge } from '@/utils/subscriptionDisplay';
@@ -22,6 +23,8 @@ interface RepairerCardProps {
 }
 
 const RepairerCard: React.FC<RepairerCardProps> = ({ repairer, compact = false, onViewProfile }) => {
+  const { user, isAdmin } = useAuth();
+
   // Logs pour le debugging
   console.log('RepairerCard - Rendering repairer:', {
     id: repairer.id,
@@ -35,6 +38,9 @@ const RepairerCard: React.FC<RepairerCardProps> = ({ repairer, compact = false, 
   const subscriptionTier = ['free', 'basic', 'premium', 'enterprise'][Math.floor(Math.random() * 4)];
   const displayInfo = getDisplayInfo(repairer, subscriptionTier);
   const tierBadge = getTierBadge(subscriptionTier);
+
+  // Vérifier si l'utilisateur peut voir les actions de contact
+  const canContact = isAdmin || (user && displayInfo.showContactInfo);
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -124,7 +130,7 @@ const RepairerCard: React.FC<RepairerCardProps> = ({ repairer, compact = false, 
                 <Button size="sm" onClick={() => onViewProfile(repairer.id)}>
                   Voir profil
                 </Button>
-                {displayInfo.showContactInfo && displayInfo.phone && (
+                {canContact && displayInfo.phone && (
                   <Button size="sm" variant="outline">
                     <Phone className="h-4 w-4 mr-1" />
                     Appeler
@@ -144,7 +150,7 @@ const RepairerCard: React.FC<RepairerCardProps> = ({ repairer, compact = false, 
             </div>
 
             {/* Banner de revendication pour les profils gratuits */}
-            {displayInfo.showClaimBanner && !compact && (
+            {displayInfo.showClaimBanner && !compact && !isAdmin && (
               <ClaimProfileBanner businessName={repairer.name} />
             )}
           </div>
