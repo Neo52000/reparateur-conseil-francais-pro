@@ -231,11 +231,18 @@ const RepairersManagementPage = () => {
           </TabsList>
 
           <TabsContent value="repairers">
-            <RepairersTable repairers={repairers} onViewProfile={handleViewProfile} />
+            <RepairersTable 
+              repairers={repairers} 
+              onViewProfile={handleViewProfile}
+              onRefresh={fetchData}
+            />
           </TabsContent>
 
           <TabsContent value="subscriptions">
-            <SubscriptionsTable subscriptions={subscriptions} />
+            <SubscriptionsTable 
+              subscriptions={subscriptions}
+              onRefresh={fetchData}
+            />
           </TabsContent>
         </Tabs>
       </main>
