@@ -73,6 +73,8 @@ export const useRepairerProfileSave = () => {
         .eq('user_id', userId)
         .maybeSingle();
 
+      console.log('Existing profile found:', existingProfile);
+
       // Si profil non trouvé, s'assurer que l'utilisateur existe sinon le créer
       if (!existingProfile) {
         console.log('No existing profile found, creating user...');
@@ -109,7 +111,7 @@ export const useRepairerProfileSave = () => {
         updated_at: new Date().toISOString()
       };
 
-      // Vérifie si le repairer_profiles existe déjà : update sinon insert
+      // Utiliser upsert pour gérer les cas de création et mise à jour
       let result;
       if (existingProfile) {
         console.log('Updating existing profile with ID:', existingProfile.id);
@@ -120,19 +122,20 @@ export const useRepairerProfileSave = () => {
           .select()
           .single();
       } else {
-        console.log('Creating new profile for repairer_id/user_id:', userId);
+        console.log('Creating new profile for user_id:', userId);
+        // Utiliser upsert au lieu d'insert pour éviter les doublons
         result = await supabase
           .from('repairer_profiles')
-          .insert(supabaseData)
+          .upsert(supabaseData, { 
+            onConflict: 'user_id',
+            ignoreDuplicates: false 
+          })
           .select()
           .single();
       }
 
       if (result.error) {
         console.error('Supabase save error:', result.error);
-        if (String(result.error.message).includes('violates foreign key constraint')) {
-          throw new Error("Impossible d'enregistrer le profil : le compte utilisateur n'a pas pu être créé.");
-        }
         throw new Error(result.error.message || "Erreur lors de l'enregistrement");
       }
 
