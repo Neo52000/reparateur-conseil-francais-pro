@@ -2,7 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Award, MapPin } from 'lucide-react';
-import { RepairerProfile } from '@/services/mockRepairerProfiles';
+import { RepairerProfile } from '@/types/repairerProfile';
 
 interface GeneralInfoTabProps {
   profile: RepairerProfile;

@@ -60,7 +60,7 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
       // Créer un profil mocké basé sur les données du réparateur
       return {
         id: repairerId,
-        repairer_id: repairerId,
+        repairer_id: repairerId, // Ensure repairer_id is included
         business_name: repairer.name,
         description: `${repairer.name} est un réparateur professionnel spécialisé dans la réparation d'appareils électroniques. Avec une expertise reconnue et des années d'expérience, nous offrons des services de qualité pour tous vos besoins de réparation.`,
         address: repairer.address,

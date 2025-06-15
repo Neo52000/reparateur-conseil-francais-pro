@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { RepairerProfile, getRepairTypeLabel } from '@/services/mockRepairerProfiles';
+import { RepairerProfile, getRepairTypeLabel } from '@/types/repairerProfile';
 
 interface ServicesTabProps {
   profile: RepairerProfile;

@@ -36,3 +36,14 @@ export const REPAIR_TYPES = [
   { value: 'ordinateur', label: 'Ordinateur' },
   { value: 'autres', label: 'Autres' }
 ];
+
+export const getRepairTypeLabel = (type: string) => {
+  const labels: Record<string, string> = {
+    telephone: 'Téléphone',
+    montre: 'Montre',
+    console: 'Console',
+    ordinateur: 'Ordinateur',
+    autres: 'Autres'
+  };
+  return labels[type] || type;
+};

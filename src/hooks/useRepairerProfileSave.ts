@@ -22,9 +22,9 @@ export const useRepairerProfileSave = () => {
       };
     }
 
-    // Préparer les données pour la sauvegarde - utiliser repairer_id au lieu de user_id
+    // Préparer les données pour la sauvegarde - mapper repairer_id vers user_id pour la DB
     const profileData = {
-      repairer_id: formData.repairer_id,
+      user_id: formData.repairer_id, // Map repairer_id to user_id for database
       business_name: formData.business_name,
       siret_number: formData.siret_number || null,
       description: formData.description || null,
@@ -49,7 +49,7 @@ export const useRepairerProfileSave = () => {
     const { data: existingProfile, error: fetchError } = await supabase
       .from('repairer_profiles')
       .select('id')
-      .eq('repairer_id', formData.repairer_id)
+      .eq('user_id', formData.repairer_id)
       .maybeSingle();
 
     console.log('Existing profile check:', { existingProfile, fetchError });
@@ -81,8 +81,10 @@ export const useRepairerProfileSave = () => {
       throw result.error;
     }
 
+    // Map the response back to our interface format
     return {
       ...result.data,
+      repairer_id: result.data.user_id, // Map user_id back to repairer_id
       id: result.data.id,
     };
   };

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Edit } from 'lucide-react';
-import { RepairerProfile } from '@/services/mockRepairerProfiles';
+import { RepairerProfile } from '@/types/repairerProfile';
 
 interface RepairerProfileHeaderProps {
   profile: RepairerProfile;

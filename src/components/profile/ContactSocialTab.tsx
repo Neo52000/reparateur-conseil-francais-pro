@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Phone, Mail, Globe, Facebook, Instagram, Linkedin, Twitter } from 'lucide-react';
-import { RepairerProfile } from '@/services/mockRepairerProfiles';
+import { RepairerProfile } from '@/types/repairerProfile';
 
 interface ContactSocialTabProps {
   profile: RepairerProfile;
