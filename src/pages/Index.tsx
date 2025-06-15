@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -81,22 +80,6 @@ const Index = () => {
                 <Button className="w-full" size="lg">
                   Rechercher
                 </Button>
-              </div>
-
-              {/* Popular Services */}
-              <div className="mt-6 space-y-2">
-                <span className="text-sm text-gray-600">Services populaires :</span>
-                <div className="flex flex-wrap gap-2">
-                  {popularServices.map((service, index) => (
-                    <Badge 
-                      key={index} 
-                      variant="secondary" 
-                      className="cursor-pointer hover:bg-blue-100"
-                    >
-                      {service}
-                    </Badge>
-                  ))}
-                </div>
               </div>
             </div>
           </div>
