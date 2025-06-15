@@ -15,31 +15,39 @@ const Logo: React.FC<LogoProps> = ({ className = '', variant = 'full', size = 'm
     xl: 'h-16'
   };
 
-  const iconSize = size === 'sm' ? 24 : size === 'md' ? 32 : size === 'lg' ? 40 : 48;
+  const iconSize = size === 'sm' ? 32 : size === 'md' ? 40 : size === 'lg' ? 48 : 56;
   const textSize = size === 'sm' ? 'text-lg' : size === 'md' ? 'text-xl' : size === 'lg' ? 'text-2xl' : 'text-3xl';
 
   if (variant === 'icon') {
     return (
       <div className={`relative ${className}`}>
-        {/* Téléphone mobile animé */}
         <svg
           width={iconSize}
           height={iconSize}
-          viewBox="0 0 60 60"
+          viewBox="0 0 80 80"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="animate-pulse"
+          className="drop-shadow-lg"
         >
-          {/* Background circle moderne */}
-          <circle cx="30" cy="30" r="30" fill="url(#modernGradient)" />
+          {/* Background circle with gradient */}
+          <circle cx="40" cy="40" r="35" fill="url(#modernGradient)" />
           
-          {/* Téléphone mobile */}
-          <rect x="20" y="15" width="20" height="30" rx="4" fill="white" stroke="none" />
-          <rect x="22" y="18" width="16" height="20" rx="1" fill="#1E40AF" />
-          <circle cx="30" cy="42" r="2" fill="white" />
+          {/* Mobile phone */}
+          <rect x="30" y="20" width="20" height="35" rx="4" fill="white" />
+          <rect x="32" y="24" width="16" height="24" rx="1" fill="#1E40AF" />
+          <circle cx="40" cy="52" r="2" fill="white" />
           
-          {/* Effet de réparation/outils */}
-          <path d="M35 12L38 15L35 18M25 12L22 15L25 18" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" className="animate-bounce" />
+          {/* Animated signal waves */}
+          <g className="animate-pulse">
+            <path d="M55 30C58 33 58 47 55 50" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" fill="none" />
+            <path d="M58 35C60 37 60 43 58 45" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" fill="none" />
+          </g>
+          
+          {/* Repair tools animation */}
+          <g className="animate-bounce" style={{ animationDelay: '0.5s', animationDuration: '2s' }}>
+            <path d="M20 25L23 22L20 19" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" />
+            <path d="M25 30L28 27L25 24" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" />
+          </g>
           
           <defs>
             <linearGradient id="modernGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -55,33 +63,34 @@ const Logo: React.FC<LogoProps> = ({ className = '', variant = 'full', size = 'm
 
   return (
     <div className={`flex items-center justify-center space-x-3 ${className}`}>
-      {/* Téléphone mobile animé */}
+      {/* Animated mobile phone icon */}
       <div className="relative">
         <svg
           width={iconSize}
           height={iconSize}
-          viewBox="0 0 60 60"
+          viewBox="0 0 80 80"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="transition-transform duration-300 hover:scale-110"
+          className="transition-transform duration-300 hover:scale-110 drop-shadow-lg"
         >
-          {/* Background moderne avec dégradé */}
-          <circle cx="30" cy="30" r="30" fill="url(#logoGradient)" />
+          {/* Background circle with gradient */}
+          <circle cx="40" cy="40" r="35" fill="url(#logoGradient)" />
           
-          {/* Téléphone mobile */}
-          <rect x="20" y="15" width="20" height="30" rx="4" fill="white" stroke="none" />
-          <rect x="22" y="18" width="16" height="20" rx="1" fill="#1E40AF" />
-          <circle cx="30" cy="42" r="2" fill="white" />
+          {/* Mobile phone */}
+          <rect x="30" y="20" width="20" height="35" rx="4" fill="white" />
+          <rect x="32" y="24" width="16" height="24" rx="1" fill="#1E40AF" />
+          <circle cx="40" cy="52" r="2" fill="white" />
           
-          {/* Lignes de signal/wifi animées */}
+          {/* Animated signal waves */}
           <g className="animate-pulse">
-            <path d="M42 20C42 20 45 23 45 30C45 37 42 40 42 40" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" fill="none" />
-            <path d="M44 24C44 24 46 26 46 30C46 34 44 36 44 36" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" fill="none" />
+            <path d="M55 30C58 33 58 47 55 50" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" fill="none" />
+            <path d="M58 35C60 37 60 43 58 45" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" fill="none" />
           </g>
           
-          {/* Effet de réparation */}
-          <g className="animate-bounce" style={{ animationDelay: '0.5s' }}>
-            <path d="M12 25L15 22L12 19M18 25L21 22L18 19" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" />
+          {/* Repair tools animation */}
+          <g className="animate-bounce" style={{ animationDelay: '0.5s', animationDuration: '2s' }}>
+            <path d="M20 25L23 22L20 19" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" />
+            <path d="M25 30L28 27L25 24" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" />
           </g>
           
           <defs>
