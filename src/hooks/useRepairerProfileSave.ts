@@ -22,7 +22,7 @@ export const useRepairerProfileSave = () => {
       };
     }
 
-    // Préparer les données pour la sauvegarde
+    // Préparer les données pour la sauvegarde - utiliser repairer_id au lieu de user_id
     const profileData = {
       repairer_id: formData.repairer_id,
       business_name: formData.business_name,

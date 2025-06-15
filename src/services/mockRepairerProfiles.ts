@@ -1,33 +1,12 @@
 
-export interface RepairerProfile {
-  id: string;
-  user_id: string;
-  business_name: string;
-  siret_number: string | null;
-  description: string | null;
-  address: string;
-  city: string;
-  postal_code: string;
-  phone: string;
-  email: string;
-  website: string | null;
-  facebook_url: string | null;
-  instagram_url: string | null;
-  linkedin_url: string | null;
-  twitter_url: string | null;
-  has_qualirepar_label: boolean;
-  repair_types: string[];
-  profile_image_url: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import { RepairerProfile, REPAIR_TYPES } from '@/types/repairerProfile';
 
 // Profils mockés pour les réparateurs de test
 export const getMockProfile = (repairerId: string): RepairerProfile | null => {
   const mockProfiles: Record<string, RepairerProfile> = {
     'test-repairer-001': {
       id: 'mock-profile-001',
-      user_id: 'test-repairer-001',
+      repairer_id: 'test-repairer-001',
       business_name: 'TechRepair Pro',
       siret_number: '12345678901234',
       description: 'Spécialiste en réparation de smartphones et tablettes avec plus de 10 ans d\'expérience. Nous utilisons uniquement des pièces de qualité et offrons une garantie de 6 mois sur toutes nos réparations.',
@@ -49,7 +28,7 @@ export const getMockProfile = (repairerId: string): RepairerProfile | null => {
     },
     'test-repairer-002': {
       id: 'mock-profile-002',
-      user_id: 'test-repairer-002',
+      repairer_id: 'test-repairer-002',
       business_name: 'Mobile Fix Express',
       siret_number: '98765432109876',
       description: 'Réparation rapide de mobiles et accessoires. Service express en moins de 2h pour la plupart des pannes courantes.',
@@ -71,7 +50,7 @@ export const getMockProfile = (repairerId: string): RepairerProfile | null => {
     },
     'test-repairer-003': {
       id: 'mock-profile-003',
-      user_id: 'test-repairer-003',
+      repairer_id: 'test-repairer-003',
       business_name: 'Smartphone Clinic',
       siret_number: null,
       description: 'Clinique spécialisée dans le diagnostic et la réparation de smartphones. Devis gratuit et transparent.',

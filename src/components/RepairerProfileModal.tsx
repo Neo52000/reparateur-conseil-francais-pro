@@ -119,12 +119,7 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
           const mockProfile = getMockProfile(repairerId);
           if (mockProfile) {
             console.log('Using existing mock profile:', mockProfile);
-            // Convert mock profile to new interface format
-            const convertedProfile: RepairerProfile = {
-              ...mockProfile,
-              repairer_id: mockProfile.user_id || repairerId
-            };
-            setProfile(convertedProfile);
+            setProfile(mockProfile);
           } else {
             console.log('No profile data available for repairer:', repairerId);
             setProfile(null);
