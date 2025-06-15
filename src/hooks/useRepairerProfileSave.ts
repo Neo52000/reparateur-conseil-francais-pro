@@ -71,13 +71,24 @@ export const useRepairerProfileSave = () => {
     }
 
     try {
-      let userId = formData.repairer_id;
-      console.log('🔍 Looking for existing profile with user_id:', userId);
+      // Récupérer l'utilisateur actuellement connecté
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) {
+        console.error('❌ Error getting current user:', authError);
+        throw new Error('Utilisateur non authentifié');
+      }
 
-      // Vérifier si un profil existe déjà en cherchant par user_id ET par email
+      let userId = user?.id;
+      if (!userId) {
+        throw new Error('Utilisateur non authentifié');
+      }
+
+      console.log('👤 Current authenticated user ID:', userId);
+
+      // Vérifier si un profil existe déjà pour cet utilisateur ou avec cet email
       const { data: existingProfile, error: searchError } = await supabase
         .from('repairer_profiles')
-        .select('id, user_id')
+        .select('id, user_id, email')
         .or(`user_id.eq.${userId},email.eq.${formData.email}`)
         .maybeSingle();
 
@@ -88,21 +99,32 @@ export const useRepairerProfileSave = () => {
 
       console.log('📋 Existing profile search result:', existingProfile);
 
-      // Si aucun profil existant, créer l'utilisateur
+      // Si pas de profil existant, créer l'utilisateur si nécessaire
       if (!existingProfile) {
-        console.log('👤 No existing profile, creating user...');
-        const createdUserId = await createUserIfNotExists(
-          formData.email,
-          formData.business_name,
-          undefined,
-          formData.phone
-        );
+        console.log('👤 No existing profile found');
         
-        if (!createdUserId) {
-          throw new Error("Impossible de créer ou récupérer l'utilisateur");
+        // Vérifier si l'email correspond à un utilisateur différent
+        if (formData.email !== user.email) {
+          console.log('📧 Email differs from current user, creating new user...');
+          const createdUserId = await createUserIfNotExists(
+            formData.email,
+            formData.business_name,
+            undefined,
+            formData.phone
+          );
+          
+          if (!createdUserId) {
+            throw new Error("Impossible de créer l'utilisateur pour cet email");
+          }
+          userId = createdUserId;
+          console.log('✅ User created with ID:', userId);
         }
-        userId = createdUserId;
-        console.log('✅ User created/retrieved with ID:', userId);
+      } else {
+        // Si un profil existe mais avec un user_id différent, utiliser le user_id existant
+        if (existingProfile.user_id !== userId && existingProfile.email === formData.email) {
+          console.log('🔄 Using existing profile user_id:', existingProfile.user_id);
+          userId = existingProfile.user_id;
+        }
       }
 
       // Préparer les données pour Supabase
