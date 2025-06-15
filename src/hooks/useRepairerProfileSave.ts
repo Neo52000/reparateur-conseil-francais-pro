@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { RepairerProfile } from '@/types/repairerProfile';
 
@@ -90,7 +89,7 @@ export const useRepairerProfileSave = () => {
         }
       }
 
-      // Structure des données à enregistrer dans Supabase
+      // Data à envoyer : on log le siret_number envoyé pour debug
       const supabaseData = {
         user_id: userId,
         business_name: formData.business_name,
@@ -110,6 +109,8 @@ export const useRepairerProfileSave = () => {
         repair_types: formData.repair_types,
         updated_at: new Date().toISOString()
       };
+
+      console.log('Sending data to Supabase:', supabaseData);
 
       // Mettre à jour aussi la table repairers si on a des coordonnées géographiques
       if (formData.geo_lat && formData.geo_lng) {
@@ -139,7 +140,6 @@ export const useRepairerProfileSave = () => {
         }
       }
 
-      // Utiliser upsert pour gérer les cas de création et mise à jour
       let result;
       if (existingProfile) {
         console.log('Updating existing profile with ID:', existingProfile.id);
@@ -149,6 +149,7 @@ export const useRepairerProfileSave = () => {
           .eq('id', existingProfile.id)
           .select()
           .single();
+        console.log('Update result from Supabase:', result);
       } else {
         console.log('Creating new profile for user_id:', userId);
         // Utiliser upsert au lieu d'insert pour éviter les doublons
@@ -160,12 +161,16 @@ export const useRepairerProfileSave = () => {
           })
           .select()
           .single();
+        console.log('Upsert result from Supabase:', result);
       }
 
       if (result.error) {
         console.error('Supabase save error:', result.error);
         throw new Error(result.error.message || "Erreur lors de l'enregistrement");
       }
+
+      // Affichage du siret modifié dans la réponse
+      console.log('Saved profile siret_number:', result.data?.siret_number);
 
       const savedProfile: RepairerProfile = {
         id: result.data.id,
@@ -194,6 +199,7 @@ export const useRepairerProfileSave = () => {
       return savedProfile;
       
     } catch (error) {
+      // Affichage du message exact de l'erreur
       console.error('Error in saveProfile:', error);
       throw error;
     }

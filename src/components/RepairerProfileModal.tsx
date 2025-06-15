@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -31,24 +30,20 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
     // On sauvegarde le profil : possible que le vrai user_id soit différent si création à la volée !
     // On rafraîchit le profil AVEC le bon user_id fraîchement retourné
     try {
-      // On sauvegarde 
-      // (remarque : on suppose que la fonction de sauvegarde renvoie le profil mis à jour, y compris le bon user_id)
-      // Si ce n'est pas le cas, il faudra ajuster !
-      // updatedProfile doit contenir le champ repairer_id (=user_id réel)
+      // Ajout d’un log pour bien tracer le user_id utilisé lors du refresh
       const resultUserId = updatedProfile.repairer_id;
-      console.log('[RepairerProfileModal] Après save, user_id réel:', resultUserId);
+      console.log('[RepairerProfileModal] Après save, user_id réel utilisé pour refresh:', resultUserId);
 
-      // Rafraîchir AVEC ce user_id réel
       await fetchProfile(resultUserId || repairerId);
       setIsEditing(false);
       toast({
         title: "Succès",
         description: "Profil mis à jour avec succès"
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erreur",
-        description: "Impossible de rafraîchir la fiche après modification.",
+        description: "Impossible de rafraîchir la fiche après modification. " + (error?.message || ''),
         variant: "destructive"
       });
     }
@@ -91,5 +86,4 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
     </Dialog>
   );
 };
-
 export default RepairerProfileModal;
