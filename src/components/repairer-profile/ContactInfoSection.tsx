@@ -3,6 +3,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RepairerProfile } from '@/types/repairerProfile';
+import AddressAutocompleteInput from '@/components/AddressAutocompleteInput';
 
 interface ContactInfoSectionProps {
   formData: RepairerProfile;
@@ -36,11 +37,18 @@ const ContactInfoSection: React.FC<ContactInfoSectionProps> = ({ formData, setFo
 
       <div className="space-y-2">
         <Label htmlFor="address">Adresse *</Label>
-        <Input
-          id="address"
+        <AddressAutocompleteInput
           value={formData.address}
-          onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
           required
+          onChange={({ address, city, postal_code }) => {
+            setFormData(prev => ({
+              ...prev,
+              address: address,
+              city: city || prev.city,
+              postal_code: postal_code || prev.postal_code
+            }));
+          }}
+          placeholder="ex : 10 rue de Paris, Lyon"
         />
       </div>
 
