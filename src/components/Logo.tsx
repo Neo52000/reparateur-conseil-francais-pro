@@ -32,10 +32,10 @@ const Logo: React.FC<LogoProps> = ({ className = '', variant = 'full', size = 'm
           {/* Background circle with gradient */}
           <circle cx="40" cy="40" r="35" fill="url(#modernGradient)" />
           
-          {/* Mobile phone */}
-          <rect x="30" y="20" width="20" height="35" rx="4" fill="white" stroke="#E5E7EB" strokeWidth="1" />
-          <rect x="32" y="24" width="16" height="24" rx="1" fill="#1E40AF" />
-          <circle cx="40" cy="52" r="2" fill="#6B7280" />
+          {/* Mobile phone avec couleurs plus visibles */}
+          <rect x="30" y="20" width="20" height="35" rx="4" fill="#1F2937" stroke="#374151" strokeWidth="1" />
+          <rect x="32" y="24" width="16" height="24" rx="1" fill="#3B82F6" />
+          <circle cx="40" cy="52" r="2" fill="#9CA3AF" />
           
           {/* Animated signal waves */}
           <g className="animate-pulse">
@@ -73,17 +73,17 @@ const Logo: React.FC<LogoProps> = ({ className = '', variant = 'full', size = 'm
           xmlns="http://www.w3.org/2000/svg"
           className="transition-transform duration-300 hover:scale-110 drop-shadow-lg"
         >
-          {/* Background circle with gradient - no white fill */}
+          {/* Background circle with gradient */}
           <circle cx="40" cy="40" r="35" fill="url(#logoGradient)" />
           
-          {/* Mobile phone avec contour visible */}
-          <rect x="30" y="20" width="20" height="35" rx="4" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="1" />
-          <rect x="32" y="24" width="16" height="24" rx="1" fill="#1E40AF" />
-          <circle cx="40" cy="52" r="2" fill="#64748B" />
+          {/* Mobile phone avec couleurs foncées pour le contraste */}
+          <rect x="30" y="20" width="20" height="35" rx="4" fill="#1F2937" stroke="#374151" strokeWidth="1.5" />
+          <rect x="32" y="24" width="16" height="24" rx="1" fill="#3B82F6" />
+          <circle cx="40" cy="52" r="2" fill="#9CA3AF" />
           
           {/* Écran avec reflet */}
-          <rect x="33" y="25" width="14" height="22" rx="1" fill="#3B82F6" />
-          <rect x="34" y="26" width="6" height="2" rx="1" fill="#60A5FA" opacity="0.7" />
+          <rect x="33" y="25" width="14" height="22" rx="1" fill="#60A5FA" />
+          <rect x="34" y="26" width="6" height="2" rx="1" fill="#93C5FD" opacity="0.8" />
           
           {/* Animated signal waves */}
           <g className="animate-pulse">
