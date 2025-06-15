@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { DialogContent, DialogHeader } from '@/components/ui/dialog';
+import { DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import RepairerProfileForm from '@/components/RepairerProfileForm';
 import RepairerProfileHeader from '@/components/profile/RepairerProfileHeader';
@@ -19,11 +20,10 @@ interface RepairerProfileModalContentProps {
   onSave: (profile: RepairerProfile) => void;
   onCancel: () => void;
   onClose: () => void;
+  saving?: boolean;
 }
 
-const RepairerProfileModalContent: React.FC<
-  RepairerProfileModalContentProps & { saving?: boolean }
-> = ({
+const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = ({
   profile,
   isEditing,
   isAdmin = false,
@@ -52,7 +52,10 @@ const RepairerProfileModalContent: React.FC<
     return (
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <h2 className="text-2xl font-semibold">Modifier le profil</h2>
+          <DialogTitle>Modifier le profil réparateur</DialogTitle>
+          <DialogDescription>
+            Modifiez les informations de votre fiche revendeur puis cliquez sur "Enregistrer".
+          </DialogDescription>
         </DialogHeader>
         <RepairerProfileForm
           profile={profile}
@@ -72,6 +75,10 @@ const RepairerProfileModalContent: React.FC<
     return (
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
+          <DialogTitle>Profil du réparateur</DialogTitle>
+          <DialogDescription>
+            Mode administrateur : consultez ou modifiez la fiche de ce réparateur.
+          </DialogDescription>
           <RepairerProfileHeader
             profile={profile}
             onEdit={canEdit ? onEdit : undefined}
@@ -79,7 +86,6 @@ const RepairerProfileModalContent: React.FC<
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Admin can see the old tabbed view for editing purposes */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-sm text-yellow-800">
               <strong>Mode administrateur :</strong> Vous voyez la vue simplifiée. 
@@ -104,8 +110,13 @@ const RepairerProfileModalContent: React.FC<
   // Client view - new beautiful design
   return (
     <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle>Profil réparateur</DialogTitle>
+        <DialogDescription>
+          Découvrez les informations détaillées sur ce réparateur, ses services et ses avis clients.
+        </DialogDescription>
+      </DialogHeader>
       <div className="space-y-8 p-2">
-        {/* Client-focused header */}
         <ClientRepairerProfileHeader
           profile={profile}
           onRequestQuote={handleRequestQuote}
@@ -113,7 +124,6 @@ const RepairerProfileModalContent: React.FC<
           onBookAppointment={handleBookAppointment}
         />
 
-        {/* Main content sections */}
         <ClientAboutSection profile={profile} />
         <ClientServicesSection profile={profile} />
         <ClientTestimonialsSection businessName={profile.business_name} />
@@ -148,3 +158,4 @@ const RepairerProfileModalContent: React.FC<
 };
 
 export default RepairerProfileModalContent;
+
