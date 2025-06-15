@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, Facebook, Linkedin, Instagram, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Logo from './Logo';
 
 const Footer = () => {
   return (
@@ -11,7 +12,9 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo et description */}
           <div className="md:col-span-2">
-            <h3 className="text-xl font-bold text-blue-400 mb-4">RepairHub</h3>
+            <div className="mb-4">
+              <Logo variant="compact" size="md" className="brightness-0 invert" />
+            </div>
             <p className="text-gray-300 mb-4">
               Votre plateforme de réparation connectant clients et réparateurs pour un service optimal.
             </p>
@@ -33,7 +36,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center">
                 <Mail className="h-4 w-4 mr-2 text-blue-400" />
-                <span className="text-gray-300">contact@repairhub.fr</span>
+                <span className="text-gray-300">contact@topreparateurs.fr</span>
               </div>
             </div>
           </div>
@@ -64,7 +67,7 @@ const Footer = () => {
                   Vous êtes réparateur ?
                 </h4>
                 <p className="text-blue-100">
-                  Rejoignez notre annuaire et développez votre activité avec RepairHub
+                  Rejoignez notre annuaire et développez votre activité avec TopRéparateurs.fr
                 </p>
               </div>
               <Link to="/repairer/plans">
@@ -79,7 +82,7 @@ const Footer = () => {
 
         <div className="text-center">
           <p className="text-gray-400">
-            © 2024 RepairHub. Tous droits réservés.
+            © 2024 TopRéparateurs.fr. Tous droits réservés.
           </p>
         </div>
       </div>
@@ -88,4 +91,3 @@ const Footer = () => {
 };
 
 export default Footer;
-

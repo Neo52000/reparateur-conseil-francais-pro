@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import NotificationSystem from './NotificationSystem';
+import Logo from './Logo';
 import { User, Wrench, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -53,8 +54,8 @@ const Navigation = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-8">
-            <Link to="/" className="text-xl font-bold text-blue-600">
-              RepairHub
+            <Link to="/" className="flex items-center">
+              <Logo variant="compact" size="md" />
             </Link>
             
             {!isClientPath && !isRepairerPath && !isAdminPath && (
