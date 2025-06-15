@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import AddressAutocompleteInput from "./AddressAutocompleteInput";
 
 interface AddRepairerModalProps {
   isOpen: boolean;
@@ -192,11 +192,19 @@ const AddRepairerModal: React.FC<AddRepairerModalProps> = ({
 
             <div className="space-y-2">
               <Label htmlFor="address">Adresse *</Label>
-              <Input
-                id="address"
+              <AddressAutocompleteInput
                 value={formData.address}
-                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                 required
+                onChange={({ address, city, postal_code }) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    address: address,
+                    // Si la ville/code postal sont aussi detectés, auto-rempli :
+                    city: city || prev.city,
+                    postal_code: postal_code || prev.postal_code
+                  }));
+                }}
+                placeholder="ex: 10 rue de Paris, Lyon"
               />
             </div>
 
