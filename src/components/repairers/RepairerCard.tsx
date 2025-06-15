@@ -22,6 +22,15 @@ interface RepairerCardProps {
 }
 
 const RepairerCard: React.FC<RepairerCardProps> = ({ repairer, compact = false, onViewProfile }) => {
+  // Logs pour le debugging
+  console.log('RepairerCard - Rendering repairer:', {
+    id: repairer.id,
+    name: repairer.name,
+    address: repairer.address,
+    city: repairer.city,
+    services: repairer.services
+  });
+
   // For demo purposes, we'll randomly assign subscription tiers
   const subscriptionTier = ['free', 'basic', 'premium', 'enterprise'][Math.floor(Math.random() * 4)];
   const displayInfo = getDisplayInfo(repairer, subscriptionTier);
@@ -44,7 +53,7 @@ const RepairerCard: React.FC<RepairerCardProps> = ({ repairer, compact = false, 
               <div className="flex-1">
                 <div className="flex items-center space-x-2">
                   <h3 className="text-lg font-semibold text-gray-900 truncate">
-                    {repairer.name}
+                    {repairer.name || 'Nom non disponible'}
                   </h3>
                   {repairer.is_verified && (
                     <Badge variant="secondary" className="text-xs">
@@ -66,22 +75,26 @@ const RepairerCard: React.FC<RepairerCardProps> = ({ repairer, compact = false, 
 
                 <div className="flex items-center mt-2 text-sm text-gray-600">
                   <MapPin className="h-4 w-4 mr-1" />
-                  <span className="truncate">{displayInfo.address}, {repairer.city}</span>
+                  <span className="truncate">
+                    {displayInfo.address || repairer.address || 'Adresse non disponible'}, {repairer.city || 'Ville non disponible'}
+                  </span>
                 </div>
 
                 {/* Services */}
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {repairer.services.slice(0, compact ? 2 : 4).map((service: string, index: number) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {service}
-                    </Badge>
-                  ))}
-                  {repairer.services.length > (compact ? 2 : 4) && (
-                    <Badge variant="outline" className="text-xs">
-                      +{repairer.services.length - (compact ? 2 : 4)}
-                    </Badge>
-                  )}
-                </div>
+                {repairer.services && repairer.services.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {repairer.services.slice(0, compact ? 2 : 4).map((service: string, index: number) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {service}
+                      </Badge>
+                    ))}
+                    {repairer.services.length > (compact ? 2 : 4) && (
+                      <Badge variant="outline" className="text-xs">
+                        +{repairer.services.length - (compact ? 2 : 4)}
+                      </Badge>
+                    )}
+                  </div>
+                )}
 
                 {/* Quick Info */}
                 <div className="flex items-center space-x-4 mt-3 text-sm">

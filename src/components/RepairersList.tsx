@@ -18,7 +18,14 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
 
   const { repairers, loading, error } = useRepairers(filters);
 
+  // Logs pour le debugging
+  console.log('RepairersList - Received repairers:', repairers);
+  console.log('RepairersList - Repairers count:', repairers.length);
+  console.log('RepairersList - Loading:', loading);
+  console.log('RepairersList - Error:', error);
+
   const handleViewProfile = (repairerId: string) => {
+    console.log('RepairersList - Opening profile for:', repairerId);
     setSelectedRepairerId(repairerId);
     setIsProfileModalOpen(true);
   };
@@ -29,6 +36,7 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
   };
 
   if (loading) {
+    console.log('RepairersList - Rendering loading state');
     return (
       <div className="space-y-4">
         {[...Array(3)].map((_, i) => (
@@ -50,6 +58,7 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
   }
 
   if (error) {
+    console.log('RepairersList - Rendering error state:', error);
     return (
       <Card>
         <CardContent className="p-4 text-center">
@@ -59,6 +68,8 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
       </Card>
     );
   }
+
+  console.log('RepairersList - Rendering main content');
 
   return (
     <>
@@ -83,14 +94,22 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
             </CardContent>
           </Card>
         ) : (
-          repairers.map((repairer) => (
-            <RepairerCard 
-              key={repairer.id} 
-              repairer={repairer} 
-              compact={compact}
-              onViewProfile={handleViewProfile}
-            />
-          ))
+          repairers.map((repairer, index) => {
+            console.log(`RepairersList - Rendering repairer ${index + 1}:`, {
+              id: repairer.id,
+              name: repairer.name,
+              city: repairer.city
+            });
+            
+            return (
+              <RepairerCard 
+                key={repairer.id} 
+                repairer={repairer} 
+                compact={compact}
+                onViewProfile={handleViewProfile}
+              />
+            );
+          })
         )}
 
         {!compact && repairers.length > 0 && (

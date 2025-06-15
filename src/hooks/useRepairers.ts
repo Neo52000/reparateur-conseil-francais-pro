@@ -99,6 +99,19 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
         }
 
         console.log('useRepairers - Supabase data received:', data);
+        console.log('useRepairers - Supabase data length:', data?.length);
+        
+        // Log détaillé de chaque réparateur
+        if (data && data.length > 0) {
+          data.forEach((repairer, index) => {
+            console.log(`useRepairers - Repairer ${index + 1}:`, {
+              id: repairer.id,
+              name: repairer.name,
+              city: repairer.city,
+              services: repairer.services
+            });
+          });
+        }
 
         if (data && data.length > 0) {
           // Calculer la distance si la position utilisateur est disponible
@@ -122,8 +135,20 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
 
       // Si pas de données Supabase, utiliser les données mockées
       console.log('useRepairers - Using mock data');
+      console.log('useRepairers - MOCK_REPAIRERS:', MOCK_REPAIRERS);
       const mockData = convertMockToRepairersDB(MOCK_REPAIRERS);
-      console.log('useRepairers - Mock data:', mockData);
+      console.log('useRepairers - Mock data converted:', mockData);
+      
+      // Log détaillé de chaque réparateur mocké
+      mockData.forEach((repairer, index) => {
+        console.log(`useRepairers - Mock Repairer ${index + 1}:`, {
+          id: repairer.id,
+          name: repairer.name,
+          city: repairer.city,
+          services: repairer.services
+        });
+      });
+      
       setRepairers(mockData);
       
     } catch (err) {
@@ -134,6 +159,7 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
       // Utiliser les données mockées en cas d'erreur
       console.log('useRepairers - Fallback to mock data due to error');
       const mockData = convertMockToRepairersDB(MOCK_REPAIRERS);
+      console.log('useRepairers - Fallback mock data:', mockData);
       setRepairers(mockData);
     } finally {
       setLoading(false);
@@ -156,6 +182,10 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
   };
+
+  // Log final avant le retour
+  console.log('useRepairers - Final repairers state:', repairers);
+  console.log('useRepairers - Final repairers count:', repairers.length);
 
   return {
     repairers,
