@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useRepairers } from '@/hooks/useRepairers';
 import { RepairerDB } from '@/lib/supabase';
+import ClaimProfileBanner from './ClaimProfileBanner';
 
 interface RepairersListProps {
   compact?: boolean;
@@ -49,7 +50,8 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
       phone: isBasicOrHigher ? repairer.phone : '•••••••••••',
       email: isBasicOrHigher ? repairer.email : '•••••@••••••',
       showQuoteButton: isPremiumOrHigher,
-      showContactInfo: isBasicOrHigher
+      showContactInfo: isBasicOrHigher,
+      showClaimBanner: subscriptionTier === 'free'
     };
   };
 
@@ -172,6 +174,11 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
                   )}
                 </div>
               </div>
+
+              {/* Banner de revendication pour les profils gratuits */}
+              {displayInfo.showClaimBanner && !compact && (
+                <ClaimProfileBanner businessName={repairer.name} />
+              )}
             </div>
           </div>
         </CardContent>

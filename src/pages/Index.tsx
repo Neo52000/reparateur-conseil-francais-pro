@@ -37,40 +37,28 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-      {/* Hero Section */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Hero Section avec image pleine largeur et recherche dessus */}
+      <div className="relative h-screen bg-cover bg-center" style={{
+        backgroundImage: "url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')"
+      }}>
+        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+        <div className="relative z-10 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              RepairHub - Votre plateforme de réparation
+            <h1 className="text-5xl md:text-6xl font-bold mb-4">
+              RepairHub
             </h1>
-            <p className="text-xl text-gray-600 mb-8">
+            <p className="text-xl md:text-2xl mb-8">
               Trouvez le meilleur réparateur près de chez vous
             </p>
           </div>
-        </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Section de recherche avec image */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Image côté gauche */}
-          <div className="flex items-center justify-center">
-            <img 
-              src="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
-              alt="Réparation électronique" 
-              className="rounded-lg shadow-lg max-w-full h-auto"
-            />
-          </div>
-
-          {/* Recherche côté droit */}
-          <div className="flex flex-col justify-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Recherche rapide de réparateurs
-            </h2>
-            
-            {/* Search Bar */}
-            <div className="mb-6">
+          {/* Barre de recherche sur l'image */}
+          <div className="w-full max-w-2xl">
+            <div className="bg-white rounded-lg p-6 shadow-xl">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                Recherche rapide de réparateurs
+              </h2>
+              
               <div className="flex flex-col space-y-4">
                 <div className="relative">
                   <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -90,30 +78,32 @@ const Index = () => {
                     className="pl-10"
                   />
                 </div>
-                <Button className="w-full">
+                <Button className="w-full" size="lg">
                   Rechercher
                 </Button>
               </div>
-            </div>
 
-            {/* Popular Services */}
-            <div className="space-y-2">
-              <span className="text-sm text-gray-600">Services populaires :</span>
-              <div className="flex flex-wrap gap-2">
-                {popularServices.map((service, index) => (
-                  <Badge 
-                    key={index} 
-                    variant="secondary" 
-                    className="cursor-pointer hover:bg-blue-100"
-                  >
-                    {service}
-                  </Badge>
-                ))}
+              {/* Popular Services */}
+              <div className="mt-6 space-y-2">
+                <span className="text-sm text-gray-600">Services populaires :</span>
+                <div className="flex flex-wrap gap-2">
+                  {popularServices.map((service, index) => (
+                    <Badge 
+                      key={index} 
+                      variant="secondary" 
+                      className="cursor-pointer hover:bg-blue-100"
+                    >
+                      {service}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {quickStats.map((stat, index) => (

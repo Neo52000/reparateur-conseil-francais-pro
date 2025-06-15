@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Mail, Facebook, Linkedin, Instagram } from 'lucide-react';
+import { MapPin, Phone, Mail, Facebook, Linkedin, Instagram, UserPlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Footer = () => {
   return (
@@ -55,7 +56,27 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center">
+        {/* Section d'inscription à l'annuaire */}
+        <div className="border-t border-gray-700 mt-8 pt-8">
+          <div className="bg-gradient-to-r from-blue-600 to-orange-600 rounded-lg p-6 mb-6">
+            <div className="flex flex-col md:flex-row items-center justify-between">
+              <div className="mb-4 md:mb-0">
+                <h4 className="text-xl font-bold text-white mb-2">
+                  Vous êtes réparateur ?
+                </h4>
+                <p className="text-blue-100">
+                  Rejoignez notre annuaire et développez votre activité avec RepairHub
+                </p>
+              </div>
+              <Button className="bg-white text-blue-600 hover:bg-gray-100 font-semibold">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Inscrivez-vous gratuitement
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center">
           <p className="text-gray-400">
             © 2024 RepairHub. Tous droits réservés.
           </p>
