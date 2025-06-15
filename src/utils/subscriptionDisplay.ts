@@ -1,5 +1,5 @@
 
-import { RepairerDB } from '@/lib/supabase';
+import { RepairerDB } from '@/hooks/useRepairers';
 
 export interface DisplayInfo {
   address: string;
