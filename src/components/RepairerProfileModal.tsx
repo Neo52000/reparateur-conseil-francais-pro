@@ -1,17 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/integrations/supabase/client';
+
+import React, { useState } from 'react';
+import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import RepairerProfileForm from './RepairerProfileForm';
-import RepairerProfileHeader from './profile/RepairerProfileHeader';
-import GeneralInfoTab from './profile/GeneralInfoTab';
-import ContactSocialTab from './profile/ContactSocialTab';
-import ServicesTab from './profile/ServicesTab';
 import { RepairerProfile } from '@/types/repairerProfile';
-import { getMockProfile } from '@/services/mockRepairerProfiles';
-import { useRepairers } from '@/hooks/useRepairers';
+import { useProfileData } from './repairer-profile-modal/ProfileDataLoader';
+import LoadingState from './repairer-profile-modal/LoadingState';
+import NotFoundState from './repairer-profile-modal/NotFoundState';
+import RepairerProfileModalContent from './repairer-profile-modal/RepairerProfileModalContent';
 
 interface RepairerProfileModalProps {
   isOpen: boolean;
@@ -26,144 +21,11 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
   repairerId,
   isAdmin = false
 }) => {
-  const [profile, setProfile] = useState<RepairerProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
-  const { repairers } = useRepairers();
-
-  useEffect(() => {
-    if (isOpen && repairerId) {
-      fetchProfile();
-    }
-  }, [isOpen, repairerId]);
-
-  const createMockProfileFromRepairer = async (repairerId: string): Promise<RepairerProfile | null> => {
-    try {
-      const { data: repairer, error } = await supabase
-        .from('repairers')
-        .select('*')
-        .eq('id', repairerId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching repairer from database:', error);
-        return null;
-      }
-
-      if (!repairer) {
-        console.log('Repairer not found in database:', repairerId);
-        return null;
-      }
-
-      return {
-        id: repairerId,
-        repairer_id: repairerId,
-        business_name: repairer.name,
-        description: `${repairer.name} est un réparateur professionnel spécialisé dans la réparation d'appareils électroniques. Avec une expertise reconnue et des années d'expérience, nous offrons des services de qualité pour tous vos besoins de réparation.`,
-        address: repairer.address,
-        city: repairer.city,
-        postal_code: repairer.postal_code,
-        phone: repairer.phone || '+33 1 23 45 67 89',
-        email: repairer.email || `contact@${repairer.name.toLowerCase().replace(/\s+/g, '')}.fr`,
-        website: repairer.website || `https://www.${repairer.name.toLowerCase().replace(/\s+/g, '')}.fr`,
-        siret_number: '12345678901234',
-        repair_types: repairer.services || [],
-        profile_image_url: null,
-        facebook_url: `https://facebook.com/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
-        twitter_url: `https://twitter.com/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
-        instagram_url: `https://instagram.com/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
-        linkedin_url: `https://linkedin.com/company/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
-        has_qualirepar_label: Math.random() > 0.5,
-        created_at: repairer.created_at,
-        updated_at: repairer.updated_at
-      };
-    } catch (error) {
-      console.error('Error creating profile from repairer data:', error);
-      return null;
-    }
-  };
-
-  const fetchProfile = async () => {
-    setLoading(true);
-    try {
-      console.log('Fetching profile for repairer ID:', repairerId);
-      
-      const { data, error } = await supabase
-        .from('repairer_profiles')
-        .select('*')
-        .eq('user_id', repairerId)
-        .maybeSingle();
-
-      if (error && !error.message.includes('invalid input syntax for type uuid')) {
-        throw error;
-      }
-
-      if (data) {
-        console.log('Profile found in Supabase:', data);
-        // Map database fields to our interface
-        const mappedProfile: RepairerProfile = {
-          id: data.id,
-          repairer_id: data.user_id,
-          business_name: data.business_name,
-          siret_number: data.siret_number,
-          description: data.description,
-          address: data.address,
-          city: data.city,
-          postal_code: data.postal_code,
-          phone: data.phone,
-          email: data.email,
-          website: data.website,
-          facebook_url: data.facebook_url,
-          instagram_url: data.instagram_url,
-          linkedin_url: data.linkedin_url,
-          twitter_url: data.twitter_url,
-          has_qualirepar_label: data.has_qualirepar_label,
-          repair_types: data.repair_types,
-          profile_image_url: data.profile_image_url,
-          created_at: data.created_at,
-          updated_at: data.updated_at
-        };
-        setProfile(mappedProfile);
-      } else {
-        console.log('No profile in Supabase, trying to create from repairer data...');
-        
-        const profileFromRepairer = await createMockProfileFromRepairer(repairerId);
-        
-        if (profileFromRepairer) {
-          console.log('Created profile from repairer data:', profileFromRepairer);
-          setProfile(profileFromRepairer);
-        } else {
-          const mockProfile = getMockProfile(repairerId);
-          if (mockProfile) {
-            console.log('Using existing mock profile:', mockProfile);
-            setProfile(mockProfile);
-          } else {
-            console.log('No profile data available for repairer:', repairerId);
-            setProfile(null);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      
-      const fallbackProfile = await createMockProfileFromRepairer(repairerId);
-      if (fallbackProfile) {
-        setProfile(fallbackProfile);
-      } else {
-        toast({
-          title: "Erreur",
-          description: "Impossible de charger le profil du réparateur",
-          variant: "destructive"
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { profile, loading } = useProfileData(repairerId, isOpen);
 
   const handleProfileUpdate = (updatedProfile: RepairerProfile) => {
-    setProfile(updatedProfile);
     setIsEditing(false);
     toast({
       title: "Succès",
@@ -172,88 +34,24 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
   };
 
   if (loading) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
+    return <LoadingState isOpen={isOpen} onClose={onClose} />;
   }
 
   if (!profile) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Profil non trouvé</DialogTitle>
-          </DialogHeader>
-          <div className="text-center py-8">
-            <p className="text-gray-500">Aucun profil trouvé pour ce réparateur.</p>
-            <p className="text-sm text-gray-400 mt-2">Le réparateur n'a peut-être pas encore créé son profil.</p>
-            <Button onClick={onClose} className="mt-4">Fermer</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  if (isEditing) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Modifier le profil</DialogTitle>
-          </DialogHeader>
-          <RepairerProfileForm
-            profile={profile}
-            onSave={handleProfileUpdate}
-            onCancel={() => setIsEditing(false)}
-            isAdmin={isAdmin}
-          />
-        </DialogContent>
-      </Dialog>
-    );
+    return <NotFoundState isOpen={isOpen} onClose={onClose} />;
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <RepairerProfileHeader
-            profile={profile}
-            onEdit={() => setIsEditing(true)}
-          />
-        </DialogHeader>
-
-        <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="general">Informations générales</TabsTrigger>
-            <TabsTrigger value="contact">Contact & Réseaux</TabsTrigger>
-            <TabsTrigger value="services">Services</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="general">
-            <GeneralInfoTab profile={profile} />
-          </TabsContent>
-
-          <TabsContent value="contact">
-            <ContactSocialTab profile={profile} />
-          </TabsContent>
-
-          <TabsContent value="services">
-            <ServicesTab profile={profile} />
-          </TabsContent>
-        </Tabs>
-
-        <div className="flex justify-end pt-4">
-          <Button onClick={onClose} variant="outline">
-            Fermer
-          </Button>
-        </div>
-      </DialogContent>
+      <RepairerProfileModalContent
+        profile={profile}
+        isEditing={isEditing}
+        isAdmin={isAdmin}
+        onEdit={() => setIsEditing(true)}
+        onSave={handleProfileUpdate}
+        onCancel={() => setIsEditing(false)}
+        onClose={onClose}
+      />
     </Dialog>
   );
 };
