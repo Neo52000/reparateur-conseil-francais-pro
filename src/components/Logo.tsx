@@ -95,22 +95,23 @@ const Logo: React.FC<LogoProps> = ({ className = '', variant = 'full', size = 'm
       </div>
 
       {/* Text part */}
-      <div className="flex flex-col">
-        {variant === 'full' ? (
-          <>
-            <span className={`${textSize} font-bold leading-tight`}>
-              <span className="text-blue-600">Top</span>
-              <span className="text-orange-600">Réparateurs</span>
-            </span>
-            <span className="text-xs text-gray-600 -mt-1">.fr</span>
-          </>
-        ) : (
+      {variant === 'full' ? (
+        <div className="flex items-baseline">
+          <span className={`${textSize} font-bold leading-tight`}>
+            <span className="text-blue-600">Top</span>
+            <span className="text-orange-600">Réparateurs</span>
+          </span>
+          <span className="text-sm text-gray-600 ml-1">.fr</span>
+        </div>
+      ) : (
+        <div className="flex items-baseline">
           <span className={`${textSize} font-bold`}>
             <span className="text-blue-600">Top</span>
             <span className="text-orange-600">Réparateurs</span>
           </span>
-        )}
-      </div>
+          <span className="text-sm text-gray-600 ml-1">.fr</span>
+        </div>
+      )}
     </div>
   );
 };
