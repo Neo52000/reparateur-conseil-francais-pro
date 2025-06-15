@@ -29,7 +29,7 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
-  const { profile, loading, fetchProfile } = useProfileData(repairerId, isOpen);
+  const { profile, loading, fetchProfile, refreshProfile } = useProfileData(repairerId, isOpen);
   const { user, isAdmin: userIsAdmin } = useAuth();
 
   /**
@@ -42,7 +42,10 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
     try {
       // La sauvegarde est gérée dans le formulaire lui-même
       // Ici on rafraîchit simplement les données et ferme l'édition
-      await fetchProfile(updatedProfile.repairer_id || repairerId);
+      console.log('🔄 Refreshing profile data after save...');
+      
+      // Utiliser refreshProfile au lieu de fetchProfile avec un ID
+      await refreshProfile();
       setIsEditing(false);
 
       console.log('✅ Profile update completed successfully');

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -7,11 +8,11 @@ import { getMockProfile } from '@/services/mockRepairerProfiles';
 interface UseProfileDataResult {
   profile: RepairerProfile | null;
   loading: boolean;
-  fetchProfile: () => Promise<void>;
+  fetchProfile: (targetId?: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
-export const useProfileData = (repairerId: string, isOpen: boolean): UseProfileDataResult & { fetchProfile: (targetId?: string) => Promise<void> } => {
+export const useProfileData = (repairerId: string, isOpen: boolean): UseProfileDataResult => {
   const [profile, setProfile] = useState<RepairerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -85,26 +86,50 @@ export const useProfileData = (repairerId: string, isOpen: boolean): UseProfileD
     }
   };
 
-  // fetchProfile prend maintenant optionnellement un nouvel id à requêter
   const fetchProfile = async (targetId?: string) => {
     setLoading(true);
     try {
       const queryId = targetId || repairerId;
       console.log('Fetching profile for repairer ID:', queryId);
-      const { data, error } = await supabase
+      
+      // Essayer d'abord de chercher par user_id
+      let { data, error } = await supabase
         .from('repairer_profiles')
         .select('*')
         .eq('user_id', queryId)
         .maybeSingle();
+
+      // Si pas trouvé par user_id, essayer par email ou autre critère
+      if (!data && !error) {
+        // Chercher dans la table repairers pour obtenir l'email
+        const { data: repairerData } = await supabase
+          .from('repairers')
+          .select('email')
+          .eq('id', queryId)
+          .maybeSingle();
+
+        if (repairerData?.email) {
+          const result = await supabase
+            .from('repairer_profiles')
+            .select('*')
+            .eq('email', repairerData.email)
+            .maybeSingle();
+          
+          data = result.data;
+          error = result.error;
+        }
+      }
 
       if (error && !error.message.includes('invalid input syntax for type uuid')) {
         throw error;
       }
 
       if (data) {
+        console.log('Found profile in database:', data);
         const mappedProfile = mapDatabaseProfileToInterface(data);
         setProfile(mappedProfile);
       } else {
+        console.log('No profile found in database, creating mock profile');
         const profileFromRepairer = await createMockProfileFromRepairer(queryId);
         if (profileFromRepairer) {
           setProfile(profileFromRepairer);
@@ -118,6 +143,7 @@ export const useProfileData = (repairerId: string, isOpen: boolean): UseProfileD
         }
       }
     } catch (error) {
+      console.error('Error fetching profile:', error);
       const fallbackProfile = await createMockProfileFromRepairer(targetId || repairerId);
       if (fallbackProfile) {
         setProfile(fallbackProfile);
@@ -127,6 +153,7 @@ export const useProfileData = (repairerId: string, isOpen: boolean): UseProfileD
           description: "Impossible de charger le profil du réparateur",
           variant: "destructive"
         });
+        setProfile(null);
       }
     } finally {
       setLoading(false);
