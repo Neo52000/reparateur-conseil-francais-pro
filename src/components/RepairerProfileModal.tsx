@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -38,38 +37,52 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
     }
   }, [isOpen, repairerId]);
 
-  const createMockProfileFromRepairer = (repairerId: string): RepairerProfile | null => {
-    // Trouver le réparateur dans la liste
-    const repairer = repairers.find(r => r.id === repairerId);
-    
-    if (!repairer) {
-      console.log('Repairer not found in list:', repairerId);
+  const createMockProfileFromRepairer = async (repairerId: string): Promise<RepairerProfile | null> => {
+    try {
+      // Récupérer le réparateur depuis la base de données Supabase
+      const { data: repairer, error } = await supabase
+        .from('repairers')
+        .select('*')
+        .eq('id', repairerId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching repairer from database:', error);
+        return null;
+      }
+
+      if (!repairer) {
+        console.log('Repairer not found in database:', repairerId);
+        return null;
+      }
+
+      // Créer un profil mocké basé sur les données du réparateur
+      return {
+        id: repairerId,
+        user_id: repairerId,
+        business_name: repairer.name,
+        description: `${repairer.name} est un réparateur professionnel spécialisé dans la réparation d'appareils électroniques. Avec une expertise reconnue et des années d'expérience, nous offrons des services de qualité pour tous vos besoins de réparation.`,
+        address: repairer.address,
+        city: repairer.city,
+        postal_code: repairer.postal_code,
+        phone: repairer.phone || '+33 1 23 45 67 89',
+        email: repairer.email || `contact@${repairer.name.toLowerCase().replace(/\s+/g, '')}.fr`,
+        website: repairer.website || `https://www.${repairer.name.toLowerCase().replace(/\s+/g, '')}.fr`,
+        siret_number: '12345678901234',
+        repair_types: repairer.services || [],
+        profile_image_url: null,
+        facebook_url: `https://facebook.com/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
+        twitter_url: `https://twitter.com/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
+        instagram_url: `https://instagram.com/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
+        linkedin_url: `https://linkedin.com/company/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
+        has_qualirepar_label: Math.random() > 0.5,
+        created_at: repairer.created_at,
+        updated_at: repairer.updated_at
+      };
+    } catch (error) {
+      console.error('Error creating profile from repairer data:', error);
       return null;
     }
-
-    // Créer un profil mocké basé sur les données du réparateur
-    return {
-      id: repairerId,
-      user_id: repairerId,
-      business_name: repairer.name,
-      description: `${repairer.name} est un réparateur professionnel spécialisé dans la réparation d'appareils électroniques. Avec une expertise reconnue et des années d'expérience, nous offrons des services de qualité pour tous vos besoins de réparation.`,
-      address: repairer.address,
-      city: repairer.city,
-      postal_code: repairer.postal_code,
-      phone: repairer.phone || '+33 1 23 45 67 89',
-      email: repairer.email || `contact@${repairer.name.toLowerCase().replace(/\s+/g, '')}.fr`,
-      website: repairer.website || `https://www.${repairer.name.toLowerCase().replace(/\s+/g, '')}.fr`,
-      siret_number: '12345678901234',
-      repair_types: repairer.services,
-      profile_image_url: null,
-      facebook_url: `https://facebook.com/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
-      twitter_url: `https://twitter.com/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
-      instagram_url: `https://instagram.com/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
-      linkedin_url: `https://linkedin.com/company/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
-      has_qualirepar_label: Math.random() > 0.5,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
   };
 
   const fetchProfile = async () => {
@@ -92,30 +105,31 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
         console.log('Profile found in Supabase:', data);
         setProfile(data);
       } else {
-        console.log('No profile in Supabase, trying mock data...');
+        console.log('No profile in Supabase, trying to create from repairer data...');
         
-        // Essayer d'abord les profils mockés existants
-        let mockProfile = getMockProfile(repairerId);
+        // Créer un profil depuis les données du réparateur dans la DB
+        const profileFromRepairer = await createMockProfileFromRepairer(repairerId);
         
-        // Si pas trouvé, créer un profil basé sur les données du réparateur
-        if (!mockProfile) {
-          console.log('No existing mock profile, creating from repairer data...');
-          mockProfile = createMockProfileFromRepairer(repairerId);
-        }
-        
-        if (mockProfile) {
-          console.log('Using mock profile:', mockProfile);
-          setProfile(mockProfile);
+        if (profileFromRepairer) {
+          console.log('Created profile from repairer data:', profileFromRepairer);
+          setProfile(profileFromRepairer);
         } else {
-          console.log('No profile data available for repairer:', repairerId);
-          setProfile(null);
+          // En dernier recours, essayer les profils mockés existants
+          const mockProfile = getMockProfile(repairerId);
+          if (mockProfile) {
+            console.log('Using existing mock profile:', mockProfile);
+            setProfile(mockProfile);
+          } else {
+            console.log('No profile data available for repairer:', repairerId);
+            setProfile(null);
+          }
         }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
       
       // En cas d'erreur, essayer de créer un profil depuis les données du réparateur
-      const fallbackProfile = createMockProfileFromRepairer(repairerId);
+      const fallbackProfile = await createMockProfileFromRepairer(repairerId);
       if (fallbackProfile) {
         setProfile(fallbackProfile);
       } else {
