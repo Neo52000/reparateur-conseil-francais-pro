@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,6 +15,13 @@ import {
   Clock,
   Star
 } from 'lucide-react';
+import OverviewTabSection from "./repairer-dashboard/OverviewTabSection";
+import OrdersTabSection from "./repairer-dashboard/OrdersTabSection";
+import CalendarTabSection from "./repairer-dashboard/CalendarTabSection";
+import InventoryTabSection from "./repairer-dashboard/InventoryTabSection";
+import AnalyticsTabSection from "./repairer-dashboard/AnalyticsTabSection";
+import BillingTabSection from "./repairer-dashboard/BillingTabSection";
+import ProfileTabSection from "./repairer-dashboard/ProfileTabSection";
 
 const RepairerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -148,203 +154,45 @@ const RepairerDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Aperçu</TabsTrigger>
             <TabsTrigger value="orders">Commandes</TabsTrigger>
             <TabsTrigger value="calendar">Planning</TabsTrigger>
             <TabsTrigger value="inventory">Stock</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="billing">Facturation</TabsTrigger>
+            <TabsTrigger value="profile">Profil</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Commandes récentes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {repairerData.orders.map((order) => (
-                      <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h3 className="font-semibold">{order.client}</h3>
-                          <p className="text-sm text-gray-600">{order.device} • {order.issue}</p>
-                          <p className="text-sm text-green-600 font-medium">{order.estimatedPrice}€</p>
-                        </div>
-                        <div className="text-right">
-                          <Badge variant={order.status === 'En cours' ? 'default' : 'secondary'}>
-                            {order.status}
-                          </Badge>
-                          <Badge 
-                            variant={order.priority === 'Urgente' ? 'destructive' : 'outline'}
-                            className="ml-1"
-                          >
-                            {order.priority}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Rendez-vous aujourd'hui</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {repairerData.appointments.map((appointment) => (
-                      <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h3 className="font-semibold">{appointment.client}</h3>
-                          <p className="text-sm text-gray-600">{appointment.service}</p>
-                          <p className="text-sm text-gray-500">{appointment.phone}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-blue-600">{appointment.time}</p>
-                          <Button size="sm" variant="outline">Contacter</Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <OverviewTabSection
+              orders={repairerData.orders}
+              appointments={repairerData.appointments}
+            />
           </TabsContent>
 
           <TabsContent value="orders">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileText className="h-5 w-5 mr-2" />
-                  Gestion des commandes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {repairerData.orders.map((order) => (
-                    <div key={order.id} className="p-6 border rounded-lg">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h3 className="text-lg font-semibold">{order.client}</h3>
-                          <p className="text-gray-600">{order.device} • {order.issue}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xl font-bold text-green-600">{order.estimatedPrice}€</p>
-                          <Badge variant={order.status === 'En cours' ? 'default' : 'secondary'}>
-                            {order.status}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button size="sm">Mettre à jour le statut</Button>
-                        <Button size="sm" variant="outline">Envoyer message</Button>
-                        <Button size="sm" variant="outline">Générer facture</Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <OrdersTabSection orders={repairerData.orders} />
           </TabsContent>
 
           <TabsContent value="calendar">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2" />
-                  Planning des rendez-vous
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-600">Calendrier interactif pour la gestion des rendez-vous</p>
-                  <Button className="mt-4">Configurer les créneaux</Button>
-                </div>
-              </CardContent>
-            </Card>
+            <CalendarTabSection />
           </TabsContent>
 
           <TabsContent value="inventory">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Package className="h-5 w-5 mr-2" />
-                  Gestion des stocks
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {repairerData.inventory.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h3 className="font-semibold">{item.part}</h3>
-                        <p className="text-sm text-gray-600">Prix: {item.price}€</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">Stock: {item.stock}</p>
-                        <Badge variant={item.stock <= item.minStock ? 'destructive' : 'default'}>
-                          {item.stock <= item.minStock ? 'Stock faible' : 'En stock'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Button className="w-full mt-4">Ajouter une pièce</Button>
-              </CardContent>
-            </Card>
+            <InventoryTabSection inventory={repairerData.inventory} />
           </TabsContent>
 
           <TabsContent value="analytics">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2" />
-                  Analyses de performance
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <BarChart3 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-600">Graphiques et statistiques détaillées</p>
-                  <div className="grid grid-cols-2 gap-4 mt-6 text-left">
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Temps moyen de réparation</p>
-                      <p className="text-2xl font-bold">{repairerData.stats.avgRepairTime}j</p>
-                    </div>
-                    <div className="p-4 bg-green-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Taux de satisfaction</p>
-                      <p className="text-2xl font-bold">96%</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AnalyticsTabSection avgRepairTime={repairerData.stats.avgRepairTime} />
           </TabsContent>
 
           <TabsContent value="billing">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileText className="h-5 w-5 mr-2" />
-                  Facturation intégrée
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-600">Système de facturation automatisé</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                    <Button>Créer une facture</Button>
-                    <Button variant="outline">Voir les paiements</Button>
-                    <Button variant="outline">Rapports financiers</Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <BillingTabSection />
+          </TabsContent>
+
+          <TabsContent value="profile">
+            <ProfileTabSection profileData={repairerData.profile} />
           </TabsContent>
         </Tabs>
       </div>
