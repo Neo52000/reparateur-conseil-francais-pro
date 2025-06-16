@@ -16,7 +16,7 @@ import { Plus, Edit, Trash2, Copy, Eye, EyeOff } from 'lucide-react';
 interface PromoCode {
   id: string;
   code: string;
-  discount_type: 'percentage' | 'fixed_amount';
+  discount_type: 'percentage' | 'fixed_amount' | 'free_months';
   discount_value: number;
   max_uses: number | null;
   current_uses: number;
@@ -37,7 +37,7 @@ const PromoCodesManagement = () => {
   // Form state
   const [formData, setFormData] = useState({
     code: '',
-    discount_type: 'percentage' as 'percentage' | 'fixed_amount',
+    discount_type: 'percentage' as 'percentage' | 'fixed_amount' | 'free_months',
     discount_value: '',
     max_uses: '',
     valid_until: '',
@@ -62,7 +62,7 @@ const PromoCodesManagement = () => {
       // Type assertion pour s'assurer que discount_type correspond à nos types attendus
       const typedData = (data || []).map(item => ({
         ...item,
-        discount_type: item.discount_type as 'percentage' | 'fixed_amount',
+        discount_type: item.discount_type as 'percentage' | 'fixed_amount' | 'free_months',
         applicable_plans: item.applicable_plans || []
       })) as PromoCode[];
       
@@ -218,6 +218,32 @@ const PromoCodesManagement = () => {
     setFormData(prev => ({ ...prev, code: result }));
   };
 
+  const getDiscountLabel = (type: string) => {
+    switch (type) {
+      case 'percentage':
+        return 'Pourcentage';
+      case 'fixed_amount':
+        return 'Montant fixe';
+      case 'free_months':
+        return 'Mois gratuit';
+      default:
+        return type;
+    }
+  };
+
+  const getDiscountDisplay = (type: string, value: number) => {
+    switch (type) {
+      case 'percentage':
+        return `${value}%`;
+      case 'fixed_amount':
+        return `${value}€`;
+      case 'free_months':
+        return `${value} mois`;
+      default:
+        return `${value}`;
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center p-8">Chargement...</div>;
   }
@@ -263,7 +289,7 @@ const PromoCodesManagement = () => {
                 <Label htmlFor="discount_type">Type de réduction</Label>
                 <Select 
                   value={formData.discount_type} 
-                  onValueChange={(value: 'percentage' | 'fixed_amount') => 
+                  onValueChange={(value: 'percentage' | 'fixed_amount' | 'free_months') => 
                     setFormData(prev => ({ ...prev, discount_type: value }))
                   }
                 >
@@ -273,13 +299,16 @@ const PromoCodesManagement = () => {
                   <SelectContent>
                     <SelectItem value="percentage">Pourcentage</SelectItem>
                     <SelectItem value="fixed_amount">Montant fixe</SelectItem>
+                    <SelectItem value="free_months">Mois gratuit</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="discount_value">
-                  Valeur {formData.discount_type === 'percentage' ? '(%)' : '(€)'}
+                  Valeur {formData.discount_type === 'percentage' ? '(%)' : 
+                           formData.discount_type === 'fixed_amount' ? '(€)' : 
+                           formData.discount_type === 'free_months' ? '(mois)' : ''}
                 </Label>
                 <Input
                   id="discount_value"
@@ -400,10 +429,7 @@ const PromoCodesManagement = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {promo.discount_type === 'percentage' 
-                        ? `${promo.discount_value}%` 
-                        : `${promo.discount_value}€`
-                      }
+                      {getDiscountDisplay(promo.discount_type, promo.discount_value)}
                     </TableCell>
                     <TableCell>
                       {promo.current_uses} / {promo.max_uses || '∞'}
