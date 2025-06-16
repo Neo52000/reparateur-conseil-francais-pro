@@ -8,6 +8,7 @@ import ClientServicesSection from '@/components/profile/ClientServicesSection';
 import ClientContactSection from '@/components/profile/ClientContactSection';
 import ClientTestimonialsSection from '@/components/profile/ClientTestimonialsSection';
 import ClientOpeningHoursSection from '@/components/profile/ClientOpeningHoursSection';
+import ClientSimplifiedProfile from '@/components/profile/ClientSimplifiedProfile';
 import ClaimBusinessBanner from '@/components/ClaimBusinessBanner';
 import { RepairerProfile } from '@/types/repairerProfile';
 
@@ -26,53 +27,64 @@ const ClientModeContent: React.FC<ClientModeContentProps> = ({
   onBookAppointment,
   onClose
 }) => {
-  // Vérifier si c'est un profil basique (créé automatiquement)
+  // Vérifier si c'est un profil basique (créé automatiquement) - fiche non revendiquée
   const isBasicProfile = !profile.description && !profile.siret_number && !profile.years_experience;
 
   return (
     <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto" aria-describedby="client-profile-description">
       <DialogHeader>
-        <DialogTitle>Profil réparateur</DialogTitle>
+        <DialogTitle>
+          {isBasicProfile ? 'Fiche réparateur (non revendiquée)' : 'Profil réparateur'}
+        </DialogTitle>
         <DialogDescription id="client-profile-description">
-          Découvrez les informations détaillées sur ce réparateur, ses services et ses avis clients.
+          {isBasicProfile 
+            ? 'Informations de base disponibles. Contactez directement le réparateur ou consultez la fiche complète après revendication.'
+            : 'Découvrez les informations détaillées sur ce réparateur, ses services et ses avis clients.'
+          }
         </DialogDescription>
       </DialogHeader>
       
       <div className="space-y-8 p-2">
-        <ClientRepairerProfileHeader
-          profile={profile}
-          onRequestQuote={onRequestQuote}
-          onCallRepairer={onCallRepairer}
-          onBookAppointment={onBookAppointment}
-        />
+        {isBasicProfile ? (
+          // Affichage simplifié pour les fiches non revendiquées
+          <ClientSimplifiedProfile
+            profile={profile}
+            onCallRepairer={onCallRepairer}
+          />
+        ) : (
+          // Affichage complet pour les fiches revendiquées
+          <>
+            <ClientRepairerProfileHeader
+              profile={profile}
+              onRequestQuote={onRequestQuote}
+              onCallRepairer={onCallRepairer}
+              onBookAppointment={onBookAppointment}
+            />
 
-        <ClientAboutSection profile={profile} />
-        <ClientServicesSection profile={profile} />
-        <ClientOpeningHoursSection profile={profile} />
-        <ClientTestimonialsSection businessName={profile.business_name} />
-        <ClientContactSection profile={profile} />
+            <ClientAboutSection profile={profile} />
+            <ClientServicesSection profile={profile} />
+            <ClientOpeningHoursSection profile={profile} />
+            <ClientTestimonialsSection businessName={profile.business_name} />
+            <ClientContactSection profile={profile} />
 
-        {/* Bannière de revendication pour les profils basiques non revendiqués */}
-        {isBasicProfile && (
-          <ClaimBusinessBanner businessName={profile.business_name} />
+            {/* Actions mobiles sticky pour les fiches complètes */}
+            <div className="lg:hidden sticky bottom-0 bg-white border-t p-4 -mx-2 flex space-x-3">
+              <Button 
+                onClick={onRequestQuote}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                Devis gratuit
+              </Button>
+              <Button 
+                onClick={onCallRepairer}
+                variant="outline"
+                className="flex-1"
+              >
+                Appeler
+              </Button>
+            </div>
+          </>
         )}
-
-        {/* Actions mobiles sticky */}
-        <div className="lg:hidden sticky bottom-0 bg-white border-t p-4 -mx-2 flex space-x-3">
-          <Button 
-            onClick={onRequestQuote}
-            className="flex-1 bg-blue-600 hover:bg-blue-700"
-          >
-            Devis gratuit
-          </Button>
-          <Button 
-            onClick={onCallRepairer}
-            variant="outline"
-            className="flex-1"
-          >
-            Appeler
-          </Button>
-        </div>
 
         {/* Bouton de fermeture */}
         <div className="flex justify-center pt-4">
