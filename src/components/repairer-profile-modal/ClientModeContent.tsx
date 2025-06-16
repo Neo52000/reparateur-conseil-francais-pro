@@ -4,7 +4,6 @@ import { DialogContent, DialogHeader, DialogDescription } from '@/components/ui/
 import { Button } from '@/components/ui/button';
 import ClientRepairerProfileHeader from '@/components/profile/ClientRepairerProfileHeader';
 import ClientAboutSection from '@/components/profile/ClientAboutSection';
-import ClientServicesSection from '@/components/profile/ClientServicesSection';
 import ClientContactSection from '@/components/profile/ClientContactSection';
 import ClientTestimonialsSection from '@/components/profile/ClientTestimonialsSection';
 import ClientOpeningHoursSection from '@/components/profile/ClientOpeningHoursSection';
@@ -59,7 +58,6 @@ const ClientModeContent: React.FC<ClientModeContentProps> = ({
             />
 
             <ClientAboutSection profile={profile} />
-            <ClientServicesSection profile={profile} />
             <ClientOpeningHoursSection profile={profile} />
             <ClientTestimonialsSection businessName={profile.business_name} />
             <ClientContactSection profile={profile} />

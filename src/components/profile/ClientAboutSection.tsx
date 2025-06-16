@@ -9,6 +9,7 @@ import PricingInfoCard from './PricingInfoCard';
 import LanguagesPaymentCard from './LanguagesPaymentCard';
 import CertificationsCard from './CertificationsCard';
 import ServicesOfferedCard from './ServicesOfferedCard';
+import ClientPhotosSection from './ClientPhotosSection';
 
 interface ClientAboutSectionProps {
   profile: RepairerProfile;
@@ -46,6 +47,9 @@ const ClientAboutSection: React.FC<ClientAboutSectionProps> = ({ profile }) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Photos de l'atelier */}
+      <ClientPhotosSection profile={profile} />
 
       {/* Services Options */}
       <ServiceOptionsCard profile={profile} />

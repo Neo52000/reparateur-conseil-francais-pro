@@ -667,6 +667,7 @@ export type Database = {
           languages_spoken: string[] | null
           linkedin_url: string | null
           opening_hours: Json | null
+          other_services: string | null
           payment_methods: string[] | null
           phone: string
           pickup_service: boolean | null
@@ -676,12 +677,16 @@ export type Database = {
           repair_types: string[] | null
           response_time: string | null
           services_offered: string[] | null
+          shop_photos: string[] | null
           siret_number: string | null
+          telegram_url: string | null
+          tiktok_url: string | null
           twitter_url: string | null
           updated_at: string
           user_id: string
           warranty_duration: string | null
           website: string | null
+          whatsapp_url: string | null
           years_experience: number | null
         }
         Insert: {
@@ -701,6 +706,7 @@ export type Database = {
           languages_spoken?: string[] | null
           linkedin_url?: string | null
           opening_hours?: Json | null
+          other_services?: string | null
           payment_methods?: string[] | null
           phone: string
           pickup_service?: boolean | null
@@ -710,12 +716,16 @@ export type Database = {
           repair_types?: string[] | null
           response_time?: string | null
           services_offered?: string[] | null
+          shop_photos?: string[] | null
           siret_number?: string | null
+          telegram_url?: string | null
+          tiktok_url?: string | null
           twitter_url?: string | null
           updated_at?: string
           user_id: string
           warranty_duration?: string | null
           website?: string | null
+          whatsapp_url?: string | null
           years_experience?: number | null
         }
         Update: {
@@ -735,6 +745,7 @@ export type Database = {
           languages_spoken?: string[] | null
           linkedin_url?: string | null
           opening_hours?: Json | null
+          other_services?: string | null
           payment_methods?: string[] | null
           phone?: string
           pickup_service?: boolean | null
@@ -744,12 +755,16 @@ export type Database = {
           repair_types?: string[] | null
           response_time?: string | null
           services_offered?: string[] | null
+          shop_photos?: string[] | null
           siret_number?: string | null
+          telegram_url?: string | null
+          tiktok_url?: string | null
           twitter_url?: string | null
           updated_at?: string
           user_id?: string
           warranty_duration?: string | null
           website?: string | null
+          whatsapp_url?: string | null
           years_experience?: number | null
         }
         Relationships: []
