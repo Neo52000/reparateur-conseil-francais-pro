@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Mail, Facebook, Linkedin, Instagram, UserPlus } from 'lucide-react';
+import { Mail, Facebook, Linkedin, Twitter, Send, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Logo from './Logo';
 
@@ -27,14 +27,6 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4">Contact</h4>
             <div className="space-y-3">
               <div className="flex items-center">
-                <MapPin className="h-4 w-4 mr-2 text-blue-400" />
-                <span className="text-gray-300">Paris, France</span>
-              </div>
-              <div className="flex items-center">
-                <Phone className="h-4 w-4 mr-2 text-blue-400" />
-                <span className="text-gray-300">+33 1 23 45 67 89</span>
-              </div>
-              <div className="flex items-center">
                 <Mail className="h-4 w-4 mr-2 text-blue-400" />
                 <span className="text-gray-300">contact@topreparateurs.fr</span>
               </div>
@@ -52,7 +44,10 @@ const Footer = () => {
                 <Linkedin className="h-6 w-6" />
               </a>
               <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors">
-                <Instagram className="h-6 w-6" />
+                <Twitter className="h-6 w-6" />
+              </a>
+              <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors">
+                <Send className="h-6 w-6" />
               </a>
             </div>
           </div>
