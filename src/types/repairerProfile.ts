@@ -1,4 +1,3 @@
-
 export interface RepairerProfile {
   id: string;
   repairer_id: string;
@@ -15,6 +14,9 @@ export interface RepairerProfile {
   instagram_url: string | null;
   linkedin_url: string | null;
   twitter_url: string | null;
+  whatsapp_url: string | null;
+  telegram_url: string | null;
+  tiktok_url: string | null;
   has_qualirepar_label: boolean;
   repair_types: string[];
   profile_image_url: string | null;

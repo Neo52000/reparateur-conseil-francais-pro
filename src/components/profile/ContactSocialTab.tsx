@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Phone, Mail, Globe, Facebook, Instagram, Linkedin, Twitter } from 'lucide-react';
+import { Phone, Mail, Globe, Facebook, Instagram, Linkedin, Twitter, MessageCircle, Send } from 'lucide-react';
 import { RepairerProfile } from '@/types/repairerProfile';
 
 interface ContactSocialTabProps {
@@ -89,6 +89,47 @@ const ContactSocialTab: React.FC<ContactSocialTabProps> = ({ profile }) => {
                 className="text-blue-400 hover:underline"
               >
                 Twitter
+              </a>
+            </div>
+          )}
+          {profile.whatsapp_url && (
+            <div className="flex items-center space-x-2">
+              <MessageCircle className="h-4 w-4 text-green-600" />
+              <a 
+                href={profile.whatsapp_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-green-600 hover:underline"
+              >
+                WhatsApp
+              </a>
+            </div>
+          )}
+          {profile.telegram_url && (
+            <div className="flex items-center space-x-2">
+              <Send className="h-4 w-4 text-blue-500" />
+              <a 
+                href={profile.telegram_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-500 hover:underline"
+              >
+                Telegram
+              </a>
+            </div>
+          )}
+          {profile.tiktok_url && (
+            <div className="flex items-center space-x-2">
+              <div className="h-4 w-4 bg-black rounded-sm flex items-center justify-center">
+                <span className="text-white text-xs font-bold">T</span>
+              </div>
+              <a 
+                href={profile.tiktok_url} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-black hover:underline"
+              >
+                TikTok
               </a>
             </div>
           )}

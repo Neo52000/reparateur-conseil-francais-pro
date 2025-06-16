@@ -53,6 +53,36 @@ const SocialMediaSection: React.FC<SocialMediaSectionProps> = ({ formData, setFo
             placeholder="https://twitter.com/..."
           />
         </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="whatsapp_url">WhatsApp</Label>
+          <Input
+            id="whatsapp_url"
+            value={formData.whatsapp_url || ''}
+            onChange={(e) => setFormData(prev => ({ ...prev, whatsapp_url: e.target.value }))}
+            placeholder="https://wa.me/..."
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="telegram_url">Telegram</Label>
+          <Input
+            id="telegram_url"
+            value={formData.telegram_url || ''}
+            onChange={(e) => setFormData(prev => ({ ...prev, telegram_url: e.target.value }))}
+            placeholder="https://t.me/..."
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="tiktok_url">TikTok</Label>
+          <Input
+            id="tiktok_url"
+            value={formData.tiktok_url || ''}
+            onChange={(e) => setFormData(prev => ({ ...prev, tiktok_url: e.target.value }))}
+            placeholder="https://tiktok.com/@..."
+          />
+        </div>
       </div>
     </div>
   );
