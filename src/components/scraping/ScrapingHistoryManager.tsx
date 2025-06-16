@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
 import { 
   Trash2, 
   Clock, 
@@ -20,13 +21,19 @@ import { useToast } from '@/hooks/use-toast';
 import { useScrapingStatus } from '@/hooks/useScrapingStatus';
 import { supabase } from '@/integrations/supabase/client';
 
+interface CleanupOption {
+  value: string;
+  label: string;
+  description: string;
+}
+
 const ScrapingHistoryManager = () => {
   const { toast } = useToast();
   const { logs, loading, refetch } = useScrapingStatus();
   const [cleanupFilter, setCleanupFilter] = useState<string>('older_than_week');
   const [isCleaningUp, setIsCleaningUp] = useState(false);
 
-  const cleanupOptions = [
+  const cleanupOptions: CleanupOption[] = [
     { value: 'older_than_day', label: 'Plus de 24h', description: 'Logs de plus de 24 heures' },
     { value: 'older_than_week', label: 'Plus de 7 jours', description: 'Logs de plus d\'une semaine' },
     { value: 'older_than_month', label: 'Plus de 30 jours', description: 'Logs de plus d\'un mois' },
@@ -58,7 +65,7 @@ const ScrapingHistoryManager = () => {
         return { column: 'status', operator: 'eq', value: 'completed' };
       
       case 'all':
-        return null; // Supprimer tout
+        return null;
       
       default:
         return null;
@@ -67,7 +74,7 @@ const ScrapingHistoryManager = () => {
 
   const getLogsToDelete = (filter: string) => {
     const query = getCleanupQuery(filter);
-    if (!query) return logs; // Tous les logs pour 'all'
+    if (!query) return logs;
     
     return logs.filter(log => {
       if (query.column === 'started_at') {
@@ -109,8 +116,7 @@ const ScrapingHistoryManager = () => {
           deleteQuery = deleteQuery.eq(query.column, query.value);
         }
       } else {
-        // Supprimer tout - nous devons utiliser une approche différente
-        deleteQuery = deleteQuery.neq('id', '00000000-0000-0000-0000-000000000000'); // Condition qui match tout
+        deleteQuery = deleteQuery.neq('id', '00000000-0000-0000-0000-000000000000');
       }
       
       const { error } = await deleteQuery;
@@ -124,7 +130,6 @@ const ScrapingHistoryManager = () => {
         description: `${logsToDelete.length} log(s) supprimé(s) avec succès.`
       });
       
-      // Recharger les logs
       await refetch();
       
     } catch (error: any) {
