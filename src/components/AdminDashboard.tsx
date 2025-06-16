@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,9 +5,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Plus, Edit } from 'lucide-react';
+import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Plus, Edit, Percent } from 'lucide-react';
 import ScrapingControl from './ScrapingControl';
 import ClientAccessControl from './ClientAccessControl';
+import PromoCodesManagement from './PromoCodesManagement';
 
 interface SubscriptionData {
   id: string;
@@ -43,7 +43,7 @@ const AdminDashboard = () => {
   const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
   const [repairers, setRepairers] = useState<RepairerData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'subscriptions' | 'repairers' | 'scraping'>('subscriptions');
+  const [activeTab, setActiveTab] = useState<'subscriptions' | 'repairers' | 'scraping' | 'promocodes'>('subscriptions');
   const [stats, setStats] = useState({
     totalSubscriptions: 0,
     activeSubscriptions: 0,
@@ -293,6 +293,16 @@ const AdminDashboard = () => {
           Réparateurs
         </button>
         <button
+          onClick={() => setActiveTab('promocodes')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'promocodes'
+              ? 'bg-white text-gray-900 shadow'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          Codes Promo
+        </button>
+        <button
           onClick={() => setActiveTab('scraping')}
           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'scraping'
@@ -454,6 +464,8 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       )}
+
+      {activeTab === 'promocodes' && <PromoCodesManagement />}
 
       {activeTab === 'scraping' && (
         <div className="space-y-6">
