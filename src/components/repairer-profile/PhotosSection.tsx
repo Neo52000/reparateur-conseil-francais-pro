@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { RepairerProfile } from '@/types/repairerProfile';
-import { Plus, X, Image } from 'lucide-react';
+import { Plus, X, Image, Upload } from 'lucide-react';
 
 interface PhotosSectionProps {
   formData: RepairerProfile;
@@ -34,6 +34,32 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({ formData, setFormData }) 
     }
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    console.log('📁 Files selected:', files.length);
+
+    Array.from(files).forEach((file) => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const dataUrl = event.target?.result as string;
+          console.log('📸 File converted to data URL:', file.name);
+          
+          setFormData(prev => ({
+            ...prev,
+            shop_photos: [...(prev.shop_photos || []), dataUrl]
+          }));
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Reset input
+    e.target.value = '';
+  };
+
   const removePhoto = (index: number) => {
     console.log('🗑️ Removing photo at index:', index);
     const updatedPhotos = (formData.shop_photos || []).filter((_, i) => i !== index);
@@ -57,6 +83,34 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({ formData, setFormData }) 
       </div>
 
       <div className="space-y-4">
+        {/* Upload depuis le disque dur */}
+        <div className="space-y-2">
+          <Label htmlFor="photo_files">Télécharger des photos depuis votre ordinateur</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="photo_files"
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileUpload}
+              className="cursor-pointer"
+            />
+            <Button type="button" variant="outline" onClick={() => document.getElementById('photo_files')?.click()}>
+              <Upload className="h-4 w-4 mr-2" />
+              Parcourir
+            </Button>
+          </div>
+          <p className="text-xs text-gray-500">Formats acceptés : JPG, PNG, GIF. Plusieurs fichiers possibles.</p>
+        </div>
+
+        {/* Séparateur */}
+        <div className="flex items-center gap-4">
+          <div className="flex-1 border-t border-gray-200"></div>
+          <span className="text-sm text-gray-500">ou</span>
+          <div className="flex-1 border-t border-gray-200"></div>
+        </div>
+
+        {/* Ajout par URL */}
         <div className="flex gap-2">
           <div className="flex-1">
             <Label htmlFor="photo_url">URL de la photo</Label>
@@ -85,7 +139,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({ formData, setFormData }) 
         {formData.shop_photos && formData.shop_photos.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {formData.shop_photos.map((photoUrl, index) => (
-              <Card key={`photo-${index}-${photoUrl}`} className="relative group">
+              <Card key={`photo-${index}-${photoUrl.substring(0, 20)}`} className="relative group">
                 <CardContent className="p-3">
                   <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
                     <img
@@ -116,7 +170,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({ formData, setFormData }) 
                     </Button>
                   </div>
                   <p className="text-xs text-gray-500 mt-2 truncate" title={photoUrl}>
-                    {photoUrl}
+                    {photoUrl.startsWith('data:') ? `Image locale ${index + 1}` : photoUrl}
                   </p>
                 </CardContent>
               </Card>
@@ -128,7 +182,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({ formData, setFormData }) 
           <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
             <Image className="h-12 w-12 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-500">Aucune photo ajoutée</p>
-            <p className="text-sm text-gray-400">Ajoutez des photos pour mettre en valeur votre activité</p>
+            <p className="text-sm text-gray-400">Téléchargez des photos pour mettre en valeur votre activité</p>
           </div>
         )}
       </div>
