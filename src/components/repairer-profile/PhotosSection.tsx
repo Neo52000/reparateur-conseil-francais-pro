@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { RepairerProfile } from '@/types/repairerProfile';
-import { Plus, X, Image, Upload } from 'lucide-react';
+import { X, Image, Upload } from 'lucide-react';
 
 interface PhotosSectionProps {
   formData: RepairerProfile;
@@ -13,27 +13,6 @@ interface PhotosSectionProps {
 }
 
 const PhotosSection: React.FC<PhotosSectionProps> = ({ formData, setFormData }) => {
-  const [newPhotoUrl, setNewPhotoUrl] = useState('');
-
-  const addPhoto = (e?: React.MouseEvent | React.KeyboardEvent) => {
-    if (e) {
-      e.preventDefault();
-    }
-    
-    console.log('🖼️ Adding photo:', newPhotoUrl);
-    
-    if (newPhotoUrl.trim()) {
-      const updatedPhotos = [...(formData.shop_photos || []), newPhotoUrl.trim()];
-      console.log('📸 Updated photos array:', updatedPhotos);
-      
-      setFormData(prev => ({ 
-        ...prev, 
-        shop_photos: updatedPhotos 
-      }));
-      setNewPhotoUrl('');
-    }
-  };
-
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -66,13 +45,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({ formData, setFormData }) 
     setFormData(prev => ({ ...prev, shop_photos: updatedPhotos }));
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addPhoto(e);
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div>
@@ -101,39 +73,6 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({ formData, setFormData }) 
             </Button>
           </div>
           <p className="text-xs text-gray-500">Formats acceptés : JPG, PNG, GIF. Plusieurs fichiers possibles.</p>
-        </div>
-
-        {/* Séparateur */}
-        <div className="flex items-center gap-4">
-          <div className="flex-1 border-t border-gray-200"></div>
-          <span className="text-sm text-gray-500">ou</span>
-          <div className="flex-1 border-t border-gray-200"></div>
-        </div>
-
-        {/* Ajout par URL */}
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <Label htmlFor="photo_url">URL de la photo</Label>
-            <Input
-              id="photo_url"
-              type="url"
-              value={newPhotoUrl}
-              onChange={(e) => setNewPhotoUrl(e.target.value)}
-              placeholder="https://exemple.com/photo.jpg"
-              onKeyPress={handleKeyPress}
-            />
-          </div>
-          <div className="flex items-end">
-            <Button 
-              type="button" 
-              onClick={addPhoto} 
-              disabled={!newPhotoUrl.trim()}
-              className="whitespace-nowrap"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Ajouter
-            </Button>
-          </div>
         </div>
 
         {formData.shop_photos && formData.shop_photos.length > 0 && (
