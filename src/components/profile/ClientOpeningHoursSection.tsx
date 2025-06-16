@@ -71,31 +71,35 @@ const ClientOpeningHoursSection: React.FC<ClientOpeningHoursSectionProps> = ({
 
     return (
       <div key={dayKey} className="py-2 border-b border-gray-100 last:border-b-0">
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-center">
           <span className="font-medium">{DAYS_LABELS[dayKey as keyof typeof DAYS_LABELS]}</span>
-          <div className="text-right space-y-1">
-            {/* Matin */}
-            <div className="flex items-center gap-2 justify-end">
-              <div className="text-sm">
-                {formatTime(dayData.morning_open)} - {formatTime(dayData.morning_close)}
+          <div className="text-right">
+            <div className="flex items-center gap-4 text-sm">
+              {/* Matin */}
+              <div className="flex items-center gap-2">
+                <span>
+                  {formatTime(dayData.morning_open)} - {formatTime(dayData.morning_close)}
+                </span>
+                {morningBadges.length > 0 && (
+                  <div className="flex gap-1">
+                    {morningBadges}
+                  </div>
+                )}
               </div>
-              {morningBadges.length > 0 && (
-                <div className="flex gap-1">
-                  {morningBadges}
-                </div>
-              )}
-            </div>
-            
-            {/* Après-midi */}
-            <div className="flex items-center gap-2 justify-end">
-              <div className="text-sm">
-                {formatTime(dayData.afternoon_open)} - {formatTime(dayData.afternoon_close)}
+              
+              <span className="text-gray-400">|</span>
+              
+              {/* Après-midi */}
+              <div className="flex items-center gap-2">
+                <span>
+                  {formatTime(dayData.afternoon_open)} - {formatTime(dayData.afternoon_close)}
+                </span>
+                {afternoonBadges.length > 0 && (
+                  <div className="flex gap-1">
+                    {afternoonBadges}
+                  </div>
+                )}
               </div>
-              {afternoonBadges.length > 0 && (
-                <div className="flex gap-1">
-                  {afternoonBadges}
-                </div>
-              )}
             </div>
           </div>
         </div>
