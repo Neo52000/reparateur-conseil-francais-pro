@@ -64,26 +64,6 @@ const ContactInfoSection: React.FC<ContactInfoSectionProps> = ({ formData, setFo
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="city">Ville *</Label>
-        <Input
-          id="city"
-          value={formData.city}
-          onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="postal_code">Code postal *</Label>
-        <Input
-          id="postal_code"
-          value={formData.postal_code}
-          onChange={(e) => setFormData(prev => ({ ...prev, postal_code: e.target.value }))}
-          required
-        />
-      </div>
-
-      <div className="space-y-2">
         <Label htmlFor="website">Site web</Label>
         <Input
           id="website"
