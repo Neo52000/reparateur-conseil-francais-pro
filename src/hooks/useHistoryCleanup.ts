@@ -24,17 +24,20 @@ export const useHistoryCleanup = () => {
       const query = getCleanupQuery(cleanupFilter);
       
       if (query) {
-        // Simplify the delete operation to avoid TypeScript complexity
-        let deleteQuery = supabase.from('scraping_logs').delete();
-        
+        // Use separate queries to avoid TypeScript complexity
         if (query.operator === 'lt') {
-          deleteQuery = deleteQuery.lt(query.column, query.value);
+          const { error } = await supabase
+            .from('scraping_logs')
+            .delete()
+            .lt(query.column, query.value);
+          if (error) throw error;
         } else if (query.operator === 'eq') {
-          deleteQuery = deleteQuery.eq(query.column, query.value);
+          const { error } = await supabase
+            .from('scraping_logs')
+            .delete()
+            .eq(query.column, query.value);
+          if (error) throw error;
         }
-        
-        const { error } = await deleteQuery;
-        if (error) throw error;
       } else {
         // Pour supprimer tout, on utilise une condition simple
         const { error } = await supabase
