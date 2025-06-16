@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { RepairerDB } from '@/hooks/useRepairers';
+import { Repairer } from '@/types/repairer';
 
 interface MarkerTooltipProps {
-  repairer: RepairerDB;
+  repairer: Repairer;
   visible: boolean;
   position: { x: number; y: number };
 }

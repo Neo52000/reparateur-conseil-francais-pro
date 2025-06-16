@@ -1,10 +1,10 @@
 
 import mapboxgl from 'mapbox-gl';
-import { RepairerDB } from '@/hooks/useRepairers';
+import { Repairer } from '@/types/repairer';
 import { createPopupContent } from './mapboxPopups';
 import { createMarkerStyles, getMarkerBaseStyles } from './mapboxStyles';
 
-export const createMarkerElement = (repairer: RepairerDB): HTMLDivElement => {
+export const createMarkerElement = (repairer: Repairer): HTMLDivElement => {
   const markerElement = document.createElement('div');
   markerElement.className = 'custom-marker';
   markerElement.setAttribute('data-repairer-id', repairer.id);
@@ -21,9 +21,9 @@ export const createMarkerElement = (repairer: RepairerDB): HTMLDivElement => {
 
 export const addMarkersToMap = (
   map: mapboxgl.Map,
-  repairers: RepairerDB[],
-  onMarkerClick: (repairer: RepairerDB) => void,
-  onMarkerHover?: (repairer: RepairerDB, event: MouseEvent) => void,
+  repairers: Repairer[],
+  onMarkerClick: (repairer: Repairer) => void,
+  onMarkerHover?: (repairer: Repairer, event: MouseEvent) => void,
   onMarkerLeave?: () => void
 ) => {
   if (!map || !repairers.length) return;

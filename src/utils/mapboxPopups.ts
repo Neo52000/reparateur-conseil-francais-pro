@@ -1,7 +1,7 @@
 
-import { RepairerDB } from '@/hooks/useRepairers';
+import { Repairer } from '@/types/repairer';
 
-export const createPopupContent = (repairer: RepairerDB): string => {
+export const createPopupContent = (repairer: Repairer): string => {
   const displayPrice = repairer.price_range === 'low' ? '€' : repairer.price_range === 'medium' ? '€€' : '€€€';
   
   return `

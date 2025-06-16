@@ -1,5 +1,5 @@
 
-import { RepairerDB } from '@/hooks/useRepairers';
+import { Repairer } from '@/types/repairer';
 
 export interface DisplayInfo {
   address: string;
@@ -10,14 +10,14 @@ export interface DisplayInfo {
   showClaimBanner: boolean;
 }
 
-export const getDisplayInfo = (repairer: RepairerDB, subscriptionTier = 'free'): DisplayInfo => {
+export const getDisplayInfo = (repairer: Repairer, subscriptionTier = 'free'): DisplayInfo => {
   const isBasicOrHigher = ['basic', 'premium', 'enterprise'].includes(subscriptionTier);
   const isPremiumOrHigher = ['premium', 'enterprise'].includes(subscriptionTier);
   
   return {
     address: isBasicOrHigher ? repairer.address : `${repairer.city} (adresse masquée)`,
-    phone: isBasicOrHigher ? repairer.phone : '•••••••••••',
-    email: isBasicOrHigher ? repairer.email : '•••••@••••••',
+    phone: isBasicOrHigher ? (repairer.phone || '') : '•••••••••••',
+    email: isBasicOrHigher ? (repairer.email || '') : '•••••@••••••',
     showQuoteButton: isPremiumOrHigher,
     showContactInfo: isBasicOrHigher,
     showClaimBanner: subscriptionTier === 'free'

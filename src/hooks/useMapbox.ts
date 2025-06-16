@@ -1,23 +1,24 @@
+
 import { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useToast } from '@/hooks/use-toast';
-import { RepairerDB } from '@/hooks/useRepairers';
+import { Repairer } from '@/types/repairer';
 import { MAP_CONFIG } from '@/constants/repairers';
 import { addMarkersToMap, clearMapMarkers } from '@/utils/mapboxMarkers';
 
 export const useMapbox = (
   mapboxToken: string, 
-  repairers: RepairerDB[],
-  onMarkerClick?: (repairer: RepairerDB) => void,
-  onMarkerHover?: (repairer: RepairerDB, event: MouseEvent) => void,
+  repairers: Repairer[],
+  onMarkerClick?: (repairer: Repairer) => void,
+  onMarkerHover?: (repairer: Repairer, event: MouseEvent) => void,
   onMarkerLeave?: () => void
 ) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [selectedRepairer, setSelectedRepairer] = useState<RepairerDB | null>(null);
+  const [selectedRepairer, setSelectedRepairer] = useState<Repairer | null>(null);
   const { toast } = useToast();
 
-  const handleMarkerClick = (repairer: RepairerDB) => {
+  const handleMarkerClick = (repairer: Repairer) => {
     setSelectedRepairer(repairer);
     if (onMarkerClick) {
       onMarkerClick(repairer);

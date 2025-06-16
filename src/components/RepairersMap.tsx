@@ -8,18 +8,19 @@ import MapControls from './MapControls';
 import MarkerTooltip from './MarkerTooltip';
 import RepairerProfileModal from './RepairerProfileModal';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useRepairers, RepairerDB } from '@/hooks/useRepairers';
+import { useRepairers } from '@/hooks/useRepairers';
+import { Repairer } from '@/types/repairer';
 
 const RepairersMap = () => {
   const [mapboxToken, setMapboxToken] = useState('pk.eyJ1IjoicmVpbmU1MiIsImEiOiJjbGtwaWt0cmUxdnA1M2RvM3FwczNhanNsIn0.rBZMbfsCAqHl-FjytxpYYQ');
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [searchFilters, setSearchFilters] = useState({});
   const [tooltipData, setTooltipData] = useState<{
-    repairer: RepairerDB;
+    repairer: Repairer;
     position: { x: number; y: number };
     visible: boolean;
   }>({
-    repairer: {} as RepairerDB,
+    repairer: {} as Repairer,
     position: { x: 0, y: 0 },
     visible: false
   });
@@ -30,11 +31,11 @@ const RepairersMap = () => {
   const { mapContainer, map, selectedRepairer, initializeMap } = useMapbox(
     mapboxToken, 
     repairers,
-    (repairer: RepairerDB) => {
+    (repairer: Repairer) => {
       // Ouvrir le modal de profil au clic
       setSelectedRepairerId(repairer.id);
     },
-    (repairer: RepairerDB, event: MouseEvent) => {
+    (repairer: Repairer, event: MouseEvent) => {
       // Afficher le tooltip au survol
       setTooltipData({
         repairer,
