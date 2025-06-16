@@ -1,162 +1,91 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  MapPin, 
-  Clock, 
-  Phone, 
-  Euro,
-  Heart
-} from 'lucide-react';
-import { RepairerDB } from '@/hooks/useRepairers';
-import { useAuth } from '@/hooks/useAuth';
-import ClaimProfileBanner from '../ClaimProfileBanner';
-import StarRating from './StarRating';
-import { getDisplayInfo, getTierBadge } from '@/utils/subscriptionDisplay';
+import { MapPin, Phone, Star, Award, Shield } from 'lucide-react';
+import { Repairer } from '@/types/repairer';
 
 interface RepairerCardProps {
-  repairer: RepairerDB;
-  compact?: boolean;
-  onViewProfile: (repairerId: string) => void;
+  repairer: Repairer;
+  onViewProfile: (repairer: Repairer) => void;
+  onCall: (phone: string) => void;
 }
 
-const RepairerCard: React.FC<RepairerCardProps> = ({ repairer, compact = false, onViewProfile }) => {
-  const { user, isAdmin } = useAuth();
-
-  // Logs pour le debugging
-  console.log('RepairerCard - Rendering repairer:', {
-    id: repairer.id,
-    name: repairer.name,
-    address: repairer.address,
-    city: repairer.city,
-    services: repairer.services
-  });
-
-  // For demo purposes, we'll randomly assign subscription tiers
-  const subscriptionTier = ['free', 'basic', 'premium', 'enterprise'][Math.floor(Math.random() * 4)];
-  const displayInfo = getDisplayInfo(repairer, subscriptionTier);
-  const tierBadge = getTierBadge(subscriptionTier);
-
-  // Vérifier si l'utilisateur peut voir les actions de contact
-  const canContact = isAdmin || (user && displayInfo.showContactInfo);
+const RepairerCard: React.FC<RepairerCardProps> = ({ 
+  repairer, 
+  onViewProfile, 
+  onCall 
+}) => {
+  const handleCall = () => {
+    if (repairer.phone) {
+      onCall(repairer.phone);
+    }
+  };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex space-x-4">
-          {/* Image */}
-          <div className="flex-shrink-0">
-            <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-              <span className="text-2xl">📱</span>
-            </div>
+    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {repairer.business_name}
+            </h3>
+            {repairer.has_qualirepar_label && (
+              <Badge className="bg-green-100 text-green-800 border-green-200">
+                <Award className="h-3 w-3 mr-1" />
+                Qualirepar
+              </Badge>
+            )}
+            <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+              <Shield className="h-3 w-3 mr-1" />
+              Vérifié
+            </Badge>
           </div>
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2">
-                  <h3 className="text-lg font-semibold text-gray-900 truncate">
-                    {repairer.name || 'Nom non disponible'}
-                  </h3>
-                  {repairer.is_verified && (
-                    <Badge variant="secondary" className="text-xs">
-                      Vérifié
-                    </Badge>
-                  )}
-                  {tierBadge && (
-                    <Badge variant={tierBadge.variant} className={tierBadge.className}>
-                      {tierBadge.label}
-                    </Badge>
-                  )}
-                </div>
-                
-                {repairer.rating && displayInfo.showContactInfo && (
-                  <div className="flex items-center mt-1">
-                    <StarRating rating={repairer.rating} reviewCount={repairer.review_count || 0} />
-                  </div>
-                )}
+          <div className="flex items-center text-gray-600 mb-2">
+            <MapPin className="h-4 w-4 mr-2" />
+            <span className="text-sm">
+              {repairer.city} ({repairer.postal_code})
+            </span>
+          </div>
 
-                <div className="flex items-center mt-2 text-sm text-gray-600">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  <span className="truncate">
-                    {displayInfo.address || repairer.address || 'Adresse non disponible'}, {repairer.city || 'Ville non disponible'}
-                  </span>
-                </div>
-
-                {/* Services */}
-                {repairer.services && repairer.services.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {repairer.services.slice(0, compact ? 2 : 4).map((service: string, index: number) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {service}
-                      </Badge>
-                    ))}
-                    {repairer.services.length > (compact ? 2 : 4) && (
-                      <Badge variant="outline" className="text-xs">
-                        +{repairer.services.length - (compact ? 2 : 4)}
-                      </Badge>
-                    )}
-                  </div>
-                )}
-
-                {/* Quick Info */}
-                <div className="flex items-center space-x-4 mt-3 text-sm">
-                  {repairer.response_time && displayInfo.showContactInfo && (
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1 text-green-600" />
-                      <span className="text-green-600">{repairer.response_time}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center">
-                    <Euro className="h-4 w-4 mr-1 text-gray-600" />
-                    <span className="text-gray-600">
-                      {repairer.price_range === 'low' ? '€' : repairer.price_range === 'medium' ? '€€' : '€€€'}
-                    </span>
-                  </div>
-                  {repairer.is_open !== undefined && displayInfo.showContactInfo && (
-                    <div className={`flex items-center ${repairer.is_open ? 'text-green-600' : 'text-red-600'}`}>
-                      <div className={`w-2 h-2 rounded-full mr-1 ${repairer.is_open ? 'bg-green-600' : 'bg-red-600'}`} />
-                      <span className="text-xs">{repairer.is_open ? 'Ouvert' : 'Fermé'}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex flex-col space-y-2 ml-4">
-                <Button size="sm" onClick={() => onViewProfile(repairer.id)}>
-                  Voir profil
-                </Button>
-                {canContact && displayInfo.phone && (
-                  <Button size="sm" variant="outline">
-                    <Phone className="h-4 w-4 mr-1" />
-                    Appeler
-                  </Button>
-                )}
-                {displayInfo.showQuoteButton && (
-                  <Button size="sm" variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    Demander un devis
-                  </Button>
-                )}
-                {!compact && (
-                  <Button size="sm" variant="ghost">
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+          <div className="flex items-center mb-4">
+            <div className="flex items-center">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  className={`h-4 w-4 ${
+                    star <= 4.8 ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                  }`}
+                />
+              ))}
+              <span className="ml-2 text-sm font-medium text-gray-900">4.8</span>
+              <span className="ml-1 text-sm text-gray-600">(127 avis)</span>
             </div>
-
-            {/* Banner de revendication pour les profils gratuits */}
-            {displayInfo.showClaimBanner && !compact && !isAdmin && (
-              <ClaimProfileBanner businessName={repairer.name} />
-            )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      <div className="flex gap-2 justify-start">
+        <Button 
+          onClick={() => onViewProfile(repairer)}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+          size="sm"
+        >
+          Visualiser profil
+        </Button>
+        
+        <Button 
+          onClick={handleCall}
+          variant="outline"
+          className="border-blue-200 text-blue-700 hover:bg-blue-50"
+          size="sm"
+        >
+          <Phone className="h-4 w-4 mr-2" />
+          Appeler
+        </Button>
+      </div>
+    </div>
   );
 };
 
