@@ -13,7 +13,6 @@ import {
   Calendar
 } from 'lucide-react';
 import { RepairerProfile } from '@/types/repairerProfile';
-import { useToast } from '@/hooks/use-toast';
 
 interface ClientRepairerProfileHeaderProps {
   profile: RepairerProfile;
@@ -28,42 +27,15 @@ const ClientRepairerProfileHeader: React.FC<ClientRepairerProfileHeaderProps> = 
   onCallRepairer,
   onBookAppointment
 }) => {
-  const { toast } = useToast();
-
   // Mock rating data - in real app this would come from reviews
   const rating = 4.8;
   const reviewCount = 127;
 
-  const handleRequestQuote = () => {
-    if (onRequestQuote) {
-      onRequestQuote();
-    } else {
-      toast({
-        title: "Demande de devis",
-        description: "Fonction déclenchée (aucune action liée)",
-      });
-    }
-  };
-
   const handleCallRepairer = () => {
-    if (onCallRepairer) {
+    if (profile.phone) {
+      window.location.href = `tel:${profile.phone}`;
+    } else if (onCallRepairer) {
       onCallRepairer();
-    } else {
-      toast({
-        title: "Appel réparateur",
-        description: "Fonction déclenchée (aucune action liée)",
-      });
-    }
-  };
-
-  const handleBookAppointment = () => {
-    if (onBookAppointment) {
-      onBookAppointment();
-    } else {
-      toast({
-        title: "Prise de rendez-vous",
-        description: "Fonction déclenchée (aucune action liée)",
-      });
     }
   };
 
@@ -134,7 +106,7 @@ const ClientRepairerProfileHeader: React.FC<ClientRepairerProfileHeaderProps> = 
         {/* Action Buttons */}
         <div className="flex flex-col gap-3 lg:w-64">
           <Button 
-            onClick={handleRequestQuote}
+            onClick={onRequestQuote}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 transition-colors duration-150 hover-scale"
             size="lg"
           >
@@ -152,7 +124,7 @@ const ClientRepairerProfileHeader: React.FC<ClientRepairerProfileHeaderProps> = 
               Appeler
             </Button>
             <Button 
-              onClick={handleBookAppointment}
+              onClick={onBookAppointment}
               variant="outline"
               className="flex-1 border-green-200 text-green-700 hover:bg-green-50 transition-colors duration-150 hover-scale"
             >
@@ -172,4 +144,3 @@ const ClientRepairerProfileHeader: React.FC<ClientRepairerProfileHeaderProps> = 
 };
 
 export default ClientRepairerProfileHeader;
-

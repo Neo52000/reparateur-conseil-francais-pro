@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FileText } from 'lucide-react';
+import { FileText, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,7 +22,7 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
     deviceType: '',
     brand: '',
     model: '',
-    problem: '',
+    issueType: '',
     description: '',
     urgency: '',
     budget: '',
@@ -38,6 +38,8 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
     'Ordinateur portable',
     'Ordinateur de bureau',
     'Console de jeux',
+    'Montre connectée',
+    'Écouteurs/Casque',
     'Autre'
   ];
 
@@ -51,18 +53,36 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
     'Sony',
     'LG',
     'Oppo',
+    'Nokia',
+    'Motorola',
+    'Honor',
+    'Realme',
+    'Asus',
+    'HP',
+    'Dell',
+    'Lenovo',
+    'Acer',
+    'MSI',
+    'Nintendo',
+    'PlayStation',
+    'Xbox',
     'Autre'
   ];
 
-  const commonProblems = [
-    'Écran cassé',
-    'Batterie défaillante',
-    'Problème de charge',
-    'Dégât des eaux',
+  const issueTypes = [
+    'Écran cassé/fissuré',
+    'Écran noir/ne s\'allume plus',
+    'Batterie défaillante/ne charge plus',
+    'Problème de charge/connecteur',
+    'Dégât des eaux/liquide renversé',
     'Appareil photo défaillant',
-    'Haut-parleur défaillant',
-    'Boutons cassés',
-    'Problème logiciel',
+    'Haut-parleur/micro défaillant',
+    'Boutons cassés/non fonctionnels',
+    'Problème logiciel/bug',
+    'Problème de réseau/WiFi/Bluetooth',
+    'Surchauffe',
+    'Virus/malware',
+    'Récupération de données',
     'Autre problème'
   ];
 
@@ -73,6 +93,15 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
       toast({
         title: "Conditions d'utilisation",
         description: "Veuillez accepter les conditions d'utilisation",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.deviceType || !formData.brand || !formData.model || !formData.issueType) {
+      toast({
+        title: "Champs obligatoires",
+        description: "Veuillez remplir tous les champs obligatoires",
         variant: "destructive"
       });
       return;
@@ -92,7 +121,6 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
         return;
       }
 
-      // Match the exact table schema for quotes
       const { error } = await supabase
         .from('quotes')
         .insert({
@@ -100,8 +128,8 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
           repairer_id: repairerId,
           device_brand: formData.brand,
           device_model: formData.model,
-          issue_type: formData.problem,
-          issue_description: `${formData.problem}: ${formData.description}`,
+          issue_type: formData.issueType,
+          issue_description: `${formData.issueType}: ${formData.description}`,
           contact_email: user.email || '',
           contact_phone: '',
           estimated_price: formData.budget ? parseFloat(formData.budget) : null
@@ -119,7 +147,7 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
         deviceType: '',
         brand: '',
         model: '',
-        problem: '',
+        issueType: '',
         description: '',
         urgency: '',
         budget: '',
@@ -141,173 +169,182 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <FileText className="h-5 w-5 mr-2" />
-          Demande de devis gratuit
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Type d'appareil */}
+    <div className="space-y-6">
+      {/* Disclaimer */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start space-x-3">
+          <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+          <div className="text-sm text-blue-800">
+            <p className="font-medium mb-1">Devis indicatif</p>
+            <p>
+              Ce devis sera établi à titre indicatif seulement. Le réparateur devra effectuer 
+              un diagnostic réel de votre appareil pour confirmer le prix final et la faisabilité 
+              de la réparation.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Type d'appareil */}
+        <div>
+          <Label htmlFor="deviceType">Type d'appareil *</Label>
+          <Select value={formData.deviceType} onValueChange={(value) => setFormData({...formData, deviceType: value})}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sélectionnez le type d'appareil" />
+            </SelectTrigger>
+            <SelectContent>
+              {deviceTypes.map((type) => (
+                <SelectItem key={type} value={type}>{type}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Marque */}
           <div>
-            <Label htmlFor="deviceType">Type d'appareil *</Label>
-            <Select value={formData.deviceType} onValueChange={(value) => setFormData({...formData, deviceType: value})}>
+            <Label htmlFor="brand">Marque *</Label>
+            <Select value={formData.brand} onValueChange={(value) => setFormData({...formData, brand: value})}>
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionnez le type d'appareil" />
+                <SelectValue placeholder="Marque" />
               </SelectTrigger>
               <SelectContent>
-                {deviceTypes.map((type) => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                {brands.map((brand) => (
+                  <SelectItem key={brand} value={brand}>{brand}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Marque */}
-            <div>
-              <Label htmlFor="brand">Marque *</Label>
-              <Select value={formData.brand} onValueChange={(value) => setFormData({...formData, brand: value})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Marque" />
-                </SelectTrigger>
-                <SelectContent>
-                  {brands.map((brand) => (
-                    <SelectItem key={brand} value={brand}>{brand}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Modèle */}
-            <div>
-              <Label htmlFor="model">Modèle *</Label>
-              <Input
-                id="model"
-                value={formData.model}
-                onChange={(e) => setFormData({...formData, model: e.target.value})}
-                placeholder="ex: iPhone 14, Galaxy S23..."
-                required
-              />
-            </div>
-          </div>
-
-          {/* Problème */}
+          {/* Modèle */}
           <div>
-            <Label htmlFor="problem">Type de problème *</Label>
-            <Select value={formData.problem} onValueChange={(value) => setFormData({...formData, problem: value})}>
-              <SelectTrigger>
-                <SelectValue placeholder="Quel est le problème ?" />
-              </SelectTrigger>
-              <SelectContent>
-                {commonProblems.map((problem) => (
-                  <SelectItem key={problem} value={problem}>{problem}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Description */}
-          <div>
-            <Label htmlFor="description">Description détaillée *</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              placeholder="Décrivez précisément le problème, les circonstances, les symptômes..."
-              className="min-h-[100px]"
+            <Label htmlFor="model">Modèle *</Label>
+            <Input
+              id="model"
+              value={formData.model}
+              onChange={(e) => setFormData({...formData, model: e.target.value})}
+              placeholder="ex: iPhone 14, Galaxy S23, ThinkPad X1..."
               required
             />
           </div>
+        </div>
 
-          {/* Urgence */}
-          <div>
-            <Label>Niveau d'urgence *</Label>
-            <RadioGroup 
-              value={formData.urgency} 
-              onValueChange={(value) => setFormData({...formData, urgency: value})}
-              className="mt-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="low" id="low" />
-                <Label htmlFor="low">Pas urgent (dans la semaine)</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="medium" id="medium" />
-                <Label htmlFor="medium">Modéré (dans 2-3 jours)</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="high" id="high" />
-                <Label htmlFor="high">Urgent (dans la journée)</Label>
-              </div>
-            </RadioGroup>
-          </div>
+        {/* Type de panne */}
+        <div>
+          <Label htmlFor="issueType">Type de panne *</Label>
+          <Select value={formData.issueType} onValueChange={(value) => setFormData({...formData, issueType: value})}>
+            <SelectTrigger>
+              <SelectValue placeholder="Quel est le problème ?" />
+            </SelectTrigger>
+            <SelectContent>
+              {issueTypes.map((issue) => (
+                <SelectItem key={issue} value={issue}>{issue}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-          {/* Budget */}
-          <div>
-            <Label htmlFor="budget">Budget approximatif (optionnel)</Label>
-            <Input
-              id="budget"
-              type="number"
-              value={formData.budget}
-              onChange={(e) => setFormData({...formData, budget: e.target.value})}
-              placeholder="ex: 150"
-              className="mt-1"
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              En euros - cela nous aide à vous proposer des solutions adaptées
-            </p>
-          </div>
-
-          {/* Méthode de contact */}
-          <div>
-            <Label>Méthode de contact préférée</Label>
-            <RadioGroup 
-              value={formData.contactMethod} 
-              onValueChange={(value) => setFormData({...formData, contactMethod: value})}
-              className="mt-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="email" id="email" />
-                <Label htmlFor="email">Email</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="phone" id="phone" />
-                <Label htmlFor="phone">Téléphone</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="sms" id="sms" />
-                <Label htmlFor="sms">SMS</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {/* Conditions */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="terms"
-              checked={acceptsTerms}
-              onCheckedChange={(checked) => setAcceptsTerms(checked === true)}
-            />
-            <Label htmlFor="terms" className="text-sm">
-              J'accepte les conditions d'utilisation et la politique de confidentialité
-            </Label>
-          </div>
-
-          <Button type="submit" disabled={loading || !acceptsTerms} className="w-full">
-            {loading ? 'Envoi en cours...' : 'Envoyer la demande de devis'}
-          </Button>
-        </form>
-
-        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-          <p className="text-sm text-blue-800">
-            <strong>Gratuit et sans engagement</strong> - Vous recevrez une réponse sous 24h en moyenne
+        {/* Description complémentaire */}
+        <div>
+          <Label htmlFor="description">Description complémentaire</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            placeholder="Décrivez précisément le problème, les circonstances, les symptômes observés..."
+            className="min-h-[100px]"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Plus votre description est précise, plus le devis sera exact
           </p>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Urgence */}
+        <div>
+          <Label>Niveau d'urgence</Label>
+          <RadioGroup 
+            value={formData.urgency} 
+            onValueChange={(value) => setFormData({...formData, urgency: value})}
+            className="mt-2"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="low" id="low" />
+              <Label htmlFor="low">Pas urgent (dans la semaine)</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="medium" id="medium" />
+              <Label htmlFor="medium">Modéré (dans 2-3 jours)</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="high" id="high" />
+              <Label htmlFor="high">Urgent (dans la journée)</Label>
+            </div>
+          </RadioGroup>
+        </div>
+
+        {/* Budget */}
+        <div>
+          <Label htmlFor="budget">Budget approximatif (optionnel)</Label>
+          <Input
+            id="budget"
+            type="number"
+            value={formData.budget}
+            onChange={(e) => setFormData({...formData, budget: e.target.value})}
+            placeholder="ex: 150"
+            className="mt-1"
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            En euros - cela nous aide à vous proposer des solutions adaptées
+          </p>
+        </div>
+
+        {/* Méthode de contact */}
+        <div>
+          <Label>Méthode de contact préférée</Label>
+          <RadioGroup 
+            value={formData.contactMethod} 
+            onValueChange={(value) => setFormData({...formData, contactMethod: value})}
+            className="mt-2"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="email" id="email" />
+              <Label htmlFor="email">Email</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="phone" id="phone" />
+              <Label htmlFor="phone">Téléphone</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="sms" id="sms" />
+              <Label htmlFor="sms">SMS</Label>
+            </div>
+          </RadioGroup>
+        </div>
+
+        {/* Conditions */}
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="terms"
+            checked={acceptsTerms}
+            onCheckedChange={(checked) => setAcceptsTerms(checked === true)}
+          />
+          <Label htmlFor="terms" className="text-sm">
+            J'accepte les conditions d'utilisation et la politique de confidentialité
+          </Label>
+        </div>
+
+        <Button type="submit" disabled={loading || !acceptsTerms} className="w-full">
+          {loading ? 'Envoi en cours...' : 'Envoyer la demande de devis'}
+        </Button>
+      </form>
+
+      <div className="bg-green-50 border border-green-200 rounded-md p-4">
+        <p className="text-sm text-green-800">
+          <strong>✅ Gratuit et sans engagement</strong> - Vous recevrez une réponse sous 24h en moyenne
+        </p>
+      </div>
+    </div>
   );
 };
 

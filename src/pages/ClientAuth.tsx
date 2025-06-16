@@ -10,7 +10,28 @@ const ClientAuth = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      navigate('/client');
+      // Vérifier s'il y a une action en attente
+      const pendingAction = localStorage.getItem('pendingAction');
+      
+      if (pendingAction) {
+        try {
+          const action = JSON.parse(pendingAction);
+          localStorage.removeItem('pendingAction');
+          
+          // Rediriger vers la page principale avec l'action en paramètre
+          // L'action sera traitée par le composant parent
+          navigate('/', { 
+            state: { 
+              pendingAction: action
+            }
+          });
+        } catch (error) {
+          console.error('Erreur lors du parsing de l\'action en attente:', error);
+          navigate('/client');
+        }
+      } else {
+        navigate('/client');
+      }
     }
   }, [user, loading, navigate]);
 

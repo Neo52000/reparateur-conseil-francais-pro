@@ -10,6 +10,9 @@ import ClientServicesSection from '@/components/profile/ClientServicesSection';
 import ClientContactSection from '@/components/profile/ClientContactSection';
 import ClientTestimonialsSection from '@/components/profile/ClientTestimonialsSection';
 import ClientOpeningHoursSection from '@/components/profile/ClientOpeningHoursSection';
+import QuoteRequestModal from '@/components/modals/QuoteRequestModal';
+import AppointmentModal from '@/components/modals/AppointmentModal';
+import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
 import { RepairerProfile } from '@/types/repairerProfile';
 
 interface RepairerProfileModalContentProps {
@@ -39,12 +42,21 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
   onClose,
   saving = false
 }) => {
+  const {
+    isQuoteModalOpen,
+    isAppointmentModalOpen,
+    selectedRepairerId,
+    handleRequestQuote,
+    handleBookAppointment,
+    closeQuoteModal,
+    closeAppointmentModal
+  } = useQuoteAndAppointment();
+
   /**
    * Actions pour les clients
    */
-  const handleRequestQuote = () => {
-    console.log('📞 Quote requested for:', profile.business_name);
-    // TODO: Implémenter la demande de devis
+  const handleQuoteRequest = () => {
+    handleRequestQuote(profile.id);
   };
 
   const handleCallRepairer = () => {
@@ -53,9 +65,8 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
     }
   };
 
-  const handleBookAppointment = () => {
-    console.log('📅 Appointment booking for:', profile.business_name);
-    // TODO: Implémenter la prise de rendez-vous
+  const handleAppointmentBooking = () => {
+    handleBookAppointment(profile.id);
   };
 
   // Vérifier si c'est un profil basique (créé automatiquement)
@@ -142,53 +153,71 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
 
   // Vue client - design amélioré
   return (
-    <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto" aria-describedby="client-profile-description">
-      <DialogHeader>
-        <DialogTitle>Profil réparateur</DialogTitle>
-        <DialogDescription id="client-profile-description">
-          Découvrez les informations détaillées sur ce réparateur, ses services et ses avis clients.
-        </DialogDescription>
-      </DialogHeader>
-      
-      <div className="space-y-8 p-2">
-        <ClientRepairerProfileHeader
-          profile={profile}
-          onRequestQuote={handleRequestQuote}
-          onCallRepairer={handleCallRepairer}
-          onBookAppointment={handleBookAppointment}
-        />
+    <>
+      <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto" aria-describedby="client-profile-description">
+        <DialogHeader>
+          <DialogTitle>Profil réparateur</DialogTitle>
+          <DialogDescription id="client-profile-description">
+            Découvrez les informations détaillées sur ce réparateur, ses services et ses avis clients.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-8 p-2">
+          <ClientRepairerProfileHeader
+            profile={profile}
+            onRequestQuote={handleQuoteRequest}
+            onCallRepairer={handleCallRepairer}
+            onBookAppointment={handleAppointmentBooking}
+          />
 
-        <ClientAboutSection profile={profile} />
-        <ClientServicesSection profile={profile} />
-        <ClientOpeningHoursSection profile={profile} />
-        <ClientTestimonialsSection businessName={profile.business_name} />
-        <ClientContactSection profile={profile} />
+          <ClientAboutSection profile={profile} />
+          <ClientServicesSection profile={profile} />
+          <ClientOpeningHoursSection profile={profile} />
+          <ClientTestimonialsSection businessName={profile.business_name} />
+          <ClientContactSection profile={profile} />
 
-        {/* Actions mobiles sticky */}
-        <div className="lg:hidden sticky bottom-0 bg-white border-t p-4 -mx-2 flex space-x-3">
-          <Button 
-            onClick={handleRequestQuote}
-            className="flex-1 bg-blue-600 hover:bg-blue-700"
-          >
-            Devis gratuit
-          </Button>
-          <Button 
-            onClick={handleCallRepairer}
-            variant="outline"
-            className="flex-1"
-          >
-            Appeler
-          </Button>
+          {/* Actions mobiles sticky */}
+          <div className="lg:hidden sticky bottom-0 bg-white border-t p-4 -mx-2 flex space-x-3">
+            <Button 
+              onClick={handleQuoteRequest}
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
+            >
+              Devis gratuit
+            </Button>
+            <Button 
+              onClick={handleCallRepairer}
+              variant="outline"
+              className="flex-1"
+            >
+              Appeler
+            </Button>
+          </div>
+
+          {/* Bouton de fermeture */}
+          <div className="flex justify-center pt-4">
+            <Button onClick={onClose} variant="ghost" className="text-gray-500">
+              Fermer
+            </Button>
+          </div>
         </div>
+      </DialogContent>
 
-        {/* Bouton de fermeture */}
-        <div className="flex justify-center pt-4">
-          <Button onClick={onClose} variant="ghost" className="text-gray-500">
-            Fermer
-          </Button>
-        </div>
-      </div>
-    </DialogContent>
+      {/* Modals pour devis et rendez-vous */}
+      {selectedRepairerId && (
+        <>
+          <QuoteRequestModal
+            isOpen={isQuoteModalOpen}
+            onClose={closeQuoteModal}
+            repairerId={selectedRepairerId}
+          />
+          <AppointmentModal
+            isOpen={isAppointmentModalOpen}
+            onClose={closeAppointmentModal}
+            repairerId={selectedRepairerId}
+          />
+        </>
+      )}
+    </>
   );
 };
 
