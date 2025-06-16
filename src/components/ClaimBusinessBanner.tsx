@@ -26,7 +26,7 @@ const ClaimBusinessBanner: React.FC<ClaimBusinessBannerProps> = ({ businessName 
             </p>
           </div>
         </div>
-        <Link to="/repairer-auth">
+        <Link to="/repairer/auth">
           <Button 
             className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 text-sm font-semibold whitespace-nowrap"
           >
