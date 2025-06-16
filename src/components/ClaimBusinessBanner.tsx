@@ -3,12 +3,20 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Building } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ClaimBusinessBannerProps {
   businessName: string;
 }
 
 const ClaimBusinessBanner: React.FC<ClaimBusinessBannerProps> = ({ businessName }) => {
+  const { user, canAccessRepairer } = useAuth();
+
+  // Si l'utilisateur est déjà connecté et a accès réparateur, ne pas montrer le banner
+  if (user && canAccessRepairer) {
+    return null;
+  }
+
   return (
     <div className="bg-gradient-to-r from-orange-50 to-blue-50 border border-orange-200 rounded-lg p-6 mt-6">
       <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">

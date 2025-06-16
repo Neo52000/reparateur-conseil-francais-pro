@@ -15,7 +15,6 @@ export const useAuth = () => {
   useEffect(() => {
     console.log('🔧 Setting up auth listener');
     let mounted = true;
-    let timeoutId: NodeJS.Timeout;
     
     const handleAuthChange = async (event: string, session: Session | null) => {
       console.log('🔄 Auth state changed:', { event, userEmail: session?.user?.email, sessionExists: !!session });
@@ -31,22 +30,16 @@ export const useAuth = () => {
       if (session?.user) {
         console.log('👤 User found, fetching profile for:', session.user.id);
         try {
-          // Ajouter un timeout spécifique pour le fetch du profil
-          const profileFetchPromise = profileService.fetchProfile(session.user.id);
-          const timeoutPromise = new Promise<null>((_, reject) => {
-            setTimeout(() => reject(new Error('Profile fetch timeout')), 10000);
-          });
-
-          let profileData = await Promise.race([profileFetchPromise, timeoutPromise]);
+          let profileData = await profileService.fetchProfile(session.user.id);
           
           // Si pas de profil, essayer de le créer à partir des métadonnées utilisateur
           if (!profileData && session.user.user_metadata) {
             console.log('📝 No profile found, creating from user metadata');
             const userData = {
-              email: session.user.email,
+              email: session.user.email!,
               first_name: session.user.user_metadata.first_name,
               last_name: session.user.user_metadata.last_name,
-              role: session.user.user_metadata.role || 'admin' // Forcer admin pour ce test
+              role: session.user.user_metadata.role || 'user'
             };
             
             try {
@@ -54,22 +47,16 @@ export const useAuth = () => {
               console.log('✅ Profile created from metadata:', profileData);
             } catch (createError) {
               console.error('❌ Error creating profile:', createError);
-              // Essayer de récupérer à nouveau au cas où il aurait été créé par un trigger
-              try {
-                profileData = await profileService.fetchProfile(session.user.id);
-              } catch (refetchError) {
-                console.error('❌ Error refetching profile:', refetchError);
-                // En dernier recours, créer un profil temporaire pour l'admin
-                if (session.user.email === 'reine.elie@gmail.com') {
-                  profileData = {
-                    id: session.user.id,
-                    email: session.user.email!,
-                    first_name: 'Reine',
-                    last_name: 'Elie',
-                    role: 'admin'
-                  };
-                  console.log('🚨 Created temporary admin profile:', profileData);
-                }
+              // Créer un profil temporaire pour permettre l'accès
+              if (session.user.email === 'reine.elie@gmail.com') {
+                profileData = {
+                  id: session.user.id,
+                  email: session.user.email!,
+                  first_name: 'Reine',
+                  last_name: 'Elie',
+                  role: 'admin'
+                };
+                console.log('🚨 Created temporary admin profile:', profileData);
               }
             }
           }
@@ -80,18 +67,7 @@ export const useAuth = () => {
           }
         } catch (error) {
           console.error('💥 Error in profile fetch:', error);
-          // En cas d'erreur, créer un profil temporaire pour l'admin connu
-          if (mounted && session.user.email === 'reine.elie@gmail.com') {
-            const tempProfile = {
-              id: session.user.id,
-              email: session.user.email,
-              first_name: 'Reine',
-              last_name: 'Elie',
-              role: 'admin'
-            };
-            setProfile(tempProfile);
-            console.log('🚨 Set temporary admin profile due to error:', tempProfile);
-          } else if (mounted) {
+          if (mounted) {
             setProfile(null);
           }
         }
@@ -102,7 +78,6 @@ export const useAuth = () => {
         }
       }
       
-      // Important: Always set loading to false after processing
       if (mounted) {
         setLoading(false);
         console.log('✅ Auth loading complete', { hasUser: !!session?.user, hasProfile: !!profile });
@@ -112,7 +87,7 @@ export const useAuth = () => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange);
 
-    // Check existing session with timeout fallback
+    // Check existing session
     const checkSession = async () => {
       try {
         console.log('🔍 Checking existing session...');
@@ -137,15 +112,15 @@ export const useAuth = () => {
       }
     };
 
-    // Set up a timeout to ensure loading state doesn't get stuck
-    timeoutId = setTimeout(() => {
+    checkSession();
+
+    // Timeout de sécurité
+    const timeoutId = setTimeout(() => {
       if (mounted && loading) {
         console.log('⏰ Auth check timeout, forcing loading to false');
         setLoading(false);
       }
-    }, 8000); // Reduced timeout to 8 seconds
-
-    checkSession();
+    }, 5000);
 
     return () => {
       console.log('🧹 Cleaning up auth subscription');
@@ -165,7 +140,6 @@ export const useAuth = () => {
       console.error('❌ Sign in failed:', result.error);
       setLoading(false);
     }
-    // Loading will be set to false by the auth state change handler on success
     
     return result;
   };
@@ -198,7 +172,7 @@ export const useAuth = () => {
 
   // Helper functions for access control
   const isAdmin = profile?.role === 'admin';
-  const canAccessClient = profile?.role === 'client' || profile?.role === 'admin';
+  const canAccessClient = profile?.role === 'client' || profile?.role === 'user' || profile?.role === 'admin';
   const canAccessRepairer = profile?.role === 'repairer' || profile?.role === 'admin';
   const canAccessAdmin = profile?.role === 'admin';
 

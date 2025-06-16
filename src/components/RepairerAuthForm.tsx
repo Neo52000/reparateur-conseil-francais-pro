@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -43,14 +42,20 @@ const RepairerAuthForm = () => {
     setError('');
 
     try {
+      console.log('🔑 Attempting login for:', formData.email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Login error:', error);
+        throw error;
+      }
 
       if (data.user) {
+        console.log('✅ Login successful for:', data.user.email);
         toast({
           title: "Connexion réussie",
           description: "Bienvenue dans votre espace réparateur !",
@@ -60,8 +65,12 @@ const RepairerAuthForm = () => {
         navigate('/repairer', { replace: true });
       }
     } catch (error: any) {
-      console.error('Login error:', error);
-      setError(error.message || 'Erreur lors de la connexion');
+      console.error('❌ Login failed:', error);
+      if (error.message.includes('Invalid login credentials')) {
+        setError('Email ou mot de passe incorrect');
+      } else {
+        setError(error.message || 'Erreur lors de la connexion');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +87,15 @@ const RepairerAuthForm = () => {
       return;
     }
 
+    if (formData.password.length < 6) {
+      setError('Le mot de passe doit contenir au moins 6 caractères');
+      setIsLoading(false);
+      return;
+    }
+
     try {
+      console.log('📝 Attempting signup for:', formData.email);
+      
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -87,35 +104,51 @@ const RepairerAuthForm = () => {
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
+            business_name: formData.businessName,
+            city: formData.city,
             role: 'repairer'
           }
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Signup error:', error);
+        throw error;
+      }
 
       if (data.user) {
+        console.log('✅ Signup successful for:', data.user.email);
+        
         // Attribuer automatiquement le plan gratuit
-        const subscriptionResult = await subscriptionService.assignFreePlan(
-          formData.email,
-          data.user.id
-        );
+        try {
+          const subscriptionResult = await subscriptionService.assignFreePlan(
+            formData.email,
+            data.user.id
+          );
 
-        if (!subscriptionResult.success) {
-          console.error('Failed to assign free plan:', subscriptionResult.error);
+          if (!subscriptionResult.success) {
+            console.error('⚠️ Failed to assign free plan:', subscriptionResult.error);
+          }
+        } catch (subError) {
+          console.error('⚠️ Error assigning free plan:', subError);
+          // Ne pas bloquer l'inscription si l'attribution du plan échoue
         }
 
         toast({
           title: "Inscription réussie !",
-          description: "Votre compte a été créé avec le plan gratuit. Vous pouvez maintenant commencer à utiliser la plateforme.",
+          description: "Votre compte a été créé. Vérifiez votre email pour activer votre compte.",
         });
         
         // Redirection vers l'espace réparateur
         navigate('/repairer', { replace: true });
       }
     } catch (error: any) {
-      console.error('Signup error:', error);
-      setError(error.message || 'Erreur lors de l\'inscription');
+      console.error('❌ Signup failed:', error);
+      if (error.message.includes('User already registered')) {
+        setError('Un compte existe déjà avec cet email');
+      } else {
+        setError(error.message || 'Erreur lors de l\'inscription');
+      }
     } finally {
       setIsLoading(false);
     }
