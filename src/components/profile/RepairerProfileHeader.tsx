@@ -37,9 +37,13 @@ const RepairerProfileHeader: React.FC<RepairerProfileHeaderProps> = ({
               <p className="text-sm text-gray-600">SIRET: {profile.siret_number}</p>
             )}
             {profile.has_qualirepar_label && (
-              <Badge variant="secondary" className="mt-1">
-                Label Qualirepar
-              </Badge>
+              <div className="mt-1">
+                <img 
+                  src="https://www.label-qualirepar.fr/wp-content/uploads/2022/06/logo-label-quali-repar-300x169-1.png" 
+                  alt="Label Qualirépar" 
+                  className="h-6 w-auto"
+                />
+              </div>
             )}
           </div>
         </div>

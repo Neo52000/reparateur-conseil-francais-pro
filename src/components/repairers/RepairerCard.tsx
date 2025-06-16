@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Phone, Star, Award, Shield } from 'lucide-react';
+import { MapPin, Phone, Star, Shield } from 'lucide-react';
 import { Repairer } from '@/types/repairer';
 
 interface RepairerCardProps {
@@ -31,10 +31,11 @@ const RepairerCard: React.FC<RepairerCardProps> = ({
               {repairer.business_name || repairer.name}
             </h3>
             {repairer.has_qualirepar_label && (
-              <Badge className="bg-green-100 text-green-800 border-green-200">
-                <Award className="h-3 w-3 mr-1" />
-                Qualirepar
-              </Badge>
+              <img 
+                src="https://www.label-qualirepar.fr/wp-content/uploads/2022/06/logo-label-quali-repar-300x169-1.png" 
+                alt="Label Qualirépar" 
+                className="h-6 w-auto"
+              />
             )}
             <Badge className="bg-blue-100 text-blue-800 border-blue-200">
               <Shield className="h-3 w-3 mr-1" />

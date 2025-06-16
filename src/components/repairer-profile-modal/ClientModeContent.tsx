@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { DialogContent, DialogHeader, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import ClientRepairerProfileHeader from '@/components/profile/ClientRepairerProfileHeader';
 import ClientAboutSection from '@/components/profile/ClientAboutSection';
@@ -33,9 +33,6 @@ const ClientModeContent: React.FC<ClientModeContentProps> = ({
   return (
     <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto" aria-describedby="client-profile-description">
       <DialogHeader>
-        <DialogTitle>
-          {isBasicProfile ? 'Fiche réparateur (non revendiquée)' : 'Profil réparateur'}
-        </DialogTitle>
         <DialogDescription id="client-profile-description">
           {isBasicProfile 
             ? 'Informations de base disponibles. Contactez directement le réparateur ou consultez la fiche complète après revendication.'

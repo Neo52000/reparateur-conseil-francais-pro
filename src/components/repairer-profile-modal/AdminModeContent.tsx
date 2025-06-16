@@ -27,7 +27,6 @@ const AdminModeContent: React.FC<AdminModeContentProps> = ({
   return (
     <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="admin-profile-description">
       <DialogHeader>
-        <DialogTitle>Profil du réparateur</DialogTitle>
         <DialogDescription id="admin-profile-description">
           Mode administrateur : consultez ou modifiez la fiche de ce réparateur.
         </DialogDescription>

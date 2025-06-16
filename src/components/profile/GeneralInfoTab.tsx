@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Award, MapPin } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { RepairerProfile } from '@/types/repairerProfile';
 
 interface GeneralInfoTabProps {
@@ -21,10 +20,11 @@ const GeneralInfoTab: React.FC<GeneralInfoTabProps> = ({ profile }) => {
             )}
             {profile.has_qualirepar_label && (
               <div className="flex items-center space-x-2">
-                <Award className="h-4 w-4 text-yellow-500" />
-                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                  Label QualiRépar
-                </Badge>
+                <img 
+                  src="https://www.label-qualirepar.fr/wp-content/uploads/2022/06/logo-label-quali-repar-300x169-1.png" 
+                  alt="Label Qualirépar" 
+                  className="h-6 w-auto"
+                />
               </div>
             )}
           </div>
