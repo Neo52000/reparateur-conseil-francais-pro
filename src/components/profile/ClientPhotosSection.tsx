@@ -15,7 +15,7 @@ const ClientPhotosSection: React.FC<ClientPhotosSectionProps> = ({ profile }) =>
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
             <Images className="h-6 w-6 mr-2 text-blue-600" />
-            Photos de l'atelier
+            Galerie photos du réparateur
           </h2>
           <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-lg">
             <Image className="h-12 w-12 mx-auto text-gray-400 mb-4" />
@@ -32,7 +32,7 @@ const ClientPhotosSection: React.FC<ClientPhotosSectionProps> = ({ profile }) =>
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
           <Images className="h-6 w-6 mr-2 text-blue-600" />
-          Photos de l'atelier
+          Galerie photos du réparateur
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {profile.shop_photos.map((photoUrl, index) => (
