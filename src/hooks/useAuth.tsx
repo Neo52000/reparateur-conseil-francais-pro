@@ -1,16 +1,26 @@
 
-import { useState, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { useEffect } from 'react';
+import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { authService } from '@/services/authService';
-import { profileService } from '@/services/profileService';
-import type { Profile, UserSignUpData } from '@/types/auth';
+import { useAuthState } from './auth/authStateManager';
+import { useAuthPermissions } from './auth/authPermissions';
+import { fetchOrCreateProfile } from './auth/authHelpers';
+import type { UserSignUpData, UseAuthReturn } from './auth/types';
 
-export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+export const useAuth = (): UseAuthReturn => {
+  const {
+    user,
+    session,
+    profile,
+    loading,
+    setLoading,
+    setProfile,
+    clearState,
+    updateAuthState
+  } = useAuthState();
+
+  const permissions = useAuthPermissions(profile);
 
   useEffect(() => {
     console.log('🔧 Setting up auth listener');
@@ -24,69 +34,21 @@ export const useAuth = () => {
         return;
       }
       
-      setSession(session);
-      setUser(session?.user ?? null);
-      
       if (session?.user) {
-        console.log('👤 User found, fetching profile for:', session.user.id);
-        try {
-          let profileData = await profileService.fetchProfile(session.user.id);
-          
-          // Si pas de profil, essayer de le créer à partir des métadonnées utilisateur
-          if (!profileData && session.user.user_metadata) {
-            console.log('📝 No profile found, creating from user metadata');
-            const userData = {
-              email: session.user.email!,
-              first_name: session.user.user_metadata.first_name,
-              last_name: session.user.user_metadata.last_name,
-              role: session.user.user_metadata.role || 'repairer' // Par défaut réparateur
-            };
-            
-            try {
-              profileData = await profileService.createProfile(session.user.id, userData);
-              console.log('✅ Profile created from metadata:', profileData);
-            } catch (createError) {
-              console.error('❌ Error creating profile:', createError);
-              // Créer un profil temporaire pour permettre l'accès
-              profileData = {
-                id: session.user.id,
-                email: session.user.email!,
-                first_name: session.user.user_metadata.first_name || 'Utilisateur',
-                last_name: session.user.user_metadata.last_name || '',
-                role: session.user.user_metadata.role || 'repairer'
-              };
-              console.log('🚨 Created temporary profile:', profileData);
-            }
-          }
-          
-          if (mounted) {
-            setProfile(profileData);
-            console.log('📝 Profile set:', profileData);
-          }
-        } catch (error) {
-          console.error('💥 Error in profile fetch:', error);
-          // En cas d'erreur, créer un profil temporaire avec role repairer
-          if (mounted) {
-            const tempProfile = {
-              id: session.user.id,
-              email: session.user.email!,
-              first_name: session.user.user_metadata?.first_name || 'Utilisateur',
-              last_name: session.user.user_metadata?.last_name || '',
-              role: 'repairer' // Assumer que c'est un réparateur
-            };
-            setProfile(tempProfile);
-            console.log('🔧 Set temporary repairer profile:', tempProfile);
-          }
+        const profileData = await fetchOrCreateProfile(session);
+        
+        if (mounted) {
+          updateAuthState(session, profileData);
+          console.log('📝 Profile set:', profileData);
         }
       } else {
         console.log('❌ No user found, clearing profile');
         if (mounted) {
-          setProfile(null);
+          clearState();
         }
       }
       
       if (mounted) {
-        setLoading(false);
         console.log('✅ Auth loading complete', { hasUser: !!session?.user, hasProfile: !!profile });
       }
     };
@@ -167,30 +129,17 @@ export const useAuth = () => {
       return result;
     }
     
-    // Clear state immediately
-    setUser(null);
-    setSession(null);
-    setProfile(null);
-    setLoading(false);
+    clearState();
     console.log('✅ Sign out completed');
     
     return result;
   };
 
-  // Helper functions for access control
-  const isAdmin = profile?.role === 'admin';
-  const canAccessClient = profile?.role === 'client' || profile?.role === 'user' || profile?.role === 'admin';
-  const canAccessRepairer = profile?.role === 'repairer' || profile?.role === 'admin';
-  const canAccessAdmin = profile?.role === 'admin';
-
   console.log('🔐 Current auth state:', { 
     hasUser: !!user, 
     hasProfile: !!profile, 
     profileRole: profile?.role,
-    isAdmin, 
-    canAccessClient,
-    canAccessRepairer,
-    canAccessAdmin,
+    ...permissions,
     loading 
   });
 
@@ -202,9 +151,6 @@ export const useAuth = () => {
     signIn,
     signUp,
     signOut,
-    isAdmin,
-    canAccessClient,
-    canAccessRepairer,
-    canAccessAdmin
+    ...permissions
   };
 };
