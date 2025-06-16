@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -107,22 +106,29 @@ const ScrapingHistoryManager = () => {
     
     try {
       const query = getCleanupQuery(cleanupFilter);
-      let deleteQuery = supabase.from('scraping_logs').delete();
       
+      // Créer la requête de suppression de manière plus simple
       if (query) {
         if (query.operator === 'lt') {
-          deleteQuery = deleteQuery.lt(query.column, query.value);
+          const { error } = await supabase
+            .from('scraping_logs')
+            .delete()
+            .lt(query.column, query.value);
+          if (error) throw error;
         } else if (query.operator === 'eq') {
-          deleteQuery = deleteQuery.eq(query.column, query.value);
+          const { error } = await supabase
+            .from('scraping_logs')
+            .delete()
+            .eq(query.column, query.value);
+          if (error) throw error;
         }
       } else {
-        deleteQuery = deleteQuery.neq('id', '00000000-0000-0000-0000-000000000000');
-      }
-      
-      const { error } = await deleteQuery;
-      
-      if (error) {
-        throw error;
+        // Pour supprimer tout, on utilise une condition simple
+        const { error } = await supabase
+          .from('scraping_logs')
+          .delete()
+          .neq('id', '');
+        if (error) throw error;
       }
       
       toast({
