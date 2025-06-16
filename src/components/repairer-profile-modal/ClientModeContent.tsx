@@ -47,18 +47,10 @@ const ClientModeContent: React.FC<ClientModeContentProps> = ({
       <div className="space-y-8 p-2">
         {isBasicProfile ? (
           // Affichage simplifié pour les fiches non revendiquées
-          <>
-            <ClientSimplifiedProfile
-              profile={profile}
-              onCallRepairer={onCallRepairer}
-            />
-            
-            {/* Afficher les photos même pour les profils basiques */}
-            <ClientPhotosSection profile={profile} />
-            
-            {/* Afficher les horaires même pour les profils basiques */}
-            <ClientOpeningHoursSection profile={profile} />
-          </>
+          <ClientSimplifiedProfile
+            profile={profile}
+            onCallRepairer={onCallRepairer}
+          />
         ) : (
           // Affichage complet pour les fiches revendiquées
           <>
