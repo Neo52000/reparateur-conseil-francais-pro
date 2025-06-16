@@ -24,26 +24,26 @@ export const useHistoryCleanup = () => {
       const query = getCleanupQuery(cleanupFilter);
       
       if (query) {
-        // Use separate queries to avoid TypeScript complexity
-        if (query.operator === 'lt') {
+        // Use the most basic delete operations to avoid TypeScript complexity
+        if (query.operator === 'lt' && query.column === 'started_at') {
           const { error } = await supabase
             .from('scraping_logs')
             .delete()
-            .lt(query.column, query.value);
+            .lt('started_at', query.value);
           if (error) throw error;
-        } else if (query.operator === 'eq') {
+        } else if (query.operator === 'eq' && query.column === 'status') {
           const { error } = await supabase
             .from('scraping_logs')
             .delete()
-            .eq(query.column, query.value);
+            .eq('status', query.value);
           if (error) throw error;
         }
       } else {
-        // Pour supprimer tout, on utilise une condition simple
+        // Pour supprimer tout, on utilise une condition qui match toujours
         const { error } = await supabase
           .from('scraping_logs')
           .delete()
-          .neq('id', '');
+          .gte('created_at', '1970-01-01');
         if (error) throw error;
       }
       
