@@ -4,9 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Check, Star, Zap, Crown } from 'lucide-react';
+import { Check, Star, Zap, Crown, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
+import { useAuth } from '@/hooks/useAuth';
+import { subscriptionService } from '@/services/subscriptionService';
 
 type SubscriptionPlan = Tables<'subscription_plans'>;
 
@@ -21,15 +24,26 @@ interface Plan {
 interface SubscriptionPlansProps {
   repairerId?: string;
   userEmail?: string;
+  showBackButton?: boolean;
 }
 
-const SubscriptionPlans = ({ repairerId = 'demo', userEmail = 'demo@example.com' }: SubscriptionPlansProps) => {
+const SubscriptionPlans = ({ 
+  repairerId = 'demo', 
+  userEmail, 
+  showBackButton = false 
+}: SubscriptionPlansProps) => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [isYearly, setIsYearly] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<string>('free');
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const effectiveUserEmail = userEmail || user?.email || 'demo@example.com';
 
   useEffect(() => {
     fetchPlans();
+    fetchCurrentSubscription();
   }, []);
 
   const fetchPlans = async () => {
@@ -39,7 +53,6 @@ const SubscriptionPlans = ({ repairerId = 'demo', userEmail = 'demo@example.com'
       .order('price_monthly', { ascending: true });
 
     if (data && !error) {
-      // Convert the Supabase data to our Plan interface
       const convertedPlans: Plan[] = data.map((plan: SubscriptionPlan) => ({
         id: plan.id,
         name: plan.name,
@@ -51,6 +64,13 @@ const SubscriptionPlans = ({ repairerId = 'demo', userEmail = 'demo@example.com'
     }
   };
 
+  const fetchCurrentSubscription = async () => {
+    const result = await subscriptionService.getUserSubscription(effectiveUserEmail);
+    if (result.success && result.subscription) {
+      setCurrentPlan(result.subscription.subscription_tier);
+    }
+  };
+
   const handleSubscribe = async (planId: string) => {
     setLoading(true);
     try {
@@ -59,7 +79,7 @@ const SubscriptionPlans = ({ repairerId = 'demo', userEmail = 'demo@example.com'
           planId,
           billingCycle: isYearly ? 'yearly' : 'monthly',
           repairerId,
-          email: userEmail,
+          email: effectiveUserEmail,
         },
       });
 
@@ -86,15 +106,43 @@ const SubscriptionPlans = ({ repairerId = 'demo', userEmail = 'demo@example.com'
   };
 
   const getCardStyle = (planName: string) => {
+    const isCurrentPlan = planName.toLowerCase() === currentPlan;
+    const baseStyle = isCurrentPlan ? 'border-2 border-blue-500 bg-blue-50' : '';
+    
     switch (planName.toLowerCase()) {
-      case 'premium': return 'border-purple-200 shadow-lg';
-      case 'enterprise': return 'border-yellow-200 shadow-lg';
-      default: return '';
+      case 'premium': return `${baseStyle} border-purple-200 shadow-lg`;
+      case 'enterprise': return `${baseStyle} border-yellow-200 shadow-lg`;
+      default: return baseStyle;
     }
+  };
+
+  const getButtonText = (planName: string, price: number) => {
+    const isCurrentPlan = planName.toLowerCase() === currentPlan;
+    
+    if (isCurrentPlan) return 'Plan actuel';
+    if (price === 0) return 'Plan gratuit';
+    return 'Choisir ce plan';
+  };
+
+  const isCurrentUserPlan = (planName: string) => {
+    return planName.toLowerCase() === currentPlan;
   };
 
   return (
     <div className="max-w-6xl mx-auto p-6">
+      {showBackButton && (
+        <div className="mb-6">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/repairer/dashboard')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour au tableau de bord
+          </Button>
+        </div>
+      )}
+
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">
           Choisissez votre plan d'abonnement
@@ -102,6 +150,14 @@ const SubscriptionPlans = ({ repairerId = 'demo', userEmail = 'demo@example.com'
         <p className="text-lg text-gray-600 mb-6">
           Augmentez votre visibilité et développez votre activité
         </p>
+        
+        {currentPlan && currentPlan !== 'free' && (
+          <div className="mb-6">
+            <Badge className="bg-blue-100 text-blue-800 text-sm px-3 py-1">
+              Plan actuel : {currentPlan}
+            </Badge>
+          </div>
+        )}
         
         <div className="flex items-center justify-center space-x-4 mb-8">
           <span className={`text-sm font-medium ${!isYearly ? 'text-gray-900' : 'text-gray-500'}`}>
@@ -125,10 +181,18 @@ const SubscriptionPlans = ({ repairerId = 'demo', userEmail = 'demo@example.com'
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {plans.map((plan) => (
           <Card key={plan.id} className={`relative ${getCardStyle(plan.name)} hover:shadow-xl transition-shadow`}>
-            {plan.name === 'Premium' && (
+            {plan.name === 'Premium' && !isCurrentUserPlan(plan.name) && (
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                 <Badge className="bg-purple-600 text-white">
                   Populaire
+                </Badge>
+              </div>
+            )}
+
+            {isCurrentUserPlan(plan.name) && (
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-blue-600 text-white">
+                  Plan actuel
                 </Badge>
               </div>
             )}
@@ -167,11 +231,11 @@ const SubscriptionPlans = ({ repairerId = 'demo', userEmail = 'demo@example.com'
 
               <Button
                 className="w-full"
-                variant={plan.name === 'Premium' ? 'default' : 'outline'}
+                variant={plan.name === 'Premium' && !isCurrentUserPlan(plan.name) ? 'default' : 'outline'}
                 onClick={() => handleSubscribe(plan.id)}
-                disabled={loading || plan.price_monthly === 0}
+                disabled={loading || isCurrentUserPlan(plan.name)}
               >
-                {plan.price_monthly === 0 ? 'Plan actuel' : 'Choisir ce plan'}
+                {getButtonText(plan.name, plan.price_monthly)}
               </Button>
             </CardContent>
           </Card>

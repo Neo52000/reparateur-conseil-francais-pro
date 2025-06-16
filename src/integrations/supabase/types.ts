@@ -760,6 +760,8 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          popup_dismissed_until: string | null
+          popup_never_show: boolean | null
           profile_id: string | null
           repairer_id: string
           stripe_customer_id: string | null
@@ -776,6 +778,8 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          popup_dismissed_until?: string | null
+          popup_never_show?: boolean | null
           profile_id?: string | null
           repairer_id: string
           stripe_customer_id?: string | null
@@ -792,6 +796,8 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          popup_dismissed_until?: string | null
+          popup_never_show?: boolean | null
           profile_id?: string | null
           repairer_id?: string
           stripe_customer_id?: string | null
@@ -1064,6 +1070,10 @@ export type Database = {
       }
     }
     Functions: {
+      assign_free_plan_to_repairer: {
+        Args: { user_email: string; user_id: string }
+        Returns: string
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
