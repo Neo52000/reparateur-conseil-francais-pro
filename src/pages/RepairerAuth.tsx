@@ -10,7 +10,8 @@ const RepairerAuth = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      navigate('/repairer');
+      // Rediriger vers l'espace réparateur si déjà connecté
+      navigate('/repairer', { replace: true });
     }
   }, [user, loading, navigate]);
 

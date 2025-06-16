@@ -56,8 +56,8 @@ const RepairerAuthForm = () => {
           description: "Bienvenue dans votre espace réparateur !",
         });
         
-        // Redirection directe vers le dashboard
-        navigate('/repairer/dashboard');
+        // Redirection vers l'espace réparateur
+        navigate('/repairer', { replace: true });
       }
     } catch (error: any) {
       console.error('Login error:', error);
@@ -83,6 +83,7 @@ const RepairerAuthForm = () => {
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/repairer`,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
@@ -109,8 +110,8 @@ const RepairerAuthForm = () => {
           description: "Votre compte a été créé avec le plan gratuit. Vous pouvez maintenant commencer à utiliser la plateforme.",
         });
         
-        // Redirection directe vers le dashboard au lieu des plans
-        navigate('/repairer/dashboard');
+        // Redirection vers l'espace réparateur
+        navigate('/repairer', { replace: true });
       }
     } catch (error: any) {
       console.error('Signup error:', error);
