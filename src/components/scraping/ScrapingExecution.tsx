@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
   Play, 
@@ -16,43 +17,80 @@ import {
   Zap,
   Target,
   Settings,
-  TestTube
+  TestTube,
+  AlertTriangle,
+  Info,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import { useScrapingStatus } from '@/hooks/useScrapingStatus';
 import { useToast } from '@/hooks/use-toast';
+import ScrapingHistoryManager from './ScrapingHistoryManager';
 
 const ScrapingExecution = () => {
   const { toast } = useToast();
   const { logs, loading, isScrapingRunning, startScraping, refetch } = useScrapingStatus();
   const [selectedSources, setSelectedSources] = useState<string[]>(['pages_jaunes']);
   const [isTestMode, setIsTestMode] = useState(false);
+  const [apiStatus, setApiStatus] = useState<'checking' | 'available' | 'limited' | 'unavailable'>('checking');
 
   const availableSources = [
     { 
       id: 'pages_jaunes', 
       name: 'Pages Jaunes', 
       icon: '📞',
-      description: 'Annuaire professionnel français'
+      description: 'Annuaire professionnel français',
+      estimatedResults: '8-12 résultats'
     },
     { 
       id: 'google_places', 
       name: 'Google Places', 
       icon: '🗺️',
-      description: 'Base de données Google My Business'
+      description: 'Base de données Google My Business',
+      estimatedResults: '2-5 résultats'
     },
     { 
       id: 'yelp', 
       name: 'Yelp', 
       icon: '⭐',
-      description: 'Plateforme d\'avis consommateurs'
+      description: 'Plateforme d\'avis consommateurs',
+      estimatedResults: '1-3 résultats'
     },
     { 
       id: 'facebook', 
       name: 'Facebook', 
       icon: '📘',
-      description: 'Pages entreprises Facebook'
+      description: 'Pages entreprises Facebook',
+      estimatedResults: '1-2 résultats'
     }
   ];
+
+  // Simuler la vérification du statut des API au montage
+  React.useEffect(() => {
+    const checkApiStatus = async () => {
+      try {
+        // Simuler une vérification - dans un vrai scénario, on ferait un appel test
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Simuler un statut basé sur les logs récents
+        const recentFailures = logs.filter(log => 
+          log.status === 'failed' && 
+          log.error_message?.includes('API') &&
+          new Date(log.started_at) > new Date(Date.now() - 60 * 60 * 1000) // Dernière heure
+        );
+        
+        if (recentFailures.length > 0) {
+          setApiStatus('limited');
+        } else {
+          setApiStatus('available');
+        }
+      } catch (error) {
+        setApiStatus('unavailable');
+      }
+    };
+
+    checkApiStatus();
+  }, [logs]);
 
   const handleSourceToggle = (sourceId: string) => {
     setSelectedSources(prev => 
@@ -67,6 +105,15 @@ const ScrapingExecution = () => {
       toast({
         title: "Aucune source sélectionnée",
         description: "Veuillez sélectionner au moins une source de données.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (apiStatus === 'unavailable' && !isTestMode) {
+      toast({
+        title: "APIs indisponibles",
+        description: "Les APIs IA ne sont pas disponibles. Utilisez le mode test ou vérifiez la configuration.",
         variant: "destructive"
       });
       return;
@@ -91,7 +138,7 @@ const ScrapingExecution = () => {
     setIsTestMode(true);
     toast({
       title: "🧪 Mode test activé",
-      description: "Lancement du scraping de test avec 5 résultats simulés...",
+      description: "Lancement du scraping de test avec des résultats simulés...",
     });
 
     try {
@@ -129,6 +176,26 @@ const ScrapingExecution = () => {
     }
   };
 
+  const getApiStatusIcon = () => {
+    switch (apiStatus) {
+      case 'checking': return <RefreshCw className="h-4 w-4 animate-spin" />;
+      case 'available': return <Wifi className="h-4 w-4 text-green-600" />;
+      case 'limited': return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
+      case 'unavailable': return <WifiOff className="h-4 w-4 text-red-600" />;
+      default: return <Clock className="h-4 w-4" />;
+    }
+  };
+
+  const getApiStatusMessage = () => {
+    switch (apiStatus) {
+      case 'checking': return 'Vérification des APIs...';
+      case 'available': return 'APIs IA disponibles';
+      case 'limited': return 'APIs IA limitées (erreurs récentes)';
+      case 'unavailable': return 'APIs IA indisponibles';
+      default: return 'Statut inconnu';
+    }
+  };
+
   const formatDuration = (startedAt: string, completedAt?: string) => {
     const start = new Date(startedAt);
     const end = completedAt ? new Date(completedAt) : new Date();
@@ -142,8 +209,38 @@ const ScrapingExecution = () => {
     return `${diffSeconds}s`;
   };
 
+  const totalEstimatedResults = selectedSources.reduce((total, sourceId) => {
+    const source = availableSources.find(s => s.id === sourceId);
+    if (!source) return total;
+    const range = source.estimatedResults.match(/(\d+)-(\d+)/);
+    if (range) {
+      return total + parseInt(range[2]); // Prendre le maximum de la fourchette
+    }
+    return total + 5; // Valeur par défaut
+  }, 0);
+
   return (
     <div className="space-y-6">
+      {/* Statut des APIs */}
+      <Alert>
+        <div className="flex items-center">
+          {getApiStatusIcon()}
+          <AlertDescription className="ml-2">
+            <strong>{getApiStatusMessage()}</strong>
+            {apiStatus === 'limited' && (
+              <span className="ml-2 text-yellow-700">
+                - Classification par mots-clés en fallback
+              </span>
+            )}
+            {apiStatus === 'unavailable' && (
+              <span className="ml-2 text-red-700">
+                - Seule la classification par mots-clés sera utilisée
+              </span>
+            )}
+          </AlertDescription>
+        </div>
+      </Alert>
+
       {/* Configuration et contrôles */}
       <Card>
         <CardHeader>
@@ -159,9 +256,9 @@ const ScrapingExecution = () => {
                   En cours
                 </Badge>
               )}
-              <Badge variant="outline" className="text-green-600">
+              <Badge variant="outline" className={apiStatus === 'available' ? 'text-green-600' : 'text-yellow-600'}>
                 <Zap className="h-3 w-3 mr-1" />
-                IA Active
+                IA {apiStatus === 'available' ? 'Active' : 'Limitée'}
               </Badge>
             </div>
           </CardTitle>
@@ -196,10 +293,26 @@ const ScrapingExecution = () => {
                     </div>
                     <h4 className="font-medium text-sm">{source.name}</h4>
                     <p className="text-xs text-gray-500 mt-1">{source.description}</p>
+                    <p className="text-xs text-blue-600 mt-1 font-medium">{source.estimatedResults}</p>
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Estimation des résultats */}
+            {selectedSources.length > 0 && (
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Estimation :</strong> Jusqu'à {totalEstimatedResults} résultats potentiels avec les sources sélectionnées.
+                  {apiStatus !== 'available' && (
+                    <span className="text-yellow-700 ml-2">
+                      (Précision réduite sans IA)
+                    </span>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Contrôles d'exécution */}
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -220,7 +333,7 @@ const ScrapingExecution = () => {
                   className="flex items-center space-x-2 border-green-300 text-green-700 hover:bg-green-50"
                 >
                   <TestTube className="h-4 w-4" />
-                  <span>{isTestMode ? 'Test en cours...' : 'Test (5 résultats)'}</span>
+                  <span>{isTestMode ? 'Test en cours...' : 'Test (simulation)'}</span>
                 </Button>
 
                 <Button
@@ -264,12 +377,15 @@ const ScrapingExecution = () => {
         </CardContent>
       </Card>
 
-      {/* Historique des exécutions */}
+      {/* Gestion de l'historique */}
+      <ScrapingHistoryManager />
+
+      {/* Historique récent des exécutions */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <Clock className="h-5 w-5 mr-2" />
-            Historique des Exécutions
+            Historique Récent
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -296,7 +412,7 @@ const ScrapingExecution = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {logs.map((log) => (
+                {logs.slice(0, 5).map((log) => (
                   <TableRow key={log.id}>
                     <TableCell>
                       <div className="flex items-center">

@@ -10,6 +10,7 @@ import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Brain, 
   Settings, 
@@ -18,7 +19,10 @@ import {
   Clock,
   Shield,
   Zap,
-  Globe
+  Globe,
+  HelpCircle,
+  Info,
+  AlertTriangle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -26,7 +30,7 @@ const ScrapingConfigPanel = () => {
   const { toast } = useToast();
   const [config, setConfig] = useState({
     aiModel: 'mistral-small-latest',
-    confidenceThreshold: [0.8],
+    confidenceThreshold: [0.6],
     maxItemsPerSession: 100,
     enableDeduplication: true,
     enableGeoValidation: true,
@@ -34,16 +38,85 @@ const ScrapingConfigPanel = () => {
     sources: ['pages_jaunes', 'google_places'],
     rateLimit: 5,
     retryAttempts: 3,
-    enableNotifications: true
+    enableNotifications: true,
+    testMode: false
   });
 
+  const [showPromptHelp, setShowPromptHelp] = useState(false);
+
+  const defaultPrompts = {
+    repairer: `Analyse cette entreprise et détermine s'il s'agit d'un réparateur de téléphones/électronique. 
+Critères prioritaires:
+- Services de réparation (écrans, batteries, etc.)
+- Mots-clés: "réparation", "iPhone", "Samsung", "smartphone"
+- Éviter: restaurants, coiffeurs, médecins
+
+Réponds en JSON avec: is_repairer, services[], specialties[], price_range, confidence, is_open`,
+    
+    strict: `Classification stricte pour réparateurs de smartphones uniquement.
+Exigences:
+- Mention explicite de "réparation téléphone" ou "smartphone"
+- Pas d'autres activités principales (vente uniquement, accessoires)
+- Services techniques confirmés
+
+Seuil de confiance minimum: 0.8`,
+
+    permissive: `Classification permissive incluant services électroniques connexes.
+Inclure:
+- Réparation téléphones, tablettes, ordinateurs
+- Services informatiques avec réparation
+- Magasins avec service après-vente
+
+Seuil de confiance minimum: 0.4`
+  };
+
   const handleSaveConfig = () => {
-    // Sauvegarder la configuration
+    // Sauvegarder la configuration dans localStorage
+    localStorage.setItem('scrapingConfig', JSON.stringify(config));
     toast({
       title: "Configuration sauvegardée",
       description: "Les paramètres ont été mis à jour avec succès."
     });
   };
+
+  const resetConfig = () => {
+    const defaultConfig = {
+      aiModel: 'mistral-small-latest',
+      confidenceThreshold: [0.6],
+      maxItemsPerSession: 100,
+      enableDeduplication: true,
+      enableGeoValidation: true,
+      customPrompt: '',
+      sources: ['pages_jaunes', 'google_places'],
+      rateLimit: 5,
+      retryAttempts: 3,
+      enableNotifications: true,
+      testMode: false
+    };
+    setConfig(defaultConfig);
+    localStorage.removeItem('scrapingConfig');
+    toast({
+      title: "Configuration réinitialisée",
+      description: "Tous les paramètres ont été remis par défaut."
+    });
+  };
+
+  const applyPromptTemplate = (template: keyof typeof defaultPrompts) => {
+    setConfig(prev => ({ ...prev, customPrompt: defaultPrompts[template] }));
+  };
+
+  // Charger la configuration au montage
+  React.useEffect(() => {
+    const savedConfig = localStorage.getItem('scrapingConfig');
+    if (savedConfig) {
+      try {
+        const parsed = JSON.parse(savedConfig);
+        setConfig(prev => ({ ...prev, ...parsed }));
+      } catch (error) {
+        console.error('Erreur lors du chargement de la configuration:', error);
+      }
+    }
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -56,6 +129,13 @@ const ScrapingConfigPanel = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Si les API Mistral/OpenAI ne sont pas configurées, le système utilisera une classification par mots-clés (moins précise).
+            </AlertDescription>
+          </Alert>
+
           <div>
             <Label htmlFor="ai-model">Modèle IA</Label>
             <Select value={config.aiModel} onValueChange={(value) => 
@@ -90,14 +170,14 @@ const ScrapingConfigPanel = () => {
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="custom-prompt">Prompt personnalisé</Label>
-            <Textarea
-              id="custom-prompt"
-              placeholder="Instructions spécifiques pour l'IA..."
-              value={config.customPrompt}
-              onChange={(e) => setConfig(prev => ({ ...prev, customPrompt: e.target.value }))}
-              className="mt-1"
+          <div className="flex items-center justify-between">
+            <Label htmlFor="test-mode">Mode test (sans IA)</Label>
+            <Switch
+              id="test-mode"
+              checked={config.testMode}
+              onCheckedChange={(checked) => 
+                setConfig(prev => ({ ...prev, testMode: checked }))
+              }
             />
           </div>
 
@@ -122,6 +202,96 @@ const ScrapingConfigPanel = () => {
               }
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Prompt Personnalisé */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Brain className="h-5 w-5 mr-2 text-green-600" />
+              Prompt Personnalisé
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowPromptHelp(!showPromptHelp)}
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {showPromptHelp && (
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p><strong>Le prompt personnalisé permet de :</strong></p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>Définir des critères spécifiques de classification</li>
+                    <li>Ajuster la précision selon vos besoins</li>
+                    <li>Cibler des types d'entreprises particuliers</li>
+                    <li>Personnaliser le format de réponse JSON</li>
+                  </ul>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div>
+            <Label>Templates prédéfinis</Label>
+            <div className="grid grid-cols-1 gap-2 mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => applyPromptTemplate('repairer')}
+                className="justify-start"
+              >
+                🎯 Standard - Réparateurs mobiles
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => applyPromptTemplate('strict')}
+                className="justify-start"
+              >
+                🔒 Strict - Smartphones uniquement
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => applyPromptTemplate('permissive')}
+                className="justify-start"
+              >
+                🌐 Permissif - Services électroniques
+              </Button>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="custom-prompt">Instructions personnalisées</Label>
+            <Textarea
+              id="custom-prompt"
+              placeholder="Saisissez vos instructions spécifiques pour l'IA..."
+              value={config.customPrompt}
+              onChange={(e) => setConfig(prev => ({ ...prev, customPrompt: e.target.value }))}
+              className="mt-1 h-32"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {config.customPrompt.length}/2000 caractères
+            </p>
+          </div>
+
+          {config.customPrompt && (
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <p className="text-sm font-medium text-blue-900 mb-1">Aperçu du prompt :</p>
+              <p className="text-xs text-blue-800 line-clamp-3">
+                {config.customPrompt.slice(0, 150)}...
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -200,7 +370,7 @@ const ScrapingConfigPanel = () => {
       </Card>
 
       {/* Configuration Avancée */}
-      <Card className="lg:col-span-2">
+      <Card className="lg:col-span-1">
         <CardHeader>
           <CardTitle className="flex items-center">
             <Settings className="h-5 w-5 mr-2 text-gray-600" />
@@ -208,7 +378,7 @@ const ScrapingConfigPanel = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-4">
             <div className="space-y-4">
               <h4 className="font-medium flex items-center">
                 <Filter className="h-4 w-4 mr-2" />
@@ -227,6 +397,15 @@ const ScrapingConfigPanel = () => {
                   <Label className="text-sm">Validation téléphone</Label>
                   <Switch />
                 </div>
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm">Notifications</Label>
+                  <Switch 
+                    checked={config.enableNotifications}
+                    onCheckedChange={(checked) => 
+                      setConfig(prev => ({ ...prev, enableNotifications: checked }))
+                    }
+                  />
+                </div>
               </div>
             </div>
 
@@ -242,38 +421,15 @@ const ScrapingConfigPanel = () => {
                 <Input type="number" defaultValue="30" />
               </div>
             </div>
-
-            <div className="space-y-4">
-              <h4 className="font-medium flex items-center">
-                <Shield className="h-4 w-4 mr-2" />
-                Sécurité
-              </h4>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm">Rotation User-Agent</Label>
-                  <Switch defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm">Proxy aléatoire</Label>
-                  <Switch />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm">Notifications</Label>
-                  <Switch 
-                    checked={config.enableNotifications}
-                    onCheckedChange={(checked) => 
-                      setConfig(prev => ({ ...prev, enableNotifications: checked }))
-                    }
-                  />
-                </div>
-              </div>
-            </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t">
+          <div className="mt-6 pt-4 border-t space-y-2">
             <Button onClick={handleSaveConfig} className="w-full">
               <Zap className="h-4 w-4 mr-2" />
               Sauvegarder la Configuration
+            </Button>
+            <Button onClick={resetConfig} variant="outline" className="w-full">
+              Réinitialiser
             </Button>
           </div>
         </CardContent>

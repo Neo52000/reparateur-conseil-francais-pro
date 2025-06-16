@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -24,9 +23,9 @@ serve(async (req) => {
     
     console.log(`🔑 Clés API disponibles: Mistral=${!!mistralApiKey}, OpenAI=${!!openaiApiKey}`)
 
-    const { source } = await req.json()
+    const { source, customPrompt, testMode = false, config = {} } = await req.json()
     
-    console.log(`🚀 Démarrage du scraping RÉEL pour source: ${source}`)
+    console.log(`🚀 Démarrage du scraping ${testMode ? 'TEST' : 'RÉEL'} pour source: ${source}`)
 
     // Créer un log de scraping
     const { data: logData, error: logError } = await supabase
@@ -48,7 +47,8 @@ serve(async (req) => {
 
     // Analyser avec IA ou utiliser une classification simple en fallback
     const analyzeWithAI = async (businessData: any) => {
-      const prompt = `Analyse ces données d'entreprise et détermine s'il s'agit d'un réparateur de téléphones/électronique. 
+      // Utiliser le prompt personnalisé s'il est fourni
+      const basePrompt = customPrompt || `Analyse ces données d'entreprise et détermine s'il s'agit d'un réparateur de téléphones/électronique. 
       Données: ${JSON.stringify(businessData)}
       
       Réponds UNIQUEMENT par un JSON avec cette structure:
@@ -61,6 +61,23 @@ serve(async (req) => {
         "is_open": boolean
       }`
 
+      const prompt = basePrompt.replace('${JSON.stringify(businessData)}', JSON.stringify(businessData))
+
+      // En mode test, simuler une réponse IA
+      if (testMode) {
+        console.log('🧪 Mode test: simulation de l\'analyse IA')
+        await new Promise(resolve => setTimeout(resolve, 500)) // Simuler latence
+        
+        return {
+          is_repairer: true,
+          services: ['Réparation smartphone', 'Réparation électronique'],
+          specialties: ['iPhone', 'Samsung', 'Android'],
+          price_range: 'medium',
+          confidence: 0.85,
+          is_open: true
+        }
+      }
+
       // Essayer d'abord Mistral AI
       if (mistralApiKey) {
         try {
@@ -72,7 +89,7 @@ serve(async (req) => {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'mistral-small-latest',
+              model: config.aiModel || 'mistral-small-latest',
               messages: [
                 {
                   role: 'system',
@@ -94,10 +111,19 @@ serve(async (req) => {
             console.log('✅ Analyse Mistral AI réussie:', aiAnalysis)
             return aiAnalysis
           } else {
-            console.error('❌ Erreur Mistral API:', response.status, await response.text())
+            const errorText = await response.text()
+            console.error('❌ Erreur Mistral API:', response.status, errorText)
+            
+            // Si c'est une erreur 401, c'est probablement une clé API invalide
+            if (response.status === 401) {
+              throw new Error('Clé API Mistral invalide ou expirée')
+            }
           }
         } catch (error) {
           console.error('❌ Erreur Mistral AI:', error)
+          if (error.message?.includes('Clé API')) {
+            throw error // Propager l'erreur de clé API
+          }
         }
       }
 
@@ -134,10 +160,20 @@ serve(async (req) => {
             console.log('✅ Analyse OpenAI réussie:', aiAnalysis)
             return aiAnalysis
           } else {
-            console.error('❌ Erreur OpenAI API:', response.status, await response.text())
+            const errorData = await response.json()
+            console.error('❌ Erreur OpenAI API:', response.status, errorData)
+            
+            if (response.status === 401) {
+              throw new Error('Clé API OpenAI invalide ou expirée')
+            } else if (response.status === 429) {
+              throw new Error('Quota OpenAI dépassé')
+            }
           }
         } catch (error) {
           console.error('❌ Erreur OpenAI:', error)
+          if (error.message?.includes('Clé API') || error.message?.includes('Quota')) {
+            throw error // Propager l'erreur importante
+          }
         }
       }
 
@@ -147,29 +183,45 @@ serve(async (req) => {
       
       const repairKeywords = [
         'repair', 'réparation', 'iPhone', 'samsung', 'mobile', 'téléphone', 'smartphone', 
-        'écran', 'batterie', 'techfix', 'doctor', 'fix', 'service informatique'
+        'écran', 'batterie', 'techfix', 'doctor', 'fix', 'service informatique', 'gsm'
       ]
       
-      const excludeKeywords = ['boulangerie', 'restaurant', 'coiffeur', 'médecin', 'avocat']
+      const excludeKeywords = ['boulangerie', 'restaurant', 'coiffeur', 'médecin', 'avocat', 'pharmacie']
       
       const hasRepairKeywords = repairKeywords.some(keyword => businessText.includes(keyword.toLowerCase()))
       const hasExcludeKeywords = excludeKeywords.some(keyword => businessText.includes(keyword.toLowerCase()))
       
       const isRepairer = hasRepairKeywords && !hasExcludeKeywords
+      const confidence = isRepairer ? 0.7 : 0.3 // Confiance plus faible sans IA
       
       return {
         is_repairer: isRepairer,
         services: isRepairer ? ['Réparation smartphone', 'Réparation électronique'] : [],
         specialties: isRepairer ? ['iPhone', 'Samsung', 'Android'] : [],
         price_range: 'medium',
-        confidence: isRepairer ? 0.8 : 0.2,
+        confidence: confidence,
         is_open: true
       }
     }
 
     // Scraper RÉEL pour Pages Jaunes - données actualisées
     const scrapePagesJaunes = async () => {
-      console.log('🔍 Scraping RÉEL Pages Jaunes...')
+      console.log('🔍 Scraping Pages Jaunes...')
+      
+      if (testMode) {
+        console.log('🧪 Mode test: données simulées')
+        return [
+          {
+            name: 'Test Repair Shop',
+            address: '123 Rue de Test',
+            city: 'Paris',
+            postal_code: '75001',
+            phone: '+33 1 23 45 67 89',
+            description: 'Réparation de smartphones et tablettes (test)',
+            category: 'Réparation électronique'
+          }
+        ]
+      }
       
       // Données réelles de réparateurs français (mises à jour)
       return [
@@ -259,7 +311,21 @@ serve(async (req) => {
 
     // Scraper pour Google Places - données réelles
     const scrapeGooglePlaces = async () => {
-      console.log('🔍 Scraping RÉEL Google Places...')
+      console.log('🔍 Scraping Google Places...')
+      
+      if (testMode) {
+        return [
+          {
+            name: 'Test Google Repair',
+            address: '456 Avenue de Test',
+            city: 'Lyon',
+            postal_code: '69000',
+            phone: '+33 4 78 90 12 34',
+            description: 'Service de réparation test depuis Google Places',
+            category: 'Réparation téléphone'
+          }
+        ]
+      }
       
       return [
         {
@@ -287,143 +353,154 @@ serve(async (req) => {
     // Obtenir les données selon la source
     let scrapedData = []
     
-    if (source === 'pages_jaunes') {
-      scrapedData = await scrapePagesJaunes()
-    } else if (source === 'google_places') {
-      scrapedData = await scrapeGooglePlaces()
-    } else {
-      // Données par défaut pour les autres sources
-      scrapedData = [
-        {
-          name: `Réparateur ${source}`,
-          address: '123 Rue de Test',
-          city: 'Paris',
-          postal_code: '75001',
-          phone: '+33 1 23 45 67 89',
-          description: `Réparateur professionnel depuis ${source}`,
-          category: 'Réparation smartphone'
-        }
-      ]
+    try {
+      if (source === 'pages_jaunes') {
+        scrapedData = await scrapePagesJaunes()
+      } else if (source === 'google_places') {
+        scrapedData = await scrapeGooglePlaces()
+      } else {
+        // Données par défaut pour les autres sources
+        scrapedData = [
+          {
+            name: `${testMode ? 'Test ' : ''}Réparateur ${source}`,
+            address: '123 Rue de Test',
+            city: 'Paris',
+            postal_code: '75001',
+            phone: '+33 1 23 45 67 89',
+            description: `Réparateur professionnel ${testMode ? '(test)' : 'depuis'} ${source}`,
+            category: 'Réparation smartphone'
+          }
+        ]
+      }
+    } catch (scrapingError) {
+      console.error('❌ Erreur lors du scraping:', scrapingError)
+      throw new Error(`Erreur de scraping pour ${source}: ${scrapingError.message}`)
     }
 
     let itemsAdded = 0
     let itemsUpdated = 0
     let itemsProcessed = 0
+    const confidenceThreshold = config.confidenceThreshold || 0.6
 
-    console.log(`📊 Traitement RÉEL de ${scrapedData.length} entreprises...`)
+    console.log(`📊 Traitement de ${scrapedData.length} entreprises (seuil: ${confidenceThreshold})...`)
 
     for (const data of scrapedData) {
       itemsProcessed++
       console.log(`🔄 Analyse ${itemsProcessed}/${scrapedData.length}: ${data.name}`)
       
-      // Analyser avec IA ou fallback
-      const aiAnalysis = await analyzeWithAI(data)
-      
-      console.log(`📊 Résultat analyse ${data.name}:`, {
-        is_repairer: aiAnalysis?.is_repairer,
-        confidence: aiAnalysis?.confidence,
-        services: aiAnalysis?.services
-      })
-      
-      // Seuil de confiance pour accepter les réparateurs
-      if (aiAnalysis && aiAnalysis.is_repairer && aiAnalysis.confidence > 0.3) {
-        console.log(`✅ Réparateur identifié: ${data.name} (confiance: ${aiAnalysis.confidence})`)
+      try {
+        // Analyser avec IA ou fallback
+        const aiAnalysis = await analyzeWithAI(data)
         
-        // Vérifier si le réparateur existe déjà
-        const { data: existingRepairer } = await supabase
-          .from('repairers')
-          .select('id')
-          .eq('name', data.name)
-          .eq('address', data.address)
-          .eq('city', data.city)
-          .maybeSingle();
-
-        const now = new Date().toISOString();
-
-        const repairerData = {
-          name: data.name,
-          address: data.address,
-          city: data.city,
-          postal_code: data.postal_code,
-          department: data.city === 'Paris' ? 'Paris' : 
-                     data.city === 'Lyon' ? 'Rhône' : 
-                     data.city === 'Marseille' ? 'Bouches-du-Rhône' :
-                     data.city === 'Nice' ? 'Alpes-Maritimes' :
-                     data.city === 'Toulouse' ? 'Haute-Garonne' :
-                     data.city === 'Bordeaux' ? 'Gironde' :
-                     data.city === 'Lille' ? 'Nord' :
-                     data.city === 'Nantes' ? 'Loire-Atlantique' :
-                     data.city === 'Strasbourg' ? 'Bas-Rhin' : 'France',
-          region: data.city === 'Paris' ? 'Île-de-France' : 
-                  data.city === 'Lyon' ? 'Auvergne-Rhône-Alpes' : 
-                  data.city === 'Marseille' ? 'Provence-Alpes-Côte d\'Azur' :
-                  data.city === 'Nice' ? 'Provence-Alpes-Côte d\'Azur' :
-                  data.city === 'Toulouse' ? 'Occitanie' :
-                  data.city === 'Bordeaux' ? 'Nouvelle-Aquitaine' :
-                  data.city === 'Lille' ? 'Hauts-de-France' :
-                  data.city === 'Nantes' ? 'Pays de la Loire' :
-                  data.city === 'Strasbourg' ? 'Grand Est' : 'France',
-          phone: data.phone,
-          email: data.email,
-          website: data.website,
-          lat: data.city === 'Paris' ? 48.8566 : 
-               data.city === 'Lyon' ? 45.7640 : 
-               data.city === 'Marseille' ? 43.2965 :
-               data.city === 'Nice' ? 43.7102 :
-               data.city === 'Toulouse' ? 43.6047 :
-               data.city === 'Bordeaux' ? 44.8378 :
-               data.city === 'Lille' ? 50.6292 :
-               data.city === 'Nantes' ? 47.2184 :
-               data.city === 'Strasbourg' ? 48.5734 : 46.2276,
-          lng: data.city === 'Paris' ? 2.3522 : 
-               data.city === 'Lyon' ? 4.8357 : 
-               data.city === 'Marseille' ? 5.3698 :
-               data.city === 'Nice' ? 7.2620 :
-               data.city === 'Toulouse' ? 1.4442 :
-               data.city === 'Bordeaux' ? -0.5792 :
-               data.city === 'Lille' ? 3.0573 :
-               data.city === 'Nantes' ? -1.5536 :
-               data.city === 'Strasbourg' ? 7.7521 : 2.2137,
-          services: aiAnalysis.services || ['Réparation smartphone'],
-          specialties: aiAnalysis.specialties || ['iPhone', 'Samsung'],
-          price_range: aiAnalysis.price_range || 'medium',
-          source,
-          is_open: aiAnalysis.is_open !== undefined ? aiAnalysis.is_open : true,
-          scraped_at: now,
-          updated_at: now
-        };
-
-        console.log('📝 Données RÉELLES à sauvegarder:', repairerData)
-
-        if (existingRepairer) {
-          // Mettre à jour le réparateur existant
-          const { error: updateError } = await supabase
+        console.log(`📊 Résultat analyse ${data.name}:`, {
+          is_repairer: aiAnalysis?.is_repairer,
+          confidence: aiAnalysis?.confidence,
+          services: aiAnalysis?.services
+        })
+        
+        // Seuil de confiance pour accepter les réparateurs
+        if (aiAnalysis && aiAnalysis.is_repairer && aiAnalysis.confidence > confidenceThreshold) {
+          console.log(`✅ Réparateur identifié: ${data.name} (confiance: ${aiAnalysis.confidence})`)
+          
+          // Vérifier si le réparateur existe déjà
+          const { data: existingRepairer } = await supabase
             .from('repairers')
-            .update(repairerData)
-            .eq('id', existingRepairer.id)
+            .select('id')
+            .eq('name', data.name)
+            .eq('address', data.address)
+            .eq('city', data.city)
+            .maybeSingle();
 
-          if (!updateError) {
-            itemsUpdated++
-            console.log(`🔄 Réparateur mis à jour: ${data.name}`)
+          const now = new Date().toISOString();
+
+          const repairerData = {
+            name: data.name,
+            address: data.address,
+            city: data.city,
+            postal_code: data.postal_code,
+            department: data.city === 'Paris' ? 'Paris' : 
+                       data.city === 'Lyon' ? 'Rhône' : 
+                       data.city === 'Marseille' ? 'Bouches-du-Rhône' :
+                       data.city === 'Nice' ? 'Alpes-Maritimes' :
+                       data.city === 'Toulouse' ? 'Haute-Garonne' :
+                       data.city === 'Bordeaux' ? 'Gironde' :
+                       data.city === 'Lille' ? 'Nord' :
+                       data.city === 'Nantes' ? 'Loire-Atlantique' :
+                       data.city === 'Strasbourg' ? 'Bas-Rhin' : 'France',
+            region: data.city === 'Paris' ? 'Île-de-France' : 
+                    data.city === 'Lyon' ? 'Auvergne-Rhône-Alpes' : 
+                    data.city === 'Marseille' ? 'Provence-Alpes-Côte d\'Azur' :
+                    data.city === 'Nice' ? 'Provence-Alpes-Côte d\'Azur' :
+                    data.city === 'Toulouse' ? 'Occitanie' :
+                    data.city === 'Bordeaux' ? 'Nouvelle-Aquitaine' :
+                    data.city === 'Lille' ? 'Hauts-de-France' :
+                    data.city === 'Nantes' ? 'Pays de la Loire' :
+                    data.city === 'Strasbourg' ? 'Grand Est' : 'France',
+            phone: data.phone,
+            email: data.email,
+            website: data.website,
+            lat: data.city === 'Paris' ? 48.8566 : 
+                 data.city === 'Lyon' ? 45.7640 : 
+                 data.city === 'Marseille' ? 43.2965 :
+                 data.city === 'Nice' ? 43.7102 :
+                 data.city === 'Toulouse' ? 43.6047 :
+                 data.city === 'Bordeaux' ? 44.8378 :
+                 data.city === 'Lille' ? 50.6292 :
+                 data.city === 'Nantes' ? 47.2184 :
+                 data.city === 'Strasbourg' ? 48.5734 : 46.2276,
+            lng: data.city === 'Paris' ? 2.3522 : 
+                 data.city === 'Lyon' ? 4.8357 : 
+                 data.city === 'Marseille' ? 5.3698 :
+                 data.city === 'Nice' ? 7.2620 :
+                 data.city === 'Toulouse' ? 1.4442 :
+                 data.city === 'Bordeaux' ? -0.5792 :
+                 data.city === 'Lille' ? 3.0573 :
+                 data.city === 'Nantes' ? -1.5536 :
+                 data.city === 'Strasbourg' ? 7.7521 : 2.2137,
+            services: aiAnalysis.services || ['Réparation smartphone'],
+            specialties: aiAnalysis.specialties || ['iPhone', 'Samsung'],
+            price_range: aiAnalysis.price_range || 'medium',
+            source,
+            is_open: aiAnalysis.is_open !== undefined ? aiAnalysis.is_open : true,
+            scraped_at: now,
+            updated_at: now
+          };
+
+          console.log('📝 Données RÉELLES à sauvegarder:', repairerData)
+
+          if (existingRepairer) {
+            // Mettre à jour le réparateur existant
+            const { error: updateError } = await supabase
+              .from('repairers')
+              .update(repairerData)
+              .eq('id', existingRepairer.id)
+
+            if (!updateError) {
+              itemsUpdated++
+              console.log(`🔄 Réparateur mis à jour: ${data.name}`)
+            } else {
+              console.error('❌ Erreur mise à jour:', updateError)
+            }
           } else {
-            console.error('❌ Erreur mise à jour:', updateError)
+            // Créer un nouveau réparateur
+            const { error: insertError } = await supabase
+              .from('repairers')
+              .insert(repairerData)
+
+            if (!insertError) {
+              itemsAdded++
+              console.log(`➕ Nouveau réparateur ajouté: ${data.name}`)
+            } else {
+              console.error('❌ Erreur insertion:', insertError)
+            }
           }
         } else {
-          // Créer un nouveau réparateur
-          const { error: insertError } = await supabase
-            .from('repairers')
-            .insert(repairerData)
-
-          if (!insertError) {
-            itemsAdded++
-            console.log(`➕ Nouveau réparateur ajouté: ${data.name}`)
-          } else {
-            console.error('❌ Erreur insertion:', insertError)
-          }
+          const confidence = aiAnalysis?.confidence || 0
+          console.log(`❌ Non-réparateur ou confiance faible: ${data.name} (confiance: ${confidence})`)
         }
-      } else {
-        const confidence = aiAnalysis?.confidence || 0
-        console.log(`❌ Non-réparateur ou confiance faible: ${data.name} (confiance: ${confidence})`)
+      } catch (analysisError) {
+        console.error(`❌ Erreur analyse ${data.name}:`, analysisError)
+        // Continuer avec l'élément suivant
       }
     }
 
@@ -439,21 +516,23 @@ serve(async (req) => {
       })
       .eq('id', logData.id)
 
-    console.log(`🎉 Scraping RÉEL terminé: ${itemsAdded} ajoutés, ${itemsUpdated} mis à jour sur ${scrapedData.length} traités`)
+    console.log(`🎉 Scraping ${testMode ? 'TEST' : 'RÉEL'} terminé: ${itemsAdded} ajoutés, ${itemsUpdated} mis à jour sur ${scrapedData.length} traités`)
 
-    const aiProvider = mistralApiKey ? 'Mistral AI (production)' : 
-                      openaiApiKey ? 'OpenAI (production)' : 
+    const aiProvider = testMode ? 'Mode Test' : 
+                      mistralApiKey ? 'Mistral AI' : 
+                      openaiApiKey ? 'OpenAI' : 
                       'Classification par mots-clés'
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Scraping RÉEL ${source} terminé avec succès`,
+        message: `Scraping ${testMode ? 'TEST' : 'RÉEL'} ${source} terminé avec succès`,
         items_added: itemsAdded,
         items_updated: itemsUpdated,
         items_scraped: scrapedData.length,
         ai_provider: aiProvider,
-        note: "Données réelles extraites et analysées"
+        note: testMode ? "Données de test générées" : "Données réelles extraites et analysées",
+        confidence_threshold: confidenceThreshold
       }),
       { 
         headers: { 
@@ -466,7 +545,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('💥 Erreur dans scrape-repairers:', error)
     
-    // Mettre à jour le log en cas d'erreur
+    // Mettre à jour le log en cas d'erreur avec un message plus informatif
     try {
       const { source } = await req.json().catch(() => ({ source: 'unknown' }))
       
@@ -475,11 +554,13 @@ serve(async (req) => {
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       )
       
+      const errorMessage = error.message || 'Erreur inconnue'
+      
       await supabase
         .from('scraping_logs')
         .update({
           status: 'failed',
-          error_message: error.message,
+          error_message: errorMessage,
           completed_at: new Date().toISOString()
         })
         .eq('source', source)
@@ -491,7 +572,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: 'Consultez les logs pour plus de détails'
+        details: 'Consultez les logs pour plus de détails',
+        timestamp: new Date().toISOString()
       }),
       { 
         headers: { 
