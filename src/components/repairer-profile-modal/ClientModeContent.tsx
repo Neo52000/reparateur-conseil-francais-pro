@@ -66,23 +66,6 @@ const ClientModeContent: React.FC<ClientModeContentProps> = ({
             <ClientOpeningHoursSection profile={profile} />
             <ClientTestimonialsSection businessName={profile.business_name} />
             <ClientContactSection profile={profile} />
-
-            {/* Actions mobiles sticky pour les fiches complètes */}
-            <div className="lg:hidden sticky bottom-0 bg-white border-t p-4 -mx-2 flex space-x-3">
-              <Button 
-                onClick={onRequestQuote}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
-              >
-                Devis gratuit
-              </Button>
-              <Button 
-                onClick={onCallRepairer}
-                variant="outline"
-                className="flex-1"
-              >
-                Appeler
-              </Button>
-            </div>
           </>
         )}
 
