@@ -62,29 +62,29 @@ const ClientModeContent: React.FC<ClientModeContentProps> = ({
               onBookAppointment={onBookAppointment}
             />
 
-            {/* 2. À propos (présentation + infos générales) */}
+            {/* 2. À propos (présentation uniquement) */}
             <ClientAboutSection profile={profile} />
 
-            {/* 3. Services et tarifs */}
-            <ClientServicesAndPricingSection profile={profile} />
+            {/* 3. Contact et localisation (remplace les informations générales) */}
+            <ClientContactSection profile={profile} />
 
-            {/* 4. Horaires d'ouverture */}
-            <ClientOpeningHoursSection profile={profile} />
-
-            {/* 5. Options et certifications */}
-            <ClientOptionsAndCertificationsSection profile={profile} />
-
-            {/* 6. Langues et moyens de paiement */}
-            <LanguagesPaymentCard profile={profile} />
-
-            {/* 7. Galerie photo */}
+            {/* 4. Galerie photo */}
             <ClientPhotosSection profile={profile} />
 
-            {/* 8. Témoignages */}
-            <ClientTestimonialsSection businessName={profile.business_name} />
+            {/* 5. Horaires d'ouverture */}
+            <ClientOpeningHoursSection profile={profile} />
 
-            {/* 9. Contact */}
-            <ClientContactSection profile={profile} />
+            {/* 6. Services et tarifs */}
+            <ClientServicesAndPricingSection profile={profile} />
+
+            {/* 7. Options et certifications */}
+            <ClientOptionsAndCertificationsSection profile={profile} />
+
+            {/* 8. Langues et moyens de paiement */}
+            <LanguagesPaymentCard profile={profile} />
+
+            {/* 9. Témoignages */}
+            <ClientTestimonialsSection businessName={profile.business_name} />
           </>
         )}
 
