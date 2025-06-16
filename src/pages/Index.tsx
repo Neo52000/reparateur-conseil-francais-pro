@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -174,11 +173,8 @@ const Index = () => {
         <div className="mb-12">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Réparateurs recommandés
+              Les derniers réparateurs inscrits
             </h2>
-            <p className="text-gray-600">
-              Découvrez les meilleurs réparateurs près de chez vous
-            </p>
           </div>
           <RepairersCarousel 
             onViewProfile={handleViewProfile}

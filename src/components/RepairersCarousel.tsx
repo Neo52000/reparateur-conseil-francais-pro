@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Phone, Star, Award, Shield } from 'lucide-react';
 import { useRepairers } from '@/hooks/useRepairers';
 import { Repairer } from '@/types/repairer';
+import Autoplay from "embla-carousel-autoplay";
 
 interface RepairersCarouselProps {
   onViewProfile: (repairer: Repairer) => void;
@@ -63,7 +64,18 @@ const RepairersCarousel: React.FC<RepairersCarouselProps> = ({
 
   return (
     <div className="w-full">
-      <Carousel className="w-full max-w-5xl mx-auto">
+      <Carousel 
+        className="w-full max-w-5xl mx-auto"
+        plugins={[
+          Autoplay({
+            delay: 3000,
+          }),
+        ]}
+        opts={{
+          align: "start",
+          loop: true,
+        }}
+      >
         <CarouselContent>
           {repairers.map((repairer) => (
             <CarouselItem key={repairer.id} className="md:basis-1/2 lg:basis-1/3">
