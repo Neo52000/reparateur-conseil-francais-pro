@@ -5,33 +5,50 @@ import { useAuth } from '@/hooks/useAuth';
 import RepairerDashboard from '@/components/RepairerDashboard';
 
 const RepairerSpace = () => {
-  const { user, loading, canAccessRepairer } = useAuth();
+  const { user, loading, canAccessRepairer, profile } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('RepairerSpace - Auth state:', { user: !!user, loading, canAccessRepairer });
+    console.log('RepairerSpace - Auth state:', { 
+      user: !!user, 
+      loading, 
+      canAccessRepairer, 
+      profileRole: profile?.role,
+      profileExists: !!profile 
+    });
     
-    if (loading) return;
+    if (loading) {
+      console.log('RepairerSpace - Still loading, waiting...');
+      return;
+    }
     
     if (!user) {
       console.log('RepairerSpace - No user, redirecting to auth');
-      // Rediriger vers l'auth réparateur si pas connecté
       navigate('/repairer/auth', { replace: true });
+      return;
+    }
+
+    // Attendre que le profil soit chargé
+    if (user && !profile) {
+      console.log('RepairerSpace - User exists but no profile yet, waiting...');
       return;
     }
 
     // Vérifier l'accès réparateur
     if (!canAccessRepairer) {
-      console.log('RepairerSpace - No repairer access, redirecting to home');
-      // Si pas d'accès réparateur, rediriger vers l'accueil
-      navigate('/', { replace: true });
+      console.log('RepairerSpace - No repairer access, redirecting based on role');
+      if (profile?.role === 'client') {
+        navigate('/client', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
       return;
     }
 
     console.log('RepairerSpace - All checks passed, showing dashboard');
-  }, [user, loading, canAccessRepairer, navigate]);
+  }, [user, loading, canAccessRepairer, navigate, profile]);
 
-  if (loading) {
+  if (loading || (user && !profile)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

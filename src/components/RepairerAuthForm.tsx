@@ -61,8 +61,11 @@ const RepairerAuthForm = () => {
           description: "Bienvenue dans votre espace réparateur !",
         });
         
-        // Redirection vers l'espace réparateur
-        navigate('/repairer', { replace: true });
+        // Attendre un peu pour que l'auth state se mette à jour
+        setTimeout(() => {
+          console.log('🔄 Redirecting to repairer space...');
+          navigate('/repairer', { replace: true });
+        }, 500);
       }
     } catch (error: any) {
       console.error('❌ Login failed:', error);
@@ -106,7 +109,7 @@ const RepairerAuthForm = () => {
             last_name: formData.lastName,
             business_name: formData.businessName,
             city: formData.city,
-            role: 'repairer'
+            role: 'repairer' // Important : définir le rôle réparateur
           }
         }
       });
@@ -136,11 +139,14 @@ const RepairerAuthForm = () => {
 
         toast({
           title: "Inscription réussie !",
-          description: "Votre compte a été créé. Vérifiez votre email pour activer votre compte.",
+          description: "Votre compte réparateur a été créé. Redirection en cours...",
         });
         
-        // Redirection vers l'espace réparateur
-        navigate('/repairer', { replace: true });
+        // Attendre un peu pour que l'auth state se mette à jour
+        setTimeout(() => {
+          console.log('🔄 Redirecting to repairer space after signup...');
+          navigate('/repairer', { replace: true });
+        }, 1000);
       }
     } catch (error: any) {
       console.error('❌ Signup failed:', error);
@@ -337,11 +343,11 @@ const RepairerAuthForm = () => {
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Créer mon compte
+                  Créer mon compte réparateur
                 </Button>
                 
                 <p className="text-sm text-gray-600 text-center">
-                  Votre compte sera créé avec le plan gratuit. Vous pourrez choisir un plan payant par la suite.
+                  Votre compte réparateur sera créé avec le plan gratuit.
                 </p>
               </form>
             </TabsContent>

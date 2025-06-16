@@ -39,7 +39,7 @@ export const useAuth = () => {
               email: session.user.email!,
               first_name: session.user.user_metadata.first_name,
               last_name: session.user.user_metadata.last_name,
-              role: session.user.user_metadata.role || 'user'
+              role: session.user.user_metadata.role || 'repairer' // Par défaut réparateur
             };
             
             try {
@@ -48,16 +48,14 @@ export const useAuth = () => {
             } catch (createError) {
               console.error('❌ Error creating profile:', createError);
               // Créer un profil temporaire pour permettre l'accès
-              if (session.user.email === 'reine.elie@gmail.com') {
-                profileData = {
-                  id: session.user.id,
-                  email: session.user.email!,
-                  first_name: 'Reine',
-                  last_name: 'Elie',
-                  role: 'admin'
-                };
-                console.log('🚨 Created temporary admin profile:', profileData);
-              }
+              profileData = {
+                id: session.user.id,
+                email: session.user.email!,
+                first_name: session.user.user_metadata.first_name || 'Utilisateur',
+                last_name: session.user.user_metadata.last_name || '',
+                role: session.user.user_metadata.role || 'repairer'
+              };
+              console.log('🚨 Created temporary profile:', profileData);
             }
           }
           
@@ -67,8 +65,17 @@ export const useAuth = () => {
           }
         } catch (error) {
           console.error('💥 Error in profile fetch:', error);
+          // En cas d'erreur, créer un profil temporaire avec role repairer
           if (mounted) {
-            setProfile(null);
+            const tempProfile = {
+              id: session.user.id,
+              email: session.user.email!,
+              first_name: session.user.user_metadata?.first_name || 'Utilisateur',
+              last_name: session.user.user_metadata?.last_name || '',
+              role: 'repairer' // Assumer que c'est un réparateur
+            };
+            setProfile(tempProfile);
+            console.log('🔧 Set temporary repairer profile:', tempProfile);
           }
         }
       } else {
