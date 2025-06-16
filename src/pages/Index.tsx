@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import HeroSection from '@/components/sections/HeroSection';
 import QuickStatsSection from '@/components/sections/QuickStatsSection';
-import FiltersSection from '@/components/sections/FiltersSection';
 import MainMapSection from '@/components/sections/MainMapSection';
 import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
 import Footer from '@/components/Footer';
@@ -12,7 +11,6 @@ import RepairerProfileModal from '@/components/RepairerProfileModal';
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
   const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const { toast } = useToast();
@@ -56,12 +54,6 @@ const Index = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Quick Stats */}
         <QuickStatsSection />
-
-        {/* Filters */}
-        <FiltersSection
-          showFilters={showFilters}
-          onToggleFilters={() => setShowFilters(!showFilters)}
-        />
 
         {/* Main Content - Carte pleine page */}
         <MainMapSection />

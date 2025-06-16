@@ -5,14 +5,12 @@ import { Navigation } from 'lucide-react';
 
 interface MapControlsProps {
   onGetLocation: () => void;
-  onShowTokenInput: () => void;
   isLocating: boolean;
   hasMap: boolean;
 }
 
 const MapControls: React.FC<MapControlsProps> = ({
   onGetLocation,
-  onShowTokenInput,
   isLocating,
   hasMap
 }) => {
@@ -26,13 +24,6 @@ const MapControls: React.FC<MapControlsProps> = ({
       >
         <Navigation className="h-4 w-4 mr-2" />
         {isLocating ? 'Localisation...' : 'Ma position'}
-      </Button>
-      <Button 
-        size="sm" 
-        variant="ghost" 
-        onClick={onShowTokenInput}
-      >
-        Configurer
       </Button>
     </div>
   );

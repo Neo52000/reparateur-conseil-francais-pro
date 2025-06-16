@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMapbox } from '@/hooks/useMapbox';
 import { useGeolocation } from '@/hooks/useGeolocation';
-import MapboxTokenInput from './MapboxTokenInput';
 import MapControls from './MapControls';
 import MarkerTooltip from './MarkerTooltip';
 import RepairerProfileModal from './RepairerProfileModal';
@@ -12,8 +11,7 @@ import { useRepairers } from '@/hooks/useRepairers';
 import { Repairer } from '@/types/repairer';
 
 const RepairersMap = () => {
-  const [mapboxToken, setMapboxToken] = useState('pk.eyJ1IjoicmVpbmU1MiIsImEiOiJjbGtwaWt0cmUxdnA1M2RvM3FwczNhanNsIn0.rBZMbfsCAqHl-FjytxpYYQ');
-  const [showTokenInput, setShowTokenInput] = useState(false);
+  const [mapboxToken] = useState('pk.eyJ1IjoicmVpbmU1MiIsImEiOiJjbGtwaWt0cmUxdnA1M2RvM3FwczNhanNsIn0.rBZMbfsCAqHl-FjytxpYYQ');
   const [searchFilters, setSearchFilters] = useState({});
   const [tooltipData, setTooltipData] = useState<{
     repairer: Repairer;
@@ -54,21 +52,6 @@ const RepairersMap = () => {
   console.log('RepairersMap - Loading:', loading);
   console.log('RepairersMap - Error:', error);
 
-  const handleInitialize = () => {
-    initializeMap();
-    setShowTokenInput(false);
-  };
-
-  if (showTokenInput) {
-    return (
-      <MapboxTokenInput
-        mapboxToken={mapboxToken}
-        setMapboxToken={setMapboxToken}
-        onInitialize={handleInitialize}
-      />
-    );
-  }
-
   return (
     <>
       <Card className="h-[500px]">
@@ -79,7 +62,6 @@ const RepairersMap = () => {
             </CardTitle>
             <MapControls
               onGetLocation={getUserLocation}
-              onShowTokenInput={() => setShowTokenInput(true)}
               isLocating={isLocating}
               hasMap={!!map}
             />
