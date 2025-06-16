@@ -31,7 +31,7 @@ interface InterestRequest {
     email?: string | null;
     phone?: string | null;
     city: string;
-  };
+  } | null;
 }
 
 const ClientInterestManagement: React.FC = () => {
@@ -43,21 +43,44 @@ const ClientInterestManagement: React.FC = () => {
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // First fetch the client interest requests
+      const { data: requestsData, error: requestsError } = await supabase
         .from('client_interest_requests')
-        .select(`
-          *,
-          repairers!inner(
-            name,
-            email,
-            phone,
-            city
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setRequests(data || []);
+      if (requestsError) throw requestsError;
+
+      if (!requestsData) {
+        setRequests([]);
+        return;
+      }
+
+      // Then fetch repairer data for each request
+      const requestsWithRepairers = await Promise.all(
+        requestsData.map(async (request) => {
+          const { data: repairerData, error: repairerError } = await supabase
+            .from('repairers')
+            .select('name, email, phone, city')
+            .eq('id', request.repairer_profile_id)
+            .single();
+
+          if (repairerError) {
+            console.error('Error fetching repairer:', repairerError);
+            return {
+              ...request,
+              repairers: null
+            };
+          }
+
+          return {
+            ...request,
+            repairers: repairerData
+          };
+        })
+      );
+
+      setRequests(requestsWithRepairers);
     } catch (error: any) {
       console.error('Error fetching interest requests:', error);
       toast({
@@ -236,8 +259,8 @@ const ClientInterestManagement: React.FC = () => {
                 <TableRow key={request.id}>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{request.repairers?.name}</p>
-                      <p className="text-sm text-gray-500">{request.repairers?.city}</p>
+                      <p className="font-medium">{request.repairers?.name || 'Réparateur introuvable'}</p>
+                      <p className="text-sm text-gray-500">{request.repairers?.city || 'Ville inconnue'}</p>
                       {request.repairers?.email && (
                         <p className="text-xs text-gray-400 flex items-center">
                           <Mail className="h-3 w-3 mr-1" />
