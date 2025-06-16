@@ -141,7 +141,7 @@ const SearchFilters = () => {
               <SelectValue placeholder="Toutes les notes" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Toutes les notes</SelectItem>
+              <SelectItem value="all">Toutes les notes</SelectItem>
               <SelectItem value="4">4+ étoiles</SelectItem>
               <SelectItem value="4.5">4.5+ étoiles</SelectItem>
               <SelectItem value="5">5 étoiles uniquement</SelectItem>
@@ -157,7 +157,7 @@ const SearchFilters = () => {
               <SelectValue placeholder="Toutes disponibilités" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Toutes disponibilités</SelectItem>
+              <SelectItem value="all">Toutes disponibilités</SelectItem>
               <SelectItem value="today">Disponible aujourd'hui</SelectItem>
               <SelectItem value="week">Cette semaine</SelectItem>
               <SelectItem value="urgent">Réparation express</SelectItem>
