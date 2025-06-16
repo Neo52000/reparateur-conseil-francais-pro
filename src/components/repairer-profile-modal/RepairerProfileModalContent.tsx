@@ -72,7 +72,7 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
           </DialogDescription>
         </DialogHeader>
         
-        RepairerProfileForm
+        <RepairerProfileForm
           profile={profile}
           onSave={onSave}
           onCancel={onCancel}
