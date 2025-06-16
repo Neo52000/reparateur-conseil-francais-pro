@@ -1,4 +1,3 @@
-
 import { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useToast } from '@/hooks/use-toast';
@@ -6,7 +5,13 @@ import { RepairerDB } from '@/hooks/useRepairers';
 import { MAP_CONFIG } from '@/constants/repairers';
 import { addMarkersToMap, clearMapMarkers } from '@/utils/mapboxMarkers';
 
-export const useMapbox = (mapboxToken: string, repairers: RepairerDB[]) => {
+export const useMapbox = (
+  mapboxToken: string, 
+  repairers: RepairerDB[],
+  onMarkerClick?: (repairer: RepairerDB) => void,
+  onMarkerHover?: (repairer: RepairerDB, event: MouseEvent) => void,
+  onMarkerLeave?: () => void
+) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [selectedRepairer, setSelectedRepairer] = useState<RepairerDB | null>(null);
@@ -14,6 +19,9 @@ export const useMapbox = (mapboxToken: string, repairers: RepairerDB[]) => {
 
   const handleMarkerClick = (repairer: RepairerDB) => {
     setSelectedRepairer(repairer);
+    if (onMarkerClick) {
+      onMarkerClick(repairer);
+    }
   };
 
   const clearMap = () => {
@@ -26,7 +34,7 @@ export const useMapbox = (mapboxToken: string, repairers: RepairerDB[]) => {
     if (map.current && repairers.length > 0) {
       console.log('Repairers data changed, updating markers...');
       clearMap();
-      addMarkersToMap(map.current, repairers, handleMarkerClick);
+      addMarkersToMap(map.current, repairers, handleMarkerClick, onMarkerHover, onMarkerLeave);
     }
   };
 

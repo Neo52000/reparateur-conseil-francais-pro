@@ -5,17 +5,48 @@ import { useMapbox } from '@/hooks/useMapbox';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import MapboxTokenInput from './MapboxTokenInput';
 import MapControls from './MapControls';
+import MarkerTooltip from './MarkerTooltip';
+import RepairerProfileModal from './RepairerProfileModal';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useRepairers } from '@/hooks/useRepairers';
+import { useRepairers, RepairerDB } from '@/hooks/useRepairers';
 
 const RepairersMap = () => {
   const [mapboxToken, setMapboxToken] = useState('pk.eyJ1IjoicmVpbmU1MiIsImEiOiJjbGtwaWt0cmUxdnA1M2RvM3FwczNhanNsIn0.rBZMbfsCAqHl-FjytxpYYQ');
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [searchFilters, setSearchFilters] = useState({});
+  const [tooltipData, setTooltipData] = useState<{
+    repairer: RepairerDB;
+    position: { x: number; y: number };
+    visible: boolean;
+  }>({
+    repairer: {} as RepairerDB,
+    position: { x: 0, y: 0 },
+    visible: false
+  });
+  const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
 
   // Utiliser les vraies données Supabase
   const { repairers, loading, error } = useRepairers(searchFilters);
-  const { mapContainer, map, selectedRepairer, initializeMap } = useMapbox(mapboxToken, repairers);
+  const { mapContainer, map, selectedRepairer, initializeMap } = useMapbox(
+    mapboxToken, 
+    repairers,
+    (repairer: RepairerDB) => {
+      // Ouvrir le modal de profil au clic
+      setSelectedRepairerId(repairer.id);
+    },
+    (repairer: RepairerDB, event: MouseEvent) => {
+      // Afficher le tooltip au survol
+      setTooltipData({
+        repairer,
+        position: { x: event.clientX, y: event.clientY },
+        visible: true
+      });
+    },
+    () => {
+      // Cacher le tooltip quand on quitte le marker
+      setTooltipData(prev => ({ ...prev, visible: false }));
+    }
+  );
   const { userLocation, isLocating, getUserLocation } = useGeolocation(map);
 
   console.log('RepairersMap - Repairers data:', repairers);
@@ -38,30 +69,48 @@ const RepairersMap = () => {
   }
 
   return (
-    <Card className="h-[500px]">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-lg">
-            Réparateurs à proximité {repairers.length > 0 && `(${repairers.length})`}
-          </CardTitle>
-          <MapControls
-            onGetLocation={getUserLocation}
-            onShowTokenInput={() => setShowTokenInput(true)}
-            isLocating={isLocating}
-            hasMap={!!map}
-          />
-        </div>
-        {loading && (
-          <p className="text-sm text-gray-500">Chargement des réparateurs...</p>
-        )}
-        {error && (
-          <p className="text-sm text-red-500">Erreur: {error}</p>
-        )}
-      </CardHeader>
-      <CardContent className="p-0">
-        <div ref={mapContainer} className="w-full h-[400px] bg-gray-100 rounded-lg" />
-      </CardContent>
-    </Card>
+    <>
+      <Card className="h-[500px]">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-lg">
+              Réparateurs à proximité {repairers.length > 0 && `(${repairers.length})`}
+            </CardTitle>
+            <MapControls
+              onGetLocation={getUserLocation}
+              onShowTokenInput={() => setShowTokenInput(true)}
+              isLocating={isLocating}
+              hasMap={!!map}
+            />
+          </div>
+          {loading && (
+            <p className="text-sm text-gray-500">Chargement des réparateurs...</p>
+          )}
+          {error && (
+            <p className="text-sm text-red-500">Erreur: {error}</p>
+          )}
+        </CardHeader>
+        <CardContent className="p-0">
+          <div ref={mapContainer} className="w-full h-[400px] bg-gray-100 rounded-lg" />
+        </CardContent>
+      </Card>
+
+      {/* Tooltip au survol */}
+      <MarkerTooltip 
+        repairer={tooltipData.repairer}
+        position={tooltipData.position}
+        visible={tooltipData.visible}
+      />
+
+      {/* Modal de profil */}
+      {selectedRepairerId && (
+        <RepairerProfileModal
+          isOpen={!!selectedRepairerId}
+          onClose={() => setSelectedRepairerId(null)}
+          repairerId={selectedRepairerId}
+        />
+      )}
+    </>
   );
 };
 

@@ -7,6 +7,7 @@ import { createMarkerStyles, getMarkerBaseStyles } from './mapboxStyles';
 export const createMarkerElement = (repairer: RepairerDB): HTMLDivElement => {
   const markerElement = document.createElement('div');
   markerElement.className = 'custom-marker';
+  markerElement.setAttribute('data-repairer-id', repairer.id);
   
   // Styles de base pour éviter tout déplacement
   markerElement.style.cssText = getMarkerBaseStyles();
@@ -21,7 +22,9 @@ export const createMarkerElement = (repairer: RepairerDB): HTMLDivElement => {
 export const addMarkersToMap = (
   map: mapboxgl.Map,
   repairers: RepairerDB[],
-  onMarkerClick: (repairer: RepairerDB) => void
+  onMarkerClick: (repairer: RepairerDB) => void,
+  onMarkerHover?: (repairer: RepairerDB, event: MouseEvent) => void,
+  onMarkerLeave?: () => void
 ) => {
   if (!map || !repairers.length) return;
 
@@ -62,6 +65,19 @@ export const addMarkersToMap = (
         duration: 1000
       });
     });
+
+    // Event listeners pour le tooltip
+    if (onMarkerHover) {
+      markerElement.addEventListener('mouseenter', (e) => {
+        onMarkerHover(repairer, e as MouseEvent);
+      });
+    }
+
+    if (onMarkerLeave) {
+      markerElement.addEventListener('mouseleave', () => {
+        onMarkerLeave();
+      });
+    }
 
     console.log(`Added marker ${index + 1} for ${repairer.name} at [${repairer.lng}, ${repairer.lat}]`);
   });
