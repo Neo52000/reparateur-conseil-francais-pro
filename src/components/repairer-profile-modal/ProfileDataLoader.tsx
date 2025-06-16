@@ -37,6 +37,12 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
 
       console.log('📋 Found repairer data:', repairerData);
 
+      // Helper function to safely cast opening_hours
+      const safeOpeningHours = (hours: any) => {
+        if (!hours || typeof hours !== 'object') return undefined;
+        return hours as RepairerProfile['opening_hours'];
+      };
+
       // Créer un profil basique basé sur les données du réparateur
       const basicProfile: RepairerProfile = {
         id: repairerData.id,
@@ -59,7 +65,7 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
         profile_image_url: null,
         geo_lat: repairerData.lat ? Number(repairerData.lat) : undefined,
         geo_lng: repairerData.lng ? Number(repairerData.lng) : undefined,
-        opening_hours: repairerData.opening_hours || undefined,
+        opening_hours: safeOpeningHours(repairerData.opening_hours),
         services_offered: repairerData.services || [],
         certifications: [],
         years_experience: undefined,
