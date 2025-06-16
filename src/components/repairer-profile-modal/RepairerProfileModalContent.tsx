@@ -93,10 +93,22 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
           <DialogDescription id="admin-profile-description">
             Mode administrateur : consultez ou modifiez la fiche de ce réparateur.
           </DialogDescription>
-          <RepairerProfileHeader
-            profile={profile}
-            onEdit={canEdit ? onEdit : undefined}
-          />
+          <div className="flex items-center justify-between">
+            <RepairerProfileHeader
+              profile={profile}
+              onEdit={undefined}
+            />
+            <div className="flex gap-2">
+              {canEdit && (
+                <Button onClick={onEdit} variant="outline">
+                  Modifier
+                </Button>
+              )}
+              <Button onClick={onClose} variant="outline">
+                Fermer
+              </Button>
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -110,12 +122,6 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
           <ClientAboutSection profile={profile} />
           <ClientServicesSection profile={profile} />
           <ClientContactSection profile={profile} />
-        </div>
-
-        <div className="flex justify-end pt-4">
-          <Button onClick={onClose} variant="outline">
-            Fermer
-          </Button>
         </div>
       </DialogContent>
     );
