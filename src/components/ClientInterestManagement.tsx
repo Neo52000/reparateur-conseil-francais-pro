@@ -19,17 +19,17 @@ import {
 interface InterestRequest {
   id: string;
   repairer_profile_id: string;
-  client_email: string;
-  client_phone?: string;
-  client_message?: string;
-  status: 'pending' | 'approved' | 'sent' | 'rejected';
+  client_email: string | null;
+  client_phone: string | null;
+  client_message: string | null;
+  status: string;
   created_at: string;
-  approved_at?: string;
-  sent_at?: string;
+  approved_at: string | null;
+  sent_at: string | null;
   repairers?: {
     name: string;
-    email?: string;
-    phone?: string;
+    email?: string | null;
+    phone?: string | null;
     city: string;
   };
 }
