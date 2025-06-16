@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,7 +44,7 @@ const ClientAuthForm = () => {
         const { error } = await signUp(email, password, {
           first_name: firstName,
           last_name: lastName,
-          role: 'client',
+          role: 'user', // Utiliser 'user' au lieu de 'client' car c'est le rôle par défaut
           phone: phone
         });
         if (error) {
@@ -72,6 +71,7 @@ const ClientAuthForm = () => {
     }
   };
 
+  
   return (
     <Card className="w-full max-w-md mx-auto border-blue-200">
       <CardHeader className="bg-blue-50">
