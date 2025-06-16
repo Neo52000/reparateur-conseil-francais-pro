@@ -37,7 +37,17 @@ export const useAuth = (): UseAuthReturn => {
       if (session?.user) {
         try {
           console.log('👤 User session found, fetching profile...');
-          const profileData = await fetchOrCreateProfile(session);
+          
+          // Utiliser un timeout plus court pour éviter les blocages
+          const profilePromise = fetchOrCreateProfile(session);
+          const timeoutPromise = new Promise<null>((resolve) => {
+            setTimeout(() => {
+              console.log('⏰ Profile fetch timeout, using temporary profile');
+              resolve(null);
+            }, 5000); // 5 secondes au lieu de 10
+          });
+          
+          const profileData = await Promise.race([profilePromise, timeoutPromise]);
           
           if (mounted) {
             updateAuthState(session, profileData);
@@ -88,13 +98,13 @@ export const useAuth = (): UseAuthReturn => {
 
     checkSession();
 
-    // Timeout de sécurité plus long pour les connexions lentes
+    // Timeout de sécurité réduit
     const timeoutId = setTimeout(() => {
       if (mounted && loading) {
         console.log('⏰ Auth check timeout, forcing loading to false');
         setLoading(false);
       }
-    }, 10000); // Augmenté à 10 secondes
+    }, 7000); // Réduit à 7 secondes
 
     return () => {
       console.log('🧹 Cleaning up auth subscription');
