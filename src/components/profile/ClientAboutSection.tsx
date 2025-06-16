@@ -67,33 +67,89 @@ const getResponseTimeLabel = (time: string) => {
 };
 
 const ClientAboutSection: React.FC<ClientAboutSectionProps> = ({ profile }) => {
+  // Fonction pour préserver le formatage SEO dans la description
+  const renderDescription = (description: string) => {
+    // Séparer les paragraphes et préserver la structure
+    const paragraphs = description.split('\n\n');
+    
+    return paragraphs.map((paragraph, index) => {
+      // Traiter les titres en gras (format **Titre**)
+      if (paragraph.startsWith('**') && paragraph.includes('**')) {
+        const titleMatch = paragraph.match(/^\*\*(.*?)\*\*/);
+        if (titleMatch) {
+          const title = titleMatch[1];
+          const content = paragraph.replace(/^\*\*(.*?)\*\*\s*/, '');
+          return (
+            <div key={index} className="mb-4">
+              <h4 className="font-bold text-lg text-gray-900 mb-2">{title}</h4>
+              {content && <p className="text-gray-700 leading-relaxed">{content}</p>}
+            </div>
+          );
+        }
+      }
+      
+      // Traiter les listes à puces (format • item)
+      if (paragraph.includes('•') || paragraph.includes('- ')) {
+        const lines = paragraph.split('\n');
+        const listItems = lines.filter(line => line.trim().startsWith('•') || line.trim().startsWith('- '));
+        const regularText = lines.filter(line => !line.trim().startsWith('•') && !line.trim().startsWith('- ')).join(' ');
+        
+        return (
+          <div key={index} className="mb-4">
+            {regularText && <p className="text-gray-700 leading-relaxed mb-2">{regularText}</p>}
+            {listItems.length > 0 && (
+              <ul className="list-disc list-inside space-y-1 text-gray-700">
+                {listItems.map((item, itemIndex) => (
+                  <li key={itemIndex} className="leading-relaxed">
+                    {item.replace(/^[•-]\s*/, '')}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      }
+      
+      // Paragraphe normal
+      return (
+        <p key={index} className="text-gray-700 leading-relaxed mb-4 last:mb-0">
+          {paragraph}
+        </p>
+      );
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-4">À propos</h2>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Description */}
-          <Card>
+          {/* Description avec formatage SEO préservé */}
+          <Card className="lg:col-span-2">
             <CardContent className="p-6">
-              <h3 className="font-semibold text-lg mb-3 flex items-center">
+              <h3 className="font-semibold text-lg mb-4 flex items-center">
                 <Building className="h-5 w-5 mr-2 text-blue-600" />
                 Présentation
               </h3>
-              {profile.description ? (
-                <p className="text-gray-700 leading-relaxed">{profile.description}</p>
-              ) : (
-                <p className="text-gray-500 italic">
-                  {profile.business_name} est un réparateur professionnel spécialisé dans la réparation d'appareils électroniques.
-                </p>
-              )}
+              <div className="prose prose-gray max-w-none">
+                {profile.description ? (
+                  renderDescription(profile.description)
+                ) : (
+                  <p className="text-gray-500 italic">
+                    {profile.business_name} est un réparateur professionnel spécialisé dans la réparation d'appareils électroniques.
+                  </p>
+                )}
+              </div>
               
               {profile.years_experience && (
-                <div className="mt-4 flex items-center text-sm">
-                  <Award className="h-4 w-4 mr-2 text-orange-600" />
-                  <span className="font-medium text-orange-700">
-                    {profile.years_experience} années d'expérience
-                  </span>
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <div className="flex items-center text-sm">
+                    <Award className="h-4 w-4 mr-2 text-orange-600" />
+                    <span className="font-medium text-orange-700">
+                      {profile.years_experience} années d'expérience
+                    </span>
+                  </div>
                 </div>
               )}
             </CardContent>
