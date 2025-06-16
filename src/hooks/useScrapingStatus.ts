@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,6 +20,7 @@ export const useScrapingStatus = () => {
   const [loading, setLoading] = useState(true);
   const [isScrapingRunning, setIsScrapingRunning] = useState(false);
   const { toast } = useToast();
+  const channelRef = useRef<any>(null);
 
   const fetchLogs = async () => {
     try {
@@ -86,25 +87,48 @@ export const useScrapingStatus = () => {
   };
 
   useEffect(() => {
+    // Nettoyer toute subscription existante avant d'en créer une nouvelle
+    if (channelRef.current) {
+      console.log('🧹 Nettoyage de la subscription existante');
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    // Charger les logs initiaux
     fetchLogs();
 
-    // Écouter les changements en temps réel
-    const subscription = supabase
-      .channel('scraping_logs_realtime')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'scraping_logs'
-      }, (payload) => {
-        console.log('🔄 Changement temps réel détecté:', payload);
-        fetchLogs();
-      })
-      .subscribe();
+    // Créer une nouvelle subscription uniquement si on n'en a pas déjà une
+    if (!channelRef.current) {
+      console.log('📡 Création de la subscription realtime');
+      
+      channelRef.current = supabase
+        .channel(`scraping_logs_${Date.now()}`) // Nom unique pour éviter les conflits
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'scraping_logs'
+        }, (payload) => {
+          console.log('🔄 Changement temps réel détecté:', payload);
+          fetchLogs();
+        });
+
+      // S'abonner au canal
+      channelRef.current.subscribe((status: string) => {
+        console.log('📡 Statut subscription:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Subscription realtime active');
+        }
+      });
+    }
 
     return () => {
-      subscription.unsubscribe();
+      console.log('🧹 Nettoyage de la subscription lors du démontage');
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
-  }, []);
+  }, []); // Dépendances vides pour ne s'exécuter qu'une seule fois
 
   return {
     logs,
