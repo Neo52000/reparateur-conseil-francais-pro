@@ -3,6 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RepairersTable from './RepairersTable';
 import SubscriptionsTable from './SubscriptionsTable';
+import PromoCodesManagement from '../PromoCodesManagement';
 
 interface RepairerData {
   id: string;
@@ -48,9 +49,10 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
 }) => {
   return (
     <Tabs defaultValue="repairers" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-2">
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
         <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
+        <TabsTrigger value="promocodes">Codes Promo</TabsTrigger>
       </TabsList>
 
       <TabsContent value="repairers">
@@ -66,6 +68,10 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
           subscriptions={subscriptions}
           onRefresh={onRefresh}
         />
+      </TabsContent>
+
+      <TabsContent value="promocodes">
+        <PromoCodesManagement />
       </TabsContent>
     </Tabs>
   );
