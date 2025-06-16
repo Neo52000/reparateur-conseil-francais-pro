@@ -35,21 +35,26 @@ export const useAuth = (): UseAuthReturn => {
       }
       
       if (session?.user) {
-        const profileData = await fetchOrCreateProfile(session);
-        
-        if (mounted) {
-          updateAuthState(session, profileData);
-          console.log('📝 Profile set:', profileData);
+        try {
+          console.log('👤 User session found, fetching profile...');
+          const profileData = await fetchOrCreateProfile(session);
+          
+          if (mounted) {
+            updateAuthState(session, profileData);
+            console.log('📝 Auth state updated with profile:', profileData);
+          }
+        } catch (error) {
+          console.error('💥 Error handling auth change:', error);
+          if (mounted) {
+            // En cas d'erreur, on continue avec la session mais sans profil
+            updateAuthState(session, null);
+          }
         }
       } else {
-        console.log('❌ No user found, clearing profile');
+        console.log('❌ No user session, clearing state');
         if (mounted) {
           clearState();
         }
-      }
-      
-      if (mounted) {
-        console.log('✅ Auth loading complete', { hasUser: !!session?.user, hasProfile: !!profile });
       }
     };
 
@@ -83,13 +88,13 @@ export const useAuth = (): UseAuthReturn => {
 
     checkSession();
 
-    // Timeout de sécurité
+    // Timeout de sécurité plus long pour les connexions lentes
     const timeoutId = setTimeout(() => {
       if (mounted && loading) {
         console.log('⏰ Auth check timeout, forcing loading to false');
         setLoading(false);
       }
-    }, 5000);
+    }, 10000); // Augmenté à 10 secondes
 
     return () => {
       console.log('🧹 Cleaning up auth subscription');
@@ -98,6 +103,23 @@ export const useAuth = (): UseAuthReturn => {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Fonction pour forcer la récupération du profil
+  const refreshProfile = async () => {
+    if (session?.user) {
+      console.log('🔄 Manually refreshing profile...');
+      setLoading(true);
+      try {
+        const profileData = await fetchOrCreateProfile(session);
+        setProfile(profileData);
+        console.log('✅ Profile refreshed:', profileData);
+      } catch (error) {
+        console.error('❌ Error refreshing profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
@@ -139,6 +161,7 @@ export const useAuth = (): UseAuthReturn => {
     hasUser: !!user, 
     hasProfile: !!profile, 
     profileRole: profile?.role,
+    userEmail: user?.email,
     ...permissions,
     loading 
   });
@@ -151,6 +174,7 @@ export const useAuth = (): UseAuthReturn => {
     signIn,
     signUp,
     signOut,
+    refreshProfile,
     ...permissions
   };
 };

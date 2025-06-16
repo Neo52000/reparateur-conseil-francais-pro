@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { Shield, Lock, Mail, Eye, EyeOff, RefreshCw } from 'lucide-react';
 
 const AdminAuthForm = () => {
   const [email, setEmail] = useState('reine.elie@gmail.com');
@@ -15,14 +15,13 @@ const AdminAuthForm = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
-  const { signIn, user, isAdmin } = useAuth();
+  const { signIn, user, isAdmin, profile, loading: authLoading, refreshProfile } = useAuth();
   const navigate = useNavigate();
 
   // Redirection automatique si l'utilisateur est déjà connecté et admin
   useEffect(() => {
     if (user && isAdmin) {
       console.log('✅ User is authenticated and admin, staying on admin page');
-      // L'utilisateur est déjà connecté et admin, pas besoin de redirection
     }
   }, [user, isAdmin, navigate]);
 
@@ -49,7 +48,6 @@ const AdminAuthForm = () => {
           title: "Connexion admin réussie",
           description: "Bienvenue dans l'interface d'administration"
         });
-        // La redirection sera gérée par useEffect quand user et isAdmin seront mis à jour
       }
     } catch (error) {
       console.error('💥 Exception during admin login:', error);
@@ -62,6 +60,71 @@ const AdminAuthForm = () => {
       setLoading(false);
     }
   };
+
+  const handleRefreshProfile = async () => {
+    if (refreshProfile) {
+      try {
+        await refreshProfile();
+        toast({
+          title: "Profil actualisé",
+          description: "Tentative de récupération du profil effectuée"
+        });
+      } catch (error) {
+        console.error('❌ Error refreshing profile:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible d'actualiser le profil",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  // Afficher un état de debug si l'utilisateur est connecté mais pas admin
+  if (user && !isAdmin && !authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="w-full max-w-md mx-auto border-yellow-200 shadow-lg">
+          <CardHeader className="bg-yellow-50 text-center">
+            <CardTitle className="flex items-center justify-center text-yellow-800">
+              <Shield className="h-6 w-6 mr-2" />
+              Problème d'accès admin
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="mt-6 space-y-4">
+            <div className="text-sm space-y-2">
+              <p><strong>Utilisateur:</strong> {user.email}</p>
+              <p><strong>Profil chargé:</strong> {profile ? 'Oui' : 'Non'}</p>
+              <p><strong>Rôle:</strong> {profile?.role || 'Non défini'}</p>
+              <p><strong>Admin:</strong> {isAdmin ? 'Oui' : 'Non'}</p>
+            </div>
+            
+            <div className="space-y-2">
+              <Button 
+                onClick={handleRefreshProfile} 
+                className="w-full" 
+                variant="outline"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Actualiser le profil
+              </Button>
+              
+              <Button 
+                onClick={() => {
+                  localStorage.clear();
+                  window.location.reload();
+                }}
+                className="w-full" 
+                variant="destructive"
+              >
+                Réinitialiser et recharger
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -124,9 +187,9 @@ const AdminAuthForm = () => {
             <Button 
               type="submit" 
               className="w-full bg-blue-600 hover:bg-blue-700" 
-              disabled={loading}
+              disabled={loading || authLoading}
             >
-              {loading ? (
+              {(loading || authLoading) ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Connexion en cours...

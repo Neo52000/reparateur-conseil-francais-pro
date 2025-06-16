@@ -34,6 +34,7 @@ export interface UseAuthReturn {
   signIn: (email: string, password: string) => Promise<any>;
   signUp: (email: string, password: string, userData?: UserSignUpData) => Promise<any>;
   signOut: () => Promise<any>;
+  refreshProfile?: () => Promise<void>;
   isAdmin: boolean;
   canAccessClient: boolean;
   canAccessRepairer: boolean;
