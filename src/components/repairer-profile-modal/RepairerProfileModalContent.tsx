@@ -12,6 +12,7 @@ import ClientTestimonialsSection from '@/components/profile/ClientTestimonialsSe
 import ClientOpeningHoursSection from '@/components/profile/ClientOpeningHoursSection';
 import QuoteRequestModal from '@/components/modals/QuoteRequestModal';
 import AppointmentModal from '@/components/modals/AppointmentModal';
+import ClaimBusinessBanner from '@/components/ClaimBusinessBanner';
 import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
 import { RepairerProfile } from '@/types/repairerProfile';
 
@@ -175,6 +176,11 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
           <ClientOpeningHoursSection profile={profile} />
           <ClientTestimonialsSection businessName={profile.business_name} />
           <ClientContactSection profile={profile} />
+
+          {/* Bannière de revendication pour les profils basiques non revendiqués */}
+          {isBasicProfile && (
+            <ClaimBusinessBanner businessName={profile.business_name} />
+          )}
 
           {/* Actions mobiles sticky */}
           <div className="lg:hidden sticky bottom-0 bg-white border-t p-4 -mx-2 flex space-x-3">
