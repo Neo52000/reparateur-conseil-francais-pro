@@ -15,17 +15,36 @@ interface PhotosSectionProps {
 const PhotosSection: React.FC<PhotosSectionProps> = ({ formData, setFormData }) => {
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
 
-  const addPhoto = () => {
+  const addPhoto = (e?: React.MouseEvent | React.KeyboardEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    
+    console.log('🖼️ Adding photo:', newPhotoUrl);
+    
     if (newPhotoUrl.trim()) {
       const updatedPhotos = [...(formData.shop_photos || []), newPhotoUrl.trim()];
-      setFormData(prev => ({ ...prev, shop_photos: updatedPhotos }));
+      console.log('📸 Updated photos array:', updatedPhotos);
+      
+      setFormData(prev => ({ 
+        ...prev, 
+        shop_photos: updatedPhotos 
+      }));
       setNewPhotoUrl('');
     }
   };
 
   const removePhoto = (index: number) => {
+    console.log('🗑️ Removing photo at index:', index);
     const updatedPhotos = (formData.shop_photos || []).filter((_, i) => i !== index);
     setFormData(prev => ({ ...prev, shop_photos: updatedPhotos }));
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addPhoto(e);
+    }
   };
 
   return (
@@ -43,14 +62,20 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({ formData, setFormData }) 
             <Label htmlFor="photo_url">URL de la photo</Label>
             <Input
               id="photo_url"
+              type="url"
               value={newPhotoUrl}
               onChange={(e) => setNewPhotoUrl(e.target.value)}
               placeholder="https://exemple.com/photo.jpg"
-              onKeyPress={(e) => e.key === 'Enter' && addPhoto()}
+              onKeyPress={handleKeyPress}
             />
           </div>
           <div className="flex items-end">
-            <Button type="button" onClick={addPhoto} disabled={!newPhotoUrl.trim()}>
+            <Button 
+              type="button" 
+              onClick={addPhoto} 
+              disabled={!newPhotoUrl.trim()}
+              className="whitespace-nowrap"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Ajouter
             </Button>
@@ -60,7 +85,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({ formData, setFormData }) 
         {formData.shop_photos && formData.shop_photos.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {formData.shop_photos.map((photoUrl, index) => (
-              <Card key={index} className="relative group">
+              <Card key={`photo-${index}-${photoUrl}`} className="relative group">
                 <CardContent className="p-3">
                   <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center relative overflow-hidden">
                     <img
@@ -68,8 +93,12 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({ formData, setFormData }) 
                       alt={`Photo ${index + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        const target = e.currentTarget;
+                        target.style.display = 'none';
+                        const fallback = target.nextElementSibling as HTMLElement;
+                        if (fallback) {
+                          fallback.classList.remove('hidden');
+                        }
                       }}
                     />
                     <div className="hidden flex-col items-center justify-center text-gray-400">
@@ -80,7 +109,7 @@ const PhotosSection: React.FC<PhotosSectionProps> = ({ formData, setFormData }) 
                       type="button"
                       variant="destructive"
                       size="sm"
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
                       onClick={() => removePhoto(index)}
                     >
                       <X className="h-3 w-3" />
