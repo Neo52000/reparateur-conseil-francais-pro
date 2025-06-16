@@ -18,13 +18,16 @@ import RepairersList from '@/components/RepairersList';
 import SearchFilters from '@/components/SearchFilters';
 import Footer from '@/components/Footer';
 import Logo from '@/components/Logo';
+import RepairersCarousel from '@/components/RepairersCarousel';
+import RepairerProfileModal from '@/components/RepairerProfileModal';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const { toast } = useToast();
 
   const quickStats = [
@@ -44,6 +47,23 @@ const Index = () => {
       title: "Recherche rapide",
       description: `Service : "${searchTerm}" / Localisation : "${selectedLocation}"`,
     });
+  };
+
+  const handleViewProfile = (repairer: any) => {
+    console.log('Opening profile for:', repairer.id);
+    setSelectedRepairerId(repairer.id);
+    setIsProfileModalOpen(true);
+  };
+
+  const handleCall = (phone: string) => {
+    if (phone) {
+      window.location.href = `tel:${phone}`;
+    }
+  };
+
+  const handleCloseProfileModal = () => {
+    setIsProfileModalOpen(false);
+    setSelectedRepairerId(null);
   };
 
   return (
@@ -126,7 +146,7 @@ const Index = () => {
           ))}
         </div>
 
-        {/* Controls and Map/List */}
+        {/* Filters */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-4">
             <Button
@@ -137,49 +157,44 @@ const Index = () => {
               Filtres
             </Button>
           </div>
-          <div className="flex space-x-2">
-            <Button
-              variant={viewMode === 'map' ? "default" : "outline"}
-              onClick={() => setViewMode('map')}
-              size="sm"
-            >
-              Carte
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? "default" : "outline"}
-              onClick={() => setViewMode('list')}
-              size="sm"
-            >
-              Liste
-            </Button>
-          </div>
         </div>
 
-        {/* Filters */}
         {showFilters && (
           <div className="mb-6">
             <SearchFilters />
           </div>
         )}
 
-        {/* Main Content - Carte */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-          {viewMode === 'map' ? (
-            <>
-              <div className="lg:col-span-2">
-                <RepairersMap />
-              </div>
-              <div>
-                <RepairersList compact />
-              </div>
-            </>
-          ) : (
-            <div className="lg:col-span-3">
-              <RepairersList />
-            </div>
-          )}
+        {/* Main Content - Carte pleine page */}
+        <div className="mb-12">
+          <RepairersMap />
+        </div>
+
+        {/* Carrousel des réparateurs */}
+        <div className="mb-12">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Réparateurs recommandés
+            </h2>
+            <p className="text-gray-600">
+              Découvrez les meilleurs réparateurs près de chez vous
+            </p>
+          </div>
+          <RepairersCarousel 
+            onViewProfile={handleViewProfile}
+            onCall={handleCall}
+          />
         </div>
       </div>
+
+      {/* Modal de profil réparateur */}
+      {selectedRepairerId && (
+        <RepairerProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={handleCloseProfileModal}
+          repairerId={selectedRepairerId}
+        />
+      )}
 
       {/* Footer */}
       <Footer />
