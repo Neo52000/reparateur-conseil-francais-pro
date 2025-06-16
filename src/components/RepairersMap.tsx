@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMapbox } from '@/hooks/useMapbox';
 import { useGeolocation } from '@/hooks/useGeolocation';
@@ -46,7 +46,19 @@ const RepairersMap = () => {
       setTooltipData(prev => ({ ...prev, visible: false }));
     }
   );
-  const { userLocation, isLocating, getUserLocation } = useGeolocation(map);
+  const { userLocation, isLocating, isAutoLocating, getUserLocation, getLocationAutomatically } = useGeolocation(map);
+
+  // Géolocalisation automatique lorsque la carte est prête
+  useEffect(() => {
+    if (map && !userLocation) {
+      // Attendre un petit délai pour que la carte soit complètement chargée
+      const timer = setTimeout(() => {
+        getLocationAutomatically();
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [map, userLocation, getLocationAutomatically]);
 
   console.log('RepairersMap - Repairers data:', repairers);
   console.log('RepairersMap - Loading:', loading);
@@ -62,7 +74,7 @@ const RepairersMap = () => {
             </CardTitle>
             <MapControls
               onGetLocation={getUserLocation}
-              isLocating={isLocating}
+              isLocating={isLocating || isAutoLocating}
               hasMap={!!map}
             />
           </div>
@@ -71,6 +83,9 @@ const RepairersMap = () => {
           )}
           {error && (
             <p className="text-sm text-red-500">Erreur: {error}</p>
+          )}
+          {isAutoLocating && (
+            <p className="text-sm text-blue-500">Localisation en cours...</p>
           )}
         </CardHeader>
         <CardContent className="p-0">
