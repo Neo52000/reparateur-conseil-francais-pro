@@ -2,7 +2,6 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RepairerProfile, LANGUAGES, PAYMENT_METHODS } from '@/types/repairerProfile';
@@ -126,20 +125,6 @@ const BusinessInfoSection: React.FC<BusinessInfoSectionProps> = ({ formData, set
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="services_offered">Services proposés (un par ligne)</Label>
-            <Textarea
-              id="services_offered"
-              value={(formData.services_offered || []).join('\n')}
-              onChange={(e) => setFormData(prev => ({ 
-                ...prev, 
-                services_offered: e.target.value.split('\n').filter(s => s.trim()) 
-              }))}
-              rows={4}
-              placeholder="Réparation écran&#10;Changement batterie&#10;Diagnostic gratuit"
-            />
           </div>
         </CardContent>
       </Card>
