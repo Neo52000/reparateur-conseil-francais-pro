@@ -9,6 +9,7 @@ import ClientAboutSection from '@/components/profile/ClientAboutSection';
 import ClientServicesSection from '@/components/profile/ClientServicesSection';
 import ClientContactSection from '@/components/profile/ClientContactSection';
 import ClientTestimonialsSection from '@/components/profile/ClientTestimonialsSection';
+import ClientOpeningHoursSection from '@/components/profile/ClientOpeningHoursSection';
 import { RepairerProfile } from '@/types/repairerProfile';
 
 interface RepairerProfileModalContentProps {
@@ -147,6 +148,7 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
 
         <ClientAboutSection profile={profile} />
         <ClientServicesSection profile={profile} />
+        <ClientOpeningHoursSection profile={profile} />
         <ClientTestimonialsSection businessName={profile.business_name} />
         <ClientContactSection profile={profile} />
 

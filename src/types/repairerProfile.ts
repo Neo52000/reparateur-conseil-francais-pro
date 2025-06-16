@@ -24,13 +24,69 @@ export interface RepairerProfile {
   
   // Nouveaux champs administrables par le réparateur
   opening_hours?: {
-    monday?: { open: string; close: string; closed?: boolean };
-    tuesday?: { open: string; close: string; closed?: boolean };
-    wednesday?: { open: string; close: string; closed?: boolean };
-    thursday?: { open: string; close: string; closed?: boolean };
-    friday?: { open: string; close: string; closed?: boolean };
-    saturday?: { open: string; close: string; closed?: boolean };
-    sunday?: { open: string; close: string; closed?: boolean };
+    monday?: { 
+      morning_open: string; 
+      morning_close: string; 
+      afternoon_open: string; 
+      afternoon_close: string; 
+      closed?: boolean;
+      appointment_only?: boolean;
+      home_service?: boolean;
+    };
+    tuesday?: { 
+      morning_open: string; 
+      morning_close: string; 
+      afternoon_open: string; 
+      afternoon_close: string; 
+      closed?: boolean;
+      appointment_only?: boolean;
+      home_service?: boolean;
+    };
+    wednesday?: { 
+      morning_open: string; 
+      morning_close: string; 
+      afternoon_open: string; 
+      afternoon_close: string; 
+      closed?: boolean;
+      appointment_only?: boolean;
+      home_service?: boolean;
+    };
+    thursday?: { 
+      morning_open: string; 
+      morning_close: string; 
+      afternoon_open: string; 
+      afternoon_close: string; 
+      closed?: boolean;
+      appointment_only?: boolean;
+      home_service?: boolean;
+    };
+    friday?: { 
+      morning_open: string; 
+      morning_close: string; 
+      afternoon_open: string; 
+      afternoon_close: string; 
+      closed?: boolean;
+      appointment_only?: boolean;
+      home_service?: boolean;
+    };
+    saturday?: { 
+      morning_open: string; 
+      morning_close: string; 
+      afternoon_open: string; 
+      afternoon_close: string; 
+      closed?: boolean;
+      appointment_only?: boolean;
+      home_service?: boolean;
+    };
+    sunday?: { 
+      morning_open: string; 
+      morning_close: string; 
+      afternoon_open: string; 
+      afternoon_close: string; 
+      closed?: boolean;
+      appointment_only?: boolean;
+      home_service?: boolean;
+    };
   };
   services_offered?: string[];
   certifications?: string[];
