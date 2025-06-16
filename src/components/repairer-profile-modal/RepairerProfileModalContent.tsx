@@ -58,6 +58,9 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
     // TODO: Implémenter la prise de rendez-vous
   };
 
+  // Vérifier si c'est un profil basique (créé automatiquement)
+  const isBasicProfile = !profile.description && !profile.siret_number && !profile.years_experience;
+
   // Vue d'édition
   if (isEditing) {
     return (
@@ -69,7 +72,7 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
           </DialogDescription>
         </DialogHeader>
         
-        <RepairerProfileForm
+        RepairerProfileForm
           profile={profile}
           onSave={onSave}
           onCancel={onCancel}
@@ -113,6 +116,15 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
         </DialogHeader>
 
         <div className="space-y-6">
+          {isBasicProfile && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <strong>Profil automatique :</strong> Ce profil a été créé automatiquement à partir des données de base du réparateur. 
+                Le réparateur peut le compléter en se connectant à son espace personnel.
+              </p>
+            </div>
+          )}
+          
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-sm text-yellow-800">
               <strong>Mode administrateur :</strong> Vous voyez la vue simplifiée. 
