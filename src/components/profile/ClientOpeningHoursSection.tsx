@@ -22,10 +22,6 @@ const DAYS_LABELS = {
 const ClientOpeningHoursSection: React.FC<ClientOpeningHoursSectionProps> = ({
   profile
 }) => {
-  if (!profile.opening_hours) {
-    return null;
-  }
-
   const formatTime = (time: string) => {
     return time ? time.substring(0, 5) : '';
   };
@@ -107,28 +103,43 @@ const ClientOpeningHoursSection: React.FC<ClientOpeningHoursSectionProps> = ({
     );
   };
 
+  // Toujours afficher la section, même sans horaires
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="h-5 w-5" />
-          Horaires d'ouverture
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-1">
-          {Object.entries(profile.opening_hours).map(([dayKey, dayData]) =>
-            renderDaySchedule(dayKey, dayData)
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-900 mb-4">Horaires d'ouverture</h2>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Horaires d'ouverture
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {profile.opening_hours ? (
+            <>
+              <div className="space-y-1">
+                {Object.entries(profile.opening_hours).map(([dayKey, dayData]) =>
+                  renderDaySchedule(dayKey, dayData)
+                )}
+              </div>
+              
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ <strong>Note :</strong> Ces horaires ne tiennent pas compte des jours fériés.
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Clock className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+              <p>Horaires d'ouverture non disponibles</p>
+              <p className="text-sm text-gray-400">Contactez directement le réparateur pour connaître ses horaires</p>
+            </div>
           )}
-        </div>
-        
-        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-800">
-            ⚠️ <strong>Note :</strong> Ces horaires ne tiennent pas compte des jours fériés.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
