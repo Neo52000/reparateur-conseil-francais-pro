@@ -4,9 +4,13 @@ import { DialogContent, DialogHeader, DialogDescription } from '@/components/ui/
 import { Button } from '@/components/ui/button';
 import ClientRepairerProfileHeader from '@/components/profile/ClientRepairerProfileHeader';
 import ClientAboutSection from '@/components/profile/ClientAboutSection';
+import ClientServicesAndPricingSection from '@/components/profile/ClientServicesAndPricingSection';
+import ClientOpeningHoursSection from '@/components/profile/ClientOpeningHoursSection';
+import ClientOptionsAndCertificationsSection from '@/components/profile/ClientOptionsAndCertificationsSection';
+import LanguagesPaymentCard from '@/components/profile/LanguagesPaymentCard';
+import ClientPhotosSection from '@/components/profile/ClientPhotosSection';
 import ClientContactSection from '@/components/profile/ClientContactSection';
 import ClientTestimonialsSection from '@/components/profile/ClientTestimonialsSection';
-import ClientOpeningHoursSection from '@/components/profile/ClientOpeningHoursSection';
 import ClientSimplifiedProfile from '@/components/profile/ClientSimplifiedProfile';
 import ClaimBusinessBanner from '@/components/ClaimBusinessBanner';
 import { RepairerProfile } from '@/types/repairerProfile';
@@ -48,8 +52,9 @@ const ClientModeContent: React.FC<ClientModeContentProps> = ({
             onCallRepairer={onCallRepairer}
           />
         ) : (
-          // Affichage complet pour les fiches revendiquées
+          // Affichage complet pour les fiches revendiquées - NOUVELLE ORGANISATION
           <>
+            {/* 1. En-tête avec actions principales */}
             <ClientRepairerProfileHeader
               profile={profile}
               onRequestQuote={onRequestQuote}
@@ -57,9 +62,28 @@ const ClientModeContent: React.FC<ClientModeContentProps> = ({
               onBookAppointment={onBookAppointment}
             />
 
+            {/* 2. À propos (présentation + infos générales) */}
             <ClientAboutSection profile={profile} />
+
+            {/* 3. Services et tarifs */}
+            <ClientServicesAndPricingSection profile={profile} />
+
+            {/* 4. Horaires d'ouverture */}
             <ClientOpeningHoursSection profile={profile} />
+
+            {/* 5. Options et certifications */}
+            <ClientOptionsAndCertificationsSection profile={profile} />
+
+            {/* 6. Langues et moyens de paiement */}
+            <LanguagesPaymentCard profile={profile} />
+
+            {/* 7. Galerie photo */}
+            <ClientPhotosSection profile={profile} />
+
+            {/* 8. Témoignages */}
             <ClientTestimonialsSection businessName={profile.business_name} />
+
+            {/* 9. Contact */}
             <ClientContactSection profile={profile} />
           </>
         )}
