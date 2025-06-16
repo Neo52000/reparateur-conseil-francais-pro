@@ -124,6 +124,28 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
         error = result.error;
       }
 
+      // Si toujours pas trouvé, essayer de chercher par email dans repairers puis dans repairer_profiles
+      if (!profileData && !error) {
+        console.log('🔍 Profile not found by user_id, checking repairers table for email...');
+        const { data: repairerData } = await supabase
+          .from('repairers')
+          .select('email')
+          .eq('id', id)
+          .maybeSingle();
+
+        if (repairerData?.email) {
+          console.log('📧 Found email in repairers table, searching profiles by email...');
+          const result = await supabase
+            .from('repairer_profiles')
+            .select('*')
+            .eq('email', repairerData.email)
+            .maybeSingle();
+          
+          profileData = result.data;
+          error = result.error;
+        }
+      }
+
       if (error) {
         console.error('❌ Error fetching profile:', error);
         throw error;
