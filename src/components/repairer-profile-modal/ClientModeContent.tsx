@@ -38,7 +38,7 @@ const ClientModeContent: React.FC<ClientModeContentProps> = ({
       <DialogHeader>
         <DialogDescription id="client-profile-description">
           {isBasicProfile 
-            ? 'Informations de base disponibles. Contactez directement le réparateur ou consultez la fiche complète après revendication.'
+            ? "Ce réparateur n'a pas encore validé sa fiche. C'est dommage !!"
             : 'Découvrez les informations détaillées sur ce réparateur, ses services et ses avis clients.'
           }
         </DialogDescription>
