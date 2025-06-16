@@ -10,6 +10,7 @@ import ContactInfoSection from './ContactInfoSection';
 import SocialMediaSection from './SocialMediaSection';
 import RepairServicesSection from './RepairServicesSection';
 import BusinessInfoSection from './BusinessInfoSection';
+import OpeningHoursSection from './OpeningHoursSection';
 
 /**
  * Formulaire principal pour l'édition des profils réparateurs
@@ -82,11 +83,12 @@ const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="basic">Général</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
           <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="business">Entreprise</TabsTrigger>
+          <TabsTrigger value="hours">Horaires</TabsTrigger>
           <TabsTrigger value="social">Réseaux</TabsTrigger>
         </TabsList>
 
@@ -108,6 +110,10 @@ const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
 
         <TabsContent value="business" className="space-y-4">
           <BusinessInfoSection formData={formData} setFormData={setFormData} />
+        </TabsContent>
+
+        <TabsContent value="hours" className="space-y-4">
+          <OpeningHoursSection formData={formData} setFormData={setFormData} />
         </TabsContent>
 
         <TabsContent value="social" className="space-y-4">
