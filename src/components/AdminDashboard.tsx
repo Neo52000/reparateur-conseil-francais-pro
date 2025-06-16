@@ -5,10 +5,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Plus, Edit, Percent } from 'lucide-react';
+import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Plus, Edit, Percent, Heart } from 'lucide-react';
 import ScrapingControl from './ScrapingControl';
 import ClientAccessControl from './ClientAccessControl';
 import PromoCodesManagement from './PromoCodesManagement';
+import ClientInterestManagement from './ClientInterestManagement';
 
 interface SubscriptionData {
   id: string;
@@ -43,7 +44,7 @@ const AdminDashboard = () => {
   const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
   const [repairers, setRepairers] = useState<RepairerData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'subscriptions' | 'repairers' | 'scraping' | 'promocodes'>('subscriptions');
+  const [activeTab, setActiveTab] = useState<'subscriptions' | 'repairers' | 'scraping' | 'promocodes' | 'interest'>('subscriptions');
   const [stats, setStats] = useState({
     totalSubscriptions: 0,
     activeSubscriptions: 0,
@@ -293,6 +294,17 @@ const AdminDashboard = () => {
           Réparateurs
         </button>
         <button
+          onClick={() => setActiveTab('interest')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'interest'
+              ? 'bg-white text-gray-900 shadow'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <Heart className="h-4 w-4 mr-1 inline" />
+          Demandes d'intérêt
+        </button>
+        <button
           onClick={() => setActiveTab('promocodes')}
           className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'promocodes'
@@ -464,6 +476,8 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       )}
+
+      {activeTab === 'interest' && <ClientInterestManagement />}
 
       {activeTab === 'promocodes' && <PromoCodesManagement />}
 

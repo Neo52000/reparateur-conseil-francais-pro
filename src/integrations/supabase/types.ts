@@ -193,6 +193,45 @@ export type Database = {
         }
         Relationships: []
       }
+      client_interest_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          client_email: string | null
+          client_message: string | null
+          client_phone: string | null
+          created_at: string
+          id: string
+          repairer_profile_id: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_email?: string | null
+          client_message?: string | null
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          repairer_profile_id: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_email?: string | null
+          client_message?: string | null
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          repairer_profile_id?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       feature_flags_by_plan: {
         Row: {
           enabled: boolean
