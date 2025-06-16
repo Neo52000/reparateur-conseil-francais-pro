@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { RepairerProfile, RepairerProfileFormProps } from '@/types/repairerProfile';
@@ -26,6 +26,23 @@ const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { saveProfile } = useRepairerProfileSave();
+
+  // S'assurer que les données du profil sont bien synchronisées
+  useEffect(() => {
+    console.log('📋 Profile data received in form:', {
+      business_name: profile.business_name,
+      repair_types: profile.repair_types,
+      id: profile.id
+    });
+    
+    // S'assurer que repair_types est un tableau
+    const updatedProfile = {
+      ...profile,
+      repair_types: Array.isArray(profile.repair_types) ? profile.repair_types : []
+    };
+    
+    setFormData(updatedProfile);
+  }, [profile]);
 
   /**
    * Gère la soumission du formulaire

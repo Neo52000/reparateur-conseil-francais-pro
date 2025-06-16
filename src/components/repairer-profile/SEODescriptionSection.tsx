@@ -16,8 +16,20 @@ const SEODescriptionSection: React.FC<SEODescriptionSectionProps> = ({ formData,
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
 
   const handleGenerateDescription = async () => {
-    if (!formData.business_name || !formData.repair_types.length) {
-      alert('Veuillez remplir le nom commercial et sélectionner au moins un type de réparation avant de générer une description.');
+    console.log('🔍 Current formData for description generation:', {
+      business_name: formData.business_name,
+      repair_types: formData.repair_types,
+      repair_types_length: formData.repair_types?.length || 0
+    });
+
+    // Validation améliorée avec des messages plus précis
+    if (!formData.business_name || formData.business_name.trim() === '') {
+      alert('Veuillez remplir le nom commercial avant de générer une description.');
+      return;
+    }
+
+    if (!formData.repair_types || formData.repair_types.length === 0) {
+      alert('Veuillez sélectionner au moins un type de réparation avant de générer une description.');
       return;
     }
 
@@ -61,6 +73,12 @@ const SEODescriptionSection: React.FC<SEODescriptionSectionProps> = ({ formData,
         rows={6}
         placeholder="Décrivez votre activité, vos spécialités..."
       />
+      
+      {/* Debug info - à supprimer après résolution */}
+      <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+        Debug: Nom commercial: "{formData.business_name}" | Types de réparation: {formData.repair_types?.length || 0} sélectionnés
+      </div>
+      
       <div className="bg-blue-50 p-3 rounded-lg text-sm">
         <p className="font-medium text-blue-800 mb-2">🚀 Génération IA Optimisée SEO</p>
         <p className="text-blue-700">
