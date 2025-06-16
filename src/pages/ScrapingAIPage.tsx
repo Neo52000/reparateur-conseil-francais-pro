@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -9,10 +9,28 @@ import ScrapingConfigPanel from '@/components/scraping/ScrapingConfigPanel';
 import ScrapingExecution from '@/components/scraping/ScrapingExecution';
 import ScrapingResults from '@/components/scraping/ScrapingResults';
 import ScrapingAnalytics from '@/components/scraping/ScrapingAnalytics';
+import { useScrapingStatus } from '@/hooks/useScrapingStatus';
 
 const ScrapingAIPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('execution');
+  const { logs, isScrapingRunning } = useScrapingStatus();
+
+  // Surveiller la fin du scraping pour basculer automatiquement
+  useEffect(() => {
+    // Vérifier si un scraping vient de se terminer
+    const latestLog = logs[0]; // Le plus récent
+    
+    if (latestLog && latestLog.status === 'completed' && !isScrapingRunning) {
+      // Petite temporisation pour laisser le temps à l'utilisateur de voir le statut
+      const timer = setTimeout(() => {
+        console.log('🎉 Scraping terminé - basculement automatique vers les résultats');
+        setActiveTab('results');
+      }, 2000); // 2 secondes de délai
+      
+      return () => clearTimeout(timer);
+    }
+  }, [logs, isScrapingRunning]);
 
   return (
     <div className="min-h-screen bg-gray-50">
