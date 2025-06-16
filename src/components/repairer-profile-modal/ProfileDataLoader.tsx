@@ -1,174 +1,120 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { RepairerProfile } from '@/types/repairerProfile';
-import { getMockProfile } from '@/services/mockRepairerProfiles';
+import { RepairerProfileMapper } from '@/services/repairerProfileMapper';
 
-interface UseProfileDataResult {
-  profile: RepairerProfile | null;
-  loading: boolean;
-  fetchProfile: (targetId?: string) => Promise<void>;
-  refreshProfile: () => Promise<void>;
-}
-
-export const useProfileData = (repairerId: string, isOpen: boolean): UseProfileDataResult => {
+/**
+ * Hook pour charger les données d'un profil réparateur
+ * Gère le cache et le rafraîchissement des données
+ */
+export const useProfileData = (repairerId: string, isOpen: boolean) => {
   const [profile, setProfile] = useState<RepairerProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
-  const mapDatabaseProfileToInterface = (data: any): RepairerProfile => ({
-    id: data.id,
-    repairer_id: data.user_id,
-    business_name: data.business_name,
-    siret_number: data.siret_number,
-    description: data.description,
-    address: data.address,
-    city: data.city,
-    postal_code: data.postal_code,
-    phone: data.phone,
-    email: data.email,
-    website: data.website,
-    facebook_url: data.facebook_url,
-    instagram_url: data.instagram_url,
-    linkedin_url: data.linkedin_url,
-    twitter_url: data.twitter_url,
-    has_qualirepar_label: data.has_qualirepar_label,
-    repair_types: data.repair_types,
-    profile_image_url: data.profile_image_url,
-    created_at: data.created_at,
-    updated_at: data.updated_at
-  });
-
-  const createMockProfileFromRepairer = async (repairerId: string): Promise<RepairerProfile | null> => {
-    try {
-      const { data: repairer, error } = await supabase
-        .from('repairers')
-        .select('*')
-        .eq('id', repairerId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching repairer from database:', error);
-        return null;
-      }
-
-      if (!repairer) {
-        console.log('Repairer not found in database:', repairerId);
-        return null;
-      }
-
-      return {
-        id: repairerId,
-        repairer_id: repairerId,
-        business_name: repairer.name,
-        description: `${repairer.name} est un réparateur professionnel spécialisé dans la réparation d'appareils électroniques. Avec une expertise reconnue et des années d'expérience, nous offrons des services de qualité pour tous vos besoins de réparation.`,
-        address: repairer.address,
-        city: repairer.city,
-        postal_code: repairer.postal_code,
-        phone: repairer.phone || '+33 1 23 45 67 89',
-        email: repairer.email || `contact@${repairer.name.toLowerCase().replace(/\s+/g, '')}.fr`,
-        website: repairer.website || `https://www.${repairer.name.toLowerCase().replace(/\s+/g, '')}.fr`,
-        siret_number: '12345678901234',
-        repair_types: repairer.services || [],
-        profile_image_url: null,
-        facebook_url: `https://facebook.com/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
-        twitter_url: `https://twitter.com/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
-        instagram_url: `https://instagram.com/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
-        linkedin_url: `https://linkedin.com/company/${repairer.name.toLowerCase().replace(/\s+/g, '')}`,
-        has_qualirepar_label: Math.random() > 0.5,
-        created_at: repairer.created_at,
-        updated_at: repairer.updated_at
-      };
-    } catch (error) {
-      console.error('Error creating profile from repairer data:', error);
-      return null;
+  /**
+   * Charge les données du profil depuis Supabase
+   */
+  const fetchProfile = async (id: string): Promise<RepairerProfile | null> => {
+    console.log('🔄 Fetching profile data for ID:', id);
+    
+    if (id.startsWith('mock-')) {
+      console.log('🎭 Loading mock profile');
+      const { getMockProfile } = await import('@/services/mockRepairerProfiles');
+      return getMockProfile(id);
     }
-  };
 
-  const fetchProfile = async (targetId?: string) => {
-    setLoading(true);
     try {
-      const queryId = targetId || repairerId;
-      console.log('Fetching profile for repairer ID:', queryId);
-      
-      // Essayer d'abord de chercher par user_id
-      let { data, error } = await supabase
+      // Essayer d'abord de chercher par ID dans repairer_profiles
+      let { data: profileData, error } = await supabase
         .from('repairer_profiles')
         .select('*')
-        .eq('user_id', queryId)
+        .eq('id', id)
         .maybeSingle();
 
-      // Si pas trouvé par user_id, essayer par email ou autre critère
-      if (!data && !error) {
-        // Chercher dans la table repairers pour obtenir l'email
-        const { data: repairerData } = await supabase
-          .from('repairers')
-          .select('email')
-          .eq('id', queryId)
+      // Si pas trouvé par ID, essayer par user_id
+      if (!profileData && !error) {
+        console.log('🔍 Profile not found by ID, trying by user_id...');
+        const result = await supabase
+          .from('repairer_profiles')
+          .select('*')
+          .eq('user_id', id)
           .maybeSingle();
-
-        if (repairerData?.email) {
-          const result = await supabase
-            .from('repairer_profiles')
-            .select('*')
-            .eq('email', repairerData.email)
-            .maybeSingle();
-          
-          data = result.data;
-          error = result.error;
-        }
+        
+        profileData = result.data;
+        error = result.error;
       }
 
-      if (error && !error.message.includes('invalid input syntax for type uuid')) {
+      if (error) {
+        console.error('❌ Error fetching profile:', error);
         throw error;
       }
 
-      if (data) {
-        console.log('Found profile in database:', data);
-        const mappedProfile = mapDatabaseProfileToInterface(data);
-        setProfile(mappedProfile);
-      } else {
-        console.log('No profile found in database, creating mock profile');
-        const profileFromRepairer = await createMockProfileFromRepairer(queryId);
-        if (profileFromRepairer) {
-          setProfile(profileFromRepairer);
-        } else {
-          const mockProfile = getMockProfile(queryId);
-          if (mockProfile) {
-            setProfile(mockProfile);
-          } else {
-            setProfile(null);
-          }
-        }
+      if (!profileData) {
+        console.log('📭 No profile found for ID:', id);
+        return null;
       }
+
+      console.log('📥 Raw profile data from Supabase:', profileData);
+      
+      // Mapper les données vers l'interface RepairerProfile
+      const mappedProfile = RepairerProfileMapper.mapDatabaseToProfile(profileData);
+      
+      console.log('✅ Mapped profile data:', mappedProfile);
+      return mappedProfile;
+
+    } catch (error: any) {
+      console.error('❌ Error in fetchProfile:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Rafraîchit les données du profil actuel
+   */
+  const refreshProfile = async () => {
+    if (!repairerId) return;
+    
+    try {
+      setLoading(true);
+      const freshProfile = await fetchProfile(repairerId);
+      setProfile(freshProfile);
     } catch (error) {
-      console.error('Error fetching profile:', error);
-      const fallbackProfile = await createMockProfileFromRepairer(targetId || repairerId);
-      if (fallbackProfile) {
-        setProfile(fallbackProfile);
-      } else {
-        toast({
-          title: "Erreur",
-          description: "Impossible de charger le profil du réparateur",
-          variant: "destructive"
-        });
-        setProfile(null);
-      }
+      console.error('❌ Error refreshing profile:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const refreshProfile = async () => {
-    await fetchProfile();
-  };
-
+  /**
+   * Charge les données au montage et quand les paramètres changent
+   */
   useEffect(() => {
-    if (isOpen && repairerId) {
-      fetchProfile();
+    if (!isOpen || !repairerId) {
+      setProfile(null);
+      return;
     }
-  }, [isOpen, repairerId]);
 
-  return { profile, loading, fetchProfile, refreshProfile };
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        const profileData = await fetchProfile(repairerId);
+        setProfile(profileData);
+      } catch (error) {
+        console.error('❌ Error loading profile:', error);
+        setProfile(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [repairerId, isOpen]);
+
+  return {
+    profile,
+    loading,
+    fetchProfile,
+    refreshProfile
+  };
 };

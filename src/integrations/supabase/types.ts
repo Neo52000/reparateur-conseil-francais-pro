@@ -566,68 +566,104 @@ export type Database = {
         Row: {
           address: string
           business_name: string
+          certifications: string[] | null
           city: string
           created_at: string
           description: string | null
           email: string
+          emergency_service: boolean | null
           facebook_url: string | null
           has_qualirepar_label: boolean | null
+          home_service: boolean | null
           id: string
           instagram_url: string | null
+          languages_spoken: string[] | null
           linkedin_url: string | null
+          opening_hours: Json | null
+          payment_methods: string[] | null
           phone: string
+          pickup_service: boolean | null
           postal_code: string
+          pricing_info: Json | null
           profile_image_url: string | null
           repair_types: string[] | null
+          response_time: string | null
+          services_offered: string[] | null
           siret_number: string | null
           twitter_url: string | null
           updated_at: string
           user_id: string
+          warranty_duration: string | null
           website: string | null
+          years_experience: number | null
         }
         Insert: {
           address: string
           business_name: string
+          certifications?: string[] | null
           city: string
           created_at?: string
           description?: string | null
           email: string
+          emergency_service?: boolean | null
           facebook_url?: string | null
           has_qualirepar_label?: boolean | null
+          home_service?: boolean | null
           id?: string
           instagram_url?: string | null
+          languages_spoken?: string[] | null
           linkedin_url?: string | null
+          opening_hours?: Json | null
+          payment_methods?: string[] | null
           phone: string
+          pickup_service?: boolean | null
           postal_code: string
+          pricing_info?: Json | null
           profile_image_url?: string | null
           repair_types?: string[] | null
+          response_time?: string | null
+          services_offered?: string[] | null
           siret_number?: string | null
           twitter_url?: string | null
           updated_at?: string
           user_id: string
+          warranty_duration?: string | null
           website?: string | null
+          years_experience?: number | null
         }
         Update: {
           address?: string
           business_name?: string
+          certifications?: string[] | null
           city?: string
           created_at?: string
           description?: string | null
           email?: string
+          emergency_service?: boolean | null
           facebook_url?: string | null
           has_qualirepar_label?: boolean | null
+          home_service?: boolean | null
           id?: string
           instagram_url?: string | null
+          languages_spoken?: string[] | null
           linkedin_url?: string | null
+          opening_hours?: Json | null
+          payment_methods?: string[] | null
           phone?: string
+          pickup_service?: boolean | null
           postal_code?: string
+          pricing_info?: Json | null
           profile_image_url?: string | null
           repair_types?: string[] | null
+          response_time?: string | null
+          services_offered?: string[] | null
           siret_number?: string | null
           twitter_url?: string | null
           updated_at?: string
           user_id?: string
+          warranty_duration?: string | null
           website?: string | null
+          years_experience?: number | null
         }
         Relationships: []
       }

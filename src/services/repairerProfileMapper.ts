@@ -26,6 +26,19 @@ export class RepairerProfileMapper {
       twitter_url: formData.twitter_url || null,
       has_qualirepar_label: formData.has_qualirepar_label || false,
       repair_types: formData.repair_types || [],
+      // Nouvelles colonnes ajoutées
+      opening_hours: formData.opening_hours || null,
+      services_offered: formData.services_offered || [],
+      certifications: formData.certifications || [],
+      years_experience: formData.years_experience || null,
+      languages_spoken: formData.languages_spoken || [],
+      payment_methods: formData.payment_methods || [],
+      warranty_duration: formData.warranty_duration || null,
+      response_time: formData.response_time || null,
+      emergency_service: formData.emergency_service || false,
+      home_service: formData.home_service || false,
+      pickup_service: formData.pickup_service || false,
+      pricing_info: formData.pricing_info || null,
       updated_at: new Date().toISOString()
     };
   }
@@ -53,6 +66,19 @@ export class RepairerProfileMapper {
       has_qualirepar_label: data.has_qualirepar_label,
       repair_types: data.repair_types,
       profile_image_url: data.profile_image_url,
+      // Mapper les nouvelles colonnes
+      opening_hours: data.opening_hours,
+      services_offered: data.services_offered,
+      certifications: data.certifications,
+      years_experience: data.years_experience,
+      languages_spoken: data.languages_spoken,
+      payment_methods: data.payment_methods,
+      warranty_duration: data.warranty_duration,
+      response_time: data.response_time,
+      emergency_service: data.emergency_service,
+      home_service: data.home_service,
+      pickup_service: data.pickup_service,
+      pricing_info: data.pricing_info,
       created_at: data.created_at,
       updated_at: data.updated_at
     };
