@@ -11,6 +11,7 @@ import SocialMediaSection from './SocialMediaSection';
 import RepairServicesSection from './RepairServicesSection';
 import BusinessInfoSection from './BusinessInfoSection';
 import OpeningHoursSection from './OpeningHoursSection';
+import PhotosSection from './PhotosSection';
 
 /**
  * Formulaire principal pour l'édition des profils réparateurs
@@ -38,7 +39,9 @@ const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
     // S'assurer que repair_types est un tableau
     const updatedProfile = {
       ...profile,
-      repair_types: Array.isArray(profile.repair_types) ? profile.repair_types : []
+      repair_types: Array.isArray(profile.repair_types) ? profile.repair_types : [],
+      shop_photos: profile.shop_photos || [],
+      other_services: profile.other_services || ''
     };
     
     setFormData(updatedProfile);
@@ -51,6 +54,16 @@ const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
     e.preventDefault();
     console.log('📝 Form submission started...');
     console.log('📄 Form data to save:', formData);
+    
+    // Validation du SIRET obligatoire
+    if (!formData.siret_number || formData.siret_number.trim() === '') {
+      toast({
+        title: "Erreur",
+        description: "Le numéro SIRET est obligatoire",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setLoading(true);
 
@@ -92,7 +105,9 @@ const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
     } else {
       setFormData(prev => ({
         ...prev,
-        repair_types: prev.repair_types.filter(t => t !== type)
+        repair_types: prev.repair_types.filter(t => t !== type),
+        // Si on décoche "autres", vider le champ texte
+        other_services: type === 'autres' ? '' : prev.other_services
       }));
     }
   };
@@ -100,12 +115,13 @@ const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="basic">Général</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
           <TabsTrigger value="services">Services</TabsTrigger>
           <TabsTrigger value="business">Entreprise</TabsTrigger>
           <TabsTrigger value="hours">Horaires</TabsTrigger>
+          <TabsTrigger value="photos">Photos</TabsTrigger>
           <TabsTrigger value="social">Réseaux</TabsTrigger>
         </TabsList>
 
@@ -131,6 +147,10 @@ const RepairerProfileFormMain: React.FC<RepairerProfileFormProps> = ({
 
         <TabsContent value="hours" className="space-y-4">
           <OpeningHoursSection formData={formData} setFormData={setFormData} />
+        </TabsContent>
+
+        <TabsContent value="photos" className="space-y-4">
+          <PhotosSection formData={formData} setFormData={setFormData} />
         </TabsContent>
 
         <TabsContent value="social" className="space-y-4">

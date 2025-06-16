@@ -26,6 +26,11 @@ export const getMockProfile = (repairerId: string): RepairerProfile | null => {
       has_qualirepar_label: true,
       repair_types: ['telephone', 'ordinateur'],
       profile_image_url: null,
+      shop_photos: [
+        'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=400',
+        'https://images.unsplash.com/photo-1486718448742-163732cd1544?w=400'
+      ],
+      other_services: 'Récupération de données, formation utilisateur',
       created_at: '2023-01-15T10:00:00Z',
       updated_at: '2024-12-15T10:00:00Z'
     },
@@ -49,8 +54,10 @@ export const getMockProfile = (repairerId: string): RepairerProfile | null => {
       telegram_url: 'https://t.me/mobilefixexpress',
       tiktok_url: null,
       has_qualirepar_label: false,
-      repair_types: ['telephone', 'montre'],
+      repair_types: ['telephone', 'montre', 'micro-soudure'],
       profile_image_url: null,
+      shop_photos: [],
+      other_services: '',
       created_at: '2023-02-20T14:30:00Z',
       updated_at: '2024-12-15T10:00:00Z'
     },
@@ -76,6 +83,10 @@ export const getMockProfile = (repairerId: string): RepairerProfile | null => {
       has_qualirepar_label: false,
       repair_types: ['telephone', 'autres'],
       profile_image_url: null,
+      shop_photos: [
+        'https://images.unsplash.com/photo-1494891848038-7bd202a2afeb?w=400'
+      ],
+      other_services: 'Réparation de caméras d\'action, montres connectées',
       created_at: '2023-03-10T09:15:00Z',
       updated_at: '2024-12-15T10:00:00Z'
     }
@@ -90,6 +101,7 @@ export const getRepairTypeLabel = (type: string) => {
     montre: 'Montre',
     console: 'Console',
     ordinateur: 'Ordinateur',
+    'micro-soudure': 'Micro-soudure',
     autres: 'Autres'
   };
   return labels[type] || type;

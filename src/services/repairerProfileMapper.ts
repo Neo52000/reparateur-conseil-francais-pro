@@ -42,6 +42,8 @@ export class RepairerProfileMapper {
       home_service: formData.home_service || false,
       pickup_service: formData.pickup_service || false,
       pricing_info: formData.pricing_info || null,
+      shop_photos: formData.shop_photos || [],
+      other_services: formData.other_services || null,
       updated_at: new Date().toISOString()
     };
   }
@@ -85,6 +87,8 @@ export class RepairerProfileMapper {
       home_service: data.home_service,
       pickup_service: data.pickup_service,
       pricing_info: data.pricing_info,
+      shop_photos: data.shop_photos || [],
+      other_services: data.other_services,
       created_at: data.created_at,
       updated_at: data.updated_at
     };

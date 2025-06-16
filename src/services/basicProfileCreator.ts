@@ -76,6 +76,8 @@ export class BasicProfileCreator {
         pricing_info: repairerData.price_range ? {
           free_quote: true
         } : undefined,
+        shop_photos: [],
+        other_services: '',
         created_at: repairerData.created_at,
         updated_at: repairerData.updated_at
       };

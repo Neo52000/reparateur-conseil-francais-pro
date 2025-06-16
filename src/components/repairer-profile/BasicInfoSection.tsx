@@ -26,11 +26,13 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ formData, setFormDa
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="siret_number">N° SIRET</Label>
+          <Label htmlFor="siret_number">N° SIRET *</Label>
           <Input
             id="siret_number"
             value={formData.siret_number || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, siret_number: e.target.value }))}
+            required
+            placeholder="Ex: 12345678901234"
           />
         </div>
       </div>

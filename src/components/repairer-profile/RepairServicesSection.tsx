@@ -2,6 +2,7 @@
 import React from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { RepairerProfile, REPAIR_TYPES } from '@/types/repairerProfile';
 
 interface RepairServicesSectionProps {
@@ -15,6 +16,8 @@ const RepairServicesSection: React.FC<RepairServicesSectionProps> = ({
   setFormData, 
   onRepairTypeChange 
 }) => {
+  const hasAutresSelected = formData.repair_types.includes('autres');
+
   return (
     <>
       <div className="space-y-4">
@@ -31,6 +34,19 @@ const RepairServicesSection: React.FC<RepairServicesSectionProps> = ({
             </div>
           ))}
         </div>
+
+        {hasAutresSelected && (
+          <div className="space-y-2">
+            <Label htmlFor="other_services">Précisez vos autres services</Label>
+            <Textarea
+              id="other_services"
+              value={formData.other_services || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, other_services: e.target.value }))}
+              placeholder="Décrivez vos autres services de réparation..."
+              rows={3}
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex items-center space-x-2">

@@ -1,3 +1,4 @@
+
 export interface RepairerProfile {
   id: string;
   repairer_id: string;
@@ -121,6 +122,10 @@ export interface RepairerProfile {
     free_quote?: boolean;
   };
   
+  // Nouveau champ pour les photos
+  shop_photos?: string[];
+  other_services?: string; // Pour le texte libre des "autres" services
+  
   created_at: string;
   updated_at: string;
 }
@@ -137,6 +142,7 @@ export const REPAIR_TYPES = [
   { value: 'montre', label: 'Montre' },
   { value: 'console', label: 'Console' },
   { value: 'ordinateur', label: 'Ordinateur' },
+  { value: 'micro-soudure', label: 'Micro-soudure' },
   { value: 'autres', label: 'Autres' }
 ];
 
@@ -146,6 +152,7 @@ export const getRepairTypeLabel = (type: string) => {
     montre: 'Montre',
     console: 'Console',
     ordinateur: 'Ordinateur',
+    'micro-soudure': 'Micro-soudure',
     autres: 'Autres'
   };
   return labels[type] || type;
