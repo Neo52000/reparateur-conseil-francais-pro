@@ -4,11 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Building, Award } from 'lucide-react';
 import { RepairerProfile } from '@/types/repairerProfile';
 import DescriptionRenderer from './DescriptionRenderer';
-import ServiceOptionsCard from './ServiceOptionsCard';
-import PricingInfoCard from './PricingInfoCard';
 import LanguagesPaymentCard from './LanguagesPaymentCard';
-import CertificationsCard from './CertificationsCard';
-import ServicesOfferedCard from './ServicesOfferedCard';
 import ClientPhotosSection from './ClientPhotosSection';
 
 interface ClientAboutSectionProps {
@@ -51,20 +47,8 @@ const ClientAboutSection: React.FC<ClientAboutSectionProps> = ({ profile }) => {
       {/* Photos de l'atelier */}
       <ClientPhotosSection profile={profile} />
 
-      {/* Services Options */}
-      <ServiceOptionsCard profile={profile} />
-
-      {/* Pricing Information */}
-      <PricingInfoCard profile={profile} />
-
       {/* Languages and Payment */}
       <LanguagesPaymentCard profile={profile} />
-
-      {/* Certifications and Labels */}
-      <CertificationsCard profile={profile} />
-
-      {/* Services Offered */}
-      <ServicesOfferedCard profile={profile} />
     </div>
   );
 };
