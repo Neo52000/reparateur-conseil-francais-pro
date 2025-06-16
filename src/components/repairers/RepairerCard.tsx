@@ -28,7 +28,7 @@ const RepairerCard: React.FC<RepairerCardProps> = ({
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-lg font-semibold text-gray-900">
-              {repairer.business_name}
+              {repairer.business_name || repairer.name}
             </h3>
             {repairer.has_qualirepar_label && (
               <Badge className="bg-green-100 text-green-800 border-green-200">
@@ -55,12 +55,12 @@ const RepairerCard: React.FC<RepairerCardProps> = ({
                 <Star
                   key={star}
                   className={`h-4 w-4 ${
-                    star <= 4.8 ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                    star <= (repairer.rating || 4.8) ? 'text-yellow-400 fill-current' : 'text-gray-300'
                   }`}
                 />
               ))}
-              <span className="ml-2 text-sm font-medium text-gray-900">4.8</span>
-              <span className="ml-1 text-sm text-gray-600">(127 avis)</span>
+              <span className="ml-2 text-sm font-medium text-gray-900">{repairer.rating || 4.8}</span>
+              <span className="ml-1 text-sm text-gray-600">({repairer.review_count || 127} avis)</span>
             </div>
           </div>
         </div>

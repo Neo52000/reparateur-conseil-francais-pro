@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
+import type { Repairer } from '@/types/repairer';
 
 export interface SearchFilters {
   services?: string[];
@@ -19,13 +20,8 @@ export interface SearchFilters {
 // Utiliser le type généré par Supabase
 type SupabaseRepairer = Database['public']['Tables']['repairers']['Row'];
 
-// Interface pour l'affichage avec les types appropriés
-export interface RepairerDB extends Omit<SupabaseRepairer, 'price_range'> {
-  price_range: 'low' | 'medium' | 'high';
-}
-
 export const useRepairers = (filters?: SearchFilters, userLocation?: [number, number]) => {
-  const [repairers, setRepairers] = useState<RepairerDB[]>([]);
+  const [repairers, setRepairers] = useState<Repairer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -88,11 +84,38 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
         });
 
         // Convertir les données Supabase vers notre format avec validation du price_range
-        const processedData: RepairerDB[] = data.map(repairer => ({
-          ...repairer,
+        const processedData: Repairer[] = data.map((repairer: SupabaseRepairer): Repairer => ({
+          id: repairer.id,
+          name: repairer.name,
+          business_name: repairer.name, // Mapper name vers business_name pour compatibilité
+          address: repairer.address,
+          city: repairer.city,
+          postal_code: repairer.postal_code,
+          department: repairer.department || '',
+          region: repairer.region || '',
+          phone: repairer.phone || undefined,
+          website: repairer.website || undefined,
+          email: repairer.email || undefined,
+          lat: Number(repairer.lat) || 0,
+          lng: Number(repairer.lng) || 0,
+          rating: repairer.rating || undefined,
+          review_count: repairer.review_count || undefined,
+          services: repairer.services || [],
+          specialties: repairer.specialties || [],
           price_range: (repairer.price_range === 'low' || repairer.price_range === 'medium' || repairer.price_range === 'high') 
             ? repairer.price_range 
-            : 'medium' // valeur par défaut si invalide
+            : 'medium',
+          response_time: repairer.response_time || undefined,
+          opening_hours: repairer.opening_hours ? 
+            (typeof repairer.opening_hours === 'object' ? repairer.opening_hours as Record<string, string> : null) : 
+            null,
+          is_verified: repairer.is_verified || false,
+          is_open: repairer.is_open || undefined,
+          has_qualirepar_label: false, // Valeur par défaut
+          source: repairer.source as 'pages_jaunes' | 'google_places' | 'manual',
+          scraped_at: repairer.scraped_at,
+          updated_at: repairer.updated_at,
+          created_at: repairer.created_at
         }));
 
         // Calculer la distance si la position utilisateur est disponible

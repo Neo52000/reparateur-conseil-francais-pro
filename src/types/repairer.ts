@@ -2,6 +2,7 @@
 export interface Repairer {
   id: string;
   name: string;
+  business_name?: string; // Ajout de business_name
   address: string;
   city: string;
   postal_code: string;
@@ -18,9 +19,10 @@ export interface Repairer {
   specialties: string[];
   price_range: 'low' | 'medium' | 'high';
   response_time?: string;
-  opening_hours?: Record<string, string>;
+  opening_hours?: Record<string, string> | null; // Harmonisation du type
   is_verified: boolean;
   is_open?: boolean;
+  has_qualirepar_label?: boolean; // Ajout de has_qualirepar_label
   source: 'pages_jaunes' | 'google_places' | 'manual';
   scraped_at: string;
   updated_at: string;

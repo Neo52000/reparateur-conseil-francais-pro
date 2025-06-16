@@ -23,10 +23,16 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
   console.log('RepairersList - Loading:', loading);
   console.log('RepairersList - Error:', error);
 
-  const handleViewProfile = (repairerId: string) => {
-    console.log('RepairersList - Opening profile for:', repairerId);
-    setSelectedRepairerId(repairerId);
+  const handleViewProfile = (repairer: any) => {
+    console.log('RepairersList - Opening profile for:', repairer.id);
+    setSelectedRepairerId(repairer.id);
     setIsProfileModalOpen(true);
+  };
+
+  const handleCall = (phone: string) => {
+    if (phone) {
+      window.location.href = `tel:${phone}`;
+    }
   };
 
   const handleCloseProfileModal = () => {
@@ -119,8 +125,8 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
               <RepairerCard 
                 key={repairer.id} 
                 repairer={repairer} 
-                compact={compact}
                 onViewProfile={handleViewProfile}
+                onCall={handleCall}
               />
             );
           })
