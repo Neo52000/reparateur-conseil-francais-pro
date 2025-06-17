@@ -24,6 +24,7 @@ export const useScrapingResults = () => {
   const [results, setResults] = useState<RepairerResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [lastUpdateTime, setLastUpdateTime] = useState<string | null>(null);
 
   const testDatabaseConnection = async () => {
     try {
@@ -54,8 +55,10 @@ export const useScrapingResults = () => {
     }
   };
 
-  const loadResults = async () => {
-    console.log("[useScrapingResults] 🔄 Début du chargement des résultats...");
+  const loadResults = async (isAutoRefresh = false) => {
+    if (!isAutoRefresh) {
+      console.log("[useScrapingResults] 🔄 Début du chargement des résultats...");
+    }
     console.log("[useScrapingResults] État auth:", { 
       hasUser: !!user, 
       hasSession: !!session, 
@@ -64,27 +67,31 @@ export const useScrapingResults = () => {
     });
 
     try {
-      setLoading(true);
+      if (!isAutoRefresh) {
+        setLoading(true);
+      }
       
       // Test de connexion d'abord
       const connectionOk = await testDatabaseConnection();
       if (!connectionOk) {
-        toast({
-          title: "Erreur de connexion",
-          description: "Impossible de se connecter à la base de données.",
-          variant: "destructive"
-        });
+        if (!isAutoRefresh) {
+          toast({
+            title: "Erreur de connexion",
+            description: "Impossible de se connecter à la base de données.",
+            variant: "destructive"
+          });
+        }
         setResults([]);
         return;
       }
 
-      // Requête principale
+      // Requête principale avec tri par date de scraping pour voir les plus récents en premier
       console.log("[useScrapingResults] 🔍 Exécution de la requête principale...");
       const { data, error } = await supabase
         .from('repairers')
         .select('*')
         .order('scraped_at', { ascending: false })
-        .limit(100);
+        .limit(200); // Augmenté pour voir plus de résultats
 
       if (error) {
         console.error("[useScrapingResults] ❌ Erreur lors du chargement:", error);
@@ -95,19 +102,44 @@ export const useScrapingResults = () => {
           code: error.code
         });
         
-        toast({
-          title: "Erreur de chargement",
-          description: `Erreur: ${error.message}`,
-          variant: "destructive"
-        });
+        if (!isAutoRefresh) {
+          toast({
+            title: "Erreur de chargement",
+            description: `Erreur: ${error.message}`,
+            variant: "destructive"
+          });
+        }
         throw error;
       }
       
-      console.log("[useScrapingResults] ✅ Données récupérées:", data);
-      console.log("[useScrapingResults] 📊 Nombre de résultats:", data?.length || 0);
+      if (!isAutoRefresh) {
+        console.log("[useScrapingResults] ✅ Données récupérées:", data);
+        console.log("[useScrapingResults] 📊 Nombre de résultats:", data?.length || 0);
+      }
       
       if (data && data.length > 0) {
-        console.log("[useScrapingResults] 📝 Premier résultat:", data[0]);
+        const latestScrapedAt = data[0]?.scraped_at;
+        
+        // Vérifier si on a de nouvelles données
+        if (latestScrapedAt !== lastUpdateTime) {
+          console.log("[useScrapingResults] 🆕 Nouvelles données détectées!");
+          setLastUpdateTime(latestScrapedAt);
+          
+          if (isAutoRefresh && lastUpdateTime) {
+            // Afficher un toast pour les nouvelles données en temps réel
+            const newResults = data.filter(item => item.scraped_at > lastUpdateTime);
+            if (newResults.length > 0) {
+              toast({
+                title: "🔄 Nouveaux résultats",
+                description: `${newResults.length} nouveau(x) réparateur(s) ajouté(s)`,
+              });
+            }
+          }
+        }
+        
+        if (!isAutoRefresh) {
+          console.log("[useScrapingResults] 📝 Premier résultat:", data[0]);
+        }
       }
       
       setResults([...(data || [])]);
@@ -115,10 +147,58 @@ export const useScrapingResults = () => {
       console.error('[useScrapingResults] 💥 Erreur complète:', error);
       setResults([]);
     } finally {
-      setLoading(false);
-      console.log("[useScrapingResults] ✅ Chargement terminé");
+      if (!isAutoRefresh) {
+        setLoading(false);
+        console.log("[useScrapingResults] ✅ Chargement terminé");
+      }
     }
   };
+
+  // Auto-refresh pendant le scraping
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    // Vérifier s'il y a un scraping en cours
+    const checkForActiveScraping = async () => {
+      try {
+        const { data: activeLogs } = await supabase
+          .from('scraping_logs')
+          .select('status')
+          .eq('status', 'running')
+          .limit(1);
+
+        const isScrapingActive = activeLogs && activeLogs.length > 0;
+
+        if (isScrapingActive) {
+          console.log("[useScrapingResults] 🔄 Scraping actif détecté - activation du refresh automatique");
+          
+          // Rafraîchir toutes les 3 secondes pendant le scraping
+          intervalId = setInterval(() => {
+            loadResults(true);
+          }, 3000);
+        } else if (intervalId) {
+          console.log("[useScrapingResults] ⏹️ Fin du scraping - arrêt du refresh automatique");
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+      } catch (error) {
+        console.error("[useScrapingResults] Erreur lors de la vérification du scraping:", error);
+      }
+    };
+
+    // Vérifier immédiatement
+    checkForActiveScraping();
+
+    // Puis vérifier périodiquement si un scraping est actif
+    const checkInterval = setInterval(checkForActiveScraping, 5000);
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      clearInterval(checkInterval);
+    };
+  }, [user, session, isAdmin]);
 
   const checkAuthAndPermissions = () => {
     console.log("[useScrapingResults] 🔐 Vérification auth:", { 
