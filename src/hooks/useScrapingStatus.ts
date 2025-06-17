@@ -32,7 +32,6 @@ export const useScrapingStatus = () => {
 
       if (error) throw error;
 
-      // Cast the data to our ScrapingLog type, ensuring status is properly typed
       const typedLogs: ScrapingLog[] = (data || []).map(log => ({
         ...log,
         status: log.status as 'running' | 'completed' | 'failed'
@@ -49,12 +48,12 @@ export const useScrapingStatus = () => {
     }
   };
 
-  const startScraping = async (source: string) => {
+  const startScraping = async (source: string, testMode: boolean = false) => {
     try {
-      console.log(`🚀 Démarrage du scraping pour: ${source}`);
+      console.log(`🚀 Démarrage du scraping ${testMode ? 'TEST' : 'RÉEL'} pour: ${source}`);
       
       const { data, error } = await supabase.functions.invoke('scrape-repairers', {
-        body: { source }
+        body: { source, testMode }
       });
 
       if (error) {
@@ -65,8 +64,8 @@ export const useScrapingStatus = () => {
       console.log('✅ Réponse Edge Function:', data);
 
       toast({
-        title: "✅ Scraping démarré",
-        description: `Le scraping de ${source} a été lancé avec succès. ${data?.ai_provider ? `IA utilisée: ${data.ai_provider}` : ''}`,
+        title: testMode ? "🧪 Test de scraping démarré" : "✅ Scraping démarré",
+        description: `Le scraping ${testMode ? 'test' : 'réel'} de ${source} a été lancé. ${data?.classification_method ? `Méthode: ${data.classification_method}` : ''}`,
       });
 
       // Rafraîchir les logs après un délai

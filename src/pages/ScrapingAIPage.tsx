@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Brain, Settings, Activity, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Zap, Settings, Activity, BarChart3 } from 'lucide-react';
 import ScrapingConfigPanel from '@/components/scraping/ScrapingConfigPanel';
-import ScrapingExecution from '@/components/scraping/ScrapingExecution';
+import ScrapingExecutionSimple from '@/components/scraping/ScrapingExecutionSimple';
 import ScrapingResults from '@/components/scraping/ScrapingResults';
 import ScrapingAnalytics from '@/components/scraping/ScrapingAnalytics';
 import { useScrapingStatus } from '@/hooks/useScrapingStatus';
@@ -48,20 +48,20 @@ const ScrapingAIPage = () => {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <Brain className="h-8 w-8 mr-3 text-blue-600" />
-                  Scraping IA Avancé
+                  <Zap className="h-8 w-8 mr-3 text-blue-600" />
+                  Scraping Simplifié
                 </h1>
                 <p className="text-sm text-gray-600">
-                  Plateforme intelligente d'extraction et d'analyse de données
+                  Extraction directe des réparateurs téléphone en France
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                🤖 IA Active
+                ✅ Mots-clés
               </div>
               <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                📊 Analytics ON
+                🗺️ Géolocalisation
               </div>
             </div>
           </div>
@@ -73,28 +73,24 @@ const ScrapingAIPage = () => {
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="execution" className="flex items-center space-x-2">
               <Activity className="h-4 w-4" />
-              <span>Exécution</span>
-            </TabsTrigger>
-            <TabsTrigger value="config" className="flex items-center space-x-2">
-              <Settings className="h-4 w-4" />
-              <span>Configuration</span>
+              <span>Scraping</span>
             </TabsTrigger>
             <TabsTrigger value="results" className="flex items-center space-x-2">
-              <Brain className="h-4 w-4" />
+              <Zap className="h-4 w-4" />
               <span>Résultats</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center space-x-2">
               <BarChart3 className="h-4 w-4" />
               <span>Analytics</span>
             </TabsTrigger>
+            <TabsTrigger value="config" className="flex items-center space-x-2">
+              <Settings className="h-4 w-4" />
+              <span>Config</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="execution" className="space-y-6">
-            <ScrapingExecution />
-          </TabsContent>
-
-          <TabsContent value="config" className="space-y-6">
-            <ScrapingConfigPanel />
+            <ScrapingExecutionSimple />
           </TabsContent>
 
           <TabsContent value="results" className="space-y-6">
@@ -103,6 +99,10 @@ const ScrapingAIPage = () => {
 
           <TabsContent value="analytics" className="space-y-6">
             <ScrapingAnalytics />
+          </TabsContent>
+
+          <TabsContent value="config" className="space-y-6">
+            <ScrapingConfigPanel />
           </TabsContent>
         </Tabs>
       </main>
