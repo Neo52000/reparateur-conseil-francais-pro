@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Zap, Settings, Activity, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Zap, Settings, Activity, BarChart3, Globe } from 'lucide-react';
 import ScrapingConfigPanel from '@/components/scraping/ScrapingConfigPanel';
-import ScrapingExecutionSimple from '@/components/scraping/ScrapingExecutionSimple';
+import MassiveScrapingControl from '@/components/scraping/MassiveScrapingControl';
 import ScrapingResults from '@/components/scraping/ScrapingResults';
 import ScrapingAnalytics from '@/components/scraping/ScrapingAnalytics';
 import { useScrapingStatus } from '@/hooks/useScrapingStatus';
@@ -26,7 +26,7 @@ const ScrapingAIPage = () => {
       const timer = setTimeout(() => {
         console.log('🎉 Scraping terminé - basculement automatique vers les résultats');
         setActiveTab('results');
-      }, 2000); // 2 secondes de délai
+      }, 3000); // 3 secondes de délai pour le scraping massif
       
       return () => clearTimeout(timer);
     }
@@ -48,20 +48,23 @@ const ScrapingAIPage = () => {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <Zap className="h-8 w-8 mr-3 text-blue-600" />
-                  Scraping Simplifié
+                  <Globe className="h-8 w-8 mr-3 text-red-600" />
+                  Scraping Massif France
                 </h1>
                 <p className="text-sm text-gray-600">
-                  Extraction directe des réparateurs téléphone en France
+                  Extraction complète des réparateurs téléphone - Tous départements
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
-                ✅ Mots-clés
+              <div className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                🚀 ILLIMITÉ
               </div>
-              <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                🗺️ Géolocalisation
+              <div className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
+                🛡️ Anti-blocage
+              </div>
+              <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                🗺️ 101 départements
               </div>
             </div>
           </div>
@@ -72,8 +75,8 @@ const ScrapingAIPage = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="execution" className="flex items-center space-x-2">
-              <Activity className="h-4 w-4" />
-              <span>Scraping</span>
+              <Globe className="h-4 w-4" />
+              <span>Scraping Massif</span>
             </TabsTrigger>
             <TabsTrigger value="results" className="flex items-center space-x-2">
               <Zap className="h-4 w-4" />
@@ -90,7 +93,7 @@ const ScrapingAIPage = () => {
           </TabsList>
 
           <TabsContent value="execution" className="space-y-6">
-            <ScrapingExecutionSimple />
+            <MassiveScrapingControl />
           </TabsContent>
 
           <TabsContent value="results" className="space-y-6">

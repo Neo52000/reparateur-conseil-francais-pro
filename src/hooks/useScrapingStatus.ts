@@ -48,12 +48,16 @@ export const useScrapingStatus = () => {
     }
   };
 
-  const startScraping = async (source: string, testMode: boolean = false) => {
+  const startScraping = async (source: string, testMode: boolean = false, departmentCode: string | null = null) => {
     try {
-      console.log(`🚀 Démarrage du scraping ${testMode ? 'TEST' : 'RÉEL'} pour: ${source}`);
+      console.log(`🚀 Démarrage du scraping ${testMode ? 'TEST' : 'MASSIF'} pour: ${source}${departmentCode ? ` - Département: ${departmentCode}` : ''}`);
       
       const { data, error } = await supabase.functions.invoke('scrape-repairers', {
-        body: { source, testMode }
+        body: { 
+          source, 
+          testMode,
+          departmentCode 
+        }
       });
 
       if (error) {
@@ -63,9 +67,12 @@ export const useScrapingStatus = () => {
 
       console.log('✅ Réponse Edge Function:', data);
 
+      const scrapingType = testMode ? "🧪 Test" : "🚀 Scraping MASSIF";
+      const locationText = departmentCode ? ` (Département ${departmentCode})` : " (Toute la France)";
+
       toast({
-        title: testMode ? "🧪 Test de scraping démarré" : "✅ Scraping démarré",
-        description: `Le scraping ${testMode ? 'test' : 'réel'} de ${source} a été lancé. ${data?.classification_method ? `Méthode: ${data.classification_method}` : ''}`,
+        title: `${scrapingType} démarré`,
+        description: `${scrapingType} de ${source}${locationText} lancé. ${data?.classification_method ? `Méthode: ${data.classification_method}` : ''}`,
       });
 
       // Rafraîchir les logs après un délai
