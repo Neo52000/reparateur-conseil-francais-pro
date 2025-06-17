@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { useScrapingResults, RepairerResult } from '@/hooks/useScrapingResults';
+import { useScrapingResults, RepairerResult } from '@/hooks/scraping/useScrapingResults';
 import ScrapingFilters from './ScrapingFilters';
 import ScrapingBulkActions from './ScrapingBulkActions';
 import ScrapingResultsTable from './ScrapingResultsTable';
