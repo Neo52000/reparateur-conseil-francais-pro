@@ -27,13 +27,25 @@ export const useScrapingStatus = () => {
 
   const fetchLogs = async () => {
     try {
+      console.log('🔄 Tentative de récupération des logs de scraping...');
+      
       const { data, error } = await supabase
         .from('scraping_logs')
         .select('*')
         .order('started_at', { ascending: false })
         .limit(10);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erreur lors de la récupération des logs:', error);
+        toast({
+          title: "Erreur de connexion",
+          description: "Impossible de récupérer les logs de scraping. Vérifiez la connexion à la base de données.",
+          variant: "destructive"
+        });
+        throw error;
+      }
+
+      console.log('✅ Logs récupérés avec succès:', data?.length || 0, 'entrées');
 
       const typedLogs: ScrapingLog[] = (data || []).map(log => ({
         ...log,
@@ -43,9 +55,22 @@ export const useScrapingStatus = () => {
       setLogs(typedLogs);
       setIsScrapingRunning(typedLogs.some(log => log.status === 'running') || false);
     } catch (error) {
-      console.error('Error fetching scraping logs:', error);
+      console.error('💥 Erreur complète fetchLogs:', error);
       setLogs([]);
       setIsScrapingRunning(false);
+      
+      // Test de connectivité
+      try {
+        const { data: testData } = await supabase.from('profiles').select('count').single();
+        console.log('✅ Test de connectivité réussi');
+      } catch (testError) {
+        console.error('❌ Test de connectivité échoué:', testError);
+        toast({
+          title: "Problème de connexion",
+          description: "La connexion à Supabase semble défaillante. Rechargez la page.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -126,6 +151,8 @@ export const useScrapingStatus = () => {
         console.log('📡 Statut subscription:', status);
         if (status === 'SUBSCRIBED') {
           console.log('✅ Subscription realtime active');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Erreur de subscription realtime');
         }
       });
     }

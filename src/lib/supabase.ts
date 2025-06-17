@@ -1,13 +1,21 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = "https://nbugpbakfkyvvjzgfjmw.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5idWdwYmFrZmt5dnZqemdmam13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4OTgyMjQsImV4cCI6MjA2NTQ3NDIyNH0.3D_IxWcSNpA2Xk5PtsJVyfjAk9kC1KbMG2n1FJ32tWc";
 
-// Créer un client par défaut si les variables d'environnement manquent
-export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+// Créer un client par défaut avec configuration robuste
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
+  }
+});
 
 // Fonction pour vérifier si Supabase est configuré
 export const isSupabaseConfigured = () => {
@@ -24,6 +32,9 @@ export interface ScrapingLog {
   items_scraped: number;
   items_added: number;
   items_updated: number;
+  items_pappers_verified?: number;
+  items_pappers_rejected?: number;
+  pappers_api_calls?: number;
   error_message?: string;
   started_at: string;
   completed_at?: string;
