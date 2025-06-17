@@ -6,7 +6,7 @@ import MassiveScrapingStats from './MassiveScrapingStats';
 import MassiveScrapingInterface from './MassiveScrapingInterface';
 
 const MassiveScrapingControl = () => {
-  const { startScraping, isScrapingRunning, logs } = useScrapingStatus();
+  const { startScraping, stopScraping, isScrapingRunning, logs } = useScrapingStatus();
   const { toast } = useToast();
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
 
@@ -29,6 +29,14 @@ const MassiveScrapingControl = () => {
         description: "Impossible de démarrer le scraping massif. Vérifiez les logs.",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleStopScraping = async () => {
+    try {
+      await stopScraping();
+    } catch (error) {
+      console.error('Erreur arrêt scraping:', error);
     }
   };
 
@@ -63,6 +71,7 @@ const MassiveScrapingControl = () => {
         isScrapingRunning={isScrapingRunning}
         latestLog={latestLog}
         onMassiveScraping={handleMassiveScraping}
+        onStopScraping={handleStopScraping}
         getProgress={getProgress}
       />
     </div>

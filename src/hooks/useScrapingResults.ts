@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -25,19 +26,18 @@ export const useScrapingResults = () => {
   const [loading, setLoading] = useState(true);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [lastUpdateTime, setLastUpdateTime] = useState<string | null>(null);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
 
   const testDatabaseConnection = async () => {
     try {
       console.log("[useScrapingResults] 🔍 Test de connectivité à la base...");
       
-      // Test de session
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       console.log("[useScrapingResults] Session:", { 
         hasSession: !!sessionData.session,
         error: sessionError?.message 
       });
 
-      // Test de la table repairers
       const { count, error: countError } = await supabase
         .from('repairers')
         .select('*', { count: 'exact', head: true });
@@ -58,20 +58,10 @@ export const useScrapingResults = () => {
   const loadResults = async (isAutoRefresh = false) => {
     if (!isAutoRefresh) {
       console.log("[useScrapingResults] 🔄 Début du chargement des résultats...");
+      setLoading(true);
     }
-    console.log("[useScrapingResults] État auth:", { 
-      hasUser: !!user, 
-      hasSession: !!session, 
-      isAdmin,
-      userId: user?.id 
-    });
 
     try {
-      if (!isAutoRefresh) {
-        setLoading(true);
-      }
-      
-      // Test de connexion d'abord
       const connectionOk = await testDatabaseConnection();
       if (!connectionOk) {
         if (!isAutoRefresh) {
@@ -85,22 +75,15 @@ export const useScrapingResults = () => {
         return;
       }
 
-      // Requête principale avec tri par date de scraping pour voir les plus récents en premier
       console.log("[useScrapingResults] 🔍 Exécution de la requête principale...");
       const { data, error } = await supabase
         .from('repairers')
         .select('*')
         .order('scraped_at', { ascending: false })
-        .limit(200); // Augmenté pour voir plus de résultats
+        .limit(200);
 
       if (error) {
         console.error("[useScrapingResults] ❌ Erreur lors du chargement:", error);
-        console.error("[useScrapingResults] Détails de l'erreur:", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
         
         if (!isAutoRefresh) {
           toast({
@@ -120,29 +103,34 @@ export const useScrapingResults = () => {
       if (data && data.length > 0) {
         const latestScrapedAt = data[0]?.scraped_at;
         
-        // Vérifier si on a de nouvelles données
+        // Mise à jour différentielle pour éviter les sauts
         if (latestScrapedAt !== lastUpdateTime) {
-          console.log("[useScrapingResults] 🆕 Nouvelles données détectées!");
-          setLastUpdateTime(latestScrapedAt);
-          
           if (isAutoRefresh && lastUpdateTime) {
-            // Afficher un toast pour les nouvelles données en temps réel
             const newResults = data.filter(item => item.scraped_at > lastUpdateTime);
             if (newResults.length > 0) {
+              console.log("[useScrapingResults] 🆕 Nouvelles données détectées!", newResults.length);
               toast({
                 title: "🔄 Nouveaux résultats",
                 description: `${newResults.length} nouveau(x) réparateur(s) ajouté(s)`,
               });
+              
+              // Mise à jour différentielle : ajouter seulement les nouveaux
+              setResults(prevResults => {
+                const existingIds = new Set(prevResults.map(r => r.id));
+                const uniqueNewResults = newResults.filter(r => !existingIds.has(r.id));
+                return [...uniqueNewResults, ...prevResults].slice(0, 200);
+              });
             }
+          } else {
+            // Première charge ou refresh manuel
+            setResults([...(data || [])]);
           }
+          setLastUpdateTime(latestScrapedAt);
         }
-        
-        if (!isAutoRefresh) {
-          console.log("[useScrapingResults] 📝 Premier résultat:", data[0]);
-        }
+      } else {
+        setResults([...(data || [])]);
       }
       
-      setResults([...(data || [])]);
     } catch (error: any) {
       console.error('[useScrapingResults] 💥 Erreur complète:', error);
       setResults([]);
@@ -154,12 +142,13 @@ export const useScrapingResults = () => {
     }
   };
 
-  // Auto-refresh pendant le scraping
+  // Auto-refresh optimisé
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
 
-    // Vérifier s'il y a un scraping en cours
     const checkForActiveScraping = async () => {
+      if (!autoRefreshEnabled) return;
+
       try {
         const { data: activeLogs } = await supabase
           .from('scraping_logs')
@@ -172,10 +161,10 @@ export const useScrapingResults = () => {
         if (isScrapingActive) {
           console.log("[useScrapingResults] 🔄 Scraping actif détecté - activation du refresh automatique");
           
-          // Rafraîchir toutes les 3 secondes pendant le scraping
+          // Rafraîchir toutes les 5 secondes (réduit de 3s)
           intervalId = setInterval(() => {
             loadResults(true);
-          }, 3000);
+          }, 5000);
         } else if (intervalId) {
           console.log("[useScrapingResults] ⏹️ Fin du scraping - arrêt du refresh automatique");
           clearInterval(intervalId);
@@ -186,11 +175,8 @@ export const useScrapingResults = () => {
       }
     };
 
-    // Vérifier immédiatement
     checkForActiveScraping();
-
-    // Puis vérifier périodiquement si un scraping est actif
-    const checkInterval = setInterval(checkForActiveScraping, 5000);
+    const checkInterval = setInterval(checkForActiveScraping, 10000); // Vérification moins fréquente
 
     return () => {
       if (intervalId) {
@@ -198,7 +184,7 @@ export const useScrapingResults = () => {
       }
       clearInterval(checkInterval);
     };
-  }, [user, session, isAdmin]);
+  }, [user, session, isAdmin, autoRefreshEnabled]);
 
   const checkAuthAndPermissions = () => {
     console.log("[useScrapingResults] 🔐 Vérification auth:", { 
@@ -247,8 +233,7 @@ export const useScrapingResults = () => {
       selectedItems, 
       newStatus, 
       isVerified,
-      itemCount: selectedItems.length,
-      userRole: isAdmin ? 'admin' : 'non-admin'
+      itemCount: selectedItems.length
     });
     
     try {
@@ -345,6 +330,8 @@ export const useScrapingResults = () => {
     loading,
     selectedItems,
     setSelectedItems,
+    autoRefreshEnabled,
+    setAutoRefreshEnabled,
     loadResults,
     handleChangeStatusSelected,
     handleDeleteSelected

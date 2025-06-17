@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Globe } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Globe, Square } from 'lucide-react';
 import DepartmentSelector from './DepartmentSelector';
 import ScrapingSourceCard from './ScrapingSourceCard';
 import ScrapingStatusIndicator from './ScrapingStatusIndicator';
@@ -14,6 +15,7 @@ interface MassiveScrapingInterfaceProps {
   isScrapingRunning: boolean;
   latestLog: ScrapingLog | undefined;
   onMassiveScraping: (source: string, test: boolean) => void;
+  onStopScraping: () => void;
   getProgress: () => number;
 }
 
@@ -23,14 +25,28 @@ const MassiveScrapingInterface = ({
   isScrapingRunning,
   latestLog,
   onMassiveScraping,
+  onStopScraping,
   getProgress,
 }: MassiveScrapingInterfaceProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center">
-          <Globe className="h-5 w-5 mr-2 text-red-600" />
-          Scraping Massif - Tous les Réparateurs de France
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Globe className="h-5 w-5 mr-2 text-red-600" />
+            Scraping Massif - Tous les Réparateurs de France
+          </div>
+          {isScrapingRunning && (
+            <Button 
+              onClick={onStopScraping}
+              variant="destructive"
+              size="sm"
+              className="animate-pulse"
+            >
+              <Square className="h-4 w-4 mr-2" />
+              STOP
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">

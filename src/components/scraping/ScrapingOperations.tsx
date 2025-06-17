@@ -6,8 +6,10 @@ import ScrapingBulkActions from './ScrapingBulkActions';
 import ScrapingResultsTable from './ScrapingResultsTable';
 import RepairerModal from "./RepairerModal";
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { AlertTriangle, RefreshCw, Settings } from 'lucide-react';
 
 const ScrapingOperations = () => {
   const {
@@ -15,6 +17,8 @@ const ScrapingOperations = () => {
     loading,
     selectedItems,
     setSelectedItems,
+    autoRefreshEnabled,
+    setAutoRefreshEnabled,
     loadResults,
     handleChangeStatusSelected,
     handleDeleteSelected
@@ -74,11 +78,38 @@ const ScrapingOperations = () => {
     loadResults();
   };
 
-  // Affichage d'erreur si aucun résultat n'est trouvé et que le chargement est terminé
   const showNoResults = !loading && results.length === 0;
 
   return (
     <div className="space-y-6">
+      {/* Contrôles d'affichage */}
+      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Settings className="h-4 w-4 text-gray-600" />
+            <Label htmlFor="auto-refresh">Actualisation automatique</Label>
+            <Switch
+              id="auto-refresh"
+              checked={autoRefreshEnabled}
+              onCheckedChange={setAutoRefreshEnabled}
+            />
+          </div>
+          <Button 
+            onClick={handleRefresh}
+            size="sm" 
+            variant="outline"
+            disabled={loading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
+        </div>
+        
+        <div className="text-sm text-gray-600">
+          {results.length} résultat(s) • {filteredResults.length} affiché(s)
+        </div>
+      </div>
+
       {showNoResults && (
         <Alert>
           <AlertTriangle className="h-4 w-4" />

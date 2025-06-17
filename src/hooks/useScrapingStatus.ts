@@ -22,6 +22,7 @@ export const useScrapingStatus = () => {
   const [logs, setLogs] = useState<ScrapingLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [isScrapingRunning, setIsScrapingRunning] = useState(false);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
   const { toast } = useToast();
   const channelRef = useRef<any>(null);
 
@@ -29,14 +30,12 @@ export const useScrapingStatus = () => {
     try {
       console.log('🔍 Test de connexion Supabase...');
       
-      // Test de base
       const { data: authData, error: authError } = await supabase.auth.getSession();
       console.log('🔐 Session auth:', { 
         hasSession: !!authData.session, 
         error: authError?.message 
       });
 
-      // Test de la base de données
       const { data: testData, error: testError } = await supabase
         .from('profiles')
         .select('count')
@@ -64,7 +63,6 @@ export const useScrapingStatus = () => {
     try {
       console.log('🔄 Tentative de récupération des logs de scraping...');
       
-      // Tester la connexion d'abord
       const connectionOk = await testSupabaseConnection();
       if (!connectionOk) {
         setLogs([]);
@@ -118,7 +116,6 @@ export const useScrapingStatus = () => {
     try {
       console.log(`🚀 Démarrage du scraping ${testMode ? 'TEST' : 'MASSIF'} pour: ${source}${departmentCode ? ` - Département: ${departmentCode}` : ''}`);
       
-      // Vérifier la connexion avant de commencer
       const connectionOk = await testSupabaseConnection();
       if (!connectionOk) {
         throw new Error('Connexion Supabase défaillante');
@@ -147,7 +144,6 @@ export const useScrapingStatus = () => {
         description: `${scrapingType} de ${source}${locationText} lancé. ${data?.classification_method ? `Méthode: ${data.classification_method}` : ''}`,
       });
 
-      // Rafraîchir les logs après un délai
       setTimeout(fetchLogs, 2000);
       
       return data;
@@ -164,23 +160,54 @@ export const useScrapingStatus = () => {
     }
   };
 
+  const stopScraping = async () => {
+    try {
+      console.log('🛑 Demande d\'arrêt du scraping...');
+      
+      const { data, error } = await supabase.functions.invoke('stop-scraping');
+
+      if (error) {
+        console.error('❌ Erreur lors de l\'arrêt:', error);
+        throw error;
+      }
+
+      console.log('✅ Réponse arrêt scraping:', data);
+
+      toast({
+        title: "🛑 Scraping arrêté",
+        description: data?.message || "Le scraping a été arrêté avec succès",
+      });
+
+      setTimeout(fetchLogs, 1000);
+      
+      return data;
+    } catch (error) {
+      console.error('💥 Erreur stop scraping:', error);
+      
+      toast({
+        title: "❌ Erreur d'arrêt",
+        description: error.message || "Impossible d'arrêter le scraping",
+        variant: "destructive"
+      });
+      
+      throw error;
+    }
+  };
+
   useEffect(() => {
-    // Nettoyer toute subscription existante avant d'en créer une nouvelle
     if (channelRef.current) {
       console.log('🧹 Nettoyage de la subscription existante');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
 
-    // Charger les logs initiaux
     fetchLogs();
 
-    // Créer une nouvelle subscription uniquement si on n'en a pas déjà une
-    if (!channelRef.current) {
+    if (!channelRef.current && autoRefreshEnabled) {
       console.log('📡 Création de la subscription realtime');
       
       channelRef.current = supabase
-        .channel(`scraping_logs_${Date.now()}`) // Nom unique pour éviter les conflits
+        .channel(`scraping_logs_${Date.now()}`)
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
@@ -190,7 +217,6 @@ export const useScrapingStatus = () => {
           fetchLogs();
         });
 
-      // S'abonner au canal
       channelRef.current.subscribe((status: string) => {
         console.log('📡 Statut subscription:', status);
         if (status === 'SUBSCRIBED') {
@@ -215,13 +241,16 @@ export const useScrapingStatus = () => {
         channelRef.current = null;
       }
     };
-  }, []); // Dépendances vides pour ne s'exécuter qu'une seule fois
+  }, [autoRefreshEnabled]);
 
   return {
     logs,
     loading,
     isScrapingRunning,
+    autoRefreshEnabled,
+    setAutoRefreshEnabled,
     startScraping,
+    stopScraping,
     refetch: fetchLogs
   };
 };
