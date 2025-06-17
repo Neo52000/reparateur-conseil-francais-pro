@@ -1,8 +1,8 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders, userAgents } from './constants.ts'
-import { classifyRepairer } from './classifier.ts'
+import { corsHeaders } from './constants.ts'
+import { EnhancedClassifier } from './enhanced-classifier.ts'
 import { getDepartmentCoordinates } from './geography.ts'
 import { getMassiveRepairersData } from './data-sources.ts'
 import { randomDelay, sleep } from './utils.ts'
@@ -21,6 +21,16 @@ serve(async (req) => {
     const { source, testMode = false, departmentCode = null } = await req.json()
     
     console.log(`🚀 Démarrage du scraping ${testMode ? 'TEST' : 'MASSIF'} pour source: ${source}${departmentCode ? ` - Département: ${departmentCode}` : ''}`)
+
+    // Vérifier si la clé API Pappers est configurée
+    const pappersApiKey = Deno.env.get('PAPPERS_API_KEY');
+    const isPappersEnabled = !!pappersApiKey;
+    
+    if (isPappersEnabled) {
+      console.log('✅ Vérification Pappers.fr activée');
+    } else {
+      console.log('⚠️ Vérification Pappers.fr désactivée (clé API manquante)');
+    }
 
     // Créer un log de scraping
     const { data: logData, error: logError } = await supabase
@@ -43,6 +53,15 @@ serve(async (req) => {
     const scrapedData = getMassiveRepairersData(source, testMode, departmentCode)
     let itemsAdded = 0
     let itemsUpdated = 0
+    let itemsPappersVerified = 0
+    let itemsPappersRejected = 0
+    let pappersApiCalls = 0
+
+    // Initialiser le classifier amélioré si Pappers est disponible
+    let enhancedClassifier: EnhancedClassifier | null = null
+    if (isPappersEnabled) {
+      enhancedClassifier = new EnhancedClassifier(pappersApiKey, supabase)
+    }
 
     console.log(`📊 Traitement de ${scrapedData.length} entreprises${departmentCode ? ` pour le département ${departmentCode}` : ''}...`)
 
@@ -54,12 +73,30 @@ serve(async (req) => {
 
       console.log(`🔄 Analyse ${index + 1}/${scrapedData.length}: ${data.name}`)
       
-      // Classification par mots-clés
-      const analysis = classifyRepairer(data)
+      // Classification avec ou sans Pappers
+      let analysis
+      if (enhancedClassifier) {
+        analysis = await enhancedClassifier.classifyRepairerWithPappers(data)
+        if (analysis.verification_method !== 'not_needed' && analysis.verification_method !== 'error') {
+          pappersApiCalls++
+        }
+        if (analysis.pappers_verified) {
+          itemsPappersVerified++
+        }
+        if (analysis.pappers_verified && !analysis.is_repairer) {
+          itemsPappersRejected++
+        }
+      } else {
+        // Classification de base sans Pappers
+        const { classifyRepairer } = await import('./classifier.ts')
+        analysis = classifyRepairer(data)
+      }
       
       console.log(`📊 Résultat ${data.name}:`, {
         is_repairer: analysis.is_repairer,
-        confidence: analysis.confidence
+        confidence: analysis.confidence,
+        pappers_verified: analysis.pappers_verified || false,
+        business_status: analysis.business_status || 'unknown'
       })
       
       if (analysis.is_repairer && analysis.confidence > 0.5) {
@@ -88,7 +125,7 @@ serve(async (req) => {
           phone: data.phone,
           email: data.email,
           website: data.website,
-          lat: coords.lat + (Math.random() - 0.5) * 0.01, // Petite variation
+          lat: coords.lat + (Math.random() - 0.5) * 0.01,
           lng: coords.lng + (Math.random() - 0.5) * 0.01,
           services: analysis.services,
           specialties: analysis.specialties,
@@ -96,7 +133,13 @@ serve(async (req) => {
           source,
           is_open: analysis.is_open,
           scraped_at: now,
-          updated_at: now
+          updated_at: now,
+          // Nouvelles données Pappers
+          siret: analysis.siret || null,
+          siren: analysis.siren || null,
+          pappers_verified: analysis.pappers_verified || false,
+          pappers_last_check: analysis.pappers_verified ? now : null,
+          business_status: analysis.business_status || 'unknown'
         }
 
         if (existingRepairer) {
@@ -126,11 +169,17 @@ serve(async (req) => {
           }
         }
       } else {
-        console.log(`❌ Non-réparateur: ${data.name} (confiance: ${analysis.confidence})`)
+        const reason = !analysis.is_repairer 
+          ? `Non-réparateur (confiance: ${analysis.confidence})`
+          : analysis.pappers_verified && analysis.business_status === 'closed'
+          ? 'Entreprise fermée (Pappers)'
+          : `Confiance insuffisante: ${analysis.confidence}`
+        
+        console.log(`❌ ${reason}: ${data.name}`)
       }
     }
 
-    // Mettre à jour le log de succès
+    // Mettre à jour le log de succès avec les statistiques Pappers
     await supabase
       .from('scraping_logs')
       .update({
@@ -138,11 +187,17 @@ serve(async (req) => {
         items_scraped: scrapedData.length,
         items_added: itemsAdded,
         items_updated: itemsUpdated,
+        items_pappers_verified: itemsPappersVerified,
+        items_pappers_rejected: itemsPappersRejected,
+        pappers_api_calls: pappersApiCalls,
         completed_at: new Date().toISOString()
       })
       .eq('id', logData.id)
 
-    console.log(`🎉 Scraping ${testMode ? 'TEST' : 'MASSIF'} terminé: ${itemsAdded} ajoutés, ${itemsUpdated} mis à jour sur ${scrapedData.length} traités`)
+    console.log(`🎉 Scraping ${testMode ? 'TEST' : 'MASSIF'} terminé:`)
+    console.log(`   - ${itemsAdded} ajoutés, ${itemsUpdated} mis à jour sur ${scrapedData.length} traités`)
+    console.log(`   - ${itemsPappersVerified} vérifiés par Pappers, ${itemsPappersRejected} rejetés`)
+    console.log(`   - ${pappersApiCalls} appels API Pappers effectués`)
 
     return new Response(
       JSON.stringify({ 
@@ -151,8 +206,13 @@ serve(async (req) => {
         items_added: itemsAdded,
         items_updated: itemsUpdated,
         items_scraped: scrapedData.length,
+        items_pappers_verified: itemsPappersVerified,
+        items_pappers_rejected: itemsPappersRejected,
+        pappers_api_calls: pappersApiCalls,
         department: departmentCode,
-        classification_method: 'Mots-clés + Géolocalisation automatique'
+        classification_method: isPappersEnabled 
+          ? 'Mots-clés + Vérification Pappers.fr + Géolocalisation'
+          : 'Mots-clés + Géolocalisation automatique'
       }),
       { 
         headers: { 

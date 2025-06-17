@@ -232,6 +232,51 @@ export type Database = {
         }
         Relationships: []
       }
+      closed_businesses: {
+        Row: {
+          address: string | null
+          city: string | null
+          closure_date: string | null
+          created_at: string
+          id: string
+          name: string
+          pappers_data: Json | null
+          postal_code: string | null
+          siren: string | null
+          siret: string | null
+          status: string
+          verification_date: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          closure_date?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          pappers_data?: Json | null
+          postal_code?: string | null
+          siren?: string | null
+          siret?: string | null
+          status: string
+          verification_date?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          closure_date?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          pappers_data?: Json | null
+          postal_code?: string | null
+          siren?: string | null
+          siret?: string | null
+          status?: string
+          verification_date?: string
+        }
+        Relationships: []
+      }
       feature_flags_by_plan: {
         Row: {
           enabled: boolean
@@ -310,6 +355,39 @@ export type Database = {
           title?: string
           type?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      pappers_verification_cache: {
+        Row: {
+          business_status: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          last_verified: string
+          pappers_data: Json | null
+          siren: string | null
+          siret: string
+        }
+        Insert: {
+          business_status?: string | null
+          created_at?: string
+          id?: string
+          is_active: boolean
+          last_verified?: string
+          pappers_data?: Json | null
+          siren?: string | null
+          siret: string
+        }
+        Update: {
+          business_status?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_verified?: string
+          pappers_data?: Json | null
+          siren?: string | null
+          siret?: string
         }
         Relationships: []
       }
@@ -844,6 +922,7 @@ export type Database = {
       repairers: {
         Row: {
           address: string
+          business_status: string | null
           city: string
           created_at: string
           department: string | null
@@ -855,6 +934,8 @@ export type Database = {
           lng: number | null
           name: string
           opening_hours: Json | null
+          pappers_last_check: string | null
+          pappers_verified: boolean | null
           phone: string | null
           postal_code: string
           price_range: string | null
@@ -864,6 +945,8 @@ export type Database = {
           review_count: number | null
           scraped_at: string
           services: string[] | null
+          siren: string | null
+          siret: string | null
           source: string
           specialties: string[] | null
           updated_at: string
@@ -871,6 +954,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          business_status?: string | null
           city: string
           created_at?: string
           department?: string | null
@@ -882,6 +966,8 @@ export type Database = {
           lng?: number | null
           name: string
           opening_hours?: Json | null
+          pappers_last_check?: string | null
+          pappers_verified?: boolean | null
           phone?: string | null
           postal_code: string
           price_range?: string | null
@@ -891,6 +977,8 @@ export type Database = {
           review_count?: number | null
           scraped_at?: string
           services?: string[] | null
+          siren?: string | null
+          siret?: string | null
           source: string
           specialties?: string[] | null
           updated_at?: string
@@ -898,6 +986,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          business_status?: string | null
           city?: string
           created_at?: string
           department?: string | null
@@ -909,6 +998,8 @@ export type Database = {
           lng?: number | null
           name?: string
           opening_hours?: Json | null
+          pappers_last_check?: string | null
+          pappers_verified?: boolean | null
           phone?: string | null
           postal_code?: string
           price_range?: string | null
@@ -918,6 +1009,8 @@ export type Database = {
           review_count?: number | null
           scraped_at?: string
           services?: string[] | null
+          siren?: string | null
+          siret?: string | null
           source?: string
           specialties?: string[] | null
           updated_at?: string
@@ -970,8 +1063,11 @@ export type Database = {
           error_message: string | null
           id: string
           items_added: number | null
+          items_pappers_rejected: number | null
+          items_pappers_verified: number | null
           items_scraped: number | null
           items_updated: number | null
+          pappers_api_calls: number | null
           source: string
           started_at: string
           status: string
@@ -982,8 +1078,11 @@ export type Database = {
           error_message?: string | null
           id?: string
           items_added?: number | null
+          items_pappers_rejected?: number | null
+          items_pappers_verified?: number | null
           items_scraped?: number | null
           items_updated?: number | null
+          pappers_api_calls?: number | null
           source: string
           started_at?: string
           status?: string
@@ -994,8 +1093,11 @@ export type Database = {
           error_message?: string | null
           id?: string
           items_added?: number | null
+          items_pappers_rejected?: number | null
+          items_pappers_verified?: number | null
           items_scraped?: number | null
           items_updated?: number | null
+          pappers_api_calls?: number | null
           source?: string
           started_at?: string
           status?: string
