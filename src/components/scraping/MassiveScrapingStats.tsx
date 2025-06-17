@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Users, RefreshCw, MapPin, CheckCircle, XCircle, Building2 } from 'lucide-react';
+import { Users, RefreshCw, MapPin, CheckCircle, XCircle } from 'lucide-react';
 
 interface MassiveScrapingStatsProps {
   totalAdded: number;
@@ -60,7 +60,7 @@ const MassiveScrapingStats = ({
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Vérifiés Pappers</p>
+              <p className="text-sm font-medium text-muted-foreground">Vérifiés Gouv</p>
               <p className="text-3xl font-bold text-indigo-600">{totalPappersVerified}</p>
             </div>
             <CheckCircle className="h-8 w-8 text-indigo-600" />

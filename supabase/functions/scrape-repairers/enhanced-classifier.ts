@@ -1,33 +1,33 @@
 
 import { BusinessData, ClassificationResult } from './types.ts';
 import { classifyRepairer } from './classifier.ts';
-import { PappersService } from './pappers-service.ts';
-import { PappersCache } from './pappers-cache.ts';
+import { GouvernementApiService } from './gouvernement-api-service.ts';
+import { GouvernementCache } from './gouvernement-cache.ts';
 
 export interface EnhancedClassificationResult extends ClassificationResult {
-  pappers_verified: boolean;
+  gouvernement_verified: boolean;
   siret?: string;
   siren?: string;
   business_status: string;
   verification_method: string;
-  pappers_data?: any;
+  gouvernement_data?: any;
 }
 
 export class EnhancedClassifier {
-  private pappersService: PappersService;
-  private pappersCache: PappersCache;
+  private gouvernementService: GouvernementApiService;
+  private gouvernementCache: GouvernementCache;
 
-  constructor(pappersApiKey: string, supabase: any) {
-    this.pappersService = new PappersService(pappersApiKey);
-    this.pappersCache = new PappersCache(supabase);
+  constructor(supabase: any) {
+    this.gouvernementService = new GouvernementApiService();
+    this.gouvernementCache = new GouvernementCache(supabase);
   }
 
-  async classifyRepairerWithPappers(businessData: BusinessData): Promise<EnhancedClassificationResult> {
+  async classifyRepairerWithGouvernement(businessData: BusinessData): Promise<EnhancedClassificationResult> {
     // 1. Classification de base par mots-clés
     const basicClassification = classifyRepairer(businessData);
 
     // 2. Vérifier si l'entreprise est déjà dans la liste des fermées
-    const isInClosedList = await this.pappersCache.isBusinessInClosedList(
+    const isInClosedList = await this.gouvernementCache.isBusinessInClosedList(
       businessData.name, 
       businessData.city
     );
@@ -38,29 +38,29 @@ export class EnhancedClassifier {
         ...basicClassification,
         is_repairer: false,
         confidence: 0,
-        pappers_verified: true,
+        gouvernement_verified: true,
         business_status: 'closed',
         verification_method: 'cached_closed'
       };
     }
 
-    // 3. Si c'est potentiellement un réparateur, vérifier avec Pappers
+    // 3. Si c'est potentiellement un réparateur, vérifier avec l'API Gouvernement
     if (basicClassification.is_repairer && basicClassification.confidence > 0.5) {
       try {
         // Vérifier le cache d'abord
-        const siret = this.pappersService.extractSiretFromBusinessData(businessData);
+        const siret = this.gouvernementService.extractSiretFromBusinessData(businessData);
         let cachedResult = null;
         
         if (siret) {
-          cachedResult = await this.pappersCache.getCachedVerification(siret);
+          cachedResult = await this.gouvernementCache.getCachedVerification(siret);
         }
 
         if (cachedResult) {
-          console.log(`💾 Utilisation du cache Pappers pour ${businessData.name}`);
+          console.log(`💾 Utilisation du cache Gouvernement pour ${businessData.name}`);
           
           if (!cachedResult.is_active) {
             // Entreprise fermée, sauvegarder dans la liste des fermées si pas déjà fait
-            await this.pappersCache.saveClosedBusiness({
+            await this.gouvernementCache.saveClosedBusiness({
               siret: cachedResult.siret,
               siren: cachedResult.siren,
               name: businessData.name,
@@ -68,7 +68,7 @@ export class EnhancedClassifier {
               city: businessData.city,
               postal_code: businessData.postal_code,
               status: cachedResult.business_status,
-              pappers_data: cachedResult.pappers_data
+              gouvernement_data: cachedResult.gouvernement_data
             });
           }
 
@@ -76,63 +76,63 @@ export class EnhancedClassifier {
             ...basicClassification,
             is_repairer: basicClassification.is_repairer && cachedResult.is_active,
             confidence: cachedResult.is_active ? basicClassification.confidence : 0,
-            pappers_verified: true,
+            gouvernement_verified: true,
             siret: cachedResult.siret,
             siren: cachedResult.siren,
             business_status: cachedResult.business_status,
             verification_method: 'cached',
-            pappers_data: cachedResult.pappers_data
+            gouvernement_data: cachedResult.gouvernement_data
           };
         }
 
         // Pas de cache, faire la vérification
-        console.log(`🔍 Vérification Pappers pour ${businessData.name}`);
-        const pappersResult = await this.pappersService.verifyBusinessStatus(businessData);
+        console.log(`🔍 Vérification API Gouvernement pour ${businessData.name}`);
+        const gouvernementResult = await this.gouvernementService.verifyBusinessStatus(businessData);
 
         // Sauvegarder dans le cache
-        if (pappersResult.siret) {
-          await this.pappersCache.saveCacheEntry({
-            siret: pappersResult.siret,
-            siren: pappersResult.siren,
-            is_active: pappersResult.isActive,
-            business_status: pappersResult.businessStatus,
-            pappers_data: pappersResult.pappersData
+        if (gouvernementResult.siret) {
+          await this.gouvernementCache.saveCacheEntry({
+            siret: gouvernementResult.siret,
+            siren: gouvernementResult.siren,
+            is_active: gouvernementResult.isActive,
+            business_status: gouvernementResult.businessStatus,
+            gouvernement_data: gouvernementResult.gouvernementData
           });
         }
 
         // Si l'entreprise est fermée, l'ajouter à la liste des fermées
-        if (!pappersResult.isActive && pappersResult.siret) {
-          await this.pappersCache.saveClosedBusiness({
-            siret: pappersResult.siret,
-            siren: pappersResult.siren,
+        if (!gouvernementResult.isActive && gouvernementResult.siret) {
+          await this.gouvernementCache.saveClosedBusiness({
+            siret: gouvernementResult.siret,
+            siren: gouvernementResult.siren,
             name: businessData.name,
             address: businessData.address,
             city: businessData.city,
             postal_code: businessData.postal_code,
-            status: pappersResult.businessStatus,
-            pappers_data: pappersResult.pappersData
+            status: gouvernementResult.businessStatus,
+            gouvernement_data: gouvernementResult.gouvernementData
           });
         }
 
         return {
           ...basicClassification,
-          is_repairer: basicClassification.is_repairer && pappersResult.isActive,
-          confidence: pappersResult.isActive ? basicClassification.confidence : 0,
-          pappers_verified: pappersResult.verificationMethod !== 'no_verification',
-          siret: pappersResult.siret,
-          siren: pappersResult.siren,
-          business_status: pappersResult.businessStatus,
-          verification_method: pappersResult.verificationMethod,
-          pappers_data: pappersResult.pappersData
+          is_repairer: basicClassification.is_repairer && gouvernementResult.isActive,
+          confidence: gouvernementResult.isActive ? basicClassification.confidence : 0,
+          gouvernement_verified: gouvernementResult.verificationMethod !== 'no_verification',
+          siret: gouvernementResult.siret,
+          siren: gouvernementResult.siren,
+          business_status: gouvernementResult.businessStatus,
+          verification_method: gouvernementResult.verificationMethod,
+          gouvernement_data: gouvernementResult.gouvernementData
         };
 
       } catch (error) {
-        console.error('Erreur lors de la vérification Pappers:', error);
+        console.error('Erreur lors de la vérification API Gouvernement:', error);
         
         // En cas d'erreur, retourner la classification de base
         return {
           ...basicClassification,
-          pappers_verified: false,
+          gouvernement_verified: false,
           business_status: 'unknown',
           verification_method: 'error'
         };
@@ -142,7 +142,7 @@ export class EnhancedClassifier {
     // Si ce n'est pas un réparateur selon la classification de base
     return {
       ...basicClassification,
-      pappers_verified: false,
+      gouvernement_verified: false,
       business_status: 'unknown',
       verification_method: 'not_needed'
     };

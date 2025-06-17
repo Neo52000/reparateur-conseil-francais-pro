@@ -212,13 +212,13 @@ const ClosedBusinessesManager = () => {
               ℹ️ À propos de cette liste
             </h4>
             <ul className="text-xs text-amber-800 space-y-1">
-              <li>• Les entreprises listées ici ont été identifiées comme fermées par Pappers.fr</li>
+              <li>• Les entreprises listées ici ont été identifiées comme fermées par l'API Recherche d'Entreprises</li>
               <li>• Elles sont automatiquement exclues des futurs scrapings</li>
               <li>• Vous pouvez supprimer une entrée si vous pensez qu'il y a une erreur</li>
               <li>• La vérification sera refaite lors du prochain scraping si l'entreprise est supprimée</li>
             </ul>
           </div>
-        </CardContent>
+        </div>
       </CardContent>
     </Card>
   );
