@@ -2,9 +2,8 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Repairer } from '@/types/repairer';
-import { createMarkerElement, updateMarkerElement } from '@/utils/mapboxMarkers';
+import { createMarkerElement } from '@/utils/mapboxMarkers';
 import { createPopupContent } from '@/utils/mapboxPopups';
-import { mapboxStyles } from '@/utils/mapboxStyles';
 
 export const useMapbox = (
   mapboxToken: string,
@@ -26,7 +25,7 @@ export const useMapbox = (
     try {
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: mapboxStyles.light,
+        style: 'mapbox://styles/mapbox/light-v11',
         center: [2.3522, 48.8566], // Paris par défaut
         zoom: 10,
         projection: 'mercator'
@@ -67,7 +66,7 @@ export const useMapbox = (
 
     // Ajouter les nouveaux marqueurs
     repairers.forEach((repairer) => {
-      if (!repairer.latitude || !repairer.longitude) return;
+      if (!repairer.lat || !repairer.lng) return;
 
       const markerElement = createMarkerElement(repairer);
       
@@ -89,7 +88,7 @@ export const useMapbox = (
       }
 
       const marker = new mapboxgl.Marker({ element: markerElement })
-        .setLngLat([repairer.longitude, repairer.latitude])
+        .setLngLat([repairer.lng, repairer.lat])
         .addTo(map.current!);
 
       // Ajouter un popup
@@ -104,11 +103,11 @@ export const useMapbox = (
 
     // Ajuster la vue pour inclure tous les marqueurs
     if (repairers.length > 0) {
-      const validRepairers = repairers.filter(r => r.latitude && r.longitude);
+      const validRepairers = repairers.filter(r => r.lat && r.lng);
       if (validRepairers.length > 0) {
         const bounds = new mapboxgl.LngLatBounds();
         validRepairers.forEach(repairer => {
-          bounds.extend([repairer.longitude!, repairer.latitude!]);
+          bounds.extend([repairer.lng!, repairer.lat!]);
         });
 
         map.current.fitBounds(bounds, {

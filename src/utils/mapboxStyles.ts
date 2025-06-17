@@ -33,3 +33,10 @@ export const getMarkerBaseStyles = () => `
   position: relative;
   z-index: 1;
 `;
+
+export const mapboxStyles = {
+  light: 'mapbox://styles/mapbox/light-v11',
+  dark: 'mapbox://styles/mapbox/dark-v11',
+  streets: 'mapbox://styles/mapbox/streets-v12',
+  satellite: 'mapbox://styles/mapbox/satellite-v9'
+};
