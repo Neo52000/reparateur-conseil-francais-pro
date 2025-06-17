@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Zap, Settings, Activity, BarChart3, Globe } from 'lucide-react';
+import { ArrowLeft, Zap, Settings, Activity, BarChart3, Globe, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import ScrapingConfigPanel from '@/components/scraping/ScrapingConfigPanel';
 import MassiveScrapingControl from '@/components/scraping/MassiveScrapingControl';
 import ScrapingResults from '@/components/scraping/ScrapingResults';
@@ -13,6 +14,7 @@ import { useScrapingStatus } from '@/hooks/useScrapingStatus';
 
 const ScrapingAIPage = () => {
   const navigate = useNavigate();
+  const { signOut, user, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('execution');
   const { logs, isScrapingRunning } = useScrapingStatus();
 
@@ -36,6 +38,15 @@ const ScrapingAIPage = () => {
       }
     }
   }, [logs, isScrapingRunning, activeTab]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/admin', { replace: true });
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -75,6 +86,17 @@ const ScrapingAIPage = () => {
                 <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium animate-pulse">
                   ⚡ EN COURS
                 </div>
+              )}
+              {user && isAdmin && (
+                <Button 
+                  onClick={handleSignOut} 
+                  variant="outline" 
+                  size="sm"
+                  className="ml-4"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Déconnexion
+                </Button>
               )}
             </div>
           </div>
