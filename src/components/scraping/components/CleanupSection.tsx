@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import { Trash2, RefreshCw, AlertTriangle } from 'lucide-react';
-import { ScrapingLog } from '@/hooks/useScrapingStatus';
+import { ScrapingLog } from '@/hooks/scraping/useScrapingStatus';
 import { CLEANUP_OPTIONS } from '../constants/cleanupOptions';
 
 interface CleanupSectionProps {

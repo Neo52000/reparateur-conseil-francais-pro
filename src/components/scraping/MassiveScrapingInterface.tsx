@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import DepartmentSelector from './DepartmentSelector';
 import ScrapingSourceCard from './ScrapingSourceCard';
 import ScrapingStatusIndicator from './ScrapingStatusIndicator';
 import ScrapingInfoPanel from './ScrapingInfoPanel';
-import { ScrapingLog } from '@/hooks/useScrapingStatus';
+import { ScrapingLog } from '@/hooks/scraping/useScrapingStatus';
 
 interface MassiveScrapingInterfaceProps {
   selectedDepartment: string;

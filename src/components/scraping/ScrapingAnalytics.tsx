@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useScrapingStatus } from '@/hooks/useScrapingStatus';
+import { useScrapingStatus } from '@/hooks/scraping/useScrapingStatus';
 import PappersStats from './PappersStats';
 import MassiveScrapingStats from './MassiveScrapingStats';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock } from 'lucide-react';
-import { useScrapingStatus } from '@/hooks/useScrapingStatus';
+import { useScrapingStatus } from '@/hooks/scraping/useScrapingStatus';
 import { useHistoryCleanup } from '@/hooks/useHistoryCleanup';
 import { getLogsToDelete } from './utils/cleanupUtils';
 import CleanupSection from './components/CleanupSection';

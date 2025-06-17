@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { ScrapingLog } from '@/hooks/useScrapingStatus';
+import { ScrapingLog } from '@/hooks/scraping/useScrapingStatus';
 
 interface HistoryStatsProps {
   logs: ScrapingLog[];

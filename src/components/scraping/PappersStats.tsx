@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
-import { ScrapingLog } from '@/hooks/useScrapingStatus';
+import { ScrapingLog } from '@/hooks/scraping/useScrapingStatus';
 
 interface PappersStatsProps {
   logs: ScrapingLog[];

@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RefreshCw, Filter, Info, CheckCircle, XCircle, Clock } from 'lucide-react';
-import { ScrapingLog } from '@/hooks/useScrapingStatus';
+import { ScrapingLog } from '@/hooks/scraping/useScrapingStatus';
 
 interface HistoryPreviewProps {
   logs: ScrapingLog[];

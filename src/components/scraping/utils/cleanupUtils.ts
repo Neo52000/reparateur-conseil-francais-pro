@@ -1,6 +1,5 @@
-
 import { CleanupQuery } from '../types/historyTypes';
-import { ScrapingLog } from '@/hooks/useScrapingStatus';
+import { ScrapingLog } from '@/hooks/scraping/useScrapingStatus';
 
 export const getCleanupQuery = (filter: string): CleanupQuery | null => {
   const now = new Date();

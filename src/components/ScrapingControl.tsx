@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ import {
   Brain,
   TrendingUp
 } from 'lucide-react';
-import { useScrapingStatus } from '@/hooks/useScrapingStatus';
+import { useScrapingStatus } from '@/hooks/scraping/useScrapingStatus';
 
 const ScrapingControl = () => {
   const { logs, loading, isScrapingRunning, startScraping } = useScrapingStatus();
