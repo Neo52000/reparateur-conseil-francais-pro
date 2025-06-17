@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useScrapingResults, RepairerResult } from '@/hooks/scraping/useScrapingResults';
 import ScrapingFilters from './ScrapingFilters';
@@ -42,11 +43,10 @@ const ScrapingOperations = () => {
   });
 
   const handleSelectItem = (id: string) => {
-    setSelectedItems(prev => 
-      prev.includes(id) 
-        ? prev.filter(item => item !== id)
-        : [...prev, id]
-    );
+    const newSelection = selectedItems.includes(id) 
+      ? selectedItems.filter(item => item !== id)
+      : [...selectedItems, id];
+    setSelectedItems(newSelection);
   };
 
   const handleSelectAll = () => {
