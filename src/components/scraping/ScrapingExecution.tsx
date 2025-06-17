@@ -23,7 +23,7 @@ import {
   Wifi,
   WifiOff
 } from 'lucide-react';
-import { useScrapingStatus } from '@/hooks/useScrapingStatus';
+import { useScrapingStatus } from '@/hooks/scraping/useScrapingStatus';
 import { useToast } from '@/hooks/use-toast';
 import ScrapingHistoryManager from './ScrapingHistoryManager';
 
