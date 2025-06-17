@@ -70,6 +70,10 @@ const ScrapingOperations = () => {
     await handleChangeStatusSelected("verified");
   };
 
+  const handleRefresh = () => {
+    loadResults();
+  };
+
   // Affichage d'erreur si aucun résultat n'est trouvé et que le chargement est terminé
   const showNoResults = !loading && results.length === 0;
 
@@ -85,7 +89,7 @@ const ScrapingOperations = () => {
             <Button 
               size="sm" 
               variant="outline" 
-              onClick={loadResults}
+              onClick={handleRefresh}
               className="ml-4"
             >
               <RefreshCw className="h-3 w-3 mr-1" />
@@ -127,7 +131,7 @@ const ScrapingOperations = () => {
         open={modalOpen}
         mode={modalMode}
         onClose={() => setModalOpen(false)}
-        onUpdated={loadResults}
+        onUpdated={handleRefresh}
       />
     </div>
   );
