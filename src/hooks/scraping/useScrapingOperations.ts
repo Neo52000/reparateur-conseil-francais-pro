@@ -88,6 +88,27 @@ export const useScrapingOperations = () => {
     try {
       console.log('🛑 Demande d\'arrêt du scraping...');
       
+      // D'abord vérifier s'il y a des scraping en cours
+      const { data: runningLogs, error: fetchError } = await supabase
+        .from('scraping_logs')
+        .select('*')
+        .eq('status', 'running')
+        .order('started_at', { ascending: false });
+
+      if (fetchError) {
+        console.error('❌ Erreur lors de la vérification:', fetchError);
+        throw fetchError;
+      }
+
+      if (!runningLogs || runningLogs.length === 0) {
+        console.log('ℹ️ Aucun scraping en cours trouvé');
+        toast({
+          title: "ℹ️ Aucun scraping en cours",
+          description: "Il n'y a actuellement aucun scraping à arrêter.",
+        });
+        return { success: true, message: 'Aucun scraping en cours', stopped_count: 0 };
+      }
+
       const { data, error } = await supabase.functions.invoke('stop-scraping');
 
       if (error) {
@@ -99,7 +120,7 @@ export const useScrapingOperations = () => {
 
       toast({
         title: "🛑 Scraping arrêté",
-        description: data?.message || "Le scraping a été arrêté avec succès",
+        description: `${data?.stopped_count || 0} scraping(s) arrêté(s) avec succès`,
       });
 
       return data;

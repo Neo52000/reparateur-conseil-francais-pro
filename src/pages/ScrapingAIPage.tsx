@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,28 +16,44 @@ const ScrapingAIPage = () => {
   const navigate = useNavigate();
   const { signOut, user, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('execution');
+  const [userNavigatedAway, setUserNavigatedAway] = useState(false);
   const { logs, isScrapingRunning } = useScrapingStatus();
+
+  // Gérer la navigation manuelle de l'utilisateur
+  const handleTabChange = (newTab: string) => {
+    console.log(`🎯 Navigation manuelle vers l'onglet: ${newTab}`);
+    setActiveTab(newTab);
+    setUserNavigatedAway(newTab !== 'results');
+  };
 
   // Basculer automatiquement vers l'onglet résultats quand le scraping démarre
   useEffect(() => {
-    if (isScrapingRunning) {
+    if (isScrapingRunning && !userNavigatedAway) {
       console.log('🔄 Scraping détecté - basculement automatique vers les résultats');
       setActiveTab('results');
     }
-  }, [isScrapingRunning]);
+  }, [isScrapingRunning, userNavigatedAway]);
 
-  // Surveiller la fin du scraping pour maintenir l'onglet résultats ouvert
+  // Surveiller la fin du scraping mais respecter le choix de l'utilisateur
   useEffect(() => {
     const latestLog = logs[0];
     
     if (latestLog && latestLog.status === 'completed' && !isScrapingRunning) {
-      console.log('✅ Scraping terminé - maintien sur l\'onglet résultats');
-      // Rester sur l'onglet résultats pour voir les données finales
-      if (activeTab !== 'results') {
+      console.log('✅ Scraping terminé');
+      // Ne pas forcer le changement d'onglet si l'utilisateur a navigué ailleurs
+      if (!userNavigatedAway && activeTab !== 'results') {
+        console.log('📊 Basculement vers les résultats après fin du scraping');
         setActiveTab('results');
       }
     }
-  }, [logs, isScrapingRunning, activeTab]);
+  }, [logs, isScrapingRunning, userNavigatedAway, activeTab]);
+
+  // Réinitialiser le flag si l'utilisateur revient sur résultats
+  useEffect(() => {
+    if (activeTab === 'results') {
+      setUserNavigatedAway(false);
+    }
+  }, [activeTab]);
 
   const handleSignOut = async () => {
     try {
@@ -103,7 +120,7 @@ const ScrapingAIPage = () => {
       </header>
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="execution" className="flex items-center space-x-2">
               <Globe className="h-4 w-4" />

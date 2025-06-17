@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useScrapingStatus } from '@/hooks/scraping/useScrapingStatus';
 import { useToast } from '@/hooks/use-toast';
@@ -5,7 +6,7 @@ import MassiveScrapingStats from './MassiveScrapingStats';
 import MassiveScrapingInterface from './MassiveScrapingInterface';
 
 const MassiveScrapingControl = () => {
-  const { startScraping, stopScraping, isScrapingRunning, logs } = useScrapingStatus();
+  const { startScraping, stopScraping, isScrapingRunning, logs, refetch } = useScrapingStatus();
   const { toast } = useToast();
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
 
@@ -33,9 +34,22 @@ const MassiveScrapingControl = () => {
 
   const handleStopScraping = async () => {
     try {
+      console.log('🛑 Tentative d\'arrêt du scraping...');
       await stopScraping();
+      
+      // Forcer un refresh pour voir les changements immédiatement
+      setTimeout(() => {
+        console.log('🔄 Refresh après arrêt du scraping');
+        refetch();
+      }, 500);
+      
     } catch (error) {
       console.error('Erreur arrêt scraping:', error);
+      toast({
+        title: "Erreur d'arrêt",
+        description: "Impossible d'arrêter le scraping. Vérifiez les logs.",
+        variant: "destructive"
+      });
     }
   };
 
