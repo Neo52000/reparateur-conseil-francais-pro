@@ -25,10 +25,54 @@ export const useScrapingStatus = () => {
   const { toast } = useToast();
   const channelRef = useRef<any>(null);
 
+  const testSupabaseConnection = async () => {
+    try {
+      console.log('🔍 Test de connexion Supabase...');
+      
+      // Test de base
+      const { data: authData, error: authError } = await supabase.auth.getSession();
+      console.log('🔐 Session auth:', { 
+        hasSession: !!authData.session, 
+        error: authError?.message 
+      });
+
+      // Test de la base de données
+      const { data: testData, error: testError } = await supabase
+        .from('profiles')
+        .select('count')
+        .limit(1);
+
+      if (testError) {
+        console.error('❌ Erreur de test DB:', testError);
+        throw testError;
+      }
+
+      console.log('✅ Connexion Supabase OK');
+      return true;
+    } catch (error) {
+      console.error('💥 Erreur de connexion Supabase:', error);
+      toast({
+        title: "Erreur de connexion Supabase",
+        description: "Impossible de se connecter à la base de données. Vérifiez votre connexion.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
   const fetchLogs = async () => {
     try {
       console.log('🔄 Tentative de récupération des logs de scraping...');
       
+      // Tester la connexion d'abord
+      const connectionOk = await testSupabaseConnection();
+      if (!connectionOk) {
+        setLogs([]);
+        setIsScrapingRunning(false);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('scraping_logs')
         .select('*')
@@ -37,9 +81,16 @@ export const useScrapingStatus = () => {
 
       if (error) {
         console.error('❌ Erreur lors de la récupération des logs:', error);
+        console.error('📝 Détails de l\'erreur:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        
         toast({
-          title: "Erreur de connexion",
-          description: "Impossible de récupérer les logs de scraping. Vérifiez la connexion à la base de données.",
+          title: "Erreur de récupération des logs",
+          description: `Impossible de récupérer les logs: ${error.message}`,
           variant: "destructive"
         });
         throw error;
@@ -58,19 +109,6 @@ export const useScrapingStatus = () => {
       console.error('💥 Erreur complète fetchLogs:', error);
       setLogs([]);
       setIsScrapingRunning(false);
-      
-      // Test de connectivité
-      try {
-        const { data: testData } = await supabase.from('profiles').select('count').single();
-        console.log('✅ Test de connectivité réussi');
-      } catch (testError) {
-        console.error('❌ Test de connectivité échoué:', testError);
-        toast({
-          title: "Problème de connexion",
-          description: "La connexion à Supabase semble défaillante. Rechargez la page.",
-          variant: "destructive"
-        });
-      }
     } finally {
       setLoading(false);
     }
@@ -80,6 +118,12 @@ export const useScrapingStatus = () => {
     try {
       console.log(`🚀 Démarrage du scraping ${testMode ? 'TEST' : 'MASSIF'} pour: ${source}${departmentCode ? ` - Département: ${departmentCode}` : ''}`);
       
+      // Vérifier la connexion avant de commencer
+      const connectionOk = await testSupabaseConnection();
+      if (!connectionOk) {
+        throw new Error('Connexion Supabase défaillante');
+      }
+
       const { data, error } = await supabase.functions.invoke('scrape-repairers', {
         body: { 
           source, 
@@ -153,6 +197,13 @@ export const useScrapingStatus = () => {
           console.log('✅ Subscription realtime active');
         } else if (status === 'CHANNEL_ERROR') {
           console.error('❌ Erreur de subscription realtime');
+          toast({
+            title: "Erreur temps réel",
+            description: "La mise à jour automatique ne fonctionne pas.",
+            variant: "destructive"
+          });
+        } else if (status === 'CLOSED') {
+          console.warn('⚠️ Subscription fermée');
         }
       });
     }

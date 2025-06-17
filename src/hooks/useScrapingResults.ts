@@ -25,6 +25,35 @@ export const useScrapingResults = () => {
   const [loading, setLoading] = useState(true);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
+  const testDatabaseConnection = async () => {
+    try {
+      console.log("[useScrapingResults] 🔍 Test de connectivité à la base...");
+      
+      // Test de session
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      console.log("[useScrapingResults] Session:", { 
+        hasSession: !!sessionData.session,
+        error: sessionError?.message 
+      });
+
+      // Test de la table repairers
+      const { count, error: countError } = await supabase
+        .from('repairers')
+        .select('*', { count: 'exact', head: true });
+
+      if (countError) {
+        console.error("[useScrapingResults] ❌ Erreur de connexion DB:", countError);
+        throw new Error(`Erreur DB: ${countError.message}`);
+      }
+
+      console.log("[useScrapingResults] ✅ Connexion OK, total repairers:", count);
+      return true;
+    } catch (error) {
+      console.error("[useScrapingResults] 💥 Test de connexion échoué:", error);
+      return false;
+    }
+  };
+
   const loadResults = async () => {
     console.log("[useScrapingResults] 🔄 Début du chargement des résultats...");
     console.log("[useScrapingResults] État auth:", { 
@@ -37,25 +66,17 @@ export const useScrapingResults = () => {
     try {
       setLoading(true);
       
-      // Vérification de la session Supabase
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      console.log("[useScrapingResults] Session Supabase:", { 
-        hasSession: !!sessionData.session,
-        sessionError: sessionError?.message 
-      });
-
-      // Test de connexion à la base de données
-      console.log("[useScrapingResults] 🔍 Test de connexion à la base...");
-      const { count, error: countError } = await supabase
-        .from('repairers')
-        .select('*', { count: 'exact', head: true });
-
-      if (countError) {
-        console.error("[useScrapingResults] ❌ Erreur de connexion:", countError);
-        throw new Error(`Erreur de connexion à la base: ${countError.message}`);
+      // Test de connexion d'abord
+      const connectionOk = await testDatabaseConnection();
+      if (!connectionOk) {
+        toast({
+          title: "Erreur de connexion",
+          description: "Impossible de se connecter à la base de données.",
+          variant: "destructive"
+        });
+        setResults([]);
+        return;
       }
-
-      console.log("[useScrapingResults] ✅ Connexion OK, nombre total d'enregistrements:", count);
 
       // Requête principale
       console.log("[useScrapingResults] 🔍 Exécution de la requête principale...");
@@ -73,6 +94,12 @@ export const useScrapingResults = () => {
           hint: error.hint,
           code: error.code
         });
+        
+        toast({
+          title: "Erreur de chargement",
+          description: `Erreur: ${error.message}`,
+          variant: "destructive"
+        });
         throw error;
       }
       
@@ -86,11 +113,6 @@ export const useScrapingResults = () => {
       setResults([...(data || [])]);
     } catch (error: any) {
       console.error('[useScrapingResults] 💥 Erreur complète:', error);
-      toast({
-        title: "Erreur de chargement",
-        description: error.message || "Impossible de charger les résultats.",
-        variant: "destructive"
-      });
       setResults([]);
     } finally {
       setLoading(false);
