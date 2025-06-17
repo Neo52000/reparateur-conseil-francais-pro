@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,7 +9,7 @@ import ScrapingConfigPanel from '@/components/scraping/ScrapingConfigPanel';
 import MassiveScrapingControl from '@/components/scraping/MassiveScrapingControl';
 import ScrapingResults from '@/components/scraping/ScrapingResults';
 import ScrapingAnalytics from '@/components/scraping/ScrapingAnalytics';
-import { useScrapingStatus } from '@/hooks/useScrapingStatus';
+import { useScrapingStatus } from '@/hooks/scraping/useScrapingStatus';
 
 const ScrapingAIPage = () => {
   const navigate = useNavigate();

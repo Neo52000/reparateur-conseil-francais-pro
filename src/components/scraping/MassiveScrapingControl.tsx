@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { useScrapingStatus } from '@/hooks/useScrapingStatus';
+import { useScrapingStatus } from '@/hooks/scraping/useScrapingStatus';
 import { useToast } from '@/hooks/use-toast';
 import MassiveScrapingStats from './MassiveScrapingStats';
 import MassiveScrapingInterface from './MassiveScrapingInterface';

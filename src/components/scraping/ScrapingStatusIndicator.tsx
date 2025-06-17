@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react';
-import { ScrapingLog } from '@/hooks/useScrapingStatus';
+import { ScrapingLog } from '@/hooks/scraping/useScrapingStatus';
 
 interface ScrapingStatusIndicatorProps {
   isScrapingRunning: boolean;

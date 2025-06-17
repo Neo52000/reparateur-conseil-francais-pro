@@ -2,28 +2,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { ScrapingLog } from './useScrapingStatusTypes';
 
-export interface ScrapingLog {
-  id: string;
-  source: string;
-  status: 'running' | 'completed' | 'failed';
-  items_scraped: number;
-  items_added: number;
-  items_updated: number;
-  items_pappers_verified?: number;
-  items_pappers_rejected?: number;
-  pappers_api_calls?: number;
-  error_message?: string;
-  started_at: string;
-  completed_at?: string;
-}
-
-export const useScrapingStatus = () => {
+export const useScrapingLogs = (autoRefreshEnabled: boolean) => {
+  const { toast } = useToast();
   const [logs, setLogs] = useState<ScrapingLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [isScrapingRunning, setIsScrapingRunning] = useState(false);
-  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
-  const { toast } = useToast();
   const channelRef = useRef<any>(null);
 
   const testSupabaseConnection = async () => {
@@ -112,88 +97,6 @@ export const useScrapingStatus = () => {
     }
   };
 
-  const startScraping = async (source: string, testMode: boolean = false, departmentCode: string | null = null) => {
-    try {
-      console.log(`🚀 Démarrage du scraping ${testMode ? 'TEST' : 'MASSIF'} pour: ${source}${departmentCode ? ` - Département: ${departmentCode}` : ''}`);
-      
-      const connectionOk = await testSupabaseConnection();
-      if (!connectionOk) {
-        throw new Error('Connexion Supabase défaillante');
-      }
-
-      const { data, error } = await supabase.functions.invoke('scrape-repairers', {
-        body: { 
-          source, 
-          testMode,
-          departmentCode 
-        }
-      });
-
-      if (error) {
-        console.error('❌ Erreur Edge Function:', error);
-        throw error;
-      }
-
-      console.log('✅ Réponse Edge Function:', data);
-
-      const scrapingType = testMode ? "🧪 Test" : "🚀 Scraping MASSIF";
-      const locationText = departmentCode ? ` (Département ${departmentCode})` : " (Toute la France)";
-
-      toast({
-        title: `${scrapingType} démarré`,
-        description: `${scrapingType} de ${source}${locationText} lancé. ${data?.classification_method ? `Méthode: ${data.classification_method}` : ''}`,
-      });
-
-      setTimeout(fetchLogs, 2000);
-      
-      return data;
-    } catch (error) {
-      console.error('💥 Erreur start scraping:', error);
-      
-      toast({
-        title: "❌ Erreur de scraping",
-        description: error.message || "Impossible de démarrer le scraping. Vérifiez les logs.",
-        variant: "destructive"
-      });
-      
-      throw error;
-    }
-  };
-
-  const stopScraping = async () => {
-    try {
-      console.log('🛑 Demande d\'arrêt du scraping...');
-      
-      const { data, error } = await supabase.functions.invoke('stop-scraping');
-
-      if (error) {
-        console.error('❌ Erreur lors de l\'arrêt:', error);
-        throw error;
-      }
-
-      console.log('✅ Réponse arrêt scraping:', data);
-
-      toast({
-        title: "🛑 Scraping arrêté",
-        description: data?.message || "Le scraping a été arrêté avec succès",
-      });
-
-      setTimeout(fetchLogs, 1000);
-      
-      return data;
-    } catch (error) {
-      console.error('💥 Erreur stop scraping:', error);
-      
-      toast({
-        title: "❌ Erreur d'arrêt",
-        description: error.message || "Impossible d'arrêter le scraping",
-        variant: "destructive"
-      });
-      
-      throw error;
-    }
-  };
-
   useEffect(() => {
     if (channelRef.current) {
       console.log('🧹 Nettoyage de la subscription existante');
@@ -247,10 +150,6 @@ export const useScrapingStatus = () => {
     logs,
     loading,
     isScrapingRunning,
-    autoRefreshEnabled,
-    setAutoRefreshEnabled,
-    startScraping,
-    stopScraping,
     refetch: fetchLogs
   };
 };
