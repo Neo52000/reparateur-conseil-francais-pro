@@ -92,29 +92,45 @@ export const useScrapingLogs = (autoRefreshEnabled: boolean) => {
         status: log.status as 'running' | 'completed' | 'failed'
       }));
 
-      // Vérifier explicitement s'il y a des scraping en cours
-      const runningLogs = typedLogs.filter(log => log.status === 'running');
+      // DEBUG: Améliorer la logique de détection du scraping en cours
+      const runningLogs = typedLogs.filter(log => {
+        const isRunning = log.status === 'running';
+        console.log(`🔍 Log ${log.id}: status=${log.status}, isRunning=${isRunning}`);
+        return isRunning;
+      });
+      
       const hasRunningScrap = runningLogs.length > 0;
       
-      console.log('🔍 Analyse des statuts:', {
+      console.log('🎯 ANALYSE DÉTAILLÉE DU STATUT SCRAPING:', {
         totalLogs: typedLogs.length,
         runningLogs: runningLogs.length,
+        hasRunningScrap,
         isScrapingRunning: hasRunningScrap,
         runningDetails: runningLogs.map(log => ({
           id: log.id,
           source: log.source,
+          status: log.status,
           started_at: log.started_at
-        }))
+        })),
+        allStatuses: typedLogs.map(log => log.status)
       });
 
       setLogs(typedLogs);
       setIsScrapingRunning(hasRunningScrap);
       
-      // Log pour débogage du bouton STOP
+      // Debug console pour l'état du bouton STOP
+      console.log('🚨 ÉTAT FINAL POUR LE BOUTON STOP:', {
+        isScrapingRunning: hasRunningScrap,
+        shouldShowStopButton: hasRunningScrap,
+        runningCount: runningLogs.length
+      });
+      
       if (hasRunningScrap) {
         console.log('🔴 SCRAPING EN COURS DÉTECTÉ - Le bouton STOP devrait être visible!');
+        console.log('🔴 Logs en cours:', runningLogs);
       } else {
         console.log('⚪ Aucun scraping en cours - Bouton STOP masqué');
+        console.log('⚪ Tous les statuts:', typedLogs.map(l => l.status));
       }
       
     } catch (error) {
@@ -125,6 +141,16 @@ export const useScrapingLogs = (autoRefreshEnabled: boolean) => {
       setLoading(false);
     }
   };
+
+  // Force la vérification du statut toutes les 5 secondes si pas de realtime
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('⏰ Vérification périodique du statut de scraping...');
+      fetchLogs();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (channelRef.current) {

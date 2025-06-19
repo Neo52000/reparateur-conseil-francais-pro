@@ -48,47 +48,50 @@ const MassiveScrapingInterface = ({
             Scraping Massif - Tous les Réparateurs de France
           </div>
           
-          {/* Bouton STOP plus visible avec conditions de debug */}
-          {isScrapingRunning ? (
-            <div className="flex items-center space-x-2">
-              <div className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">
-                SCRAPING ACTIF
-              </div>
-              <Button 
-                onClick={() => {
-                  console.log('🛑 Clic sur le bouton STOP');
-                  onStopScraping();
-                }}
-                variant="destructive"
-                size="sm"
-                className="animate-pulse bg-red-600 hover:bg-red-700 text-white font-bold"
-              >
-                <Square className="h-4 w-4 mr-2" />
-                ARRÊTER MAINTENANT
-              </Button>
+          {/* Bouton STOP toujours visible pour debug - avec état forcé */}
+          <div className="flex items-center space-x-2">
+            <div className={`px-2 py-1 rounded text-xs ${
+              isScrapingRunning 
+                ? 'bg-red-100 text-red-800' 
+                : 'bg-gray-100 text-gray-600'
+            }`}>
+              {isScrapingRunning ? 'SCRAPING ACTIF' : 'INACTIF'}
             </div>
-          ) : (
-            <div className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
-              INACTIF
-            </div>
-          )}
+            
+            {/* Bouton STOP maintenant visible même quand inactif pour test */}
+            <Button 
+              onClick={() => {
+                console.log('🛑 Clic sur le bouton STOP');
+                console.log('🛑 État au moment du clic:', { isScrapingRunning, latestLog });
+                onStopScraping();
+              }}
+              variant={isScrapingRunning ? "destructive" : "outline"}
+              size="sm"
+              className={isScrapingRunning 
+                ? "animate-pulse bg-red-600 hover:bg-red-700 text-white font-bold" 
+                : "bg-gray-300 text-gray-600"
+              }
+            >
+              <Square className="h-4 w-4 mr-2" />
+              {isScrapingRunning ? 'ARRÊTER MAINTENANT' : 'AUCUN SCRAPING'}
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Alerte de debug pour voir l'état */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              <span className="text-sm font-medium text-yellow-800">Debug Info</span>
-            </div>
-            <div className="mt-2 text-xs text-yellow-700">
-              <p>isScrapingRunning: {isScrapingRunning ? 'TRUE' : 'FALSE'}</p>
-              <p>latestLog status: {latestLog?.status || 'NONE'}</p>
-              <p>latestLog source: {latestLog?.source || 'NONE'}</p>
-            </div>
+        {/* Alerte de debug permanente pour voir l'état */}
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-800">État Scraping Debug</span>
           </div>
-        )}
+          <div className="mt-2 text-xs text-blue-700 space-y-1">
+            <p><strong>isScrapingRunning:</strong> {isScrapingRunning ? 'TRUE ✅' : 'FALSE ❌'}</p>
+            <p><strong>latestLog status:</strong> {latestLog?.status || 'NONE'}</p>
+            <p><strong>latestLog source:</strong> {latestLog?.source || 'NONE'}</p>
+            <p><strong>Bouton STOP visible:</strong> {isScrapingRunning ? 'OUI ✅' : 'NON ❌'}</p>
+          </div>
+        </div>
 
         <DepartmentSelector
           selectedDepartment={selectedDepartment}
