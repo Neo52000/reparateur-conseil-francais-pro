@@ -80,14 +80,43 @@ export const useScrapingLogs = (autoRefreshEnabled: boolean) => {
       }
 
       console.log('✅ Logs récupérés avec succès:', data?.length || 0, 'entrées');
+      console.log('📊 Détail des logs:', data?.map(log => ({
+        id: log.id,
+        status: log.status,
+        source: log.source,
+        started_at: log.started_at
+      })));
 
       const typedLogs: ScrapingLog[] = (data || []).map(log => ({
         ...log,
         status: log.status as 'running' | 'completed' | 'failed'
       }));
 
+      // Vérifier explicitement s'il y a des scraping en cours
+      const runningLogs = typedLogs.filter(log => log.status === 'running');
+      const hasRunningScrap = runningLogs.length > 0;
+      
+      console.log('🔍 Analyse des statuts:', {
+        totalLogs: typedLogs.length,
+        runningLogs: runningLogs.length,
+        isScrapingRunning: hasRunningScrap,
+        runningDetails: runningLogs.map(log => ({
+          id: log.id,
+          source: log.source,
+          started_at: log.started_at
+        }))
+      });
+
       setLogs(typedLogs);
-      setIsScrapingRunning(typedLogs.some(log => log.status === 'running') || false);
+      setIsScrapingRunning(hasRunningScrap);
+      
+      // Log pour débogage du bouton STOP
+      if (hasRunningScrap) {
+        console.log('🔴 SCRAPING EN COURS DÉTECTÉ - Le bouton STOP devrait être visible!');
+      } else {
+        console.log('⚪ Aucun scraping en cours - Bouton STOP masqué');
+      }
+      
     } catch (error) {
       console.error('💥 Erreur complète fetchLogs:', error);
       setLogs([]);
