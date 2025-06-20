@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +38,9 @@ const MassiveScrapingInterface = ({
     } : null
   });
 
+  // Déterminer si un scraping est vraiment en cours
+  const isActuallyRunning = isScrapingRunning && latestLog?.status === 'running' && !latestLog?.completed_at;
+
   return (
     <Card>
       <CardHeader>
@@ -48,18 +50,16 @@ const MassiveScrapingInterface = ({
             Scraping Massif - Tous les Réparateurs de France
           </div>
           
-          {/* Bouton STOP avec logique améliorée */}
           <div className="flex items-center space-x-2">
             <div className={`px-2 py-1 rounded text-xs font-medium ${
-              isScrapingRunning 
+              isActuallyRunning 
                 ? 'bg-red-100 text-red-800 animate-pulse' 
                 : 'bg-gray-100 text-gray-600'
             }`}>
-              {isScrapingRunning ? '🔴 SCRAPING ACTIF' : '⚪ INACTIF'}
+              {isActuallyRunning ? '🔴 SCRAPING ACTIF' : '⚪ INACTIF'}
             </div>
             
-            {/* Afficher le bouton STOP seulement si scraping en cours */}
-            {isScrapingRunning && (
+            {isActuallyRunning && (
               <Button 
                 onClick={() => {
                   console.log('🛑 Clic sur le bouton STOP');
@@ -78,7 +78,7 @@ const MassiveScrapingInterface = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Alerte de debug pour voir l'état */}
+        {/* Alerte de debug améliorée */}
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="flex items-center space-x-2">
             <AlertTriangle className="h-4 w-4 text-blue-600" />
@@ -86,10 +86,11 @@ const MassiveScrapingInterface = ({
           </div>
           <div className="mt-2 text-xs text-blue-700 space-y-1">
             <p><strong>isScrapingRunning:</strong> {isScrapingRunning ? 'TRUE ✅' : 'FALSE ❌'}</p>
+            <p><strong>isActuallyRunning:</strong> {isActuallyRunning ? 'TRUE ✅' : 'FALSE ❌'}</p>
             <p><strong>latestLog status:</strong> {latestLog?.status || 'NONE'}</p>
             <p><strong>latestLog source:</strong> {latestLog?.source || 'NONE'}</p>
             <p><strong>latestLog completed_at:</strong> {latestLog?.completed_at ? 'OUI' : 'NON'}</p>
-            <p><strong>Bouton STOP visible:</strong> {isScrapingRunning ? 'OUI ✅' : 'NON ❌'}</p>
+            <p><strong>Bouton STOP visible:</strong> {isActuallyRunning ? 'OUI ✅' : 'NON ❌'}</p>
           </div>
         </div>
 

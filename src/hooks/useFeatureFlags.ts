@@ -21,11 +21,14 @@ export const useFeatureFlags = () => {
   const loadFeatureFlags = async () => {
     setLoading(true);
     try {
+      console.log("🔄 Chargement des feature flags...");
+      
       const { data, error } = await supabase
         .from("feature_flags_by_plan")
         .select("*");
 
       if (error) {
+        console.error("❌ Erreur lors du chargement des flags:", error);
         toast({ 
           title: "Erreur de chargement", 
           description: error.message,
@@ -33,6 +36,8 @@ export const useFeatureFlags = () => {
         });
         return;
       }
+
+      console.log("✅ Flags chargés:", data);
 
       // Filtrer et typer les données
       const validFlags = (data || [])
@@ -44,7 +49,7 @@ export const useFeatureFlags = () => {
 
       setFlags(validFlags);
     } catch (error) {
-      console.error("Erreur lors du chargement:", error);
+      console.error("💥 Erreur lors du chargement:", error);
       toast({ 
         title: "Erreur", 
         description: "Impossible de charger les fonctionnalités",
@@ -66,6 +71,8 @@ export const useFeatureFlags = () => {
    * Met à jour l'état local d'un flag (sans sauvegarder en base)
    */
   const handleToggleFlag = (plan: PlanName, featureKey: string, enabled: boolean) => {
+    console.log(`🔄 Toggle flag: ${plan}/${featureKey} = ${enabled}`);
+    
     setFlags(currentFlags => {
       const existingFlag = currentFlags.find(f => 
         f.plan_name === plan && f.feature_key === featureKey
@@ -81,7 +88,7 @@ export const useFeatureFlags = () => {
       } else {
         // Création d'un nouveau flag local (sera créé en base lors de la sauvegarde)
         return [...currentFlags, {
-          id: `temp-${Date.now()}`, // ID temporaire
+          id: `temp-${Date.now()}-${Math.random()}`, // ID temporaire unique
           plan_name: plan,
           feature_key: featureKey,
           enabled
@@ -96,64 +103,86 @@ export const useFeatureFlags = () => {
   const handleSave = async () => {
     setSaving(true);
     let hasError = false;
+    let successCount = 0;
 
     try {
-      // Traiter chaque combinaison plan/fonctionnalité
-      for (const plan of PLANS) {
-        for (const feature of FEATURES) {
-          const localFlag = getFlag(plan, feature.key);
-          
-          if (localFlag && localFlag.id.startsWith('temp-')) {
+      console.log("💾 Début de la sauvegarde des flags...");
+      
+      // Traiter chaque flag dans l'état local
+      for (const flag of flags) {
+        try {
+          if (flag.id.startsWith('temp-')) {
             // Créer un nouveau flag en base
+            console.log(`➕ Création du flag: ${flag.plan_name}/${flag.feature_key}`);
+            
             const { error } = await supabase
               .from("feature_flags_by_plan")
               .insert([{
-                plan_name: plan,
-                feature_key: feature.key,
-                enabled: localFlag.enabled,
+                plan_name: flag.plan_name,
+                feature_key: flag.feature_key,
+                enabled: flag.enabled,
               }]);
 
             if (error) {
-              console.error(`Erreur création ${plan}/${feature.key}:`, error);
+              console.error(`❌ Erreur création ${flag.plan_name}/${flag.feature_key}:`, error);
               hasError = true;
+            } else {
+              successCount++;
+              console.log(`✅ Flag créé: ${flag.plan_name}/${flag.feature_key}`);
             }
-          } else if (localFlag) {
+          } else {
             // Mettre à jour un flag existant
+            console.log(`🔄 Mise à jour du flag: ${flag.plan_name}/${flag.feature_key}`);
+            
             const { error } = await supabase
               .from("feature_flags_by_plan")
               .update({ 
-                enabled: localFlag.enabled, 
+                enabled: flag.enabled, 
                 updated_at: new Date().toISOString() 
               })
-              .eq("id", localFlag.id);
+              .eq("id", flag.id);
 
             if (error) {
-              console.error(`Erreur mise à jour ${plan}/${feature.key}:`, error);
+              console.error(`❌ Erreur mise à jour ${flag.plan_name}/${flag.feature_key}:`, error);
               hasError = true;
+            } else {
+              successCount++;
+              console.log(`✅ Flag mis à jour: ${flag.plan_name}/${flag.feature_key}`);
             }
           }
+        } catch (flagError) {
+          console.error(`💥 Erreur traitement flag ${flag.plan_name}/${flag.feature_key}:`, flagError);
+          hasError = true;
         }
       }
 
-      if (hasError) {
+      if (hasError && successCount === 0) {
         toast({ 
-          title: "Erreurs lors de la sauvegarde", 
-          description: "Certaines fonctionnalités n'ont pas pu être sauvegardées",
+          title: "Échec de la sauvegarde", 
+          description: "Aucune fonctionnalité n'a pu être sauvegardée",
+          variant: "destructive"
+        });
+      } else if (hasError) {
+        toast({ 
+          title: "Sauvegarde partielle", 
+          description: `${successCount} fonctionnalité(s) sauvegardée(s), mais certaines ont échoué`,
           variant: "destructive"
         });
       } else {
         toast({ 
           title: "Sauvegarde réussie", 
-          description: "Les fonctionnalités ont été mises à jour avec succès"
+          description: `${successCount} fonctionnalité(s) mise(s) à jour avec succès`
         });
-        // Recharger les données pour obtenir les vrais IDs
-        await loadFeatureFlags();
       }
+
+      // Recharger les données pour obtenir les vrais IDs et l'état actuel
+      await loadFeatureFlags();
+      
     } catch (error) {
-      console.error("Erreur générale:", error);
+      console.error("💥 Erreur générale de sauvegarde:", error);
       toast({ 
         title: "Erreur", 
-        description: "Une erreur inattendue s'est produite",
+        description: "Une erreur inattendue s'est produite lors de la sauvegarde",
         variant: "destructive"
       });
     } finally {
