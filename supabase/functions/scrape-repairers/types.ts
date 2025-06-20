@@ -9,6 +9,8 @@ export interface BusinessData {
   website?: string;
   description?: string;
   category?: string;
+  lat?: number;  // Coordonnées GPS latitude
+  lng?: number;  // Coordonnées GPS longitude
 }
 
 export interface ClassificationResult {
@@ -17,12 +19,10 @@ export interface ClassificationResult {
   services: string[];
   specialties: string[];
   price_range: string;
-  is_open: boolean;
-}
-
-export interface DepartmentInfo {
-  lat: number;
-  lng: number;
-  name: string;
-  region: string;
+  is_open?: boolean;
+  verification_method?: string;
+  gouvernement_verified?: boolean;
+  business_status?: string;
+  siret?: string;
+  siren?: string;
 }

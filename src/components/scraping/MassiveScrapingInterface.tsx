@@ -29,13 +29,13 @@ const MassiveScrapingInterface = ({
   getProgress,
 }: MassiveScrapingInterfaceProps) => {
   
-  // Debug log pour voir l'état du bouton
   console.log('🔍 MassiveScrapingInterface render:', {
     isScrapingRunning,
     latestLog: latestLog ? {
       id: latestLog.id,
       status: latestLog.status,
-      source: latestLog.source
+      source: latestLog.source,
+      completed_at: latestLog.completed_at
     } : null
   });
 
@@ -48,38 +48,37 @@ const MassiveScrapingInterface = ({
             Scraping Massif - Tous les Réparateurs de France
           </div>
           
-          {/* Bouton STOP toujours visible pour debug - avec état forcé */}
+          {/* Bouton STOP avec logique améliorée */}
           <div className="flex items-center space-x-2">
-            <div className={`px-2 py-1 rounded text-xs ${
+            <div className={`px-2 py-1 rounded text-xs font-medium ${
               isScrapingRunning 
-                ? 'bg-red-100 text-red-800' 
+                ? 'bg-red-100 text-red-800 animate-pulse' 
                 : 'bg-gray-100 text-gray-600'
             }`}>
-              {isScrapingRunning ? 'SCRAPING ACTIF' : 'INACTIF'}
+              {isScrapingRunning ? '🔴 SCRAPING ACTIF' : '⚪ INACTIF'}
             </div>
             
-            {/* Bouton STOP maintenant visible même quand inactif pour test */}
-            <Button 
-              onClick={() => {
-                console.log('🛑 Clic sur le bouton STOP');
-                console.log('🛑 État au moment du clic:', { isScrapingRunning, latestLog });
-                onStopScraping();
-              }}
-              variant={isScrapingRunning ? "destructive" : "outline"}
-              size="sm"
-              className={isScrapingRunning 
-                ? "animate-pulse bg-red-600 hover:bg-red-700 text-white font-bold" 
-                : "bg-gray-300 text-gray-600"
-              }
-            >
-              <Square className="h-4 w-4 mr-2" />
-              {isScrapingRunning ? 'ARRÊTER MAINTENANT' : 'AUCUN SCRAPING'}
-            </Button>
+            {/* Afficher le bouton STOP seulement si scraping en cours */}
+            {isScrapingRunning && (
+              <Button 
+                onClick={() => {
+                  console.log('🛑 Clic sur le bouton STOP');
+                  console.log('🛑 État au moment du clic:', { isScrapingRunning, latestLog });
+                  onStopScraping();
+                }}
+                variant="destructive"
+                size="sm"
+                className="animate-pulse bg-red-600 hover:bg-red-700 text-white font-bold border-2 border-red-700"
+              >
+                <Square className="h-4 w-4 mr-2" />
+                ARRÊTER MAINTENANT
+              </Button>
+            )}
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Alerte de debug permanente pour voir l'état */}
+        {/* Alerte de debug pour voir l'état */}
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="flex items-center space-x-2">
             <AlertTriangle className="h-4 w-4 text-blue-600" />
@@ -89,6 +88,7 @@ const MassiveScrapingInterface = ({
             <p><strong>isScrapingRunning:</strong> {isScrapingRunning ? 'TRUE ✅' : 'FALSE ❌'}</p>
             <p><strong>latestLog status:</strong> {latestLog?.status || 'NONE'}</p>
             <p><strong>latestLog source:</strong> {latestLog?.source || 'NONE'}</p>
+            <p><strong>latestLog completed_at:</strong> {latestLog?.completed_at ? 'OUI' : 'NON'}</p>
             <p><strong>Bouton STOP visible:</strong> {isScrapingRunning ? 'OUI ✅' : 'NON ❌'}</p>
           </div>
         </div>
@@ -107,8 +107,8 @@ const MassiveScrapingInterface = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ScrapingSourceCard
             title="Pages Jaunes"
-            estimatedCount="~15,000 réparateurs"
-            description="Scraping massif par département avec rotation anti-blocage"
+            estimatedCount="~25 réparateurs"
+            description="Scraping avec géolocalisation précise des grandes villes françaises"
             source="pages_jaunes"
             isScrapingRunning={isScrapingRunning}
             onTest={() => onMassiveScraping('pages_jaunes', true)}
@@ -117,7 +117,7 @@ const MassiveScrapingInterface = ({
 
           <ScrapingSourceCard
             title="Google Places"
-            estimatedCount="~8,000 réparateurs"
+            estimatedCount="~8 réparateurs"
             description="Extraction géolocalisée par communes françaises"
             source="google_places"
             isScrapingRunning={isScrapingRunning}

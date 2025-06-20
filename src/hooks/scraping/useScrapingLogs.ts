@@ -64,13 +64,6 @@ export const useScrapingLogs = (autoRefreshEnabled: boolean) => {
 
       if (error) {
         console.error('❌ Erreur lors de la récupération des logs:', error);
-        console.error('📝 Détails de l\'erreur:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        
         toast({
           title: "Erreur de récupération des logs",
           description: `Impossible de récupérer les logs: ${error.message}`,
@@ -80,57 +73,49 @@ export const useScrapingLogs = (autoRefreshEnabled: boolean) => {
       }
 
       console.log('✅ Logs récupérés avec succès:', data?.length || 0, 'entrées');
-      console.log('📊 Détail des logs:', data?.map(log => ({
-        id: log.id,
-        status: log.status,
-        source: log.source,
-        started_at: log.started_at
-      })));
 
       const typedLogs: ScrapingLog[] = (data || []).map(log => ({
         ...log,
         status: log.status as 'running' | 'completed' | 'failed'
       }));
 
-      // DEBUG: Améliorer la logique de détection du scraping en cours
-      const runningLogs = typedLogs.filter(log => {
-        const isRunning = log.status === 'running';
-        console.log(`🔍 Log ${log.id}: status=${log.status}, isRunning=${isRunning}`);
-        return isRunning;
+      // Améliorer la détection du scraping en cours
+      const runningLogs = typedLogs.filter(log => log.status === 'running');
+      
+      // Également vérifier les logs récents (moins de 2 minutes) sans "completed_at"
+      const recentLogs = typedLogs.filter(log => {
+        if (log.status === 'running') return true;
+        
+        const logTime = new Date(log.started_at).getTime();
+        const now = Date.now();
+        const twoMinutesAgo = now - (2 * 60 * 1000);
+        
+        return logTime > twoMinutesAgo && !log.completed_at && log.status !== 'failed';
       });
       
-      const hasRunningScrap = runningLogs.length > 0;
+      const hasRunningScrap = runningLogs.length > 0 || recentLogs.length > 0;
       
       console.log('🎯 ANALYSE DÉTAILLÉE DU STATUT SCRAPING:', {
         totalLogs: typedLogs.length,
         runningLogs: runningLogs.length,
+        recentLogs: recentLogs.length,
         hasRunningScrap,
-        isScrapingRunning: hasRunningScrap,
         runningDetails: runningLogs.map(log => ({
           id: log.id,
           source: log.source,
           status: log.status,
-          started_at: log.started_at
-        })),
-        allStatuses: typedLogs.map(log => log.status)
+          started_at: log.started_at,
+          completed_at: log.completed_at
+        }))
       });
 
       setLogs(typedLogs);
       setIsScrapingRunning(hasRunningScrap);
       
-      // Debug console pour l'état du bouton STOP
-      console.log('🚨 ÉTAT FINAL POUR LE BOUTON STOP:', {
-        isScrapingRunning: hasRunningScrap,
-        shouldShowStopButton: hasRunningScrap,
-        runningCount: runningLogs.length
-      });
-      
       if (hasRunningScrap) {
         console.log('🔴 SCRAPING EN COURS DÉTECTÉ - Le bouton STOP devrait être visible!');
-        console.log('🔴 Logs en cours:', runningLogs);
       } else {
         console.log('⚪ Aucun scraping en cours - Bouton STOP masqué');
-        console.log('⚪ Tous les statuts:', typedLogs.map(l => l.status));
       }
       
     } catch (error) {
@@ -142,12 +127,12 @@ export const useScrapingLogs = (autoRefreshEnabled: boolean) => {
     }
   };
 
-  // Force la vérification du statut toutes les 5 secondes si pas de realtime
+  // Vérification plus fréquente du statut
   useEffect(() => {
     const interval = setInterval(() => {
       console.log('⏰ Vérification périodique du statut de scraping...');
       fetchLogs();
-    }, 5000);
+    }, 3000); // Réduit à 3 secondes pour une meilleure réactivité
 
     return () => clearInterval(interval);
   }, []);
@@ -186,8 +171,6 @@ export const useScrapingLogs = (autoRefreshEnabled: boolean) => {
             description: "La mise à jour automatique ne fonctionne pas.",
             variant: "destructive"
           });
-        } else if (status === 'CLOSED') {
-          console.warn('⚠️ Subscription fermée');
         }
       });
     }

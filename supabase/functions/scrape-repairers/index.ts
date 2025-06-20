@@ -94,9 +94,17 @@ serve(async (req) => {
           .eq('city', data.city)
           .maybeSingle()
 
-        // Coordonnées GPS basées sur le département ou la ville
-        const departmentFromPostal = data.postal_code.substring(0, 2)
-        const coords = getDepartmentCoordinates(departmentFromPostal)
+        // Utiliser les coordonnées GPS précises si disponibles, sinon fallback sur département
+        let finalLat = data.lat;
+        let finalLng = data.lng;
+        
+        if (!finalLat || !finalLng) {
+          const departmentFromPostal = data.postal_code.substring(0, 2)
+          const coords = getDepartmentCoordinates(departmentFromPostal)
+          finalLat = coords.lat + (Math.random() - 0.5) * 0.01
+          finalLng = coords.lng + (Math.random() - 0.5) * 0.01
+        }
+
         const now = new Date().toISOString()
 
         const repairerData = {
@@ -104,13 +112,13 @@ serve(async (req) => {
           address: data.address,
           city: data.city,
           postal_code: data.postal_code,
-          department: coords.name,
-          region: coords.region,
+          department: data.postal_code.substring(0, 2) === '75' ? 'Paris' : getDepartmentCoordinates(data.postal_code.substring(0, 2)).name,
+          region: getDepartmentCoordinates(data.postal_code.substring(0, 2)).region,
           phone: data.phone,
           email: data.email,
           website: data.website,
-          lat: coords.lat + (Math.random() - 0.5) * 0.01,
-          lng: coords.lng + (Math.random() - 0.5) * 0.01,
+          lat: finalLat,
+          lng: finalLng,
           services: analysis.services,
           specialties: analysis.specialties,
           price_range: analysis.price_range,
@@ -121,7 +129,7 @@ serve(async (req) => {
           // Données de vérification gouvernementale
           siret: analysis.siret || null,
           siren: analysis.siren || null,
-          pappers_verified: analysis.gouvernement_verified || false, // Réutilise le champ existant
+          pappers_verified: analysis.gouvernement_verified || false,
           pappers_last_check: analysis.gouvernement_verified ? now : null,
           business_status: analysis.business_status || 'unknown'
         }
@@ -171,7 +179,7 @@ serve(async (req) => {
         items_scraped: scrapedData.length,
         items_added: itemsAdded,
         items_updated: itemsUpdated,
-        items_pappers_verified: itemsGouvernementVerified, // Réutilise le champ existant
+        items_pappers_verified: itemsGouvernementVerified,
         items_pappers_rejected: itemsGouvernementRejected,
         pappers_api_calls: gouvernementApiCalls,
         completed_at: new Date().toISOString()
@@ -194,7 +202,7 @@ serve(async (req) => {
         items_gouvernement_rejected: itemsGouvernementRejected,
         gouvernement_api_calls: gouvernementApiCalls,
         department: departmentCode,
-        classification_method: 'Mots-clés + Vérification API Recherche d\'Entreprises (Gouvernement) + Géolocalisation'
+        classification_method: 'Mots-clés + Vérification API Recherche d\'Entreprises (Gouvernement) + Géolocalisation Précise'
       }),
       { 
         headers: { 
