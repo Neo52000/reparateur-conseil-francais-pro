@@ -86,10 +86,10 @@ export class FirecrawlService {
       const result = await response.json() as CrawlResponse;
       
       if (!result.success) {
-        return { success: false, error: result.error };
+        return { success: false, error: (result as ErrorResponse).error };
       }
 
-      const parsedData = this.parseRepairersFromCrawl(result.data);
+      const parsedData = this.parseRepairersFromCrawl((result as CrawlResult).data);
       return { success: true, data: parsedData };
     } catch (error) {
       console.error('Error crawling Pages Jaunes:', error);
