@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings, Database, Globe } from 'lucide-react';
 import FirecrawlApiKeyInput from './FirecrawlApiKeyInput';
-import AuthenticationStatus from './AuthenticationStatus';
 
 const ScrapingConfigPanel = () => {
   return (
@@ -43,7 +42,6 @@ const ScrapingConfigPanel = () => {
       </Card>
 
       <FirecrawlApiKeyInput />
-      <AuthenticationStatus />
     </div>
   );
 };

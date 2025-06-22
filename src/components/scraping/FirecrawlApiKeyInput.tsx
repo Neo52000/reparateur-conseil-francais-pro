@@ -8,16 +8,15 @@ import { FirecrawlService } from '@/utils/FirecrawlService';
 import { Key, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const FirecrawlApiKeyInput = () => {
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState('fc-0b839f0e15f64016bd5865a920aa73dd');
   const [isTestingKey, setIsTestingKey] = useState(false);
   const [keyStatus, setKeyStatus] = useState<'none' | 'valid' | 'invalid'>('none');
   const { toast } = useToast();
 
   useEffect(() => {
-    const savedKey = FirecrawlService.getApiKey();
-    if (savedKey) {
-      setApiKey(savedKey);
-      setKeyStatus('valid');
+    // Auto-configure la clé API fournie
+    if (apiKey && keyStatus === 'none') {
+      handleTestApiKey();
     }
   }, []);
 
