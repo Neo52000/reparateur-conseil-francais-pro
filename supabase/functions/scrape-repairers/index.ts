@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from './constants.ts'
 import { EnhancedClassifier } from './enhanced-classifier.ts'
 import { getDepartmentCoordinates } from './geography.ts'
-import { getMassiveRepairersData } from './data-sources.ts'
+import { RealScrapingService } from './real-scraping-service.ts'
 import { randomDelay, sleep } from './utils.ts'
 
 serve(async (req) => {
@@ -18,14 +18,16 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    const { source, testMode = false, departmentCode = null } = await req.json()
+    const { source, testMode = false, departmentCode = null, useRealScraping = true } = await req.json()
     
     console.log(`🚀 Démarrage du scraping ${testMode ? 'TEST' : 'MASSIF'} pour source: ${source}${departmentCode ? ` - Département: ${departmentCode}` : ''}`)
+    console.log(`🔧 Mode scraping réel: ${useRealScraping ? 'ACTIVÉ' : 'DÉSACTIVÉ'}`)
 
-    // L'API Gouvernement est gratuite et toujours disponible
-    console.log('✅ Vérification API Recherche d\'Entreprises (Gouvernement) activée');
+    // Vérifier la clé API Firecrawl si le scraping réel est activé
+    if (useRealScraping && !Deno.env.get('FIRECRAWL_API_KEY')) {
+      console.warn('⚠️ Clé API Firecrawl manquante - utilisation des données de test');
+    }
 
-    // Créer un log de scraping
     const { data: logData, error: logError } = await supabase
       .from('scraping_logs')
       .insert({
@@ -43,27 +45,40 @@ serve(async (req) => {
 
     console.log(`✅ Log créé avec succès: ${logData.id}`)
 
-    const scrapedData = getMassiveRepairersData(source, testMode, departmentCode)
+    let scrapedData;
+    
+    if (useRealScraping && Deno.env.get('FIRECRAWL_API_KEY')) {
+      // Utiliser le vrai scraping avec Firecrawl
+      console.log('🌐 Utilisation du scraping réel avec Firecrawl');
+      scrapedData = await RealScrapingService.scrapeRealData(source, departmentCode);
+      
+      if (testMode) {
+        scrapedData = scrapedData.slice(0, 5);
+      }
+    } else {
+      // Fallback vers les données de test existantes
+      console.log('📝 Utilisation des données de test (fallback)');
+      const { getMassiveRepairersData } = await import('./data-sources.ts');
+      scrapedData = getMassiveRepairersData(source, testMode, departmentCode);
+    }
+
     let itemsAdded = 0
     let itemsUpdated = 0
     let itemsGouvernementVerified = 0
     let itemsGouvernementRejected = 0
     let gouvernementApiCalls = 0
 
-    // Initialiser le classifier amélioré avec l'API Gouvernement
     const enhancedClassifier = new EnhancedClassifier(supabase)
 
     console.log(`📊 Traitement de ${scrapedData.length} entreprises${departmentCode ? ` pour le département ${departmentCode}` : ''}...`)
 
     for (const [index, data] of scrapedData.entries()) {
-      // Anti-blocage : délai aléatoire entre chaque traitement
       if (index > 0) {
         await sleep(randomDelay())
       }
 
       console.log(`🔄 Analyse ${index + 1}/${scrapedData.length}: ${data.name}`)
       
-      // Classification avec l'API Gouvernement
       const analysis = await enhancedClassifier.classifyRepairerWithGouvernement(data)
       
       if (analysis.verification_method !== 'not_needed' && analysis.verification_method !== 'error') {
@@ -80,13 +95,13 @@ serve(async (req) => {
         is_repairer: analysis.is_repairer,
         confidence: analysis.confidence,
         gouvernement_verified: analysis.gouvernement_verified || false,
-        business_status: analysis.business_status || 'unknown'
+        business_status: analysis.business_status || 'unknown',
+        coordinates: data.lat && data.lng ? `${data.lat}, ${data.lng}` : 'Calculées'
       })
       
       if (analysis.is_repairer && analysis.confidence > 0.5) {
         console.log(`✅ Réparateur identifié: ${data.name}`)
         
-        // Vérifier si le réparateur existe déjà (par nom + ville pour éviter doublons)
         const { data: existingRepairer } = await supabase
           .from('repairers')
           .select('id')
@@ -94,7 +109,7 @@ serve(async (req) => {
           .eq('city', data.city)
           .maybeSingle()
 
-        // Utiliser les coordonnées GPS précises si disponibles, sinon fallback sur département
+        // Utiliser les coordonnées GPS du scraping réel ou fallback
         let finalLat = data.lat;
         let finalLng = data.lng;
         
@@ -103,6 +118,9 @@ serve(async (req) => {
           const coords = getDepartmentCoordinates(departmentFromPostal)
           finalLat = coords.lat + (Math.random() - 0.5) * 0.01
           finalLng = coords.lng + (Math.random() - 0.5) * 0.01
+          console.log(`🎯 Coordonnées fallback utilisées pour ${data.name}`)
+        } else {
+          console.log(`🗺️ Coordonnées précises utilisées pour ${data.name}: ${finalLat}, ${finalLng}`)
         }
 
         const now = new Date().toISOString()
@@ -126,7 +144,6 @@ serve(async (req) => {
           is_open: analysis.is_open,
           scraped_at: now,
           updated_at: now,
-          // Données de vérification gouvernementale
           siret: analysis.siret || null,
           siren: analysis.siren || null,
           pappers_verified: analysis.gouvernement_verified || false,
@@ -135,7 +152,6 @@ serve(async (req) => {
         }
 
         if (existingRepairer) {
-          // Mettre à jour
           const { error: updateError } = await supabase
             .from('repairers')
             .update(repairerData)
@@ -148,7 +164,6 @@ serve(async (req) => {
             console.error('❌ Erreur mise à jour:', updateError)
           }
         } else {
-          // Créer nouveau
           const { error: insertError } = await supabase
             .from('repairers')
             .insert(repairerData)
@@ -171,7 +186,6 @@ serve(async (req) => {
       }
     }
 
-    // Mettre à jour le log de succès avec les statistiques
     await supabase
       .from('scraping_logs')
       .update({
@@ -186,10 +200,15 @@ serve(async (req) => {
       })
       .eq('id', logData.id)
 
+    const scrapingMethod = useRealScraping && Deno.env.get('FIRECRAWL_API_KEY') 
+      ? 'Scraping Réel (Firecrawl + Géocodage)' 
+      : 'Données de Test';
+
     console.log(`🎉 Scraping ${testMode ? 'TEST' : 'MASSIF'} terminé:`)
     console.log(`   - ${itemsAdded} ajoutés, ${itemsUpdated} mis à jour sur ${scrapedData.length} traités`)
     console.log(`   - ${itemsGouvernementVerified} vérifiés par l'API Gouvernement, ${itemsGouvernementRejected} rejetés`)
     console.log(`   - ${gouvernementApiCalls} appels API Gouvernement effectués`)
+    console.log(`   - Méthode: ${scrapingMethod}`)
 
     return new Response(
       JSON.stringify({ 
@@ -202,7 +221,8 @@ serve(async (req) => {
         items_gouvernement_rejected: itemsGouvernementRejected,
         gouvernement_api_calls: gouvernementApiCalls,
         department: departmentCode,
-        classification_method: 'Mots-clés + Vérification API Recherche d\'Entreprises (Gouvernement) + Géolocalisation Précise'
+        classification_method: `${scrapingMethod} + Vérification API Recherche d'Entreprises + Géolocalisation Précise`,
+        real_scraping_used: useRealScraping && Deno.env.get('FIRECRAWL_API_KEY')
       }),
       { 
         headers: { 
