@@ -6,6 +6,7 @@ import { useMapStore } from '@/stores/mapStore';
 import RepairerMarker from './RepairerMarker';
 import UserLocationMarker from './UserLocationMarker';
 import MapController from './MapController';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 // Fix for default markers in Leaflet with Vite
