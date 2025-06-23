@@ -1,4 +1,3 @@
-
 import { chromium, Browser, Page } from 'playwright';
 
 export interface ScrapingResult {
@@ -23,10 +22,12 @@ export class PlaywrightScraper {
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
-    this.page = await this.browser.newPage();
+    
+    this.page = await this.browser.newPage({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+    });
     
     // Configuration anti-détection
-    await this.page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
     await this.page.setExtraHTTPHeaders({
       'Accept-Language': 'fr-FR,fr;q=0.9,en;q=0.8'
     });

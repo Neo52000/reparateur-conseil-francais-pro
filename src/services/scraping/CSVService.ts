@@ -1,4 +1,3 @@
-
 import Papa from 'papaparse';
 
 export interface CSVRepairer {
@@ -30,6 +29,7 @@ export class CSVService {
       const errors: string[] = [];
       const validData: CSVRepairer[] = [];
       let skipped = 0;
+      let lineNumber = 1; // Track line numbers manually
 
       Papa.parse(file, {
         header: true,
@@ -57,9 +57,9 @@ export class CSVService {
           
           return headerMap[header.toLowerCase()] || header.toLowerCase();
         },
-        step: (result, parser) => {
+        step: (result) => {
           const row = result.data as any;
-          const lineNumber = parser.cursor + 1;
+          lineNumber++; // Increment line number for each row
 
           // Validation des champs obligatoires
           if (!row.name || !row.address || !row.city) {
