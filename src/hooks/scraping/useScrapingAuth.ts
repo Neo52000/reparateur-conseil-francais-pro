@@ -3,8 +3,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export const useScrapingAuth = () => {
-  const { user, session, isAdmin } = useAuth();
   const { toast } = useToast();
+  const { user, session, isAdmin } = useAuth();
 
   const checkAuthAndPermissions = () => {
     console.log("[useScrapingAuth] 🔐 Vérification auth:", { 

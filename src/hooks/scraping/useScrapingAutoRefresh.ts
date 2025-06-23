@@ -8,7 +8,10 @@ interface UseScrapingAutoRefreshProps {
   loadResults: (isAutoRefresh?: boolean) => void;
 }
 
-export const useScrapingAutoRefresh = ({ autoRefreshEnabled, loadResults }: UseScrapingAutoRefreshProps) => {
+export const useScrapingAutoRefresh = ({ 
+  autoRefreshEnabled, 
+  loadResults 
+}: UseScrapingAutoRefreshProps) => {
   const { user, session, isAdmin } = useAuth();
 
   useEffect(() => {
@@ -29,7 +32,7 @@ export const useScrapingAutoRefresh = ({ autoRefreshEnabled, loadResults }: UseS
         if (isScrapingActive) {
           console.log("[useScrapingAutoRefresh] 🔄 Scraping actif détecté - activation du refresh automatique");
           
-          // Rafraîchir toutes les 5 secondes (réduit de 3s)
+          // Rafraîchir toutes les 5 secondes
           intervalId = setInterval(() => {
             loadResults(true);
           }, 5000);
@@ -44,7 +47,7 @@ export const useScrapingAutoRefresh = ({ autoRefreshEnabled, loadResults }: UseS
     };
 
     checkForActiveScraping();
-    const checkInterval = setInterval(checkForActiveScraping, 10000); // Vérification moins fréquente
+    const checkInterval = setInterval(checkForActiveScraping, 10000);
 
     return () => {
       if (intervalId) {
