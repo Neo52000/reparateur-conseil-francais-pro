@@ -2,16 +2,19 @@
 export const createMarkerStyles = () => {
   const style = document.createElement('style');
   style.textContent = `
-    .custom-marker:hover {
+    .custom-leaflet-marker:hover {
       background-color: #2563EB !important;
       box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
       z-index: 1000 !important;
     }
+    .leaflet-container {
+      height: 100%;
+      width: 100%;
+    }
   `;
   
-  // Éviter de dupliquer les styles
-  if (!document.head.querySelector('style[data-marker-styles]')) {
-    style.setAttribute('data-marker-styles', 'true');
+  if (!document.head.querySelector('style[data-leaflet-marker-styles]')) {
+    style.setAttribute('data-leaflet-marker-styles', 'true');
     document.head.appendChild(style);
   }
 };
@@ -33,10 +36,3 @@ export const getMarkerBaseStyles = () => `
   position: relative;
   z-index: 1;
 `;
-
-export const mapboxStyles = {
-  light: 'mapbox://styles/mapbox/light-v11',
-  dark: 'mapbox://styles/mapbox/dark-v11',
-  streets: 'mapbox://styles/mapbox/streets-v12',
-  satellite: 'mapbox://styles/mapbox/satellite-v9'
-};

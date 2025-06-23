@@ -20,11 +20,6 @@ export const createPopupContent = (repairer: Repairer): string => {
         ${repairer.response_time ? `<p><strong>Temps de réponse:</strong> ${repairer.response_time}</p>` : ''}
         ${repairer.phone ? `<p><strong>Téléphone:</strong> ${repairer.phone}</p>` : ''}
       </div>
-      <div class="mt-3 pt-3 border-t">
-        <button class="w-full bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors" onclick="window.parent.postMessage({type: 'viewProfile', repairerId: '${repairer.id}'}, '*')">
-          Voir le profil
-        </button>
-      </div>
     </div>
   `;
 };
