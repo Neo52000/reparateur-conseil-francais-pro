@@ -1,11 +1,11 @@
 
 import { useState, useCallback } from 'react';
-import L from 'leaflet';
+import { useMapStore } from '@/stores/mapStore';
 
-export const useGeolocation = (map: L.Map | null) => {
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+export const useGeolocation = () => {
   const [isLocating, setIsLocating] = useState(false);
   const [isAutoLocating, setIsAutoLocating] = useState(false);
+  const { userLocation, setUserLocation } = useMapStore();
 
   const getUserLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -18,27 +18,9 @@ export const useGeolocation = (map: L.Map | null) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        const newLocation = { lat: latitude, lng: longitude };
+        const newLocation: [number, number] = [latitude, longitude];
         
         setUserLocation(newLocation);
-        
-        if (map) {
-          map.flyTo([latitude, longitude], 14, { duration: 1.5 });
-          
-          // Ajouter un marqueur pour la position de l'utilisateur
-          const userIcon = L.divIcon({
-            html: '📍',
-            className: 'user-location-marker',
-            iconSize: [32, 32],
-            iconAnchor: [16, 16]
-          });
-          
-          L.marker([latitude, longitude], { icon: userIcon })
-            .addTo(map)
-            .bindPopup('Votre position')
-            .openPopup();
-        }
-        
         setIsLocating(false);
         console.log('User location:', newLocation);
       },
@@ -52,7 +34,7 @@ export const useGeolocation = (map: L.Map | null) => {
         maximumAge: 60000
       }
     );
-  }, [map]);
+  }, [setUserLocation]);
 
   const getLocationAutomatically = useCallback(() => {
     if (!navigator.geolocation || userLocation) return;
@@ -62,14 +44,9 @@ export const useGeolocation = (map: L.Map | null) => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        const newLocation = { lat: latitude, lng: longitude };
+        const newLocation: [number, number] = [latitude, longitude];
         
         setUserLocation(newLocation);
-        
-        if (map) {
-          map.setView([latitude, longitude], 12);
-        }
-        
         setIsAutoLocating(false);
         console.log('Auto location:', newLocation);
       },
@@ -83,7 +60,7 @@ export const useGeolocation = (map: L.Map | null) => {
         maximumAge: 300000
       }
     );
-  }, [map, userLocation]);
+  }, [userLocation, setUserLocation]);
 
   return {
     userLocation,
