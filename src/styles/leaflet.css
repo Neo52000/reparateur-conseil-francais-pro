@@ -1,0 +1,21 @@
+
+/* Import Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
+
+/* Custom Leaflet styles */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+.custom-leaflet-marker:hover {
+  background-color: #2563EB !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
+  z-index: 1000 !important;
+}
+
+.user-location-marker {
+  background: none !important;
+  border: none !important;
+  font-size: 24px;
+}

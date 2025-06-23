@@ -6,7 +6,6 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import MapControls from './MapControls';
 import MarkerTooltip from './MarkerTooltip';
 import RepairerProfileModal from './RepairerProfileModal';
-import 'leaflet/dist/leaflet.css';
 import { useRepairers } from '@/hooks/useRepairers';
 import { Repairer } from '@/types/repairer';
 
