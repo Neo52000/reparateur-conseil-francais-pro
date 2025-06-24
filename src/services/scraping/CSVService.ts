@@ -14,31 +14,42 @@ interface RepairerData {
   price_range: string;
 }
 
+export interface ImportResult {
+  success: boolean;
+  processed: number;
+  skipped: number;
+  errors: string[];
+  data: any[];
+}
+
 export class CSVService {
-  static async importFromFile(file: File): Promise<{
-    success: boolean;
-    processed: number;
-    skipped: number;
-    errors: string[];
-  }> {
+  static async importFromFile(file: File): Promise<ImportResult> {
     return new Promise((resolve) => {
       const errors: string[] = [];
       let processed = 0;
       let skipped = 0;
+      const validData: any[] = [];
 
       Papa.parse(file, {
         header: true,
         complete: (results) => {
-          const validRows = results.data as any[];
+          const rows = results.data as any[];
           
-          validRows.forEach((row, index) => {
+          rows.forEach((row, index) => {
             try {
               if (!row.name || !row.city) {
                 skipped++;
                 return;
               }
               
-              // Simulation du traitement - à connecter à Supabase
+              // Process and validate the row
+              const processedRow = {
+                ...row,
+                services: row.services ? row.services.split(',').map((s: string) => s.trim()) : [],
+                specialties: row.specialties ? row.specialties.split(',').map((s: string) => s.trim()) : []
+              };
+              
+              validData.push(processedRow);
               processed++;
             } catch (error) {
               errors.push(`Ligne ${index + 1}: ${error}`);
@@ -49,7 +60,8 @@ export class CSVService {
             success: errors.length === 0,
             processed,
             skipped,
-            errors
+            errors,
+            data: validData
           });
         },
         error: (error) => {
@@ -57,7 +69,8 @@ export class CSVService {
             success: false,
             processed: 0,
             skipped: 0,
-            errors: [error.message]
+            errors: [error.message],
+            data: []
           });
         }
       });
@@ -90,8 +103,8 @@ export class CSVService {
         phone: '01 23 45 67 89',
         email: 'contact@exemple.fr',
         website: 'www.exemple.fr',
-        services: 'Réparation téléphone, Réparation tablette',
-        specialties: 'iPhone, Samsung, Android',
+        services: ['Réparation téléphone', 'Réparation tablette'],
+        specialties: ['iPhone', 'Samsung', 'Android'],
         price_range: 'medium'
       }
     ];
