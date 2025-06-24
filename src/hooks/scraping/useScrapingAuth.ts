@@ -3,18 +3,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export const useScrapingAuth = () => {
+  const { user, isAdmin } = useAuth();
   const { toast } = useToast();
-  const { user, session, isAdmin } = useAuth();
 
-  const checkAuthAndPermissions = () => {
-    console.log("[useScrapingAuth] 🔐 Vérification auth:", { 
-      user: !!user, 
-      session: !!session, 
-      isAdmin,
-      userId: user?.id 
-    });
-
-    if (!user || !session) {
+  const checkAuthAndPermissions = (): boolean => {
+    if (!user) {
       toast({
         title: "Non authentifié",
         description: "Vous devez être connecté pour effectuer cette action.",
@@ -37,7 +30,6 @@ export const useScrapingAuth = () => {
 
   return {
     user,
-    session,
     isAdmin,
     checkAuthAndPermissions
   };
