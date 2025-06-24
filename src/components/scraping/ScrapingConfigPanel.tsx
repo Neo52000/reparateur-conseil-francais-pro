@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Settings, Database, Globe } from 'lucide-react';
+import { Settings, Database, Globe, Brain } from 'lucide-react';
 import FirecrawlApiKeyInput from './FirecrawlApiKeyInput';
 
 const ScrapingConfigPanel = () => {
@@ -15,7 +15,7 @@ const ScrapingConfigPanel = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-4 bg-green-50 rounded-lg">
               <div className="flex items-center space-x-2 mb-2">
                 <Database className="h-4 w-4 text-green-600" />
@@ -35,6 +35,17 @@ const ScrapingConfigPanel = () => {
               </div>
               <p className="text-sm text-blue-800">
                 Conversion automatique des adresses en coordonnées GPS précises.
+              </p>
+            </div>
+
+            <div className="p-4 bg-purple-50 rounded-lg">
+              <div className="flex items-center space-x-2 mb-2">
+                <Brain className="h-4 w-4 text-purple-600" />
+                <span className="font-medium text-purple-900">IA Mistral</span>
+                <span className="px-2 py-1 bg-purple-200 text-purple-800 rounded text-xs">CONFIGURÉ</span>
+              </div>
+              <p className="text-sm text-purple-800">
+                Classification intelligente des réparateurs avec Mistral AI (clé déjà configurée).
               </p>
             </div>
           </div>

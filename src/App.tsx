@@ -12,7 +12,6 @@ import RepairerAuth from "./pages/RepairerAuth";
 import AdminPage from "./pages/AdminPage";
 import AdminFeaturesPage from "./pages/AdminFeaturesPage";
 import RepairersManagementPage from "./pages/RepairersManagementPage";
-import ScrapingAIPage from "./pages/ScrapingAIPage";
 import ClientSpace from "./pages/ClientSpace";
 import RepairerSpace from "./pages/RepairerSpace";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
@@ -38,7 +37,6 @@ const App = () => (
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/admin/features" element={<AdminFeaturesPage />} />
           <Route path="/admin/repairers" element={<RepairersManagementPage />} />
-          <Route path="/admin/scraping-ai" element={<ScrapingAIPage />} />
           <Route path="/client" element={<ClientSpace />} />
           <Route path="/repairer" element={<RepairerSpace />} />
           <Route path="/client-dashboard" element={<ClientDashboardPage />} />
