@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import Leaflet styles */
+/* Import Leaflet styles - moved before @layer declarations */
 @import './styles/leaflet.css';
 
 @layer base {
