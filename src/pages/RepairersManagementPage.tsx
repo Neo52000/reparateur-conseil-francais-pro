@@ -2,9 +2,8 @@
 import React, { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
-import RepairersStats from '@/components/repairers/RepairersStats';
 import RepairersManagementHeader from '@/components/repairers/RepairersManagementHeader';
-import RepairersManagementTabs from '@/components/repairers/RepairersManagementTabs';
+import RepairersTable from '@/components/repairers/RepairersTable';
 import { useRepairersData } from '@/hooks/useRepairersData';
 
 const RepairersManagementPage = () => {
@@ -33,11 +32,9 @@ const RepairersManagementPage = () => {
       <RepairersManagementHeader onRefresh={fetchData} />
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <RepairersStats stats={stats} />
-
-        <RepairersManagementTabs
+        {/* Afficher directement le tableau des réparateurs comme dans AdminDashboard */}
+        <RepairersTable
           repairers={repairers}
-          subscriptions={subscriptions}
           onViewProfile={handleViewProfile}
           onRefresh={fetchData}
         />
