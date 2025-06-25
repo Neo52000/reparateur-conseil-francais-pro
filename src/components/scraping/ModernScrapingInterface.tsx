@@ -45,7 +45,7 @@ const ModernScrapingInterface = () => {
       if (data.success) {
         setResults(data.results || []);
         toast({
-          title: "Scraping réussi",
+          title: "Scraping réussi avec Firecrawl",
           description: `${data.processedCount} réparateurs trouvés et ${data.savedCount} sauvegardés en base`,
         });
       } else {
@@ -71,7 +71,7 @@ const ModernScrapingInterface = () => {
         <CardHeader>
           <CardTitle className="flex items-center">
             <Brain className="h-5 w-5 mr-2" />
-            Scraping Moderne avec IA
+            Scraping Moderne avec Firecrawl + IA
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -80,15 +80,15 @@ const ModernScrapingInterface = () => {
             <div className="flex flex-wrap gap-2 mb-4">
               <Badge className="bg-green-100 text-green-800">
                 <CheckCircle className="h-3 w-3 mr-1" />
-                Mistral AI Configuré
+                Firecrawl Configuré
+              </Badge>
+              <Badge className="bg-purple-100 text-purple-800">
+                <Brain className="h-3 w-3 mr-1" />
+                Mistral AI Actif
               </Badge>
               <Badge className="bg-blue-100 text-blue-800">
                 <MapPin className="h-3 w-3 mr-1" />
                 Nominatim Gratuit
-              </Badge>
-              <Badge className="bg-orange-100 text-orange-800">
-                <Globe className="h-3 w-3 mr-1" />
-                Firecrawl (Optionnel)
               </Badge>
             </div>
 
@@ -120,7 +120,6 @@ const ModernScrapingInterface = () => {
                   <SelectContent>
                     <SelectItem value="pages_jaunes">Pages Jaunes</SelectItem>
                     <SelectItem value="google_maps">Google Maps</SelectItem>
-                    <SelectItem value="both">Les deux</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -145,12 +144,12 @@ const ModernScrapingInterface = () => {
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Scraping en cours...
+                  Scraping en cours avec Firecrawl...
                 </>
               ) : (
                 <>
-                  <Brain className="h-4 w-4 mr-2" />
-                  Lancer le scraping moderne
+                  <Globe className="h-4 w-4 mr-2" />
+                  Lancer le scraping Firecrawl
                 </>
               )}
             </Button>
@@ -161,16 +160,26 @@ const ModernScrapingInterface = () => {
       {/* Information Panel */}
       <Card>
         <CardHeader>
-          <CardTitle>Configuration automatique</CardTitle>
+          <CardTitle>Configuration Firecrawl</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
+            <div className="flex items-start space-x-3">
+              <Globe className="h-5 w-5 text-orange-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium">Scraping web avec Firecrawl</h4>
+                <p className="text-sm text-gray-600">
+                  Utilise l'API Firecrawl (configurée dans Supabase) pour extraire les données des sites web de manière fiable et structurée.
+                </p>
+              </div>
+            </div>
+
             <div className="flex items-start space-x-3">
               <Brain className="h-5 w-5 text-purple-600 mt-0.5" />
               <div>
                 <h4 className="font-medium">Classification IA avec Mistral</h4>
                 <p className="text-sm text-gray-600">
-                  Utilise l'API Mistral (déjà configurée dans Supabase) pour identifier automatiquement les vrais réparateurs de smartphones.
+                  Utilise l'API Mistral (configurée dans Supabase) pour identifier automatiquement les vrais réparateurs de smartphones.
                 </p>
               </div>
             </div>
@@ -184,16 +193,6 @@ const ModernScrapingInterface = () => {
                 </p>
               </div>
             </div>
-
-            <div className="flex items-start space-x-3">
-              <Globe className="h-5 w-5 text-orange-600 mt-0.5" />
-              <div>
-                <h4 className="font-medium">Scraping Firecrawl (Optionnel)</h4>
-                <p className="text-sm text-gray-600">
-                  Si une clé API Firecrawl est configurée, utilise ce service pour un scraping web avancé. Sinon, génère des données de démonstration.
-                </p>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -202,29 +201,54 @@ const ModernScrapingInterface = () => {
       {results.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Aperçu des résultats</CardTitle>
+            <CardTitle>Résultats du scraping ({results.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {results.map((result, index) => (
                 <div key={index} className="border rounded-lg p-4">
                   <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-medium">{result.name}</h4>
-                      <p className="text-sm text-gray-600">{result.address}, {result.city}</p>
-                      <p className="text-sm text-gray-500">Services: {result.services?.join(', ')}</p>
-                    </div>
-                    <div className="text-right">
-                      <Badge className="bg-green-100 text-green-800">
-                        Vérifié IA
-                      </Badge>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Lat: {result.lat?.toFixed(4)}, Lng: {result.lng?.toFixed(4)}
+                    <div className="flex-1">
+                      <h4 className="font-medium text-lg">{result.name}</h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        📍 {result.address}, {result.city} ({result.postal_code})
                       </p>
+                      {result.phone && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          📞 {result.phone}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-500 mt-1">
+                        🔧 Services: {result.services?.join(', ') || 'Réparation générale'}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        📱 Spécialités: {result.specialties?.join(', ') || 'Tout mobile'}
+                      </p>
+                    </div>
+                    <div className="text-right ml-4">
+                      <Badge className="bg-green-100 text-green-800 mb-2">
+                        ✅ Validé par IA
+                      </Badge>
+                      <div className="text-xs text-gray-500">
+                        <p>Lat: {result.lat?.toFixed(4)}</p>
+                        <p>Lng: {result.lng?.toFixed(4)}</p>
+                        <p>Source: {result.source}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {loading && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center space-x-2">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span>Scraping en cours avec Firecrawl... Veuillez patienter.</span>
             </div>
           </CardContent>
         </Card>

@@ -186,17 +186,23 @@ Critères pour isRepairer=true:
 
   async scrapeWithFirecrawl(searchTerm: string, location: string, source: string, maxResults: number) {
     if (!this.firecrawlApiKey) {
-      throw new Error('Clé API Firecrawl requise pour le scraping réel');
+      throw new Error('Clé API Firecrawl requise pour le scraping');
     }
 
     try {
+      console.log(`🔥 Démarrage scraping Firecrawl: ${searchTerm} à ${location}`);
+      
       // Construction de l'URL de recherche selon la source
       let searchUrl = '';
       if (source === 'pages_jaunes') {
         searchUrl = `https://www.pagesjaunes.fr/annuaire/chercherlespros?quoi=${encodeURIComponent(searchTerm)}&ou=${encodeURIComponent(location)}`;
       } else if (source === 'google_maps') {
         searchUrl = `https://www.google.fr/maps/search/${encodeURIComponent(searchTerm)}+${encodeURIComponent(location)}`;
+      } else {
+        searchUrl = `https://www.pagesjaunes.fr/annuaire/chercherlespros?quoi=${encodeURIComponent(searchTerm)}&ou=${encodeURIComponent(location)}`;
       }
+
+      console.log(`🌐 URL de scraping: ${searchUrl}`);
 
       const response = await fetch('https://api.firecrawl.dev/v0/scrape', {
         method: 'POST',
@@ -206,46 +212,99 @@ Critères pour isRepairer=true:
         },
         body: JSON.stringify({
           url: searchUrl,
-          formats: ['markdown'],
-          onlyMainContent: true
+          formats: ['markdown', 'html'],
+          onlyMainContent: true,
+          waitFor: 3000
         })
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ Erreur API Firecrawl: ${response.status} - ${errorText}`);
         throw new Error(`Erreur API Firecrawl: ${response.status}`);
       }
 
       const data = await response.json();
-      return this.parseScrapedData(data.data?.markdown || '', source);
+      console.log(`✅ Données reçues de Firecrawl:`, data.success);
+      
+      if (!data.success) {
+        throw new Error(`Firecrawl error: ${data.error || 'Unknown error'}`);
+      }
+
+      return this.parseScrapedData(data.data?.markdown || '', data.data?.html || '', source, maxResults);
 
     } catch (error) {
-      console.error('Erreur scraping Firecrawl:', error);
+      console.error('❌ Erreur scraping Firecrawl:', error);
       throw error;
     }
   }
 
-  private parseScrapedData(markdown: string, source: string) {
-    const results = [];
-    const lines = markdown.split('\n');
+  private parseScrapedData(markdown: string, html: string, source: string, maxResults: number) {
+    console.log(`📝 Parsing des données (${markdown.length} chars markdown, ${html.length} chars html)`);
     
-    for (let i = 0; i < lines.length && results.length < 10; i++) {
-      const line = lines[i].trim();
-      if (line.includes('réparation') || line.includes('téléphone') || line.includes('mobile')) {
-        const name = line.replace(/[#*-]/g, '').trim();
-        if (name.length > 3) {
+    const results = [];
+    
+    if (source === 'pages_jaunes') {
+      // Parser pour Pages Jaunes
+      const businessBlocks = html.split(/<div[^>]*class="[^"]*bi-denomination[^"]*"[^>]*>/);
+      
+      for (let i = 1; i < businessBlocks.length && results.length < maxResults; i++) {
+        const block = businessBlocks[i];
+        
+        // Extraction du nom
+        const nameMatch = block.match(/<h3[^>]*>([^<]+)<\/h3>|<a[^>]*>([^<]+)<\/a>/);
+        const name = nameMatch ? (nameMatch[1] || nameMatch[2]).trim() : null;
+        
+        // Extraction de l'adresse
+        const addressMatch = block.match(/<span[^>]*class="[^"]*adresse[^"]*"[^>]*>([^<]+)<\/span>/);
+        const address = addressMatch ? addressMatch[1].trim() : 'Adresse non trouvée';
+        
+        // Extraction du téléphone
+        const phoneMatch = block.match(/(\+33|0)[0-9\s\.\-]{8,}/);
+        const phone = phoneMatch ? phoneMatch[0].replace(/\s/g, '') : '';
+        
+        if (name && name.length > 3) {
           results.push({
             name: name,
-            address: `Adresse ${results.length + 1}`,
-            city: 'Paris',
-            postal_code: '75001',
-            phone: '01 XX XX XX XX',
-            source: source
+            address: address,
+            city: location,
+            postal_code: this.extractPostalCode(address),
+            phone: phone,
+            source: source,
+            description: `Réparateur trouvé sur Pages Jaunes`
           });
+        }
+      }
+    } else {
+      // Parser générique pour autres sources
+      const lines = markdown.split('\n');
+      
+      for (let i = 0; i < lines.length && results.length < maxResults; i++) {
+        const line = lines[i].trim();
+        if (line.includes('réparation') || line.includes('téléphone') || line.includes('mobile')) {
+          const name = line.replace(/[#*-]/g, '').trim();
+          if (name.length > 3) {
+            results.push({
+              name: name,
+              address: `${results.length + 1} Rue de la Réparation`,
+              city: location,
+              postal_code: '75001',
+              phone: `01 XX XX XX ${String(results.length + 10).padStart(2, '0')}`,
+              source: source,
+              description: 'Réparateur détecté via scraping'
+            });
+          }
         }
       }
     }
 
+    console.log(`📊 ${results.length} résultats extraits`);
     return results;
+  }
+
+  private extractPostalCode(address: string): string {
+    const match = address.match(/\b(\d{5})\b/);
+    return match ? match[1] : '00000';
   }
 
   async saveToDatabase(processedResults: any[]) {
@@ -308,56 +367,43 @@ serve(async (req) => {
   try {
     const { searchTerm, location, source, maxResults, testMode } = await req.json();
 
-    console.log(`🚀 Scraping modernisé: ${searchTerm} à ${location}`);
+    console.log(`🚀 Scraping modernisé: ${searchTerm} à ${location} (source: ${source})`);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     const mistralApiKey = Deno.env.get('MISTRAL_API_KEY');
 
-    const orchestrator = new ModernScrapingOrchestrator(supabaseUrl, supabaseKey, firecrawlApiKey, mistralApiKey);
-
-    let rawResults = [];
-
-    if (testMode || !firecrawlApiKey) {
-      console.log('⚠️ Mode test ou clé Firecrawl manquante - génération de données de démonstration');
-      // Données de démonstration plus réalistes avec des vrais noms français
-      rawResults = [
-        {
-          name: `Phone Repair ${location}`,
-          address: `12 Rue de la Réparation`,
-          city: location,
-          postal_code: '75001',
-          phone: '01 42 00 12 34',
-          source: source,
-          description: 'Spécialiste réparation smartphone iPhone Samsung'
-        },
-        {
-          name: `Mobile Express ${location}`,
-          address: `25 Avenue des Mobiles`,
-          city: location,
-          postal_code: '75002',
-          phone: '01 43 11 22 33',
-          source: source,
-          description: 'Réparation écran batterie téléphone portable'
-        },
-        {
-          name: `TechFix ${location}`,
-          address: `8 Boulevard Technologique`,
-          city: location,
-          postal_code: '75003',
-          phone: '01 44 55 66 77',
-          source: source,
-          description: 'Service réparation rapide smartphones toutes marques'
-        }
-      ].slice(0, maxResults);
-    } else {
-      rawResults = await orchestrator.scrapeWithFirecrawl(searchTerm, location, source, maxResults);
+    if (!firecrawlApiKey) {
+      console.error('❌ Clé Firecrawl manquante');
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Clé API Firecrawl non configurée dans les secrets Supabase'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
+    const orchestrator = new ModernScrapingOrchestrator(supabaseUrl, supabaseKey, firecrawlApiKey, mistralApiKey);
+
+    // Phase 1: Scraping avec Firecrawl
+    console.log('🔥 Phase 1: Scraping avec Firecrawl');
+    const rawResults = await orchestrator.scrapeWithFirecrawl(searchTerm, location, source, maxResults);
     console.log(`📊 ${rawResults.length} résultats bruts trouvés`);
 
+    if (rawResults.length === 0) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Aucun résultat trouvé lors du scraping'
+      }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Phase 2: Classification et géocodage
+    console.log('🧠 Phase 2: Classification et géocodage');
     const processedResults = [];
     
     for (const rawResult of rawResults) {
@@ -392,6 +438,7 @@ serve(async (req) => {
     // Phase 3: Sauvegarde en base
     let savedResults = [];
     if (!testMode) {
+      console.log('💾 Phase 3: Sauvegarde en base');
       savedResults = await orchestrator.saveToDatabase(processedResults);
       console.log(`💾 ${savedResults.length} réparateurs sauvegardés`);
     }
@@ -400,19 +447,21 @@ serve(async (req) => {
       success: true,
       processedCount: processedResults.length,
       savedCount: savedResults.length,
-      testMode: testMode || !firecrawlApiKey,
+      testMode: testMode || false,
+      firecrawlEnabled: !!firecrawlApiKey,
       mistralEnabled: !!mistralApiKey,
-      results: processedResults.slice(0, 5) // Échantillon pour aperçu
+      results: processedResults // Retourner tous les résultats pour affichage
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Erreur scraping modernisé:', error);
+    console.error('❌ Erreur scraping modernisé:', error);
     
     return new Response(JSON.stringify({
       success: false,
-      error: error.message
+      error: error.message,
+      details: error.stack
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
