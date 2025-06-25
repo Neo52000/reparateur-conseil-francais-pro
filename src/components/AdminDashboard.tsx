@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Heart } from 'lucide-react';
+import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Heart, Pencil } from 'lucide-react';
 import ScrapingControl from './ScrapingControl';
 import ClientAccessControl from './ClientAccessControl';
 import PromoCodesManagement from './PromoCodesManagement';
@@ -271,7 +271,7 @@ const AdminDashboard = () => {
                         </TableCell>
                         <TableCell>
                           <Button size="sm" variant="outline">
-                            <Edit className="h-4 w-4" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
                         </TableCell>
                       </TableRow>
