@@ -45,7 +45,7 @@ const ScrapingConfigPanel = () => {
                 <span className="px-2 py-1 bg-purple-200 text-purple-800 rounded text-xs">CONFIGURÉ</span>
               </div>
               <p className="text-sm text-purple-800">
-                Classification intelligente des réparateurs avec Mistral AI (clé déjà configurée).
+                Classification intelligente des réparateurs avec Mistral AI (clé déjà configurée dans Supabase).
               </p>
             </div>
           </div>

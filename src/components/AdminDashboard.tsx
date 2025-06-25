@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,11 +5,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Plus, Edit, Percent, Heart } from 'lucide-react';
+import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Heart } from 'lucide-react';
 import ScrapingControl from './ScrapingControl';
 import ClientAccessControl from './ClientAccessControl';
 import PromoCodesManagement from './PromoCodesManagement';
 import ClientInterestManagement from './ClientInterestManagement';
+import RepairersTable from './repairers/RepairersTable';
+import RepairerProfileModal from './RepairerProfileModal';
+import { useRepairersData } from '@/hooks/useRepairersData';
 
 interface SubscriptionData {
   id: string;
@@ -28,55 +30,19 @@ interface SubscriptionData {
   price_yearly: number | null;
 }
 
-interface RepairerData {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  city: string;
-  subscription_tier: string;
-  subscribed: boolean;
-  total_repairs: number;
-  rating: number;
-  created_at: string;
-}
-
 const AdminDashboard = () => {
-  const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
-  const [repairers, setRepairers] = useState<RepairerData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { subscriptions, repairers, loading, stats, fetchData } = useRepairersData();
+  const [subscriptionsData, setSubscriptionsData] = useState<SubscriptionData[]>([]);
   const [activeTab, setActiveTab] = useState<'subscriptions' | 'repairers' | 'scraping' | 'promocodes' | 'interest'>('subscriptions');
-  const [stats, setStats] = useState({
-    totalSubscriptions: 0,
-    activeSubscriptions: 0,
-    monthlyRevenue: 0,
-    yearlyRevenue: 0,
-    totalRepairers: 0,
-    activeRepairers: 0
-  });
+  const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchData();
+    fetchSubscriptionsData();
   }, []);
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      await Promise.all([fetchSubscriptions(), fetchRepairers()]);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les données",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSubscriptions = async () => {
+  const fetchSubscriptionsData = async () => {
     try {
       const { data, error } = await supabase
         .from('admin_subscription_overview')
@@ -84,99 +50,15 @@ const AdminDashboard = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
-      setSubscriptions(data || []);
-      
-      // Calculate subscription stats
-      const total = data?.length || 0;
-      const active = data?.filter(sub => sub.subscribed).length || 0;
-      const monthlyRev = data?.reduce((sum, sub) => {
-        if (sub.subscribed && sub.billing_cycle === 'monthly') {
-          return sum + (sub.price_monthly || 0);
-        }
-        return sum;
-      }, 0) || 0;
-      const yearlyRev = data?.reduce((sum, sub) => {
-        if (sub.subscribed && sub.billing_cycle === 'yearly') {
-          return sum + (sub.price_yearly || 0);
-        }
-        return sum;
-      }, 0) || 0;
-
-      setStats(prev => ({
-        ...prev,
-        totalSubscriptions: total,
-        activeSubscriptions: active,
-        monthlyRevenue: monthlyRev,
-        yearlyRevenue: yearlyRev
-      }));
-
+      setSubscriptionsData(data || []);
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
     }
   };
 
-  const fetchRepairers = async () => {
-    try {
-      console.log('Fetching repairers from Supabase...');
-      
-      const { data, error } = await supabase
-        .from('repairers')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
-      console.log('Raw repairers data from Supabase:', data);
-
-      if (!data || data.length === 0) {
-        console.log('No repairers found in database');
-        setRepairers([]);
-        setStats(prev => ({
-          ...prev,
-          totalRepairers: 0,
-          activeRepairers: 0
-        }));
-        return;
-      }
-
-      // Convertir les données de la table repairers vers le format RepairerData
-      const repairersData: RepairerData[] = data.map(repairer => ({
-        id: repairer.id,
-        name: repairer.name,
-        email: repairer.email || 'Non renseigné',
-        phone: repairer.phone || 'Non renseigné',
-        city: repairer.city,
-        subscription_tier: 'free', // Par défaut, à améliorer avec une vraie liaison
-        subscribed: false, // Par défaut, à améliorer avec une vraie liaison
-        total_repairs: 0, // À calculer depuis une table de réparations
-        rating: repairer.rating || 0,
-        created_at: repairer.created_at
-      }));
-
-      console.log('Processed repairers data:', repairersData);
-      setRepairers(repairersData);
-      
-      const totalRepairers = repairersData.length;
-      const activeRepairers = repairersData.filter(r => r.subscribed).length;
-      
-      setStats(prev => ({
-        ...prev,
-        totalRepairers,
-        activeRepairers
-      }));
-
-    } catch (error) {
-      console.error('Error fetching repairers:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les réparateurs",
-        variant: "destructive"
-      });
-    }
+  const handleViewProfile = (repairerId: string) => {
+    setSelectedRepairerId(repairerId);
+    setProfileModalOpen(true);
   };
 
   const getTierInfo = (tier: string) => {
@@ -334,7 +216,7 @@ const AdminDashboard = () => {
             <CardTitle>Gestion des Abonnements</CardTitle>
           </CardHeader>
           <CardContent>
-            {subscriptions.length === 0 ? (
+            {subscriptionsData.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">Aucun abonnement trouvé</p>
               </div>
@@ -352,7 +234,7 @@ const AdminDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {subscriptions.map((subscription) => {
+                  {subscriptionsData.map((subscription) => {
                     const tierInfo = getTierInfo(subscription.subscription_tier);
                     return (
                       <TableRow key={subscription.id}>
@@ -403,79 +285,11 @@ const AdminDashboard = () => {
       )}
 
       {activeTab === 'repairers' && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Gestion des Réparateurs</CardTitle>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Ajouter un réparateur
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {repairers.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Aucun réparateur trouvé</p>
-                <p className="text-sm text-gray-400 mt-2">
-                  Les réparateurs scrapés ou ajoutés manuellement apparaîtront ici
-                </p>
-                <Button onClick={fetchData} className="mt-4" variant="outline">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Actualiser les données
-                </Button>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nom</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Téléphone</TableHead>
-                    <TableHead>Ville</TableHead>
-                    <TableHead>Abonnement</TableHead>
-                    <TableHead>Réparations</TableHead>
-                    <TableHead>Note</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {repairers.map((repairer) => {
-                    const tierInfo = getTierInfo(repairer.subscription_tier);
-                    return (
-                      <TableRow key={repairer.id}>
-                        <TableCell className="font-medium">{repairer.name}</TableCell>
-                        <TableCell>{repairer.email}</TableCell>
-                        <TableCell>{repairer.phone}</TableCell>
-                        <TableCell>{repairer.city}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            {tierInfo.icon}
-                            <Badge className={tierInfo.color}>
-                              {tierInfo.name}
-                            </Badge>
-                          </div>
-                        </TableCell>
-                        <TableCell>{repairer.total_repairs}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-1">
-                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                            <span>{repairer.rating}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="outline">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+        <RepairersTable
+          repairers={repairers}
+          onViewProfile={handleViewProfile}
+          onRefresh={fetchData}
+        />
       )}
 
       {activeTab === 'interest' && <ClientInterestManagement />}
@@ -527,6 +341,18 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {selectedRepairerId && (
+        <RepairerProfileModal
+          isOpen={profileModalOpen}
+          onClose={() => {
+            setProfileModalOpen(false);
+            setSelectedRepairerId(null);
+          }}
+          repairerId={selectedRepairerId}
+          isAdmin={true}
+        />
       )}
     </div>
   );

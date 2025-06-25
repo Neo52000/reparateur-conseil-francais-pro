@@ -5,7 +5,7 @@ import AdminAuthForm from '@/components/AdminAuthForm';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Settings, Brain, Users } from 'lucide-react';
+import { Settings, Users } from 'lucide-react';
 
 // Import experimental comps
 import ReferralInvite from '@/components/ReferralInvite';
@@ -56,14 +56,6 @@ const AdminPage = () => {
               >
                 <Users className="h-4 w-4 mr-2" />
                 Réparateurs
-              </Button>
-              <Button 
-                onClick={() => navigate('/admin/scraping-ai')} 
-                variant="default"
-                size="sm"
-              >
-                <Brain className="h-4 w-4 mr-2" />
-                Scraping IA
               </Button>
               <Button onClick={handleSignOut} variant="outline" size="sm">
                 Déconnexion
