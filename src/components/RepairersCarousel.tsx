@@ -11,32 +11,25 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Phone, Star, Award, Shield } from 'lucide-react';
-import { useRepairers } from '@/hooks/useRepairers';
+import { usePriorityRepairers } from '@/hooks/usePriorityRepairers';
 import { Repairer } from '@/types/repairer';
 import Autoplay from "embla-carousel-autoplay";
 
 interface RepairersCarouselProps {
   onViewProfile: (repairer: Repairer) => void;
   onCall: (phone: string) => void;
-  searchFilters?: any;
+  searchFilters?: any; // Garder pour compatibilité mais ne plus utiliser
 }
 
 const RepairersCarousel: React.FC<RepairersCarouselProps> = ({ 
   onViewProfile, 
   onCall,
-  searchFilters 
+  searchFilters // Paramètre ignoré maintenant
 }) => {
-  // Construire les filtres pour useRepairers
-  const filters = searchFilters ? {
-    city: searchFilters.city,
-    postalCode: searchFilters.postalCode,
-    services: searchFilters.services,
-  } : {};
+  // Utiliser le hook des réparateurs prioritaires au lieu des filtres
+  const { repairers, loading } = usePriorityRepairers(20);
 
-  const { repairers, loading } = useRepairers(filters);
-
-  console.log('RepairersCarousel - Applied filters:', filters);
-  console.log('RepairersCarousel - Repairers found:', repairers.length);
+  console.log('RepairersCarousel - Priority repairers loaded:', repairers.length);
 
   if (loading) {
     return (
@@ -70,13 +63,11 @@ const RepairersCarousel: React.FC<RepairersCarouselProps> = ({
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">
-          {searchFilters ? 'Aucun réparateur ne correspond à vos critères de recherche' : 'Aucun réparateur trouvé'}
+          Aucun réparateur validé trouvé pour le moment
         </p>
-        {searchFilters && (
-          <p className="text-sm text-gray-400 mt-2">
-            Essayez d'élargir vos critères de recherche
-          </p>
-        )}
+        <p className="text-sm text-gray-400 mt-2">
+          Nos équipes travaillent à valider de nouveaux profils
+        </p>
       </div>
     );
   }
@@ -85,9 +76,9 @@ const RepairersCarousel: React.FC<RepairersCarouselProps> = ({
     <div className="w-full">
       <Carousel 
         className="w-full max-w-5xl mx-auto"
-        plugins={searchFilters ? [] : [
+        plugins={[
           Autoplay({
-            delay: 3000,
+            delay: 4000,
           }),
         ]}
         opts={{
@@ -105,6 +96,12 @@ const RepairersCarousel: React.FC<RepairersCarouselProps> = ({
                       <h3 className="text-lg font-semibold text-gray-900 truncate">
                         {repairer.business_name || repairer.name}
                       </h3>
+                      {repairer.is_verified && (
+                        <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-xs">
+                          <Shield className="h-3 w-3 mr-1" />
+                          Vérifié
+                        </Badge>
+                      )}
                       {repairer.has_qualirepar_label && (
                         <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
                           <Award className="h-3 w-3 mr-1" />

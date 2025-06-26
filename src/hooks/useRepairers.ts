@@ -32,24 +32,24 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
       const supabaseData = await RepairersDataService.fetchRepairers(filters);
       
       if (supabaseData && supabaseData.length > 0) {
-        // Log detailed information about each repairer
-        supabaseData.forEach((repairer, index) => {
-          console.log(`useRepairers - Repairer ${index + 1}:`, {
-            id: repairer.id,
-            name: repairer.name,
-            city: repairer.city,
-            services: repairer.services,
-            is_verified: repairer.is_verified,
-            lat: repairer.lat,
-            lng: repairer.lng
-          });
+        // Filtrer les données valides avant transformation
+        const validData = supabaseData.filter(repairer => {
+          // Exclure les réparateurs avec des données corrompues
+          const hasValidName = repairer.name && !repairer.name.includes('�');
+          const hasValidCity = repairer.city && !repairer.city.includes('�');
+          const hasValidCoords = repairer.lat !== null && repairer.lng !== null && 
+                                typeof repairer.lat === 'number' && typeof repairer.lng === 'number';
+          
+          return hasValidName && hasValidCity && hasValidCoords;
         });
 
-        // Transform Supabase data to our format
-        let processedData = RepairersDataTransformer.transformSupabaseData(supabaseData);
+        console.log(`useRepairers - Filtered ${validData.length} valid repairers from ${supabaseData.length} total`);
+
+        // Transform valid data only
+        let processedData = RepairersDataTransformer.transformSupabaseData(validData);
 
         // Apply distance filter if user location is available
-        if (userLocation && filters?.distance) {
+        if (userLocation && filters?.distance && processedData.length > 0) {
           processedData = DistanceCalculator.filterByDistance(
             processedData, 
             userLocation, 
@@ -57,10 +57,10 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
           );
         }
 
-        console.log('useRepairers - Setting repairers from Supabase:', processedData);
+        console.log('useRepairers - Setting valid repairers:', processedData.length);
         setRepairers(processedData);
       } else {
-        console.log('useRepairers - No data found in Supabase');
+        console.log('useRepairers - No valid data found');
         setRepairers([]);
       }
       
@@ -68,13 +68,13 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
       console.error('useRepairers - Error fetching data:', err);
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des réparateurs';
       setError(errorMessage);
-      setRepairers([]);
+      setRepairers([]); // Toujours assigner un tableau vide en cas d'erreur
       
-      // Don't show toast error if it's just no data
-      if (!(err instanceof Error) || !err.message.includes('No rows')) {
+      // Ne montrer le toast d'erreur que pour les vraies erreurs de connexion
+      if (err instanceof Error && !err.message.includes('No rows')) {
         toast({
-          title: "Erreur",
-          description: errorMessage,
+          title: "Problème de connexion",
+          description: "Certains réparateurs peuvent ne pas s'afficher correctement.",
           variant: "destructive"
         });
       }
@@ -84,15 +84,20 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
   };
 
   useEffect(() => {
-    console.log('useRepairers - Effect triggered, filters:', filters);
-    fetchRepairers();
+    // Ajouter un délai pour éviter les appels trop fréquents
+    const timeoutId = setTimeout(() => {
+      console.log('useRepairers - Effect triggered with filters:', filters);
+      fetchRepairers();
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [filters, userLocation]);
 
-  // Listen for repairers update events
+  // Listen for repairers update events avec gestion d'erreur
   useEffect(() => {
     const handleRepairersUpdate = () => {
       console.log('useRepairers - Received repairersUpdated event, refetching...');
-      fetchRepairers();
+      fetchRepairers().catch(console.error);
     };
 
     window.addEventListener('repairersUpdated', handleRepairersUpdate);
@@ -102,8 +107,11 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
     };
   }, []);
 
-  console.log('useRepairers - Final repairers state:', repairers);
-  console.log('useRepairers - Final repairers count:', repairers.length);
+  console.log('useRepairers - Final state:', { 
+    count: repairers.length, 
+    loading, 
+    hasError: !!error 
+  });
 
   return {
     repairers,
