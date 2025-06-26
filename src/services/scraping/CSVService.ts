@@ -1,4 +1,5 @@
 
+
 import Papa from 'papaparse';
 
 interface RepairerData {
@@ -42,11 +43,10 @@ export class CSVService {
       'Ã¡': 'á',
       'Ã³': 'ó',
       'Ã±': 'ñ',
-      'Ã': 'À',
+      'Ã€': 'À',
       'Ã‰': 'É',
       'Ã‡': 'Ç',
       'Ã'': 'Ñ',
-      'Ã©parateur': 'réparateur',
       'rÃ©parateur': 'réparateur',
       'rÃ©paration': 'réparation',
       'tÃ©lÃ©phone': 'téléphone',
