@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Logo from '@/components/Logo';
 import CityPostalCodeInput from '@/components/CityPostalCodeInput';
+import SearchModeToggle from '@/components/SearchModeToggle';
 import { useSearchStore } from '@/stores/searchStore';
 
 interface HeroSectionProps {
@@ -25,8 +26,22 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   const [localCity, setLocalCity] = useState('');
   const [localPostal, setLocalPostal] = useState('');
   const [isValidLocation, setIsValidLocation] = useState(false);
+  const [selectedMode, setSelectedMode] = useState<'quick' | 'map'>('quick');
   
-  const { setSearchTerm, setCityPostal, performSearch } = useSearchStore();
+  const { setSearchTerm, setCityPostal, performSearch, setSearchMode } = useSearchStore();
+
+  const handleModeChange = (mode: 'quick' | 'map') => {
+    setSelectedMode(mode);
+    setSearchMode(mode);
+    
+    // Si on passe en mode carte, effectuer la recherche automatiquement
+    if (mode === 'map') {
+      setSearchTerm(searchTerm);
+      setCityPostal(localCity, localPostal);
+      performSearch();
+      onQuickSearch();
+    }
+  };
 
   const handleSearch = () => {
     // Mettre à jour le store avec les critères de recherche
@@ -61,7 +76,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="w-full max-w-2xl relative z-30">
           <div className="bg-white rounded-lg p-6 shadow-xl">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-              Recherche rapide de réparateurs
+              Recherche de réparateurs
             </h2>
             
             <div className="flex flex-col space-y-4">
@@ -78,43 +93,64 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 />
               </div>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Localisation (ville ou code postal)
-                </label>
-                <CityPostalCodeInput
-                  cityValue={localCity}
-                  postalCodeValue={localPostal}
-                  onCityChange={(city) => {
-                    console.log('Location city changed:', city);
-                    setLocalCity(city);
-                    onLocationChange(city);
-                  }}
-                  onPostalCodeChange={(postalCode) => {
-                    console.log('Location postal code changed:', postalCode);
-                    setLocalPostal(postalCode);
-                    onLocationChange(postalCode);
-                  }}
-                  onValidSelection={({ city, postalCode, isValid }) => {
-                    console.log('Valid location selection:', { city, postalCode, isValid });
-                    setIsValidLocation(isValid);
-                    if (isValid) {
-                      setLocalCity(city);
-                      setLocalPostal(postalCode);
-                      onLocationChange(`${city} ${postalCode}`);
-                    }
-                  }}
-                  className="bg-white"
-                />
-              </div>
+              {/* Sélecteur de mode de recherche */}
+              <SearchModeToggle
+                selectedMode={selectedMode}
+                onModeChange={handleModeChange}
+              />
               
-              <Button 
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
-                size="lg" 
-                onClick={handleSearch}
-              >
-                Rechercher
-              </Button>
+              {/* Champs de localisation - seulement en mode recherche rapide */}
+              {selectedMode === 'quick' && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Localisation (ville ou code postal)
+                  </label>
+                  <CityPostalCodeInput
+                    cityValue={localCity}
+                    postalCodeValue={localPostal}
+                    onCityChange={(city) => {
+                      console.log('Location city changed:', city);
+                      setLocalCity(city);
+                      onLocationChange(city);
+                    }}
+                    onPostalCodeChange={(postalCode) => {
+                      console.log('Location postal code changed:', postalCode);
+                      setLocalPostal(postalCode);
+                      onLocationChange(postalCode);
+                    }}
+                    onValidSelection={({ city, postalCode, isValid }) => {
+                      console.log('Valid location selection:', { city, postalCode, isValid });
+                      setIsValidLocation(isValid);
+                      if (isValid) {
+                        setLocalCity(city);
+                        setLocalPostal(postalCode);
+                        onLocationChange(`${city} ${postalCode}`);
+                      }
+                    }}
+                    className="bg-white"
+                  />
+                </div>
+              )}
+              
+              {/* Bouton de recherche - seulement en mode recherche rapide */}
+              {selectedMode === 'quick' && (
+                <Button 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
+                  size="lg" 
+                  onClick={handleSearch}
+                >
+                  Rechercher
+                </Button>
+              )}
+              
+              {/* Message pour le mode carte */}
+              {selectedMode === 'map' && (
+                <div className="text-center p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-800 font-medium">
+                    🗺️ Mode carte activé ! Vous allez être redirigé vers la carte interactive.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
