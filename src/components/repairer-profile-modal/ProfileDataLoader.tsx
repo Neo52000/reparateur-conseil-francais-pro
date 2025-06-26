@@ -14,11 +14,25 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
     try {
       console.log('🔄 ProfileDataLoader - Fetching profile for ID:', id);
       
-      const { data, error } = await supabase
+      // Essayer d'abord par user_id (correction principale)
+      let { data, error } = await supabase
         .from('repairer_profiles')
         .select('*')
-        .eq('id', id)
+        .eq('user_id', id)
         .maybeSingle();
+
+      // Si pas trouvé par user_id, essayer par id
+      if (!data && !error) {
+        console.log('🔍 ProfileDataLoader - Not found by user_id, trying by id...');
+        const result = await supabase
+          .from('repairer_profiles')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+        
+        data = result.data;
+        error = result.error;
+      }
 
       if (error) {
         console.error('❌ ProfileDataLoader - Error fetching profile:', error);

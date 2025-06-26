@@ -38,26 +38,44 @@ export const useAuth = (): UseAuthReturn => {
         try {
           console.log('👤 User session found, fetching profile...');
           
-          // Timeout plus long pour éviter les échecs prématurés
+          // Timeout réduit et fallback plus rapide
           const profilePromise = fetchOrCreateProfile(session);
           const timeoutPromise = new Promise<null>((resolve) => {
             setTimeout(() => {
-              console.log('⏰ Profile fetch timeout, using temporary profile');
+              console.log('⏰ Profile fetch timeout, using session data only');
               resolve(null);
-            }, 8000); // Augmenté à 8 secondes
+            }, 3000); // Réduit à 3 secondes
           });
           
           const profileData = await Promise.race([profilePromise, timeoutPromise]);
           
           if (mounted) {
-            updateAuthState(session, profileData);
-            console.log('📝 Auth state updated with profile:', profileData);
+            // Si pas de profil, créer un profil temporaire basé sur la session
+            const finalProfile = profileData || {
+              id: session.user.id,
+              email: session.user.email!,
+              first_name: session.user.user_metadata?.first_name || 'Utilisateur',
+              last_name: session.user.user_metadata?.last_name || '',
+              role: session.user.email === 'demo@demo.fr' ? 'repairer' : 
+                    session.user.email === 'reine.elie@gmail.com' ? 'admin' : 'user'
+            };
+            
+            updateAuthState(session, finalProfile);
+            console.log('📝 Auth state updated with profile:', finalProfile);
           }
         } catch (error) {
           console.error('💥 Error handling auth change:', error);
           if (mounted) {
-            // En cas d'erreur, on continue avec la session mais sans profil
-            updateAuthState(session, null);
+            // En cas d'erreur, utiliser un profil de base
+            const fallbackProfile = {
+              id: session.user.id,
+              email: session.user.email!,
+              first_name: 'Utilisateur',
+              last_name: '',
+              role: session.user.email === 'demo@demo.fr' ? 'repairer' : 
+                    session.user.email === 'reine.elie@gmail.com' ? 'admin' : 'user'
+            };
+            updateAuthState(session, fallbackProfile);
           }
         }
       } else {
@@ -98,13 +116,13 @@ export const useAuth = (): UseAuthReturn => {
 
     checkSession();
 
-    // Timeout de sécurité plus long
+    // Timeout de sécurité réduit
     const timeoutId = setTimeout(() => {
       if (mounted && loading) {
         console.log('⏰ Auth check timeout, forcing loading to false');
         setLoading(false);
       }
-    }, 10000); // Augmenté à 10 secondes
+    }, 5000); // Réduit à 5 secondes
 
     return () => {
       console.log('🧹 Cleaning up auth subscription');
@@ -150,14 +168,14 @@ export const useAuth = (): UseAuthReturn => {
   };
 
   const signOut = async () => {
-    setLoading(true);
     console.log('👋 Starting sign out process');
     
     const result = await authService.signOut();
     
     if (result.error) {
       console.error('❌ Sign out failed:', result.error);
-      setLoading(false);
+      // Force le nettoyage même en cas d'erreur
+      clearState();
       return result;
     }
     

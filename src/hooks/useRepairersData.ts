@@ -59,52 +59,65 @@ export const useRepairersData = () => {
   const fetchSubscriptions = async () => {
     try {
       console.log('🔄 useRepairersData - Fetching subscriptions...');
+      
+      // Utiliser directement la table repairer_subscriptions au lieu de la vue admin
       const { data, error } = await supabase
-        .from('admin_subscription_overview')
-        .select('*')
+        .from('repairer_subscriptions')
+        .select(`
+          id,
+          repairer_id,
+          user_id,
+          email,
+          subscription_tier,
+          billing_cycle,
+          subscribed,
+          subscription_end,
+          created_at
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error('❌ useRepairersData - Subscription fetch error:', error);
-        
-        if (error.code === 'PGRST116') {
-          console.warn('⚠️ useRepairersData - View admin_subscription_overview not found, using empty fallback');
-          setSubscriptions([]);
-          return;
-        }
-        
-        if (error.message?.includes('permission denied') || error.message?.includes('insufficient_privilege')) {
-          console.error('🔒 useRepairersData - Permission denied for subscriptions view');
-          toast({
-            title: "Erreur de permissions",
-            description: "Vous n'avez pas les droits pour accéder aux données d'abonnements",
-            variant: "destructive"
-          });
-          setSubscriptions([]);
-          return;
-        }
-        
-        throw error;
+        setSubscriptions([]);
+        return;
       }
 
       console.log('✅ useRepairersData - Subscriptions loaded:', data?.length || 0);
-      setSubscriptions(data || []);
+      
+      // Mapper les données pour correspondre à l'interface SubscriptionData
+      const mappedSubscriptions: SubscriptionData[] = (data || []).map(sub => ({
+        id: sub.id,
+        repairer_id: sub.user_id || sub.repairer_id, // Unifier les IDs
+        email: sub.email,
+        subscription_tier: sub.subscription_tier || 'free',
+        billing_cycle: sub.billing_cycle || 'monthly',
+        subscribed: sub.subscribed || false,
+        subscription_end: sub.subscription_end,
+        created_at: sub.created_at,
+        first_name: null, // Données de base
+        last_name: null,
+        plan_name: sub.subscription_tier || 'free',
+        price_monthly: sub.subscription_tier === 'basic' ? 29 : sub.subscription_tier === 'premium' ? 79 : sub.subscription_tier === 'enterprise' ? 199 : 0,
+        price_yearly: sub.subscription_tier === 'basic' ? 290 : sub.subscription_tier === 'premium' ? 790 : sub.subscription_tier === 'enterprise' ? 1990 : 0
+      }));
+      
+      setSubscriptions(mappedSubscriptions);
       
       // Calculate subscription stats
-      const total = data?.length || 0;
-      const active = data?.filter(sub => sub.subscribed).length || 0;
-      const monthlyRev = data?.reduce((sum, sub) => {
+      const total = mappedSubscriptions.length;
+      const active = mappedSubscriptions.filter(sub => sub.subscribed).length;
+      const monthlyRev = mappedSubscriptions.reduce((sum, sub) => {
         if (sub.subscribed && sub.billing_cycle === 'monthly') {
           return sum + (sub.price_monthly || 0);
         }
         return sum;
-      }, 0) || 0;
-      const yearlyRev = data?.reduce((sum, sub) => {
+      }, 0);
+      const yearlyRev = mappedSubscriptions.reduce((sum, sub) => {
         if (sub.subscribed && sub.billing_cycle === 'yearly') {
           return sum + (sub.price_yearly || 0);
         }
         return sum;
-      }, 0) || 0;
+      }, 0);
 
       setStats(prev => ({
         ...prev,
