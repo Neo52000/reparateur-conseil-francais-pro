@@ -9,15 +9,35 @@ const RepairerDashboardPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (loading) return;
+    console.log('🔧 RepairerDashboardPage - Auth state:', {
+      hasUser: !!user,
+      hasProfile: !!profile,
+      profileRole: profile?.role,
+      userEmail: user?.email,
+      canAccessRepairer,
+      loading
+    });
+
+    if (loading) {
+      console.log('⏳ RepairerDashboardPage - Still loading, waiting...');
+      return;
+    }
     
     if (!user) {
+      console.log('❌ RepairerDashboardPage - No user, redirecting to auth');
       navigate('/repairer/auth');
       return;
     }
 
-    // Vérifier si l'utilisateur peut accéder à l'interface réparateur
+    // Attendre que le profil soit chargé
+    if (user && !profile) {
+      console.log('⏳ RepairerDashboardPage - User exists but no profile yet, waiting...');
+      return;
+    }
+
+    // Vérifier l'accès réparateur
     if (!canAccessRepairer) {
+      console.log('❌ RepairerDashboardPage - No repairer access, redirecting based on role');
       if (profile?.role === 'client') {
         navigate('/client');
       } else {
@@ -25,6 +45,8 @@ const RepairerDashboardPage = () => {
       }
       return;
     }
+
+    console.log('✅ RepairerDashboardPage - All checks passed, showing dashboard');
   }, [user, loading, profile, canAccessRepairer, navigate]);
 
   if (loading) {

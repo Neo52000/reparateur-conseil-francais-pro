@@ -10,7 +10,7 @@ export const createTemporaryProfile = (session: Session): Profile => {
     email: session.user.email!,
     first_name: session.user.user_metadata?.first_name || 'Utilisateur',
     last_name: session.user.user_metadata?.last_name || '',
-    role: session.user.user_metadata?.role || 'admin' // Force admin pour les tests
+    role: session.user.user_metadata?.role || 'user'
   };
 };
 
@@ -24,12 +24,23 @@ export const createProfileFromMetadata = async (session: Session): Promise<Profi
   
   // Pour le compte admin spécifique, on force le rôle admin
   const isAdminEmail = session.user.email === 'reine.elie@gmail.com';
+  // Pour le compte demo, on force le rôle repairer
+  const isDemoEmail = session.user.email === 'demo@demo.fr';
+  
+  let role = 'user';
+  if (isAdminEmail) {
+    role = 'admin';
+  } else if (isDemoEmail) {
+    role = 'repairer';
+  } else {
+    role = session.user.user_metadata?.role || 'user';
+  }
   
   const userData = {
     email: session.user.email!,
-    first_name: session.user.user_metadata?.first_name || (isAdminEmail ? 'Reine' : 'Utilisateur'),
-    last_name: session.user.user_metadata?.last_name || (isAdminEmail ? 'Elie' : ''),
-    role: isAdminEmail ? 'admin' : (session.user.user_metadata?.role || 'user')
+    first_name: session.user.user_metadata?.first_name || (isAdminEmail ? 'Reine' : (isDemoEmail ? 'Demo' : 'Utilisateur')),
+    last_name: session.user.user_metadata?.last_name || (isAdminEmail ? 'Elie' : (isDemoEmail ? 'Repairer' : '')),
+    role: role
   };
 
   try {
@@ -70,6 +81,19 @@ export const fetchOrCreateProfile = async (session: Session): Promise<Profile | 
           });
         } catch (error) {
           console.error('❌ Could not fix admin role:', error);
+        }
+      }
+      
+      // Si c'est le compte demo, s'assurer que le rôle est bien repairer
+      if (session.user.email === 'demo@demo.fr' && profileData.role !== 'repairer') {
+        console.log('🔧 Fixing repairer role for demo@demo.fr');
+        try {
+          profileData = await profileService.upsertProfile(session.user.id, {
+            ...profileData,
+            role: 'repairer'
+          });
+        } catch (error) {
+          console.error('❌ Could not fix repairer role:', error);
         }
       }
     }
