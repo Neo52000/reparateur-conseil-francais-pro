@@ -24,10 +24,20 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   onQuickSearch
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { searchMode, setSearchMode } = useSearchStore();
+  const { searchMode, setSearchMode, setSearchTerm, performSearch } = useSearchStore();
 
   const handleSearchClick = () => {
-    setIsModalOpen(true);
+    console.log('Recherche lancée avec mode:', searchMode, 'et terme:', searchTerm);
+    
+    if (searchMode === 'map') {
+      // Mode carte : lancer directement la recherche géolocalisée
+      setSearchTerm(searchTerm);
+      performSearch();
+      onQuickSearch();
+    } else {
+      // Mode rapide : ouvrir la modal pour la localisation
+      setIsModalOpen(true);
+    }
   };
 
   const handleModalClose = () => {
@@ -92,7 +102,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
       </div>
 
-      {/* Modal de sélection du mode */}
+      {/* Modal de saisie de localisation (mode rapide uniquement) */}
       <SearchModeModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
