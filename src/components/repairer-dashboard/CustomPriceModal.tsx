@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -152,3 +153,203 @@ const CustomPriceModal: React.FC<CustomPriceModalProps> = ({
       setSaving(false);
     }
   };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {editingPrice ? 'Modifier le prix personnalisé' : 'Créer un prix personnalisé'}
+          </DialogTitle>
+          <DialogDescription>
+            Personnalisez un prix de réparation basé sur le catalogue de référence
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Sélection du produit */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="brand">Marque</Label>
+              <Select value={selectedBrand} onValueChange={setSelectedBrand} disabled={!!editingPrice}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner une marque" />
+                </SelectTrigger>
+                <SelectContent>
+                  {brands.map((brand) => (
+                    <SelectItem key={brand.id} value={brand.id}>
+                      {brand.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="model">Modèle</Label>
+              <Select value={selectedModel} onValueChange={setSelectedModel} disabled={!!editingPrice || !selectedBrand}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un modèle" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredModels.map((model) => (
+                    <SelectItem key={model.id} value={model.id}>
+                      {model.model_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="repairType">Type de réparation</Label>
+            <Select value={selectedRepairType} onValueChange={setSelectedRepairType} disabled={!!editingPrice}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un type de réparation" />
+              </SelectTrigger>
+              <SelectContent>
+                {repairTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Prix de référence */}
+          {selectedBasePrice && (
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <h4 className="font-medium mb-2">Prix de référence</h4>
+              <div className="grid grid-cols-3 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">Prix total:</span>
+                  <p className="font-medium">{selectedBasePrice.price_eur}€</p>
+                </div>
+                {selectedBasePrice.part_price_eur && (
+                  <div>
+                    <span className="text-gray-600">Pièce:</span>
+                    <p className="font-medium">{selectedBasePrice.part_price_eur}€</p>
+                  </div>
+                )}
+                {selectedBasePrice.labor_price_eur && (
+                  <div>
+                    <span className="text-gray-600">Main d'œuvre:</span>
+                    <p className="font-medium">{selectedBasePrice.labor_price_eur}€</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Type de prix */}
+          <div className="space-y-3">
+            <Label>Type de prix</Label>
+            <RadioGroup value={priceType} onValueChange={(value: 'fixed' | 'starting_from') => setPriceType(value)}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="fixed" id="fixed" />
+                <Label htmlFor="fixed">Prix fixe</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="starting_from" id="starting_from" />
+                <Label htmlFor="starting_from">À partir de</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* Prix personnalisé */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="customPrice">
+                Prix {priceType === 'starting_from' ? 'de départ' : 'fixe'} (€)
+              </Label>
+              <Input
+                id="customPrice"
+                type="number"
+                step="0.01"
+                value={customPrice}
+                onChange={(e) => setCustomPrice(e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="margin">Marge (%)</Label>
+              <div className="flex space-x-2">
+                <Input
+                  id="margin"
+                  type="number"
+                  step="0.1"
+                  value={marginPercentage}
+                  onChange={(e) => setMarginPercentage(e.target.value)}
+                  placeholder="0.0"
+                />
+                <Button type="button" variant="outline" onClick={applyMargin} disabled={!selectedBasePrice || !marginPercentage}>
+                  Appliquer
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Prix détaillés (optionnel) */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="customPartPrice">Prix pièce personnalisé (€)</Label>
+              <Input
+                id="customPartPrice"
+                type="number"
+                step="0.01"
+                value={customPartPrice}
+                onChange={(e) => setCustomPartPrice(e.target.value)}
+                placeholder="Optionnel"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="customLaborPrice">Prix main d'œuvre personnalisé (€)</Label>
+              <Input
+                id="customLaborPrice"
+                type="number"
+                step="0.01"
+                value={customLaborPrice}
+                onChange={(e) => setCustomLaborPrice(e.target.value)}
+                placeholder="Optionnel"
+              />
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes (optionnel)</Label>
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Notes internes sur ce prix..."
+              rows={3}
+            />
+          </div>
+
+          {/* Activation */}
+          <div className="flex items-center space-x-2">
+            <Switch id="isActive" checked={isActive} onCheckedChange={setIsActive} />
+            <Label htmlFor="isActive">Prix actif</Label>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            Annuler
+          </Button>
+          <Button onClick={handleSave} disabled={saving || !selectedModel || !selectedRepairType || !customPrice}>
+            {saving ? 'Sauvegarde...' : editingPrice ? 'Mettre à jour' : 'Créer'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default CustomPriceModal;
