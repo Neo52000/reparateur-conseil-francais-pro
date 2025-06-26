@@ -990,6 +990,56 @@ export type Database = {
           },
         ]
       }
+      repairer_custom_prices: {
+        Row: {
+          created_at: string
+          custom_labor_price_eur: number | null
+          custom_part_price_eur: number | null
+          custom_price_eur: number
+          id: string
+          is_active: boolean
+          margin_percentage: number | null
+          notes: string | null
+          repair_price_id: string
+          repairer_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_labor_price_eur?: number | null
+          custom_part_price_eur?: number | null
+          custom_price_eur: number
+          id?: string
+          is_active?: boolean
+          margin_percentage?: number | null
+          notes?: string | null
+          repair_price_id: string
+          repairer_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_labor_price_eur?: number | null
+          custom_part_price_eur?: number | null
+          custom_price_eur?: number
+          id?: string
+          is_active?: boolean
+          margin_percentage?: number | null
+          notes?: string | null
+          repair_price_id?: string
+          repairer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repairer_custom_prices_repair_price_id_fkey"
+            columns: ["repair_price_id"]
+            isOneToOne: false
+            referencedRelation: "repair_prices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       repairer_profiles: {
         Row: {
           address: string

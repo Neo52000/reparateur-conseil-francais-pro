@@ -38,9 +38,9 @@ export const useRepairerPrices = () => {
       
       console.log('Fetching repairer custom prices...');
       
-      // Récupérer les prix personnalisés du réparateur
+      // Récupérer les prix personnalisés du réparateur avec une requête générique
       const { data: customPrices, error: customError } = await supabase
-        .from('repairer_custom_prices')
+        .from('repairer_custom_prices' as any)
         .select(`
           *,
           repair_price:repair_prices(
@@ -104,7 +104,7 @@ export const useRepairerPrices = () => {
       console.log('Creating custom price:', customPrice);
       
       const { data, error } = await supabase
-        .from('repairer_custom_prices')
+        .from('repairer_custom_prices' as any)
         .insert([{
           ...customPrice,
           repairer_id: user.id
@@ -138,7 +138,7 @@ export const useRepairerPrices = () => {
       console.log('Updating custom price:', id, updates);
       
       const { data, error } = await supabase
-        .from('repairer_custom_prices')
+        .from('repairer_custom_prices' as any)
         .update({
           ...updates,
           updated_at: new Date().toISOString()
@@ -173,7 +173,7 @@ export const useRepairerPrices = () => {
       console.log('Deleting custom price:', id);
       
       const { error } = await supabase
-        .from('repairer_custom_prices')
+        .from('repairer_custom_prices' as any)
         .delete()
         .eq('id', id);
 
@@ -221,11 +221,19 @@ export const useRepairerPrices = () => {
         };
       }).filter(Boolean);
 
-      const { error } = await supabase
-        .from('repairer_custom_prices')
-        .upsert(updates);
-
-      if (error) throw error;
+      // Effectuer les mises à jour une par une pour éviter les problèmes de types
+      for (const update of updates) {
+        if (update) {
+          await supabase
+            .from('repairer_custom_prices' as any)
+            .update({
+              custom_price_eur: update.custom_price_eur,
+              margin_percentage: update.margin_percentage,
+              updated_at: update.updated_at
+            })
+            .eq('id', update.id);
+        }
+      }
 
       toast({
         title: 'Marge appliquée',

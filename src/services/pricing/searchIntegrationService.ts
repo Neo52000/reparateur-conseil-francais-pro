@@ -46,9 +46,9 @@ export class SearchIntegrationService {
 
       if (baseError) throw baseError;
 
-      // Requête pour obtenir les prix personnalisés des réparateurs
+      // Requête pour obtenir les prix personnalisés des réparateurs avec une requête générique
       const { data: customPrices, error: customError } = await supabase
-        .from('repairer_custom_prices')
+        .from('repairer_custom_prices' as any)
         .select(`
           custom_price_eur,
           repair_price!inner(
@@ -69,7 +69,7 @@ export class SearchIntegrationService {
       // Combiner tous les prix
       const allPrices = [
         ...(basePrices?.map(p => p.price_eur) || []),
-        ...(customPrices?.map(p => p.custom_price_eur) || [])
+        ...(customPrices?.map((p: any) => p.custom_price_eur) || [])
       ];
 
       if (allPrices.length === 0) {
@@ -105,8 +105,8 @@ export class SearchIntegrationService {
     try {
       console.log('Getting repairer prices for:', { deviceBrand, deviceModel, repairType, location });
 
-      let query = supabase
-        .from('repairer_custom_prices')
+      const { data: customPrices, error } = await supabase
+        .from('repairer_custom_prices' as any)
         .select(`
           repairer_id,
           custom_price_eur,
@@ -129,12 +129,10 @@ export class SearchIntegrationService {
         .eq('repair_price.repair_type.name', repairType)
         .eq('is_active', true);
 
-      const { data: customPrices, error } = await query;
-
       if (error) throw error;
 
       // Transformer les données
-      const repairerPrices: RepairerPricing[] = (customPrices || []).map(price => ({
+      const repairerPrices: RepairerPricing[] = (customPrices || []).map((price: any) => ({
         repairer_id: price.repairer_id,
         device_model: `${price.repair_price.device_model.brand.name} ${price.repair_price.device_model.model_name}`,
         repair_type: price.repair_price.repair_type.name,
