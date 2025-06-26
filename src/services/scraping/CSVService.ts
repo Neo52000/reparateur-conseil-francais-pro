@@ -1,4 +1,3 @@
-
 import Papa from 'papaparse';
 
 interface RepairerData {
@@ -23,6 +22,51 @@ export interface ImportResult {
 }
 
 export class CSVService {
+  // Fonction pour corriger les caractères mal encodés
+  static fixEncoding(text: string): string {
+    if (!text || typeof text !== 'string') return text;
+    
+    // Dictionnaire des caractères mal encodés courants
+    const encodingFixes: { [key: string]: string } = {
+      'Ã©': 'é',
+      'Ã¨': 'è',
+      'Ã ': 'à',
+      'Ã§': 'ç',
+      'Ã´': 'ô',
+      'Ã¹': 'ù',
+      'Ã«': 'ë',
+      'Ã¯': 'ï',
+      'Ã®': 'î',
+      'Ã¢': 'â',
+      'Ã¡': 'á',
+      'Ã³': 'ó',
+      'Ã±': 'ñ',
+      'Ã': 'À',
+      'Ã‰': 'É',
+      'Ã‡': 'Ç',
+      'Ã'': 'Ñ',
+      '': 'é', // Caractère de remplacement générique
+      'rÃ©parateur': 'réparateur',
+      'rÃ©paration': 'réparation',
+      'tÃ©lÃ©phone': 'téléphone',
+      'Ã©lectronique': 'électronique',
+      'prÃ©cision': 'précision',
+      'qualitÃ©': 'qualité',
+      'spÃ©cialitÃ©': 'spécialité',
+      'expÃ©rience': 'expérience'
+    };
+
+    let fixedText = text;
+    
+    // Remplacer tous les caractères mal encodés
+    Object.keys(encodingFixes).forEach(badChar => {
+      const regex = new RegExp(badChar, 'g');
+      fixedText = fixedText.replace(regex, encodingFixes[badChar]);
+    });
+
+    return fixedText;
+  }
+
   static async importFromFile(file: File): Promise<ImportResult> {
     console.log('📄 CSVService: Début du parsing du fichier:', file.name);
     
@@ -57,15 +101,27 @@ export class CSVService {
             console.log(`Ligne ${index + 1}:`, row);
             
             try {
+              // Appliquer la correction d'encodage sur tous les champs texte
+              const fixedRow = {
+                ...row,
+                name: row.name ? this.fixEncoding(row.name.toString()) : '',
+                address: row.address ? this.fixEncoding(row.address.toString()) : '',
+                city: row.city ? this.fixEncoding(row.city.toString()) : '',
+                services: row.services ? this.fixEncoding(row.services.toString()) : '',
+                specialties: row.specialties ? this.fixEncoding(row.specialties.toString()) : '',
+                email: row.email ? this.fixEncoding(row.email.toString()) : '',
+                website: row.website ? this.fixEncoding(row.website.toString()) : ''
+              };
+
               // Vérifier les champs obligatoires
-              if (!row.name || typeof row.name !== 'string' || row.name.trim().length === 0) {
+              if (!fixedRow.name || fixedRow.name.trim().length === 0) {
                 console.log(`⚠️ Ligne ${index + 1}: Nom manquant ou invalide`);
                 skipped++;
                 errors.push(`Ligne ${index + 1}: Le nom est obligatoire`);
                 return;
               }
 
-              if (!row.city || typeof row.city !== 'string' || row.city.trim().length === 0) {
+              if (!fixedRow.city || fixedRow.city.trim().length === 0) {
                 console.log(`⚠️ Ligne ${index + 1}: Ville manquante ou invalide`);
                 skipped++;
                 errors.push(`Ligne ${index + 1}: La ville est obligatoire`);
@@ -74,15 +130,15 @@ export class CSVService {
               
               // Nettoyer et valider les données
               const processedRow = {
-                name: row.name.toString().trim(),
-                address: row.address ? row.address.toString().trim() : '',
-                city: row.city.toString().trim(),
+                name: fixedRow.name.trim(),
+                address: fixedRow.address.trim(),
+                city: fixedRow.city.trim(),
                 postal_code: row.postal_code ? row.postal_code.toString().trim() : '',
                 phone: row.phone ? row.phone.toString().trim() : '',
-                email: row.email ? row.email.toString().trim() : '',
-                website: row.website ? row.website.toString().trim() : '',
-                services: row.services ? row.services.toString().split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0) : [],
-                specialties: row.specialties ? row.specialties.toString().split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0) : [],
+                email: fixedRow.email.trim(),
+                website: fixedRow.website.trim(),
+                services: fixedRow.services ? fixedRow.services.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0) : [],
+                specialties: fixedRow.specialties ? fixedRow.specialties.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0) : [],
                 price_range: row.price_range && ['low', 'medium', 'high'].includes(row.price_range.toString().toLowerCase()) 
                   ? row.price_range.toString().toLowerCase() 
                   : 'medium',
@@ -90,7 +146,7 @@ export class CSVService {
                 lng: row.lng ? parseFloat(row.lng.toString()) : null
               };
               
-              console.log(`✅ Ligne ${index + 1} validée:`, processedRow);
+              console.log(`✅ Ligne ${index + 1} validée et corrigée:`, processedRow);
               validData.push(processedRow);
               processed++;
               
@@ -102,7 +158,7 @@ export class CSVService {
           });
 
           const result = {
-            success: errors.length === 0 || processed > 0, // Succès s'il y a au moins quelques données valides
+            success: errors.length === 0 || processed > 0,
             processed,
             skipped,
             errors,

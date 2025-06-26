@@ -36,6 +36,7 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
       let query = supabase
         .from('repairers')
         .select('*')
+        .eq('is_verified', true) // Seulement les réparateurs vérifiés
         .order('rating', { ascending: false });
 
       // Appliquer les filtres
@@ -60,7 +61,7 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
       }
 
       // Limiter les résultats pour les performances
-      query = query.limit(100);
+      query = query.limit(200);
 
       const { data, error: fetchError } = await query;
 
@@ -79,7 +80,10 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
             id: repairer.id,
             name: repairer.name,
             city: repairer.city,
-            services: repairer.services
+            services: repairer.services,
+            is_verified: repairer.is_verified,
+            lat: repairer.lat,
+            lng: repairer.lng
           });
         });
 
@@ -87,7 +91,7 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
         const processedData: Repairer[] = data.map((repairer: SupabaseRepairer): Repairer => ({
           id: repairer.id,
           name: repairer.name,
-          business_name: repairer.name, // Mapper name vers business_name pour compatibilité
+          business_name: repairer.name,
           address: repairer.address,
           city: repairer.city,
           postal_code: repairer.postal_code,
@@ -111,7 +115,7 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
             null,
           is_verified: repairer.is_verified || false,
           is_open: repairer.is_open || undefined,
-          has_qualirepar_label: false, // Valeur par défaut
+          has_qualirepar_label: false,
           source: repairer.source as 'pages_jaunes' | 'google_places' | 'manual',
           scraped_at: repairer.scraped_at,
           updated_at: repairer.updated_at,
@@ -158,6 +162,20 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
     console.log('useRepairers - Effect triggered, filters:', filters);
     fetchRepairers();
   }, [filters, userLocation]);
+
+  // Écouter les événements de mise à jour des réparateurs
+  useEffect(() => {
+    const handleRepairersUpdate = () => {
+      console.log('useRepairers - Received repairersUpdated event, refetching...');
+      fetchRepairers();
+    };
+
+    window.addEventListener('repairersUpdated', handleRepairersUpdate);
+    
+    return () => {
+      window.removeEventListener('repairersUpdated', handleRepairersUpdate);
+    };
+  }, []);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
     const R = 6371; // Rayon de la Terre en km
