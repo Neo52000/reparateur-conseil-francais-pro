@@ -1,53 +1,32 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import AuthPage from "./pages/AuthPage";
-import ClientAuth from "./pages/ClientAuth";
-import RepairerAuth from "./pages/RepairerAuth";
-import AdminPage from "./pages/AdminPage";
-import AdminFeaturesPage from "./pages/AdminFeaturesPage";
-import RepairersManagementPage from "./pages/RepairersManagementPage";
-import ClientSpace from "./pages/ClientSpace";
-import RepairerSpace from "./pages/RepairerSpace";
-import ClientDashboardPage from "./pages/ClientDashboardPage";
-import RepairerDashboardPage from "./pages/RepairerDashboardPage";
-import PartnerDashboard from "./pages/PartnerDashboard";
-import QuotesAndAppointments from "./pages/QuotesAndAppointments";
-import RepairerPlans from "./pages/RepairerPlans";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Index from '@/pages/Index';
+import AdminPage from '@/pages/AdminPage';
+import AdminFeaturesPage from '@/pages/AdminFeaturesPage';
+import AdminCatalogPage from '@/pages/AdminCatalogPage';
+import RepairersManagementPage from '@/pages/RepairersManagementPage';
+import { ToastProvider } from '@/hooks/use-toast';
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/client-auth" element={<ClientAuth />} />
-          <Route path="/repairer/auth" element={<RepairerAuth />} />
-          <Route path="/repairer/plans" element={<RepairerPlans />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/admin/features" element={<AdminFeaturesPage />} />
-          <Route path="/admin/repairers" element={<RepairersManagementPage />} />
-          <Route path="/client" element={<ClientSpace />} />
-          <Route path="/repairer" element={<RepairerSpace />} />
-          <Route path="/client-dashboard" element={<ClientDashboardPage />} />
-          <Route path="/repairer/dashboard" element={<RepairerDashboardPage />} />
-          <Route path="/partner-dashboard" element={<PartnerDashboard />} />
-          <Route path="/quotes-appointments" element={<QuotesAndAppointments />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <div className="min-h-screen bg-background">
+          <ToastProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/admin/features" element={<AdminFeaturesPage />} />
+              <Route path="/admin/catalog" element={<AdminCatalogPage />} />
+              <Route path="/admin/repairers" element={<RepairersManagementPage />} />
+            </Routes>
+          </ToastProvider>
+        </div>
+      </Router>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

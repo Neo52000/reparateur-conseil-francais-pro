@@ -160,6 +160,27 @@ export type Database = {
         }
         Relationships: []
       }
+      brands: {
+        Row: {
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           conversation_id: string
@@ -274,6 +295,123 @@ export type Database = {
           siret?: string | null
           status?: string
           verification_date?: string
+        }
+        Relationships: []
+      }
+      device_models: {
+        Row: {
+          battery_capacity: number | null
+          brand_id: string
+          colors: Json | null
+          connectivity: Json | null
+          created_at: string
+          device_type_id: string
+          dimensions: Json | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          model_name: string
+          model_number: string | null
+          operating_system: string | null
+          processor: string | null
+          ram_gb: number | null
+          release_date: string | null
+          screen_resolution: string | null
+          screen_size: number | null
+          screen_type: string | null
+          special_features: Json | null
+          storage_options: Json | null
+          updated_at: string
+          weight_grams: number | null
+        }
+        Insert: {
+          battery_capacity?: number | null
+          brand_id: string
+          colors?: Json | null
+          connectivity?: Json | null
+          created_at?: string
+          device_type_id: string
+          dimensions?: Json | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          model_name: string
+          model_number?: string | null
+          operating_system?: string | null
+          processor?: string | null
+          ram_gb?: number | null
+          release_date?: string | null
+          screen_resolution?: string | null
+          screen_size?: number | null
+          screen_type?: string | null
+          special_features?: Json | null
+          storage_options?: Json | null
+          updated_at?: string
+          weight_grams?: number | null
+        }
+        Update: {
+          battery_capacity?: number | null
+          brand_id?: string
+          colors?: Json | null
+          connectivity?: Json | null
+          created_at?: string
+          device_type_id?: string
+          dimensions?: Json | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          model_name?: string
+          model_number?: string | null
+          operating_system?: string | null
+          processor?: string | null
+          ram_gb?: number | null
+          release_date?: string | null
+          screen_resolution?: string | null
+          screen_size?: number | null
+          screen_type?: string | null
+          special_features?: Json | null
+          storage_options?: Json | null
+          updated_at?: string
+          weight_grams?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_models_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "device_models_device_type_id_fkey"
+            columns: ["device_type_id"]
+            isOneToOne: false
+            referencedRelation: "device_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      device_types: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -689,6 +827,87 @@ export type Database = {
         }
         Relationships: []
       }
+      repair_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      repair_prices: {
+        Row: {
+          created_at: string
+          device_model_id: string
+          id: string
+          is_available: boolean | null
+          labor_price_eur: number | null
+          notes: string | null
+          part_price_eur: number | null
+          price_eur: number
+          repair_type_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          device_model_id: string
+          id?: string
+          is_available?: boolean | null
+          labor_price_eur?: number | null
+          notes?: string | null
+          part_price_eur?: number | null
+          price_eur: number
+          repair_type_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          device_model_id?: string
+          id?: string
+          is_available?: boolean | null
+          labor_price_eur?: number | null
+          notes?: string | null
+          part_price_eur?: number | null
+          price_eur?: number
+          repair_type_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_prices_device_model_id_fkey"
+            columns: ["device_model_id"]
+            isOneToOne: false
+            referencedRelation: "device_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_prices_repair_type_id_fkey"
+            columns: ["repair_type_id"]
+            isOneToOne: false
+            referencedRelation: "repair_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       repair_tracking: {
         Row: {
           created_at: string
@@ -723,6 +942,50 @@ export type Database = {
             columns: ["quote_id"]
             isOneToOne: false
             referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repair_types: {
+        Row: {
+          category_id: string
+          created_at: string
+          description: string | null
+          difficulty_level: string | null
+          estimated_time_minutes: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          warranty_days: number | null
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          description?: string | null
+          difficulty_level?: string | null
+          estimated_time_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          warranty_days?: number | null
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          description?: string | null
+          difficulty_level?: string | null
+          estimated_time_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          warranty_days?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_types_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "repair_categories"
             referencedColumns: ["id"]
           },
         ]
@@ -1101,6 +1364,57 @@ export type Database = {
           source?: string
           started_at?: string
           status?: string
+        }
+        Relationships: []
+      }
+      spare_parts: {
+        Row: {
+          category: string | null
+          compatible_models: Json | null
+          cost_price: number | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          min_stock_alert: number | null
+          name: string
+          part_number: string | null
+          quality_grade: string | null
+          selling_price: number | null
+          stock_quantity: number | null
+          supplier: string | null
+          warranty_days: number | null
+        }
+        Insert: {
+          category?: string | null
+          compatible_models?: Json | null
+          cost_price?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          min_stock_alert?: number | null
+          name: string
+          part_number?: string | null
+          quality_grade?: string | null
+          selling_price?: number | null
+          stock_quantity?: number | null
+          supplier?: string | null
+          warranty_days?: number | null
+        }
+        Update: {
+          category?: string | null
+          compatible_models?: Json | null
+          cost_price?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          min_stock_alert?: number | null
+          name?: string
+          part_number?: string | null
+          quality_grade?: string | null
+          selling_price?: number | null
+          stock_quantity?: number | null
+          supplier?: string | null
+          warranty_days?: number | null
         }
         Relationships: []
       }

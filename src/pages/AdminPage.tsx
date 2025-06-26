@@ -5,7 +5,7 @@ import AdminAuthForm from '@/components/AdminAuthForm';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Settings, Users } from 'lucide-react';
+import { Settings, Users, Package } from 'lucide-react';
 
 // Import experimental comps
 import ReferralInvite from '@/components/ReferralInvite';
@@ -41,6 +41,14 @@ const AdminPage = () => {
               </p>
             </div>
             <div className="flex gap-2">
+              <Button 
+                onClick={() => navigate('/admin/catalog')} 
+                variant="secondary"
+                size="sm"
+              >
+                <Package className="h-4 w-4 mr-2" />
+                Gestion Catalogue
+              </Button>
               <Button 
                 onClick={() => navigate('/admin/features')} 
                 variant="secondary"
