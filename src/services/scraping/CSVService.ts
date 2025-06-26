@@ -16,7 +16,7 @@ interface RepairerData {
   price_range: string;
 }
 
-export { ImportResult };
+export type { ImportResult };
 
 export class CSVService {
   /**
