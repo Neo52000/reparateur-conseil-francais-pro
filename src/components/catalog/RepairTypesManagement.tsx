@@ -1,88 +1,166 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Search, Plus } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCatalog } from '@/hooks/useCatalog';
-import { Wrench, Clock, Shield } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import RepairTypesTable from './RepairTypesTable';
+import RepairTypeDialog from './RepairTypeDialog';
+import type { RepairType } from '@/types/catalog';
 
 const RepairTypesManagement = () => {
-  const { repairCategories, repairTypes, loading } = useCatalog();
+  const { 
+    repairTypes, 
+    repairCategories, 
+    loading, 
+    createRepairType, 
+    updateRepairType, 
+    deleteRepairType 
+  } = useCatalog();
+  
+  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingRepairType, setEditingRepairType] = useState<RepairType | null>(null);
+
+  const filteredRepairTypes = repairTypes.filter(repairType => {
+    const matchesSearch = repairType.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (repairType.description && repairType.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesCategory = !selectedCategory || repairType.category_id === selectedCategory;
+    const matchesDifficulty = !selectedDifficulty || repairType.difficulty_level === selectedDifficulty;
+    
+    return matchesSearch && matchesCategory && matchesDifficulty;
+  });
+
+  const handleEdit = (repairType: RepairType) => {
+    setEditingRepairType(repairType);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce type de réparation ?')) {
+      try {
+        await deleteRepairType(id);
+        toast({
+          title: 'Type de réparation supprimé',
+          description: 'Le type de réparation a été supprimé avec succès.',
+        });
+      } catch (error) {
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de supprimer le type de réparation.',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  const handleSave = async (repairTypeData: any) => {
+    try {
+      if (editingRepairType) {
+        await updateRepairType(editingRepairType.id, repairTypeData);
+        toast({
+          title: 'Type de réparation mis à jour',
+          description: 'Le type de réparation a été mis à jour avec succès.',
+        });
+      } else {
+        await createRepairType(repairTypeData);
+        toast({
+          title: 'Type de réparation créé',
+          description: 'Le nouveau type de réparation a été créé avec succès.',
+        });
+      }
+      setIsDialogOpen(false);
+      setEditingRepairType(null);
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la sauvegarde.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingRepairType(null);
+  };
 
   if (loading) {
-    return <div className="flex justify-center p-8">Chargement...</div>;
+    return <div className="flex justify-center p-8">Chargement des types de réparations...</div>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="text-center p-6 bg-blue-50 rounded-lg">
-        <h3 className="text-lg font-medium text-blue-900 mb-2">
-          Base de données des réparations
-        </h3>
-        <p className="text-blue-700">
-          Cette section affiche les types de réparations disponibles. 
-          Les réparateurs pourront les activer/désactiver dans leur profil.
-        </p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-xl font-semibold">Gestion des types de réparations</h2>
+          <p className="text-sm text-gray-600">
+            {filteredRepairTypes.length} type{filteredRepairTypes.length > 1 ? 's' : ''} trouvé{filteredRepairTypes.length > 1 ? 's' : ''}
+          </p>
+        </div>
+        <Button onClick={() => setIsDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nouveau type de réparation
+        </Button>
       </div>
 
-      <div className="grid gap-6">
-        {repairCategories.map((category) => {
-          const categoryRepairs = repairTypes.filter(
-            repair => repair.category_id === category.id
-          );
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <Input
+            placeholder="Rechercher un type de réparation..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Toutes les catégories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Toutes les catégories</SelectItem>
+            {repairCategories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          return (
-            <Card key={category.id}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Wrench className="h-5 w-5" />
-                  {category.name}
-                  <Badge variant="secondary">{categoryRepairs.length} types</Badge>
-                </CardTitle>
-                {category.description && (
-                  <p className="text-sm text-gray-600">{category.description}</p>
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3">
-                  {categoryRepairs.map((repair) => (
-                    <div key={repair.id} className="p-3 border rounded-lg bg-gray-50">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium">{repair.name}</h4>
-                        <Badge 
-                          variant={
-                            repair.difficulty_level === 'Facile' ? 'default' :
-                            repair.difficulty_level === 'Moyen' ? 'secondary' :
-                            repair.difficulty_level === 'Difficile' ? 'destructive' : 'outline'
-                          }
-                        >
-                          {repair.difficulty_level}
-                        </Badge>
-                      </div>
-                      
-                      {repair.description && (
-                        <p className="text-sm text-gray-600 mb-2">{repair.description}</p>
-                      )}
-                      
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        {repair.estimated_time_minutes && (
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {repair.estimated_time_minutes} min
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1">
-                          <Shield className="h-3 w-3" />
-                          {repair.warranty_days} j garantie
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Toutes les difficultés" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Toutes les difficultés</SelectItem>
+            <SelectItem value="Facile">Facile</SelectItem>
+            <SelectItem value="Moyen">Moyen</SelectItem>
+            <SelectItem value="Difficile">Difficile</SelectItem>
+            <SelectItem value="Expert">Expert</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
+      <RepairTypesTable
+        repairTypes={filteredRepairTypes}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+
+      <RepairTypeDialog
+        isOpen={isDialogOpen}
+        onClose={handleCloseDialog}
+        onSave={handleSave}
+        repairType={editingRepairType}
+        repairCategories={repairCategories}
+      />
     </div>
   );
 };
