@@ -23,7 +23,7 @@ const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ profile }) => {
   };
 
   const handleWhatsApp = () => {
-    const message = encodeURIComponent(`Bonjour, je souhaite des informations sur vos services de réparation. Réparateur: ${profile.business_name || profile.first_name + ' ' + profile.last_name}`);
+    const message = encodeURIComponent(`Bonjour, je souhaite des informations sur vos services de réparation. Réparateur: ${profile.business_name}`);
     window.open(`https://wa.me/33745062162?text=${message}`, '_blank');
   };
 
