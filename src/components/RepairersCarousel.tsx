@@ -59,17 +59,9 @@ const RepairersCarousel: React.FC<RepairersCarouselProps> = ({
     );
   }
 
+  // Si aucun réparateur, ne rien afficher du tout
   if (repairers.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">
-          Aucun réparateur validé trouvé pour le moment
-        </p>
-        <p className="text-sm text-gray-400 mt-2">
-          Nos équipes travaillent à valider de nouveaux profils
-        </p>
-      </div>
-    );
+    return null;
   }
 
   return (
