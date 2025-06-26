@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -54,7 +53,7 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
         <div className="relative z-20 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <div className="mb-6 flex justify-center">
-              <Logo variant="full" size="xl" className="brightness-0 invert" />
+              <Logo variant="full" size="xxl" className="brightness-0 invert" />
             </div>
             <p className="text-xl md:text-2xl mb-8">
               Trouvez le meilleur réparateur près de chez vous
@@ -104,7 +103,6 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
                   </div>
                 )}
 
-                {/* Bouton de recherche manuel */}
                 <button
                   onClick={handleSearchClick}
                   className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
