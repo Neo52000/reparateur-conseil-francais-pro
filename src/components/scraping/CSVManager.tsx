@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,46 +21,74 @@ const CSVManager = () => {
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && file.type === 'text/csv') {
+    console.log('Fichier sélectionné:', file);
+    
+    if (file) {
+      if (!file.name.toLowerCase().endsWith('.csv')) {
+        toast({
+          title: "Format invalide",
+          description: "Veuillez sélectionner un fichier CSV (.csv)",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      console.log('Fichier CSV valide:', {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: new Date(file.lastModified)
+      });
+      
       setImportFile(file);
       setImportResult(null);
-    } else {
-      toast({
-        title: "Format invalide",
-        description: "Veuillez sélectionner un fichier CSV",
-        variant: "destructive"
-      });
     }
   };
 
   const handleImport = async () => {
     if (!importFile || !checkAuthAndPermissions()) return;
 
+    console.log('🚀 Début de l\'import CSV:', importFile.name);
     setImporting(true);
     setImportProgress(10);
 
     try {
       // Phase 1: Validation et parsing du CSV
-      console.log("📄 Parsing du fichier CSV...");
+      console.log("📄 Phase 1: Parsing du fichier CSV...");
       const parseResult = await CSVService.importFromFile(importFile);
+      console.log('Résultat du parsing:', parseResult);
       setImportProgress(40);
       
-      if (!parseResult.success || parseResult.data.length === 0) {
+      if (!parseResult.success) {
+        console.error('❌ Erreurs de parsing:', parseResult.errors);
         setImportResult(parseResult);
         toast({
-          title: "⚠️ Parsing échoué",
-          description: `Erreurs trouvées dans le fichier CSV`,
+          title: "⚠️ Erreurs dans le fichier CSV",
+          description: `${parseResult.errors.length} erreur(s) trouvée(s)`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (parseResult.data.length === 0) {
+        console.warn('⚠️ Aucune donnée valide trouvée');
+        setImportResult(parseResult);
+        toast({
+          title: "⚠️ Fichier vide",
+          description: "Aucune donnée valide trouvée dans le fichier CSV",
           variant: "destructive"
         });
         return;
       }
 
       console.log(`✅ ${parseResult.data.length} lignes valides parsées`);
+      console.log('Exemple de données parsées:', parseResult.data[0]);
       setImportProgress(60);
 
       // Phase 2: Sauvegarde en base de données
-      console.log("💾 Sauvegarde en base de données...");
+      console.log("💾 Phase 2: Sauvegarde en base de données...");
       const savedCount = await saveCSVDataToDatabase(parseResult.data);
+      console.log(`💾 ${savedCount} réparateurs sauvegardés`);
       setImportProgress(100);
 
       const finalResult = {
@@ -73,14 +100,14 @@ const CSVManager = () => {
 
       toast({
         title: "✅ Import terminé",
-        description: `${savedCount} réparateurs importés avec succès`,
+        description: `${savedCount} réparateur(s) importé(s) avec succès`,
       });
 
     } catch (error) {
-      console.error('Erreur import CSV:', error);
+      console.error('💥 Erreur complète lors de l\'import CSV:', error);
       toast({
         title: "❌ Erreur d'import",
-        description: "Une erreur est survenue lors de l'import",
+        description: `Erreur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
         variant: "destructive"
       });
     } finally {
@@ -91,43 +118,92 @@ const CSVManager = () => {
 
   const saveCSVDataToDatabase = async (csvData: any[]) => {
     let savedCount = 0;
+    console.log(`🔄 Tentative de sauvegarde de ${csvData.length} éléments`);
 
-    for (const item of csvData) {
+    for (let i = 0; i < csvData.length; i++) {
+      const item = csvData[i];
+      console.log(`Processing item ${i + 1}/${csvData.length}:`, item);
+      
       try {
+        // Validation des données obligatoires
+        if (!item.name || !item.city) {
+          console.warn(`⚠️ Item ${i + 1} ignoré - données manquantes:`, { name: item.name, city: item.city });
+          continue;
+        }
+
+        // Préparation des services et spécialités
+        let services = [];
+        let specialties = [];
+        
+        if (item.services) {
+          if (typeof item.services === 'string') {
+            services = item.services.split(',').map((s: string) => s.trim()).filter(s => s.length > 0);
+          } else if (Array.isArray(item.services)) {
+            services = item.services;
+          }
+        }
+        
+        if (item.specialties) {
+          if (typeof item.specialties === 'string') {
+            specialties = item.specialties.split(',').map((s: string) => s.trim()).filter(s => s.length > 0);
+          } else if (Array.isArray(item.specialties)) {
+            specialties = item.specialties;
+          }
+        }
+
+        // Si pas de services définis, ajouter un service par défaut
+        if (services.length === 0) {
+          services = ['Réparation téléphone'];
+        }
+        
+        if (specialties.length === 0) {
+          specialties = ['Tout mobile'];
+        }
+
         // Transformer les données CSV en format base de données
         const repairerData = {
           name: item.name,
-          address: item.address,
+          address: item.address || 'Adresse non renseignée',
           city: item.city,
-          postal_code: item.postal_code,
-          phone: item.phone,
-          email: item.email,
-          website: item.website,
-          services: item.services ? item.services.split(',').map((s: string) => s.trim()) : [],
-          specialties: item.specialties ? item.specialties.split(',').map((s: string) => s.trim()) : [],
-          price_range: item.price_range || 'medium',
-          lat: item.lat,
-          lng: item.lng,
+          postal_code: item.postal_code || '00000',
+          phone: item.phone || null,
+          email: item.email || null,
+          website: item.website || null,
+          services: services,
+          specialties: specialties,
+          price_range: ['low', 'medium', 'high'].includes(item.price_range) ? item.price_range : 'medium',
+          lat: item.lat ? parseFloat(item.lat) : null,
+          lng: item.lng ? parseFloat(item.lng) : null,
           source: 'csv_import',
           is_verified: false,
-          department: item.postal_code?.substring(0, 2) || '00',
+          department: (item.postal_code || '00000').substring(0, 2),
           region: 'France',
+          rating: null,
+          review_count: 0,
           scraped_at: new Date().toISOString(),
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
 
+        console.log(`📝 Données formatées pour item ${i + 1}:`, repairerData);
+
         // Vérifier si le réparateur existe déjà
-        const { data: existing } = await supabase
+        const { data: existing, error: searchError } = await supabase
           .from('repairers')
           .select('id')
           .eq('name', repairerData.name)
           .eq('postal_code', repairerData.postal_code)
-          .single();
+          .maybeSingle();
+
+        if (searchError) {
+          console.error(`❌ Erreur recherche existing item ${i + 1}:`, searchError);
+          continue;
+        }
 
         if (existing) {
+          console.log(`🔄 Mise à jour item ${i + 1} (ID: ${existing.id})`);
           // Mise à jour
-          const { error } = await supabase
+          const { error: updateError } = await supabase
             .from('repairers')
             .update({
               ...repairerData,
@@ -135,21 +211,33 @@ const CSVManager = () => {
             })
             .eq('id', existing.id);
 
-          if (!error) savedCount++;
+          if (updateError) {
+            console.error(`❌ Erreur mise à jour item ${i + 1}:`, updateError);
+          } else {
+            console.log(`✅ Item ${i + 1} mis à jour avec succès`);
+            savedCount++;
+          }
         } else {
+          console.log(`➕ Insertion item ${i + 1}`);
           // Insertion
-          const { error } = await supabase
+          const { error: insertError } = await supabase
             .from('repairers')
             .insert(repairerData);
 
-          if (!error) savedCount++;
+          if (insertError) {
+            console.error(`❌ Erreur insertion item ${i + 1}:`, insertError);
+          } else {
+            console.log(`✅ Item ${i + 1} inséré avec succès`);
+            savedCount++;
+          }
         }
 
       } catch (error) {
-        console.error('Erreur sauvegarde item:', error);
+        console.error(`💥 Erreur complète pour item ${i + 1}:`, error);
       }
     }
 
+    console.log(`📊 Résultat final: ${savedCount}/${csvData.length} éléments sauvegardés`);
     return savedCount;
   };
 
@@ -198,6 +286,7 @@ const CSVManager = () => {
   };
 
   const downloadTemplate = () => {
+    console.log('📋 Génération du modèle CSV');
     CSVService.generateTemplate();
     toast({
       title: "📋 Modèle téléchargé",
@@ -235,13 +324,21 @@ const CSVManager = () => {
             </Button>
           </div>
 
-          <Button 
-            onClick={downloadTemplate}
-            variant="outline"
-            size="sm"
-          >
-            📋 Télécharger le modèle CSV
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={downloadTemplate}
+              variant="outline"
+              size="sm"
+            >
+              📋 Télécharger le modèle CSV
+            </Button>
+            
+            {importFile && (
+              <div className="text-sm text-gray-600 flex items-center">
+                📄 Fichier sélectionné: {importFile.name} ({Math.round(importFile.size / 1024)} KB)
+              </div>
+            )}
+          </div>
 
           {importing && (
             <div className="space-y-2">
