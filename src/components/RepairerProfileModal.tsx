@@ -90,23 +90,28 @@ const RepairerProfileModal: React.FC<RepairerProfileModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <RepairerProfileModalContent
-        profile={profile}
-        isEditing={isEditing}
-        isAdmin={userIsAdmin || isAdmin}
-        canEdit={canEdit()}
-        onEdit={() => {
-          console.log('📝 Starting edit mode...');
-          setIsEditing(true);
-        }}
-        onSave={handleProfileUpdate}
-        onCancel={() => {
-          console.log('❌ Canceling edit mode...');
-          setIsEditing(false);
-        }}
-        onClose={onClose}
-        saving={saving}
-      />
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/50 z-[9998]" onClick={onClose} />
+        <div className="relative z-[9999] w-full max-w-4xl max-h-[90vh] bg-white rounded-lg shadow-xl overflow-hidden">
+          <RepairerProfileModalContent
+            profile={profile}
+            isEditing={isEditing}
+            isAdmin={userIsAdmin || isAdmin}
+            canEdit={canEdit()}
+            onEdit={() => {
+              console.log('📝 Starting edit mode...');
+              setIsEditing(true);
+            }}
+            onSave={handleProfileUpdate}
+            onCancel={() => {
+              console.log('❌ Canceling edit mode...');
+              setIsEditing(false);
+            }}
+            onClose={onClose}
+            saving={saving}
+          />
+        </div>
+      </div>
     </Dialog>
   );
 };

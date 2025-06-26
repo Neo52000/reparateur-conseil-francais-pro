@@ -66,7 +66,11 @@
   margin-top: 5px !important;
 }
 
-/* Popup styles */
+/* Popup styles - Réduire le z-index des popups pour qu'elles passent sous les modals */
+.leaflet-popup-pane {
+  z-index: 700 !important;
+}
+
 .leaflet-popup-content-wrapper {
   border-radius: 8px !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
@@ -75,4 +79,15 @@
 .leaflet-popup-content {
   margin: 0 !important;
   font-family: inherit !important;
+}
+
+/* S'assurer que la carte reste sous les modals */
+.leaflet-container,
+.leaflet-pane,
+.leaflet-map-pane {
+  z-index: 1 !important;
+}
+
+.leaflet-control-container {
+  z-index: 1000 !important;
 }
