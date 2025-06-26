@@ -38,30 +38,17 @@ export const useRepairerPrices = () => {
       
       console.log('Fetching repairer custom prices...');
       
-      // Récupérer les prix personnalisés du réparateur avec une requête générique
-      const { data: customPrices, error: customError } = await supabase
+      // Récupérer d'abord les prix personnalisés sans relations
+      const { data: customPricesData, error: customError } = await supabase
         .from('repairer_custom_prices' as any)
-        .select(`
-          *,
-          repair_price:repair_prices(
-            *,
-            device_model:device_models(
-              *,
-              brand:brands(*)
-            ),
-            repair_type:repair_types(
-              *,
-              category:repair_categories(*)
-            )
-          )
-        `)
+        .select('*')
         .eq('repairer_id', user.id)
         .order('created_at', { ascending: false });
 
       if (customError) throw customError;
 
-      // Récupérer tous les prix de base pour permettre l'ajout de nouveaux prix personnalisés
-      const { data: allBasePrices, error: baseError } = await supabase
+      // Récupérer les prix de base avec leurs relations
+      const { data: basePricesData, error: baseError } = await supabase
         .from('repair_prices')
         .select(`
           *,
@@ -79,11 +66,20 @@ export const useRepairerPrices = () => {
 
       if (baseError) throw baseError;
 
-      console.log('Repairer prices fetched:', customPrices);
-      console.log('Base prices fetched:', allBasePrices);
+      // Associer les prix personnalisés avec leurs prix de base
+      const enrichedCustomPrices = (customPricesData || []).map((customPrice: any) => {
+        const relatedBasePrice = basePricesData?.find(bp => bp.id === customPrice.repair_price_id);
+        return {
+          ...customPrice,
+          repair_price: relatedBasePrice
+        };
+      });
+
+      console.log('Repairer prices fetched:', enrichedCustomPrices);
+      console.log('Base prices fetched:', basePricesData);
       
-      setRepairerPrices(customPrices || []);
-      setBasePrices(allBasePrices || []);
+      setRepairerPrices(enrichedCustomPrices);
+      setBasePrices(basePricesData || []);
     } catch (err) {
       console.error('Error fetching repairer prices:', err);
       setError('Erreur lors du chargement des prix personnalisés');
