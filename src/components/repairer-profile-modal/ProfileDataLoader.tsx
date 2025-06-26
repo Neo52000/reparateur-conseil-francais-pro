@@ -33,9 +33,9 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
       console.log('✅ ProfileDataLoader - Profile loaded successfully');
       
       // Helper function to safely parse JSON objects
-      const safeParseJson = <T>(value: any, fallback: T): T => {
+      const safeParseJson = (value: any, fallback: any) => {
         if (value === null || value === undefined) return fallback;
-        if (typeof value === 'object' && value !== null) return value as T;
+        if (typeof value === 'object' && value !== null) return value;
         return fallback;
       };
 
