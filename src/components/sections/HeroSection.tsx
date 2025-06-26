@@ -1,11 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Logo from '@/components/Logo';
-import SearchModeModal from '@/components/SearchModeModal';
 import SearchModeToggle from '@/components/SearchModeToggle';
+import CityPostalCodeInput from '@/components/CityPostalCodeInput';
 import { useSearchStore } from '@/stores/searchStore';
 
 interface HeroSectionProps {
@@ -23,26 +22,33 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   onLocationChange,
   onQuickSearch
 }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const { searchMode, setSearchMode, setSearchTerm, performSearch } = useSearchStore();
+  const [localCity, setLocalCity] = useState('');
+  const [localPostal, setLocalPostal] = useState('');
+  const [isValidLocation, setIsValidLocation] = useState(false);
+  
+  const { searchMode, setSearchMode, setSearchTerm, setCityPostal, performSearch } = useSearchStore();
 
-  const handleSearchClick = () => {
-    console.log('Recherche lancée avec mode:', searchMode, 'et terme:', searchTerm);
-    
-    if (searchMode === 'map') {
-      // Mode carte : lancer directement la recherche géolocalisée
-      setSearchTerm(searchTerm);
-      performSearch();
-      onQuickSearch();
-    } else {
-      // Mode rapide : ouvrir la modal pour la localisation
-      setIsModalOpen(true);
+  // Lancer automatiquement la recherche quand les critères sont remplis
+  useEffect(() => {
+    if (searchMode === 'quick') {
+      // Pour la recherche rapide : service + localisation
+      if (searchTerm.trim() && (localCity.trim() || localPostal.trim())) {
+        console.log('Auto-recherche rapide:', { searchTerm, localCity, localPostal });
+        setSearchTerm(searchTerm);
+        setCityPostal(localCity, localPostal);
+        performSearch();
+        onQuickSearch();
+      }
+    } else if (searchMode === 'map') {
+      // Pour la carte : dès qu'il y a un service
+      if (searchTerm.trim()) {
+        console.log('Auto-recherche carte:', { searchTerm });
+        setSearchTerm(searchTerm);
+        performSearch();
+        onQuickSearch();
+      }
     }
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-  };
+  }, [searchTerm, localCity, localPostal, searchMode, setSearchTerm, setCityPostal, performSearch, onQuickSearch]);
 
   return (
     <div className="relative h-screen bg-cover bg-center" style={{
@@ -61,7 +67,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </p>
         </div>
 
-        {/* Barre de recherche simplifiée */}
+        {/* Formulaire de recherche intégré */}
         <div className="w-full max-w-2xl relative z-30">
           <div className="bg-white rounded-lg p-6 shadow-xl">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
@@ -69,6 +75,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
             </h2>
             
             <div className="flex flex-col space-y-4">
+              {/* Champ de service */}
               <div className="relative">
                 <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
                 <Input
@@ -82,33 +89,50 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 />
               </div>
 
-              {/* Mode de recherche repositionné ici */}
+              {/* Mode de recherche */}
               <div className="py-2">
                 <SearchModeToggle
                   selectedMode={searchMode}
                   onModeChange={setSearchMode}
                 />
               </div>
-              
-              <Button 
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
-                size="lg" 
-                onClick={handleSearchClick}
-              >
-                Rechercher
-              </Button>
+
+              {/* Champs de localisation (uniquement en mode rapide) */}
+              {searchMode === 'quick' && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Localisation
+                  </label>
+                  <CityPostalCodeInput
+                    cityValue={localCity}
+                    postalCodeValue={localPostal}
+                    onCityChange={setLocalCity}
+                    onPostalCodeChange={setLocalPostal}
+                    onValidSelection={({ city, postalCode, isValid }) => {
+                      console.log('Validation de localisation:', { city, postalCode, isValid });
+                      setIsValidLocation(isValid);
+                      if (isValid) {
+                        setLocalCity(city);
+                        setLocalPostal(postalCode);
+                      }
+                    }}
+                    className="bg-white"
+                  />
+                </div>
+              )}
+
+              {/* Message d'aide selon le mode */}
+              <div className="text-center text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                {searchMode === 'quick' ? (
+                  <p>🔍 Saisissez un service et une localisation pour lancer la recherche automatiquement</p>
+                ) : (
+                  <p>🗺️ Saisissez un service pour explorer la carte géolocalisée automatiquement</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Modal de saisie de localisation (mode rapide uniquement) */}
-      <SearchModeModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        searchTerm={searchTerm}
-        onQuickSearch={onQuickSearch}
-      />
     </div>
   );
 };
