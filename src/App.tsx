@@ -13,6 +13,7 @@ import RepairerDashboardPage from '@/pages/RepairerDashboardPage';
 import RepairerPlans from '@/pages/RepairerPlans';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
+import NotFound from '@/pages/NotFound';
 import { Toaster } from '@/components/ui/toaster';
 import CookieBanner from '@/components/CookieBanner';
 
@@ -36,6 +37,8 @@ function App() {
             <Route path="/repairer/plans" element={<RepairerPlans />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
+            {/* Route de fallback pour les pages non trouvées */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
           <CookieBanner />
           <Toaster />
