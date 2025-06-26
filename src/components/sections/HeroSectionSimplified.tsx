@@ -51,9 +51,9 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
         
         <div className="relative z-20 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
-            <div className="mb-6 flex justify-center">
-              <Logo variant="full" size="xxl" className="brightness-0 invert" />
+          <div className="text-center mb-4">
+            <div className="mb-2 flex justify-center">
+              <Logo variant="full" size="xxl" className="brightness-0 invert h-[300px]" />
             </div>
             <p className="text-xl md:text-2xl mb-8">
               Trouvez le meilleur réparateur près de chez vous
