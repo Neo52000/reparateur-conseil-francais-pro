@@ -4,15 +4,23 @@ import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { Repairer } from '@/types/repairer';
 import { useMapStore } from '@/stores/mapStore';
+import SubscriptionBadge from './SubscriptionBadge';
 
 interface RepairerMarkerProps {
   repairer: Repairer;
+  subscriptionTier?: string;
 }
 
-// Custom marker icon
-const createMarkerIcon = () => {
+// Custom marker icon with subscription indicator
+const createMarkerIcon = (subscriptionTier?: string) => {
+  const hasSubscription = subscriptionTier && subscriptionTier !== 'free';
+  const emoji = hasSubscription ? '💎' : '📱';
+  
   return L.divIcon({
-    html: '📱',
+    html: `<div style="position: relative;">
+      <span style="font-size: 24px;">${emoji}</span>
+      ${hasSubscription ? '<div style="position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #10b981; border-radius: 50%; border: 1px solid white;"></div>' : ''}
+    </div>`,
     className: 'custom-leaflet-marker',
     iconSize: [32, 32],
     iconAnchor: [16, 16],
@@ -20,7 +28,7 @@ const createMarkerIcon = () => {
   });
 };
 
-const RepairerMarker: React.FC<RepairerMarkerProps> = React.memo(({ repairer }) => {
+const RepairerMarker: React.FC<RepairerMarkerProps> = React.memo(({ repairer, subscriptionTier = 'free' }) => {
   const setSelectedRepairer = useMapStore(state => state.setSelectedRepairer);
 
   if (!repairer.lat || !repairer.lng) return null;
@@ -35,14 +43,20 @@ const RepairerMarker: React.FC<RepairerMarkerProps> = React.memo(({ repairer }) 
   return (
     <Marker
       position={[repairer.lat, repairer.lng]}
-      icon={createMarkerIcon()}
+      icon={createMarkerIcon(subscriptionTier)}
       eventHandlers={{
         click: handleMarkerClick,
       }}
     >
       <Popup maxWidth={320} closeButton={true}>
         <div className="p-4 min-w-[280px]">
-          <h3 className="font-semibold text-lg mb-2">{repairer.name}</h3>
+          <div className="flex items-start justify-between mb-2">
+            <h3 className="font-semibold text-lg">{repairer.name}</h3>
+            {subscriptionTier && subscriptionTier !== 'free' && (
+              <SubscriptionBadge tier={subscriptionTier} size="sm" />
+            )}
+          </div>
+          
           <p className="text-sm text-gray-600 mb-3">{repairer.address}, {repairer.city}</p>
           
           {repairer.rating && (
@@ -58,6 +72,12 @@ const RepairerMarker: React.FC<RepairerMarkerProps> = React.memo(({ repairer }) 
             {repairer.response_time && <p><strong>Temps de réponse:</strong> {repairer.response_time}</p>}
             {repairer.phone && <p><strong>Téléphone:</strong> {repairer.phone}</p>}
           </div>
+          
+          {subscriptionTier && subscriptionTier !== 'free' && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <p className="text-xs text-gray-500">✓ Professionnel vérifié</p>
+            </div>
+          )}
         </div>
       </Popup>
     </Marker>

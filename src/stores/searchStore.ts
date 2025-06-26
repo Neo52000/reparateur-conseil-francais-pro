@@ -1,83 +1,87 @@
 
 import { create } from 'zustand';
 
-interface SearchFilters {
-  searchTerm?: string;
-  city?: string;
-  postalCode?: string;
-  location?: string;
-  minRating?: number;
+export interface SearchFilters {
+  searchTerm: string;
+  city: string;
+  postalCode: string;
   services?: string[];
   priceRange?: string;
+  distance?: number;
+  minRating?: number;
+  openNow?: boolean;
+  fastResponse?: boolean;
 }
 
 interface SearchState {
+  searchMode: 'quick' | 'map';
   filters: SearchFilters;
   isSearchActive: boolean;
   resultsCount: number;
-  searchMode: 'quick' | 'map';
   
   // Actions
+  setSearchMode: (mode: 'quick' | 'map') => void;
   setSearchTerm: (term: string) => void;
-  setLocation: (location: string) => void;
   setCityPostal: (city: string, postalCode: string) => void;
   setFilters: (filters: Partial<SearchFilters>) => void;
   performSearch: () => void;
   clearSearch: () => void;
   setResultsCount: (count: number) => void;
-  setSearchMode: (mode: 'quick' | 'map') => void;
 }
 
 export const useSearchStore = create<SearchState>((set, get) => ({
-  filters: {},
-  isSearchActive: false,
+  searchMode: 'map', // Mode carte par défaut
+  filters: {
+    searchTerm: '',
+    city: '',
+    postalCode: ''
+  },
+  isSearchActive: true, // Actif par défaut pour afficher la carte
   resultsCount: 0,
-  searchMode: 'quick', // Mode par défaut
   
-  setSearchTerm: (searchTerm) => 
-    set((state) => ({ 
-      filters: { 
-        ...state.filters, 
-        searchTerm,
-        // Convertir le searchTerm en services si c'est pertinent
-        services: searchTerm && searchTerm.trim() !== '' ? [searchTerm.trim()] : undefined
-      } 
-    })),
-    
-  setLocation: (location) => 
-    set((state) => ({ 
-      filters: { ...state.filters, location } 
-    })),
-    
-  setCityPostal: (city, postalCode) => 
-    set((state) => ({ 
-      filters: { 
-        ...state.filters, 
-        city: city || undefined, 
-        postalCode: postalCode || undefined 
-      } 
-    })),
-    
-  setFilters: (newFilters) => 
-    set((state) => ({ 
-      filters: { ...state.filters, ...newFilters } 
-    })),
-    
-  performSearch: () => {
-    set({ isSearchActive: true });
-    console.log('Recherche effectuée avec les filtres:', get().filters);
+  setSearchMode: (mode) => {
+    set({ searchMode: mode });
+    // Activer automatiquement la recherche quand on change de mode
+    if (mode === 'map') {
+      set({ isSearchActive: true });
+    }
   },
   
-  clearSearch: () => 
-    set({ 
-      filters: {}, 
-      isSearchActive: false, 
-      resultsCount: 0 
-    }),
-    
-  setResultsCount: (resultsCount) => 
-    set({ resultsCount }),
-
-  setSearchMode: (searchMode) => 
-    set({ searchMode }),
+  setSearchTerm: (term) => {
+    set((state) => ({
+      filters: { ...state.filters, searchTerm: term }
+    }));
+  },
+  
+  setCityPostal: (city, postalCode) => {
+    set((state) => ({
+      filters: { ...state.filters, city, postalCode }
+    }));
+  },
+  
+  setFilters: (newFilters) => {
+    set((state) => ({
+      filters: { ...state.filters, ...newFilters }
+    }));
+  },
+  
+  performSearch: () => {
+    set({ isSearchActive: true });
+  },
+  
+  clearSearch: () => {
+    set({
+      filters: {
+        searchTerm: '',
+        city: '',
+        postalCode: ''
+      },
+      isSearchActive: true, // Garder la carte active même après reset
+      resultsCount: 0
+    });
+  },
+  
+  setResultsCount: (count) => {
+    set({ resultsCount: count });
+  }
 }));

@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { MapContainer as LeafletMapContainer, TileLayer } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { useMapStore } from '@/stores/mapStore';
+import { useRepairerSubscriptions } from '@/hooks/useRepairerSubscriptions';
 import RepairerMarker from './RepairerMarker';
 import UserLocationMarker from './UserLocationMarker';
 import MapController from './MapController';
@@ -19,6 +20,7 @@ L.Icon.Default.mergeOptions({
 
 const RepairersMapContainer: React.FC = () => {
   const { center, zoom, repairers } = useMapStore();
+  const { getSubscriptionTier } = useRepairerSubscriptions();
 
   return (
     <div className="w-full h-[400px] bg-gray-100 rounded-lg relative">
@@ -44,7 +46,11 @@ const RepairersMapContainer: React.FC = () => {
           removeOutsideVisibleBounds={true}
         >
           {repairers.map((repairer) => (
-            <RepairerMarker key={repairer.id} repairer={repairer} />
+            <RepairerMarker 
+              key={repairer.id} 
+              repairer={repairer}
+              subscriptionTier={getSubscriptionTier(repairer.id)}
+            />
           ))}
         </MarkerClusterGroup>
       </LeafletMapContainer>
