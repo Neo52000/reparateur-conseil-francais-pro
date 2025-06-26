@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash, Smartphone } from 'lucide-react';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useToast } from '@/hooks/use-toast';
-import type { DeviceModel } from '@/types/catalog';
+import type { DeviceModel, DeviceModelFormData, SCREEN_TYPES } from '@/types/catalog';
 
 const DeviceModelsManagement = () => {
   const { 
@@ -27,7 +26,7 @@ const DeviceModelsManagement = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingModel, setEditingModel] = useState<DeviceModel | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<DeviceModelFormData>({
     device_type_id: '',
     brand_id: '',
     model_name: '',
@@ -61,14 +60,7 @@ const DeviceModelsManagement = () => {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const modelData = {
-        ...formData,
-        screen_size: formData.screen_size ? parseFloat(formData.screen_size) : undefined,
-        battery_capacity: formData.battery_capacity ? parseInt(formData.battery_capacity) : undefined,
-        release_date: formData.release_date || undefined
-      };
-      
-      await createDeviceModel(modelData);
+      await createDeviceModel(formData);
       toast({
         title: "Modèle créé",
         description: `Le modèle ${formData.model_name} a été créé avec succès.`
@@ -89,14 +81,7 @@ const DeviceModelsManagement = () => {
     if (!editingModel) return;
     
     try {
-      const modelData = {
-        ...formData,
-        screen_size: formData.screen_size ? parseFloat(formData.screen_size) : undefined,
-        battery_capacity: formData.battery_capacity ? parseInt(formData.battery_capacity) : undefined,
-        release_date: formData.release_date || undefined
-      };
-      
-      await updateDeviceModel(editingModel.id, modelData);
+      await updateDeviceModel(editingModel.id, formData);
       toast({
         title: "Modèle modifié",
         description: `Le modèle ${formData.model_name} a été modifié avec succès.`
@@ -152,6 +137,8 @@ const DeviceModelsManagement = () => {
     return <div className="flex justify-center p-8">Chargement...</div>;
   }
 
+  const screenTypes = ['LCD', 'OLED', 'AMOLED', 'Super AMOLED', 'IPS', 'E-Ink', 'LED'];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -168,6 +155,7 @@ const DeviceModelsManagement = () => {
               <DialogTitle>Créer un nouveau modèle</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4 max-h-96 overflow-y-auto">
+              
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Type d'appareil</Label>
@@ -257,14 +245,28 @@ const DeviceModelsManagement = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="battery_capacity">Batterie (mAh)</Label>
-                  <Input
-                    id="battery_capacity"
-                    type="number"
-                    value={formData.battery_capacity}
-                    onChange={(e) => setFormData({ ...formData, battery_capacity: e.target.value })}
-                  />
+                  <Label>Type d'écran</Label>
+                  <Select value={formData.screen_type} onValueChange={(value) => setFormData({ ...formData, screen_type: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Type d'écran" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {screenTypes.map((type) => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="battery_capacity">Batterie (mAh)</Label>
+                <Input
+                  id="battery_capacity"
+                  type="number"
+                  value={formData.battery_capacity}
+                  onChange={(e) => setFormData({ ...formData, battery_capacity: e.target.value })}
+                />
               </div>
 
               <div className="flex justify-end space-x-2 pt-4">
@@ -278,6 +280,7 @@ const DeviceModelsManagement = () => {
         </Dialog>
       </div>
 
+      
       <div className="border rounded-lg">
         <Table>
           <TableHeader>
@@ -356,7 +359,7 @@ const DeviceModelsManagement = () => {
             <DialogTitle>Modifier le modèle</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleEdit} className="space-y-4 max-h-96 overflow-y-auto">
-            {/* ... similar form fields as create dialog ... */}
+            
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Type d'appareil</Label>

@@ -23,7 +23,7 @@ export interface DeviceModel {
   release_date?: string;
   screen_size?: number;
   screen_resolution?: string;
-  screen_type?: 'LCD' | 'OLED' | 'AMOLED' | 'Super AMOLED' | 'IPS' | 'E-Ink' | 'LED';
+  screen_type?: string; // Changé pour accepter n'importe quelle string
   battery_capacity?: number;
   storage_options?: string[];
   colors?: string[];
@@ -57,7 +57,7 @@ export interface RepairType {
   category_id: string;
   name: string;
   description?: string;
-  difficulty_level: 'Facile' | 'Moyen' | 'Difficile' | 'Expert';
+  difficulty_level: string; // Changé pour accepter n'importe quelle string
   estimated_time_minutes?: number;
   warranty_days: number;
   is_active: boolean;
@@ -98,3 +98,25 @@ export interface SparePart {
   is_active: boolean;
   created_at: string;
 }
+
+// Types pour les formulaires avec validation
+export interface DeviceModelFormData {
+  device_type_id: string;
+  brand_id: string;
+  model_name: string;
+  model_number: string;
+  release_date: string;
+  screen_size: string;
+  screen_resolution: string;
+  screen_type: string;
+  battery_capacity: string;
+  operating_system: string;
+  is_active: boolean;
+}
+
+// Types constants pour validation
+export const SCREEN_TYPES = ['LCD', 'OLED', 'AMOLED', 'Super AMOLED', 'IPS', 'E-Ink', 'LED'] as const;
+export const DIFFICULTY_LEVELS = ['Facile', 'Moyen', 'Difficile', 'Expert'] as const;
+
+export type ScreenType = typeof SCREEN_TYPES[number];
+export type DifficultyLevel = typeof DIFFICULTY_LEVELS[number];

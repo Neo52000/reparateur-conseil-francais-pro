@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { DeviceType, Brand, DeviceModel, RepairCategory, RepairType, RepairPrice } from '@/types/catalog';
+import type { DeviceType, Brand, DeviceModel, RepairCategory, RepairType, RepairPrice, DeviceModelFormData } from '@/types/catalog';
 
 export const useCatalog = () => {
   const [loading, setLoading] = useState(false);
@@ -64,7 +64,16 @@ export const useCatalog = () => {
         .order('model_name');
       
       if (error) throw error;
-      setDeviceModels(data || []);
+      // Conversion des types pour compatibility
+      const modelsWithCorrectTypes = (data || []).map(model => ({
+        ...model,
+        storage_options: Array.isArray(model.storage_options) ? model.storage_options : [],
+        colors: Array.isArray(model.colors) ? model.colors : [],
+        connectivity: Array.isArray(model.connectivity) ? model.connectivity : [],
+        special_features: Array.isArray(model.special_features) ? model.special_features : [],
+      })) as DeviceModel[];
+      
+      setDeviceModels(modelsWithCorrectTypes);
     } catch (err) {
       console.error('Error fetching device models:', err);
       setError('Erreur lors du chargement des modèles');
@@ -172,11 +181,25 @@ export const useCatalog = () => {
     }
   };
 
-  const createDeviceModel = async (model: Omit<DeviceModel, 'id' | 'created_at' | 'updated_at' | 'device_type' | 'brand'>) => {
+  const createDeviceModel = async (modelData: DeviceModelFormData) => {
     try {
+      const processedData = {
+        device_type_id: modelData.device_type_id,
+        brand_id: modelData.brand_id,
+        model_name: modelData.model_name,
+        model_number: modelData.model_number || null,
+        release_date: modelData.release_date || null,
+        screen_size: modelData.screen_size ? parseFloat(modelData.screen_size) : null,
+        screen_resolution: modelData.screen_resolution || null,
+        screen_type: modelData.screen_type || null,
+        battery_capacity: modelData.battery_capacity ? parseInt(modelData.battery_capacity) : null,
+        operating_system: modelData.operating_system || null,
+        is_active: modelData.is_active
+      };
+      
       const { data, error } = await supabase
         .from('device_models')
-        .insert([model])
+        .insert([processedData])
         .select()
         .single();
       
@@ -189,11 +212,26 @@ export const useCatalog = () => {
     }
   };
 
-  const updateDeviceModel = async (id: string, updates: Partial<DeviceModel>) => {
+  const updateDeviceModel = async (id: string, modelData: DeviceModelFormData) => {
     try {
+      const processedData = {
+        device_type_id: modelData.device_type_id,
+        brand_id: modelData.brand_id,
+        model_name: modelData.model_name,
+        model_number: modelData.model_number || null,
+        release_date: modelData.release_date || null,
+        screen_size: modelData.screen_size ? parseFloat(modelData.screen_size) : null,
+        screen_resolution: modelData.screen_resolution || null,
+        screen_type: modelData.screen_type || null,
+        battery_capacity: modelData.battery_capacity ? parseInt(modelData.battery_capacity) : null,
+        operating_system: modelData.operating_system || null,
+        is_active: modelData.is_active,
+        updated_at: new Date().toISOString()
+      };
+      
       const { data, error } = await supabase
         .from('device_models')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update(processedData)
         .eq('id', id)
         .select()
         .single();
