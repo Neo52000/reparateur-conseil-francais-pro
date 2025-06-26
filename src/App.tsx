@@ -6,6 +6,11 @@ import AdminPage from '@/pages/AdminPage';
 import AdminFeaturesPage from '@/pages/AdminFeaturesPage';
 import AdminCatalogPage from '@/pages/AdminCatalogPage';
 import RepairersManagementPage from '@/pages/RepairersManagementPage';
+import ClientAuth from '@/pages/ClientAuth';
+import ClientDashboardPage from '@/pages/ClientDashboardPage';
+import RepairerAuth from '@/pages/RepairerAuth';
+import RepairerDashboardPage from '@/pages/RepairerDashboardPage';
+import RepairerPlans from '@/pages/RepairerPlans';
 import { Toaster } from '@/components/ui/toaster';
 
 const queryClient = new QueryClient();
@@ -21,6 +26,11 @@ function App() {
             <Route path="/admin/features" element={<AdminFeaturesPage />} />
             <Route path="/admin/catalog" element={<AdminCatalogPage />} />
             <Route path="/admin/repairers" element={<RepairersManagementPage />} />
+            <Route path="/client/auth" element={<ClientAuth />} />
+            <Route path="/client" element={<ClientDashboardPage />} />
+            <Route path="/repairer/auth" element={<RepairerAuth />} />
+            <Route path="/repairer" element={<RepairerDashboardPage />} />
+            <Route path="/repairer/plans" element={<RepairerPlans />} />
           </Routes>
           <Toaster />
         </div>
