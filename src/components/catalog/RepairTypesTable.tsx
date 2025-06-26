@@ -46,6 +46,14 @@ const RepairTypesTable: React.FC<RepairTypesTableProps> = ({
     return `${Math.floor(days / 365)} an${Math.floor(days / 365) > 1 ? 's' : ''}`;
   };
 
+  if (repairTypes.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Aucun type de réparation trouvé</p>
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -66,7 +74,7 @@ const RepairTypesTable: React.FC<RepairTypesTableProps> = ({
             <TableRow key={repairType.id}>
               <TableCell>
                 <div className="font-medium text-sm">
-                  {repairType.category?.name}
+                  {repairType.category?.name || 'N/A'}
                 </div>
               </TableCell>
               <TableCell>

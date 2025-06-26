@@ -30,8 +30,8 @@ const RepairTypesManagement = () => {
   const filteredRepairTypes = repairTypes.filter(repairType => {
     const matchesSearch = repairType.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (repairType.description && repairType.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = !selectedCategory || repairType.category_id === selectedCategory;
-    const matchesDifficulty = !selectedDifficulty || repairType.difficulty_level === selectedDifficulty;
+    const matchesCategory = !selectedCategory || selectedCategory === 'all' || repairType.category_id === selectedCategory;
+    const matchesDifficulty = !selectedDifficulty || selectedDifficulty === 'all' || repairType.difficulty_level === selectedDifficulty;
     
     return matchesSearch && matchesCategory && matchesDifficulty;
   });
@@ -50,6 +50,7 @@ const RepairTypesManagement = () => {
           description: 'Le type de réparation a été supprimé avec succès.',
         });
       } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
         toast({
           title: 'Erreur',
           description: 'Impossible de supprimer le type de réparation.',
@@ -77,6 +78,7 @@ const RepairTypesManagement = () => {
       setIsDialogOpen(false);
       setEditingRepairType(null);
     } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
       toast({
         title: 'Erreur',
         description: 'Une erreur est survenue lors de la sauvegarde.',
@@ -125,7 +127,7 @@ const RepairTypesManagement = () => {
             <SelectValue placeholder="Toutes les catégories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Toutes les catégories</SelectItem>
+            <SelectItem value="all">Toutes les catégories</SelectItem>
             {repairCategories.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 {category.name}
@@ -139,7 +141,7 @@ const RepairTypesManagement = () => {
             <SelectValue placeholder="Toutes les difficultés" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Toutes les difficultés</SelectItem>
+            <SelectItem value="all">Toutes les difficultés</SelectItem>
             <SelectItem value="Facile">Facile</SelectItem>
             <SelectItem value="Moyen">Moyen</SelectItem>
             <SelectItem value="Difficile">Difficile</SelectItem>
