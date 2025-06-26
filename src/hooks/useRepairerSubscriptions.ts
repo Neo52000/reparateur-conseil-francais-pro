@@ -11,10 +11,14 @@ interface RepairerSubscription {
 export const useRepairerSubscriptions = () => {
   const [subscriptions, setSubscriptions] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSubscriptions = async () => {
       try {
+        setLoading(true);
+        setError(null);
+        
         const { data, error } = await supabase
           .from('repairer_subscriptions')
           .select('repairer_id, subscription_tier, subscribed')
@@ -22,6 +26,7 @@ export const useRepairerSubscriptions = () => {
 
         if (error) {
           console.error('Error fetching subscriptions:', error);
+          setError(error.message);
           return;
         }
 
@@ -36,6 +41,8 @@ export const useRepairerSubscriptions = () => {
         setSubscriptions(subscriptionMap);
       } catch (error) {
         console.error('Error in fetchSubscriptions:', error);
+        setError('Erreur de connexion');
+        setSubscriptions({}); // Fallback sûr
       } finally {
         setLoading(false);
       }
@@ -51,6 +58,7 @@ export const useRepairerSubscriptions = () => {
   return {
     subscriptions,
     loading,
+    error,
     getSubscriptionTier
   };
 };

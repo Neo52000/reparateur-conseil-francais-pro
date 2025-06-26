@@ -4,7 +4,6 @@ import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { Repairer } from '@/types/repairer';
 import { useMapStore } from '@/stores/mapStore';
-import SubscriptionBadge from './SubscriptionBadge';
 
 interface RepairerMarkerProps {
   repairer: Repairer;
@@ -31,7 +30,13 @@ const createMarkerIcon = (subscriptionTier?: string) => {
 const RepairerMarker: React.FC<RepairerMarkerProps> = React.memo(({ repairer, subscriptionTier = 'free' }) => {
   const setSelectedRepairer = useMapStore(state => state.setSelectedRepairer);
 
-  if (!repairer.lat || !repairer.lng) return null;
+  // Vérification robuste des coordonnées
+  if (!repairer.lat || !repairer.lng || 
+      typeof repairer.lat !== 'number' || typeof repairer.lng !== 'number' ||
+      isNaN(repairer.lat) || isNaN(repairer.lng)) {
+    console.log('Invalid coordinates for repairer:', repairer.name, repairer.lat, repairer.lng);
+    return null;
+  }
 
   const handleMarkerClick = () => {
     setSelectedRepairer(repairer);
@@ -39,6 +44,21 @@ const RepairerMarker: React.FC<RepairerMarkerProps> = React.memo(({ repairer, su
 
   const displayPrice = repairer.price_range === 'low' ? '€' : 
                      repairer.price_range === 'medium' ? '€€' : '€€€';
+
+  const getBadgeDisplay = (tier: string) => {
+    switch (tier) {
+      case 'basic':
+        return { label: 'Basic', color: 'text-blue-600' };
+      case 'premium':
+        return { label: 'Premium', color: 'text-purple-600' };
+      case 'enterprise':
+        return { label: 'Enterprise', color: 'text-yellow-600' };
+      default:
+        return null;
+    }
+  };
+
+  const badgeInfo = getBadgeDisplay(subscriptionTier);
 
   return (
     <Marker
@@ -52,8 +72,10 @@ const RepairerMarker: React.FC<RepairerMarkerProps> = React.memo(({ repairer, su
         <div className="p-4 min-w-[280px]">
           <div className="flex items-start justify-between mb-2">
             <h3 className="font-semibold text-lg">{repairer.name}</h3>
-            {subscriptionTier && subscriptionTier !== 'free' && (
-              <SubscriptionBadge tier={subscriptionTier} size="sm" />
+            {badgeInfo && (
+              <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 ${badgeInfo.color}`}>
+                {badgeInfo.label}
+              </div>
             )}
           </div>
           

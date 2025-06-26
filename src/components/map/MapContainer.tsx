@@ -20,7 +20,28 @@ L.Icon.Default.mergeOptions({
 
 const RepairersMapContainer: React.FC = () => {
   const { center, zoom, repairers } = useMapStore();
-  const { getSubscriptionTier } = useRepairerSubscriptions();
+  const { getSubscriptionTier, loading: subscriptionsLoading, error: subscriptionsError } = useRepairerSubscriptions();
+
+  // Filtrer les réparateurs avec des coordonnées valides
+  const validRepairers = repairers.filter(repairer => {
+    const hasValidCoordinates = repairer.lat && repairer.lng && 
+                               typeof repairer.lat === 'number' && 
+                               typeof repairer.lng === 'number' &&
+                               !isNaN(repairer.lat) && !isNaN(repairer.lng);
+    
+    if (!hasValidCoordinates) {
+      console.log('Filtering out repairer with invalid coordinates:', repairer.name);
+    }
+    
+    return hasValidCoordinates;
+  });
+
+  console.log('Total repairers:', repairers.length);
+  console.log('Valid repairers with coordinates:', validRepairers.length);
+
+  if (subscriptionsError) {
+    console.warn('Subscriptions error:', subscriptionsError);
+  }
 
   return (
     <div className="w-full h-[400px] bg-gray-100 rounded-lg relative">
@@ -45,15 +66,21 @@ const RepairersMapContainer: React.FC = () => {
           spiderfyOnMaxZoom={true}
           removeOutsideVisibleBounds={true}
         >
-          {repairers.map((repairer) => (
+          {validRepairers.map((repairer) => (
             <RepairerMarker 
               key={repairer.id} 
               repairer={repairer}
-              subscriptionTier={getSubscriptionTier(repairer.id)}
+              subscriptionTier={subscriptionsLoading ? 'free' : getSubscriptionTier(repairer.id)}
             />
           ))}
         </MarkerClusterGroup>
       </LeafletMapContainer>
+      
+      {subscriptionsLoading && (
+        <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded text-xs text-gray-600">
+          Chargement des abonnements...
+        </div>
+      )}
     </div>
   );
 };

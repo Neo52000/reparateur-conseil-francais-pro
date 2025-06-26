@@ -40,7 +40,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
       }
     } else if (searchMode === 'map') {
       // Pour la carte : toujours active, service optionnel
-      console.log('Mode carte activé');
+      console.log('Mode carte activé - service optionnel');
       setSearchTerm(searchTerm);
       setCityPostal(localCity, localPostal);
       performSearch();
@@ -81,11 +81,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 />
               </div>
 
-              {/* Champ de service (optionnel en mode carte) */}
+              {/* Champ de service (optionnel) */}
               <div className="relative">
                 <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
                 <Input
-                  placeholder={searchMode === 'map' ? "Service (optionnel) - ex: écran cassé iPhone 14" : "Rechercher un service (ex: écran cassé iPhone 14)"}
+                  placeholder="Service (optionnel) - ex: écran cassé iPhone 14"
                   value={searchTerm}
                   onChange={(e) => {
                     console.log('Service input changed:', e.target.value);
@@ -123,7 +123,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 {searchMode === 'quick' ? (
                   <p>🔍 Saisissez un service et une localisation pour lancer la recherche</p>
                 ) : (
-                  <p>🗺️ Explorez la carte géolocalisée des réparateurs - Ajoutez un service pour filtrer</p>
+                  <p>🗺️ Carte géolocalisée active - Ajoutez un service pour filtrer les résultats</p>
                 )}
               </div>
             </div>

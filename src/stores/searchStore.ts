@@ -30,18 +30,18 @@ interface SearchState {
 }
 
 export const useSearchStore = create<SearchState>((set, get) => ({
-  searchMode: 'map', // Mode carte par défaut
+  searchMode: 'map', // Mode carte par défaut comme demandé
   filters: {
     searchTerm: '',
     city: '',
     postalCode: ''
   },
-  isSearchActive: true, // Actif par défaut pour afficher la carte
+  isSearchActive: true, // Carte active par défaut
   resultsCount: 0,
   
   setSearchMode: (mode) => {
     set({ searchMode: mode });
-    // Activer automatiquement la recherche quand on change de mode
+    // Activer automatiquement la recherche en mode carte
     if (mode === 'map') {
       set({ isSearchActive: true });
     }
@@ -76,7 +76,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
         city: '',
         postalCode: ''
       },
-      isSearchActive: true, // Garder la carte active même après reset
+      isSearchActive: true, // Garder la carte active
       resultsCount: 0
     });
   },
