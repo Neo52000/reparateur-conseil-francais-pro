@@ -5,7 +5,6 @@ import HeroSection from '@/components/sections/HeroSection';
 import QuickStatsSection from '@/components/sections/QuickStatsSection';
 import MainMapSection from '@/components/sections/MainMapSection';
 import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
-import SearchModeToggle from '@/components/SearchModeToggle';
 import Footer from '@/components/Footer';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
 import { useSearchStore } from '@/stores/searchStore';
@@ -20,10 +19,8 @@ const Index = () => {
     filters, 
     isSearchActive, 
     searchMode, 
-    setSearchMode, 
     performSearch, 
     setSearchTerm: setStoreSearchTerm, 
-    setCityPostal,
     clearSearch
   } = useSearchStore();
 
@@ -65,7 +62,7 @@ const Index = () => {
     performSearch();
     
     toast({
-      title: "Recherche rapide lancée",
+      title: "Recherche lancée",
       description: `Service : ${serviceText} / Localisation : ${locationText}`,
     });
 
@@ -106,7 +103,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-      {/* Hero Section avec image pleine largeur et recherche dessus */}
+      {/* Hero Section avec recherche intégrée */}
       <HeroSection
         searchTerm={searchTerm}
         selectedLocation={selectedLocation}
@@ -119,17 +116,9 @@ const Index = () => {
         {/* Quick Stats */}
         <QuickStatsSection />
 
-        {/* Sélecteur de mode de recherche compact */}
-        {!isSearchActive && (
-          <SearchModeToggle
-            selectedMode={searchMode}
-            onModeChange={setSearchMode}
-          />
-        )}
-
         {/* Indicateur de recherche active */}
         {isSearchActive && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg animate-fade-in">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-blue-900">
@@ -144,7 +133,7 @@ const Index = () => {
               </div>
               <button 
                 onClick={handleResetSearch}
-                className="text-blue-600 hover:text-blue-800 underline font-medium"
+                className="text-blue-600 hover:text-blue-800 underline font-medium transition-colors"
               >
                 Réinitialiser
               </button>

@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Logo from '@/components/Logo';
 import SearchModeModal from '@/components/SearchModeModal';
+import SearchModeToggle from '@/components/SearchModeToggle';
+import { useSearchStore } from '@/stores/searchStore';
 
 interface HeroSectionProps {
   searchTerm: string;
@@ -22,6 +24,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   onQuickSearch
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { searchMode, setSearchMode } = useSearchStore();
 
   const handleSearchClick = () => {
     setIsModalOpen(true);
@@ -66,6 +69,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                     onSearchTermChange(e.target.value);
                   }}
                   className="pl-10 bg-white text-gray-900 border border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Mode de recherche repositionné ici */}
+              <div className="py-2">
+                <SearchModeToggle
+                  selectedMode={searchMode}
+                  onModeChange={setSearchMode}
                 />
               </div>
               

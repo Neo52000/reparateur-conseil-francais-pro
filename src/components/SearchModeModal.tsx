@@ -24,22 +24,39 @@ const SearchModeModal: React.FC<SearchModeModalProps> = ({
   const [localPostal, setLocalPostal] = useState('');
   const [isValidLocation, setIsValidLocation] = useState(false);
   
-  const { setSearchTerm, setCityPostal, performSearch, setSearchMode } = useSearchStore();
+  const { setSearchTerm, setCityPostal, performSearch, setSearchMode, searchMode } = useSearchStore();
 
   const handleModeSelect = (mode: 'quick' | 'map') => {
-    setSelectedMode(mode);
-    setSearchMode(mode);
+    console.log('Mode sélectionné:', mode);
     
     if (mode === 'map') {
       // Mode carte : fermer la modal et effectuer la recherche
+      setSearchMode('map');
       setSearchTerm(searchTerm);
       performSearch();
       onQuickSearch();
       onClose();
+    } else {
+      // Mode rapide : afficher le formulaire de localisation
+      setSelectedMode(mode);
+      setSearchMode('quick');
     }
   };
 
   const handleQuickSearch = () => {
+    console.log('Recherche rapide avec:', { 
+      searchTerm, 
+      localCity, 
+      localPostal, 
+      isValidLocation 
+    });
+
+    // Vérifier qu'on a au moins une localisation
+    if (!localCity.trim() && !localPostal.trim()) {
+      console.log('Aucune localisation fournie');
+      return;
+    }
+    
     // Mettre à jour le store avec les critères de recherche
     setSearchTerm(searchTerm);
     setCityPostal(localCity, localPostal);
@@ -54,8 +71,14 @@ const SearchModeModal: React.FC<SearchModeModalProps> = ({
 
   const handleClose = () => {
     setSelectedMode(null);
+    setLocalCity('');
+    setLocalPostal('');
+    setIsValidLocation(false);
     onClose();
   };
+
+  // Utiliser le mode du store si aucun mode local n'est sélectionné
+  const currentMode = selectedMode || (searchMode === 'quick' ? 'quick' : null);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -80,7 +103,7 @@ const SearchModeModal: React.FC<SearchModeModalProps> = ({
           )}
 
           {/* Sélection du mode si aucun mode n'est sélectionné */}
-          {!selectedMode && (
+          {!currentMode && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div 
                 className="p-6 border border-gray-200 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all"
@@ -117,7 +140,7 @@ const SearchModeModal: React.FC<SearchModeModalProps> = ({
           )}
 
           {/* Formulaire de recherche rapide */}
-          {selectedMode === 'quick' && (
+          {currentMode === 'quick' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900">Recherche rapide</h3>
@@ -141,6 +164,7 @@ const SearchModeModal: React.FC<SearchModeModalProps> = ({
                     onCityChange={setLocalCity}
                     onPostalCodeChange={setLocalPostal}
                     onValidSelection={({ city, postalCode, isValid }) => {
+                      console.log('Validation de localisation:', { city, postalCode, isValid });
                       setIsValidLocation(isValid);
                       if (isValid) {
                         setLocalCity(city);
@@ -155,6 +179,7 @@ const SearchModeModal: React.FC<SearchModeModalProps> = ({
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white" 
                   size="lg" 
                   onClick={handleQuickSearch}
+                  disabled={!localCity.trim() && !localPostal.trim()}
                 >
                   Rechercher
                 </Button>
