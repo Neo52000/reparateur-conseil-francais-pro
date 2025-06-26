@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
   TrendingUp, 
-  Shield, 
   Users, 
   Zap, 
   HeadphonesIcon, 
@@ -35,19 +34,9 @@ const WhyChooseUsSection: React.FC = () => {
       description: "Recevez les demandes en temps réel et répondez avant vos concurrents"
     },
     {
-      icon: <Shield className="h-8 w-8 text-red-500" />,
-      title: "Paiements sécurisés",
-      description: "Système de paiement intégré avec protection anti-fraude et garantie de paiement"
-    },
-    {
       icon: <HeadphonesIcon className="h-8 w-8 text-indigo-500" />,
       title: "Support dédié 7j/7",
       description: "Une équipe dédiée vous accompagne pour optimiser votre profil et vos performances"
-    },
-    {
-      icon: <Clock className="h-8 w-8 text-teal-500" />,
-      title: "Gestion simplifiée",
-      description: "Planning intégré, facturation automatique et suivi des réparations en un clic"
     },
     {
       icon: <Star className="h-8 w-8 text-orange-500" />,
@@ -69,7 +58,7 @@ const WhyChooseUsSection: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {benefits.map((benefit, index) => (
             <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow h-full">
               <CardContent className="p-6 text-center h-full flex flex-col">

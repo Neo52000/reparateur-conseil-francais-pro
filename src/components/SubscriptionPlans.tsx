@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Check, Star, Zap, Crown, ArrowLeft, Phone, MessageCircle } from 'lucide-react';
+import { Check, Star, Zap, Crown, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
@@ -137,50 +138,6 @@ const SubscriptionPlans = ({
     return planName.toLowerCase() === currentPlan;
   };
 
-  const renderPlanButton = (plan: Plan) => {
-    const isCurrentPlan = isCurrentUserPlan(plan.name);
-    const isFree = plan.price_monthly === 0;
-    
-    return (
-      <div className="space-y-2">
-        <Button
-          className="w-full"
-          variant={plan.name === 'Premium' && !isCurrentPlan ? 'default' : 'outline'}
-          onClick={() => handleSubscribe(plan.id)}
-          disabled={loading || isCurrentPlan}
-        >
-          {getButtonText(plan.name, plan.price_monthly)}
-        </Button>
-        
-        {!isFree && !isCurrentPlan && (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 bg-green-50 border-green-300 text-green-700 hover:bg-green-100"
-              onClick={() => setIsContactModalOpen(true)}
-            >
-              <Phone className="h-4 w-4 mr-1" />
-              Conseiller
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100"
-              onClick={() => {
-                const message = encodeURIComponent(`Bonjour, je m'intéresse au plan ${plan.name}. Pouvez-vous me donner plus d'informations ?`);
-                window.open(`https://wa.me/33123456789?text=${message}`, '_blank');
-              }}
-            >
-              <MessageCircle className="h-4 w-4 mr-1" />
-              WhatsApp
-            </Button>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-white">
       {/* Section héro */}
@@ -294,7 +251,14 @@ const SubscriptionPlans = ({
                     ))}
                   </ul>
 
-                  {renderPlanButton(plan)}
+                  <Button
+                    className="w-full"
+                    variant={plan.name === 'Premium' && !isCurrentUserPlan(plan.name) ? 'default' : 'outline'}
+                    onClick={() => handleSubscribe(plan.id)}
+                    disabled={loading || isCurrentUserPlan(plan.name)}
+                  >
+                    {getButtonText(plan.name, plan.price_monthly)}
+                  </Button>
                 </CardContent>
               </Card>
             ))}
