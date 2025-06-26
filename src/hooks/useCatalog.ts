@@ -1,326 +1,34 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import type { DeviceType, Brand, DeviceModel, RepairCategory, RepairType, RepairPrice, DeviceModelFormData } from '@/types/catalog';
+import { useDeviceTypes } from './catalog/useDeviceTypes';
+import { useBrands } from './catalog/useBrands';
+import { useDeviceModels } from './catalog/useDeviceModels';
+import { useRepairTypes } from './catalog/useRepairTypes';
 
 export const useCatalog = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const deviceTypesHook = useDeviceTypes();
+  const brandsHook = useBrands();
+  const deviceModelsHook = useDeviceModels();
+  const repairTypesHook = useRepairTypes();
 
-  // Device Types
-  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
-  
-  // Brands
-  const [brands, setBrands] = useState<Brand[]>([]);
-  
-  // Device Models
-  const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([]);
-  
-  // Repair Categories
-  const [repairCategories, setRepairCategories] = useState<RepairCategory[]>([]);
-  
-  // Repair Types
-  const [repairTypes, setRepairTypes] = useState<RepairType[]>([]);
-
-  const fetchDeviceTypes = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('device_types')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      setDeviceTypes(data || []);
-    } catch (err) {
-      console.error('Error fetching device types:', err);
-      setError('Erreur lors du chargement des types d\'appareils');
-    }
-  };
-
-  const fetchBrands = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('brands')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      setBrands(data || []);
-    } catch (err) {
-      console.error('Error fetching brands:', err);
-      setError('Erreur lors du chargement des marques');
-    }
-  };
-
-  const fetchDeviceModels = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('device_models')
-        .select(`
-          *,
-          device_type:device_types(*),
-          brand:brands(*)
-        `)
-        .order('model_name');
-      
-      if (error) throw error;
-      // Conversion des types pour compatibility
-      const modelsWithCorrectTypes = (data || []).map(model => ({
-        ...model,
-        storage_options: Array.isArray(model.storage_options) ? model.storage_options : [],
-        colors: Array.isArray(model.colors) ? model.colors : [],
-        connectivity: Array.isArray(model.connectivity) ? model.connectivity : [],
-        special_features: Array.isArray(model.special_features) ? model.special_features : [],
-      })) as DeviceModel[];
-      
-      setDeviceModels(modelsWithCorrectTypes);
-    } catch (err) {
-      console.error('Error fetching device models:', err);
-      setError('Erreur lors du chargement des modèles');
-    }
-  };
-
-  const fetchRepairCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('repair_categories')
-        .select('*')
-        .order('display_order', { ascending: true });
-      
-      if (error) throw error;
-      setRepairCategories(data || []);
-    } catch (err) {
-      console.error('Error fetching repair categories:', err);
-      setError('Erreur lors du chargement des catégories de réparation');
-    }
-  };
-
-  const fetchRepairTypes = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('repair_types')
-        .select(`
-          *,
-          category:repair_categories(*)
-        `)
-        .order('name');
-      
-      if (error) throw error;
-      setRepairTypes(data || []);
-    } catch (err) {
-      console.error('Error fetching repair types:', err);
-      setError('Erreur lors du chargement des types de réparation');
-    }
-  };
+  const loading = deviceTypesHook.loading || brandsHook.loading || deviceModelsHook.loading || repairTypesHook.loading;
+  const error = deviceTypesHook.error || brandsHook.error || deviceModelsHook.error || repairTypesHook.error;
 
   const fetchAllData = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      await Promise.all([
-        fetchDeviceTypes(),
-        fetchBrands(),
-        fetchDeviceModels(),
-        fetchRepairCategories(),
-        fetchRepairTypes()
-      ]);
-    } finally {
-      setLoading(false);
-    }
+    await Promise.all([
+      deviceTypesHook.refetch(),
+      brandsHook.refetch(),
+      deviceModelsHook.refetch(),
+      repairTypesHook.refetch()
+    ]);
   };
-
-  // CRUD Operations
-  const createBrand = async (brand: Omit<Brand, 'id' | 'created_at'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('brands')
-        .insert([brand])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      await fetchBrands();
-      return data;
-    } catch (err) {
-      console.error('Error creating brand:', err);
-      throw new Error('Erreur lors de la création de la marque');
-    }
-  };
-
-  const updateBrand = async (id: string, updates: Partial<Brand>) => {
-    try {
-      const { data, error } = await supabase
-        .from('brands')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      await fetchBrands();
-      return data;
-    } catch (err) {
-      console.error('Error updating brand:', err);
-      throw new Error('Erreur lors de la mise à jour de la marque');
-    }
-  };
-
-  const deleteBrand = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('brands')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-      await fetchBrands();
-    } catch (err) {
-      console.error('Error deleting brand:', err);
-      throw new Error('Erreur lors de la suppression de la marque');
-    }
-  };
-
-  const createDeviceModel = async (modelData: DeviceModelFormData) => {
-    try {
-      const processedData = {
-        device_type_id: modelData.device_type_id,
-        brand_id: modelData.brand_id,
-        model_name: modelData.model_name,
-        model_number: modelData.model_number || null,
-        release_date: modelData.release_date || null,
-        screen_size: modelData.screen_size ? parseFloat(modelData.screen_size) : null,
-        screen_resolution: modelData.screen_resolution || null,
-        screen_type: modelData.screen_type || null,
-        battery_capacity: modelData.battery_capacity ? parseInt(modelData.battery_capacity) : null,
-        operating_system: modelData.operating_system || null,
-        is_active: modelData.is_active
-      };
-      
-      const { data, error } = await supabase
-        .from('device_models')
-        .insert([processedData])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      await fetchDeviceModels();
-      return data;
-    } catch (err) {
-      console.error('Error creating device model:', err);
-      throw new Error('Erreur lors de la création du modèle');
-    }
-  };
-
-  const updateDeviceModel = async (id: string, modelData: DeviceModelFormData) => {
-    try {
-      const processedData = {
-        device_type_id: modelData.device_type_id,
-        brand_id: modelData.brand_id,
-        model_name: modelData.model_name,
-        model_number: modelData.model_number || null,
-        release_date: modelData.release_date || null,
-        screen_size: modelData.screen_size ? parseFloat(modelData.screen_size) : null,
-        screen_resolution: modelData.screen_resolution || null,
-        screen_type: modelData.screen_type || null,
-        battery_capacity: modelData.battery_capacity ? parseInt(modelData.battery_capacity) : null,
-        operating_system: modelData.operating_system || null,
-        is_active: modelData.is_active,
-        updated_at: new Date().toISOString()
-      };
-      
-      const { data, error } = await supabase
-        .from('device_models')
-        .update(processedData)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      await fetchDeviceModels();
-      return data;
-    } catch (err) {
-      console.error('Error updating device model:', err);
-      throw new Error('Erreur lors de la mise à jour du modèle');
-    }
-  };
-
-  const deleteDeviceModel = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('device_models')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-      await fetchDeviceModels();
-    } catch (err) {
-      console.error('Error deleting device model:', err);
-      throw new Error('Erreur lors de la suppression du modèle');
-    }
-  };
-
-  const createRepairType = async (repairType: Omit<RepairType, 'id' | 'created_at' | 'category'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('repair_types')
-        .insert([repairType])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      await fetchRepairTypes();
-      return data;
-    } catch (err) {
-      console.error('Error creating repair type:', err);
-      throw new Error('Erreur lors de la création du type de réparation');
-    }
-  };
-
-  const updateRepairType = async (id: string, updates: Partial<RepairType>) => {
-    try {
-      const { data, error } = await supabase
-        .from('repair_types')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      await fetchRepairTypes();
-      return data;
-    } catch (err) {
-      console.error('Error updating repair type:', err);
-      throw new Error('Erreur lors de la mise à jour du type de réparation');
-    }
-  };
-
-  const deleteRepairType = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('repair_types')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-      await fetchRepairTypes();
-    } catch (err) {
-      console.error('Error deleting repair type:', err);
-      throw new Error('Erreur lors de la suppression du type de réparation');
-    }
-  };
-
-  useEffect(() => {
-    fetchAllData();
-  }, []);
 
   return {
     // Data
-    deviceTypes,
-    brands,
-    deviceModels,
-    repairCategories,
-    repairTypes,
+    deviceTypes: deviceTypesHook.deviceTypes,
+    brands: brandsHook.brands,
+    deviceModels: deviceModelsHook.deviceModels,
+    repairCategories: repairTypesHook.repairCategories,
+    repairTypes: repairTypesHook.repairTypes,
     
     // State
     loading,
@@ -330,18 +38,18 @@ export const useCatalog = () => {
     fetchAllData,
     
     // Brand CRUD
-    createBrand,
-    updateBrand,
-    deleteBrand,
+    createBrand: brandsHook.createBrand,
+    updateBrand: brandsHook.updateBrand,
+    deleteBrand: brandsHook.deleteBrand,
     
     // Device Model CRUD
-    createDeviceModel,
-    updateDeviceModel,
-    deleteDeviceModel,
+    createDeviceModel: deviceModelsHook.createDeviceModel,
+    updateDeviceModel: deviceModelsHook.updateDeviceModel,
+    deleteDeviceModel: deviceModelsHook.deleteDeviceModel,
     
     // Repair Type CRUD
-    createRepairType,
-    updateRepairType,
-    deleteRepairType
+    createRepairType: repairTypesHook.createRepairType,
+    updateRepairType: repairTypesHook.updateRepairType,
+    deleteRepairType: repairTypesHook.deleteRepairType
   };
 };

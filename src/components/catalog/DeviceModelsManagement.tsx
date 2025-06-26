@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash, Smartphone } from 'lucide-react';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useToast } from '@/hooks/use-toast';
-import type { DeviceModel, DeviceModelFormData, SCREEN_TYPES } from '@/types/catalog';
+import type { DeviceModel, DeviceModelFormData } from '@/types/catalog';
 
 const DeviceModelsManagement = () => {
   const { 
