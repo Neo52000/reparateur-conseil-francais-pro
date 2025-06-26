@@ -8,37 +8,39 @@ interface RepairerSubscription {
   subscribed: boolean;
 }
 
+/**
+ * Hook simplifié pour gérer les abonnements des réparateurs
+ * Retourne un état par défaut en cas d'erreur pour éviter les crashes
+ */
 export const useRepairerSubscriptions = () => {
   const [subscriptions, setSubscriptions] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchSubscriptions = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // Vérifier que Supabase est disponible
-        if (!supabase) {
-          console.warn('Supabase client not available');
-          setSubscriptions({});
-          return;
-        }
-
+        // Tentative de récupération simple
         const { data, error } = await supabase
           .from('repairer_subscriptions')
           .select('repairer_id, subscription_tier, subscribed')
           .eq('subscribed', true);
 
+        if (!isMounted) return;
+
         if (error) {
-          console.error('Error fetching subscriptions:', error);
-          setError(error.message);
-          setSubscriptions({}); // Fallback sûr
+          console.warn('Subscriptions fetch error (non-critical):', error);
+          setSubscriptions({});
+          setError(null); // Ne pas afficher d'erreur à l'utilisateur
           return;
         }
 
-        // Convertir en map pour un accès rapide
+        // Conversion simple en map
         const subscriptionMap: Record<string, string> = {};
         data?.forEach((sub: RepairerSubscription) => {
           if (sub.subscribed && sub.subscription_tier !== 'free') {
@@ -48,24 +50,24 @@ export const useRepairerSubscriptions = () => {
 
         setSubscriptions(subscriptionMap);
       } catch (error) {
-        console.error('Exception in fetchSubscriptions:', error);
-        setError('Erreur de connexion');
-        setSubscriptions({}); // Fallback sûr
+        if (!isMounted) return;
+        console.warn('Subscription service unavailable (non-critical):', error);
+        setSubscriptions({});
+        setError(null);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    // Délai pour éviter les erreurs au démarrage
-    const timer = setTimeout(() => {
-      fetchSubscriptions().catch((error) => {
-        console.error('Failed to fetch subscriptions:', error);
-        setSubscriptions({});
-        setLoading(false);
-      });
-    }, 100);
+    // Délai court pour éviter les appels trop précoces
+    const timer = setTimeout(fetchSubscriptions, 200);
 
-    return () => clearTimeout(timer);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, []);
 
   const getSubscriptionTier = (repairerId: string): string => {
