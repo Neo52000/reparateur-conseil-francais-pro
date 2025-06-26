@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { User, Settings, Crown } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
 
 const CreateDemoRepairerButton = () => {
   const [loading, setLoading] = useState(false);
@@ -14,12 +15,20 @@ const CreateDemoRepairerButton = () => {
     try {
       console.log('🚀 Creating demo repairer...');
       
+      // Obtenir le token d'authentification
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        throw new Error('Vous devez être connecté pour créer un réparateur de démo');
+      }
+
       const response = await fetch(
         'https://nbugpbakfkyvvjzgfjmw.functions.supabase.co/create-demo-repairer',
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
           },
         }
       );
