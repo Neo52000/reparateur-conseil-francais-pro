@@ -11,7 +11,10 @@ import ClientDashboardPage from '@/pages/ClientDashboardPage';
 import RepairerAuth from '@/pages/RepairerAuth';
 import RepairerDashboardPage from '@/pages/RepairerDashboardPage';
 import RepairerPlans from '@/pages/RepairerPlans';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import TermsOfService from '@/pages/TermsOfService';
 import { Toaster } from '@/components/ui/toaster';
+import CookieBanner from '@/components/CookieBanner';
 
 const queryClient = new QueryClient();
 
@@ -31,7 +34,10 @@ function App() {
             <Route path="/repairer/auth" element={<RepairerAuth />} />
             <Route path="/repairer" element={<RepairerDashboardPage />} />
             <Route path="/repairer/plans" element={<RepairerPlans />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
           </Routes>
+          <CookieBanner />
           <Toaster />
         </div>
       </Router>

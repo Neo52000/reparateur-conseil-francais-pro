@@ -14,7 +14,7 @@ const Footer = () => {
   return (
     <footer className="bg-gray-900 text-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo et description */}
           <div>
             <div className="mb-4">
@@ -23,6 +23,31 @@ const Footer = () => {
             <p className="text-gray-300 mb-4">
               Trouvez rapidement un réparateur qualifié près de chez vous. Réparation téléphone, ordinateur, tablette - Devis gratuit et intervention rapide.
             </p>
+          </div>
+
+          {/* Liens légaux */}
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Informations légales</h4>
+            <div className="space-y-2">
+              <Link to="/privacy-policy" className="block text-gray-300 hover:text-white transition-colors">
+                Politique de confidentialité
+              </Link>
+              <Link to="/terms" className="block text-gray-300 hover:text-white transition-colors">
+                Conditions générales d'utilisation
+              </Link>
+              <Link to="/cookies" className="block text-gray-300 hover:text-white transition-colors">
+                Gestion des cookies
+              </Link>
+            </div>
+            
+            <div className="mt-6 pt-4 border-t border-gray-700">
+              <p className="text-xs text-gray-400 mb-2">
+                <strong>TopRéparateurs.fr</strong><br />
+                M REINE Elie<br />
+                10 rue toupot de Beveaux<br />
+                52000 CHAUMONT
+              </p>
+            </div>
           </div>
 
           {/* Contact et réseaux sociaux */}
@@ -46,7 +71,7 @@ const Footer = () => {
 
             {/* Réseaux sociaux */}
             <h4 className="text-lg font-semibold mb-4">Suivez-nous</h4>
-            <div className="flex space-x-4 mb-4">
+            <div className="flex space-x-4">
               <a href="https://facebook.com/topreparateurs.fr" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 transition-colors">
                 <Facebook className="h-6 w-6" />
               </a>
@@ -60,11 +85,6 @@ const Footer = () => {
                 <MessageCircle className="h-6 w-6" />
               </a>
             </div>
-            
-            {/* Copyright déplacé ici */}
-            <p className="text-gray-400 text-sm">
-              © 2024 TopRéparateurs.fr. Tous droits réservés.
-            </p>
           </div>
 
           {/* Espace réparateur et inscription */}
@@ -92,10 +112,16 @@ const Footer = () => {
             </div>
           </div>
         </div>
+
+        {/* Copyright */}
+        <div className="border-t border-gray-700 mt-8 pt-6 text-center">
+          <p className="text-gray-400 text-sm">
+            © 2024 TopRéparateurs.fr. Tous droits réservés.
+          </p>
+        </div>
       </div>
     </footer>
   );
-
 };
 
 export default Footer;

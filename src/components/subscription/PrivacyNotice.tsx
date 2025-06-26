@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Shield, Eye, UserX, Download } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const PrivacyNotice: React.FC = () => {
   return (
@@ -73,13 +74,13 @@ const PrivacyNotice: React.FC = () => {
               </p>
               
               <div className="flex flex-wrap gap-4 text-xs">
-                <a href="/privacy-policy" className="text-blue-600 hover:underline">
+                <Link to="/privacy-policy" className="text-blue-600 hover:underline">
                   📋 Politique de confidentialité complète
-                </a>
-                <a href="/terms" className="text-blue-600 hover:underline">
+                </Link>
+                <Link to="/terms" className="text-blue-600 hover:underline">
                   📜 Conditions générales d'utilisation
-                </a>
-                <a href="/contact" className="text-blue-600 hover:underline">
+                </Link>
+                <a href="mailto:contact@topreparateurs.fr" className="text-blue-600 hover:underline">
                   📧 Contactez notre DPO
                 </a>
               </div>
