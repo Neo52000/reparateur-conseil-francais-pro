@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useUpgradeModal } from '@/hooks/useUpgradeModal';
+import { supabase } from '@/integrations/supabase/client';
 import UpgradeModal from '@/components/UpgradeModal';
 import OverviewTabSection from "./repairer-dashboard/OverviewTabSection";
 import OrdersTabSection from "./repairer-dashboard/OrdersTabSection";
@@ -32,11 +34,47 @@ import ProfileTabSection from "./repairer-dashboard/ProfileTabSection";
 
 const RepairerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [currentPlan, setCurrentPlan] = useState('free');
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   
   // Hook pour gérer le popup d'upgrade
   const { shouldShowModal, isModalOpen, closeModal } = useUpgradeModal(user?.email || null);
+
+  // Récupérer le plan d'abonnement actuel
+  useEffect(() => {
+    const fetchCurrentPlan = async () => {
+      if (!user?.id) return;
+      
+      try {
+        console.log('🔄 RepairerDashboard - Fetching subscription for user:', user.id);
+        
+        const { data, error } = await supabase
+          .from('repairer_subscriptions')
+          .select('subscription_tier, subscribed')
+          .or(`user_id.eq.${user.id},repairer_id.eq.${user.id}`)
+          .eq('subscribed', true)
+          .maybeSingle();
+
+        if (error) {
+          console.error('❌ RepairerDashboard - Error fetching subscription:', error);
+          return;
+        }
+
+        if (data) {
+          console.log('✅ RepairerDashboard - Subscription found:', data);
+          setCurrentPlan(data.subscription_tier || 'free');
+        } else {
+          console.log('⚠️ RepairerDashboard - No active subscription found');
+          setCurrentPlan('free');
+        }
+      } catch (error) {
+        console.error('❌ RepairerDashboard - Exception fetching subscription:', error);
+      }
+    };
+
+    fetchCurrentPlan();
+  }, [user?.id]);
 
   // Données mockées pour la démo
   const repairerData = {
@@ -114,13 +152,38 @@ const RepairerDashboard = () => {
       navigate('/repairer/auth', { replace: true });
     } catch (error) {
       console.error('❌ Logout error:', error);
-      // Force la redirection même en cas d'erreur
       navigate('/repairer/auth', { replace: true });
     }
   };
 
   const handleUpgradePlan = () => {
     navigate('/repairer/plans');
+  };
+
+  const getPlanDisplayName = (plan: string) => {
+    switch (plan) {
+      case 'basic':
+        return 'Basique';
+      case 'premium':
+        return 'Premium';
+      case 'enterprise':
+        return 'Enterprise';
+      default:
+        return 'Gratuit';
+    }
+  };
+
+  const getPlanColor = (plan: string) => {
+    switch (plan) {
+      case 'basic':
+        return 'border-l-blue-500';
+      case 'premium':
+        return 'border-l-purple-500';
+      case 'enterprise':
+        return 'border-l-yellow-500';
+      default:
+        return 'border-l-gray-500';
+    }
   };
 
   return (
@@ -152,22 +215,29 @@ const RepairerDashboard = () => {
         </div>
 
         {/* Plan actuel et bandeau d'upgrade */}
-        <Card className="mb-6 border-l-4 border-l-orange-500">
+        <Card className={`mb-6 border-l-4 ${getPlanColor(currentPlan)}`}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <Crown className="h-6 w-6 text-gray-500" />
                 <div>
-                  <h3 className="font-semibold text-gray-900">Plan actuel : Gratuit</h3>
+                  <h3 className="font-semibold text-gray-900">
+                    Plan actuel : {getPlanDisplayName(currentPlan)}
+                  </h3>
                   <p className="text-sm text-gray-600">
-                    Passez à un plan payant pour accéder à plus de fonctionnalités
+                    {currentPlan === 'free' 
+                      ? 'Passez à un plan payant pour accéder à plus de fonctionnalités'
+                      : 'Vous bénéficiez des fonctionnalités avancées'
+                    }
                   </p>
                 </div>
               </div>
-              <Button onClick={handleUpgradePlan} className="flex items-center gap-2">
-                <ArrowUp className="h-4 w-4" />
-                Changer de plan
-              </Button>
+              {currentPlan === 'free' && (
+                <Button onClick={handleUpgradePlan} className="flex items-center gap-2">
+                  <ArrowUp className="h-4 w-4" />
+                  Changer de plan
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

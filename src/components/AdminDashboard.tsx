@@ -1,79 +1,29 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Heart, Pencil } from 'lucide-react';
+import { Crown, Star, Zap, Users, TrendingUp, RefreshCw, Heart } from 'lucide-react';
 import ScrapingControl from './ScrapingControl';
 import ClientAccessControl from './ClientAccessControl';
 import PromoCodesManagement from './PromoCodesManagement';
 import ClientInterestManagement from './ClientInterestManagement';
 import RepairersTable from './repairers/RepairersTable';
+import SubscriptionsTable from './repairers/SubscriptionsTable';
 import RepairerProfileModal from './RepairerProfileModal';
 import { useRepairersData } from '@/hooks/useRepairersData';
 
-interface SubscriptionData {
-  id: string;
-  repairer_id: string;
-  email: string;
-  subscription_tier: string;
-  billing_cycle: string;
-  subscribed: boolean;
-  subscription_end: string | null;
-  created_at: string;
-  first_name: string | null;
-  last_name: string | null;
-  plan_name: string | null;
-  price_monthly: number | null;
-  price_yearly: number | null;
-}
-
 const AdminDashboard = () => {
   const { subscriptions, repairers, loading, stats, fetchData } = useRepairersData();
-  const [subscriptionsData, setSubscriptionsData] = useState<SubscriptionData[]>([]);
   const [activeTab, setActiveTab] = useState<'subscriptions' | 'repairers' | 'scraping' | 'promocodes' | 'interest'>('subscriptions');
   const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchSubscriptionsData();
-  }, []);
-
-  const fetchSubscriptionsData = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('admin_subscription_overview')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setSubscriptionsData(data || []);
-    } catch (error) {
-      console.error('Error fetching subscriptions:', error);
-    }
-  };
-
   const handleViewProfile = (repairerId: string) => {
     setSelectedRepairerId(repairerId);
     setProfileModalOpen(true);
-  };
-
-  const getTierInfo = (tier: string) => {
-    switch (tier) {
-      case 'free':
-        return { name: 'Gratuit', color: 'bg-gray-100 text-gray-800', icon: null };
-      case 'basic':
-        return { name: 'Basique', color: 'bg-blue-100 text-blue-800', icon: <Star className="h-4 w-4" /> };
-      case 'premium':
-        return { name: 'Premium', color: 'bg-purple-100 text-purple-800', icon: <Zap className="h-4 w-4" /> };
-      case 'enterprise':
-        return { name: 'Enterprise', color: 'bg-yellow-100 text-yellow-800', icon: <Crown className="h-4 w-4" /> };
-      default:
-        return { name: 'Inconnu', color: 'bg-gray-100 text-gray-800', icon: null };
-    }
   };
 
   if (loading) {
@@ -211,77 +161,10 @@ const AdminDashboard = () => {
 
       {/* Content based on active tab */}
       {activeTab === 'subscriptions' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Gestion des Abonnements</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {subscriptionsData.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Aucun abonnement trouvé</p>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Réparateur</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Plan</TableHead>
-                    <TableHead>Facturation</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Fin d'abonnement</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {subscriptionsData.map((subscription) => {
-                    const tierInfo = getTierInfo(subscription.subscription_tier);
-                    return (
-                      <TableRow key={subscription.id}>
-                        <TableCell>
-                          {subscription.first_name || subscription.last_name ? 
-                            `${subscription.first_name || ''} ${subscription.last_name || ''}`.trim() :
-                            subscription.repairer_id
-                          }
-                        </TableCell>
-                        <TableCell>{subscription.email}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            {tierInfo.icon}
-                            <Badge className={tierInfo.color}>
-                              {tierInfo.name}
-                            </Badge>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {subscription.billing_cycle === 'yearly' ? 'Annuelle' : 'Mensuelle'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={subscription.subscribed ? "default" : "secondary"}>
-                            {subscription.subscribed ? 'Actif' : 'Inactif'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {subscription.subscription_end 
-                            ? new Date(subscription.subscription_end).toLocaleDateString()
-                            : 'N/A'
-                          }
-                        </TableCell>
-                        <TableCell>
-                          <Button size="sm" variant="outline">
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+        <SubscriptionsTable 
+          subscriptions={subscriptions}
+          onRefresh={fetchData}
+        />
       )}
 
       {activeTab === 'repairers' && (
