@@ -49,7 +49,9 @@ export const useRepairerCatalog = () => {
         repairer_id: user.id,
         entity_type: entityType,
         entity_id: entityId,
-        ...updates
+        is_active: updates.is_active ?? true,
+        default_margin_percentage: updates.default_margin_percentage,
+        notes: updates.notes
       });
       
       toast({
@@ -78,7 +80,8 @@ export const useRepairerCatalog = () => {
       await RepairerCatalogService.saveBrandSetting({
         repairer_id: user.id,
         brand_id: brandId,
-        ...updates
+        is_active: updates.is_active ?? true,
+        default_margin_percentage: updates.default_margin_percentage
       });
       
       toast({

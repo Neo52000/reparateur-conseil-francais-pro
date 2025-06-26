@@ -13,7 +13,10 @@ export class RepairerCatalogService {
       .eq('repairer_id', repairerId);
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(item => ({
+      ...item,
+      entity_type: item.entity_type as 'brand' | 'device_model' | 'repair_type'
+    }));
   }
 
   /**
@@ -228,7 +231,10 @@ export class RepairerCatalogService {
   ) {
     const operations = updates.map(update => ({
       repairer_id: repairerId,
-      ...update
+      entity_type: update.entity_type,
+      entity_id: update.entity_id,
+      is_active: update.is_active ?? true,
+      default_margin_percentage: update.margin_percentage
     }));
 
     const { data, error } = await supabase

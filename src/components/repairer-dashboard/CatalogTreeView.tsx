@@ -73,7 +73,6 @@ const CatalogTreeView: React.FC<CatalogTreeViewProps> = ({
             onCheckedChange={(checked) => 
               onUpdatePreference('repair_type', price.id, { is_active: checked })
             }
-            size="sm"
           />
           <span className={`text-sm ${!price.is_active ? 'text-gray-400 line-through' : ''}`}>
             {price.name}
@@ -155,7 +154,6 @@ const CatalogTreeView: React.FC<CatalogTreeViewProps> = ({
               onCheckedChange={(checked) => 
                 onUpdatePreference('device_model', model.id, { is_active: checked })
               }
-              size="sm"
             />
             {editingMargin === model.id ? (
               <div className="flex items-center space-x-2">
