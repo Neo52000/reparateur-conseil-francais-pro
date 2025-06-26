@@ -39,15 +39,6 @@ const Footer = () => {
                 Gestion des cookies
               </Link>
             </div>
-            
-            <div className="mt-6 pt-4 border-t border-gray-700">
-              <p className="text-xs text-gray-400 mb-2">
-                <strong>TopRéparateurs.fr</strong><br />
-                M REINE Elie<br />
-                10 rue toupot de Beveaux<br />
-                52000 CHAUMONT
-              </p>
-            </div>
           </div>
 
           {/* Contact et réseaux sociaux */}
@@ -103,9 +94,9 @@ const Footer = () => {
                   Rejoignez notre annuaire et développez votre activité
                 </p>
                 <Link to="/repairer/plans">
-                  <Button className="bg-white text-blue-600 hover:bg-gray-100 font-semibold text-sm">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Inscrivez-vous gratuitement
+                  <Button className="bg-white text-blue-600 hover:bg-gray-100 font-semibold text-xs sm:text-sm w-full">
+                    <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="truncate">Inscrivez-vous gratuitement</span>
                   </Button>
                 </Link>
               </div>
