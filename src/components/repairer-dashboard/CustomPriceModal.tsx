@@ -2,17 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useToast } from '@/hooks/use-toast';
 import type { RepairerCustomPrice, CreateCustomPriceData, UpdateCustomPriceData } from '@/types/repairerPricing';
 import type { RepairPrice } from '@/types/catalog';
+import ProductSelection from './pricing/ProductSelection';
+import PriceConfiguration from './pricing/PriceConfiguration';
 
 interface CustomPriceModalProps {
   isOpen: boolean;
@@ -45,8 +43,6 @@ const CustomPriceModal: React.FC<CustomPriceModalProps> = ({
   const [notes, setNotes] = useState('');
   const [isActive, setIsActive] = useState(true);
 
-  // Filtered data
-  const filteredModels = deviceModels.filter(model => model.brand_id === selectedBrand);
   const selectedBasePrice = basePrices.find(price => 
     price.device_model_id === selectedModel && price.repair_type_id === selectedRepairType
   );
@@ -167,56 +163,18 @@ const CustomPriceModal: React.FC<CustomPriceModalProps> = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Sélection du produit */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="brand">Marque</Label>
-              <Select value={selectedBrand} onValueChange={setSelectedBrand} disabled={!!editingPrice}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner une marque" />
-                </SelectTrigger>
-                <SelectContent>
-                  {brands.map((brand) => (
-                    <SelectItem key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="model">Modèle</Label>
-              <Select value={selectedModel} onValueChange={setSelectedModel} disabled={!!editingPrice || !selectedBrand}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un modèle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredModels.map((model) => (
-                    <SelectItem key={model.id} value={model.id}>
-                      {model.model_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="repairType">Type de réparation</Label>
-            <Select value={selectedRepairType} onValueChange={setSelectedRepairType} disabled={!!editingPrice}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un type de réparation" />
-              </SelectTrigger>
-              <SelectContent>
-                {repairTypes.map((type) => (
-                  <SelectItem key={type.id} value={type.id}>
-                    {type.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <ProductSelection
+            brands={brands}
+            deviceModels={deviceModels}
+            repairTypes={repairTypes}
+            selectedBrand={selectedBrand}
+            selectedModel={selectedModel}
+            selectedRepairType={selectedRepairType}
+            editingPrice={editingPrice}
+            onBrandChange={setSelectedBrand}
+            onModelChange={setSelectedModel}
+            onRepairTypeChange={setSelectedRepairType}
+          />
 
           {/* Prix de référence */}
           {selectedBasePrice && (
@@ -243,81 +201,20 @@ const CustomPriceModal: React.FC<CustomPriceModalProps> = ({
             </div>
           )}
 
-          {/* Type de prix */}
-          <div className="space-y-3">
-            <Label>Type de prix</Label>
-            <RadioGroup value={priceType} onValueChange={(value: 'fixed' | 'starting_from') => setPriceType(value)}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="fixed" id="fixed" />
-                <Label htmlFor="fixed">Prix fixe</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="starting_from" id="starting_from" />
-                <Label htmlFor="starting_from">À partir de</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {/* Prix personnalisé */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="customPrice">
-                Prix {priceType === 'starting_from' ? 'de départ' : 'fixe'} (€)
-              </Label>
-              <Input
-                id="customPrice"
-                type="number"
-                step="0.01"
-                value={customPrice}
-                onChange={(e) => setCustomPrice(e.target.value)}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="margin">Marge (%)</Label>
-              <div className="flex space-x-2">
-                <Input
-                  id="margin"
-                  type="number"
-                  step="0.1"
-                  value={marginPercentage}
-                  onChange={(e) => setMarginPercentage(e.target.value)}
-                  placeholder="0.0"
-                />
-                <Button type="button" variant="outline" onClick={applyMargin} disabled={!selectedBasePrice || !marginPercentage}>
-                  Appliquer
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Prix détaillés (optionnel) */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="customPartPrice">Prix pièce personnalisé (€)</Label>
-              <Input
-                id="customPartPrice"
-                type="number"
-                step="0.01"
-                value={customPartPrice}
-                onChange={(e) => setCustomPartPrice(e.target.value)}
-                placeholder="Optionnel"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="customLaborPrice">Prix main d'œuvre personnalisé (€)</Label>
-              <Input
-                id="customLaborPrice"
-                type="number"
-                step="0.01"
-                value={customLaborPrice}
-                onChange={(e) => setCustomLaborPrice(e.target.value)}
-                placeholder="Optionnel"
-              />
-            </div>
-          </div>
+          <PriceConfiguration
+            priceType={priceType}
+            customPrice={customPrice}
+            customPartPrice={customPartPrice}
+            customLaborPrice={customLaborPrice}
+            marginPercentage={marginPercentage}
+            selectedBasePrice={selectedBasePrice}
+            onPriceTypeChange={setPriceType}
+            onCustomPriceChange={setCustomPrice}
+            onCustomPartPriceChange={setCustomPartPrice}
+            onCustomLaborPriceChange={setCustomLaborPrice}
+            onMarginPercentageChange={setMarginPercentage}
+            onApplyMargin={applyMargin}
+          />
 
           {/* Notes */}
           <div className="space-y-2">
