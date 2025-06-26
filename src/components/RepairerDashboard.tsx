@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -41,40 +40,76 @@ const RepairerDashboard = () => {
   // Hook pour gérer le popup d'upgrade
   const { shouldShowModal, isModalOpen, closeModal } = useUpgradeModal(user?.email || null);
 
-  // Récupérer le plan d'abonnement actuel
+  // Récupérer le plan d'abonnement actuel avec requêtes séquentielles
   useEffect(() => {
     const fetchCurrentPlan = async () => {
       if (!user?.id) return;
       
       try {
         console.log('🔄 RepairerDashboard - Fetching subscription for user:', user.id);
+        console.log('🔄 RepairerDashboard - User email:', user.email);
         
-        const { data, error } = await supabase
+        // Première tentative : chercher par user_id
+        let { data, error } = await supabase
           .from('repairer_subscriptions')
-          .select('subscription_tier, subscribed')
-          .or(`user_id.eq.${user.id},repairer_id.eq.${user.id}`)
+          .select('subscription_tier, subscribed, email, billing_cycle')
+          .eq('user_id', user.id)
           .eq('subscribed', true)
           .maybeSingle();
 
         if (error) {
-          console.error('❌ RepairerDashboard - Error fetching subscription:', error);
+          console.error('❌ RepairerDashboard - Error fetching by user_id:', error);
+        } else if (data) {
+          console.log('✅ RepairerDashboard - Found subscription by user_id:', data);
+          setCurrentPlan(data.subscription_tier || 'free');
           return;
         }
 
-        if (data) {
-          console.log('✅ RepairerDashboard - Subscription found:', data);
-          setCurrentPlan(data.subscription_tier || 'free');
-        } else {
-          console.log('⚠️ RepairerDashboard - No active subscription found');
-          setCurrentPlan('free');
+        // Deuxième tentative : chercher par repairer_id (string)
+        const { data: data2, error: error2 } = await supabase
+          .from('repairer_subscriptions')
+          .select('subscription_tier, subscribed, email, billing_cycle')
+          .eq('repairer_id', user.id.toString())
+          .eq('subscribed', true)
+          .maybeSingle();
+
+        if (error2) {
+          console.error('❌ RepairerDashboard - Error fetching by repairer_id:', error2);
+        } else if (data2) {
+          console.log('✅ RepairerDashboard - Found subscription by repairer_id:', data2);
+          setCurrentPlan(data2.subscription_tier || 'free');
+          return;
         }
+
+        // Troisième tentative : chercher par email
+        if (user.email) {
+          const { data: data3, error: error3 } = await supabase
+            .from('repairer_subscriptions')
+            .select('subscription_tier, subscribed, email, billing_cycle')
+            .eq('email', user.email)
+            .eq('subscribed', true)
+            .maybeSingle();
+
+          if (error3) {
+            console.error('❌ RepairerDashboard - Error fetching by email:', error3);
+          } else if (data3) {
+            console.log('✅ RepairerDashboard - Found subscription by email:', data3);
+            setCurrentPlan(data3.subscription_tier || 'free');
+            return;
+          }
+        }
+
+        console.log('⚠️ RepairerDashboard - No active subscription found, defaulting to free');
+        setCurrentPlan('free');
+        
       } catch (error) {
         console.error('❌ RepairerDashboard - Exception fetching subscription:', error);
+        setCurrentPlan('free');
       }
     };
 
     fetchCurrentPlan();
-  }, [user?.id]);
+  }, [user?.id, user?.email]);
 
   // Données mockées pour la démo
   const repairerData = {
@@ -214,7 +249,7 @@ const RepairerDashboard = () => {
           </Button>
         </div>
 
-        {/* Plan actuel et bandeau d'upgrade */}
+        {/* Plan actuel et bandeau d'upgrade avec debug info */}
         <Card className={`mb-6 border-l-4 ${getPlanColor(currentPlan)}`}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -230,6 +265,11 @@ const RepairerDashboard = () => {
                       : 'Vous bénéficiez des fonctionnalités avancées'
                     }
                   </p>
+                  {user?.email === 'demo@demo.fr' && (
+                    <p className="text-xs text-blue-600 mt-1">
+                      Debug: User ID = {user.id} | Email = {user.email} | Plan = {currentPlan}
+                    </p>
+                  )}
                 </div>
               </div>
               {currentPlan === 'free' && (

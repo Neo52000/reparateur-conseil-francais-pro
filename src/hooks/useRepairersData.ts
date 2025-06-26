@@ -58,9 +58,8 @@ export const useRepairersData = () => {
 
   const fetchSubscriptions = async () => {
     try {
-      console.log('🔄 useRepairersData - Fetching subscriptions...');
+      console.log('🔄 useRepairersData - Fetching all subscriptions...');
       
-      // Utiliser directement la table repairer_subscriptions au lieu de la vue admin
       const { data, error } = await supabase
         .from('repairer_subscriptions')
         .select(`
@@ -82,28 +81,38 @@ export const useRepairersData = () => {
         return;
       }
 
-      console.log('✅ useRepairersData - Subscriptions loaded:', data?.length || 0);
+      console.log('✅ useRepairersData - Raw subscriptions data:', data);
       
-      // Mapper les données pour correspondre à l'interface SubscriptionData
-      const mappedSubscriptions: SubscriptionData[] = (data || []).map(sub => ({
-        id: sub.id,
-        repairer_id: sub.user_id || sub.repairer_id, // Unifier les IDs
-        email: sub.email,
-        subscription_tier: sub.subscription_tier || 'free',
-        billing_cycle: sub.billing_cycle || 'monthly',
-        subscribed: sub.subscribed || false,
-        subscription_end: sub.subscription_end,
-        created_at: sub.created_at,
-        first_name: null, // Données de base
-        last_name: null,
-        plan_name: sub.subscription_tier || 'free',
-        price_monthly: sub.subscription_tier === 'basic' ? 29 : sub.subscription_tier === 'premium' ? 79 : sub.subscription_tier === 'enterprise' ? 199 : 0,
-        price_yearly: sub.subscription_tier === 'basic' ? 290 : sub.subscription_tier === 'premium' ? 790 : sub.subscription_tier === 'enterprise' ? 1990 : 0
-      }));
+      // Mapper les données avec gestion des plans spéciaux
+      const mappedSubscriptions: SubscriptionData[] = (data || []).map(sub => {
+        // Gestion spéciale pour demo@demo.fr
+        let actualTier = sub.subscription_tier || 'free';
+        if (sub.email === 'demo@demo.fr') {
+          actualTier = 'enterprise'; // Forcer enterprise pour le compte demo
+          console.log('🎯 useRepairersData - Setting demo@demo.fr to enterprise plan');
+        }
+
+        return {
+          id: sub.id,
+          repairer_id: sub.user_id || sub.repairer_id,
+          email: sub.email,
+          subscription_tier: actualTier,
+          billing_cycle: sub.billing_cycle || 'monthly',
+          subscribed: sub.subscribed || false,
+          subscription_end: sub.subscription_end,
+          created_at: sub.created_at,
+          first_name: null,
+          last_name: null,
+          plan_name: actualTier,
+          price_monthly: actualTier === 'basic' ? 29 : actualTier === 'premium' ? 79 : actualTier === 'enterprise' ? 199 : 0,
+          price_yearly: actualTier === 'basic' ? 290 : actualTier === 'premium' ? 790 : actualTier === 'enterprise' ? 1990 : 0
+        };
+      });
       
+      console.log('✅ useRepairersData - Mapped subscriptions:', mappedSubscriptions);
       setSubscriptions(mappedSubscriptions);
       
-      // Calculate subscription stats
+      // Calculer les stats
       const total = mappedSubscriptions.length;
       const active = mappedSubscriptions.filter(sub => sub.subscribed).length;
       const monthlyRev = mappedSubscriptions.reduce((sum, sub) => {
@@ -135,8 +144,42 @@ export const useRepairersData = () => {
 
   const fetchRepairers = async () => {
     try {
-      console.log('🔄 useRepairersData - Fetching repairers...');
+      console.log('🔄 useRepairersData - Fetching repairers from profiles...');
       
+      // Essayer d'abord avec repairer_profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('repairer_profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!profilesError && profilesData && profilesData.length > 0) {
+        console.log('✅ useRepairersData - Found repairer profiles:', profilesData.length);
+        
+        const processedRepairers: RepairerData[] = profilesData.map((profile) => ({
+          id: profile.user_id,
+          name: profile.business_name || 'Nom non renseigné',
+          email: profile.email || 'Email non renseigné',
+          phone: profile.phone || 'Téléphone non renseigné',
+          city: profile.city || 'Ville non renseignée',
+          department: profile.postal_code?.substring(0, 2) || '00',
+          subscription_tier: 'free', // Sera enrichi avec les vraies données
+          subscribed: false,
+          total_repairs: Math.floor(Math.random() * 200),
+          rating: 4.5,
+          created_at: profile.created_at
+        }));
+
+        setRepairers(processedRepairers);
+        setStats(prev => ({
+          ...prev,
+          totalRepairers: processedRepairers.length,
+          activeRepairers: processedRepairers.length
+        }));
+        return;
+      }
+
+      // Fallback sur la table repairers
+      console.log('🔄 useRepairersData - Trying repairers table as fallback...');
       const { data: repairersData, error: repairersError } = await supabase
         .from('repairers')
         .select('*')
@@ -144,30 +187,12 @@ export const useRepairersData = () => {
 
       if (repairersError) {
         console.error('❌ useRepairersData - Repairers fetch error:', repairersError);
-        
-        if (repairersError.message?.includes('permission denied') || repairersError.message?.includes('insufficient_privilege')) {
-          console.error('🔒 useRepairersData - Permission denied for repairers table');
-          toast({
-            title: "Erreur de permissions",
-            description: "Vous n'avez pas les droits pour accéder aux données de réparateurs",
-            variant: "destructive"
-          });
-          setRepairers([]);
-          return;
-        }
-        
-        if (repairersError.code === 'PGRST116') {
-          console.warn('⚠️ useRepairersData - Table repairers not found, using empty fallback');
-          setRepairers([]);
-          return;
-        }
-        
-        throw repairersError;
+        setRepairers([]);
+        return;
       }
 
-      console.log('✅ useRepairersData - Repairers loaded:', repairersData?.length || 0);
+      console.log('✅ useRepairersData - Repairers loaded from fallback:', repairersData?.length || 0);
 
-      // Convertir les données pour correspondre à l'interface RepairerData
       const processedRepairers: RepairerData[] = (repairersData || []).map((repairer) => ({
         id: repairer.id,
         name: repairer.name,
@@ -175,33 +200,22 @@ export const useRepairersData = () => {
         phone: repairer.phone || 'Non renseigné',
         city: repairer.city,
         department: repairer.department || '00',
-        subscription_tier: 'free', // À améliorer avec vraies données d'abonnement
+        subscription_tier: 'free',
         subscribed: repairer.is_verified || false,
-        total_repairs: Math.floor(Math.random() * 200), // Données simulées
+        total_repairs: Math.floor(Math.random() * 200),
         rating: repairer.rating || 4.5,
         created_at: repairer.created_at
       }));
 
       setRepairers(processedRepairers);
-      
-      const totalRepairers = processedRepairers.length;
-      const activeRepairers = processedRepairers.filter(r => r.subscribed).length;
-      
       setStats(prev => ({
         ...prev,
-        totalRepairers,
-        activeRepairers
+        totalRepairers: processedRepairers.length,
+        activeRepairers: processedRepairers.filter(r => r.subscribed).length
       }));
 
     } catch (error) {
       console.error('❌ useRepairersData - Error fetching repairers:', error);
-      
-      toast({
-        title: "Erreur de chargement",
-        description: "Problème technique lors du chargement des réparateurs",
-        variant: "destructive"
-      });
-      
       setRepairers([]);
       setStats(prev => ({
         ...prev,

@@ -59,6 +59,53 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
     }
   };
 
+  const handleEditSubscription = async (subscription: SubscriptionData) => {
+    // Pour demo@demo.fr, upgrader automatiquement vers enterprise
+    if (subscription.email === 'demo@demo.fr' && subscription.subscription_tier !== 'enterprise') {
+      setLoading(subscription.id);
+      try {
+        console.log('🎯 SubscriptionsTable - Upgrading demo@demo.fr to enterprise');
+        
+        const { error } = await supabase
+          .from('repairer_subscriptions')
+          .update({ 
+            subscription_tier: 'enterprise',
+            subscribed: true,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', subscription.id);
+
+        if (error) {
+          console.error('❌ Error upgrading demo subscription:', error);
+          throw error;
+        }
+
+        console.log('✅ Demo subscription upgraded to enterprise successfully');
+        
+        toast({
+          title: "Succès",
+          description: "Compte démo upgradé vers Enterprise avec succès"
+        });
+        
+        if (onRefresh) onRefresh();
+      } catch (error: any) {
+        console.error('❌ Error in handleEditSubscription:', error);
+        toast({
+          title: "Erreur",
+          description: error.message || "Impossible de modifier l'abonnement",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(null);
+      }
+    } else {
+      toast({
+        title: "Modification d'abonnement",
+        description: "Fonctionnalité en développement pour les comptes standards",
+      });
+    }
+  };
+
   const handleToggleSubscription = async (subscriptionId: string, currentStatus: boolean) => {
     setLoading(subscriptionId);
     try {
@@ -132,14 +179,6 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
     }
   };
 
-  const handleEditSubscription = (subscriptionId: string) => {
-    // Pour l'instant, on affiche juste un message
-    toast({
-      title: "Fonctionnalité en développement",
-      description: "La modification d'abonnement sera bientôt disponible",
-    });
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -182,7 +221,12 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
                         subscription.repairer_id
                       }
                     </TableCell>
-                    <TableCell>{subscription.email}</TableCell>
+                    <TableCell>
+                      {subscription.email}
+                      {subscription.email === 'demo@demo.fr' && (
+                        <Badge variant="outline" className="ml-2 text-xs">DEMO</Badge>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         {tierInfo.icon}
@@ -230,7 +274,7 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => handleEditSubscription(subscription.id)}
+                          onClick={() => handleEditSubscription(subscription)}
                           disabled={isLoading}
                           title="Modifier l'abonnement"
                         >
@@ -241,8 +285,8 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
                             <Button 
                               size="sm" 
                               variant="outline"
-                              disabled={isLoading}
-                              title="Supprimer l'abonnement"
+                              disabled={isLoading || subscription.email === 'demo@demo.fr'}
+                              title={subscription.email === 'demo@demo.fr' ? 'Impossible de supprimer le compte démo' : 'Supprimer l\'abonnement'}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
