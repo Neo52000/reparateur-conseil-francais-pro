@@ -22,10 +22,10 @@ const SocialShareSection: React.FC = () => {
         url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
         break;
       case 'whatsapp':
-        url = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
+        url = `https://wa.me/33745062162?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
         break;
       case 'email':
-        url = `mailto:?subject=${encodeURIComponent('Découvrez cette plateforme pour réparateurs')}&body=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`;
+        url = `mailto:contact@topreparateurs.fr?subject=${encodeURIComponent('Découvrez cette plateforme pour réparateurs')}&body=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`;
         break;
       default:
         // Fallback vers l'API Web Share si disponible

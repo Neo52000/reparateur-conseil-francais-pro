@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Phone, Mail, Globe, Facebook, Instagram, Linkedin, Twitter, MessageCircle, Send } from 'lucide-react';
+import { MessageCircle, Mail, Globe, Facebook, Instagram, Linkedin, Twitter, Send } from 'lucide-react';
 import { RepairerProfile } from '@/types/repairerProfile';
 
 interface ContactSocialTabProps {
@@ -8,18 +8,25 @@ interface ContactSocialTabProps {
 }
 
 const ContactSocialTab: React.FC<ContactSocialTabProps> = ({ profile }) => {
+  const handleWhatsApp = () => {
+    const message = encodeURIComponent(`Bonjour, je souhaite des informations sur vos services de réparation.`);
+    window.open(`https://wa.me/33745062162?text=${message}`, '_blank');
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <h3 className="font-semibold text-lg mb-4">Contact</h3>
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
-            <Phone className="h-4 w-4 text-gray-500" />
-            <span>{profile.phone}</span>
+            <MessageCircle className="h-4 w-4 text-gray-500" />
+            <button onClick={handleWhatsApp} className="text-blue-600 hover:underline">
+              07 45 06 21 62 (WhatsApp)
+            </button>
           </div>
           <div className="flex items-center space-x-2">
             <Mail className="h-4 w-4 text-gray-500" />
-            <span>{profile.email}</span>
+            <span>contact@topreparateurs.fr</span>
           </div>
           {profile.website && (
             <div className="flex items-center space-x-2">
@@ -40,19 +47,17 @@ const ContactSocialTab: React.FC<ContactSocialTabProps> = ({ profile }) => {
       <div>
         <h3 className="font-semibold text-lg mb-4">Réseaux sociaux</h3>
         <div className="space-y-3">
-          {profile.facebook_url && (
-            <div className="flex items-center space-x-2">
-              <Facebook className="h-4 w-4 text-blue-600" />
-              <a 
-                href={profile.facebook_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                Facebook
-              </a>
-            </div>
-          )}
+          <div className="flex items-center space-x-2">
+            <Facebook className="h-4 w-4 text-blue-600" />
+            <a 
+              href="https://facebook.com/topreparateurs.fr" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              Facebook
+            </a>
+          </div>
           {profile.instagram_url && (
             <div className="flex items-center space-x-2">
               <Instagram className="h-4 w-4 text-pink-600" />
@@ -92,19 +97,15 @@ const ContactSocialTab: React.FC<ContactSocialTabProps> = ({ profile }) => {
               </a>
             </div>
           )}
-          {profile.whatsapp_url && (
-            <div className="flex items-center space-x-2">
-              <MessageCircle className="h-4 w-4 text-green-600" />
-              <a 
-                href={profile.whatsapp_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-green-600 hover:underline"
-              >
-                WhatsApp
-              </a>
-            </div>
-          )}
+          <div className="flex items-center space-x-2">
+            <MessageCircle className="h-4 w-4 text-green-600" />
+            <button 
+              onClick={handleWhatsApp}
+              className="text-green-600 hover:underline"
+            >
+              WhatsApp
+            </button>
+          </div>
           {profile.telegram_url && (
             <div className="flex items-center space-x-2">
               <Send className="h-4 w-4 text-blue-500" />

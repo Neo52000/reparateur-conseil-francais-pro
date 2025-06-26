@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Phone, MessageCircle, Mail, Clock } from 'lucide-react';
+import { MessageCircle, Mail, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ContactAdvisorModalProps {
@@ -77,11 +77,7 @@ const ContactAdvisorModal: React.FC<ContactAdvisorModalProps> = ({ isOpen, onClo
     const message = encodeURIComponent(
       `Bonjour, je souhaite des informations sur les plans d'abonnement pour réparateurs. Mon nom: ${formData.name || '[À compléter]'}, Mon entreprise: ${formData.business || '[À compléter]'}`
     );
-    window.open(`https://wa.me/33123456789?text=${message}`, '_blank');
-  };
-
-  const handlePhoneCall = () => {
-    window.open('tel:+33123456789', '_self');
+    window.open(`https://wa.me/33745062162?text=${message}`, '_blank');
   };
 
   return (
@@ -102,23 +98,13 @@ const ContactAdvisorModal: React.FC<ContactAdvisorModalProps> = ({ isOpen, onClo
             
             <div className="space-y-3">
               <Button 
-                onClick={handlePhoneCall}
-                className="w-full bg-green-600 hover:bg-green-700"
-                size="lg"
-              >
-                <Phone className="h-5 w-5 mr-2" />
-                Appeler maintenant
-                <span className="text-sm ml-2 opacity-75">01 23 45 67 89</span>
-              </Button>
-              
-              <Button 
                 onClick={handleWhatsApp}
                 className="w-full bg-emerald-600 hover:bg-emerald-700"
                 size="lg"
               >
                 <MessageCircle className="h-5 w-5 mr-2" />
                 WhatsApp
-                <span className="text-sm ml-2 opacity-75">Réponse rapide</span>
+                <span className="text-sm ml-2 opacity-75">07 45 06 21 62</span>
               </Button>
             </div>
 

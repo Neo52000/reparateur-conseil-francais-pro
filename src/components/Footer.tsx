@@ -1,11 +1,16 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Facebook, Linkedin, Twitter, Send, UserPlus } from 'lucide-react';
+import { Mail, Facebook, Linkedin, Twitter, MessageCircle, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Logo from './Logo';
 
 const Footer = () => {
+  const handleWhatsApp = () => {
+    const message = encodeURIComponent('Bonjour, je souhaite des informations sur vos services de réparation.');
+    window.open(`https://wa.me/33745062162?text=${message}`, '_blank');
+  };
+
   return (
     <footer className="bg-gray-900 text-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,12 +33,21 @@ const Footer = () => {
                 <Mail className="h-4 w-4 mr-2 text-blue-400" />
                 <span className="text-gray-300">contact@topreparateurs.fr</span>
               </div>
+              <div className="flex items-center">
+                <MessageCircle className="h-4 w-4 mr-2 text-green-400" />
+                <button 
+                  onClick={handleWhatsApp}
+                  className="text-gray-300 hover:text-green-400 transition-colors"
+                >
+                  07 45 06 21 62 (WhatsApp)
+                </button>
+              </div>
             </div>
 
             {/* Réseaux sociaux */}
             <h4 className="text-lg font-semibold mb-4">Suivez-nous</h4>
             <div className="flex space-x-4 mb-4">
-              <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors">
+              <a href="https://facebook.com/topreparateurs.fr" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 transition-colors">
                 <Facebook className="h-6 w-6" />
               </a>
               <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors">
@@ -42,8 +56,8 @@ const Footer = () => {
               <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors">
                 <Twitter className="h-6 w-6" />
               </a>
-              <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors">
-                <Send className="h-6 w-6" />
+              <a href="#" onClick={handleWhatsApp} className="text-gray-300 hover:text-green-400 transition-colors">
+                <MessageCircle className="h-6 w-6" />
               </a>
             </div>
             

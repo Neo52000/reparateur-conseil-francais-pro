@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   MapPin, 
-  Phone, 
+  MessageCircle, 
   Mail, 
   Globe,
   Navigation
@@ -22,12 +22,13 @@ const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ profile }) => {
     window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank');
   };
 
-  const handleCall = () => {
-    window.location.href = `tel:${profile.phone}`;
+  const handleWhatsApp = () => {
+    const message = encodeURIComponent(`Bonjour, je souhaite des informations sur vos services de réparation. Réparateur: ${profile.business_name || profile.first_name + ' ' + profile.last_name}`);
+    window.open(`https://wa.me/33745062162?text=${message}`, '_blank');
   };
 
   const handleEmail = () => {
-    window.location.href = `mailto:${profile.email}`;
+    window.location.href = `mailto:contact@topreparateurs.fr`;
   };
 
   return (
@@ -53,25 +54,25 @@ const ContactInfoCard: React.FC<ContactInfoCardProps> = ({ profile }) => {
           </div>
           
           <div className="flex items-center space-x-3">
-            <Phone className="h-5 w-5 text-green-600 flex-shrink-0" />
+            <MessageCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-gray-900 font-medium">{profile.phone}</p>
+              <p className="text-gray-900 font-medium">07 45 06 21 62</p>
               <p className="text-gray-600 text-sm">Disponible 9h-18h</p>
             </div>
             <Button 
               variant="outline" 
               size="sm"
-              onClick={handleCall}
+              onClick={handleWhatsApp}
               className="flex-shrink-0"
             >
-              Appeler
+              WhatsApp
             </Button>
           </div>
           
           <div className="flex items-center space-x-3">
             <Mail className="h-5 w-5 text-blue-600 flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-gray-900 font-medium">{profile.email}</p>
+              <p className="text-gray-900 font-medium">contact@topreparateurs.fr</p>
               <p className="text-gray-600 text-sm">Réponse sous 2h</p>
             </div>
             <Button 
