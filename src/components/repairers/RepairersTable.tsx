@@ -15,6 +15,7 @@ interface RepairerData {
   email: string;
   phone: string;
   city: string;
+  department: string;
   subscription_tier: string;
   subscribed: boolean;
   total_repairs: number;
