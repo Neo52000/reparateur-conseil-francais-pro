@@ -57,13 +57,18 @@ export const useRepairersData = () => {
 
   const fetchSubscriptions = async () => {
     try {
+      console.log('Fetching subscriptions...');
       const { data, error } = await supabase
         .from('admin_subscription_overview')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Subscription fetch error:', error);
+        throw error;
+      }
 
+      console.log('Subscriptions data:', data);
       setSubscriptions(data || []);
       
       // Calculate subscription stats
@@ -92,18 +97,26 @@ export const useRepairersData = () => {
 
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
+      setSubscriptions([]);
     }
   };
 
   const fetchRepairers = async () => {
     try {
+      console.log('Fetching repairers...');
+      
       // Récupérer les réparateurs depuis la base de données
       const { data: repairersData, error: repairersError } = await supabase
         .from('repairers')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (repairersError) throw repairersError;
+      if (repairersError) {
+        console.error('Repairers fetch error:', repairersError);
+        throw repairersError;
+      }
+
+      console.log('Repairers data:', repairersData);
 
       // Convertir les données pour correspondre à l'interface RepairerData
       const processedRepairers: RepairerData[] = (repairersData || []).map((repairer) => ({
@@ -112,9 +125,9 @@ export const useRepairersData = () => {
         email: repairer.email || 'Non renseigné',
         phone: repairer.phone || 'Non renseigné',
         city: repairer.city,
-        subscription_tier: 'free', // Valeur par défaut pour l'instant
+        subscription_tier: 'free', // À améliorer avec vraies données d'abonnement
         subscribed: repairer.is_verified || false,
-        total_repairs: Math.floor(Math.random() * 200), // Données simulées pour l'instant
+        total_repairs: Math.floor(Math.random() * 200), // Données simulées
         rating: repairer.rating || 4.5,
         created_at: repairer.created_at
       }));
@@ -133,55 +146,12 @@ export const useRepairersData = () => {
     } catch (error) {
       console.error('Error fetching repairers:', error);
       
-      // En cas d'erreur, utiliser des données mockées de fallback
-      const mockRepairers: RepairerData[] = [
-        {
-          id: 'test-repairer-001',
-          name: 'TechRepair Pro',
-          email: 'tech@repair.fr',
-          phone: '+33 1 23 45 67 89',
-          city: 'Paris',
-          subscription_tier: 'premium',
-          subscribed: true,
-          total_repairs: 156,
-          rating: 4.9,
-          created_at: '2023-01-15T10:00:00Z'
-        },
-        {
-          id: 'test-repairer-002',
-          name: 'Mobile Fix Express',
-          email: 'contact@mobilefix.fr',
-          phone: '+33 1 98 76 54 32',
-          city: 'Lyon',
-          subscription_tier: 'basic',
-          subscribed: true,
-          total_repairs: 89,
-          rating: 4.5,
-          created_at: '2023-02-20T14:30:00Z'
-        },
-        {
-          id: 'test-repairer-003',
-          name: 'Smartphone Clinic',
-          email: 'info@smartphoneclinic.fr',
-          phone: '+33 1 11 22 33 44',
-          city: 'Marseille',
-          subscription_tier: 'free',
-          subscribed: false,
-          total_repairs: 23,
-          rating: 4.2,
-          created_at: '2023-03-10T09:15:00Z'
-        }
-      ];
-
-      setRepairers(mockRepairers);
-      
-      const totalRepairers = mockRepairers.length;
-      const activeRepairers = mockRepairers.filter(r => r.subscribed).length;
-      
+      // En cas d'erreur, utiliser des données de fallback vides
+      setRepairers([]);
       setStats(prev => ({
         ...prev,
-        totalRepairers,
-        activeRepairers
+        totalRepairers: 0,
+        activeRepairers: 0
       }));
     }
   };
@@ -189,12 +159,14 @@ export const useRepairersData = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      console.log('Starting data fetch...');
       await Promise.all([fetchSubscriptions(), fetchRepairers()]);
+      console.log('Data fetch completed successfully');
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de charger les données",
+        title: "Erreur de chargement",
+        description: "Impossible de charger certaines données administrateur",
         variant: "destructive"
       });
     } finally {

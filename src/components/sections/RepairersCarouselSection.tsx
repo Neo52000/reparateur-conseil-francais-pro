@@ -2,6 +2,7 @@
 import React from 'react';
 import RepairersCarousel from '@/components/RepairersCarousel';
 import { Repairer } from '@/types/repairer';
+import { usePriorityRepairers } from '@/hooks/usePriorityRepairers';
 
 interface RepairersCarouselSectionProps {
   onViewProfile: (repairer: Repairer) => void;
@@ -12,9 +13,15 @@ const RepairersCarouselSection: React.FC<RepairersCarouselSectionProps> = ({
   onViewProfile,
   onCall
 }) => {
+  const { repairers, loading } = usePriorityRepairers(20);
+
+  // Si pas de réparateurs ou en cours de chargement, ne rien afficher
+  if (loading || repairers.length === 0) {
+    return null;
+  }
+
   return (
     <div className="mb-12">
-      {/* Conteneur du carrousel sans titre ni description */}
       <div className="min-h-[300px]">
         <RepairersCarousel 
           onViewProfile={onViewProfile}
