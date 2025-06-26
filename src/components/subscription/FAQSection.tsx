@@ -1,100 +1,87 @@
 
 import React from 'react';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { HelpCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { MessageCircle, Mail } from 'lucide-react';
 
 const FAQSection: React.FC = () => {
-  const faqs = [
-    {
-      question: "Comment fonctionne la plateforme ?",
-      answer: "Notre plateforme met en relation les clients avec des réparateurs qualifiés près de chez eux. Vous recevez les demandes de réparation dans votre zone, vous proposez vos services et gérez vos interventions via notre interface intuitive."
-    },
-    {
-      question: "Combien de temps faut-il pour voir les premiers résultats ?",
-      answer: "La plupart de nos partenaires reçoivent leurs premières demandes dans les 48h suivant l'activation de leur profil. L'augmentation significative de clientèle se ressent généralement après 2-3 semaines d'utilisation active."
-    },
-    {
-      question: "Y a-t-il des frais cachés ?",
-      answer: "Aucun frais caché ! Le prix affiché est le prix final. Vous payez uniquement votre abonnement mensuel ou annuel selon le plan choisi. Pas de commission sur les réparations, pas de frais de mise en service."
-    },
-    {
-      question: "Puis-je annuler mon abonnement à tout moment ?",
-      answer: "Oui, vous pouvez annuler votre abonnement à tout moment sans frais ni pénalités. L'annulation prend effet à la fin de votre période de facturation en cours."
-    },
-    {
-      question: "Comment sont sélectionnés les clients ?",
-      answer: "Nous pré-qualifions tous les clients avant de vous transmettre leurs demandes. Nous vérifions la sérieux de la demande, la localisation et nous nous assurons que le besoin correspond à vos compétences."
-    },
-    {
-      question: "Que se passe-t-il si je ne suis pas satisfait ?",
-      answer: "Nous offrons une garantie satisfait ou remboursé de 30 jours. Si vous n'êtes pas satisfait de nos services, nous vous remboursons intégralement votre premier mois."
-    },
-    {
-      question: "Quels types de réparations sont couverts ?",
-      answer: "Nous couvrons tous les types de réparations : smartphones, tablettes, ordinateurs, consoles de jeux, montres connectées, et bien plus. Vous pouvez spécifier vos domaines d'expertise dans votre profil."
-    },
-    {
-      question: "Comment fonctionne le support client ?",
-      answer: "Notre équipe support est disponible 7j/7 par téléphone, email et chat. Vous avez également accès à un conseiller dédié qui vous aide à optimiser votre profil et vos performances."
+  const handleWhatsApp = () => {
+    const message = encodeURIComponent(
+      `Bonjour, je souhaite des informations sur les plans d'abonnement pour réparateurs.`
+    );
+    window.open(`https://wa.me/33745062162?text=${message}`, '_blank');
+  };
+
+  const handleEmail = () => {
+    window.location.href = `mailto:contact@topreparateurs.fr`;
+  };
+
+  const scrollToPlans = () => {
+    const plansSection = document.getElementById('plans-section');
+    if (plansSection) {
+      plansSection.scrollIntoView({ behavior: 'smooth' });
     }
-  ];
+  };
 
   return (
-    <div className="py-16 bg-white">
+    <div className="py-16 bg-gray-50">
       <div className="max-w-4xl mx-auto px-6">
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-4">
-            <HelpCircle className="h-8 w-8 text-blue-600 mr-3" />
-            <h2 className="text-3xl font-bold text-gray-900">
-              Questions fréquentes
-            </h2>
+        <h2 className="text-3xl font-bold text-center mb-12">Questions fréquentes</h2>
+        
+        <div className="space-y-8">
+          <div className="bg-white rounded-lg p-6 shadow-sm">
+            <h3 className="font-semibold text-lg mb-3">Puis-je changer de plan à tout moment ?</h3>
+            <p className="text-gray-600">
+              Oui, vous pouvez mettre à niveau ou rétrograder votre plan à tout moment. 
+              Les changements prennent effet immédiatement et la facturation est ajustée au prorata.
+            </p>
           </div>
-          <p className="text-lg text-gray-600">
-            Trouvez rapidement les réponses à vos questions les plus courantes
-          </p>
+
+          <div className="bg-white rounded-lg p-6 shadow-sm">
+            <h3 className="font-semibold text-lg mb-3">Comment fonctionne la période d'essai ?</h3>
+            <p className="text-gray-600">
+              Tous nos plans payants incluent une période d'essai gratuite de 14 jours. 
+              Aucun engagement, annulation possible à tout moment.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg p-6 shadow-sm">
+            <h3 className="font-semibold text-lg mb-3">Quels modes de paiement acceptez-vous ?</h3>
+            <p className="text-gray-600">
+              Nous acceptons toutes les cartes bancaires (Visa, Mastercard, American Express) 
+              ainsi que les virements SEPA pour les entreprises.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg p-6 shadow-sm">
+            <h3 className="font-semibold text-lg mb-3">Puis-je obtenir une facture ?</h3>
+            <p className="text-gray-600">
+              Oui, une facture est automatiquement générée pour chaque paiement et envoyée par email. 
+              Vous pouvez également télécharger vos factures depuis votre espace client.
+            </p>
+          </div>
         </div>
 
-        <Card className="shadow-lg border-0">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50">
-            <CardTitle className="text-center text-xl">
-              Tout ce que vous devez savoir avant de commencer
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Accordion type="single" collapsible className="w-full">
-              {faqs.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`} className="border-b border-gray-100">
-                  <AccordionTrigger className="px-6 py-4 text-left hover:bg-gray-50">
-                    <span className="font-medium text-gray-900">{faq.question}</span>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-6 pb-4">
-                    <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </CardContent>
-        </Card>
-
-        <div className="text-center mt-12">
-          <div className="bg-blue-600 text-white p-6 rounded-lg">
-            <h3 className="text-xl font-bold mb-2">Une autre question ?</h3>
-            <p className="text-blue-100 mb-4">
+        <div className="mt-12 text-center">
+          <div className="bg-blue-50 rounded-lg p-8">
+            <h3 className="text-xl font-semibold mb-4">Une autre question ?</h3>
+            <p className="text-gray-600 mb-6">
               Notre équipe est là pour vous aider ! Contactez-nous pour obtenir des réponses personnalisées.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href="tel:+33123456789" className="bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors">
-                📞 01 23 45 67 89
-              </a>
-              <a href="mailto:contact@techrepair.fr" className="bg-blue-700 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-800 transition-colors">
-                ✉️ contact@techrepair.fr
-              </a>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button onClick={handleWhatsApp} className="bg-green-600 hover:bg-green-700">
+                <MessageCircle className="h-4 w-4 mr-2" />
+                WhatsApp - 07 45 06 21 62
+              </Button>
+              
+              <Button onClick={handleEmail} variant="outline">
+                <Mail className="h-4 w-4 mr-2" />
+                contact@topreparateurs.fr
+              </Button>
+              
+              <Button onClick={scrollToPlans} variant="outline">
+                Voir les plans
+              </Button>
             </div>
           </div>
         </div>

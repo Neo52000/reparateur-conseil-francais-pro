@@ -186,7 +186,7 @@ const SubscriptionPlans = ({
       <WhyChooseUsSection />
 
       {/* Section des plans */}
-      <div className="py-16 bg-white">
+      <div id="plans-section" className="py-16 bg-white">
         <div className="max-w-6xl mx-auto p-6">
           {showBackButton && (
             <div className="mb-6">
