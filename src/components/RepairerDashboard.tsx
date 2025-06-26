@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -107,8 +108,24 @@ const RepairerDashboard = () => {
   };
 
   const handleLogout = async () => {
-    await signOut();
-    navigate('/repairer/auth', { replace: true });
+    console.log('🔄 Starting logout process...');
+    try {
+      const result = await signOut();
+      console.log('✅ Logout result:', result);
+      
+      if (result.error) {
+        console.error('❌ Logout error:', result.error);
+        // Même en cas d'erreur, on redirige vers la page d'auth
+      }
+      
+      // Redirection vers la page d'authentification
+      navigate('/repairer/auth', { replace: true });
+      console.log('✅ Redirected to auth page');
+    } catch (error) {
+      console.error('💥 Exception during logout:', error);
+      // En cas d'exception, on force quand même la redirection
+      navigate('/repairer/auth', { replace: true });
+    }
   };
 
   const handleUpgradePlan = () => {
