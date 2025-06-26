@@ -40,8 +40,15 @@ const RepairerTableRow: React.FC<RepairerTableRowProps> = ({
   checked,
   onCheck,
 }) => {
-  // Générer l'ID personnalisé avec nom de boutique + département
-  const customId = `${repairer.name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}-${repairer.department || '00'}`;
+  // Générer l'ID personnalisé avec nom de boutique + code postal
+  const generateCustomId = (name: string, city: string) => {
+    const shopName = name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase().substring(0, 15);
+    // Extraire le code postal de la ville si possible, sinon utiliser les 2 premiers caractères
+    const postalCode = city.match(/\d{5}/) ? city.match(/\d{5}/)[0] : city.substring(0, 2).toLowerCase();
+    return `${shopName}-${postalCode}`;
+  };
+
+  const customId = generateCustomId(repairer.name, repairer.city);
 
   return (
     <TableRow>

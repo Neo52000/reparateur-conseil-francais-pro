@@ -42,7 +42,7 @@ const CreateDemoRepairerButton = () => {
 
       toast({
         title: "Réparateur de démo créé !",
-        description: "Email: demo@demo.fr | Mot de passe: demo@demo | Abonnement: Enterprise",
+        description: `ID: ${data.customId} | Email: demo@demo.fr | Mot de passe: demo@demo | Abonnement: Enterprise`,
         duration: 8000,
       });
 
@@ -66,7 +66,7 @@ const CreateDemoRepairerButton = () => {
           Créer un réparateur de démo
         </CardTitle>
         <CardDescription>
-          Crée un compte réparateur avec abonnement Enterprise et toutes les fonctionnalités activées
+          Crée un compte réparateur avec abonnement Enterprise et ID personnalisé (nom-codepostal)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -82,6 +82,9 @@ const CreateDemoRepairerButton = () => {
           <div className="flex items-center gap-2">
             <Crown className="h-4 w-4" />
             <span><strong>Abonnement:</strong> Enterprise</span>
+          </div>
+          <div className="text-xs text-blue-600">
+            <strong>ID personnalisé:</strong> techrepairdemo-75001
           </div>
         </div>
         
