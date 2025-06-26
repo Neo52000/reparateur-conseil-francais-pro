@@ -1,77 +1,58 @@
 
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { RepairerProfile } from '@/types/repairerProfile';
-import { ProfileDataRepository } from '@/services/profileDataRepository';
-import { BasicProfileCreator } from '@/services/basicProfileCreator';
 
-/**
- * Hook pour charger les données d'un profil réparateur
- * Gère le cache et le rafraîchissement des données
- */
 export const useProfileData = (repairerId: string, isOpen: boolean) => {
   const [profile, setProfile] = useState<RepairerProfile | null>(null);
   const [loading, setLoading] = useState(false);
 
-  /**
-   * Charge les données du profil depuis Supabase
-   */
-  const fetchProfile = async (id: string): Promise<RepairerProfile | null> => {
+  const fetchProfile = async (id: string) => {
+    if (!id) return null;
+    
+    setLoading(true);
     try {
-      // Essayer de récupérer le profil depuis repairer_profiles
-      const profileData = await ProfileDataRepository.fetchProfile(id);
+      console.log('🔄 ProfileDataLoader - Fetching profile for ID:', id);
       
-      if (profileData) {
-        return profileData;
+      const { data, error } = await supabase
+        .from('repairer_profiles')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('❌ ProfileDataLoader - Error fetching profile:', error);
+        return null;
       }
 
-      // Si pas trouvé, essayer de créer un profil basique
-      return await BasicProfileCreator.createBasicProfileFromRepairer(id);
-    } catch (error: any) {
-      console.error('❌ Error in fetchProfile:', error);
-      throw error;
-    }
-  };
+      if (!data) {
+        console.log('⚠️ ProfileDataLoader - No profile found for ID:', id);
+        return null;
+      }
 
-  /**
-   * Rafraîchit les données du profil actuel
-   */
-  const refreshProfile = async () => {
-    if (!repairerId) return;
-    
-    try {
-      setLoading(true);
-      const freshProfile = await fetchProfile(repairerId);
-      setProfile(freshProfile);
+      console.log('✅ ProfileDataLoader - Profile loaded successfully');
+      return data as RepairerProfile;
     } catch (error) {
-      console.error('❌ Error refreshing profile:', error);
+      console.error('❌ ProfileDataLoader - Exception during profile fetch:', error);
+      return null;
     } finally {
       setLoading(false);
     }
   };
 
-  /**
-   * Charge les données au montage et quand les paramètres changent
-   */
+  const refreshProfile = async () => {
+    if (!repairerId) return;
+    
+    const profileData = await fetchProfile(repairerId);
+    setProfile(profileData);
+  };
+
   useEffect(() => {
-    if (!isOpen || !repairerId) {
+    if (isOpen && repairerId) {
+      refreshProfile();
+    } else if (!isOpen) {
       setProfile(null);
-      return;
     }
-
-    const loadProfile = async () => {
-      try {
-        setLoading(true);
-        const profileData = await fetchProfile(repairerId);
-        setProfile(profileData);
-      } catch (error) {
-        console.error('❌ Error loading profile:', error);
-        setProfile(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProfile();
   }, [repairerId, isOpen]);
 
   return {

@@ -33,7 +33,7 @@ export class RepairerProfileRepository {
       .from('repairer_profiles')
       .insert(profileData)
       .select()
-      .single();
+      .maybeSingle();
 
     if (result.error) {
       console.error('❌ Supabase create error:', result.error);
@@ -41,7 +41,9 @@ export class RepairerProfileRepository {
     }
 
     // Synchroniser avec la table repairers
-    await this.syncWithRepairersTable(profileData);
+    if (result.data) {
+      await this.syncWithRepairersTable(profileData);
+    }
 
     return result;
   }
@@ -56,7 +58,7 @@ export class RepairerProfileRepository {
       .update(profileData)
       .eq('id', profileId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (result.error) {
       console.error('❌ Supabase update error:', result.error);
@@ -64,7 +66,9 @@ export class RepairerProfileRepository {
     }
 
     // Synchroniser avec la table repairers
-    await this.syncWithRepairersTable(profileData);
+    if (result.data) {
+      await this.syncWithRepairersTable(profileData);
+    }
 
     return result;
   }
