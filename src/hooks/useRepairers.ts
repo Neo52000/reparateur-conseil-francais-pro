@@ -32,6 +32,7 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
       setError(null);
       
       console.log('useRepairers - Fetching from Supabase...');
+      console.log('useRepairers - Applied filters:', filters);
 
       let query = supabase
         .from('repairers')
@@ -39,24 +40,33 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
         .eq('is_verified', true) // Seulement les réparateurs vérifiés
         .order('rating', { ascending: false });
 
-      // Appliquer les filtres
-      if (filters?.city) {
-        query = query.ilike('city', `%${filters.city}%`);
+      // Appliquer les filtres seulement s'ils sont valides
+      if (filters?.city && filters.city.trim() !== '') {
+        console.log('useRepairers - Applying city filter:', filters.city);
+        query = query.ilike('city', `%${filters.city.trim()}%`);
       }
 
-      if (filters?.postalCode) {
-        query = query.like('postal_code', `${filters.postalCode}%`);
+      if (filters?.postalCode && filters.postalCode.trim() !== '') {
+        console.log('useRepairers - Applying postal code filter:', filters.postalCode);
+        query = query.like('postal_code', `${filters.postalCode.trim()}%`);
       }
 
-      if (filters?.services && filters.services.length > 0) {
-        query = query.overlaps('services', filters.services);
+      // Fix: Ne pas appliquer les filtres de services s'ils sont undefined ou invalides
+      if (filters?.services && Array.isArray(filters.services) && filters.services.length > 0) {
+        const validServices = filters.services.filter(service => 
+          service && typeof service === 'string' && service.trim() !== ''
+        );
+        if (validServices.length > 0) {
+          console.log('useRepairers - Applying services filter:', validServices);
+          query = query.overlaps('services', validServices);
+        }
       }
 
-      if (filters?.minRating) {
+      if (filters?.minRating && typeof filters.minRating === 'number') {
         query = query.gte('rating', filters.minRating);
       }
 
-      if (filters?.priceRange) {
+      if (filters?.priceRange && filters.priceRange.trim() !== '') {
         query = query.eq('price_range', filters.priceRange);
       }
 
@@ -148,11 +158,14 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
       setError(errorMessage);
       setRepairers([]);
       
-      toast({
-        title: "Erreur",
-        description: errorMessage,
-        variant: "destructive"
-      });
+      // Ne pas afficher le toast d'erreur si c'est juste qu'il n'y a pas de données
+      if (!(err instanceof Error) || !err.message.includes('No rows')) {
+        toast({
+          title: "Erreur",
+          description: errorMessage,
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }

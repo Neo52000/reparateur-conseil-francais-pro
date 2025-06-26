@@ -33,7 +33,12 @@ export const useSearchStore = create<SearchState>((set, get) => ({
   
   setSearchTerm: (searchTerm) => 
     set((state) => ({ 
-      filters: { ...state.filters, searchTerm } 
+      filters: { 
+        ...state.filters, 
+        searchTerm,
+        // Convertir le searchTerm en services si c'est pertinent
+        services: searchTerm && searchTerm.trim() !== '' ? [searchTerm.trim()] : undefined
+      } 
     })),
     
   setLocation: (location) => 
