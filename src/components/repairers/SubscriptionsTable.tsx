@@ -132,6 +132,14 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
     }
   };
 
+  const handleEditSubscription = (subscriptionId: string) => {
+    // Pour l'instant, on affiche juste un message
+    toast({
+      title: "Fonctionnalité en développement",
+      description: "La modification d'abonnement sera bientôt disponible",
+    });
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -164,6 +172,7 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
                 const price = subscription.billing_cycle === 'yearly' 
                   ? subscription.price_yearly 
                   : subscription.price_monthly;
+                const isLoading = loading === subscription.id;
                 
                 return (
                   <TableRow key={subscription.id}>
@@ -207,18 +216,22 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
                           size="sm" 
                           variant="outline"
                           onClick={() => handleToggleSubscription(subscription.id, subscription.subscribed)}
-                          disabled={loading === subscription.id}
+                          disabled={isLoading}
                           title={subscription.subscribed ? 'Suspendre l\'abonnement' : 'Activer l\'abonnement'}
                         >
-                          {subscription.subscribed ? 
-                            <XCircle className="h-4 w-4" /> : 
-                            <CheckCircle className="h-4 w-4" />
-                          }
+                          {isLoading ? (
+                            <div className="animate-spin h-4 w-4 border-2 border-gray-300 border-t-gray-600 rounded-full" />
+                          ) : (
+                            subscription.subscribed ? 
+                              <XCircle className="h-4 w-4" /> : 
+                              <CheckCircle className="h-4 w-4" />
+                          )}
                         </Button>
                         <Button 
                           size="sm" 
                           variant="outline"
-                          disabled={loading === subscription.id}
+                          onClick={() => handleEditSubscription(subscription.id)}
+                          disabled={isLoading}
                           title="Modifier l'abonnement"
                         >
                           <Edit className="h-4 w-4" />
@@ -228,7 +241,7 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
                             <Button 
                               size="sm" 
                               variant="outline"
-                              disabled={loading === subscription.id}
+                              disabled={isLoading}
                               title="Supprimer l'abonnement"
                             >
                               <Trash2 className="h-4 w-4" />
