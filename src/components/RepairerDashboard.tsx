@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,7 +17,8 @@ import {
   Star,
   LogOut,
   Crown,
-  ArrowUp
+  ArrowUp,
+  Calculator
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +32,7 @@ import InventoryTabSection from "./repairer-dashboard/InventoryTabSection";
 import AnalyticsTabSection from "./repairer-dashboard/AnalyticsTabSection";
 import BillingTabSection from "./repairer-dashboard/BillingTabSection";
 import ProfileTabSection from "./repairer-dashboard/ProfileTabSection";
+import PricingTabSection from "./repairer-dashboard/PricingTabSection";
 
 const RepairerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -334,11 +337,12 @@ const RepairerDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="overview">Aperçu</TabsTrigger>
             <TabsTrigger value="orders">Commandes</TabsTrigger>
             <TabsTrigger value="calendar">Planning</TabsTrigger>
             <TabsTrigger value="inventory">Stock</TabsTrigger>
+            <TabsTrigger value="pricing">Tarifs</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="billing">Facturation</TabsTrigger>
             <TabsTrigger value="profile">Profil</TabsTrigger>
@@ -361,6 +365,10 @@ const RepairerDashboard = () => {
 
           <TabsContent value="inventory">
             <InventoryTabSection inventory={repairerData.inventory} />
+          </TabsContent>
+
+          <TabsContent value="pricing">
+            <PricingTabSection />
           </TabsContent>
 
           <TabsContent value="analytics">

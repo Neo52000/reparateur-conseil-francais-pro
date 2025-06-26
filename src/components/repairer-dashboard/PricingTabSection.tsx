@@ -7,9 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, TrendingUp, TrendingDown, Calculator, Sparkles, Euro } from 'lucide-react';
+import { Plus, TrendingUp, TrendingDown, Calculator, Sparkles, Euro, Edit, Trash2 } from 'lucide-react';
 import { useRepairerPrices } from '@/hooks/catalog/useRepairerPrices';
 import { useToast } from '@/hooks/use-toast';
+import CustomPriceModal from './CustomPriceModal';
+import type { RepairerCustomPrice } from '@/types/repairerPricing';
 
 const PricingTabSection = () => {
   const { repairerPrices, basePrices, loading, createCustomPrice, updateCustomPrice, deleteCustomPrice, bulkApplyMargin } = useRepairerPrices();
@@ -17,6 +19,8 @@ const PricingTabSection = () => {
   const [marginDialog, setMarginDialog] = useState(false);
   const [bulkMargin, setBulkMargin] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
+  const [customPriceModal, setCustomPriceModal] = useState(false);
+  const [editingPrice, setEditingPrice] = useState<RepairerCustomPrice | null>(null);
 
   const handleApplyMargin = async () => {
     if (!bulkMargin) return;
@@ -28,6 +32,32 @@ const PricingTabSection = () => {
     } catch (error) {
       console.error('Error applying margin:', error);
     }
+  };
+
+  const handleCreatePrice = async (data: any) => {
+    await createCustomPrice(data);
+  };
+
+  const handleEditPrice = (price: RepairerCustomPrice) => {
+    setEditingPrice(price);
+    setCustomPriceModal(true);
+  };
+
+  const handleUpdatePrice = async (data: any) => {
+    if (editingPrice) {
+      await updateCustomPrice(editingPrice.id, data);
+    }
+  };
+
+  const handleDeletePrice = async (id: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce prix personnalisé ?')) {
+      await deleteCustomPrice(id);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setCustomPriceModal(false);
+    setEditingPrice(null);
   };
 
   const getMarginBadge = (margin?: number) => {
@@ -70,6 +100,19 @@ const PricingTabSection = () => {
       ? repairerPrices.reduce((sum, p) => sum + (p.margin_percentage || 0), 0) / repairerPrices.length 
       : 0
   };
+
+  const filteredPrices = repairerPrices.filter(price => {
+    switch (selectedFilter) {
+      case 'customized':
+        return price.custom_price_eur !== price.repair_price?.price_eur;
+      case 'default':
+        return price.custom_price_eur === price.repair_price?.price_eur;
+      case 'high_margin':
+        return (price.margin_percentage || 0) > 20;
+      default:
+        return true;
+    }
+  });
 
   if (loading) {
     return <div className="flex justify-center p-8">Chargement de vos tarifs...</div>;
@@ -120,7 +163,7 @@ const PricingTabSection = () => {
               </div>
             </DialogContent>
           </Dialog>
-          <Button>
+          <Button onClick={() => setCustomPriceModal(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Personnaliser un prix
           </Button>
@@ -197,7 +240,7 @@ const PricingTabSection = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {repairerPrices.map((price) => (
+              {filteredPrices.map((price) => (
                 <TableRow key={price.id}>
                   <TableCell>
                     <div>
@@ -229,16 +272,20 @@ const PricingTabSection = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
-                        Modifier
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleEditPrice(price)}
+                      >
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="sm" 
-                        onClick={() => deleteCustomPrice(price.id)}
+                        onClick={() => handleDeletePrice(price.id)}
                         className="text-red-600"
                       >
-                        Supprimer
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -247,7 +294,7 @@ const PricingTabSection = () => {
             </TableBody>
           </Table>
           
-          {repairerPrices.length === 0 && (
+          {filteredPrices.length === 0 && (
             <div className="text-center py-8">
               <p className="text-gray-500">Aucun prix personnalisé configuré</p>
               <p className="text-sm text-gray-400 mt-2">
@@ -257,6 +304,15 @@ const PricingTabSection = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de création/édition */}
+      <CustomPriceModal
+        isOpen={customPriceModal}
+        onClose={handleCloseModal}
+        onSave={editingPrice ? handleUpdatePrice : handleCreatePrice}
+        editingPrice={editingPrice}
+        basePrices={basePrices}
+      />
     </div>
   );
 };
