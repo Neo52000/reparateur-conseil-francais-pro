@@ -43,7 +43,28 @@ const RepairPricesManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRepairPrices(data || []);
+      
+      // Transformer les données pour s'assurer de la compatibilité des types
+      const transformedData = (data || []).map(item => ({
+        ...item,
+        device_model: item.device_model ? {
+          ...item.device_model,
+          storage_options: Array.isArray(item.device_model.storage_options) 
+            ? item.device_model.storage_options 
+            : [],
+          colors: Array.isArray(item.device_model.colors) 
+            ? item.device_model.colors 
+            : [],
+          connectivity: Array.isArray(item.device_model.connectivity) 
+            ? item.device_model.connectivity 
+            : [],
+          special_features: Array.isArray(item.device_model.special_features) 
+            ? item.device_model.special_features 
+            : []
+        } : null
+      })) as RepairPrice[];
+      
+      setRepairPrices(transformedData);
     } catch (error) {
       console.error('Error fetching repair prices:', error);
       toast({

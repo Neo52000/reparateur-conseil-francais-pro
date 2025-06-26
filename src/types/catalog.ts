@@ -23,17 +23,17 @@ export interface DeviceModel {
   release_date?: string;
   screen_size?: number;
   screen_resolution?: string;
-  screen_type?: string; // Changé pour accepter n'importe quelle string
+  screen_type?: string;
   battery_capacity?: number;
-  storage_options?: string[];
-  colors?: string[];
+  storage_options?: string[] | any; // Compatible avec Json de Supabase
+  colors?: string[] | any; // Compatible avec Json de Supabase
   operating_system?: string;
   processor?: string;
   ram_gb?: number;
   weight_grams?: number;
-  dimensions?: Record<string, number>;
-  connectivity?: string[];
-  special_features?: string[];
+  dimensions?: Record<string, number> | any; // Compatible avec Json de Supabase
+  connectivity?: string[] | any; // Compatible avec Json de Supabase
+  special_features?: string[] | any; // Compatible avec Json de Supabase
   is_active: boolean;
   image_url?: string;
   created_at: string;
@@ -57,7 +57,7 @@ export interface RepairType {
   category_id: string;
   name: string;
   description?: string;
-  difficulty_level: string; // Changé pour accepter n'importe quelle string
+  difficulty_level: string;
   estimated_time_minutes?: number;
   warranty_days: number;
   is_active: boolean;
@@ -77,7 +77,7 @@ export interface RepairPrice {
   notes?: string;
   created_at: string;
   updated_at: string;
-  // Relations
+  // Relations avec types flexibles pour Supabase
   device_model?: DeviceModel;
   repair_type?: RepairType;
 }
