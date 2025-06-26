@@ -32,6 +32,13 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
 
       console.log('✅ ProfileDataLoader - Profile loaded successfully');
       
+      // Helper function to safely parse JSON objects
+      const safeParseJson = <T>(value: any, fallback: T): T => {
+        if (value === null || value === undefined) return fallback;
+        if (typeof value === 'object' && value !== null) return value as T;
+        return fallback;
+      };
+
       // Map the database data to RepairerProfile format
       const mappedProfile: RepairerProfile = {
         id: data.id,
@@ -51,12 +58,12 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
         emergency_service: data.emergency_service || false,
         home_service: data.home_service || false,
         pickup_service: data.pickup_service || false,
-        opening_hours: data.opening_hours || {},
+        opening_hours: safeParseJson(data.opening_hours, {}),
         response_time: data.response_time,
         warranty_duration: data.warranty_duration,
         payment_methods: data.payment_methods || [],
         languages_spoken: data.languages_spoken || [],
-        pricing_info: data.pricing_info || {},
+        pricing_info: safeParseJson(data.pricing_info, {}),
         profile_image_url: data.profile_image_url,
         shop_photos: data.shop_photos || [],
         facebook_url: data.facebook_url,
