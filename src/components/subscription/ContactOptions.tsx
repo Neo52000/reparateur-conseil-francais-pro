@@ -8,7 +8,7 @@ const ContactOptions: React.FC = () => {
     const message = encodeURIComponent(
       `Bonjour, je souhaite des informations sur les plans d'abonnement pour réparateurs.`
     );
-    window.open(`https://wa.me/0745062162?text=${message}`, '_blank');
+    window.open(`https://wa.me/33745062162?text=${message}`, '_blank');
   };
 
   return (

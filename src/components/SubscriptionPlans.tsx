@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/hooks/useAuth';
 import { subscriptionService } from '@/services/subscriptionService';
+import { useToast } from '@/hooks/use-toast';
 
 // Nouveaux composants
 import HeroSection from '@/components/subscription/HeroSection';
@@ -48,6 +49,7 @@ const SubscriptionPlans = ({
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const effectiveUserEmail = userEmail || user?.email || 'demo@example.com';
 
@@ -82,8 +84,16 @@ const SubscriptionPlans = ({
   };
 
   const handleSubscribe = async (planId: string) => {
+    console.log('handleSubscribe called with planId:', planId);
+    console.log('isYearly:', isYearly);
+    console.log('repairerId:', repairerId);
+    console.log('effectiveUserEmail:', effectiveUserEmail);
+    
     setLoading(true);
+    
     try {
+      console.log('Calling supabase function create-subscription...');
+      
       const { data, error } = await supabase.functions.invoke('create-subscription', {
         body: {
           planId,
@@ -93,13 +103,39 @@ const SubscriptionPlans = ({
         },
       });
 
+      console.log('Supabase function response:', { data, error });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        toast({
+          title: "Erreur",
+          description: "Une erreur est survenue lors de la création de la souscription. Veuillez contacter le support.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       if (data?.url) {
+        console.log('Opening payment URL:', data.url);
         window.open(data.url, '_blank');
+        toast({
+          title: "Redirection vers le paiement",
+          description: "Vous êtes redirigé vers la page de paiement sécurisée.",
+        });
       } else {
-        console.error('Error creating subscription:', error);
+        console.error('No payment URL received from function');
+        toast({
+          title: "Information",
+          description: "Contactez-nous au 07 45 06 21 62 pour finaliser votre abonnement.",
+        });
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error in handleSubscribe:', error);
+      toast({
+        title: "Erreur technique",
+        description: "Une erreur technique est survenue. Contactez le support au contact@topreparateurs.fr",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -257,7 +293,7 @@ const SubscriptionPlans = ({
                     onClick={() => handleSubscribe(plan.id)}
                     disabled={loading || isCurrentUserPlan(plan.name)}
                   >
-                    {getButtonText(plan.name, plan.price_monthly)}
+                    {loading ? 'Traitement...' : getButtonText(plan.name, plan.price_monthly)}
                   </Button>
                 </CardContent>
               </Card>
@@ -268,6 +304,9 @@ const SubscriptionPlans = ({
             <p>
               Tous les plans peuvent être annulés à tout moment. 
               Les changements prennent effet immédiatement.
+            </p>
+            <p className="mt-2">
+              Besoin d'aide ? Contactez-nous au <strong>07 45 06 21 62</strong> ou <strong>contact@topreparateurs.fr</strong>
             </p>
           </div>
         </div>
