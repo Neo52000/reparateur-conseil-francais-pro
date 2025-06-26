@@ -1,3 +1,4 @@
+
 import Papa from 'papaparse';
 
 interface RepairerData {
@@ -45,7 +46,7 @@ export class CSVService {
       'Ã‰': 'É',
       'Ã‡': 'Ç',
       'Ã'': 'Ñ',
-      '': 'é', // Caractère de remplacement générique
+      'Ã©parateur': 'réparateur',
       'rÃ©parateur': 'réparateur',
       'rÃ©paration': 'réparation',
       'tÃ©lÃ©phone': 'téléphone',
