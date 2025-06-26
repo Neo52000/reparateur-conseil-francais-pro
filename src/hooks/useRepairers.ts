@@ -37,7 +37,7 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
       let query = supabase
         .from('repairers')
         .select('*')
-        .eq('is_verified', true) // Seulement les réparateurs vérifiés
+        // CORRECTION: Afficher tous les réparateurs, pas seulement les vérifiés
         .order('rating', { ascending: false });
 
       // Appliquer les filtres seulement s'ils sont valides
@@ -97,7 +97,7 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
           });
         });
 
-        // Convertir les données Supabase vers notre format avec validation du price_range
+        // Conversion des données Supabase vers notre format
         const processedData: Repairer[] = data.map((repairer: SupabaseRepairer): Repairer => ({
           id: repairer.id,
           name: repairer.name,

@@ -5,6 +5,7 @@ import HeroSection from '@/components/sections/HeroSection';
 import QuickStatsSection from '@/components/sections/QuickStatsSection';
 import MainMapSection from '@/components/sections/MainMapSection';
 import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
+import SearchModeSelector from '@/components/SearchModeSelector';
 import Footer from '@/components/Footer';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
 import { useSearchStore } from '@/stores/searchStore';
@@ -15,7 +16,15 @@ const Index = () => {
   const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const { toast } = useToast();
-  const { filters, isSearchActive } = useSearchStore();
+  const { 
+    filters, 
+    isSearchActive, 
+    searchMode, 
+    setSearchMode, 
+    performSearch, 
+    setSearchTerm: setStoreSearchTerm, 
+    setCityPostal 
+  } = useSearchStore();
 
   const handleQuickSearch = () => {
     console.log('Button clicked - searchTerm:', searchTerm, 'selectedLocation:', selectedLocation);
@@ -43,6 +52,12 @@ const Index = () => {
       });
       return;
     }
+    
+    // Mettre à jour le store avec les critères de recherche
+    setStoreSearchTerm(searchTerm);
+    
+    // Effectuer la recherche
+    performSearch();
     
     toast({
       title: "Recherche rapide lancée",
@@ -89,12 +104,22 @@ const Index = () => {
         {/* Quick Stats */}
         <QuickStatsSection />
 
+        {/* Sélecteur de mode de recherche inspiré de Doctolib */}
+        {!isSearchActive && (
+          <SearchModeSelector
+            selectedMode={searchMode}
+            onModeChange={setSearchMode}
+          />
+        )}
+
         {/* Indicateur de recherche active */}
         {isSearchActive && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-blue-900">Recherche active</h3>
+                <h3 className="text-lg font-semibold text-blue-900">
+                  Recherche active ({searchMode === 'quick' ? 'Recherche rapide' : 'Carte géolocalisée'})
+                </h3>
                 <p className="text-blue-700">
                   Filtres appliqués : 
                   {filters.searchTerm && ` Service: "${filters.searchTerm}"`}
@@ -112,8 +137,10 @@ const Index = () => {
           </div>
         )}
 
-        {/* Main Content - Carte pleine page */}
-        <MainMapSection />
+        {/* Contenu principal selon le mode sélectionné */}
+        {(isSearchActive || searchMode === 'map') && (
+          <MainMapSection />
+        )}
 
         {/* Carrousel des réparateurs */}
         <RepairersCarouselSection

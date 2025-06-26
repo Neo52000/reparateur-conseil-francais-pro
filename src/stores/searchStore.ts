@@ -15,6 +15,7 @@ interface SearchState {
   filters: SearchFilters;
   isSearchActive: boolean;
   resultsCount: number;
+  searchMode: 'quick' | 'map';
   
   // Actions
   setSearchTerm: (term: string) => void;
@@ -24,12 +25,14 @@ interface SearchState {
   performSearch: () => void;
   clearSearch: () => void;
   setResultsCount: (count: number) => void;
+  setSearchMode: (mode: 'quick' | 'map') => void;
 }
 
 export const useSearchStore = create<SearchState>((set, get) => ({
   filters: {},
   isSearchActive: false,
   resultsCount: 0,
+  searchMode: 'quick', // Mode par défaut
   
   setSearchTerm: (searchTerm) => 
     set((state) => ({ 
@@ -70,4 +73,7 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     
   setResultsCount: (resultsCount) => 
     set({ resultsCount }),
+
+  setSearchMode: (searchMode) => 
+    set({ searchMode }),
 }));
