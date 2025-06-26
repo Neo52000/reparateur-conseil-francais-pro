@@ -5,7 +5,7 @@ import HeroSection from '@/components/sections/HeroSection';
 import QuickStatsSection from '@/components/sections/QuickStatsSection';
 import MainMapSection from '@/components/sections/MainMapSection';
 import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
-import SearchModeSelector from '@/components/SearchModeSelector';
+import SearchModeToggle from '@/components/SearchModeToggle';
 import Footer from '@/components/Footer';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
 import { useSearchStore } from '@/stores/searchStore';
@@ -23,7 +23,8 @@ const Index = () => {
     setSearchMode, 
     performSearch, 
     setSearchTerm: setStoreSearchTerm, 
-    setCityPostal 
+    setCityPostal,
+    clearSearch
   } = useSearchStore();
 
   const handleQuickSearch = () => {
@@ -36,6 +37,10 @@ const Index = () => {
     let locationText = "Non spécifiée";
     if (filters.city && filters.postalCode) {
       locationText = `"${filters.city} (${filters.postalCode})"`;
+    } else if (filters.city) {
+      locationText = `"${filters.city}"`;
+    } else if (filters.postalCode) {
+      locationText = `"${filters.postalCode}"`;
     } else if (selectedLocation.trim()) {
       locationText = `"${selectedLocation.trim()}"`;
     }
@@ -89,6 +94,16 @@ const Index = () => {
     setSelectedRepairerId(null);
   };
 
+  const handleResetSearch = () => {
+    clearSearch();
+    setSearchTerm('');
+    setSelectedLocation('');
+    toast({
+      title: "Recherche réinitialisée",
+      description: "Vous pouvez effectuer une nouvelle recherche."
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
       {/* Hero Section avec image pleine largeur et recherche dessus */}
@@ -104,9 +119,9 @@ const Index = () => {
         {/* Quick Stats */}
         <QuickStatsSection />
 
-        {/* Sélecteur de mode de recherche inspiré de Doctolib */}
+        {/* Sélecteur de mode de recherche compact */}
         {!isSearchActive && (
-          <SearchModeSelector
+          <SearchModeToggle
             selectedMode={searchMode}
             onModeChange={setSearchMode}
           />
@@ -128,8 +143,8 @@ const Index = () => {
                 </p>
               </div>
               <button 
-                onClick={() => window.location.reload()}
-                className="text-blue-600 hover:text-blue-800 underline"
+                onClick={handleResetSearch}
+                className="text-blue-600 hover:text-blue-800 underline font-medium"
               >
                 Réinitialiser
               </button>

@@ -51,7 +51,11 @@ export const useSearchStore = create<SearchState>((set, get) => ({
     
   setCityPostal: (city, postalCode) => 
     set((state) => ({ 
-      filters: { ...state.filters, city, postalCode } 
+      filters: { 
+        ...state.filters, 
+        city: city || undefined, 
+        postalCode: postalCode || undefined 
+      } 
     })),
     
   setFilters: (newFilters) => 

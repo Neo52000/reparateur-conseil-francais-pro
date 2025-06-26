@@ -29,6 +29,7 @@ const CityPostalCodeInput: React.FC<Props> = ({
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
   const [showPostalSuggestions, setShowPostalSuggestions] = useState(false);
   const [isValidCombination, setIsValidCombination] = useState(false);
+  const [inputMode, setInputMode] = useState<'city' | 'postal' | null>(null);
 
   const cityResults = usePostalCodeValidation(cityInput, 'city');
   const postalResults = usePostalCodeValidation(postalInput, 'postal');
@@ -63,7 +64,17 @@ const CityPostalCodeInput: React.FC<Props> = ({
         });
       }
     } else {
-      setIsValidCombination(false);
+      // Valide si au moins un champ est rempli
+      const isValid = Boolean(cityInput.trim() || postalInput.trim());
+      setIsValidCombination(isValid);
+      
+      if (onValidSelection) {
+        onValidSelection({
+          city: cityInput,
+          postalCode: postalInput,
+          isValid
+        });
+      }
     }
   }, [cityInput, postalInput, cityResults.cities, postalResults.cities, onValidSelection]);
 
@@ -73,6 +84,7 @@ const CityPostalCodeInput: React.FC<Props> = ({
     onCityChange(city.nom);
     onPostalCodeChange(city.codePostal);
     setShowCitySuggestions(false);
+    setInputMode('city');
   };
 
   const handlePostalSelect = (city: any) => {
@@ -81,18 +93,33 @@ const CityPostalCodeInput: React.FC<Props> = ({
     onCityChange(city.nom);
     onPostalCodeChange(city.codePostal);
     setShowPostalSuggestions(false);
+    setInputMode('postal');
   };
 
   const handleCityInputChange = (value: string) => {
+    // Si on tape dans la ville, on efface le code postal pour éviter les conflits
+    if (value && postalInput && inputMode !== 'city') {
+      setPostalInput('');
+      onPostalCodeChange('');
+    }
+    
     setCityInput(value);
-    onCityChange(value); // Changement en temps réel
+    onCityChange(value);
     setShowCitySuggestions(true);
+    setInputMode('city');
   };
 
   const handlePostalInputChange = (value: string) => {
+    // Si on tape dans le code postal, on efface la ville pour éviter les conflits
+    if (value && cityInput && inputMode !== 'postal') {
+      setCityInput('');
+      onCityChange('');
+    }
+    
     setPostalInput(value);
-    onPostalCodeChange(value); // Changement en temps réel
+    onPostalCodeChange(value);
     setShowPostalSuggestions(true);
+    setInputMode('postal');
   };
 
   return (
@@ -102,14 +129,8 @@ const CityPostalCodeInput: React.FC<Props> = ({
         <div className="relative">
           <Label htmlFor="city" className="text-gray-700">
             Ville {required && "*"}
-            {cityInput && postalInput && (
-              <span className="ml-2">
-                {isValidCombination ? (
-                  <Check className="inline h-4 w-4 text-green-600" />
-                ) : (
-                  <span className="text-red-500 text-xs">Combinaison invalide</span>
-                )}
-              </span>
+            {cityInput && isValidCombination && (
+              <Check className="inline ml-2 h-4 w-4 text-green-600" />
             )}
           </Label>
           <div className="relative">
@@ -122,11 +143,12 @@ const CityPostalCodeInput: React.FC<Props> = ({
               onBlur={() => setTimeout(() => setShowCitySuggestions(false), 150)}
               placeholder="Entrez une ville"
               className="pl-10 text-gray-900 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              required={required}
+              required={required && !postalInput}
+              disabled={!!postalInput && inputMode === 'postal'}
             />
           </div>
           
-          {showCitySuggestions && cityResults.cities.length > 0 && (
+          {showCitySuggestions && cityResults.cities.length > 0 && !postalInput && (
             <div className="absolute z-30 top-full left-0 w-full bg-white border border-gray-200 rounded shadow-lg max-h-60 overflow-auto mt-1">
               {cityResults.cities.slice(0, 8).map((city, i) => (
                 <div
@@ -156,6 +178,9 @@ const CityPostalCodeInput: React.FC<Props> = ({
         <div className="relative">
           <Label htmlFor="postal-code" className="text-gray-700">
             Code postal {required && "*"}
+            {postalInput && isValidCombination && (
+              <Check className="inline ml-2 h-4 w-4 text-green-600" />
+            )}
           </Label>
           <Input
             id="postal-code"
@@ -167,10 +192,11 @@ const CityPostalCodeInput: React.FC<Props> = ({
             maxLength={5}
             pattern="[0-9]{5}"
             className="text-gray-900 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-            required={required}
+            required={required && !cityInput}
+            disabled={!!cityInput && inputMode === 'city'}
           />
           
-          {showPostalSuggestions && postalResults.cities.length > 0 && (
+          {showPostalSuggestions && postalResults.cities.length > 0 && !cityInput && (
             <div className="absolute z-30 top-full left-0 w-full bg-white border border-gray-200 rounded shadow-lg max-h-60 overflow-auto mt-1">
               {postalResults.cities.slice(0, 8).map((city, i) => (
                 <div
@@ -197,13 +223,10 @@ const CityPostalCodeInput: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Message de validation */}
-      {cityInput && postalInput && !isValidCombination && (
-        <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-          ⚠️ La combinaison ville/code postal saisie ne semble pas correcte. 
-          Vérifiez l'orthographe ou sélectionnez une suggestion.
-        </div>
-      )}
+      {/* Message d'aide */}
+      <div className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
+        💡 Saisissez soit une ville, soit un code postal (pas les deux en même temps)
+      </div>
     </div>
   );
 };
