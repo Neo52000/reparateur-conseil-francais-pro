@@ -33,8 +33,14 @@ const Index = () => {
     const locationText = selectedLocation.trim() ? `"${selectedLocation.trim()}"` : "Non spécifiée";
     
     toast({
-      title: "Recherche rapide",
+      title: "Recherche rapide lancée",
       description: `Service : ${serviceText} / Localisation : ${locationText}`,
+    });
+
+    // TODO: Implémenter la logique de recherche réelle avec les filtres
+    console.log('Recherche avec filtres:', {
+      service: searchTerm.trim() || null,
+      location: selectedLocation.trim() || null
     });
   };
 

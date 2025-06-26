@@ -4,6 +4,7 @@ import { Search, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Logo from '@/components/Logo';
+import CityPostalCodeInput from '@/components/CityPostalCodeInput';
 
 interface HeroSectionProps {
   searchTerm: string;
@@ -58,19 +59,32 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                   style={{ color: '#1f2937' }}
                 />
               </div>
-              <div className="relative">
-                <MapPin className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
-                <Input
-                  placeholder="Ville ou code postal"
-                  value={selectedLocation}
-                  onChange={(e) => {
-                    console.log('Location input changed:', e.target.value);
-                    onLocationChange(e.target.value);
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Localisation (ville ou code postal)
+                </label>
+                <CityPostalCodeInput
+                  cityValue=""
+                  postalCodeValue={selectedLocation}
+                  onCityChange={(city) => {
+                    console.log('Location city changed:', city);
+                    onLocationChange(city);
                   }}
-                  className="pl-10 bg-white text-gray-900 border border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  style={{ color: '#1f2937' }}
+                  onPostalCodeChange={(postalCode) => {
+                    console.log('Location postal code changed:', postalCode);
+                    onLocationChange(postalCode);
+                  }}
+                  onValidSelection={({ city, postalCode, isValid }) => {
+                    console.log('Valid location selection:', { city, postalCode, isValid });
+                    if (isValid) {
+                      onLocationChange(`${city} ${postalCode}`);
+                    }
+                  }}
+                  className="bg-white"
                 />
               </div>
+              
               <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white" size="lg" onClick={onQuickSearch}>
                 Rechercher
               </Button>
