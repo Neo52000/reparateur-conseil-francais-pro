@@ -32,6 +32,11 @@ export interface Repairer {
 // Alias pour compatibilité avec le code existant
 export type RepairerDB = Repairer;
 
+// Type étendu pour les réparateurs avec coordonnées calculées
+export interface RepairerWithCoordinates extends Repairer {
+  hasRealCoordinates?: boolean;
+}
+
 // Propriétés calculées pour l'affichage
 export interface RepairerDisplay extends Repairer {
   reviewCount: number;

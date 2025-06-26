@@ -2,11 +2,11 @@
 import React from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { Repairer } from '@/types/repairer';
+import { RepairerWithCoordinates } from '@/types/repairer';
 import { useMapStore } from '@/stores/mapStore';
 
 interface SimpleRepairerMarkerProps {
-  repairer: Repairer & { hasRealCoordinates?: boolean };
+  repairer: RepairerWithCoordinates;
 }
 
 /**

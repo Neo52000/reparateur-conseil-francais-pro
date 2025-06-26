@@ -7,6 +7,7 @@ import SimpleRepairerMarker from './SimpleRepairerMarker';
 import UserLocationMarker from './UserLocationMarker';
 import MapController from './MapController';
 import L from 'leaflet';
+import { RepairerWithCoordinates } from '@/types/repairer';
 import 'leaflet/dist/leaflet.css';
 
 // Fix pour les markers Leaflet avec Vite
@@ -30,7 +31,7 @@ const RepairersMapContainer: React.FC = () => {
   // Préparation des réparateurs avec positions par défaut
   const displayableRepairers = React.useMemo(() => {
     try {
-      return repairers.map((repairer, index) => {
+      return repairers.map((repairer, index): RepairerWithCoordinates => {
         // Si le réparateur a des coordonnées valides, on les utilise
         if (repairer.lat && repairer.lng && 
             typeof repairer.lat === 'number' && 
@@ -39,7 +40,10 @@ const RepairersMapContainer: React.FC = () => {
             !isNaN(repairer.lng) &&
             Math.abs(repairer.lat) <= 90 && 
             Math.abs(repairer.lng) <= 180) {
-          return repairer;
+          return {
+            ...repairer,
+            hasRealCoordinates: true
+          };
         }
 
         // Sinon, on assigne une position par défaut basée sur la ville ou l'index
@@ -67,7 +71,7 @@ const RepairersMapContainer: React.FC = () => {
           ...repairer,
           lat: offsetLat,
           lng: offsetLng,
-          hasRealCoordinates: false // Flag pour identifier les positions par défaut
+          hasRealCoordinates: false
         };
       });
     } catch (error) {
