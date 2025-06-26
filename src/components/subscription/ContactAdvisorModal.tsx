@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Dialog,
   DialogContent,
@@ -17,11 +17,6 @@ interface ContactAdvisorModalProps {
 }
 
 const ContactAdvisorModal: React.FC<ContactAdvisorModalProps> = ({ isOpen, onClose }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    business: ''
-  });
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -34,7 +29,7 @@ const ContactAdvisorModal: React.FC<ContactAdvisorModalProps> = ({ isOpen, onClo
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ContactOptions formData={formData} />
+          <ContactOptions />
           <ContactForm onClose={onClose} />
         </div>
 

@@ -3,14 +3,10 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { MessageCircle, Clock } from 'lucide-react';
 
-interface ContactOptionsProps {
-  formData: { name: string; business: string };
-}
-
-const ContactOptions: React.FC<ContactOptionsProps> = ({ formData }) => {
+const ContactOptions: React.FC = () => {
   const handleWhatsApp = () => {
     const message = encodeURIComponent(
-      `Bonjour, je souhaite des informations sur les plans d'abonnement pour réparateurs. Mon nom: ${formData.name || '[À compléter]'}, Mon entreprise: ${formData.business || '[À compléter]'}`
+      `Bonjour, je souhaite des informations sur les plans d'abonnement pour réparateurs.`
     );
     window.open(`https://wa.me/0745062162?text=${message}`, '_blank');
   };
