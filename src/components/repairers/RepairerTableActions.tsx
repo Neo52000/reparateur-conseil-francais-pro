@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Eye, Edit, Trash2 } from 'lucide-react';
+import { Eye, Edit, Trash2, Power, PowerOff } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,13 +48,17 @@ const RepairerTableActions: React.FC<RepairerTableActionsProps> = ({
       
       <Button 
         size="sm" 
-        variant="outline"
+        variant={currentStatus ? "default" : "secondary"}
         onClick={() => onToggleStatus(repairerId, currentStatus)}
         disabled={isLoading}
-        aria-label="Activer/Désactiver"
+        aria-label={currentStatus ? "Désactiver" : "Activer"}
         title={currentStatus ? "Désactiver le réparateur" : "Activer le réparateur"}
       >
-        <Edit className="h-4 w-4" />
+        {currentStatus ? (
+          <PowerOff className="h-4 w-4" />
+        ) : (
+          <Power className="h-4 w-4" />
+        )}
       </Button>
       
       <AlertDialog>

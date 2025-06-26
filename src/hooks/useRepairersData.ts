@@ -25,6 +25,7 @@ interface RepairerData {
   email: string;
   phone: string;
   city: string;
+  department: string;
   subscription_tier: string;
   subscribed: boolean;
   total_repairs: number;
@@ -66,7 +67,6 @@ export const useRepairersData = () => {
       if (error) {
         console.error('❌ useRepairersData - Subscription fetch error:', error);
         
-        // Gestion spécialisée selon le type d'erreur
         if (error.code === 'PGRST116') {
           console.warn('⚠️ useRepairersData - View admin_subscription_overview not found, using empty fallback');
           setSubscriptions([]);
@@ -124,7 +124,6 @@ export const useRepairersData = () => {
     try {
       console.log('🔄 useRepairersData - Fetching repairers...');
       
-      // Récupérer les réparateurs depuis la base de données avec gestion d'erreur améliorée
       const { data: repairersData, error: repairersError } = await supabase
         .from('repairers')
         .select('*')
@@ -133,7 +132,6 @@ export const useRepairersData = () => {
       if (repairersError) {
         console.error('❌ useRepairersData - Repairers fetch error:', repairersError);
         
-        // Gestion spécialisée selon le type d'erreur
         if (repairersError.message?.includes('permission denied') || repairersError.message?.includes('insufficient_privilege')) {
           console.error('🔒 useRepairersData - Permission denied for repairers table');
           toast({
@@ -163,6 +161,7 @@ export const useRepairersData = () => {
         email: repairer.email || 'Non renseigné',
         phone: repairer.phone || 'Non renseigné',
         city: repairer.city,
+        department: repairer.department || '00',
         subscription_tier: 'free', // À améliorer avec vraies données d'abonnement
         subscribed: repairer.is_verified || false,
         total_repairs: Math.floor(Math.random() * 200), // Données simulées
@@ -184,14 +183,12 @@ export const useRepairersData = () => {
     } catch (error) {
       console.error('❌ useRepairersData - Error fetching repairers:', error);
       
-      // Afficher un toast d'erreur seulement pour les vraies erreurs techniques
       toast({
         title: "Erreur de chargement",
         description: "Problème technique lors du chargement des réparateurs",
         variant: "destructive"
       });
       
-      // En cas d'erreur, utiliser des données de fallback vides
       setRepairers([]);
       setStats(prev => ({
         ...prev,

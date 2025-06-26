@@ -13,6 +13,7 @@ interface RepairerData {
   email: string;
   phone: string;
   city: string;
+  department: string;
   subscription_tier: string;
   subscribed: boolean;
   total_repairs: number;
@@ -39,6 +40,9 @@ const RepairerTableRow: React.FC<RepairerTableRowProps> = ({
   checked,
   onCheck,
 }) => {
+  // Générer l'ID personnalisé avec nom de boutique + département
+  const customId = `${repairer.name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}-${repairer.department || '00'}`;
+
   return (
     <TableRow>
       <TableCell>
@@ -48,10 +52,20 @@ const RepairerTableRow: React.FC<RepairerTableRowProps> = ({
           aria-label="Sélectionner le réparateur"
         />
       </TableCell>
-      <TableCell className="font-medium">{repairer.name}</TableCell>
+      <TableCell className="font-medium">
+        <div>
+          <div className="font-semibold">{repairer.name}</div>
+          <div className="text-xs text-gray-500">ID: {customId}</div>
+        </div>
+      </TableCell>
       <TableCell>{repairer.email}</TableCell>
       <TableCell>{repairer.phone}</TableCell>
-      <TableCell>{repairer.city}</TableCell>
+      <TableCell>
+        <div>
+          <div>{repairer.city}</div>
+          <div className="text-xs text-gray-500">Dept. {repairer.department || '00'}</div>
+        </div>
+      </TableCell>
       <TableCell>
         <SubscriptionTierBadge tier={repairer.subscription_tier} />
       </TableCell>
