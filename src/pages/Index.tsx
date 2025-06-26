@@ -17,9 +17,24 @@ const Index = () => {
 
   const handleQuickSearch = () => {
     console.log('Button clicked - searchTerm:', searchTerm, 'selectedLocation:', selectedLocation);
+    
+    // Vérifier si au moins un champ est rempli
+    if (!searchTerm.trim() && !selectedLocation.trim()) {
+      toast({
+        title: "Recherche incomplète",
+        description: "Veuillez saisir un service ou une localisation pour effectuer votre recherche.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Construire le message de confirmation avec les valeurs saisies
+    const serviceText = searchTerm.trim() ? `"${searchTerm.trim()}"` : "Non spécifié";
+    const locationText = selectedLocation.trim() ? `"${selectedLocation.trim()}"` : "Non spécifiée";
+    
     toast({
       title: "Recherche rapide",
-      description: `Service : "${searchTerm}" / Localisation : "${selectedLocation}"`,
+      description: `Service : ${serviceText} / Localisation : ${locationText}`,
     });
   };
 
