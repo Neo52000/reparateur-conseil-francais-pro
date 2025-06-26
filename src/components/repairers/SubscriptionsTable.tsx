@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Crown, Star, Zap, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,8 +62,22 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
   const handleToggleSubscription = async (subscriptionId: string, currentStatus: boolean) => {
     setLoading(subscriptionId);
     try {
-      // Simulation du changement de statut d'abonnement
-      console.log('Changement de statut d\'abonnement pour:', subscriptionId, 'vers:', !currentStatus);
+      console.log('🔄 Toggling subscription status for:', subscriptionId, 'to:', !currentStatus);
+      
+      const { error } = await supabase
+        .from('repairer_subscriptions')
+        .update({ 
+          subscribed: !currentStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', subscriptionId);
+
+      if (error) {
+        console.error('❌ Error toggling subscription:', error);
+        throw error;
+      }
+
+      console.log('✅ Subscription status updated successfully');
       
       toast({
         title: "Succès",
@@ -70,11 +85,11 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
       });
       
       if (onRefresh) onRefresh();
-    } catch (error) {
-      console.error('Erreur lors du changement de statut:', error);
+    } catch (error: any) {
+      console.error('❌ Error in handleToggleSubscription:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de modifier l'abonnement",
+        description: error.message || "Impossible de modifier l'abonnement",
         variant: "destructive"
       });
     } finally {
@@ -85,8 +100,19 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
   const handleDeleteSubscription = async (subscriptionId: string) => {
     setLoading(subscriptionId);
     try {
-      // Simulation de la suppression d'abonnement
-      console.log('Suppression de l\'abonnement:', subscriptionId);
+      console.log('🗑️ Deleting subscription:', subscriptionId);
+      
+      const { error } = await supabase
+        .from('repairer_subscriptions')
+        .delete()
+        .eq('id', subscriptionId);
+
+      if (error) {
+        console.error('❌ Error deleting subscription:', error);
+        throw error;
+      }
+
+      console.log('✅ Subscription deleted successfully');
       
       toast({
         title: "Succès",
@@ -94,11 +120,11 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
       });
       
       if (onRefresh) onRefresh();
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
+    } catch (error: any) {
+      console.error('❌ Error in handleDeleteSubscription:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer l'abonnement",
+        description: error.message || "Impossible de supprimer l'abonnement",
         variant: "destructive"
       });
     } finally {
@@ -126,101 +152,112 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
             </TableRow>
           </TableHeader>
           <TableBody>
-            {subscriptions.map((subscription) => {
-              const tierInfo = getTierInfo(subscription.subscription_tier);
-              const price = subscription.billing_cycle === 'yearly' 
-                ? subscription.price_yearly 
-                : subscription.price_monthly;
-              
-              return (
-                <TableRow key={subscription.id}>
-                  <TableCell>
-                    {subscription.first_name || subscription.last_name ? 
-                      `${subscription.first_name || ''} ${subscription.last_name || ''}`.trim() :
-                      subscription.repairer_id
-                    }
-                  </TableCell>
-                  <TableCell>{subscription.email}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      {tierInfo.icon}
-                      <Badge className={tierInfo.color}>
-                        {tierInfo.name}
+            {subscriptions.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                  Aucun abonnement trouvé
+                </TableCell>
+              </TableRow>
+            ) : (
+              subscriptions.map((subscription) => {
+                const tierInfo = getTierInfo(subscription.subscription_tier);
+                const price = subscription.billing_cycle === 'yearly' 
+                  ? subscription.price_yearly 
+                  : subscription.price_monthly;
+                
+                return (
+                  <TableRow key={subscription.id}>
+                    <TableCell>
+                      {subscription.first_name || subscription.last_name ? 
+                        `${subscription.first_name || ''} ${subscription.last_name || ''}`.trim() :
+                        subscription.repairer_id
+                      }
+                    </TableCell>
+                    <TableCell>{subscription.email}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        {tierInfo.icon}
+                        <Badge className={tierInfo.color}>
+                          {tierInfo.name}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {subscription.billing_cycle === 'yearly' ? 'Annuelle' : 'Mensuelle'}
                       </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {subscription.billing_cycle === 'yearly' ? 'Annuelle' : 'Mensuelle'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {price ? `${price}€` : 'N/A'}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={subscription.subscribed ? "default" : "secondary"}>
-                      {subscription.subscribed ? 'Actif' : 'Inactif'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {subscription.subscription_end 
-                      ? new Date(subscription.subscription_end).toLocaleDateString()
-                      : 'N/A'
-                    }
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleToggleSubscription(subscription.id, subscription.subscribed)}
-                        disabled={loading === subscription.id}
-                      >
-                        {subscription.subscribed ? 
-                          <XCircle className="h-4 w-4" /> : 
-                          <CheckCircle className="h-4 w-4" />
-                        }
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        disabled={loading === subscription.id}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            disabled={loading === subscription.id}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Êtes-vous sûr de vouloir supprimer cet abonnement ? Cette action est irréversible.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handleDeleteSubscription(subscription.id)}
-                              className="bg-red-600 hover:bg-red-700"
+                    </TableCell>
+                    <TableCell>
+                      {price ? `${price}€` : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={subscription.subscribed ? "default" : "secondary"}>
+                        {subscription.subscribed ? 'Actif' : 'Inactif'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {subscription.subscription_end 
+                        ? new Date(subscription.subscription_end).toLocaleDateString()
+                        : 'N/A'
+                      }
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleToggleSubscription(subscription.id, subscription.subscribed)}
+                          disabled={loading === subscription.id}
+                          title={subscription.subscribed ? 'Suspendre l\'abonnement' : 'Activer l\'abonnement'}
+                        >
+                          {subscription.subscribed ? 
+                            <XCircle className="h-4 w-4" /> : 
+                            <CheckCircle className="h-4 w-4" />
+                          }
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          disabled={loading === subscription.id}
+                          title="Modifier l'abonnement"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              disabled={loading === subscription.id}
+                              title="Supprimer l'abonnement"
                             >
-                              Supprimer
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Êtes-vous sûr de vouloir supprimer cet abonnement ? Cette action est irréversible.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Annuler</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDeleteSubscription(subscription.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Supprimer
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </CardContent>

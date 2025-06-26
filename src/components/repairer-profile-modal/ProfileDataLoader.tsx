@@ -31,7 +31,49 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
       }
 
       console.log('✅ ProfileDataLoader - Profile loaded successfully');
-      return data as RepairerProfile;
+      
+      // Map the database data to RepairerProfile format
+      const mappedProfile: RepairerProfile = {
+        id: data.id,
+        repairer_id: data.user_id, // Map user_id to repairer_id
+        business_name: data.business_name,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        city: data.city,
+        postal_code: data.postal_code,
+        website: data.website,
+        description: data.description,
+        repair_types: data.repair_types || [],
+        services_offered: data.services_offered || [],
+        certifications: data.certifications || [],
+        years_experience: data.years_experience || 0,
+        emergency_service: data.emergency_service || false,
+        home_service: data.home_service || false,
+        pickup_service: data.pickup_service || false,
+        opening_hours: data.opening_hours || {},
+        response_time: data.response_time,
+        warranty_duration: data.warranty_duration,
+        payment_methods: data.payment_methods || [],
+        languages_spoken: data.languages_spoken || [],
+        pricing_info: data.pricing_info || {},
+        profile_image_url: data.profile_image_url,
+        shop_photos: data.shop_photos || [],
+        facebook_url: data.facebook_url,
+        instagram_url: data.instagram_url,
+        twitter_url: data.twitter_url,
+        linkedin_url: data.linkedin_url,
+        whatsapp_url: data.whatsapp_url,
+        telegram_url: data.telegram_url,
+        tiktok_url: data.tiktok_url,
+        siret_number: data.siret_number,
+        has_qualirepar_label: data.has_qualirepar_label || false,
+        other_services: data.other_services,
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      };
+      
+      return mappedProfile;
     } catch (error) {
       console.error('❌ ProfileDataLoader - Exception during profile fetch:', error);
       return null;
