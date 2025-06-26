@@ -8,7 +8,6 @@ import RepairersMapContainer from './map/MapContainer';
 import { useRepairers } from '@/hooks/useRepairers';
 import { useMapStore } from '@/stores/mapStore';
 import { useSearchStore } from '@/stores/searchStore';
-import { Repairer } from '@/types/repairer';
 
 interface RepairersMapProps {
   searchFilters?: any;
@@ -58,6 +57,10 @@ const RepairersMap: React.FC<RepairersMapProps> = ({ searchFilters }) => {
     setSelectedRepairer(null);
   };
 
+  // Éviter le saut de chargement en gardant la hauteur fixe
+  const cardHeight = "h-[500px]";
+  const showResults = repairers.length > 0;
+
   console.log('RepairersMap - Repairers data:', repairers);
   console.log('RepairersMap - Loading:', loading);
   console.log('RepairersMap - Error:', error);
@@ -65,12 +68,12 @@ const RepairersMap: React.FC<RepairersMapProps> = ({ searchFilters }) => {
 
   return (
     <>
-      <Card className="h-[500px]">
+      <Card className={cardHeight}>
         <CardHeader className="pb-3">
           <div className="flex justify-between items-center">
             <CardTitle className="text-lg">
               Réparateurs {searchFilters ? 'correspondant à votre recherche' : 'à proximité'} 
-              {repairers.length > 0 && ` (${repairers.length})`}
+              {showResults && ` (${repairers.length})`}
             </CardTitle>
             <MapControls
               onGetLocation={getUserLocation}
@@ -78,22 +81,31 @@ const RepairersMap: React.FC<RepairersMapProps> = ({ searchFilters }) => {
               hasMap={true}
             />
           </div>
-          {loading && (
-            <p className="text-sm text-gray-500">Chargement des réparateurs...</p>
-          )}
-          {error && (
-            <p className="text-sm text-red-500">Erreur: {error}</p>
-          )}
-          {isAutoLocating && (
-            <p className="text-sm text-blue-500">Localisation en cours...</p>
-          )}
-          {searchFilters && (
-            <p className="text-sm text-blue-600">
-              Recherche active - {repairers.length} résultat{repairers.length !== 1 ? 's' : ''}
-            </p>
-          )}
+          
+          {/* Statut unifié sans saut */}
+          <div className="min-h-[20px]">
+            {loading && (
+              <p className="text-sm text-blue-500">🔄 Chargement des réparateurs...</p>
+            )}
+            {error && (
+              <p className="text-sm text-red-500">⚠️ Erreur: {error}</p>
+            )}
+            {!loading && !error && showResults && (
+              <p className="text-sm text-green-600">
+                ✅ {repairers.length} réparateur{repairers.length !== 1 ? 's' : ''} trouvé{repairers.length !== 1 ? 's' : ''}
+                {searchFilters && ' (recherche active)'}
+              </p>
+            )}
+            {!loading && !error && !showResults && (
+              <p className="text-sm text-gray-500">
+                Aucun réparateur trouvé pour cette recherche
+              </p>
+            )}
+          </div>
         </CardHeader>
-        <CardContent className="p-0">
+        
+        <CardContent className="p-0 h-full">
+          {/* La carte s'affiche toujours, même pendant le chargement */}
           <RepairersMapContainer />
         </CardContent>
       </Card>

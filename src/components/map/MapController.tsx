@@ -12,23 +12,36 @@ const MapController: React.FC = () => {
     map.setView(center, zoom);
   }, [map, center, zoom]);
 
-  // Fit bounds when repairers change
+  // Fit bounds when repairers change (optimisé pour tous les réparateurs)
   useEffect(() => {
     if (repairers.length > 0) {
-      const bounds = repairers
-        .filter(r => r.lat && r.lng)
-        .map(r => [r.lat!, r.lng!] as [number, number]);
-      
-      if (bounds.length > 0) {
-        map.fitBounds(bounds, { padding: [50, 50] });
+      try {
+        // Récupérer toutes les positions (même les positions par défaut)
+        const allPositions = repairers
+          .filter(r => r.lat && r.lng && typeof r.lat === 'number' && typeof r.lng === 'number')
+          .map(r => [r.lat!, r.lng!] as [number, number]);
+        
+        if (allPositions.length > 0) {
+          // Si on a beaucoup de points, on ajuste le zoom pour tous les voir
+          if (allPositions.length > 10) {
+            map.fitBounds(allPositions, { 
+              padding: [20, 20],
+              maxZoom: 10 // Limiter le zoom pour voir plus de réparateurs
+            });
+          } else {
+            map.fitBounds(allPositions, { padding: [50, 50] });
+          }
+        }
+      } catch (error) {
+        console.warn('Erreur lors de l\'ajustement des bounds:', error);
       }
     }
   }, [map, repairers]);
 
-  // Center on user location when available
+  // Center on user location when available (priorité utilisateur)
   useEffect(() => {
     if (userLocation) {
-      map.flyTo(userLocation, 14, { duration: 1.5 });
+      map.flyTo(userLocation, 12, { duration: 1.5 });
     }
   }, [map, userLocation]);
 
