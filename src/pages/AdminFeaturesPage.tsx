@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import AdminFeatureFlags from "@/components/AdminFeatureFlags";
+import CreateDemoRepairerButton from "@/components/CreateDemoRepairerButton";
 
 export default function AdminFeaturesPage() {
   const navigate = useNavigate();
@@ -22,6 +23,11 @@ export default function AdminFeaturesPage() {
           </Button>
           <h1 className="text-3xl font-bold">Configuration des fonctionnalités par plan</h1>
         </div>
+        
+        <div className="mb-8 flex justify-center">
+          <CreateDemoRepairerButton />
+        </div>
+        
         <AdminFeatureFlags />
       </div>
     </div>
