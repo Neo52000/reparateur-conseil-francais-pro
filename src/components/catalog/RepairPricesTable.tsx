@@ -22,6 +22,14 @@ const RepairPricesTable: React.FC<RepairPricesTableProps> = ({
     return `${price.toFixed(2)}€`;
   };
 
+  if (repairPrices.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Aucun prix configuré</p>
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -43,17 +51,17 @@ const RepairPricesTable: React.FC<RepairPricesTableProps> = ({
             <TableRow key={repairPrice.id}>
               <TableCell>
                 <div className="font-medium">
-                  {repairPrice.device_model?.model_name}
+                  {repairPrice.device_model?.model_name || 'N/A'}
                 </div>
               </TableCell>
               <TableCell>
                 <div className="text-sm text-gray-600">
-                  {repairPrice.device_model?.brand?.name}
+                  {repairPrice.device_model?.brand?.name || 'N/A'}
                 </div>
               </TableCell>
               <TableCell>
                 <div className="text-sm">
-                  {repairPrice.repair_type?.name}
+                  {repairPrice.repair_type?.name || 'N/A'}
                 </div>
               </TableCell>
               <TableCell>

@@ -27,6 +27,8 @@ const RepairPricesManagement = () => {
   const fetchRepairPrices = async () => {
     try {
       setPricesLoading(true);
+      console.log('Fetching repair prices...');
+      
       const { data, error } = await supabase
         .from('repair_prices')
         .select(`
@@ -42,7 +44,12 @@ const RepairPricesManagement = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching repair prices:', error);
+        throw error;
+      }
+      
+      console.log('Repair prices fetched:', data);
       
       // Transformer les données pour s'assurer de la compatibilité des types
       const transformedData = (data || []).map(item => ({
@@ -93,6 +100,7 @@ const RepairPricesManagement = () => {
           description: 'Le prix a été supprimé avec succès.',
         });
       } catch (error) {
+        console.error('Error deleting repair price:', error);
         toast({
           title: 'Erreur',
           description: 'Impossible de supprimer le prix.',
@@ -111,12 +119,12 @@ const RepairPricesManagement = () => {
   
   const filteredPrices = repairPrices.filter(price => {
     const matchesSearch = 
-      price.device_model?.model_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      price.device_model?.brand?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      price.repair_type?.name.toLowerCase().includes(searchTerm.toLowerCase());
+      price.device_model?.model_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      price.device_model?.brand?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      price.repair_type?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesBrand = !selectedBrand || price.device_model?.brand?.id === selectedBrand;
-    const matchesRepairType = !selectedRepairType || price.repair_type?.id === selectedRepairType;
+    const matchesBrand = !selectedBrand || selectedBrand === 'all' || price.device_model?.brand?.id === selectedBrand;
+    const matchesRepairType = !selectedRepairType || selectedRepairType === 'all' || price.repair_type?.id === selectedRepairType;
     
     return matchesSearch && matchesBrand && matchesRepairType;
   });
@@ -168,7 +176,7 @@ const RepairPricesManagement = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Prix moyen</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <TrendingUp className="h-4 w-4 text-muted-foregreen" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{priceStats.avgPrice.toFixed(2)}€</div>
@@ -211,7 +219,7 @@ const RepairPricesManagement = () => {
             <SelectValue placeholder="Toutes les marques" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Toutes les marques</SelectItem>
+            <SelectItem value="all">Toutes les marques</SelectItem>
             {brands.map((brand) => (
               <SelectItem key={brand.id} value={brand.id}>
                 {brand.name}
@@ -225,7 +233,7 @@ const RepairPricesManagement = () => {
             <SelectValue placeholder="Tous les types" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Tous les types</SelectItem>
+            <SelectItem value="all">Tous les types</SelectItem>
             {repairTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
                 {type.name}
