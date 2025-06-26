@@ -10,7 +10,7 @@ interface RepairerSubscription {
 
 export const useRepairerSubscriptions = () => {
   const [subscriptions, setSubscriptions] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -19,6 +19,13 @@ export const useRepairerSubscriptions = () => {
         setLoading(true);
         setError(null);
         
+        // Vérifier que Supabase est disponible
+        if (!supabase) {
+          console.warn('Supabase client not available');
+          setSubscriptions({});
+          return;
+        }
+
         const { data, error } = await supabase
           .from('repairer_subscriptions')
           .select('repairer_id, subscription_tier, subscribed')
@@ -27,6 +34,7 @@ export const useRepairerSubscriptions = () => {
         if (error) {
           console.error('Error fetching subscriptions:', error);
           setError(error.message);
+          setSubscriptions({}); // Fallback sûr
           return;
         }
 
@@ -40,7 +48,7 @@ export const useRepairerSubscriptions = () => {
 
         setSubscriptions(subscriptionMap);
       } catch (error) {
-        console.error('Error in fetchSubscriptions:', error);
+        console.error('Exception in fetchSubscriptions:', error);
         setError('Erreur de connexion');
         setSubscriptions({}); // Fallback sûr
       } finally {
@@ -48,10 +56,20 @@ export const useRepairerSubscriptions = () => {
       }
     };
 
-    fetchSubscriptions();
+    // Délai pour éviter les erreurs au démarrage
+    const timer = setTimeout(() => {
+      fetchSubscriptions().catch((error) => {
+        console.error('Failed to fetch subscriptions:', error);
+        setSubscriptions({});
+        setLoading(false);
+      });
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const getSubscriptionTier = (repairerId: string): string => {
+    if (!repairerId) return 'free';
     return subscriptions[repairerId] || 'free';
   };
 

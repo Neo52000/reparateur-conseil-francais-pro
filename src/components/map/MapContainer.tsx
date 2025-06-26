@@ -22,67 +22,104 @@ const RepairersMapContainer: React.FC = () => {
   const { center, zoom, repairers } = useMapStore();
   const { getSubscriptionTier, loading: subscriptionsLoading, error: subscriptionsError } = useRepairerSubscriptions();
 
-  // Filtrer les réparateurs avec des coordonnées valides
-  const validRepairers = repairers.filter(repairer => {
-    const hasValidCoordinates = repairer.lat && repairer.lng && 
-                               typeof repairer.lat === 'number' && 
-                               typeof repairer.lng === 'number' &&
-                               !isNaN(repairer.lat) && !isNaN(repairer.lng);
-    
-    if (!hasValidCoordinates) {
-      console.log('Filtering out repairer with invalid coordinates:', repairer.name);
+  // Filtrer strictement les réparateurs avec coordonnées valides
+  const validRepairers = React.useMemo(() => {
+    try {
+      return repairers.filter(repairer => {
+        if (!repairer) return false;
+        
+        const hasValidCoordinates = repairer.lat && repairer.lng && 
+                                   typeof repairer.lat === 'number' && 
+                                   typeof repairer.lng === 'number' &&
+                                   !isNaN(repairer.lat) && !isNaN(repairer.lng) &&
+                                   repairer.lat !== 0 && repairer.lng !== 0 &&
+                                   repairer.lat >= -90 && repairer.lat <= 90 &&
+                                   repairer.lng >= -180 && repairer.lng <= 180;
+        
+        if (!hasValidCoordinates) {
+          console.log('Filtering out repairer with invalid coordinates:', repairer.name, repairer.lat, repairer.lng);
+        }
+        
+        return hasValidCoordinates;
+      });
+    } catch (error) {
+      console.error('Error filtering repairers:', error);
+      return [];
     }
-    
-    return hasValidCoordinates;
-  });
+  }, [repairers]);
 
   console.log('Total repairers:', repairers.length);
   console.log('Valid repairers with coordinates:', validRepairers.length);
 
   if (subscriptionsError) {
-    console.warn('Subscriptions error:', subscriptionsError);
+    console.warn('Subscriptions error (non-critical):', subscriptionsError);
   }
 
-  return (
-    <div className="w-full h-[400px] bg-gray-100 rounded-lg relative">
-      <LeafletMapContainer
-        center={center}
-        zoom={zoom}
-        className="w-full h-full rounded-lg"
-        zoomControl={true}
-        scrollWheelZoom={true}
-      >
-        <TileLayer
-          attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        
-        <MapController />
-        <UserLocationMarker />
-        
-        <MarkerClusterGroup
-          chunkedLoading
-          showCoverageOnHover={false}
-          spiderfyOnMaxZoom={true}
-          removeOutsideVisibleBounds={true}
+  try {
+    return (
+      <div className="w-full h-[400px] bg-gray-100 rounded-lg relative">
+        <LeafletMapContainer
+          center={center}
+          zoom={zoom}
+          className="w-full h-full rounded-lg"
+          zoomControl={true}
+          scrollWheelZoom={true}
         >
-          {validRepairers.map((repairer) => (
-            <RepairerMarker 
-              key={repairer.id} 
-              repairer={repairer}
-              subscriptionTier={subscriptionsLoading ? 'free' : getSubscriptionTier(repairer.id)}
-            />
-          ))}
-        </MarkerClusterGroup>
-      </LeafletMapContainer>
-      
-      {subscriptionsLoading && (
-        <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded text-xs text-gray-600">
-          Chargement des abonnements...
+          <TileLayer
+            attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          
+          <MapController />
+          <UserLocationMarker />
+          
+          <MarkerClusterGroup
+            chunkedLoading
+            showCoverageOnHover={false}
+            spiderfyOnMaxZoom={true}
+            removeOutsideVisibleBounds={true}
+          >
+            {validRepairers.map((repairer) => {
+              try {
+                return (
+                  <RepairerMarker 
+                    key={repairer.id} 
+                    repairer={repairer}
+                    subscriptionTier={subscriptionsLoading ? 'free' : getSubscriptionTier(repairer.id)}
+                  />
+                );
+              } catch (error) {
+                console.error('Error rendering marker for repairer:', repairer.id, error);
+                return null;
+              }
+            })}
+          </MarkerClusterGroup>
+        </LeafletMapContainer>
+        
+        {subscriptionsLoading && (
+          <div className="absolute top-2 right-2 bg-white px-2 py-1 rounded text-xs text-gray-600">
+            Chargement des abonnements...
+          </div>
+        )}
+        
+        {subscriptionsError && (
+          <div className="absolute top-2 left-2 bg-yellow-100 px-2 py-1 rounded text-xs text-yellow-800">
+            Mode dégradé (sans badges)
+          </div>
+        )}
+      </div>
+    );
+  } catch (error) {
+    console.error('Critical error in MapContainer:', error);
+    return (
+      <div className="w-full h-[400px] bg-gray-100 rounded-lg flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">Erreur de chargement de la carte</p>
+          <p className="text-sm text-gray-500">Veuillez recharger la page</p>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
 };
 
 export default RepairersMapContainer;

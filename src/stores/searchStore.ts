@@ -30,7 +30,7 @@ interface SearchState {
 }
 
 export const useSearchStore = create<SearchState>((set, get) => ({
-  searchMode: 'map', // Mode carte par défaut comme demandé
+  searchMode: 'map', // Mode carte par défaut
   filters: {
     searchTerm: '',
     city: '',
@@ -40,48 +40,76 @@ export const useSearchStore = create<SearchState>((set, get) => ({
   resultsCount: 0,
   
   setSearchMode: (mode) => {
-    set({ searchMode: mode });
-    // Activer automatiquement la recherche en mode carte
-    if (mode === 'map') {
-      set({ isSearchActive: true });
+    try {
+      set({ searchMode: mode });
+      // Activer automatiquement la recherche en mode carte
+      if (mode === 'map') {
+        set({ isSearchActive: true });
+      }
+    } catch (error) {
+      console.error('Error setting search mode:', error);
     }
   },
   
   setSearchTerm: (term) => {
-    set((state) => ({
-      filters: { ...state.filters, searchTerm: term }
-    }));
+    try {
+      set((state) => ({
+        filters: { ...state.filters, searchTerm: term }
+      }));
+    } catch (error) {
+      console.error('Error setting search term:', error);
+    }
   },
   
   setCityPostal: (city, postalCode) => {
-    set((state) => ({
-      filters: { ...state.filters, city, postalCode }
-    }));
+    try {
+      set((state) => ({
+        filters: { ...state.filters, city, postalCode }
+      }));
+    } catch (error) {
+      console.error('Error setting city/postal:', error);
+    }
   },
   
   setFilters: (newFilters) => {
-    set((state) => ({
-      filters: { ...state.filters, ...newFilters }
-    }));
+    try {
+      set((state) => ({
+        filters: { ...state.filters, ...newFilters }
+      }));
+    } catch (error) {
+      console.error('Error setting filters:', error);
+    }
   },
   
   performSearch: () => {
-    set({ isSearchActive: true });
+    try {
+      set({ isSearchActive: true });
+    } catch (error) {
+      console.error('Error performing search:', error);
+    }
   },
   
   clearSearch: () => {
-    set({
-      filters: {
-        searchTerm: '',
-        city: '',
-        postalCode: ''
-      },
-      isSearchActive: true, // Garder la carte active
-      resultsCount: 0
-    });
+    try {
+      set({
+        filters: {
+          searchTerm: '',
+          city: '',
+          postalCode: ''
+        },
+        isSearchActive: true, // Garder la carte active
+        resultsCount: 0
+      });
+    } catch (error) {
+      console.error('Error clearing search:', error);
+    }
   },
   
   setResultsCount: (count) => {
-    set({ resultsCount: count });
+    try {
+      set({ resultsCount: count });
+    } catch (error) {
+      console.error('Error setting results count:', error);
+    }
   }
 }));
