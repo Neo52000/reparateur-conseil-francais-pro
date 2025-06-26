@@ -9,6 +9,8 @@ export interface RepairerCustomPrice {
   custom_part_price_eur?: number;
   custom_labor_price_eur?: number;
   margin_percentage?: number;
+  price_type?: 'fixed' | 'starting_from';
+  is_starting_price?: boolean;
   is_active: boolean;
   notes?: string;
   created_at: string;
@@ -23,6 +25,8 @@ export interface CreateCustomPriceData {
   custom_part_price_eur?: number;
   custom_labor_price_eur?: number;
   margin_percentage?: number;
+  price_type?: 'fixed' | 'starting_from';
+  is_starting_price?: boolean;
   is_active: boolean;
   notes?: string;
 }
@@ -32,6 +36,8 @@ export interface UpdateCustomPriceData {
   custom_part_price_eur?: number;
   custom_labor_price_eur?: number;
   margin_percentage?: number;
+  price_type?: 'fixed' | 'starting_from';
+  is_starting_price?: boolean;
   is_active?: boolean;
   notes?: string;
 }

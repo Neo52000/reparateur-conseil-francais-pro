@@ -990,6 +990,80 @@ export type Database = {
           },
         ]
       }
+      repairer_brand_settings: {
+        Row: {
+          brand_id: string
+          created_at: string
+          default_margin_percentage: number | null
+          id: string
+          is_active: boolean
+          repairer_id: string
+          updated_at: string
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string
+          default_margin_percentage?: number | null
+          id?: string
+          is_active?: boolean
+          repairer_id: string
+          updated_at?: string
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string
+          default_margin_percentage?: number | null
+          id?: string
+          is_active?: boolean
+          repairer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repairer_brand_settings_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repairer_catalog_preferences: {
+        Row: {
+          created_at: string
+          default_margin_percentage: number | null
+          entity_id: string
+          entity_type: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          repairer_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_margin_percentage?: number | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          repairer_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_margin_percentage?: number | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          repairer_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       repairer_custom_prices: {
         Row: {
           created_at: string
@@ -998,8 +1072,10 @@ export type Database = {
           custom_price_eur: number
           id: string
           is_active: boolean
+          is_starting_price: boolean | null
           margin_percentage: number | null
           notes: string | null
+          price_type: string | null
           repair_price_id: string
           repairer_id: string
           updated_at: string
@@ -1011,8 +1087,10 @@ export type Database = {
           custom_price_eur: number
           id?: string
           is_active?: boolean
+          is_starting_price?: boolean | null
           margin_percentage?: number | null
           notes?: string | null
+          price_type?: string | null
           repair_price_id: string
           repairer_id: string
           updated_at?: string
@@ -1024,8 +1102,10 @@ export type Database = {
           custom_price_eur?: number
           id?: string
           is_active?: boolean
+          is_starting_price?: boolean | null
           margin_percentage?: number | null
           notes?: string | null
+          price_type?: string | null
           repair_price_id?: string
           repairer_id?: string
           updated_at?: string
