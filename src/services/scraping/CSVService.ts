@@ -129,7 +129,14 @@ export class CSVService {
   static exportToCSV(data: RepairerData[], filename: string) {
     console.log('📤 Export CSV:', { data: data.length, filename });
     
-    const csv = Papa.unparse(data);
+    // Transformer les données pour l'export (tableaux en chaînes)
+    const exportData = data.map(item => ({
+      ...item,
+      services: Array.isArray(item.services) ? item.services.join(',') : item.services,
+      specialties: Array.isArray(item.specialties) ? item.specialties.join(',') : item.specialties
+    }));
+    
+    const csv = Papa.unparse(exportData);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     
@@ -156,11 +163,9 @@ export class CSVService {
         phone: '01 23 45 67 89',
         email: 'contact@reparateur-pro.fr',
         website: 'www.reparateur-pro.fr',
-        services: 'Réparation téléphone,Réparation tablette,Changement écran',
-        specialties: 'iPhone,Samsung,Huawei,OnePlus',
-        price_range: 'medium',
-        lat: '48.8566',
-        lng: '2.3522'
+        services: ['Réparation téléphone', 'Réparation tablette', 'Changement écran'],
+        specialties: ['iPhone', 'Samsung', 'Huawei', 'OnePlus'],
+        price_range: 'medium'
       },
       {
         name: 'iTech Réparation',
@@ -170,11 +175,9 @@ export class CSVService {
         phone: '04 78 12 34 56',
         email: 'info@itech-reparation.com',
         website: 'www.itech-reparation.com',
-        services: 'Réparation smartphone,Déblocage téléphone,Récupération données',
-        specialties: 'Apple,Android,Écrans OLED',
-        price_range: 'high',
-        lat: '45.7640',
-        lng: '4.8357'
+        services: ['Réparation smartphone', 'Déblocage téléphone', 'Récupération données'],
+        specialties: ['Apple', 'Android', 'Écrans OLED'],
+        price_range: 'high'
       }
     ];
 
