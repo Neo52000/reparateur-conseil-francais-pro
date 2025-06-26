@@ -57,18 +57,37 @@ export const useRepairersData = () => {
 
   const fetchSubscriptions = async () => {
     try {
-      console.log('Fetching subscriptions...');
+      console.log('🔄 useRepairersData - Fetching subscriptions...');
       const { data, error } = await supabase
         .from('admin_subscription_overview')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Subscription fetch error:', error);
+        console.error('❌ useRepairersData - Subscription fetch error:', error);
+        
+        // Gestion spécialisée selon le type d'erreur
+        if (error.code === 'PGRST116') {
+          console.warn('⚠️ useRepairersData - View admin_subscription_overview not found, using empty fallback');
+          setSubscriptions([]);
+          return;
+        }
+        
+        if (error.message?.includes('permission denied') || error.message?.includes('insufficient_privilege')) {
+          console.error('🔒 useRepairersData - Permission denied for subscriptions view');
+          toast({
+            title: "Erreur de permissions",
+            description: "Vous n'avez pas les droits pour accéder aux données d'abonnements",
+            variant: "destructive"
+          });
+          setSubscriptions([]);
+          return;
+        }
+        
         throw error;
       }
 
-      console.log('Subscriptions data:', data);
+      console.log('✅ useRepairersData - Subscriptions loaded:', data?.length || 0);
       setSubscriptions(data || []);
       
       // Calculate subscription stats
@@ -96,27 +115,46 @@ export const useRepairersData = () => {
       }));
 
     } catch (error) {
-      console.error('Error fetching subscriptions:', error);
+      console.error('❌ useRepairersData - Error fetching subscriptions:', error);
       setSubscriptions([]);
     }
   };
 
   const fetchRepairers = async () => {
     try {
-      console.log('Fetching repairers...');
+      console.log('🔄 useRepairersData - Fetching repairers...');
       
-      // Récupérer les réparateurs depuis la base de données
+      // Récupérer les réparateurs depuis la base de données avec gestion d'erreur améliorée
       const { data: repairersData, error: repairersError } = await supabase
         .from('repairers')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (repairersError) {
-        console.error('Repairers fetch error:', repairersError);
+        console.error('❌ useRepairersData - Repairers fetch error:', repairersError);
+        
+        // Gestion spécialisée selon le type d'erreur
+        if (repairersError.message?.includes('permission denied') || repairersError.message?.includes('insufficient_privilege')) {
+          console.error('🔒 useRepairersData - Permission denied for repairers table');
+          toast({
+            title: "Erreur de permissions",
+            description: "Vous n'avez pas les droits pour accéder aux données de réparateurs",
+            variant: "destructive"
+          });
+          setRepairers([]);
+          return;
+        }
+        
+        if (repairersError.code === 'PGRST116') {
+          console.warn('⚠️ useRepairersData - Table repairers not found, using empty fallback');
+          setRepairers([]);
+          return;
+        }
+        
         throw repairersError;
       }
 
-      console.log('Repairers data:', repairersData);
+      console.log('✅ useRepairersData - Repairers loaded:', repairersData?.length || 0);
 
       // Convertir les données pour correspondre à l'interface RepairerData
       const processedRepairers: RepairerData[] = (repairersData || []).map((repairer) => ({
@@ -144,7 +182,14 @@ export const useRepairersData = () => {
       }));
 
     } catch (error) {
-      console.error('Error fetching repairers:', error);
+      console.error('❌ useRepairersData - Error fetching repairers:', error);
+      
+      // Afficher un toast d'erreur seulement pour les vraies erreurs techniques
+      toast({
+        title: "Erreur de chargement",
+        description: "Problème technique lors du chargement des réparateurs",
+        variant: "destructive"
+      });
       
       // En cas d'erreur, utiliser des données de fallback vides
       setRepairers([]);
@@ -159,14 +204,14 @@ export const useRepairersData = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      console.log('Starting data fetch...');
+      console.log('🚀 useRepairersData - Starting data fetch...');
       await Promise.all([fetchSubscriptions(), fetchRepairers()]);
-      console.log('Data fetch completed successfully');
+      console.log('✅ useRepairersData - Data fetch completed successfully');
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('❌ useRepairersData - Global error during data fetch:', error);
       toast({
         title: "Erreur de chargement",
-        description: "Impossible de charger certaines données administrateur",
+        description: "Impossible de charger les données administrateur. Vérifiez vos permissions.",
         variant: "destructive"
       });
     } finally {

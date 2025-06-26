@@ -15,7 +15,7 @@ const RepairersCarouselSection: React.FC<RepairersCarouselSectionProps> = ({
 }) => {
   const { repairers, loading } = usePriorityRepairers(20);
 
-  // Si pas de réparateurs ou en cours de chargement, ne rien afficher
+  // Si pas de réparateurs ou en cours de chargement, ne rien afficher du tout
   if (loading || repairers.length === 0) {
     return null;
   }
