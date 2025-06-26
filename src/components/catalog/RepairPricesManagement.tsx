@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import RepairPricesTable from './RepairPricesTable';
 import { supabase } from '@/integrations/supabase/client';
 import type { RepairPrice } from '@/types/catalog';
+import RepairPriceDialog from './RepairPriceDialog';
 
 const RepairPricesManagement = () => {
   const { deviceModels, repairTypes, loading } = useCatalog();
@@ -19,6 +19,8 @@ const RepairPricesManagement = () => {
   const [selectedRepairType, setSelectedRepairType] = useState('');
   const [repairPrices, setRepairPrices] = useState<RepairPrice[]>([]);
   const [pricesLoading, setPricesLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingPrice, setEditingPrice] = useState<RepairPrice | null>(null);
 
   useEffect(() => {
     fetchRepairPrices();
@@ -84,6 +86,11 @@ const RepairPricesManagement = () => {
     }
   };
 
+  const handleEdit = (repairPrice: RepairPrice) => {
+    setEditingPrice(repairPrice);
+    setIsDialogOpen(true);
+  };
+
   const handleDelete = async (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce prix ?')) {
       try {
@@ -110,9 +117,20 @@ const RepairPricesManagement = () => {
     }
   };
 
-  const handleEdit = (repairPrice: RepairPrice) => {
-    // TODO: Implement edit functionality
-    console.log('Edit repair price:', repairPrice);
+  const handleSave = async () => {
+    await fetchRepairPrices();
+    setIsDialogOpen(false);
+    setEditingPrice(null);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingPrice(null);
+  };
+
+  const handleAddNew = () => {
+    setEditingPrice(null);
+    setIsDialogOpen(true);
   };
 
   const brands = [...new Set(deviceModels.map(model => model.brand).filter(Boolean))];
@@ -156,7 +174,7 @@ const RepairPricesManagement = () => {
             {filteredPrices.length} prix configuré{filteredPrices.length > 1 ? 's' : ''}
           </p>
         </div>
-        <Button onClick={() => console.log('Add new price')}>
+        <Button onClick={handleAddNew}>
           <Plus className="h-4 w-4 mr-2" />
           Nouveau prix
         </Button>
@@ -247,6 +265,13 @@ const RepairPricesManagement = () => {
         repairPrices={filteredPrices}
         onEdit={handleEdit}
         onDelete={handleDelete}
+      />
+
+      <RepairPriceDialog
+        isOpen={isDialogOpen}
+        onClose={handleCloseDialog}
+        onSave={handleSave}
+        repairPrice={editingPrice}
       />
     </div>
   );
