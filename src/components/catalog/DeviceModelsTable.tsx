@@ -3,7 +3,7 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Smartphone, Gamepad, Watch } from 'lucide-react';
+import { Edit, Trash2, Smartphone, Gamepad2, Watch } from 'lucide-react';
 import type { DeviceModel } from '@/types/catalog';
 
 interface DeviceModelsTableProps {
@@ -17,12 +17,12 @@ const DeviceModelsTable: React.FC<DeviceModelsTableProps> = ({
   onEdit,
   onDelete
 }) => {
-  const getDeviceIcon = (deviceTypeName: string) => {
+  const getDeviceIcon = (deviceTypeName?: string) => {
     switch (deviceTypeName) {
       case 'Smartphone':
         return <Smartphone className="h-4 w-4" />;
       case 'Console de jeux':
-        return <Gamepad className="h-4 w-4" />;
+        return <Gamepad2 className="h-4 w-4" />;
       case 'Montre connectée':
         return <Watch className="h-4 w-4" />;
       default:
@@ -42,6 +42,14 @@ const DeviceModelsTable: React.FC<DeviceModelsTableProps> = ({
     if (!date) return '-';
     return new Date(date).toLocaleDateString('fr-FR');
   };
+
+  if (deviceModels.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Aucun modèle trouvé</p>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-x-auto">
@@ -66,12 +74,12 @@ const DeviceModelsTable: React.FC<DeviceModelsTableProps> = ({
             <TableRow key={model.id}>
               <TableCell>
                 <div className="flex items-center space-x-2">
-                  {getDeviceIcon(model.device_type?.name || '')}
-                  <span className="text-sm">{model.device_type?.name}</span>
+                  {getDeviceIcon(model.device_type?.name)}
+                  <span className="text-sm">{model.device_type?.name || 'N/A'}</span>
                 </div>
               </TableCell>
               <TableCell>
-                <div className="font-medium">{model.brand?.name}</div>
+                <div className="font-medium">{model.brand?.name || 'N/A'}</div>
               </TableCell>
               <TableCell>
                 <div className="font-medium">{model.model_name}</div>

@@ -2,13 +2,13 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, Filter } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useToast } from '@/hooks/use-toast';
 import DeviceModelsTable from './DeviceModelsTable';
 import DeviceModelDialog from './DeviceModelDialog';
-import type { DeviceModel } from '@/types/catalog';
+import type { DeviceModel, DeviceModelFormData } from '@/types/catalog';
 
 const DeviceModelsManagement = () => {
   const { 
@@ -52,6 +52,7 @@ const DeviceModelsManagement = () => {
           description: 'Le modèle a été supprimé avec succès.',
         });
       } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
         toast({
           title: 'Erreur',
           description: 'Impossible de supprimer le modèle.',
@@ -61,7 +62,7 @@ const DeviceModelsManagement = () => {
     }
   };
 
-  const handleSave = async (modelData: any) => {
+  const handleSave = async (modelData: DeviceModelFormData) => {
     try {
       if (editingModel) {
         await updateDeviceModel(editingModel.id, modelData);
@@ -79,6 +80,7 @@ const DeviceModelsManagement = () => {
       setIsDialogOpen(false);
       setEditingModel(null);
     } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
       toast({
         title: 'Erreur',
         description: 'Une erreur est survenue lors de la sauvegarde.',
@@ -127,7 +129,7 @@ const DeviceModelsManagement = () => {
             <SelectValue placeholder="Toutes les marques" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Toutes les marques</SelectItem>
+            <SelectItem value="all">Toutes les marques</SelectItem>
             {brands.map((brand) => (
               <SelectItem key={brand.id} value={brand.id}>
                 {brand.name}
@@ -141,7 +143,7 @@ const DeviceModelsManagement = () => {
             <SelectValue placeholder="Tous les types" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Tous les types</SelectItem>
+            <SelectItem value="all">Tous les types</SelectItem>
             {deviceTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
                 {type.name}
