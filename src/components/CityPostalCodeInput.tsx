@@ -1,9 +1,8 @@
 
 import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { usePostalCodeValidation } from "@/hooks/usePostalCodeValidation";
-import { MapPin, Check } from "lucide-react";
+import CityInput from "./location/CityInput";
+import PostalCodeInput from "./location/PostalCodeInput";
 
 interface Props {
   cityValue: string;
@@ -125,102 +124,33 @@ const CityPostalCodeInput: React.FC<Props> = ({
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Champ Ville */}
-        <div className="relative">
-          <Label htmlFor="city" className="text-gray-700">
-            Ville {required && "*"}
-            {cityInput && isValidCombination && (
-              <Check className="inline ml-2 h-4 w-4 text-green-600" />
-            )}
-          </Label>
-          <div className="relative">
-            <MapPin className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <Input
-              id="city"
-              value={cityInput}
-              onChange={(e) => handleCityInputChange(e.target.value)}
-              onFocus={() => setShowCitySuggestions(true)}
-              onBlur={() => setTimeout(() => setShowCitySuggestions(false), 150)}
-              placeholder="Entrez une ville"
-              className="pl-10 text-gray-900 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-              required={required && !postalInput}
-              disabled={!!postalInput && inputMode === 'postal'}
-            />
-          </div>
-          
-          {showCitySuggestions && cityResults.cities.length > 0 && !postalInput && (
-            <div className="absolute z-30 top-full left-0 w-full bg-white border border-gray-200 rounded shadow-lg max-h-60 overflow-auto mt-1">
-              {cityResults.cities.slice(0, 8).map((city, i) => (
-                <div
-                  key={`${city.nom}-${city.codePostal}-${i}`}
-                  className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleCitySelect(city);
-                  }}
-                >
-                  <div className="font-medium text-gray-900">{city.nom}</div>
-                  <div className="text-sm text-gray-500">
-                    {city.codePostal} • {city.codeDepartement}
-                    {city.population > 0 && (
-                      <span className="ml-2 text-xs">
-                        {city.population.toLocaleString()} hab.
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <CityInput
+          value={cityInput}
+          onChange={handleCityInputChange}
+          onCitySelect={handleCitySelect}
+          cities={cityResults.cities}
+          showSuggestions={showCitySuggestions}
+          onFocus={() => setShowCitySuggestions(true)}
+          onBlur={() => setShowCitySuggestions(false)}
+          isValid={isValidCombination}
+          required={required}
+          disabled={!!postalInput && inputMode === 'postal'}
+          isPostalInputActive={!!postalInput}
+        />
 
-        {/* Champ Code Postal */}
-        <div className="relative">
-          <Label htmlFor="postal-code" className="text-gray-700">
-            Code postal {required && "*"}
-            {postalInput && isValidCombination && (
-              <Check className="inline ml-2 h-4 w-4 text-green-600" />
-            )}
-          </Label>
-          <Input
-            id="postal-code"
-            value={postalInput}
-            onChange={(e) => handlePostalInputChange(e.target.value)}
-            onFocus={() => setShowPostalSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowPostalSuggestions(false), 150)}
-            placeholder="Ex: 75001"
-            maxLength={5}
-            pattern="[0-9]{5}"
-            className="text-gray-900 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-            required={required && !cityInput}
-            disabled={!!cityInput && inputMode === 'city'}
-          />
-          
-          {showPostalSuggestions && postalResults.cities.length > 0 && !cityInput && (
-            <div className="absolute z-30 top-full left-0 w-full bg-white border border-gray-200 rounded shadow-lg max-h-60 overflow-auto mt-1">
-              {postalResults.cities.slice(0, 8).map((city, i) => (
-                <div
-                  key={`${city.nom}-${city.codePostal}-${i}`}
-                  className="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handlePostalSelect(city);
-                  }}
-                >
-                  <div className="font-medium text-gray-900">{city.nom}</div>
-                  <div className="text-sm text-gray-500">
-                    {city.codePostal} • {city.codeDepartement}
-                    {city.population > 0 && (
-                      <span className="ml-2 text-xs">
-                        {city.population.toLocaleString()} hab.
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <PostalCodeInput
+          value={postalInput}
+          onChange={handlePostalInputChange}
+          onCitySelect={handlePostalSelect}
+          cities={postalResults.cities}
+          showSuggestions={showPostalSuggestions}
+          onFocus={() => setShowPostalSuggestions(true)}
+          onBlur={() => setShowPostalSuggestions(false)}
+          isValid={isValidCombination}
+          required={required}
+          disabled={!!cityInput && inputMode === 'city'}
+          isCityInputActive={!!cityInput}
+        />
       </div>
 
       {/* Message d'aide */}
