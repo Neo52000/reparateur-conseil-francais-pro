@@ -33,6 +33,15 @@ const CityPostalCodeInput: React.FC<Props> = ({
   const cityResults = usePostalCodeValidation(cityInput, 'city');
   const postalResults = usePostalCodeValidation(postalInput, 'postal');
 
+  // Synchroniser avec les props
+  useEffect(() => {
+    setCityInput(cityValue);
+  }, [cityValue]);
+
+  useEffect(() => {
+    setPostalInput(postalCodeValue);
+  }, [postalCodeValue]);
+
   // Vérifier si la combinaison ville/code postal est valide
   useEffect(() => {
     if (cityInput && postalInput) {
@@ -74,12 +83,24 @@ const CityPostalCodeInput: React.FC<Props> = ({
     setShowPostalSuggestions(false);
   };
 
+  const handleCityInputChange = (value: string) => {
+    setCityInput(value);
+    onCityChange(value); // Changement en temps réel
+    setShowCitySuggestions(true);
+  };
+
+  const handlePostalInputChange = (value: string) => {
+    setPostalInput(value);
+    onPostalCodeChange(value); // Changement en temps réel
+    setShowPostalSuggestions(true);
+  };
+
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Champ Ville */}
         <div className="relative">
-          <Label htmlFor="city">
+          <Label htmlFor="city" className="text-gray-700">
             Ville {required && "*"}
             {cityInput && postalInput && (
               <span className="ml-2">
@@ -96,15 +117,11 @@ const CityPostalCodeInput: React.FC<Props> = ({
             <Input
               id="city"
               value={cityInput}
-              onChange={(e) => {
-                setCityInput(e.target.value);
-                onCityChange(e.target.value);
-                setShowCitySuggestions(true);
-              }}
+              onChange={(e) => handleCityInputChange(e.target.value)}
               onFocus={() => setShowCitySuggestions(true)}
               onBlur={() => setTimeout(() => setShowCitySuggestions(false), 150)}
               placeholder="Entrez une ville"
-              className="pl-10"
+              className="pl-10 text-gray-900 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               required={required}
             />
           </div>
@@ -137,22 +154,19 @@ const CityPostalCodeInput: React.FC<Props> = ({
 
         {/* Champ Code Postal */}
         <div className="relative">
-          <Label htmlFor="postal-code">
+          <Label htmlFor="postal-code" className="text-gray-700">
             Code postal {required && "*"}
           </Label>
           <Input
             id="postal-code"
             value={postalInput}
-            onChange={(e) => {
-              setPostalInput(e.target.value);
-              onPostalCodeChange(e.target.value);
-              setShowPostalSuggestions(true);
-            }}
+            onChange={(e) => handlePostalInputChange(e.target.value)}
             onFocus={() => setShowPostalSuggestions(true)}
             onBlur={() => setTimeout(() => setShowPostalSuggestions(false), 150)}
             placeholder="Ex: 75001"
             maxLength={5}
             pattern="[0-9]{5}"
+            className="text-gray-900 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
             required={required}
           />
           

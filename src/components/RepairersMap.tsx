@@ -7,20 +7,33 @@ import RepairerProfileModal from './RepairerProfileModal';
 import RepairersMapContainer from './map/MapContainer';
 import { useRepairers } from '@/hooks/useRepairers';
 import { useMapStore } from '@/stores/mapStore';
+import { useSearchStore } from '@/stores/searchStore';
 import { Repairer } from '@/types/repairer';
 
-const RepairersMap = () => {
-  const [searchFilters, setSearchFilters] = useState({});
-  const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
+interface RepairersMapProps {
+  searchFilters?: any;
+}
 
-  const { repairers, loading, error } = useRepairers(searchFilters);
+const RepairersMap: React.FC<RepairersMapProps> = ({ searchFilters }) => {
+  const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
+  const { setResultsCount } = useSearchStore();
+
+  // Construire les filtres pour useRepairers
+  const filters = searchFilters ? {
+    city: searchFilters.city,
+    postalCode: searchFilters.postalCode,
+    services: searchFilters.searchTerm ? [searchFilters.searchTerm] : undefined,
+  } : {};
+
+  const { repairers, loading, error } = useRepairers(filters);
   const { setRepairers, selectedRepairer, setSelectedRepairer } = useMapStore();
   const { userLocation, isLocating, isAutoLocating, getUserLocation, getLocationAutomatically } = useGeolocation();
 
   // Update store when repairers data changes
   useEffect(() => {
     setRepairers(repairers);
-  }, [repairers, setRepairers]);
+    setResultsCount(repairers.length);
+  }, [repairers, setRepairers, setResultsCount]);
 
   // Handle automatic location detection
   useEffect(() => {
@@ -48,6 +61,7 @@ const RepairersMap = () => {
   console.log('RepairersMap - Repairers data:', repairers);
   console.log('RepairersMap - Loading:', loading);
   console.log('RepairersMap - Error:', error);
+  console.log('RepairersMap - Applied filters:', filters);
 
   return (
     <>
@@ -55,7 +69,8 @@ const RepairersMap = () => {
         <CardHeader className="pb-3">
           <div className="flex justify-between items-center">
             <CardTitle className="text-lg">
-              Réparateurs à proximité {repairers.length > 0 && `(${repairers.length})`}
+              Réparateurs {searchFilters ? 'correspondant à votre recherche' : 'à proximité'} 
+              {repairers.length > 0 && ` (${repairers.length})`}
             </CardTitle>
             <MapControls
               onGetLocation={getUserLocation}
@@ -71,6 +86,11 @@ const RepairersMap = () => {
           )}
           {isAutoLocating && (
             <p className="text-sm text-blue-500">Localisation en cours...</p>
+          )}
+          {searchFilters && (
+            <p className="text-sm text-blue-600">
+              Recherche active - {repairers.length} résultat{repairers.length !== 1 ? 's' : ''}
+            </p>
           )}
         </CardHeader>
         <CardContent className="p-0">

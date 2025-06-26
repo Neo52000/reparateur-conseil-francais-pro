@@ -18,13 +18,25 @@ import Autoplay from "embla-carousel-autoplay";
 interface RepairersCarouselProps {
   onViewProfile: (repairer: Repairer) => void;
   onCall: (phone: string) => void;
+  searchFilters?: any;
 }
 
 const RepairersCarousel: React.FC<RepairersCarouselProps> = ({ 
   onViewProfile, 
-  onCall 
+  onCall,
+  searchFilters 
 }) => {
-  const { repairers, loading } = useRepairers();
+  // Construire les filtres pour useRepairers
+  const filters = searchFilters ? {
+    city: searchFilters.city,
+    postalCode: searchFilters.postalCode,
+    services: searchFilters.services,
+  } : {};
+
+  const { repairers, loading } = useRepairers(filters);
+
+  console.log('RepairersCarousel - Applied filters:', filters);
+  console.log('RepairersCarousel - Repairers found:', repairers.length);
 
   if (loading) {
     return (
@@ -57,7 +69,14 @@ const RepairersCarousel: React.FC<RepairersCarouselProps> = ({
   if (repairers.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">Aucun réparateur trouvé</p>
+        <p className="text-gray-500">
+          {searchFilters ? 'Aucun réparateur ne correspond à vos critères de recherche' : 'Aucun réparateur trouvé'}
+        </p>
+        {searchFilters && (
+          <p className="text-sm text-gray-400 mt-2">
+            Essayez d'élargir vos critères de recherche
+          </p>
+        )}
       </div>
     );
   }
@@ -66,7 +85,7 @@ const RepairersCarousel: React.FC<RepairersCarouselProps> = ({
     <div className="w-full">
       <Carousel 
         className="w-full max-w-5xl mx-auto"
-        plugins={[
+        plugins={searchFilters ? [] : [
           Autoplay({
             delay: 3000,
           }),
