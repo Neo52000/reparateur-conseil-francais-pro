@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
@@ -8,6 +9,7 @@ import QuickStatsSection from '@/components/sections/QuickStatsSection';
 import QuickSearchModal from '@/components/search/QuickSearchModal';
 import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
+import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 import { useAuth } from '@/hooks/useAuth';
 import { usePendingAction } from '@/hooks/usePendingAction';
 import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
@@ -137,6 +139,14 @@ const Index = () => {
           onViewProfile={handleViewProfile}
           onCall={handleCall}
         />
+
+        {/* Section bannière publicitaire */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+          <AdBannerDisplay 
+            placement="homepage_carousel" 
+            className=""
+          />
+        </div>
         
         <QuickStatsSection />
       </main>
