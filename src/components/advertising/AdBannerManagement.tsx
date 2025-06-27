@@ -49,7 +49,14 @@ const AdBannerManagement: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setBanners(data || []);
+      
+      // Caster le type pour correspondre à notre interface
+      const typedBanners = (data || []).map(banner => ({
+        ...banner,
+        target_type: banner.target_type as 'client' | 'repairer'
+      })) as AdBanner[];
+      
+      setBanners(typedBanners);
     } catch (error) {
       console.error('Error fetching banners:', error);
       toast.error('Erreur lors du chargement des bannières');

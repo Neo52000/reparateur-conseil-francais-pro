@@ -44,24 +44,29 @@ export const useAdvertising = (placement: AdPlacement) => {
         return;
       }
 
-      // Filtrer par ciblage spécifique
-      const filteredBanners = rawBanners.filter(banner => {
-        const targeting = banner.targeting_config as AdTargetingRules;
-        
-        // Si c'est un ciblage global, afficher partout
-        if (targeting.global) {
-          return true;
-        }
+      // Filtrer par ciblage spécifique et caster le type
+      const filteredBanners = rawBanners
+        .filter(banner => {
+          const targeting = banner.targeting_config as AdTargetingRules;
+          
+          // Si c'est un ciblage global, afficher partout
+          if (targeting.global) {
+            return true;
+          }
 
-        // Pour le dashboard réparateur, vérifier le niveau d'abonnement
-        if (placement === 'repairer_dashboard' && targeting.subscription_tiers) {
-          // On utilisera cette logique plus tard avec les données de subscription
-          return true;
-        }
+          // Pour le dashboard réparateur, vérifier le niveau d'abonnement
+          if (placement === 'repairer_dashboard' && targeting.subscription_tiers) {
+            // On utilisera cette logique plus tard avec les données de subscription
+            return true;
+          }
 
-        // Pour l'instant, afficher toutes les bannières actives
-        return true;
-      });
+          // Pour l'instant, afficher toutes les bannières actives
+          return true;
+        })
+        .map(banner => ({
+          ...banner,
+          target_type: banner.target_type as 'client' | 'repairer'
+        })) as AdBanner[];
 
       setBanners(filteredBanners);
     } catch (error) {
