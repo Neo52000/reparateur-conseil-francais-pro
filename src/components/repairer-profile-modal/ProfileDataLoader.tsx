@@ -69,7 +69,7 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
             emergency_service: false,
             home_service: false,
             pickup_service: false,
-            opening_hours: repairerData.opening_hours || {},
+            opening_hours: safeParseOpeningHours(repairerData.opening_hours),
             response_time: repairerData.response_time,
             warranty_duration: null,
             payment_methods: [],
@@ -114,6 +114,16 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
         return fallback;
       };
 
+      // Helper function to safely parse opening hours
+      const safeParseOpeningHours = (value: any): RepairerProfile['opening_hours'] => {
+        if (value === null || value === undefined) return undefined;
+        if (typeof value === 'object' && value !== null) {
+          // Vérifier que l'objet a la bonne structure
+          return value as RepairerProfile['opening_hours'];
+        }
+        return undefined;
+      };
+
       // Map the database data to RepairerProfile format
       const mappedProfile: RepairerProfile = {
         id: profileData.id,
@@ -133,7 +143,7 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
         emergency_service: profileData.emergency_service || false,
         home_service: profileData.home_service || false,
         pickup_service: profileData.pickup_service || false,
-        opening_hours: safeParseJson(profileData.opening_hours, {}),
+        opening_hours: safeParseOpeningHours(profileData.opening_hours),
         response_time: profileData.response_time,
         warranty_duration: profileData.warranty_duration,
         payment_methods: profileData.payment_methods || [],
@@ -162,6 +172,16 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper function to safely parse opening hours (moved outside fetchProfile to be reused)
+  const safeParseOpeningHours = (value: any): RepairerProfile['opening_hours'] => {
+    if (value === null || value === undefined) return undefined;
+    if (typeof value === 'object' && value !== null) {
+      // Vérifier que l'objet a la bonne structure
+      return value as RepairerProfile['opening_hours'];
+    }
+    return undefined;
   };
 
   const refreshProfile = async () => {
