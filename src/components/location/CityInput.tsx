@@ -42,14 +42,14 @@ const CityInput: React.FC<Props> = ({
 }) => {
   return (
     <div className="relative">
-      <Label htmlFor="city" className="text-gray-700">
+      <Label htmlFor="city" className="text-white/90">
         Ville {required && "*"}
         {value && isValid && (
-          <Check className="inline ml-2 h-4 w-4 text-green-600" />
+          <Check className="inline ml-2 h-4 w-4 text-green-400" />
         )}
       </Label>
       <div className="relative">
-        <MapPin className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <MapPin className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" />
         <Input
           id="city"
           value={value}
@@ -57,7 +57,7 @@ const CityInput: React.FC<Props> = ({
           onFocus={onFocus}
           onBlur={() => setTimeout(onBlur, 150)}
           placeholder="Entrez une ville"
-          className="pl-10 text-gray-900 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          className="pl-10 text-white bg-white/10 border-white/30 focus:border-blue-400 focus:ring-blue-400 placeholder:text-white/50"
           required={required && !isPostalInputActive}
           disabled={disabled}
         />

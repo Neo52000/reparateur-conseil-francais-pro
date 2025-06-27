@@ -42,10 +42,10 @@ const PostalCodeInput: React.FC<Props> = ({
 }) => {
   return (
     <div className="relative">
-      <Label htmlFor="postal-code" className="text-gray-700">
+      <Label htmlFor="postal-code" className="text-white/90">
         Code postal {required && "*"}
         {value && isValid && (
-          <Check className="inline ml-2 h-4 w-4 text-green-600" />
+          <Check className="inline ml-2 h-4 w-4 text-green-400" />
         )}
       </Label>
       <Input
@@ -57,7 +57,7 @@ const PostalCodeInput: React.FC<Props> = ({
         placeholder="Ex: 75001"
         maxLength={5}
         pattern="[0-9]{5}"
-        className="text-gray-900 bg-white border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+        className="text-white bg-white/10 border-white/30 focus:border-blue-400 focus:ring-blue-400 placeholder:text-white/50"
         required={required && !isCityInputActive}
         disabled={disabled}
       />
