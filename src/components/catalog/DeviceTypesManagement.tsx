@@ -7,12 +7,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useCatalog } from '@/hooks/useCatalog';
+import DeviceTypeDialog from './DeviceTypeDialog';
 import type { DeviceType } from '@/types/catalog';
 
 const DeviceTypesManagement = () => {
-  const { deviceTypes, loading } = useCatalog();
+  const { 
+    deviceTypes, 
+    loading, 
+    createDeviceType, 
+    updateDeviceType, 
+    deleteDeviceType 
+  } = useCatalog();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingDeviceType, setEditingDeviceType] = useState<DeviceType | null>(null);
 
   const filteredDeviceTypes = deviceTypes.filter(deviceType =>
     deviceType.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -20,19 +29,59 @@ const DeviceTypesManagement = () => {
   );
 
   const handleEdit = (deviceType: DeviceType) => {
-    // TODO: Implement edit functionality
-    toast({
-      title: "Fonctionnalité en développement",
-      description: "L'édition des types d'appareils sera bientôt disponible",
-    });
+    setEditingDeviceType(deviceType);
+    setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    // TODO: Implement delete functionality
-    toast({
-      title: "Fonctionnalité en développement",
-      description: "La suppression des types d'appareils sera bientôt disponible",
-    });
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce type d\'appareil ?')) {
+      try {
+        await deleteDeviceType(id);
+        toast({
+          title: 'Type d\'appareil supprimé',
+          description: 'Le type d\'appareil a été supprimé avec succès.',
+        });
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de supprimer le type d\'appareil.',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  const handleSave = async (deviceTypeData: Omit<DeviceType, 'id' | 'created_at'>) => {
+    try {
+      if (editingDeviceType) {
+        await updateDeviceType(editingDeviceType.id, deviceTypeData);
+        toast({
+          title: 'Type d\'appareil mis à jour',
+          description: 'Le type d\'appareil a été mis à jour avec succès.',
+        });
+      } else {
+        await createDeviceType(deviceTypeData);
+        toast({
+          title: 'Type d\'appareil créé',
+          description: 'Le nouveau type d\'appareil a été créé avec succès.',
+        });
+      }
+      setIsDialogOpen(false);
+      setEditingDeviceType(null);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la sauvegarde.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingDeviceType(null);
   };
 
   if (loading) {
@@ -48,7 +97,7 @@ const DeviceTypesManagement = () => {
             {filteredDeviceTypes.length} type{filteredDeviceTypes.length > 1 ? 's' : ''} trouvé{filteredDeviceTypes.length > 1 ? 's' : ''}
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setIsDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Nouveau type d'appareil
         </Button>
@@ -122,6 +171,13 @@ const DeviceTypesManagement = () => {
           <p className="text-gray-500">Aucun type d'appareil trouvé</p>
         </div>
       )}
+
+      <DeviceTypeDialog
+        isOpen={isDialogOpen}
+        onClose={handleCloseDialog}
+        onSave={handleSave}
+        deviceType={editingDeviceType}
+      />
     </div>
   );
 };

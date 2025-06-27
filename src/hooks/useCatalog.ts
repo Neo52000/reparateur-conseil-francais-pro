@@ -37,8 +37,10 @@ export const useCatalog = () => {
     // Actions
     fetchAllData,
     
-    // Device Types - pour l'instant juste lecture
-    // TODO: Ajouter CRUD pour les types d'appareils
+    // Device Types CRUD
+    createDeviceType: deviceTypesHook.createDeviceType,
+    updateDeviceType: deviceTypesHook.updateDeviceType,
+    deleteDeviceType: deviceTypesHook.deleteDeviceType,
     
     // Brand CRUD
     createBrand: brandsHook.createBrand,
