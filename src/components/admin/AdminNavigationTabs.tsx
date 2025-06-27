@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Megaphone } from 'lucide-react';
 
-type TabType = 'subscriptions' | 'repairers' | 'interest' | 'promocodes' | 'scraping';
+type TabType = 'subscriptions' | 'repairers' | 'interest' | 'promocodes' | 'scraping' | 'advertising';
 
 interface AdminNavigationTabsProps {
   activeTab: TabType;
@@ -43,6 +43,13 @@ const AdminNavigationTabs: React.FC<AdminNavigationTabsProps> = ({ activeTab, on
         className={getTabClassName('promocodes')}
       >
         Codes Promo
+      </button>
+      <button
+        onClick={() => onTabChange('advertising')}
+        className={getTabClassName('advertising')}
+      >
+        <Megaphone className="h-4 w-4 mr-1 inline" />
+        Publicités
       </button>
       <button
         onClick={() => onTabChange('scraping')}

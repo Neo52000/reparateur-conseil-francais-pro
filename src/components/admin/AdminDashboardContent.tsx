@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import ScrapingControl from '@/components/ScrapingControl';
 import ClientInterestManagement from '@/components/ClientInterestManagement';
 import PromoCodesManagement from '@/components/PromoCodesManagement';
+import AdBannerManagement from '@/components/advertising/AdBannerManagement';
 import SubscriptionsTable from '@/components/repairers/SubscriptionsTable';
 import RepairersTable from '@/components/repairers/RepairersTable';
 import type { TabType } from './AdminNavigationTabs';
@@ -79,6 +80,10 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
 
   if (activeTab === 'promocodes') {
     return <PromoCodesManagement />;
+  }
+
+  if (activeTab === 'advertising') {
+    return <AdBannerManagement />;
   }
 
   if (activeTab === 'scraping') {

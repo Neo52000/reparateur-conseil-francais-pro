@@ -9,6 +9,7 @@ import QuickStatsSection from '@/components/sections/QuickStatsSection';
 import QuickSearchModal from '@/components/search/QuickSearchModal';
 import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
+import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 import { useAuth } from '@/hooks/useAuth';
 import { usePendingAction } from '@/hooks/usePendingAction';
 import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
@@ -131,6 +132,14 @@ const Index = () => {
           onQuickSearch={handleHeroQuickSearch}
           onMapSearch={handleHeroMapSearch}
         />
+
+        {/* Bannière publicitaire pour les clients - au-dessus du carrousel */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+          <AdBannerDisplay 
+            placement="homepage_carousel" 
+            className="mb-4"
+          />
+        </div>
 
         <RepairersCarouselSection 
           onViewProfile={handleViewProfile}

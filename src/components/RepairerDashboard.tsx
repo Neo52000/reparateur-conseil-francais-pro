@@ -25,6 +25,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUpgradeModal } from '@/hooks/useUpgradeModal';
 import { supabase } from '@/integrations/supabase/client';
 import UpgradeModal from '@/components/UpgradeModal';
+import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 import OverviewTabSection from "./repairer-dashboard/OverviewTabSection";
 import OrdersTabSection from "./repairer-dashboard/OrdersTabSection";
 import CalendarTabSection from "./repairer-dashboard/CalendarTabSection";
@@ -284,6 +285,14 @@ const RepairerDashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Bannière publicitaire pour les réparateurs - sous l'affichage du plan */}
+        <div className="mb-6">
+          <AdBannerDisplay 
+            placement="repairer_dashboard" 
+            className="mb-4"
+          />
+        </div>
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
