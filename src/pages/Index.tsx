@@ -12,6 +12,8 @@ import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 
 const Index = () => {
   const [isCookieConsentGiven, setIsCookieConsentGiven] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -20,11 +22,6 @@ const Index = () => {
     const consent = localStorage.getItem('cookie_consent');
     setIsCookieConsentGiven(consent === 'true');
   }, []);
-
-  const handleCookieConsent = (given: boolean) => {
-    localStorage.setItem('cookie_consent', given.toString());
-    setIsCookieConsentGiven(given);
-  };
 
   const handleRepairerSignup = () => {
     if (user) {
@@ -39,13 +36,16 @@ const Index = () => {
   };
 
   const handleViewProfile = (repairer: any) => {
-    // Handle view profile logic
     console.log('View profile:', repairer);
   };
 
   const handleCall = (phone: string) => {
-    // Handle call logic
     window.location.href = `tel:${phone}`;
+  };
+
+  const handleQuickSearch = () => {
+    // Navigate to search page with current search parameters
+    navigate('/search');
   };
 
   return (
@@ -53,7 +53,13 @@ const Index = () => {
       <Navigation />
 
       <main>
-        <HeroSection />
+        <HeroSection 
+          searchTerm={searchTerm}
+          selectedLocation={selectedLocation}
+          onSearchTermChange={setSearchTerm}
+          onLocationChange={setSelectedLocation}
+          onQuickSearch={handleQuickSearch}
+        />
 
         {/* Client Ad Banner - Above repairers carousel */}
         <section className="py-4">
@@ -76,7 +82,7 @@ const Index = () => {
 
       {!isCookieConsentGiven && (
         <div className="fixed bottom-0 left-0 right-0 z-50">
-          <CookieConsent onConsent={handleCookieConsent} />
+          <CookieConsent />
         </div>
       )}
     </div>
