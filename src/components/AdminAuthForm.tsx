@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { Shield, Lock, Mail, Eye, EyeOff, RefreshCw } from 'lucide-react';
 
 const AdminAuthForm = () => {
-  const [email, setEmail] = useState('reine.elie@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -202,16 +201,6 @@ const AdminAuthForm = () => {
               )}
             </Button>
           </form>
-          
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-            <p className="text-sm text-blue-800 mb-2">
-              <strong>Compte de test :</strong>
-            </p>
-            <p className="text-xs text-blue-600">
-              Email: reine.elie@gmail.com<br/>
-              Mot de passe: Rpadfhq3@52
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
