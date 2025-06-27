@@ -7,22 +7,10 @@ import {
   User, 
   Settings,
   LogOut,
-  Trash2,
-  AlertTriangle
+  Home
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 
 interface ClientProfileTabProps {
   profile: {
@@ -64,12 +52,8 @@ const ClientProfileTab: React.FC<ClientProfileTabProps> = ({ profile }) => {
     }
   };
 
-  const handleCloseAccount = async () => {
-    toast({
-      title: "Fermeture de compte",
-      description: "Cette fonctionnalité sera bientôt disponible. Contactez le support pour fermer votre compte.",
-      variant: "default"
-    });
+  const handleGoHome = () => {
+    navigate('/');
   };
 
   return (
@@ -106,40 +90,15 @@ const ClientProfileTab: React.FC<ClientProfileTabProps> = ({ profile }) => {
             Modifier le profil
           </Button>
           
+          <Button onClick={handleGoHome} variant="outline">
+            <Home className="h-4 w-4 mr-2" />
+            Retour à l'accueil
+          </Button>
+
           <Button onClick={handleSignOut} variant="outline">
             <LogOut className="h-4 w-4 mr-2" />
             Se déconnecter
           </Button>
-
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive">
-                <Trash2 className="h-4 w-4 mr-2" />
-                Fermer mon compte
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle className="flex items-center">
-                  <AlertTriangle className="h-5 w-5 mr-2 text-red-600" />
-                  Fermer définitivement votre compte ?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  Cette action est irréversible. Toutes vos données, historiques de réparations, 
-                  points de fidélité et informations personnelles seront définitivement supprimées.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={handleCloseAccount}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  Fermer mon compte
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
         </div>
       </CardContent>
     </Card>
