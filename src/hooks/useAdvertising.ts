@@ -10,50 +10,40 @@ export const useAdvertising = (placement: AdPlacement) => {
   const [loading, setLoading] = useState(true);
   const { user, profile } = useAuth();
 
-  console.log('useAdvertising - placement:', placement);
-  console.log('useAdvertising - user:', user?.id);
+  console.log('🔥 useAdvertising - Hook initialized for placement:', placement);
 
   // Récupérer les bannières en fonction du placement et du ciblage
   const fetchBanners = useCallback(async () => {
     try {
-      console.log('useAdvertising - fetching banners for placement:', placement);
+      console.log('🔍 Fetching banners for placement:', placement);
       setLoading(true);
       
-      const now = new Date().toISOString();
-      console.log('useAdvertising - current time:', now);
-      
-      // Requête de base pour les bannières actives
-      let query = supabase
+      // Requête simplifiée pour récupérer toutes les bannières actives
+      const { data: rawBanners, error } = await supabase
         .from('ad_banners')
         .select('*')
         .eq('is_active', true);
 
-      // Ajouter les filtres de date si nécessaire
-      // On ne filtre plus par date pour le debug
-      console.log('useAdvertising - executing query...');
-
-      const { data: rawBanners, error } = await query;
-
-      console.log('useAdvertising - query result:', { rawBanners, error });
+      console.log('📊 Supabase query result:', { rawBanners, error });
 
       if (error) {
-        console.error('Error fetching banners:', error);
+        console.error('❌ Error fetching banners:', error);
         setBanners([]);
         return;
       }
 
       if (!rawBanners || rawBanners.length === 0) {
-        console.log('useAdvertising - no banners found');
+        console.log('⚠️ No banners found in database');
         setBanners([]);
         return;
       }
 
-      console.log('useAdvertising - found banners:', rawBanners.length);
+      console.log('✅ Found banners:', rawBanners.length);
 
       // Filtrer par type de cible selon le placement
       const filteredBanners = rawBanners
         .filter(banner => {
-          console.log('useAdvertising - checking banner:', banner.id, 'target_type:', banner.target_type);
+          console.log('🎯 Checking banner:', banner.id, 'target_type:', banner.target_type, 'for placement:', placement);
           
           if (placement === 'homepage_carousel') {
             return banner.target_type === 'client';
@@ -69,12 +59,13 @@ export const useAdvertising = (placement: AdPlacement) => {
           target_type: banner.target_type as 'client' | 'repairer'
         })) as AdBanner[];
 
-      console.log('useAdvertising - filtered banners:', filteredBanners.length);
+      console.log('🎪 Filtered banners for', placement, ':', filteredBanners.length);
       setBanners(filteredBanners);
     } catch (error) {
-      console.error('Error in fetchBanners:', error);
+      console.error('💥 Exception in fetchBanners:', error);
       setBanners([]);
     } finally {
+      console.log('🏁 Setting loading to false');
       setLoading(false);
     }
   }, [placement]);
@@ -82,12 +73,12 @@ export const useAdvertising = (placement: AdPlacement) => {
   // Enregistrer une impression
   const trackImpression = useCallback(async (bannerId: string) => {
     try {
-      console.log('useAdvertising - tracking impression for banner:', bannerId);
+      console.log('👁️ Tracking impression for banner:', bannerId);
       
       // Utiliser la fonction RPC existante
       const { error: rpcError } = await supabase.rpc('increment_impressions', { banner_id: bannerId });
       if (rpcError) {
-        console.error('Error incrementing impressions:', rpcError);
+        console.error('❌ Error incrementing impressions:', rpcError);
       }
 
       // Enregistrer l'impression détaillée
@@ -102,24 +93,24 @@ export const useAdvertising = (placement: AdPlacement) => {
         });
 
       if (insertError) {
-        console.error('Error inserting impression:', insertError);
+        console.error('❌ Error inserting impression:', insertError);
       } else {
-        console.log('useAdvertising - impression tracked successfully');
+        console.log('✅ Impression tracked successfully');
       }
     } catch (error) {
-      console.error('Error tracking impression:', error);
+      console.error('💥 Error tracking impression:', error);
     }
   }, [user?.id, placement]);
 
   // Enregistrer un clic
   const trackClick = useCallback(async (bannerId: string) => {
     try {
-      console.log('useAdvertising - tracking click for banner:', bannerId);
+      console.log('🖱️ Tracking click for banner:', bannerId);
       
       // Utiliser la fonction RPC existante
       const { error: rpcError } = await supabase.rpc('increment_clicks', { banner_id: bannerId });
       if (rpcError) {
-        console.error('Error incrementing clicks:', rpcError);
+        console.error('❌ Error incrementing clicks:', rpcError);
       }
 
       // Enregistrer le clic détaillé
@@ -134,12 +125,12 @@ export const useAdvertising = (placement: AdPlacement) => {
         });
 
       if (insertError) {
-        console.error('Error inserting click:', insertError);
+        console.error('❌ Error inserting click:', insertError);
       } else {
-        console.log('useAdvertising - click tracked successfully');
+        console.log('✅ Click tracked successfully');
       }
     } catch (error) {
-      console.error('Error tracking click:', error);
+      console.error('💥 Error tracking click:', error);
     }
   }, [user?.id, placement]);
 
@@ -147,24 +138,24 @@ export const useAdvertising = (placement: AdPlacement) => {
   useEffect(() => {
     if (banners.length <= 1) return;
 
-    console.log('useAdvertising - setting up banner rotation for', banners.length, 'banners');
+    console.log('🔄 Setting up banner rotation for', banners.length, 'banners');
     const interval = setInterval(() => {
       setCurrentBannerIndex(prev => {
         const newIndex = (prev + 1) % banners.length;
-        console.log('useAdvertising - rotating to banner index:', newIndex);
+        console.log('🎠 Rotating to banner index:', newIndex);
         return newIndex;
       });
     }, 10000);
 
     return () => {
-      console.log('useAdvertising - cleaning up banner rotation');
+      console.log('🧹 Cleaning up banner rotation');
       clearInterval(interval);
     };
   }, [banners.length]);
 
   // Charger les bannières au montage
   useEffect(() => {
-    console.log('useAdvertising - mounting, fetching banners');
+    console.log('🚀 Hook mounted, fetching banners');
     fetchBanners();
   }, [fetchBanners]);
 
@@ -174,12 +165,12 @@ export const useAdvertising = (placement: AdPlacement) => {
   // Enregistrer automatiquement l'impression quand une nouvelle bannière est affichée
   useEffect(() => {
     if (currentBanner) {
-      console.log('useAdvertising - new banner displayed:', currentBanner.id);
+      console.log('👀 New banner displayed:', currentBanner.id, currentBanner.title);
       trackImpression(currentBanner.id);
     }
   }, [currentBanner, trackImpression]);
 
-  console.log('useAdvertising - returning:', {
+  console.log('📤 Hook returning:', {
     banners: banners.length,
     currentBanner: currentBanner?.id,
     loading

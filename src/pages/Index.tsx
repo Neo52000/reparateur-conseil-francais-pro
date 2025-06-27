@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
@@ -43,7 +42,7 @@ const Index = () => {
   const [showMapSearch, setShowMapSearch] = useState(false);
   const [searchFilters, setSearchFilters] = useState<any>(null);
 
-  console.log('Index page - rendering');
+  console.log('🏠 Index page rendering');
 
   // Gérer la restauration des actions après connexion
   useEffect(() => {
@@ -135,15 +134,20 @@ const Index = () => {
           onMapSearch={handleHeroMapSearch}
         />
 
-        {/* Bannière publicitaire pour les clients - avec debug */}
+        {/* Section bannière publicitaire */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="mb-2">
-            <p className="text-xs text-gray-500">Debug: Bannière publicitaire ci-dessous</p>
+          <div className="text-center mb-4">
+            <p className="text-xs text-gray-400 uppercase tracking-wide">Publicité</p>
           </div>
           <AdBannerDisplay 
             placement="homepage_carousel" 
             className="mb-6"
           />
+          <div className="text-center mt-2">
+            <p className="text-xs text-gray-400">
+              Bannières publicitaires pour les clients
+            </p>
+          </div>
         </div>
 
         <RepairersCarouselSection 
