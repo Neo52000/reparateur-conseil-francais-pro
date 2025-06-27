@@ -32,65 +32,55 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
 
   // Filtrer les marques qui ont des modèles pour le type d'appareil sélectionné
   const availableBrands = React.useMemo(() => {
-    if (!formData.device_type || !deviceModels.length) {
-      console.log('No device type selected or no models available', { 
+    if (!formData.device_type || !deviceModels.length || !brands.length) {
+      console.log('🔍 No filtering criteria:', { 
         deviceType: formData.device_type, 
-        modelsCount: deviceModels.length 
+        modelsCount: deviceModels.length,
+        brandsCount: brands.length
       });
-      return [];
+      return brands; // Retourner toutes les marques si pas de critères
     }
     
-    console.log('Filtering brands for device type:', formData.device_type);
-    console.log('All device models:', deviceModels.map(m => ({ 
-      id: m.id, 
-      name: m.model_name, 
-      device_type_id: m.device_type_id, 
-      brand_id: m.brand_id 
-    })));
+    console.log('🔍 Filtering brands for device type:', formData.device_type);
     
     const modelsForDeviceType = deviceModels.filter(model => {
       const matches = model.device_type_id === formData.device_type;
-      if (!matches) {
-        console.log('Model does not match device type:', {
-          model: model.model_name,
-          modelDeviceType: model.device_type_id,
-          selectedDeviceType: formData.device_type
-        });
-      }
       return matches;
     });
     
-    console.log('Models for selected device type:', modelsForDeviceType);
+    console.log('📱 Models for selected device type:', modelsForDeviceType.length);
+    
+    if (modelsForDeviceType.length === 0) {
+      console.log('⚠️ No models found for device type, showing all brands');
+      return brands;
+    }
     
     const brandIds = [...new Set(modelsForDeviceType.map(model => model.brand_id))];
-    console.log('Brand IDs with models for this device type:', brandIds);
-    
     const filteredBrands = brands.filter(brand => brandIds.includes(brand.id));
-    console.log('Available brands:', filteredBrands);
+    
+    console.log('✅ Filtered brands:', filteredBrands.length);
     
     return filteredBrands;
   }, [formData.device_type, deviceModels, brands]);
 
   // Filtrer les modèles par type d'appareil et marque
   const filteredModels = React.useMemo(() => {
-    if (!formData.device_type) {
-      console.log('No device type selected for models filtering');
+    if (!formData.device_type || !deviceModels.length) {
+      console.log('📱 No device type selected for models filtering');
       return [];
     }
     
     let filtered = deviceModels.filter(model => {
-      const matches = model.device_type_id === formData.device_type;
-      return matches;
+      return model.device_type_id === formData.device_type;
     });
     
-    console.log('Models filtered by device type:', filtered);
+    console.log('📱 Models filtered by device type:', filtered.length);
     
     if (formData.device_brand) {
       filtered = filtered.filter(model => {
-        const matches = model.brand_id === formData.device_brand;
-        return matches;
+        return model.brand_id === formData.device_brand;
       });
-      console.log('Models filtered by brand:', filtered);
+      console.log('📱 Models filtered by brand:', filtered.length);
     }
     
     return filtered;
@@ -110,7 +100,7 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
   };
 
   const handleDeviceTypeChange = (value: string) => {
-    console.log('Device type changed to:', value);
+    console.log('📱 Device type changed to:', value);
     setFormData(prev => ({ 
       ...prev, 
       device_type: value, 
@@ -120,7 +110,7 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
   };
 
   const handleBrandChange = (value: string) => {
-    console.log('Brand changed to:', value);
+    console.log('🏷️ Brand changed to:', value);
     setFormData(prev => ({ 
       ...prev, 
       device_brand: value, 
@@ -147,6 +137,14 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
     );
   }
 
+  console.log('🎯 Render state:', {
+    deviceType: formData.device_type,
+    availableBrandsCount: availableBrands.length,
+    filteredModelsCount: filteredModels.length,
+    selectedBrand: formData.device_brand,
+    selectedModel: formData.device_model
+  });
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl">
@@ -169,25 +167,16 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
             onDeviceTypeChange={handleDeviceTypeChange}
           />
 
+          {/* Toujours afficher cette section une fois qu'un type est sélectionné */}
           {formData.device_type && (
-            <>
-              {availableBrands.length > 0 ? (
-                <BrandModelSection
-                  deviceBrand={formData.device_brand}
-                  deviceModel={formData.device_model}
-                  brands={availableBrands}
-                  filteredModels={filteredModels}
-                  onBrandChange={handleBrandChange}
-                  onModelChange={(value) => updateFormData('device_model', value)}
-                />
-              ) : (
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-yellow-800 text-sm">
-                    Aucune marque disponible pour ce type d'appareil. Veuillez sélectionner un autre type.
-                  </p>
-                </div>
-              )}
-            </>
+            <BrandModelSection
+              deviceBrand={formData.device_brand}
+              deviceModel={formData.device_model}
+              brands={availableBrands}
+              filteredModels={filteredModels}
+              onBrandChange={handleBrandChange}
+              onModelChange={(value) => updateFormData('device_model', value)}
+            />
           )}
 
           <RepairTypeSection
