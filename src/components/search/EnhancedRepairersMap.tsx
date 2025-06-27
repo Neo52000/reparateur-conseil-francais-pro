@@ -7,8 +7,10 @@ import RepairersMapContainer from '../map/MapContainer';
 import QuoteRequestModal from '@/components/modals/QuoteRequestModal';
 import AppointmentModal from '@/components/modals/AppointmentModal';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
-import RepairerSidebar from './RepairerSidebar';
+import RepairerBottomPanel from './RepairerBottomPanel';
 import MapResultsCounter from './MapResultsCounter';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
 interface EnhancedRepairersMapProps {
   onClose?: () => void;
@@ -64,23 +66,36 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-white z-50 flex relative">
-      <RepairerSidebar
-        repairer={selectedRepairer}
-        onClose={closeRepairer}
-        onViewProfile={handleViewProfile}
-        onQuoteRequest={handleQuoteRequest}
-        onAppointmentRequest={handleAppointmentRequest}
-      />
+    <div className="fixed inset-0 bg-white z-50 relative">
+      {/* Bouton de fermeture global */}
+      <Button
+        onClick={onClose}
+        variant="outline"
+        size="icon"
+        className="absolute top-4 right-4 z-[60] bg-white hover:bg-gray-100 shadow-lg border-2"
+      >
+        <X className="h-4 w-4" />
+      </Button>
 
-      {/* Map Container */}
-      <div className="flex-1 relative">
-        <div className="h-full">
-          <RepairersMapContainer />
-        </div>
-
-        <MapResultsCounter count={repairers.length} />
+      {/* Carte plein écran */}
+      <div className="w-full h-full">
+        <RepairersMapContainer />
       </div>
+
+      {/* Compteur de résultats */}
+      <MapResultsCounter count={repairers.length} />
+
+      {/* Panneau flottant en bas */}
+      {selectedRepairer && (
+        <RepairerBottomPanel
+          repairer={selectedRepairer}
+          onClose={closeRepairer}
+          onViewProfile={handleViewProfile}
+          onQuoteRequest={handleQuoteRequest}
+          onAppointmentRequest={handleAppointmentRequest}
+          userLocation={userLocation}
+        />
+      )}
 
       {/* Modals */}
       {showProfileModal && selectedRepairer && (
