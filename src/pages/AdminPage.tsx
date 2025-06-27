@@ -2,10 +2,11 @@
 import React from 'react';
 import AdminDashboard from '@/components/AdminDashboard';
 import AdminAuthForm from '@/components/AdminAuthForm';
+import EnhancedScrapingHub from '@/components/scraping/EnhancedScrapingHub';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Settings, Users, Package } from 'lucide-react';
+import { Settings, Users, Package, Zap } from 'lucide-react';
 
 // Import experimental comps
 import ReferralInvite from '@/components/ReferralInvite';
@@ -37,7 +38,7 @@ const AdminPage = () => {
             <div>
               <h1 className="text-xl font-semibold text-gray-900">RepairHub Admin</h1>
               <p className="text-sm text-gray-600">
-                Interface d'administration
+                Interface d'administration avec IA
               </p>
             </div>
             <div className="flex gap-2">
@@ -74,6 +75,12 @@ const AdminPage = () => {
       </header>
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <AdminDashboard />
+        
+        {/* Hub de scraping intelligent */}
+        <section className="bg-white rounded shadow mt-10 p-6">
+          <EnhancedScrapingHub />
+        </section>
+
         <section className="bg-white rounded shadow mt-10 p-5">
           <h2 className="text-xl font-bold mb-4">Zone expérimentale</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

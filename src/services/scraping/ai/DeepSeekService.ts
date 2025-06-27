@@ -1,7 +1,6 @@
 
 interface DeepSeekConfig {
   model: string;
-  apiKey: string;
   baseUrl: string;
 }
 
@@ -16,19 +15,10 @@ interface DeepSeekResponse {
 export class DeepSeekService {
   private static config: DeepSeekConfig = {
     model: 'deepseek-chat',
-    apiKey: '',
     baseUrl: 'https://api.deepseek.com/chat/completions'
   };
 
-  static setApiKey(apiKey: string) {
-    this.config.apiKey = apiKey;
-  }
-
   static async classifyRepairers(repairersData: any[]): Promise<any[]> {
-    if (!this.config.apiKey) {
-      throw new Error('DeepSeek API key not configured');
-    }
-
     const prompt = `
 Tu es un expert en classification de données d'entreprises de réparation de téléphones et smartphones.
 
@@ -58,26 +48,15 @@ Format de réponse:
 `;
 
     try {
-      const response = await fetch(this.config.baseUrl, {
+      // Utiliser la fonction edge pour accéder à la clé secrète
+      const response = await fetch('/api/deepseek-classify', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: this.config.model,
-          messages: [
-            {
-              role: 'system',
-              content: 'Tu es un expert en classification de données d\'entreprises. Tu réponds UNIQUEMENT avec du JSON valide.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.1,
-          max_tokens: 4000
+          repairersData: repairersData.slice(0, 10),
+          prompt
         }),
       });
 
@@ -85,20 +64,8 @@ Format de réponse:
         throw new Error(`DeepSeek API error: ${response.status}`);
       }
 
-      const data: DeepSeekResponse = await response.json();
-      const content = data.choices[0]?.message?.content;
-
-      if (!content) {
-        throw new Error('Pas de réponse de DeepSeek');
-      }
-
-      try {
-        return JSON.parse(content);
-      } catch (parseError) {
-        console.error('Erreur parsing JSON DeepSeek:', parseError);
-        console.log('Contenu reçu:', content);
-        throw new Error('Réponse DeepSeek invalide');
-      }
+      const data = await response.json();
+      return data.classifiedData || [];
 
     } catch (error) {
       console.error('Erreur DeepSeek:', error);
@@ -107,10 +74,6 @@ Format de réponse:
   }
 
   static async enhanceRepairerData(repairer: any): Promise<any> {
-    if (!this.config.apiKey) {
-      throw new Error('DeepSeek API key not configured');
-    }
-
     const prompt = `
 Analyse ce réparateur et améliore ses données:
 ${JSON.stringify(repairer, null, 2)}
@@ -126,26 +89,14 @@ Réponds UNIQUEMENT avec un JSON valide contenant les données améliorées.
 `;
 
     try {
-      const response = await fetch(this.config.baseUrl, {
+      const response = await fetch('/api/deepseek-enhance', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: this.config.model,
-          messages: [
-            {
-              role: 'system',
-              content: 'Tu es un expert en données d\'entreprises de réparation. Tu réponds UNIQUEMENT avec du JSON valide.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.2,
-          max_tokens: 2000
+          repairer,
+          prompt
         }),
       });
 
@@ -153,14 +104,8 @@ Réponds UNIQUEMENT avec un JSON valide contenant les données améliorées.
         throw new Error(`DeepSeek API error: ${response.status}`);
       }
 
-      const data: DeepSeekResponse = await response.json();
-      const content = data.choices[0]?.message?.content;
-
-      if (!content) {
-        throw new Error('Pas de réponse de DeepSeek');
-      }
-
-      return JSON.parse(content);
+      const data = await response.json();
+      return data.enhancedData || repairer;
 
     } catch (error) {
       console.error('Erreur DeepSeek enhancement:', error);
