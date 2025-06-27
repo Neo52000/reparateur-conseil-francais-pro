@@ -21,6 +21,13 @@ const BrandModelSection: React.FC<BrandModelSectionProps> = ({
   onBrandChange,
   onModelChange
 }) => {
+  console.log('BrandModelSection render:', { 
+    brandsCount: brands.length, 
+    modelsCount: filteredModels.length,
+    selectedBrand: deviceBrand,
+    selectedModel: deviceModel
+  });
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
@@ -32,7 +39,7 @@ const BrandModelSection: React.FC<BrandModelSectionProps> = ({
           <SelectContent>
             {brands.length === 0 ? (
               <SelectItem value="" disabled>
-                Aucune marque disponible
+                Aucune marque disponible pour ce type d'appareil
               </SelectItem>
             ) : (
               brands.map((brand) => (
@@ -57,14 +64,14 @@ const BrandModelSection: React.FC<BrandModelSectionProps> = ({
               !deviceBrand 
                 ? "Sélectionnez d'abord une marque"
                 : filteredModels.length === 0
-                ? "Aucun modèle disponible"
+                ? "Aucun modèle disponible pour cette marque"
                 : "Sélectionner un modèle"
             } />
           </SelectTrigger>
           <SelectContent>
             {filteredModels.length === 0 ? (
               <SelectItem value="" disabled>
-                {!deviceBrand ? "Sélectionnez d'abord une marque" : "Aucun modèle disponible"}
+                {!deviceBrand ? "Sélectionnez d'abord une marque" : "Aucun modèle disponible pour cette marque"}
               </SelectItem>
             ) : (
               filteredModels.map((model) => (
