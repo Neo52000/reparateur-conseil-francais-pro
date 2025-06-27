@@ -78,7 +78,7 @@ const CSVImportWithGeocoding = () => {
         updateProgress('Classification IA des données', 1, totalSteps);
         
         try {
-          DeepSeekService.setApiKey(deepseekApiKey);
+          // Appeler directement DeepSeek sans setApiKey
           const classifiedData = await DeepSeekService.classifyRepairers(processedData);
           
           // Appliquer les classifications
