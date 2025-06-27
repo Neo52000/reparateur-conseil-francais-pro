@@ -21,7 +21,7 @@ const RepairersCarouselSection: React.FC<RepairersCarouselSectionProps> = ({
   }
 
   return (
-    <div className="mb-12">
+    <div>
       <div className="min-h-[300px]">
         <RepairersCarousel 
           onViewProfile={onViewProfile}

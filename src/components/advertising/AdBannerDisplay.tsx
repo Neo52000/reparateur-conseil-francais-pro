@@ -27,14 +27,14 @@ const AdBannerDisplay: React.FC<AdBannerDisplayProps> = ({
   };
 
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`w-full flex justify-center ${className}`}>
       <div className="relative group cursor-pointer" onClick={handleClick}>
         {/* Bannière */}
         <div className="relative overflow-hidden rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
           <img
             src={currentBanner.image_url}
             alt={currentBanner.title}
-            className="w-full h-auto object-cover"
+            className="object-cover"
             style={{ 
               maxHeight: '90px',
               minHeight: '90px',
