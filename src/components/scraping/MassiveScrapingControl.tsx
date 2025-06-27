@@ -30,7 +30,8 @@ const MassiveScrapingControl = () => {
 
   const handleMassiveScraping = async (source: string, isTest: boolean) => {
     console.log('🚀 Starting massive scraping:', { source, isTest, selectedDepartment });
-    await startScraping(source, selectedDepartment, isTest);
+    // Corriger l'ordre des paramètres: source, testMode, departmentCode
+    await startScraping(source, isTest, selectedDepartment);
   };
 
   const handleStopScraping = async () => {

@@ -18,6 +18,9 @@ export const useScrapingStatus = () => {
     stopScraping: originalStopScraping
   } = useScrapingOperations();
 
+  // Récupérer le dernier log
+  const latestLog = logs.length > 0 ? logs[0] : undefined;
+
   const handleStartScraping = async (source: string, testMode: boolean = false, departmentCode: string | null = null) => {
     try {
       const result = await originalStartScraping(source, testMode, departmentCode);
@@ -54,6 +57,7 @@ export const useScrapingStatus = () => {
     logs,
     loading,
     isScrapingRunning,
+    latestLog,
     autoRefreshEnabled,
     setAutoRefreshEnabled,
     startScraping: handleStartScraping,
