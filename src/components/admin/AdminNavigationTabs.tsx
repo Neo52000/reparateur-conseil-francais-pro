@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Heart } from 'lucide-react';
 
-type TabType = 'subscriptions' | 'repairers' | 'interest' | 'promocodes' | 'scraping' | 'advertising';
+type TabType = 'subscriptions' | 'repairers' | 'interest' | 'promocodes' | 'scraping';
 
 interface AdminNavigationTabsProps {
   activeTab: TabType;
@@ -48,13 +49,6 @@ const AdminNavigationTabs: React.FC<AdminNavigationTabsProps> = ({ activeTab, on
         className={getTabClassName('scraping')}
       >
         Scraping Moderne
-      </button>
-      
-      <button
-        onClick={() => onTabChange('advertising')}
-        className={getTabClassName('advertising')}
-      >
-        📢 Publicité
       </button>
     </div>
   );

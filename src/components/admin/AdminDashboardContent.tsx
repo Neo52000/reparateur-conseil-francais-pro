@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +8,6 @@ import PromoCodesManagement from '@/components/PromoCodesManagement';
 import SubscriptionsTable from '@/components/repairers/SubscriptionsTable';
 import RepairersTable from '@/components/repairers/RepairersTable';
 import type { TabType } from './AdminNavigationTabs';
-import AdBannerManagement from '@/components/advertising/AdBannerManagement';
 
 interface SubscriptionData {
   id: string;
@@ -128,10 +128,6 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
         </Card>
       </div>
     );
-  }
-
-  if (activeTab === 'advertising') {
-    return <AdBannerManagement />;
   }
 
   return null;
