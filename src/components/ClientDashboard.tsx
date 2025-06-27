@@ -1,6 +1,11 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Home, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 import QuoteForm from './QuoteForm';
 import ChatInterface from './ChatInterface';
 import ClientStatsCards from './client-dashboard/ClientStatsCards';
@@ -12,6 +17,38 @@ import ClientLoyaltyTab from './client-dashboard/ClientLoyaltyTab';
 
 const ClientDashboard = () => {
   const [activeTab, setActiveTab] = useState('profile');
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await signOut();
+      if (error) {
+        toast({
+          title: "Erreur de déconnexion",
+          description: "Une erreur s'est produite lors de la déconnexion",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Déconnexion réussie",
+          description: "Vous avez été déconnecté avec succès"
+        });
+        navigate('/', { replace: true });
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur de déconnexion",
+        description: "Une erreur inattendue s'est produite",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleGoHome = () => {
+    navigate('/');
+  };
 
   // Données mockées pour la démo
   const clientData = {
@@ -77,9 +114,22 @@ const ClientDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Mon espace client</h1>
-          <p className="text-gray-600 mt-2">Gérez vos réparations et votre profil</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Mon espace client</h1>
+            <p className="text-gray-600 mt-2">Gérez vos réparations et votre profil</p>
+          </div>
+          
+          <div className="flex space-x-2">
+            <Button onClick={handleGoHome} variant="outline">
+              <Home className="h-4 w-4 mr-2" />
+              Retour à l'accueil
+            </Button>
+            <Button onClick={handleSignOut} variant="outline">
+              <LogOut className="h-4 w-4 mr-2" />
+              Se déconnecter
+            </Button>
+          </div>
         </div>
 
         <ClientStatsCards stats={clientData.stats} />

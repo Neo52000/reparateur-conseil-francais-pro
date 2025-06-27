@@ -1,16 +1,11 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   User, 
-  Settings,
-  LogOut,
-  Home
+  Settings
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
 
 interface ClientProfileTabProps {
   profile: {
@@ -23,39 +18,6 @@ interface ClientProfileTabProps {
 }
 
 const ClientProfileTab: React.FC<ClientProfileTabProps> = ({ profile }) => {
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const handleSignOut = async () => {
-    try {
-      const { error } = await signOut();
-      if (error) {
-        toast({
-          title: "Erreur de déconnexion",
-          description: "Une erreur s'est produite lors de la déconnexion",
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Déconnexion réussie",
-          description: "Vous avez été déconnecté avec succès"
-        });
-        navigate('/', { replace: true });
-      }
-    } catch (error) {
-      toast({
-        title: "Erreur de déconnexion",
-        description: "Une erreur inattendue s'est produite",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleGoHome = () => {
-    navigate('/');
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -84,20 +46,10 @@ const ClientProfileTab: React.FC<ClientProfileTabProps> = ({ profile }) => {
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t">
+        <div className="flex pt-4 border-t">
           <Button>
             <Settings className="h-4 w-4 mr-2" />
             Modifier le profil
-          </Button>
-          
-          <Button onClick={handleGoHome} variant="outline">
-            <Home className="h-4 w-4 mr-2" />
-            Retour à l'accueil
-          </Button>
-
-          <Button onClick={handleSignOut} variant="outline">
-            <LogOut className="h-4 w-4 mr-2" />
-            Se déconnecter
           </Button>
         </div>
       </CardContent>
