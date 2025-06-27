@@ -24,7 +24,6 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [selectedRepairer, setSelectedRepairer] = useState<any>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const { repairers, loading } = useRepairers(searchFilters);
   const { setRepairers, selectedRepairer: mapSelectedRepairer } = useMapStore();
@@ -38,7 +37,6 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
     if (mapSelectedRepairer) {
       setSelectedRepairer(mapSelectedRepairer);
       setSelectedRepairerId(mapSelectedRepairer.id);
-      setSidebarOpen(true);
     }
   }, [mapSelectedRepairer]);
 
@@ -65,16 +63,10 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
     setSelectedRepairerId(null);
   };
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
   return (
     <div className="fixed inset-0 bg-white z-50 flex relative">
       <RepairerSidebar
         repairer={selectedRepairer}
-        sidebarOpen={sidebarOpen}
-        onToggleSidebar={toggleSidebar}
         onClose={closeRepairer}
         onViewProfile={handleViewProfile}
         onQuoteRequest={handleQuoteRequest}
