@@ -22,7 +22,7 @@ const MapModal: React.FC<MapModalProps> = ({
             onClick={onClose}
             variant="outline"
             size="icon"
-            className="absolute top-4 right-4 z-50 bg-white hover:bg-gray-100 shadow-lg"
+            className="absolute top-4 right-4 z-[60] bg-white hover:bg-gray-100 shadow-lg border-2"
           >
             <X className="h-4 w-4" />
           </Button>
