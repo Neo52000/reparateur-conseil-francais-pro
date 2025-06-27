@@ -136,6 +136,56 @@ export type Database = {
           },
         ]
       }
+      appointments_with_quotes: {
+        Row: {
+          appointment_date: string
+          client_id: string
+          client_notes: string | null
+          created_at: string
+          duration_minutes: number
+          id: string
+          quote_id: string
+          repairer_id: string
+          repairer_notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_date: string
+          client_id: string
+          client_notes?: string | null
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          quote_id: string
+          repairer_id: string
+          repairer_notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string
+          client_id?: string
+          client_notes?: string | null
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          quote_id?: string
+          repairer_id?: string
+          repairer_notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_with_quotes_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes_with_timeline"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_rules: {
         Row: {
           enabled: boolean | null
@@ -496,6 +546,56 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications_system: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_read: boolean
+          message: string
+          notification_type: string
+          related_appointment_id: string | null
+          related_quote_id: string | null
+          title: string
+          user_id: string
+          user_type: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message: string
+          notification_type: string
+          related_appointment_id?: string | null
+          related_quote_id?: string | null
+          title: string
+          user_id: string
+          user_type: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string
+          notification_type?: string
+          related_appointment_id?: string | null
+          related_quote_id?: string | null
+          title?: string
+          user_id?: string
+          user_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_system_related_quote_id_fkey"
+            columns: ["related_quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes_with_timeline"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pappers_verification_cache: {
         Row: {
           business_status: string | null
@@ -797,6 +897,84 @@ export type Database = {
         }
         Relationships: []
       }
+      quotes_with_timeline: {
+        Row: {
+          accepted_at: string | null
+          client_acceptance_deadline: string | null
+          client_email: string
+          client_id: string | null
+          client_name: string | null
+          client_phone: string | null
+          client_response_notes: string | null
+          created_at: string
+          device_brand: string
+          device_model: string
+          estimated_price: number | null
+          id: string
+          issue_description: string | null
+          quoted_at: string | null
+          rejected_at: string | null
+          repair_duration: string | null
+          repair_type: string
+          repairer_id: string
+          repairer_notes: string | null
+          repairer_response_deadline: string
+          status: string
+          updated_at: string
+          warranty_info: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          client_acceptance_deadline?: string | null
+          client_email: string
+          client_id?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          client_response_notes?: string | null
+          created_at?: string
+          device_brand: string
+          device_model: string
+          estimated_price?: number | null
+          id?: string
+          issue_description?: string | null
+          quoted_at?: string | null
+          rejected_at?: string | null
+          repair_duration?: string | null
+          repair_type: string
+          repairer_id: string
+          repairer_notes?: string | null
+          repairer_response_deadline?: string
+          status?: string
+          updated_at?: string
+          warranty_info?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          client_acceptance_deadline?: string | null
+          client_email?: string
+          client_id?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          client_response_notes?: string | null
+          created_at?: string
+          device_brand?: string
+          device_model?: string
+          estimated_price?: number | null
+          id?: string
+          issue_description?: string | null
+          quoted_at?: string | null
+          rejected_at?: string | null
+          repair_duration?: string | null
+          repair_type?: string
+          repairer_id?: string
+          repairer_notes?: string | null
+          repairer_response_deadline?: string
+          status?: string
+          updated_at?: string
+          warranty_info?: string | null
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           code: string
@@ -989,6 +1167,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      repairer_availability: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_available: boolean
+          repairer_id: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_available?: boolean
+          repairer_id: string
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          repairer_id?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       repairer_brand_settings: {
         Row: {

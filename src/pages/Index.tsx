@@ -1,52 +1,28 @@
 
 import React, { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import HeroSectionSimplified from '@/components/sections/HeroSectionSimplified';
-import QuickStatsSection from '@/components/sections/QuickStatsSection';
-import MainMapSection from '@/components/sections/MainMapSection';
-import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
+import { useNavigate } from 'react-router-dom';
+import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
+import HeroSectionSimplified from '@/components/sections/HeroSectionSimplified';
+import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
+import QuickStatsSection from '@/components/sections/QuickStatsSection';
+import SearchModeSelector from '@/components/search/SearchModeSelector';
+import QuickSearchModal from '@/components/search/QuickSearchModal';
+import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
-import { useSearchStore } from '@/stores/searchStore';
+import { useAuth } from '@/hooks/useAuth';
 
-/**
- * Page d'accueil simplifiée
- * Version optimisée pour éviter les erreurs de rendu
- */
 const Index = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState('');
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
   const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const { toast } = useToast();
-  const { 
-    filters, 
-    isSearchActive, 
-    searchMode, 
-    performSearch, 
-    setSearchTerm: setStoreSearchTerm, 
-    clearSearch
-  } = useSearchStore();
-
-  const handleQuickSearch = () => {
-    console.log('Recherche déclenchée:', { searchTerm, selectedLocation });
-    
-    const serviceText = searchTerm.trim() ? `"${searchTerm.trim()}"` : "Non spécifié";
-    const locationText = filters.city || filters.postalCode || selectedLocation.trim() || "Non spécifiée";
-    
-    setStoreSearchTerm(searchTerm);
-    performSearch();
-    
-    toast({
-      title: "Recherche lancée",
-      description: `Service : ${serviceText} / Localisation : ${locationText}`,
-    });
-  };
+  const [showQuickSearch, setShowQuickSearch] = useState(false);
+  const [showMapSearch, setShowMapSearch] = useState(false);
+  const [searchFilters, setSearchFilters] = useState<any>(null);
 
   const handleViewProfile = (repairer: any) => {
-    console.log('Ouverture du profil:', repairer.id);
     setSelectedRepairerId(repairer.id);
-    setIsProfileModalOpen(true);
   };
 
   const handleCall = (phone: string) => {
@@ -55,97 +31,66 @@ const Index = () => {
     }
   };
 
-  const handleCloseProfileModal = () => {
-    setIsProfileModalOpen(false);
-    setSelectedRepairerId(null);
+  const handleQuickSearchResults = (filters: any) => {
+    setSearchFilters(filters);
+    setShowMapSearch(true);
   };
 
-  const handleResetSearch = () => {
-    clearSearch();
-    setSearchTerm('');
-    setSelectedLocation('');
-    toast({
-      title: "Recherche réinitialisée",
-      description: "Nouvelle recherche disponible."
-    });
-  };
-
-  try {
+  if (showMapSearch) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50">
-        <HeroSectionSimplified
-          searchTerm={searchTerm}
-          selectedLocation={selectedLocation}
-          onSearchTermChange={setSearchTerm}
-          onLocationChange={setSelectedLocation}
-          onQuickSearch={handleQuickSearch}
-        />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <QuickStatsSection />
-
-          {isSearchActive && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-blue-900">
-                    Recherche active ({searchMode === 'quick' ? 'Rapide' : 'Carte'})
-                  </h3>
-                  <p className="text-blue-700">
-                    Filtres : 
-                    {filters.searchTerm && ` Service: "${filters.searchTerm}"`}
-                    {filters.city && ` Ville: "${filters.city}"`}
-                    {filters.postalCode && ` CP: "${filters.postalCode}"`}
-                  </p>
-                </div>
-                <button 
-                  onClick={handleResetSearch}
-                  className="text-blue-600 hover:text-blue-800 underline font-medium"
-                >
-                  Réinitialiser
-                </button>
-              </div>
-            </div>
-          )}
-
-          {(isSearchActive || searchMode === 'map') && (
-            <MainMapSection />
-          )}
-
-          <RepairersCarouselSection
-            onViewProfile={handleViewProfile}
-            onCall={handleCall}
-          />
-        </div>
-
-        {selectedRepairerId && (
-          <RepairerProfileModal
-            isOpen={isProfileModalOpen}
-            onClose={handleCloseProfileModal}
-            repairerId={selectedRepairerId}
-          />
-        )}
-
-        <Footer />
-      </div>
-    );
-  } catch (error) {
-    console.error('Erreur critique dans Index:', error);
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Service temporairement indisponible</h1>
-          <p className="text-gray-600">Veuillez recharger la page</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Recharger
-          </button>
-        </div>
-      </div>
+      <EnhancedRepairersMap
+        searchFilters={searchFilters}
+        onClose={() => {
+          setShowMapSearch(false);
+          setSearchFilters(null);
+        }}
+      />
     );
   }
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Navigation />
+      
+      <main>
+        <HeroSectionSimplified />
+        
+        {/* Search Section */}
+        <section className="py-16 bg-gradient-to-br from-blue-50 via-white to-green-50">
+          <div className="container mx-auto px-4">
+            <SearchModeSelector
+              onQuickSearch={() => setShowQuickSearch(true)}
+              onMapSearch={() => setShowMapSearch(true)}
+            />
+          </div>
+        </section>
+
+        <RepairersCarouselSection 
+          onViewProfile={handleViewProfile}
+          onCall={handleCall}
+        />
+        
+        <QuickStatsSection />
+      </main>
+
+      <Footer />
+
+      {/* Modals */}
+      <QuickSearchModal
+        isOpen={showQuickSearch}
+        onClose={() => setShowQuickSearch(false)}
+        onSearch={handleQuickSearchResults}
+      />
+
+      {selectedRepairerId && (
+        <RepairerProfileModal
+          isOpen={!!selectedRepairerId}
+          onClose={() => setSelectedRepairerId(null)}
+          repairerId={selectedRepairerId}
+        />
+      )}
+    </div>
+  );
 };
 
 export default Index;
