@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Index from './pages/Index';
 import AdminPage from './pages/AdminPage';
 import AdminCatalogPage from './pages/AdminCatalogPage';
@@ -18,14 +20,14 @@ import PartnerDashboard from './pages/PartnerDashboard';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import NotFound from './pages/NotFound';
+import ClientAuth from './pages/ClientAuth';
 import { Toaster } from '@/components/ui/toaster';
-import { QueryClient } from 'react-query';
 
-import ClientAuth from '@/pages/ClientAuth';
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <div className="App">
         <Toaster />
         <Router>
@@ -52,7 +54,7 @@ function App() {
           </Routes>
         </Router>
       </div>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 
