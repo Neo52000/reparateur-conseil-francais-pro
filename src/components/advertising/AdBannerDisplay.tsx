@@ -36,8 +36,9 @@ const AdBannerDisplay: React.FC<AdBannerDisplayProps> = ({
             alt={currentBanner.title}
             className="w-full h-auto object-cover"
             style={{ 
-              maxHeight: '70px',
-              minHeight: '50px'
+              maxHeight: '90px',
+              minHeight: '90px',
+              width: '728px'
             }}
             onError={(e) => {
               console.error('Error loading banner image:', currentBanner.image_url);
