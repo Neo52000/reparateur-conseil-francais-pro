@@ -18,7 +18,7 @@ const Footer = () => {
           {/* Logo et description */}
           <div>
             <div className="mb-4">
-              <Logo variant="compact" size="lg" className="brightness-0 invert" />
+              <Logo variant="compact" size="xl" className="brightness-0 invert" />
             </div>
             <p className="text-gray-300 mb-4">
               Trouvez rapidement un réparateur qualifié près de chez vous. Réparation téléphone, ordinateur, tablette - Devis gratuit et intervention rapide.
