@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Plus } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useToast } from '@/hooks/use-toast';
 import RepairTypesTable from './RepairTypesTable';
@@ -13,7 +14,8 @@ import type { RepairType } from '@/types/catalog';
 const RepairTypesManagement = () => {
   const { 
     repairTypes, 
-    repairCategories, 
+    repairCategories,
+    deviceTypes,
     loading, 
     createRepairType, 
     updateRepairType, 
@@ -24,8 +26,33 @@ const RepairTypesManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [selectedDeviceType, setSelectedDeviceType] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRepairType, setEditingRepairType] = useState<RepairType | null>(null);
+
+  // Grouper les réparations par type d'appareil basé sur la catégorie
+  const getDeviceTypeForCategory = (categoryName: string) => {
+    const categoryToDeviceType: { [key: string]: string } = {
+      'Écran': 'smartphone',
+      'Batterie': 'smartphone',
+      'Caméra': 'smartphone',
+      'Audio': 'smartphone',
+      'Connectique': 'smartphone',
+      'Boutons': 'smartphone',
+      'Carte mère': 'smartphone',
+      'Étanchéité': 'smartphone',
+      'Coque': 'smartphone',
+      'Logiciel': 'smartphone',
+      'Manettes': 'console',
+      'Ventilation': 'console',
+      'Optique': 'console',
+      'Alimentation': 'console',
+      'Bracelet': 'montre',
+      'Capteurs': 'montre',
+      'Étanchéité montres': 'montre'
+    };
+    return categoryToDeviceType[categoryName] || 'smartphone';
+  };
 
   const filteredRepairTypes = repairTypes.filter(repairType => {
     const matchesSearch = repairType.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -33,8 +60,27 @@ const RepairTypesManagement = () => {
     const matchesCategory = !selectedCategory || selectedCategory === 'all' || repairType.category_id === selectedCategory;
     const matchesDifficulty = !selectedDifficulty || selectedDifficulty === 'all' || repairType.difficulty_level === selectedDifficulty;
     
+    // Filtrer par type d'appareil
+    if (selectedDeviceType !== 'all') {
+      const categoryName = repairType.category?.name || '';
+      const deviceType = getDeviceTypeForCategory(categoryName);
+      if (deviceType !== selectedDeviceType) return false;
+    }
+    
     return matchesSearch && matchesCategory && matchesDifficulty;
   });
+
+  // Grouper les types de réparation par type d'appareil
+  const repairTypesByDevice = repairTypes.reduce((acc, repairType) => {
+    const categoryName = repairType.category?.name || '';
+    const deviceType = getDeviceTypeForCategory(categoryName);
+    
+    if (!acc[deviceType]) {
+      acc[deviceType] = [];
+    }
+    acc[deviceType].push(repairType);
+    return acc;
+  }, {} as { [key: string]: RepairType[] });
 
   const handleEdit = (repairType: RepairType) => {
     setEditingRepairType(repairType);
@@ -122,6 +168,18 @@ const RepairTypesManagement = () => {
           />
         </div>
         
+        <Select value={selectedDeviceType} onValueChange={setSelectedDeviceType}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Tous les appareils" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les appareils</SelectItem>
+            <SelectItem value="smartphone">Smartphone</SelectItem>
+            <SelectItem value="console">Console de jeux</SelectItem>
+            <SelectItem value="montre">Montre connectée</SelectItem>
+          </SelectContent>
+        </Select>
+        
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Toutes les catégories" />
@@ -150,11 +208,70 @@ const RepairTypesManagement = () => {
         </Select>
       </div>
 
-      <RepairTypesTable
-        repairTypes={filteredRepairTypes}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="all">Tous ({repairTypes.length})</TabsTrigger>
+          <TabsTrigger value="smartphone">
+            Smartphone ({repairTypesByDevice.smartphone?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="console">
+            Console ({repairTypesByDevice.console?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="montre">
+            Montre ({repairTypesByDevice.montre?.length || 0})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all" className="mt-6">
+          <RepairTypesTable
+            repairTypes={filteredRepairTypes}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </TabsContent>
+
+        <TabsContent value="smartphone" className="mt-6">
+          <RepairTypesTable
+            repairTypes={repairTypesByDevice.smartphone?.filter(rt => {
+              const matchesSearch = rt.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                   (rt.description && rt.description.toLowerCase().includes(searchTerm.toLowerCase()));
+              const matchesCategory = !selectedCategory || selectedCategory === 'all' || rt.category_id === selectedCategory;
+              const matchesDifficulty = !selectedDifficulty || selectedDifficulty === 'all' || rt.difficulty_level === selectedDifficulty;
+              return matchesSearch && matchesCategory && matchesDifficulty;
+            }) || []}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </TabsContent>
+
+        <TabsContent value="console" className="mt-6">
+          <RepairTypesTable
+            repairTypes={repairTypesByDevice.console?.filter(rt => {
+              const matchesSearch = rt.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                   (rt.description && rt.description.toLowerCase().includes(searchTerm.toLowerCase()));
+              const matchesCategory = !selectedCategory || selectedCategory === 'all' || rt.category_id === selectedCategory;
+              const matchesDifficulty = !selectedDifficulty || selectedDifficulty === 'all' || rt.difficulty_level === selectedDifficulty;
+              return matchesSearch && matchesCategory && matchesDifficulty;
+            }) || []}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </TabsContent>
+
+        <TabsContent value="montre" className="mt-6">
+          <RepairTypesTable
+            repairTypes={repairTypesByDevice.montre?.filter(rt => {
+              const matchesSearch = rt.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                   (rt.description && rt.description.toLowerCase().includes(searchTerm.toLowerCase()));
+              const matchesCategory = !selectedCategory || selectedCategory === 'all' || rt.category_id === selectedCategory;
+              const matchesDifficulty = !selectedDifficulty || selectedDifficulty === 'all' || rt.difficulty_level === selectedDifficulty;
+              return matchesSearch && matchesCategory && matchesDifficulty;
+            }) || []}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </TabsContent>
+      </Tabs>
 
       <RepairTypeDialog
         isOpen={isDialogOpen}

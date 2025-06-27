@@ -4,9 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Package, Wrench, DollarSign, Settings } from 'lucide-react';
+import { ArrowLeft, Package, Wrench, DollarSign, Settings, Smartphone } from 'lucide-react';
 import BrandsManagement from '@/components/catalog/BrandsManagement';
 import DeviceModelsManagement from '@/components/catalog/DeviceModelsManagement';
+import DeviceTypesManagement from '@/components/catalog/DeviceTypesManagement';
 import RepairTypesManagement from '@/components/catalog/RepairTypesManagement';
 import RepairPricesManagement from '@/components/catalog/RepairPricesManagement';
 
@@ -31,7 +32,7 @@ const AdminCatalogPage = () => {
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">Gestion du Catalogue</h1>
                 <p className="text-sm text-gray-600">
-                  Gérer les marques, modèles d'appareils et types de réparations
+                  Gérer les types d'appareils, marques, modèles et types de réparations
                 </p>
               </div>
             </div>
@@ -41,7 +42,11 @@ const AdminCatalogPage = () => {
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="device-types" className="flex items-center gap-2">
+              <Smartphone className="h-4 w-4" />
+              Types d'appareils
+            </TabsTrigger>
             <TabsTrigger value="brands" className="flex items-center gap-2">
               <Package className="h-4 w-4" />
               Marques & Modèles
@@ -59,6 +64,17 @@ const AdminCatalogPage = () => {
               Grille tarifaire
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="device-types">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestion des Types d'Appareils</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DeviceTypesManagement />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="brands">
             <Card>
