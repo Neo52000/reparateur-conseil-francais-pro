@@ -49,13 +49,25 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation des champs obligatoires
+    if (!formData.device_type || !formData.device_brand || !formData.device_model || 
+        !formData.repair_type || !formData.client_email || !formData.client_name) {
+      toast({
+        title: "Champs obligatoires",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
       const quoteData = {
-        client_id: user?.id || null,
+        client_id: user?.id || null, // Permettre null pour les utilisateurs non connectés
         repairer_id: repairerId,
         device_brand: selectedBrand?.name || formData.device_brand,
         device_model: selectedModel?.model_name || formData.device_model,
@@ -65,21 +77,32 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
         client_name: formData.client_name
       };
 
+      console.log('🔄 Sending quote request:', quoteData);
+
       const { error } = await supabase
         .from('quotes_with_timeline')
         .insert([quoteData]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error inserting quote:', error);
+        throw error;
+      }
 
-      await supabase
-        .from('notifications_system')
-        .insert([{
-          user_id: repairerId,
-          user_type: 'repairer',
-          notification_type: 'quote_request',
-          title: 'Nouvelle demande de devis',
-          message: `Demande de devis pour ${quoteData.device_brand} ${quoteData.device_model} - ${quoteData.repair_type}`
-        }]);
+      // Envoyer la notification au réparateur
+      try {
+        await supabase
+          .from('notifications_system')
+          .insert([{
+            user_id: repairerId,
+            user_type: 'repairer',
+            notification_type: 'quote_request',
+            title: 'Nouvelle demande de devis',
+            message: `Demande de devis pour ${quoteData.device_brand} ${quoteData.device_model} - ${quoteData.repair_type}`
+          }]);
+      } catch (notifError) {
+        console.error('⚠️ Error sending notification:', notifError);
+        // Ne pas faire échouer toute la demande si la notification échoue
+      }
 
       toast({
         title: "Demande envoyée !",
@@ -97,10 +120,10 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
         client_name: ''
       });
     } catch (error) {
-      console.error('Error submitting quote request:', error);
+      console.error('❌ Error submitting quote request:', error);
       toast({
         title: "Erreur",
-        description: "Impossible d'envoyer la demande de devis",
+        description: "Impossible d'envoyer la demande de devis. Veuillez réessayer.",
         variant: "destructive"
       });
     } finally {
