@@ -29,11 +29,6 @@ const AdBannerDisplay: React.FC<AdBannerDisplayProps> = ({
   return (
     <div className={`w-full ${className}`}>
       <div className="relative group cursor-pointer" onClick={handleClick}>
-        {/* Indicateur "Publicité" */}
-        <div className="absolute top-2 right-2 bg-gray-500 text-white text-xs px-2 py-1 rounded z-10">
-          Publicité
-        </div>
-        
         {/* Bannière */}
         <div className="relative overflow-hidden rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
           <img
@@ -41,8 +36,8 @@ const AdBannerDisplay: React.FC<AdBannerDisplayProps> = ({
             alt={currentBanner.title}
             className="w-full h-auto object-cover"
             style={{ 
-              maxHeight: '90px',
-              minHeight: '60px'
+              maxHeight: '70px',
+              minHeight: '50px'
             }}
             onError={(e) => {
               console.error('Error loading banner image:', currentBanner.image_url);

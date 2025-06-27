@@ -133,11 +133,11 @@ const Index = () => {
           onMapSearch={handleHeroMapSearch}
         />
 
-        {/* Bannière publicitaire pour les clients - au-dessus du carrousel */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+        {/* Bannière publicitaire pour les clients - avec espacement */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <AdBannerDisplay 
             placement="homepage_carousel" 
-            className="mb-4"
+            className="mb-6"
           />
         </div>
 
