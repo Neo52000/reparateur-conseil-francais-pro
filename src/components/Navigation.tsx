@@ -125,13 +125,13 @@ const Navigation = () => {
               </div>
             ) : (
               <div className="flex space-x-2">
-                <Link to="/client/auth">
+                <Link to="/client-auth">
                   <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
                     <User className="h-4 w-4 mr-2" />
                     Client
                   </Button>
                 </Link>
-                <Link to="/repairer/auth">
+                <Link to="/repairer-auth">
                   <Button className="bg-orange-600 hover:bg-orange-700">
                     <Wrench className="h-4 w-4 mr-2" />
                     Réparateur

@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Search, MapPin } from 'lucide-react';
-import SearchModal from '@/components/modals/SearchModal';
+import LocationSearchModal from '@/components/modals/LocationSearchModal';
+import MapModal from '@/components/modals/MapModal';
 
 interface SearchCriteria {
   deviceType: string;
@@ -22,7 +23,16 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
   onQuickSearch,
   onMapSearch
 }) => {
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isLocationSearchModalOpen, setIsLocationSearchModalOpen] = useState(false);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+
+  const handleLocationSearch = (searchCriteria: SearchCriteria) => {
+    onQuickSearch(searchCriteria);
+  };
+
+  const handleMapModalClose = () => {
+    setIsMapModalOpen(false);
+  };
 
   try {
     return (
@@ -43,7 +53,7 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button
-                onClick={() => setIsSearchModalOpen(true)}
+                onClick={() => setIsLocationSearchModalOpen(true)}
                 size="lg"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-3"
               >
@@ -52,7 +62,7 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
               </Button>
 
               <Button
-                onClick={() => setIsSearchModalOpen(true)}
+                onClick={() => setIsMapModalOpen(true)}
                 size="lg"
                 variant="outline"
                 className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-3"
@@ -64,11 +74,15 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
           </div>
         </div>
 
-        <SearchModal
-          isOpen={isSearchModalOpen}
-          onClose={() => setIsSearchModalOpen(false)}
-          onQuickSearch={onQuickSearch}
-          onMapSearch={onMapSearch}
+        <LocationSearchModal
+          isOpen={isLocationSearchModalOpen}
+          onClose={() => setIsLocationSearchModalOpen(false)}
+          onSearch={handleLocationSearch}
+        />
+
+        <MapModal
+          isOpen={isMapModalOpen}
+          onClose={handleMapModalClose}
         />
       </div>
     );
