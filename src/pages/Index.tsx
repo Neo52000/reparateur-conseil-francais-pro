@@ -1,160 +1,88 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navigation from '@/components/Navigation';
-import Footer from '@/components/Footer';
-import HeroSectionSimplified from '@/components/sections/HeroSectionSimplified';
-import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
-import QuickStatsSection from '@/components/sections/QuickStatsSection';
-import QuickSearchModal from '@/components/search/QuickSearchModal';
-import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
-import RepairerProfileModal from '@/components/RepairerProfileModal';
 import { useAuth } from '@/hooks/useAuth';
-import { usePendingAction } from '@/hooks/usePendingAction';
-import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
-
-interface SearchCriteria {
-  deviceType: string;
-  brand: string;
-  model: string;
-  repairType: string;
-  city: string;
-  postalCode: string;
-}
+import { useToast } from '@/hooks/use-toast';
+import {
+  Navigation,
+  HeroSection,
+  FeaturesSection,
+  HowItWorksSection,
+  RepairersCarouselSection,
+  FaqSection,
+  ContactSection,
+  Footer,
+  CallToActionSection,
+  TestimonialsSection,
+  CookieConsent
+} from '@/components';
+import { supabase } from '@/integrations/supabase/client';
+import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 
 const Index = () => {
-  const navigate = useNavigate();
+  const [isCookieConsentGiven, setIsCookieConsentGiven] = useState(false);
   const { user } = useAuth();
-  const { pendingAction, clearPendingAction } = usePendingAction();
-  const {
-    isQuoteModalOpen,
-    isAppointmentModalOpen,
-    selectedRepairerId,
-    selectedQuoteId,
-    handleRequestQuote,
-    handleBookAppointment,
-    closeQuoteModal,
-    closeAppointmentModal
-  } = useQuoteAndAppointment();
-  
-  const [selectedRepairerForProfile, setSelectedRepairerForProfile] = useState<string | null>(null);
-  const [showQuickSearch, setShowQuickSearch] = useState(false);
-  const [showMapSearch, setShowMapSearch] = useState(false);
-  const [searchFilters, setSearchFilters] = useState<any>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  // Gérer la restauration des actions après connexion
   useEffect(() => {
-    if (user && pendingAction) {
-      if (pendingAction.type === 'quote_request') {
-        const data = pendingAction.data as any;
-        if (data.repairerId) {
-          handleRequestQuote(data.repairerId);
-        }
-        clearPendingAction();
-      } else if (pendingAction.type === 'appointment_request') {
-        const data = pendingAction.data as { repairerId: string; quoteId?: string };
-        handleBookAppointment(data.repairerId, data.quoteId);
-        clearPendingAction();
-      }
-    }
-  }, [user, pendingAction, handleRequestQuote, handleBookAppointment, clearPendingAction]);
+    const consent = localStorage.getItem('cookie_consent');
+    setIsCookieConsentGiven(consent === 'true');
+  }, []);
 
-  // Gérer l'ancien système pour les devis (rétrocompatibilité)
-  useEffect(() => {
+  const handleCookieConsent = (given: boolean) => {
+    localStorage.setItem('cookie_consent', given.toString());
+    setIsCookieConsentGiven(given);
+  };
+
+  const handleRepairerSignup = () => {
     if (user) {
-      const oldPendingQuote = localStorage.getItem('pendingQuoteAction');
-      if (oldPendingQuote) {
-        try {
-          const data = JSON.parse(oldPendingQuote);
-          if (data.type === 'quote_request' && data.data?.repairerId) {
-            handleRequestQuote(data.data.repairerId);
-          }
-        } catch (error) {
-          console.error('Error parsing old pending quote:', error);
-        }
-        localStorage.removeItem('pendingQuoteAction');
-      }
-    }
-  }, [user, handleRequestQuote]);
-
-  const handleViewProfile = (repairer: any) => {
-    setSelectedRepairerForProfile(repairer.id);
-  };
-
-  const handleCall = (phone: string) => {
-    if (phone) {
-      window.location.href = `tel:${phone}`;
+      navigate('/repairer/onboarding');
+    } else {
+      toast({
+        title: "Inscription Réparateur",
+        description: "Veuillez vous connecter pour vous inscrire en tant que réparateur.",
+      });
+      navigate('/repairer/auth');
     }
   };
-
-  const handleQuickSearchResults = (filters: any) => {
-    setSearchFilters(filters);
-    setShowMapSearch(true);
-  };
-
-  const handleHeroQuickSearch = (searchCriteria: SearchCriteria) => {
-    // Transform search criteria to filters format
-    const filters = {
-      city: searchCriteria.city,
-      postalCode: searchCriteria.postalCode,
-      deviceType: searchCriteria.deviceType,
-      brand: searchCriteria.brand,
-      model: searchCriteria.model,
-      repairType: searchCriteria.repairType
-    };
-    setSearchFilters(filters);
-    setShowMapSearch(true);
-  };
-
-  const handleHeroMapSearch = () => {
-    setShowMapSearch(true);
-  };
-
-  if (showMapSearch) {
-    return (
-      <EnhancedRepairersMap
-        searchFilters={searchFilters}
-        onClose={() => {
-          setShowMapSearch(false);
-          setSearchFilters(null);
-        }}
-      />
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Navigation />
-      
-      <main>
-        <HeroSectionSimplified 
-          onQuickSearch={handleHeroQuickSearch}
-          onMapSearch={handleHeroMapSearch}
-        />
 
-        <RepairersCarouselSection 
-          onViewProfile={handleViewProfile}
-          onCall={handleCall}
-        />
+      <main>
+        <HeroSection onRepairerSignup={handleRepairerSignup} />
+
+        <FeaturesSection />
+
+        <HowItWorksSection />
         
-        <QuickStatsSection />
+        {/* Client Ad Banner - Above repairers carousel */}
+        <section className="py-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
+            <AdBannerDisplay 
+              targetType="client" 
+              placement="home-above-carousel"
+              className="mb-6"
+            />
+          </div>
+        </section>
+
+        <RepairersCarouselSection />
+
+        <TestimonialsSection />
+
+        <CallToActionSection />
+
+        <FaqSection />
+
+        <ContactSection />
       </main>
 
       <Footer />
 
-      {/* Modals */}
-      <QuickSearchModal
-        isOpen={showQuickSearch}
-        onClose={() => setShowQuickSearch(false)}
-        onSearch={handleQuickSearchResults}
-      />
-
-      {selectedRepairerForProfile && (
-        <RepairerProfileModal
-          isOpen={!!selectedRepairerForProfile}
-          onClose={() => setSelectedRepairerForProfile(null)}
-          repairerId={selectedRepairerForProfile}
-        />
+      {!isCookieConsentGiven && (
+        <CookieConsent onConsent={handleCookieConsent} />
       )}
     </div>
   );

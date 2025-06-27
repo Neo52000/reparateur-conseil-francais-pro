@@ -9,6 +9,152 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ad_banners: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          current_clicks: number
+          current_impressions: number
+          daily_budget: number | null
+          end_date: string | null
+          id: string
+          image_url: string
+          is_active: boolean
+          max_clicks: number | null
+          max_impressions: number | null
+          start_date: string | null
+          target_type: string
+          target_url: string
+          targeting_config: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          current_clicks?: number
+          current_impressions?: number
+          daily_budget?: number | null
+          end_date?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean
+          max_clicks?: number | null
+          max_impressions?: number | null
+          start_date?: string | null
+          target_type: string
+          target_url: string
+          targeting_config?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          current_clicks?: number
+          current_impressions?: number
+          daily_budget?: number | null
+          end_date?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          max_clicks?: number | null
+          max_impressions?: number | null
+          start_date?: string | null
+          target_type?: string
+          target_url?: string
+          targeting_config?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ad_clicks: {
+        Row: {
+          banner_id: string
+          created_at: string
+          id: string
+          impression_id: string | null
+          ip_address: unknown | null
+          placement: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          banner_id: string
+          created_at?: string
+          id?: string
+          impression_id?: string | null
+          ip_address?: unknown | null
+          placement: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          banner_id?: string
+          created_at?: string
+          id?: string
+          impression_id?: string | null
+          ip_address?: unknown | null
+          placement?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_clicks_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "ad_banners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_clicks_impression_id_fkey"
+            columns: ["impression_id"]
+            isOneToOne: false
+            referencedRelation: "ad_impressions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_impressions: {
+        Row: {
+          banner_id: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          placement: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          banner_id: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          placement: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          banner_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          placement?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_impressions_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "ad_banners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_pre_diagnostic_chats: {
         Row: {
           ended_at: string | null

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -33,6 +32,8 @@ import AnalyticsTabSection from "./repairer-dashboard/AnalyticsTabSection";
 import BillingTabSection from "./repairer-dashboard/BillingTabSection";
 import ProfileTabSection from "./repairer-dashboard/ProfileTabSection";
 import PricingTabSection from "./repairer-dashboard/PricingTabSection";
+
+import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 
 const RepairerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -284,6 +285,14 @@ const RepairerDashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Repairer Ad Banner - Below subscription plan */}
+        <div className="flex justify-center mb-6">
+          <AdBannerDisplay 
+            targetType="repairer" 
+            placement="dashboard-below-plan"
+          />
+        </div>
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
