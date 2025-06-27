@@ -78,28 +78,21 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Espace réparateur et inscription */}
+          {/* Bloc promotionnel réparateurs */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Réparateurs</h4>
-            <div className="space-y-4">
-              <Link to="/repairer/auth" className="inline-flex items-center bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-md transition-colors">
-                Espace Réparateur
+            <div className="bg-gradient-to-r from-blue-600 to-orange-600 rounded-lg p-4">
+              <h5 className="font-bold text-white mb-2">
+                Vous êtes réparateur ?
+              </h5>
+              <p className="text-blue-100 text-sm mb-3">
+                Rejoignez notre annuaire et développez votre activité
+              </p>
+              <Link to="/repairer/plans">
+                <Button className="bg-white text-blue-600 hover:bg-gray-100 font-semibold text-xs sm:text-sm w-full">
+                  <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="truncate">Inscrivez-vous gratuitement</span>
+                </Button>
               </Link>
-              
-              <div className="bg-gradient-to-r from-blue-600 to-orange-600 rounded-lg p-4">
-                <h5 className="font-bold text-white mb-2">
-                  Vous êtes réparateur ?
-                </h5>
-                <p className="text-blue-100 text-sm mb-3">
-                  Rejoignez notre annuaire et développez votre activité
-                </p>
-                <Link to="/repairer/plans">
-                  <Button className="bg-white text-blue-600 hover:bg-gray-100 font-semibold text-xs sm:text-sm w-full">
-                    <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                    <span className="truncate">Inscrivez-vous gratuitement</span>
-                  </Button>
-                </Link>
-              </div>
             </div>
           </div>
         </div>
