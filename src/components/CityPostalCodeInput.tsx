@@ -18,6 +18,7 @@ interface CityPostalCodeInputProps {
   postalCodeValue: string;
   onCityChange: (city: string) => void;
   onPostalCodeChange: (postalCode: string) => void;
+  onValidSelection?: (data: { city: string; postalCode: string; isValid: boolean }) => void;
   required?: boolean;
   disabled?: boolean;
   className?: string;
@@ -28,6 +29,7 @@ const CityPostalCodeInput: React.FC<CityPostalCodeInputProps> = ({
   postalCodeValue,
   onCityChange,
   onPostalCodeChange,
+  onValidSelection,
   required = false,
   disabled = false,
   className = "grid-cols-2 gap-4"
@@ -62,7 +64,15 @@ const CityPostalCodeInput: React.FC<CityPostalCodeInputProps> = ({
     onPostalCodeChange(city.codePostal);
     setShowCitySuggestions(false);
     setShowPostalSuggestions(false);
-  }, [onCityChange, onPostalCodeChange, setShowCitySuggestions, setShowPostalSuggestions]);
+    
+    if (onValidSelection) {
+      onValidSelection({
+        city: city.nom,
+        postalCode: city.codePostal,
+        isValid: true
+      });
+    }
+  }, [onCityChange, onPostalCodeChange, setShowCitySuggestions, setShowPostalSuggestions, onValidSelection]);
 
   const handleCityFocus = useCallback(() => {
     setIsCityInputActive(true);

@@ -14,23 +14,44 @@ interface PostalCodeValidationResult {
   cities: PostalCodeCity[];
   loading: boolean;
   error: string | null;
+  showCitySuggestions: boolean;
+  showPostalSuggestions: boolean;
+  isCityValid: boolean;
+  isPostalValid: boolean;
+  setShowCitySuggestions: (show: boolean) => void;
+  setShowPostalSuggestions: (show: boolean) => void;
+  handleCityInputChange: (value: string) => void;
+  handlePostalCodeInputChange: (value: string) => void;
 }
 
-export const usePostalCodeValidation = (query: string, searchType: 'city' | 'postal' | 'auto' = 'auto') => {
-  const [result, setResult] = useState<PostalCodeValidationResult>({
+export const usePostalCodeValidation = (initialQuery: string = '', searchType: 'city' | 'postal' | 'auto' = 'auto') => {
+  const [query, setQuery] = useState(initialQuery);
+  const [result, setResult] = useState<Omit<PostalCodeValidationResult, 'showCitySuggestions' | 'showPostalSuggestions' | 'isCityValid' | 'isPostalValid' | 'setShowCitySuggestions' | 'setShowPostalSuggestions' | 'handleCityInputChange' | 'handlePostalCodeInputChange'>>({
     cities: [],
     loading: false,
     error: null
   });
 
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const [showPostalSuggestions, setShowPostalSuggestions] = useState(false);
+  const [isCityValid, setIsCityValid] = useState(false);
+  const [isPostalValid, setIsPostalValid] = useState(false);
+
   const detectSearchType = (query: string): 'city' | 'postal' => {
-    // Si la query contient uniquement des chiffres et fait 5 caractères, c'est probablement un code postal
     if (/^\d{5}$/.test(query)) return 'postal';
-    // Si la query commence par des chiffres, c'est probablement un code postal partiel
     if (/^\d/.test(query)) return 'postal';
-    // Sinon, c'est probablement une ville
     return 'city';
   };
+
+  const handleCityInputChange = useCallback((value: string) => {
+    setQuery(value);
+    setIsCityValid(value.length >= 2);
+  }, []);
+
+  const handlePostalCodeInputChange = useCallback((value: string) => {
+    setQuery(value);
+    setIsPostalValid(/^\d{5}$/.test(value));
+  }, []);
 
   const fetchData = useCallback(async () => {
     if (!query || query.length < 2) {
@@ -58,7 +79,6 @@ export const usePostalCodeValidation = (query: string, searchType: 'city' | 'pos
 
       const data = await response.json();
       
-      // Transformer les données pour avoir une structure cohérente
       const cities: PostalCodeCity[] = [];
       
       data.forEach((commune: any) => {
@@ -76,7 +96,6 @@ export const usePostalCodeValidation = (query: string, searchType: 'city' | 'pos
         }
       });
 
-      // Trier par population décroissante pour les villes les plus importantes en premier
       cities.sort((a, b) => b.population - a.population);
 
       setResult({ cities, loading: false, error: null });
@@ -95,5 +114,15 @@ export const usePostalCodeValidation = (query: string, searchType: 'city' | 'pos
     return () => clearTimeout(timeout);
   }, [fetchData]);
 
-  return result;
+  return {
+    ...result,
+    showCitySuggestions,
+    showPostalSuggestions,
+    isCityValid,
+    isPostalValid,
+    setShowCitySuggestions,
+    setShowPostalSuggestions,
+    handleCityInputChange,
+    handlePostalCodeInputChange
+  };
 };
