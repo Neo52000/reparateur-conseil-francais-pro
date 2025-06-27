@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -187,11 +186,11 @@ const RepairerDashboard = () => {
     console.log('🔄 Starting logout process...');
     try {
       await signOut();
-      console.log('✅ Logout completed, redirecting...');
-      navigate('/repairer/auth', { replace: true });
+      console.log('✅ Logout completed, redirecting to home...');
+      navigate('/', { replace: true });
     } catch (error) {
       console.error('❌ Logout error:', error);
-      navigate('/repairer/auth', { replace: true });
+      navigate('/', { replace: true });
     }
   };
 
