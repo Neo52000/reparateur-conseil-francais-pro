@@ -1,6 +1,8 @@
 
-import React from 'react';
-import SearchModeSelector from '@/components/search/SearchModeSelector';
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Search, MapPin } from 'lucide-react';
+import SearchModal from '@/components/modals/SearchModal';
 
 interface SearchCriteria {
   deviceType: string;
@@ -20,6 +22,8 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
   onQuickSearch,
   onMapSearch
 }) => {
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
   try {
     return (
       <div className="relative min-h-screen bg-cover bg-center" style={{
@@ -28,13 +32,44 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
         
         <div className="relative z-20 flex flex-col justify-center items-center min-h-screen text-white px-4 sm:px-6 lg:px-8 py-16">
-          <div className="w-full max-w-6xl">
-            <SearchModeSelector
-              onQuickSearch={onQuickSearch}
-              onMapSearch={onMapSearch}
-            />
+          <div className="w-full max-w-4xl text-center">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+              Trouvez le meilleur réparateur près de chez vous
+            </h1>
+            
+            <p className="text-xl md:text-2xl mb-12 text-white/90 max-w-2xl mx-auto">
+              Comparez les prix, consultez les avis et prenez rendez-vous en quelques clics
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Button
+                onClick={() => setIsSearchModalOpen(true)}
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-3"
+              >
+                <Search className="h-6 w-6" />
+                Rechercher des réparateurs
+              </Button>
+
+              <Button
+                onClick={() => setIsSearchModalOpen(true)}
+                size="lg"
+                variant="outline"
+                className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-3"
+              >
+                <MapPin className="h-6 w-6" />
+                Voir la carte
+              </Button>
+            </div>
           </div>
         </div>
+
+        <SearchModal
+          isOpen={isSearchModalOpen}
+          onClose={() => setIsSearchModalOpen(false)}
+          onQuickSearch={onQuickSearch}
+          onMapSearch={onMapSearch}
+        />
       </div>
     );
   } catch (error) {

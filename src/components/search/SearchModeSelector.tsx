@@ -46,21 +46,24 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white mb-3">
-          Les meilleurs réparateurs proche de chez vous
+        <h2 className="text-2xl font-bold text-gray-900 mb-3">
+          Comment souhaitez-vous rechercher ?
         </h2>
+        <p className="text-gray-600">
+          Choisissez votre méthode de recherche préférée
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Quick Search */}
-        <Card className="group cursor-pointer transition-all hover:shadow-xl hover:scale-105 bg-white/20 backdrop-blur-sm border-white/30">
+        <Card className="group cursor-pointer transition-all hover:shadow-xl hover:scale-105 bg-white border-gray-200">
           <CardContent className="p-6">
             <div className="text-center mb-4">
               <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center group-hover:from-blue-600 group-hover:to-blue-700 transition-all">
                 <Smartphone className="h-8 w-8 text-white" />
               </div>
               
-              <h3 className="text-xl font-bold text-white mb-3">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
                 Recherche rapide
               </h3>
             </div>
@@ -68,7 +71,7 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
             <div className="space-y-4">
               {/* Location Input */}
               <div>
-                <label className="block text-sm font-medium text-white/90 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Où êtes-vous ?
                 </label>
                 <CityPostalCodeInput
@@ -93,22 +96,22 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
         </Card>
 
         {/* Map Search */}
-        <Card className="group cursor-pointer transition-all hover:shadow-xl hover:scale-105 bg-white/20 backdrop-blur-sm border-white/30">
+        <Card className="group cursor-pointer transition-all hover:shadow-xl hover:scale-105 bg-white border-gray-200">
           <CardContent className="p-6">
             <div className="text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center group-hover:from-green-600 group-hover:to-green-700 transition-all">
                 <MapPin className="h-8 w-8 text-white" />
               </div>
               
-              <h3 className="text-xl font-bold text-white mb-3">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
                 Carte interactive
               </h3>
               
-              <p className="text-white/80 mb-4 text-base">
+              <p className="text-gray-600 mb-4 text-base">
                 Explorez les réparateurs près de chez vous sur une carte géolocalisée
               </p>
               
-              <div className="flex items-center justify-center gap-6 mb-4 text-sm text-white/70">
+              <div className="flex items-center justify-center gap-6 mb-4 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-green-400" />
                   <span>Géolocalisé</span>
