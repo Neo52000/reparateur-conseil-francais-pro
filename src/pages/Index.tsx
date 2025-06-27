@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
@@ -135,18 +136,18 @@ const Index = () => {
           onMapSearch={handleHeroMapSearch}
         />
 
-        <RepairersCarouselSection 
-          onViewProfile={handleViewProfile}
-          onCall={handleCall}
-        />
-
-        {/* Section bannière publicitaire */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+        {/* Section bannière publicitaire - déplacée au-dessus du carrousel */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <AdBannerDisplay 
             placement="homepage_carousel" 
             className=""
           />
         </div>
+
+        <RepairersCarouselSection 
+          onViewProfile={handleViewProfile}
+          onCall={handleCall}
+        />
         
         <QuickStatsSection />
       </main>
@@ -172,3 +173,4 @@ const Index = () => {
 };
 
 export default Index;
+

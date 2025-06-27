@@ -16,6 +16,7 @@ export const useAdvertising = (placement: AdPlacement) => {
   const fetchBanners = useCallback(async () => {
     try {
       console.log('🔍 Fetching banners for placement:', placement);
+      console.log('🗄️ Database connection test - calling Supabase...');
       setLoading(true);
       
       // Requête simplifiée pour récupérer toutes les bannières actives
@@ -24,7 +25,17 @@ export const useAdvertising = (placement: AdPlacement) => {
         .select('*')
         .eq('is_active', true);
 
-      console.log('📊 Supabase query result:', { rawBanners, error });
+      console.log('📊 Raw Supabase query result:', { 
+        rawBannerCount: rawBanners?.length || 0, 
+        error,
+        rawBanners: rawBanners?.map(b => ({ 
+          id: b.id, 
+          title: b.title, 
+          target_type: b.target_type,
+          is_active: b.is_active,
+          image_url: b.image_url?.substring(0, 50) + '...'
+        }))
+      });
 
       if (error) {
         console.error('❌ Error fetching banners:', error);
@@ -33,7 +44,14 @@ export const useAdvertising = (placement: AdPlacement) => {
       }
 
       if (!rawBanners || rawBanners.length === 0) {
-        console.log('⚠️ No banners found in database');
+        console.log('⚠️ No banners found in database - checking if table exists and has data');
+        
+        // Test de connexion à la table
+        const { count } = await supabase
+          .from('ad_banners')
+          .select('*', { count: 'exact', head: true });
+        
+        console.log('🔢 Total banners in database (including inactive):', count);
         setBanners([]);
         return;
       }
@@ -43,7 +61,13 @@ export const useAdvertising = (placement: AdPlacement) => {
       // Filtrer par type de cible selon le placement
       const filteredBanners = rawBanners
         .filter(banner => {
-          console.log('🎯 Checking banner:', banner.id, 'target_type:', banner.target_type, 'for placement:', placement);
+          console.log('🎯 Checking banner:', {
+            id: banner.id,
+            title: banner.title,
+            target_type: banner.target_type,
+            placement: placement,
+            shouldShow: placement === 'homepage_carousel' ? banner.target_type === 'client' : true
+          });
           
           if (placement === 'homepage_carousel') {
             return banner.target_type === 'client';
@@ -59,7 +83,10 @@ export const useAdvertising = (placement: AdPlacement) => {
           target_type: banner.target_type as 'client' | 'repairer'
         })) as AdBanner[];
 
-      console.log('🎪 Filtered banners for', placement, ':', filteredBanners.length);
+      console.log('🎪 Filtered banners for', placement, ':', {
+        count: filteredBanners.length,
+        banners: filteredBanners.map(b => ({ id: b.id, title: b.title, target_type: b.target_type }))
+      });
       setBanners(filteredBanners);
     } catch (error) {
       console.error('💥 Exception in fetchBanners:', error);
@@ -173,6 +200,7 @@ export const useAdvertising = (placement: AdPlacement) => {
   console.log('📤 Hook returning:', {
     banners: banners.length,
     currentBanner: currentBanner?.id,
+    currentBannerTitle: currentBanner?.title,
     loading
   });
 
