@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Edit, Plus, Eye, BarChart3 } from 'lucide-react';
+import { Trash2, Edit, Plus, Eye, BarChart3, Upload, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { AdBanner } from '@/types/advertising';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,6 +18,7 @@ const AdBannerManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingBanner, setEditingBanner] = useState<AdBanner | null>(null);
+  const [uploading, setUploading] = useState(false);
   const { user } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -68,6 +68,75 @@ const AdBannerManagement: React.FC = () => {
   useEffect(() => {
     fetchBanners();
   }, []);
+
+  // Télécharger une image
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validation du fichier
+    if (!file.type.startsWith('image/')) {
+      toast.error('Veuillez sélectionner un fichier image');
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) { // 2MB max
+      toast.error('L\'image doit faire moins de 2MB');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      
+      // Générer un nom de fichier unique
+      const fileExt = file.name.split('.').pop();
+      const fileName = `banner-${Date.now()}.${fileExt}`;
+      const filePath = fileName;
+
+      // Télécharger le fichier
+      const { error: uploadError } = await supabase.storage
+        .from('ad-banners')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Obtenir l'URL publique
+      const { data: { publicUrl } } = supabase.storage
+        .from('ad-banners')
+        .getPublicUrl(filePath);
+
+      // Mettre à jour le formulaire avec l'URL de l'image
+      setFormData(prev => ({ ...prev, image_url: publicUrl }));
+      toast.success('Image téléchargée avec succès');
+
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Erreur lors du téléchargement de l\'image');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Supprimer une image téléchargée
+  const handleRemoveUploadedImage = async () => {
+    if (!formData.image_url) return;
+
+    try {
+      // Extraire le nom du fichier de l'URL
+      const fileName = formData.image_url.split('/').pop();
+      if (fileName && formData.image_url.includes('ad-banners')) {
+        await supabase.storage
+          .from('ad-banners')
+          .remove([fileName]);
+      }
+      
+      setFormData(prev => ({ ...prev, image_url: '' }));
+      toast.success('Image supprimée');
+    } catch (error) {
+      console.error('Error removing image:', error);
+      toast.error('Erreur lors de la suppression de l\'image');
+    }
+  };
 
   // Réinitialiser le formulaire
   const resetForm = () => {
@@ -266,15 +335,67 @@ const AdBannerManagement: React.FC = () => {
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="image_url">URL de l'image</Label>
-              <Input
-                id="image_url"
-                value={formData.image_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-                placeholder="https://example.com/banner.jpg"
-              />
-              <p className="text-sm text-gray-500 mt-1">Format recommandé : 728x90px</p>
+            {/* Section Image avec upload */}
+            <div className="space-y-4">
+              <Label>Image de la bannière</Label>
+              
+              {/* Bouton d'upload */}
+              <div className="flex items-center gap-4">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById('image-upload')?.click()}
+                  disabled={uploading}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {uploading ? 'Téléchargement...' : 'Choisir une image'}
+                </Button>
+                
+                {/* Champ URL manuel */}
+                <div className="flex-1">
+                  <Input
+                    value={formData.image_url}
+                    onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
+                    placeholder="Ou saisissez l'URL de l'image"
+                  />
+                </div>
+              </div>
+
+              {/* Prévisualisation de l'image */}
+              {formData.image_url && (
+                <div className="relative">
+                  <img
+                    src={formData.image_url}
+                    alt="Prévisualisation"
+                    className="w-full max-w-md h-24 object-cover rounded border"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/placeholder.svg';
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-1 right-1"
+                    onClick={handleRemoveUploadedImage}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+              
+              <p className="text-sm text-gray-500">
+                Format recommandé : 728x90px • Max 2MB • Formats acceptés : JPG, PNG, GIF
+              </p>
             </div>
 
             <div>
