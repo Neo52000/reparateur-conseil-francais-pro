@@ -19,10 +19,6 @@ const Index = () => {
   const [showQuickSearch, setShowQuickSearch] = useState(false);
   const [showMapSearch, setShowMapSearch] = useState(false);
   const [searchFilters, setSearchFilters] = useState<any>(null);
-  
-  // Hero section states
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState('');
 
   const handleViewProfile = (repairer: any) => {
     setSelectedRepairerId(repairer.id);
@@ -65,10 +61,6 @@ const Index = () => {
       
       <main>
         <HeroSectionSimplified 
-          searchTerm={searchTerm}
-          selectedLocation={selectedLocation}
-          onSearchTermChange={setSearchTerm}
-          onLocationChange={setSelectedLocation}
           onQuickSearch={handleHeroQuickSearch}
           onMapSearch={handleHeroMapSearch}
         />
