@@ -14,15 +14,15 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
     try {
       console.log('🔄 ProfileDataLoader - Fetching profile for ID:', id);
       
-      // Essayer d'abord par user_id (correction principale)
-      let { data, error } = await supabase
+      // Essayer d'abord dans repairer_profiles par user_id
+      let { data: profileData, error } = await supabase
         .from('repairer_profiles')
         .select('*')
         .eq('user_id', id)
         .maybeSingle();
 
       // Si pas trouvé par user_id, essayer par id
-      if (!data && !error) {
+      if (!profileData && !error) {
         console.log('🔍 ProfileDataLoader - Not found by user_id, trying by id...');
         const result = await supabase
           .from('repairer_profiles')
@@ -30,8 +30,69 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
           .eq('id', id)
           .maybeSingle();
         
-        data = result.data;
+        profileData = result.data;
         error = result.error;
+      }
+
+      // Si toujours pas trouvé dans repairer_profiles, chercher dans repairers
+      if (!profileData && !error) {
+        console.log('🔍 ProfileDataLoader - Not found in profiles, checking repairers table...');
+        const { data: repairerData, error: repairerError } = await supabase
+          .from('repairers')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+
+        if (repairerError) {
+          console.error('❌ ProfileDataLoader - Error fetching from repairers:', repairerError);
+          return null;
+        }
+
+        if (repairerData) {
+          console.log('✅ ProfileDataLoader - Found in repairers table, creating minimal profile');
+          // Créer un profil minimal à partir des données repairers
+          const mappedProfile: RepairerProfile = {
+            id: repairerData.id,
+            repairer_id: repairerData.id,
+            business_name: repairerData.name,
+            email: repairerData.email || '',
+            phone: repairerData.phone || '',
+            address: repairerData.address || '',
+            city: repairerData.city || '',
+            postal_code: repairerData.postal_code || '',
+            website: repairerData.website,
+            description: `Réparateur professionnel basé à ${repairerData.city}`,
+            repair_types: repairerData.specialties || [],
+            services_offered: repairerData.services || [],
+            certifications: [],
+            years_experience: 0,
+            emergency_service: false,
+            home_service: false,
+            pickup_service: false,
+            opening_hours: repairerData.opening_hours || {},
+            response_time: repairerData.response_time,
+            warranty_duration: null,
+            payment_methods: [],
+            languages_spoken: [],
+            pricing_info: {},
+            profile_image_url: null,
+            shop_photos: [],
+            facebook_url: null,
+            instagram_url: null,
+            twitter_url: null,
+            linkedin_url: null,
+            whatsapp_url: null,
+            telegram_url: null,
+            tiktok_url: null,
+            siret_number: repairerData.siret,
+            has_qualirepar_label: false,
+            other_services: null,
+            created_at: repairerData.created_at,
+            updated_at: repairerData.updated_at
+          };
+          
+          return mappedProfile;
+        }
       }
 
       if (error) {
@@ -39,12 +100,12 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
         return null;
       }
 
-      if (!data) {
+      if (!profileData) {
         console.log('⚠️ ProfileDataLoader - No profile found for ID:', id);
         return null;
       }
 
-      console.log('✅ ProfileDataLoader - Profile loaded successfully');
+      console.log('✅ ProfileDataLoader - Profile loaded successfully from repairer_profiles');
       
       // Helper function to safely parse JSON objects
       const safeParseJson = (value: any, fallback: any) => {
@@ -55,43 +116,43 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
 
       // Map the database data to RepairerProfile format
       const mappedProfile: RepairerProfile = {
-        id: data.id,
-        repairer_id: data.user_id, // Map user_id to repairer_id
-        business_name: data.business_name,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        city: data.city,
-        postal_code: data.postal_code,
-        website: data.website,
-        description: data.description,
-        repair_types: data.repair_types || [],
-        services_offered: data.services_offered || [],
-        certifications: data.certifications || [],
-        years_experience: data.years_experience || 0,
-        emergency_service: data.emergency_service || false,
-        home_service: data.home_service || false,
-        pickup_service: data.pickup_service || false,
-        opening_hours: safeParseJson(data.opening_hours, {}),
-        response_time: data.response_time,
-        warranty_duration: data.warranty_duration,
-        payment_methods: data.payment_methods || [],
-        languages_spoken: data.languages_spoken || [],
-        pricing_info: safeParseJson(data.pricing_info, {}),
-        profile_image_url: data.profile_image_url,
-        shop_photos: data.shop_photos || [],
-        facebook_url: data.facebook_url,
-        instagram_url: data.instagram_url,
-        twitter_url: data.twitter_url,
-        linkedin_url: data.linkedin_url,
-        whatsapp_url: data.whatsapp_url,
-        telegram_url: data.telegram_url,
-        tiktok_url: data.tiktok_url,
-        siret_number: data.siret_number,
-        has_qualirepar_label: data.has_qualirepar_label || false,
-        other_services: data.other_services,
-        created_at: data.created_at,
-        updated_at: data.updated_at
+        id: profileData.id,
+        repairer_id: profileData.user_id,
+        business_name: profileData.business_name,
+        email: profileData.email,
+        phone: profileData.phone,
+        address: profileData.address,
+        city: profileData.city,
+        postal_code: profileData.postal_code,
+        website: profileData.website,
+        description: profileData.description,
+        repair_types: profileData.repair_types || [],
+        services_offered: profileData.services_offered || [],
+        certifications: profileData.certifications || [],
+        years_experience: profileData.years_experience || 0,
+        emergency_service: profileData.emergency_service || false,
+        home_service: profileData.home_service || false,
+        pickup_service: profileData.pickup_service || false,
+        opening_hours: safeParseJson(profileData.opening_hours, {}),
+        response_time: profileData.response_time,
+        warranty_duration: profileData.warranty_duration,
+        payment_methods: profileData.payment_methods || [],
+        languages_spoken: profileData.languages_spoken || [],
+        pricing_info: safeParseJson(profileData.pricing_info, {}),
+        profile_image_url: profileData.profile_image_url,
+        shop_photos: profileData.shop_photos || [],
+        facebook_url: profileData.facebook_url,
+        instagram_url: profileData.instagram_url,
+        twitter_url: profileData.twitter_url,
+        linkedin_url: profileData.linkedin_url,
+        whatsapp_url: profileData.whatsapp_url,
+        telegram_url: profileData.telegram_url,
+        tiktok_url: profileData.tiktok_url,
+        siret_number: profileData.siret_number,
+        has_qualirepar_label: profileData.has_qualirepar_label || false,
+        other_services: profileData.other_services,
+        created_at: profileData.created_at,
+        updated_at: profileData.updated_at
       };
       
       return mappedProfile;
