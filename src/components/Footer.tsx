@@ -18,9 +18,9 @@ const Footer = () => {
           <div>
             <div className="mb-4">
               <img
-                src="/lovable-uploads/9f73be3f-16b0-4066-a77a-065a9c725f4f.png"
+                src="/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png"
                 alt="TopRéparateurs.fr"
-                className="h-[220px] object-contain brightness-0 invert"
+                className="h-16 object-contain"
               />
             </div>
             <p className="text-gray-300 mb-4">
