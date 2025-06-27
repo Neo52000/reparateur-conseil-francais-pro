@@ -2,14 +2,20 @@
 import React from 'react';
 import SearchModeSelector from '@/components/search/SearchModeSelector';
 
+interface SearchCriteria {
+  deviceType: string;
+  brand: string;
+  model: string;
+  repairType: string;
+  city: string;
+  postalCode: string;
+}
+
 interface HeroSectionSimplifiedProps {
-  onQuickSearch: () => void;
+  onQuickSearch: (searchCriteria: SearchCriteria) => void;
   onMapSearch: () => void;
 }
 
-/**
- * Section Hero simplifiée avec sélecteur de mode de recherche uniquement
- */
 const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
   onQuickSearch,
   onMapSearch
@@ -22,7 +28,6 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
         
         <div className="relative z-20 flex flex-col justify-center items-center min-h-screen text-white px-4 sm:px-6 lg:px-8 py-16">
-          {/* Sélecteur de mode de recherche - bloc unique */}
           <div className="w-full max-w-6xl">
             <SearchModeSelector
               onQuickSearch={onQuickSearch}

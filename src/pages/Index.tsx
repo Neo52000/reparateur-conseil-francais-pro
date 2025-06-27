@@ -11,6 +11,15 @@ import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
 import { useAuth } from '@/hooks/useAuth';
 
+interface SearchCriteria {
+  deviceType: string;
+  brand: string;
+  model: string;
+  repairType: string;
+  city: string;
+  postalCode: string;
+}
+
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -35,8 +44,18 @@ const Index = () => {
     setShowMapSearch(true);
   };
 
-  const handleHeroQuickSearch = () => {
-    setShowQuickSearch(true);
+  const handleHeroQuickSearch = (searchCriteria: SearchCriteria) => {
+    // Transform search criteria to filters format
+    const filters = {
+      city: searchCriteria.city,
+      postalCode: searchCriteria.postalCode,
+      deviceType: searchCriteria.deviceType,
+      brand: searchCriteria.brand,
+      model: searchCriteria.model,
+      repairType: searchCriteria.repairType
+    };
+    setSearchFilters(filters);
+    setShowMapSearch(true);
   };
 
   const handleHeroMapSearch = () => {

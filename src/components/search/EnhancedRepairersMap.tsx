@@ -3,13 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Phone, Mail, MapPin, Star, Clock, Award, Shield } from 'lucide-react';
+import { X, Phone, Mail, MapPin, Star, Clock, Award, Shield, User } from 'lucide-react';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useRepairers } from '@/hooks/useRepairers';
 import { useMapStore } from '@/stores/mapStore';
 import RepairersMapContainer from '../map/MapContainer';
 import QuoteRequestModal from '@/components/modals/QuoteRequestModal';
 import AppointmentModal from '@/components/modals/AppointmentModal';
+import RepairerProfileModal from '@/components/RepairerProfileModal';
 
 interface EnhancedRepairersMapProps {
   onClose?: () => void;
@@ -23,6 +24,7 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
   const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [selectedRepairer, setSelectedRepairer] = useState<any>(null);
 
   const { repairers, loading } = useRepairers(searchFilters);
@@ -41,11 +43,14 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
   }, [mapSelectedRepairer]);
 
   useEffect(() => {
-    // Auto-detect location
     if (!userLocation) {
       getUserLocation();
     }
   }, [userLocation, getUserLocation]);
+
+  const handleViewProfile = () => {
+    setShowProfileModal(true);
+  };
 
   const handleQuoteRequest = () => {
     setShowQuoteModal(true);
@@ -128,7 +133,7 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
 
             {/* Services */}
             {selectedRepairer.services && selectedRepairer.services.length > 0 && (
-              <div className="mb-4">
+              <div className="mb-6">
                 <h3 className="font-semibold text-gray-900 mb-2">Services</h3>
                 <div className="flex flex-wrap gap-1">
                   {selectedRepairer.services.slice(0, 3).map((service: string, index: number) => (
@@ -145,8 +150,16 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
               </div>
             )}
 
-            {/* Contact Actions */}
+            {/* Actions */}
             <div className="space-y-3">
+              <Button 
+                onClick={handleViewProfile}
+                className="w-full bg-gray-800 hover:bg-gray-900"
+              >
+                <User className="h-4 w-4 mr-2" />
+                Voir la fiche complète
+              </Button>
+              
               <Button 
                 onClick={handleQuoteRequest}
                 className="w-full bg-blue-600 hover:bg-blue-700"
@@ -216,6 +229,14 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
       </div>
 
       {/* Modals */}
+      {showProfileModal && selectedRepairer && (
+        <RepairerProfileModal
+          isOpen={showProfileModal}
+          onClose={() => setShowProfileModal(false)}
+          repairerId={selectedRepairer.id}
+        />
+      )}
+
       {showQuoteModal && selectedRepairer && (
         <QuoteRequestModal
           isOpen={showQuoteModal}

@@ -1,15 +1,24 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MapPin, Users, Smartphone, Loader2 } from 'lucide-react';
 import { useCatalog } from '@/hooks/useCatalog';
+import CityPostalCodeInput from '@/components/CityPostalCodeInput';
 import type { DeviceType, Brand, DeviceModel, RepairType } from '@/types/catalog';
 
 interface SearchModeSelectorProps {
-  onQuickSearch: () => void;
+  onQuickSearch: (searchCriteria: SearchCriteria) => void;
   onMapSearch: () => void;
+}
+
+interface SearchCriteria {
+  deviceType: string;
+  brand: string;
+  model: string;
+  repairType: string;
+  city: string;
+  postalCode: string;
 }
 
 const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
@@ -22,6 +31,8 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
   const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [selectedRepairType, setSelectedRepairType] = useState<string>('');
+  const [city, setCity] = useState<string>('');
+  const [postalCode, setPostalCode] = useState<string>('');
 
   // Filtered data based on selections
   const [filteredBrands, setFilteredBrands] = useState<Brand[]>([]);
@@ -45,7 +56,6 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
     setSelectedRepairType('');
   }, [selectedDeviceType, deviceModels, brands]);
 
-  // Update filtered models when brand changes
   useEffect(() => {
     if (selectedBrand && selectedDeviceType) {
       const modelsForBrand = deviceModels.filter(model => 
@@ -59,10 +69,8 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
     setSelectedRepairType('');
   }, [selectedBrand, selectedDeviceType, deviceModels]);
 
-  // Update filtered repair types when model changes
   useEffect(() => {
     if (selectedModel && repairTypes.length > 0) {
-      // For now, show all repair types. In a real scenario, you might filter based on compatibility
       setFilteredRepairTypes(repairTypes);
     } else {
       setFilteredRepairTypes([]);
@@ -71,19 +79,21 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
   }, [selectedModel, repairTypes]);
 
   const handleQuickSearch = () => {
-    if (selectedDeviceType && selectedBrand && selectedModel && selectedRepairType) {
-      // Pass the search criteria
-      console.log('Search criteria:', {
+    if (selectedDeviceType && selectedBrand && selectedModel && selectedRepairType && (city || postalCode)) {
+      const searchCriteria: SearchCriteria = {
         deviceType: selectedDeviceType,
         brand: selectedBrand,
         model: selectedModel,
-        repairType: selectedRepairType
-      });
-      onQuickSearch();
+        repairType: selectedRepairType,
+        city,
+        postalCode
+      };
+      console.log('Search criteria:', searchCriteria);
+      onQuickSearch(searchCriteria);
     }
   };
 
-  const isSearchReady = selectedDeviceType && selectedBrand && selectedModel && selectedRepairType;
+  const isSearchReady = selectedDeviceType && selectedBrand && selectedModel && selectedRepairType && (city || postalCode);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -96,13 +106,13 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Quick Search */}
         <Card className="group cursor-pointer transition-all hover:shadow-xl hover:scale-105">
-          <CardContent className="p-8">
-            <div className="text-center mb-6">
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center group-hover:from-blue-600 group-hover:to-blue-700 transition-all">
-                <Smartphone className="h-10 w-10 text-white" />
+          <CardContent className="p-6">
+            <div className="text-center mb-4">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center group-hover:from-blue-600 group-hover:to-blue-700 transition-all">
+                <Smartphone className="h-8 w-8 text-white" />
               </div>
               
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
                 Recherche rapide
               </h3>
             </div>
@@ -113,14 +123,14 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
                 <span className="ml-2 text-gray-600">Chargement du catalogue...</span>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Device Type Selector */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Type de produit
                   </label>
                   <Select value={selectedDeviceType} onValueChange={setSelectedDeviceType}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10">
                       <SelectValue placeholder="Sélectionnez un type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -135,11 +145,11 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
 
                 {/* Brand Selector */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Marque
                   </label>
                   <Select value={selectedBrand} onValueChange={setSelectedBrand} disabled={!selectedDeviceType}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10">
                       <SelectValue placeholder="Sélectionnez une marque" />
                     </SelectTrigger>
                     <SelectContent>
@@ -154,11 +164,11 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
 
                 {/* Model Selector */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Modèle
                   </label>
                   <Select value={selectedModel} onValueChange={setSelectedModel} disabled={!selectedBrand}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10">
                       <SelectValue placeholder="Sélectionnez un modèle" />
                     </SelectTrigger>
                     <SelectContent>
@@ -173,11 +183,11 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
 
                 {/* Repair Type Selector */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Type de panne
                   </label>
                   <Select value={selectedRepairType} onValueChange={setSelectedRepairType} disabled={!selectedModel}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10">
                       <SelectValue placeholder="Sélectionnez une panne" />
                     </SelectTrigger>
                     <SelectContent>
@@ -190,9 +200,23 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
                   </Select>
                 </div>
 
+                {/* Location Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Localisation
+                  </label>
+                  <CityPostalCodeInput
+                    cityValue={city}
+                    postalCodeValue={postalCode}
+                    onCityChange={setCity}
+                    onPostalCodeChange={setPostalCode}
+                    className="grid-cols-2 gap-2"
+                  />
+                </div>
+
                 <Button 
                   onClick={handleQuickSearch}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6 mt-6"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-base py-5 mt-4"
                   size="lg"
                   disabled={!isSearchReady}
                 >
@@ -205,21 +229,21 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
 
         {/* Map Search */}
         <Card className="group cursor-pointer transition-all hover:shadow-xl hover:scale-105">
-          <CardContent className="p-8">
+          <CardContent className="p-6">
             <div className="text-center">
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center group-hover:from-green-600 group-hover:to-green-700 transition-all">
-                <MapPin className="h-10 w-10 text-white" />
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center group-hover:from-green-600 group-hover:to-green-700 transition-all">
+                <MapPin className="h-8 w-8 text-white" />
               </div>
               
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">
                 Carte interactive
               </h3>
               
-              <p className="text-gray-600 mb-6 text-lg">
+              <p className="text-gray-600 mb-4 text-base">
                 Explorez les réparateurs près de chez vous sur une carte géolocalisée
               </p>
               
-              <div className="flex items-center justify-center gap-6 mb-6 text-sm text-gray-500">
+              <div className="flex items-center justify-center gap-6 mb-4 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-green-500" />
                   <span>Géolocalisé</span>
@@ -232,7 +256,7 @@ const SearchModeSelector: React.FC<SearchModeSelectorProps> = ({
               
               <Button 
                 onClick={onMapSearch}
-                className="w-full bg-green-600 hover:bg-green-700 text-lg py-6"
+                className="w-full bg-green-600 hover:bg-green-700 text-base py-5"
                 size="lg"
               >
                 Voir la carte

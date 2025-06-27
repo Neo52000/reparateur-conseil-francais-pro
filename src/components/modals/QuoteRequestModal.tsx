@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useBrands } from '@/hooks/catalog/useBrands';
 import { useDeviceModels } from '@/hooks/catalog/useDeviceModels';
 import { useRepairTypes } from '@/hooks/catalog/useRepairTypes';
+import { useDeviceTypes } from '@/hooks/catalog/useDeviceTypes';
 
 interface QuoteRequestModalProps {
   isOpen: boolean;
@@ -24,17 +25,18 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
   repairerId
 }) => {
   const [formData, setFormData] = useState({
+    device_type: '',
     device_brand: '',
     device_model: '',
     repair_type: '',
     issue_description: '',
     client_email: '',
-    client_phone: '',
     client_name: ''
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  const { deviceTypes } = useDeviceTypes();
   const { brands } = useBrands();
   const { deviceModels } = useDeviceModels();
   const { repairTypes } = useRepairTypes();
@@ -43,6 +45,7 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
   const filteredModels = deviceModels.filter(m => m.brand_id === formData.device_brand);
   const selectedModel = deviceModels.find(m => m.id === formData.device_model);
   const selectedRepairType = repairTypes.find(rt => rt.id === formData.repair_type);
+  const selectedDeviceType = deviceTypes.find(dt => dt.id === formData.device_type);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +62,6 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
         repair_type: selectedRepairType?.name || formData.repair_type,
         issue_description: formData.issue_description,
         client_email: formData.client_email,
-        client_phone: formData.client_phone,
         client_name: formData.client_name
       };
 
@@ -69,7 +71,6 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
 
       if (error) throw error;
 
-      // Créer une notification pour le réparateur
       await supabase
         .from('notifications_system')
         .insert([{
@@ -87,12 +88,12 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
 
       onClose();
       setFormData({
+        device_type: '',
         device_brand: '',
         device_model: '',
         repair_type: '',
         issue_description: '',
         client_email: '',
-        client_phone: '',
         client_name: ''
       });
     } catch (error) {
@@ -139,17 +140,23 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
             </div>
           </div>
 
+          {/* Device Information */}
           <div>
-            <Label htmlFor="client_phone">Téléphone</Label>
-            <Input
-              id="client_phone"
-              type="tel"
-              value={formData.client_phone}
-              onChange={(e) => setFormData({...formData, client_phone: e.target.value})}
-            />
+            <Label htmlFor="device_type">Type de produit *</Label>
+            <Select value={formData.device_type} onValueChange={(value) => setFormData({...formData, device_type: value, device_brand: '', device_model: ''})}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un type de produit" />
+              </SelectTrigger>
+              <SelectContent>
+                {deviceTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Device Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="device_brand">Marque *</Label>
