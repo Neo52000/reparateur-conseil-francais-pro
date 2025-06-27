@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,42 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Brain, Zap, Star, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AISelectorProps {
   selectedAI: string;
   onAIChange: (ai: string) => void;
   onApiKeyChange: (apiKey: string) => void;
 }
-
-const AI_OPTIONS = [
-  {
-    id: 'mistral',
-    name: 'Mistral AI',
-    icon: Brain,
-    description: 'IA française, rapide et efficace',
-    capabilities: ['Classification', 'Nettoyage', 'Géolocalisation'],
-    pricing: 'Gratuit (limite)',
-    status: 'configured'
-  },
-  {
-    id: 'deepseek',
-    name: 'DeepSeek',
-    icon: Zap,
-    description: 'IA performante pour l\'analyse de données',
-    capabilities: ['Classification avancée', 'Enrichissement', 'Validation'],
-    pricing: 'API payante',
-    status: 'needs_config'
-  },
-  {
-    id: 'openai',
-    name: 'OpenAI GPT',
-    icon: Star,
-    description: 'IA de référence, très précise',
-    capabilities: ['Classification experte', 'Analyse complexe', 'Géocodage'],
-    pricing: 'API payante',
-    status: 'configured'
-  }
-];
 
 const AISelector: React.FC<AISelectorProps> = ({ 
   selectedAI, 
@@ -52,7 +23,70 @@ const AISelector: React.FC<AISelectorProps> = ({
 }) => {
   const [apiKeys, setApiKeys] = useState<Record<string, string>>({});
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [apiKeyStatuses, setApiKeyStatuses] = useState<Record<string, 'configured' | 'needs_config'>>({
+    mistral: 'configured',
+    deepseek: 'needs_config',
+    openai: 'configured'
+  });
   const { toast } = useToast();
+
+  // Vérifier la disponibilité des clés API au chargement
+  useEffect(() => {
+    const checkApiKeyAvailability = async () => {
+      try {
+        // Test DeepSeek API availability
+        const { data: deepseekTest, error: deepseekError } = await supabase.functions.invoke('deepseek-classify', {
+          body: { 
+            repairersData: [{ name: 'test', address: 'test' }], 
+            prompt: 'test' 
+          }
+        });
+
+        // Si pas d'erreur de clé API, alors DeepSeek est configuré
+        if (!deepseekError || !deepseekError.message?.includes('API key')) {
+          setApiKeyStatuses(prev => ({
+            ...prev,
+            deepseek: 'configured'
+          }));
+        }
+      } catch (error) {
+        console.log('DeepSeek API key check:', error);
+        // Garder le statut par défaut si erreur
+      }
+    };
+
+    checkApiKeyAvailability();
+  }, []);
+
+  const AI_OPTIONS = [
+    {
+      id: 'mistral',
+      name: 'Mistral AI',
+      icon: Brain,
+      description: 'IA française, rapide et efficace',
+      capabilities: ['Classification', 'Nettoyage', 'Géolocalisation'],
+      pricing: 'Gratuit (limite)',
+      status: apiKeyStatuses.mistral
+    },
+    {
+      id: 'deepseek',
+      name: 'DeepSeek',
+      icon: Zap,
+      description: 'IA performante pour l\'analyse de données',
+      capabilities: ['Classification avancée', 'Enrichissement', 'Validation'],
+      pricing: 'API payante',
+      status: apiKeyStatuses.deepseek
+    },
+    {
+      id: 'openai',
+      name: 'OpenAI GPT',
+      icon: Star,
+      description: 'IA de référence, très précise',
+      capabilities: ['Classification experte', 'Analyse complexe', 'Géocodage'],
+      pricing: 'API payante',
+      status: apiKeyStatuses.openai
+    }
+  ];
 
   const handleAISelect = (aiId: string) => {
     onAIChange(aiId);
@@ -146,7 +180,7 @@ const AISelector: React.FC<AISelectorProps> = ({
         </div>
 
         {/* Configuration API Key pour DeepSeek */}
-        {showApiKeyInput && selectedAI === 'deepseek' && (
+        {showApiKeyInput && selectedAI === 'deepseek' && apiKeyStatuses.deepseek === 'needs_config' && (
           <div className="mt-6 p-4 border rounded-lg bg-orange-50">
             <h4 className="font-semibold mb-3 flex items-center">
               <Zap className="h-4 w-4 mr-2" />
