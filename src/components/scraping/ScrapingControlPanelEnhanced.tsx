@@ -13,7 +13,7 @@ const ScrapingControlPanelEnhanced = () => {
   const { toast } = useToast();
   const { startScraping, stopScraping } = useScrapingOperations();
   const [selectedSource, setSelectedSource] = useState('pages_jaunes');
-  const [selectedDepartment, setSelectedDepartment] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedAI, setSelectedAI] = useState('mistral');
   const [aiApiKey, setAiApiKey] = useState('');
   const [isRunning, setIsRunning] = useState(false);
@@ -25,7 +25,7 @@ const ScrapingControlPanelEnhanced = () => {
   ];
 
   const DEPARTMENTS = [
-    { code: '', name: 'Toute la France' },
+    { code: 'all', name: 'Toute la France' },
     { code: '75', name: '75 - Paris' },
     { code: '69', name: '69 - Rhône (Lyon)' },
     { code: '13', name: '13 - Bouches-du-Rhône (Marseille)' },
@@ -49,11 +49,13 @@ const ScrapingControlPanelEnhanced = () => {
         ai: selectedAI
       });
 
-      await startScraping(selectedSource, testMode, selectedDepartment || null);
+      // Convertir "all" en null pour l'API
+      const departmentCode = selectedDepartment === 'all' ? null : selectedDepartment;
+      await startScraping(selectedSource, testMode, departmentCode);
       
       toast({
         title: `✅ Scraping ${testMode ? 'test' : 'massif'} démarré`,
-        description: `Source: ${selectedSource}, Département: ${selectedDepartment || 'Tous'}, IA: ${selectedAI}`,
+        description: `Source: ${selectedSource}, Département: ${selectedDepartment === 'all' ? 'Tous' : selectedDepartment}, IA: ${selectedAI}`,
       });
 
     } catch (error) {
@@ -147,7 +149,7 @@ const ScrapingControlPanelEnhanced = () => {
               </div>
               <div className="flex items-center">
                 <MapPin className="h-4 w-4 mr-2 text-blue-600" />
-                <span><strong>Zone:</strong> {selectedDepartment ? `Département ${selectedDepartment}` : 'Toute la France'}</span>
+                <span><strong>Zone:</strong> {selectedDepartment === 'all' ? 'Toute la France' : `Département ${selectedDepartment}`}</span>
               </div>
               <div className="flex items-center">
                 <Zap className="h-4 w-4 mr-2 text-blue-600" />
