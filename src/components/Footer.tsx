@@ -3,7 +3,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Facebook, Linkedin, Twitter, MessageCircle, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Logo from './Logo';
 
 const Footer = () => {
   const handleWhatsApp = () => {
@@ -18,7 +17,11 @@ const Footer = () => {
           {/* Logo et description */}
           <div>
             <div className="mb-4">
-              <Logo variant="compact" size="xxl" className="brightness-0 invert" />
+              <img
+                src="/lovable-uploads/9f73be3f-16b0-4066-a77a-065a9c725f4f.png"
+                alt="TopRéparateurs.fr"
+                className="h-[220px] object-contain brightness-0 invert"
+              />
             </div>
             <p className="text-gray-300 mb-4">
               Trouvez rapidement un réparateur qualifié près de chez vous. Réparation téléphone, ordinateur, tablette - Devis gratuit et intervention rapide.
