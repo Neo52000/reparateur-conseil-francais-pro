@@ -28,72 +28,99 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
     try {
       setLoading(true);
       setError(null);
+      console.log('useRepairers - Starting fetch with filters:', filters);
+      
+      // Get database stats for debugging
+      const stats = await RepairersDataService.getStats();
+      console.log('useRepairers - Database stats:', stats);
       
       const supabaseData = await RepairersDataService.fetchRepairers(filters);
+      console.log('useRepairers - Raw data from service:', supabaseData?.length);
       
       if (supabaseData && supabaseData.length > 0) {
-        // Filtrer les données valides avant transformation
+        // Show a sample of the data for debugging
+        console.log('useRepairers - Sample repairer:', supabaseData[0]);
+        
+        // Filter out repairers with corrupted data
         const validData = supabaseData.filter(repairer => {
-          // Exclure les réparateurs avec des données corrompues
           const hasValidName = repairer.name && !repairer.name.includes('�');
           const hasValidCity = repairer.city && !repairer.city.includes('�');
-          const hasValidCoords = repairer.lat !== null && repairer.lng !== null && 
-                                typeof repairer.lat === 'number' && typeof repairer.lng === 'number';
           
-          return hasValidName && hasValidCity && hasValidCoords;
+          if (!hasValidName || !hasValidCity) {
+            console.log('useRepairers - Filtering out corrupted repairer:', repairer.name);
+            return false;
+          }
+          
+          return true;
         });
 
-        console.log(`useRepairers - Filtered ${validData.length} valid repairers from ${supabaseData.length} total`);
+        console.log(`useRepairers - Valid repairers after filtering: ${validData.length}/${supabaseData.length}`);
 
-        // Transform valid data only
+        // Transform data
         let processedData = RepairersDataTransformer.transformSupabaseData(validData);
+        console.log('useRepairers - Transformed data count:', processedData.length);
 
         // Apply distance filter if user location is available
         if (userLocation && filters?.distance && processedData.length > 0) {
+          const beforeDistance = processedData.length;
           processedData = DistanceCalculator.filterByDistance(
             processedData, 
             userLocation, 
             filters.distance
           );
+          console.log(`useRepairers - After distance filter: ${processedData.length}/${beforeDistance}`);
         }
 
-        console.log('useRepairers - Setting valid repairers:', processedData.length);
         setRepairers(processedData);
+        
+        // Show success toast with count
+        if (processedData.length > 0) {
+          toast({
+            title: "Réparateurs chargés",
+            description: `${processedData.length} réparateur${processedData.length > 1 ? 's' : ''} trouvé${processedData.length > 1 ? 's' : ''}`,
+          });
+        }
       } else {
-        console.log('useRepairers - No valid data found');
+        console.log('useRepairers - No data returned from service');
         setRepairers([]);
+        
+        // Check if this is due to no verified repairers
+        const stats = await RepairersDataService.getStats();
+        if (stats.total > 0 && stats.verified === 0) {
+          toast({
+            title: "Aucun réparateur vérifié",
+            description: `${stats.total} réparateur(s) en base mais aucun vérifié. Activez la vérification depuis l'admin.`,
+            variant: "destructive"
+          });
+        }
       }
       
     } catch (err) {
       console.error('useRepairers - Error fetching data:', err);
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des réparateurs';
       setError(errorMessage);
-      setRepairers([]); // Toujours assigner un tableau vide en cas d'erreur
+      setRepairers([]);
       
-      // Ne montrer le toast d'erreur que pour les vraies erreurs de connexion
-      if (err instanceof Error && !err.message.includes('No rows')) {
-        toast({
-          title: "Problème de connexion",
-          description: "Certains réparateurs peuvent ne pas s'afficher correctement.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Erreur de chargement",
+        description: errorMessage,
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Ajouter un délai pour éviter les appels trop fréquents
     const timeoutId = setTimeout(() => {
-      console.log('useRepairers - Effect triggered with filters:', filters);
+      console.log('useRepairers - Effect triggered, fetching repairers...');
       fetchRepairers();
     }, 100);
 
     return () => clearTimeout(timeoutId);
   }, [filters, userLocation]);
 
-  // Listen for repairers update events avec gestion d'erreur
+  // Listen for repairers update events
   useEffect(() => {
     const handleRepairersUpdate = () => {
       console.log('useRepairers - Received repairersUpdated event, refetching...');
@@ -107,7 +134,7 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
     };
   }, []);
 
-  console.log('useRepairers - Final state:', { 
+  console.log('useRepairers - Current state:', { 
     count: repairers.length, 
     loading, 
     hasError: !!error 

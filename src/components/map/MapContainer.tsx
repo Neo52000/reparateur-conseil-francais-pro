@@ -18,8 +18,21 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Centre de la France par défaut
-const FRANCE_CENTER: [number, number] = [46.8566, 2.3522];
+// Positions par défaut pour les réparateurs sans coordonnées
+const FALLBACK_POSITIONS = [
+  [48.8566, 2.3522], // Paris
+  [45.7640, 4.8357], // Lyon
+  [43.2965, 5.3698], // Marseille
+  [44.8378, -0.5792], // Bordeaux
+  [47.2184, -1.5536], // Nantes
+  [50.6292, 3.0573], // Lille
+  [43.6047, 1.4442], // Toulouse
+  [49.2628, 4.0347], // Reims
+  [47.3220, 5.0415], // Dijon
+  [48.1173, -1.6778], // Rennes
+  [45.1667, 5.7167], // Grenoble
+  [43.7102, 7.2620], // Nice
+];
 
 /**
  * Conteneur de carte optimisé
@@ -30,42 +43,36 @@ const RepairersMapContainer: React.FC = () => {
 
   // Préparation des réparateurs avec positions par défaut
   const displayableRepairers = React.useMemo(() => {
+    console.log(`MapContainer: Processing ${repairers.length} repairers for display`);
+    
     try {
       return repairers.map((repairer, index): RepairerWithCoordinates => {
-        // Si le réparateur a des coordonnées valides, on les utilise
-        if (repairer.lat && repairer.lng && 
-            typeof repairer.lat === 'number' && 
-            typeof repairer.lng === 'number' &&
-            !isNaN(repairer.lat) && 
-            !isNaN(repairer.lng) &&
-            Math.abs(repairer.lat) <= 90 && 
-            Math.abs(repairer.lng) <= 180) {
+        // Vérifier si le réparateur a des coordonnées valides
+        const hasValidCoords = repairer.lat && 
+                              repairer.lng && 
+                              typeof repairer.lat === 'number' && 
+                              typeof repairer.lng === 'number' &&
+                              !isNaN(repairer.lat) && 
+                              !isNaN(repairer.lng) &&
+                              Math.abs(repairer.lat) <= 90 && 
+                              Math.abs(repairer.lng) <= 180;
+
+        if (hasValidCoords) {
           return {
             ...repairer,
             hasRealCoordinates: true
           };
         }
 
-        // Sinon, on assigne une position par défaut basée sur la ville ou l'index
-        const fallbackPositions = [
-          [48.8566, 2.3522], // Paris
-          [45.7640, 4.8357], // Lyon
-          [43.2965, 5.3698], // Marseille
-          [44.8378, -0.5792], // Bordeaux
-          [47.2184, -1.5536], // Nantes
-          [50.6292, 3.0573], // Lille
-          [43.6047, 1.4442], // Toulouse
-          [49.2628, 4.0347], // Reims
-          [47.3220, 5.0415], // Dijon
-          [48.1173, -1.6778], // Rennes
-        ];
+        // Assigner une position par défaut
+        const fallbackIndex = index % FALLBACK_POSITIONS.length;
+        const [fallbackLat, fallbackLng] = FALLBACK_POSITIONS[fallbackIndex];
 
-        const fallbackIndex = index % fallbackPositions.length;
-        const [fallbackLat, fallbackLng] = fallbackPositions[fallbackIndex];
+        // Ajouter un petit offset pour éviter la superposition exacte
+        const offsetLat = fallbackLat + (Math.random() - 0.5) * 0.05;
+        const offsetLng = fallbackLng + (Math.random() - 0.5) * 0.05;
 
-        // Ajout d'un petit offset pour éviter la superposition
-        const offsetLat = fallbackLat + (Math.random() - 0.5) * 0.1;
-        const offsetLng = fallbackLng + (Math.random() - 0.5) * 0.1;
+        console.log(`MapContainer: Using fallback coordinates for ${repairer.name}: [${offsetLat}, ${offsetLng}]`);
 
         return {
           ...repairer,
@@ -75,18 +82,21 @@ const RepairersMapContainer: React.FC = () => {
         };
       });
     } catch (error) {
-      console.warn('Erreur lors de la préparation des réparateurs:', error);
+      console.warn('MapContainer: Error preparing repairers for display:', error);
       return [];
     }
   }, [repairers]);
 
-  console.log(`Carte: ${displayableRepairers.length} réparateurs affichables sur ${repairers.length} total`);
-  console.log(`Réparateurs avec vraies coordonnées: ${displayableRepairers.filter(r => r.hasRealCoordinates !== false).length}`);
+  const realCoordsCount = displayableRepairers.filter(r => r.hasRealCoordinates !== false).length;
+  const fallbackCoordsCount = displayableRepairers.length - realCoordsCount;
+
+  console.log(`MapContainer: ${displayableRepairers.length} repairers ready for display`);
+  console.log(`MapContainer: ${realCoordsCount} with real coordinates, ${fallbackCoordsCount} with fallback coordinates`);
 
   try {
     return (
       <div className="w-full h-[400px] bg-gray-100 rounded-lg relative">
-        {/* Indicateur de chargement si pas de réparateurs */}
+        {/* Indicateur de chargement */}
         {displayableRepairers.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90 z-10">
             <div className="text-center">
@@ -111,32 +121,39 @@ const RepairersMapContainer: React.FC = () => {
           <MapController />
           <UserLocationMarker />
           
-          <MarkerClusterGroup
-            chunkedLoading
-            showCoverageOnHover={false}
-            spiderfyOnMaxZoom={true}
-            removeOutsideVisibleBounds={true}
-            maxClusterRadius={50}
-          >
-            {displayableRepairers.map((repairer) => (
-              <SimpleRepairerMarker 
-                key={repairer.id} 
-                repairer={repairer}
-              />
-            ))}
-          </MarkerClusterGroup>
+          {displayableRepairers.length > 0 && (
+            <MarkerClusterGroup
+              chunkedLoading
+              showCoverageOnHover={false}
+              spiderfyOnMaxZoom={true}
+              removeOutsideVisibleBounds={true}
+              maxClusterRadius={50}
+            >
+              {displayableRepairers.map((repairer) => (
+                <SimpleRepairerMarker 
+                  key={repairer.id} 
+                  repairer={repairer}
+                />
+              ))}
+            </MarkerClusterGroup>
+          )}
         </LeafletMapContainer>
 
-        {/* Légende pour les positions par défaut */}
-        {displayableRepairers.some(r => r.hasRealCoordinates === false) && (
+        {/* Informations sur les coordonnées */}
+        {displayableRepairers.length > 0 && (
           <div className="absolute bottom-2 right-2 bg-white p-2 rounded text-xs text-gray-600 shadow-lg">
-            <p>🔍 Certains réparateurs utilisent des positions approximatives</p>
+            <div>{displayableRepairers.length} réparateur{displayableRepairers.length > 1 ? 's' : ''}</div>
+            {fallbackCoordsCount > 0 && (
+              <div className="text-orange-600">
+                📍 {fallbackCoordsCount} position{fallbackCoordsCount > 1 ? 's' : ''} approximative{fallbackCoordsCount > 1 ? 's' : ''}
+              </div>
+            )}
           </div>
         )}
       </div>
     );
   } catch (error) {
-    console.error('Erreur critique dans MapContainer:', error);
+    console.error('MapContainer: Critical error in render:', error);
     return (
       <div className="w-full h-[400px] bg-gray-100 rounded-lg flex items-center justify-center">
         <div className="text-center">

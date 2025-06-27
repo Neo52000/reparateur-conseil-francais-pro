@@ -1,60 +1,103 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
-import { SearchFilters } from '@/hooks/useRepairers';
-
-type SupabaseRepairer = Database['public']['Tables']['repairers']['Row'];
+import type { SearchFilters } from '@/hooks/useRepairers';
 
 export class RepairersDataService {
-  static async fetchRepairers(filters?: SearchFilters): Promise<SupabaseRepairer[]> {
-    console.log('RepairersDataService - Fetching from Supabase...');
-    console.log('RepairersDataService - Applied filters:', filters);
+  /**
+   * Fetch repairers from database with optional filters
+   * Includes fallback coordinates for repairers without valid coordinates
+   */
+  static async fetchRepairers(filters?: SearchFilters) {
+    try {
+      console.log('🔍 RepairersDataService: Fetching repairers with filters:', filters);
+      
+      let query = supabase
+        .from('repairers')
+        .select('*')
+        .eq('is_verified', true); // Only show verified repairers
 
-    let query = supabase
-      .from('repairers')
-      .select('*')
-      .order('rating', { ascending: false });
-
-    // Apply filters only if they are valid
-    if (filters?.city && filters.city.trim() !== '') {
-      console.log('RepairersDataService - Applying city filter:', filters.city);
-      query = query.ilike('city', `%${filters.city.trim()}%`);
-    }
-
-    if (filters?.postalCode && filters.postalCode.trim() !== '') {
-      console.log('RepairersDataService - Applying postal code filter:', filters.postalCode);
-      query = query.like('postal_code', `${filters.postalCode.trim()}%`);
-    }
-
-    if (filters?.services && Array.isArray(filters.services) && filters.services.length > 0) {
-      const validServices = filters.services.filter(service => 
-        service && typeof service === 'string' && service.trim() !== ''
-      );
-      if (validServices.length > 0) {
-        console.log('RepairersDataService - Applying services filter:', validServices);
-        query = query.overlaps('services', validServices);
+      // Apply filters if provided
+      if (filters?.services && filters.services.length > 0) {
+        query = query.overlaps('services', filters.services);
       }
-    }
 
-    if (filters?.minRating && typeof filters.minRating === 'number') {
-      query = query.gte('rating', filters.minRating);
-    }
+      if (filters?.city) {
+        query = query.ilike('city', `%${filters.city}%`);
+      }
 
-    if (filters?.priceRange && filters.priceRange.trim() !== '') {
-      query = query.eq('price_range', filters.priceRange);
-    }
+      if (filters?.postalCode) {
+        query = query.ilike('postal_code', `${filters.postalCode}%`);
+      }
 
-    // Limit results for performance
-    query = query.limit(200);
+      if (filters?.priceRange) {
+        query = query.eq('price_range', filters.priceRange);
+      }
 
-    const { data, error } = await query;
+      if (filters?.minRating) {
+        query = query.gte('rating', filters.minRating);
+      }
 
-    if (error) {
-      console.error('RepairersDataService - Supabase error:', error);
+      // Order by rating and review count for better results
+      query = query.order('rating', { ascending: false, nullsLast: true })
+                  .order('review_count', { ascending: false, nullsLast: true })
+                  .limit(200);
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('RepairersDataService: Error fetching repairers:', error);
+        throw error;
+      }
+
+      console.log(`RepairersDataService: Fetched ${data?.length || 0} repairers from database`);
+      console.log('Sample repairer data:', data?.[0]);
+
+      return data || [];
+      
+    } catch (error) {
+      console.error('RepairersDataService: Failed to fetch repairers:', error);
       throw error;
     }
+  }
 
-    console.log('RepairersDataService - Data received:', data?.length || 0, 'items');
-    return data || [];
+  /**
+   * Get total count of repairers in database
+   */
+  static async getTotalCount(): Promise<number> {
+    try {
+      const { count, error } = await supabase
+        .from('repairers')
+        .select('*', { count: 'exact', head: true });
+
+      if (error) throw error;
+      return count || 0;
+    } catch (error) {
+      console.error('RepairersDataService: Error getting total count:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get repairers stats for debugging
+   */
+  static async getStats() {
+    try {
+      const [totalResult, verifiedResult, withProperCoordsResult] = await Promise.all([
+        supabase.from('repairers').select('*', { count: 'exact', head: true }),
+        supabase.from('repairers').select('*', { count: 'exact', head: true }).eq('is_verified', true),
+        supabase.from('repairers').select('*', { count: 'exact', head: true })
+          .not('lat', 'is', null)
+          .not('lng', 'is', null)
+      ]);
+
+      return {
+        total: totalResult.count || 0,
+        verified: verifiedResult.count || 0,
+        withCoordinates: withProperCoordsResult.count || 0
+      };
+    } catch (error) {
+      console.error('RepairersDataService: Error getting stats:', error);
+      return { total: 0, verified: 0, withCoordinates: 0 };
+    }
   }
 }
