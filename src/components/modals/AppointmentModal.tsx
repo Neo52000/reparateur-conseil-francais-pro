@@ -9,6 +9,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { usePendingAction } from '@/hooks/usePendingAction';
 
 interface AppointmentModalProps {
   isOpen: boolean;
@@ -29,6 +31,8 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { storePendingAppointmentAction } = usePendingAction();
 
   // Générer les créneaux horaires disponibles
   useEffect(() => {
@@ -55,11 +59,9 @@ const AppointmentModal: React.FC<AppointmentModalProps> = ({
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        toast({
-          title: "Erreur",
-          description: "Vous devez être connecté pour prendre rendez-vous",
-          variant: "destructive"
-        });
+        // Stocker l'action et rediriger vers la connexion
+        storePendingAppointmentAction({ repairerId, quoteId });
+        navigate('/client-auth');
         return;
       }
 

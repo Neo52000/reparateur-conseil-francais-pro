@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -10,6 +10,8 @@ import QuickSearchModal from '@/components/search/QuickSearchModal';
 import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
 import { useAuth } from '@/hooks/useAuth';
+import { usePendingAction } from '@/hooks/usePendingAction';
+import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
 
 interface SearchCriteria {
   deviceType: string;
@@ -23,14 +25,60 @@ interface SearchCriteria {
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { pendingAction, clearPendingAction } = usePendingAction();
+  const {
+    isQuoteModalOpen,
+    isAppointmentModalOpen,
+    selectedRepairerId,
+    selectedQuoteId,
+    handleRequestQuote,
+    handleBookAppointment,
+    closeQuoteModal,
+    closeAppointmentModal
+  } = useQuoteAndAppointment();
   
-  const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
+  const [selectedRepairerForProfile, setSelectedRepairerForProfile] = useState<string | null>(null);
   const [showQuickSearch, setShowQuickSearch] = useState(false);
   const [showMapSearch, setShowMapSearch] = useState(false);
   const [searchFilters, setSearchFilters] = useState<any>(null);
 
+  // Gérer la restauration des actions après connexion
+  useEffect(() => {
+    if (user && pendingAction) {
+      if (pendingAction.type === 'quote_request') {
+        const data = pendingAction.data as any;
+        if (data.repairerId) {
+          handleRequestQuote(data.repairerId);
+        }
+        clearPendingAction();
+      } else if (pendingAction.type === 'appointment_request') {
+        const data = pendingAction.data as { repairerId: string; quoteId?: string };
+        handleBookAppointment(data.repairerId, data.quoteId);
+        clearPendingAction();
+      }
+    }
+  }, [user, pendingAction, handleRequestQuote, handleBookAppointment, clearPendingAction]);
+
+  // Gérer l'ancien système pour les devis (rétrocompatibilité)
+  useEffect(() => {
+    if (user) {
+      const oldPendingQuote = localStorage.getItem('pendingQuoteAction');
+      if (oldPendingQuote) {
+        try {
+          const data = JSON.parse(oldPendingQuote);
+          if (data.type === 'quote_request' && data.data?.repairerId) {
+            handleRequestQuote(data.data.repairerId);
+          }
+        } catch (error) {
+          console.error('Error parsing old pending quote:', error);
+        }
+        localStorage.removeItem('pendingQuoteAction');
+      }
+    }
+  }, [user, handleRequestQuote]);
+
   const handleViewProfile = (repairer: any) => {
-    setSelectedRepairerId(repairer.id);
+    setSelectedRepairerForProfile(repairer.id);
   };
 
   const handleCall = (phone: string) => {
@@ -101,11 +149,11 @@ const Index = () => {
         onSearch={handleQuickSearchResults}
       />
 
-      {selectedRepairerId && (
+      {selectedRepairerForProfile && (
         <RepairerProfileModal
-          isOpen={!!selectedRepairerId}
-          onClose={() => setSelectedRepairerId(null)}
-          repairerId={selectedRepairerId}
+          isOpen={!!selectedRepairerForProfile}
+          onClose={() => setSelectedRepairerForProfile(null)}
+          repairerId={selectedRepairerForProfile}
         />
       )}
     </div>

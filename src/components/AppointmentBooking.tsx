@@ -8,6 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Calendar, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { usePendingAction } from '@/hooks/usePendingAction';
 
 interface AppointmentBookingProps {
   repairerId: string;
@@ -23,6 +25,8 @@ const AppointmentBooking = ({ repairerId, quoteId, onSuccess }: AppointmentBooki
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { storePendingAppointmentAction } = usePendingAction();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,11 +36,9 @@ const AppointmentBooking = ({ repairerId, quoteId, onSuccess }: AppointmentBooki
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        toast({
-          title: "Erreur",
-          description: "Vous devez être connecté pour prendre rendez-vous",
-          variant: "destructive"
-        });
+        // Stocker l'action et rediriger vers la connexion
+        storePendingAppointmentAction({ repairerId, quoteId });
+        navigate('/client-auth');
         return;
       }
 
