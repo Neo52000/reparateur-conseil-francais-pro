@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { useBrands } from '@/hooks/catalog/useBrands';
 import { useDeviceModels } from '@/hooks/catalog/useDeviceModels';
 import { useRepairTypes } from '@/hooks/catalog/useRepairTypes';
-import { useDeviceTypes } from '@/hooks/catalog/useDeviceTypes';
 import { useQuoteForm } from '@/hooks/useQuoteForm';
 import ContactInfoSection from './quote/ContactInfoSection';
 import DeviceTypeSection from './quote/DeviceTypeSection';
@@ -27,7 +26,6 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
 }) => {
   const { formData, setFormData, loading, user, submitQuote } = useQuoteForm(repairerId, isOpen, onClose);
   
-  const { deviceTypes } = useDeviceTypes();
   const { brands } = useBrands();
   const { deviceModels } = useDeviceModels();
   const { repairTypes } = useRepairTypes();
@@ -82,7 +80,6 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
 
           <DeviceTypeSection
             deviceType={formData.device_type}
-            deviceTypes={deviceTypes}
             onDeviceTypeChange={handleDeviceTypeChange}
           />
 
