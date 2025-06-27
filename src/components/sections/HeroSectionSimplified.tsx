@@ -36,7 +36,7 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
 
   try {
     return (
-      <div className="relative h-[90vh] bg-cover bg-center" style={{
+      <div className="relative h-[70vh] bg-cover bg-center" style={{
         backgroundImage: "url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')"
       }}>
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
@@ -89,7 +89,7 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
   } catch (error) {
     console.error('Erreur critique dans HeroSectionSimplified:', error);
     return (
-      <div className="relative h-[90vh] bg-gray-100 flex items-center justify-center">
+      <div className="relative h-[70vh] bg-gray-100 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600 mt-4">Chargement en cours...</p>
         </div>
