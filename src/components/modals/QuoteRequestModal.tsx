@@ -1,17 +1,22 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { useBrands } from '@/hooks/catalog/useBrands';
 import { useDeviceModels } from '@/hooks/catalog/useDeviceModels';
 import { useRepairTypes } from '@/hooks/catalog/useRepairTypes';
 import { useDeviceTypes } from '@/hooks/catalog/useDeviceTypes';
+import { usePendingQuoteAction } from '@/hooks/usePendingQuoteAction';
+import { useNavigate } from 'react-router-dom';
+import { Info } from 'lucide-react';
 
 interface QuoteRequestModalProps {
   isOpen: boolean;
@@ -24,6 +29,10 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
   onClose,
   repairerId
 }) => {
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  const { storePendingQuoteAction, executePendingAction, clearPendingAction } = usePendingQuoteAction();
+  
   const [formData, setFormData] = useState({
     device_type: '',
     device_brand: '',
@@ -41,14 +50,65 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
   const { deviceModels } = useDeviceModels();
   const { repairTypes } = useRepairTypes();
 
+  // Pré-remplir les données utilisateur si connecté
+  useEffect(() => {
+    if (user && profile) {
+      setFormData(prev => ({
+        ...prev,
+        client_email: user.email || '',
+        client_name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+      }));
+    }
+  }, [user, profile]);
+
+  // Restaurer les données d'une action en attente
+  useEffect(() => {
+    if (isOpen && user) {
+      const pendingData = executePendingAction();
+      if (pendingData && pendingData.repairerId === repairerId) {
+        setFormData({
+          device_type: pendingData.device_type,
+          device_brand: pendingData.device_brand,
+          device_model: pendingData.device_model,
+          repair_type: pendingData.repair_type,
+          issue_description: pendingData.issue_description,
+          client_email: pendingData.client_email,
+          client_name: pendingData.client_name
+        });
+        clearPendingAction();
+        toast({
+          title: "Données restaurées",
+          description: "Votre formulaire de devis a été restauré après connexion."
+        });
+      }
+    }
+  }, [isOpen, user, repairerId, executePendingAction, clearPendingAction, toast]);
+
   const selectedBrand = brands.find(b => b.id === formData.device_brand);
   const filteredModels = deviceModels.filter(m => m.brand_id === formData.device_brand);
   const selectedModel = deviceModels.find(m => m.id === formData.device_model);
   const selectedRepairType = repairTypes.find(rt => rt.id === formData.repair_type);
-  const selectedDeviceType = deviceTypes.find(dt => dt.id === formData.device_type);
+
+  const handleAuthRedirect = () => {
+    // Stocker les données du formulaire avant redirection
+    storePendingQuoteAction({
+      ...formData,
+      repairerId
+    });
+
+    // Fermer le modal et rediriger vers l'authentification
+    onClose();
+    navigate('/client-auth');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Vérifier l'authentification
+    if (!user) {
+      handleAuthRedirect();
+      return;
+    }
     
     // Validation des champs obligatoires
     if (!formData.device_type || !formData.device_brand || !formData.device_model || 
@@ -64,10 +124,8 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-
       const quoteData = {
-        client_id: user?.id || null, // Permettre null pour les utilisateurs non connectés
+        client_id: user.id,
         repairer_id: repairerId,
         device_brand: selectedBrand?.name || formData.device_brand,
         device_model: selectedModel?.model_name || formData.device_model,
@@ -101,7 +159,6 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
           }]);
       } catch (notifError) {
         console.error('⚠️ Error sending notification:', notifError);
-        // Ne pas faire échouer toute la demande si la notification échoue
       }
 
       toast({
@@ -137,6 +194,16 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
         <DialogHeader>
           <DialogTitle>Demande de devis</DialogTitle>
         </DialogHeader>
+
+        {!user && (
+          <Alert className="mb-4">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Vous devez être connecté pour envoyer une demande de devis. 
+              Vos données seront sauvegardées pendant l'inscription.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Contact Information */}
@@ -246,7 +313,7 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
               Annuler
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Envoi en cours...' : 'Envoyer la demande'}
+              {loading ? 'Envoi en cours...' : !user ? 'Se connecter et envoyer' : 'Envoyer la demande'}
             </Button>
           </div>
         </form>
