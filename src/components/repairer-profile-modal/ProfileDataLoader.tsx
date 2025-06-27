@@ -7,6 +7,16 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
   const [profile, setProfile] = useState<RepairerProfile | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Helper function to safely parse opening hours (moved to top level)
+  const safeParseOpeningHours = (value: any): RepairerProfile['opening_hours'] => {
+    if (value === null || value === undefined) return undefined;
+    if (typeof value === 'object' && value !== null) {
+      // Vérifier que l'objet a la bonne structure
+      return value as RepairerProfile['opening_hours'];
+    }
+    return undefined;
+  };
+
   const fetchProfile = async (id: string) => {
     if (!id) return null;
     
@@ -114,16 +124,6 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
         return fallback;
       };
 
-      // Helper function to safely parse opening hours
-      const safeParseOpeningHours = (value: any): RepairerProfile['opening_hours'] => {
-        if (value === null || value === undefined) return undefined;
-        if (typeof value === 'object' && value !== null) {
-          // Vérifier que l'objet a la bonne structure
-          return value as RepairerProfile['opening_hours'];
-        }
-        return undefined;
-      };
-
       // Map the database data to RepairerProfile format
       const mappedProfile: RepairerProfile = {
         id: profileData.id,
@@ -172,16 +172,6 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Helper function to safely parse opening hours (moved outside fetchProfile to be reused)
-  const safeParseOpeningHours = (value: any): RepairerProfile['opening_hours'] => {
-    if (value === null || value === undefined) return undefined;
-    if (typeof value === 'object' && value !== null) {
-      // Vérifier que l'objet a la bonne structure
-      return value as RepairerProfile['opening_hours'];
-    }
-    return undefined;
   };
 
   const refreshProfile = async () => {
