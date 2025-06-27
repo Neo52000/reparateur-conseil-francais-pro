@@ -57,17 +57,6 @@ const Navigation = () => {
             <Link to="/" className="flex items-center">
               <Logo variant="compact" size="xxl" />
             </Link>
-            
-            {!isClientPath && !isRepairerPath && !isAdminPath && (
-              <div className="hidden md:flex space-x-4">
-                <Link to="/" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
-                  Accueil
-                </Link>
-                <Link to="/quotes-appointments" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
-                  Devis & RDV
-                </Link>
-              </div>
-            )}
 
             {/* Navigation pour les utilisateurs connectés avec accès multiple */}
             {user && (canAccessClient || canAccessRepairer || canAccessAdmin) && (
@@ -98,10 +87,6 @@ const Navigation = () => {
                     Admin
                   </Link>
                 )}
-
-                <Link to="/quotes-appointments" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
-                  Devis & RDV
-                </Link>
               </div>
             )}
           </div>
