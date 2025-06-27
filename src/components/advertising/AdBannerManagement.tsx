@@ -64,6 +64,7 @@ const AdBannerManagement = () => {
     try {
       const bannerData = {
         ...formData,
+        is_active: true,
         max_impressions: formData.max_impressions ? parseInt(formData.max_impressions) : undefined,
         max_clicks: formData.max_clicks ? parseInt(formData.max_clicks) : undefined,
         daily_budget: formData.daily_budget ? parseFloat(formData.daily_budget) : undefined,

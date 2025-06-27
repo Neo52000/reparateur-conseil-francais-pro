@@ -47,3 +47,24 @@ export interface AdStats {
   ctr: number;
   period: string;
 }
+
+// Helper type for database rows
+export interface AdBannerRow {
+  id: string;
+  title: string;
+  image_url: string;
+  target_url: string;
+  target_type: string; // Database returns string
+  is_active: boolean;
+  start_date: string | null;
+  end_date: string | null;
+  max_impressions: number | null;
+  current_impressions: number;
+  max_clicks: number | null;
+  current_clicks: number;
+  daily_budget: number | null;
+  targeting_config: Record<string, any>;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}

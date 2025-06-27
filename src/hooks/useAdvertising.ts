@@ -2,7 +2,19 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import type { AdBanner, AdStats } from '@/types/advertising';
+import type { AdBanner, AdStats, AdBannerRow } from '@/types/advertising';
+
+// Helper function to convert database row to AdBanner
+const convertRowToAdBanner = (row: AdBannerRow): AdBanner => ({
+  ...row,
+  target_type: row.target_type as 'client' | 'repairer',
+  start_date: row.start_date || undefined,
+  end_date: row.end_date || undefined,
+  max_impressions: row.max_impressions || undefined,
+  max_clicks: row.max_clicks || undefined,
+  daily_budget: row.daily_budget || undefined,
+  created_by: row.created_by || undefined,
+});
 
 export const useAdvertising = () => {
   const [banners, setBanners] = useState<AdBanner[]>([]);
@@ -24,7 +36,8 @@ export const useAdvertising = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setBanners(data || []);
+      const convertedBanners = (data || []).map(convertRowToAdBanner);
+      setBanners(convertedBanners);
     } catch (error) {
       console.error('Error fetching banners:', error);
       toast({
@@ -47,12 +60,13 @@ export const useAdvertising = () => {
 
       if (error) throw error;
 
-      setBanners(prev => [data, ...prev]);
+      const convertedBanner = convertRowToAdBanner(data);
+      setBanners(prev => [convertedBanner, ...prev]);
       toast({
         title: "Succès",
         description: "Bannière créée avec succès"
       });
-      return data;
+      return convertedBanner;
     } catch (error) {
       console.error('Error creating banner:', error);
       toast({
@@ -75,15 +89,16 @@ export const useAdvertising = () => {
 
       if (error) throw error;
 
+      const convertedBanner = convertRowToAdBanner(data);
       setBanners(prev => prev.map(banner => 
-        banner.id === id ? { ...banner, ...data } : banner
+        banner.id === id ? convertedBanner : banner
       ));
       
       toast({
         title: "Succès",
         description: "Bannière mise à jour"
       });
-      return data;
+      return convertedBanner;
     } catch (error) {
       console.error('Error updating banner:', error);
       toast({
@@ -130,11 +145,8 @@ export const useAdvertising = () => {
           user_agent: navigator.userAgent
         }]);
 
-      // Increment banner impression count
-      await supabase
-        .from('ad_banners')
-        .update({ current_impressions: supabase.sql`current_impressions + 1` })
-        .eq('id', bannerId);
+      // Increment banner impression count using raw SQL
+      await supabase.rpc('increment_impressions', { banner_id: bannerId });
     } catch (error) {
       console.error('Error recording impression:', error);
     }
@@ -150,11 +162,8 @@ export const useAdvertising = () => {
           user_agent: navigator.userAgent
         }]);
 
-      // Increment banner click count
-      await supabase
-        .from('ad_banners')
-        .update({ current_clicks: supabase.sql`current_clicks + 1` })
-        .eq('id', bannerId);
+      // Increment banner click count using raw SQL
+      await supabase.rpc('increment_clicks', { banner_id: bannerId });
     } catch (error) {
       console.error('Error recording click:', error);
     }
@@ -203,7 +212,7 @@ export const useAdvertising = () => {
         .limit(3);
 
       if (error) throw error;
-      return data || [];
+      return (data || []).map(convertRowToAdBanner);
     } catch (error) {
       console.error('Error fetching active banners:', error);
       return [];

@@ -1,20 +1,19 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Navigation,
-  HeroSection,
-  FeaturesSection,
-  HowItWorksSection,
-  RepairersCarouselSection,
-  FaqSection,
-  ContactSection,
-  Footer,
-  CallToActionSection,
-  TestimonialsSection,
-  CookieConsent
-} from '@/components';
+import Navigation from '@/components/Navigation';
+import HeroSection from '@/components/sections/HeroSection';
+import { FeaturesSection } from '@/components/sections/FeaturesSection';
+import { HowItWorksSection } from '@/components/sections/HowItWorksSection';
+import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
+import { FaqSection } from '@/components/sections/FaqSection';
+import { ContactSection } from '@/components/sections/ContactSection';
+import Footer from '@/components/Footer';
+import { CallToActionSection } from '@/components/sections/CallToActionSection';
+import { TestimonialsSection } from '@/components/sections/TestimonialsSection';
+import CookieConsent from '@/components/CookieBanner';
 import { supabase } from '@/integrations/supabase/client';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 
