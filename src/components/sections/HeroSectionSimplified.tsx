@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import Logo from '@/components/Logo';
 import SearchModeToggle from '@/components/SearchModeToggle';
 import CityPostalCodeInput from '@/components/CityPostalCodeInput';
+import SearchModeSelector from '@/components/search/SearchModeSelector';
 import { useSearchStore } from '@/stores/searchStore';
 
 interface HeroSectionSimplifiedProps {
@@ -12,18 +14,20 @@ interface HeroSectionSimplifiedProps {
   onSearchTermChange: (value: string) => void;
   onLocationChange: (value: string) => void;
   onQuickSearch: () => void;
+  onMapSearch: () => void;
 }
 
 /**
- * Section Hero simplifiée
- * Version allégée qui évite les useEffect complexes
+ * Section Hero simplifiée avec recherche intégrée
+ * Version centralisée qui inclut les blocs de recherche
  */
 const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
   searchTerm,
   selectedLocation,
   onSearchTermChange,
   onLocationChange,
-  onQuickSearch
+  onQuickSearch,
+  onMapSearch
 }) => {
   const [localCity, setLocalCity] = useState('');
   const [localPostal, setLocalPostal] = useState('');
@@ -45,22 +49,24 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
 
   try {
     return (
-      <div className="relative h-screen bg-cover bg-center" style={{
+      <div className="relative min-h-screen bg-cover bg-center" style={{
         backgroundImage: "url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')"
       }}>
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
         
-        <div className="relative z-20 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-4">
-            <div className="mb-2 flex justify-center">
-              <Logo variant="full" size="xxl" className="brightness-0 invert h-[300px]" />
+        <div className="relative z-20 flex flex-col justify-center items-center min-h-screen text-white px-4 sm:px-6 lg:px-8 py-16">
+          {/* Logo et titre */}
+          <div className="text-center mb-8">
+            <div className="mb-4 flex justify-center">
+              <Logo variant="full" size="xxl" className="brightness-0 invert h-[200px]" />
             </div>
-            <p className="text-xl md:text-2xl mb-8">
+            <p className="text-xl md:text-2xl mb-4">
               Trouvez le meilleur réparateur près de chez vous
             </p>
           </div>
 
-          <div className="w-full max-w-2xl relative z-30">
+          {/* Recherche rapide intégrée */}
+          <div className="w-full max-w-2xl mb-12">
             <div className="bg-white rounded-lg p-6 shadow-xl">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
                 Rechercher des réparateurs
@@ -119,6 +125,14 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Sélecteur de mode de recherche avec les deux cartes */}
+          <div className="w-full max-w-6xl">
+            <SearchModeSelector
+              onQuickSearch={onQuickSearch}
+              onMapSearch={onMapSearch}
+            />
           </div>
         </div>
       </div>

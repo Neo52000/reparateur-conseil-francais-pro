@@ -6,7 +6,6 @@ import Footer from '@/components/Footer';
 import HeroSectionSimplified from '@/components/sections/HeroSectionSimplified';
 import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
 import QuickStatsSection from '@/components/sections/QuickStatsSection';
-import SearchModeSelector from '@/components/search/SearchModeSelector';
 import QuickSearchModal from '@/components/search/QuickSearchModal';
 import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
@@ -44,6 +43,10 @@ const Index = () => {
     setShowQuickSearch(true);
   };
 
+  const handleHeroMapSearch = () => {
+    setShowMapSearch(true);
+  };
+
   if (showMapSearch) {
     return (
       <EnhancedRepairersMap
@@ -67,17 +70,8 @@ const Index = () => {
           onSearchTermChange={setSearchTerm}
           onLocationChange={setSelectedLocation}
           onQuickSearch={handleHeroQuickSearch}
+          onMapSearch={handleHeroMapSearch}
         />
-        
-        {/* Search Section */}
-        <section className="py-16 bg-gradient-to-br from-blue-50 via-white to-green-50">
-          <div className="container mx-auto px-4">
-            <SearchModeSelector
-              onQuickSearch={() => setShowQuickSearch(true)}
-              onMapSearch={() => setShowMapSearch(true)}
-            />
-          </div>
-        </section>
 
         <RepairersCarouselSection 
           onViewProfile={handleViewProfile}
