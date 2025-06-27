@@ -16,7 +16,8 @@ export const useDeviceModels = () => {
       setError(null);
       console.log('Fetching device models...');
       const data = await deviceModelsService.getAll();
-      console.log('Device models fetched:', data);
+      console.log('Device models fetched:', data.length, 'models');
+      console.log('Sample models:', data.slice(0, 3));
       setDeviceModels(data);
     } catch (err) {
       console.error('Error fetching device models:', err);

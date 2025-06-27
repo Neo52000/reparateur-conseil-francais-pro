@@ -30,27 +30,49 @@ const BrandModelSection: React.FC<BrandModelSectionProps> = ({
             <SelectValue placeholder="Sélectionner une marque" />
           </SelectTrigger>
           <SelectContent>
-            {brands.map((brand) => (
-              <SelectItem key={brand.id} value={brand.id}>
-                {brand.name}
+            {brands.length === 0 ? (
+              <SelectItem value="" disabled>
+                Aucune marque disponible
               </SelectItem>
-            ))}
+            ) : (
+              brands.map((brand) => (
+                <SelectItem key={brand.id} value={brand.id}>
+                  {brand.name}
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>
 
       <div>
         <Label htmlFor="device_model">Modèle *</Label>
-        <Select value={deviceModel} onValueChange={onModelChange}>
+        <Select 
+          value={deviceModel} 
+          onValueChange={onModelChange}
+          disabled={!deviceBrand || filteredModels.length === 0}
+        >
           <SelectTrigger>
-            <SelectValue placeholder="Sélectionner un modèle" />
+            <SelectValue placeholder={
+              !deviceBrand 
+                ? "Sélectionnez d'abord une marque"
+                : filteredModels.length === 0
+                ? "Aucun modèle disponible"
+                : "Sélectionner un modèle"
+            } />
           </SelectTrigger>
           <SelectContent>
-            {filteredModels.map((model) => (
-              <SelectItem key={model.id} value={model.id}>
-                {model.model_name}
+            {filteredModels.length === 0 ? (
+              <SelectItem value="" disabled>
+                {!deviceBrand ? "Sélectionnez d'abord une marque" : "Aucun modèle disponible"}
               </SelectItem>
-            ))}
+            ) : (
+              filteredModels.map((model) => (
+                <SelectItem key={model.id} value={model.id}>
+                  {model.model_name}
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
       </div>

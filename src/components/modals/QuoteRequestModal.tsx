@@ -26,12 +26,38 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
 }) => {
   const { formData, setFormData, loading, user, submitQuote } = useQuoteForm(repairerId, isOpen, onClose);
   
-  const { brands } = useBrands();
-  const { deviceModels } = useDeviceModels();
-  const { repairTypes } = useRepairTypes();
+  const { brands, loading: brandsLoading } = useBrands();
+  const { deviceModels, loading: modelsLoading } = useDeviceModels();
+  const { repairTypes, loading: repairTypesLoading } = useRepairTypes();
+
+  // Filtrer les marques qui ont des modèles pour le type d'appareil sélectionné
+  const availableBrands = React.useMemo(() => {
+    if (!formData.device_type || !deviceModels.length) return [];
+    
+    const modelsForDeviceType = deviceModels.filter(model => 
+      model.device_type_id === formData.device_type
+    );
+    
+    const brandIds = [...new Set(modelsForDeviceType.map(model => model.brand_id))];
+    return brands.filter(brand => brandIds.includes(brand.id));
+  }, [formData.device_type, deviceModels, brands]);
+
+  // Filtrer les modèles par type d'appareil et marque
+  const filteredModels = React.useMemo(() => {
+    if (!formData.device_type) return [];
+    
+    let filtered = deviceModels.filter(model => 
+      model.device_type_id === formData.device_type
+    );
+    
+    if (formData.device_brand) {
+      filtered = filtered.filter(model => model.brand_id === formData.device_brand);
+    }
+    
+    return filtered;
+  }, [formData.device_type, formData.device_brand, deviceModels]);
 
   const selectedBrand = brands.find(b => b.id === formData.device_brand);
-  const filteredModels = deviceModels.filter(m => m.brand_id === formData.device_brand);
   const selectedModel = deviceModels.find(m => m.id === formData.device_model);
   const selectedRepairType = repairTypes.find(rt => rt.id === formData.repair_type);
 
@@ -61,6 +87,25 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
     }));
   };
 
+  // Loading state
+  if (brandsLoading || modelsLoading || repairTypesLoading) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Demande de devis</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-2 text-gray-600">Chargement...</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl">
@@ -83,14 +128,16 @@ const QuoteRequestModal: React.FC<QuoteRequestModalProps> = ({
             onDeviceTypeChange={handleDeviceTypeChange}
           />
 
-          <BrandModelSection
-            deviceBrand={formData.device_brand}
-            deviceModel={formData.device_model}
-            brands={brands}
-            filteredModels={filteredModels}
-            onBrandChange={handleBrandChange}
-            onModelChange={(value) => updateFormData('device_model', value)}
-          />
+          {formData.device_type && (
+            <BrandModelSection
+              deviceBrand={formData.device_brand}
+              deviceModel={formData.device_model}
+              brands={availableBrands}
+              filteredModels={filteredModels}
+              onBrandChange={handleBrandChange}
+              onModelChange={(value) => updateFormData('device_model', value)}
+            />
+          )}
 
           <RepairTypeSection
             repairType={formData.repair_type}
