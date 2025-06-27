@@ -14,6 +14,9 @@ const convertRowToAdBanner = (row: AdBannerRow): AdBanner => ({
   max_clicks: row.max_clicks || undefined,
   daily_budget: row.daily_budget || undefined,
   created_by: row.created_by || undefined,
+  targeting_config: typeof row.targeting_config === 'string' 
+    ? JSON.parse(row.targeting_config) 
+    : (row.targeting_config || {})
 });
 
 export const useAdvertising = () => {
@@ -36,7 +39,7 @@ export const useAdvertising = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      const convertedBanners = (data || []).map(convertRowToAdBanner);
+      const convertedBanners = (data || []).map((row) => convertRowToAdBanner(row as AdBannerRow));
       setBanners(convertedBanners);
     } catch (error) {
       console.error('Error fetching banners:', error);
@@ -60,7 +63,7 @@ export const useAdvertising = () => {
 
       if (error) throw error;
 
-      const convertedBanner = convertRowToAdBanner(data);
+      const convertedBanner = convertRowToAdBanner(data as AdBannerRow);
       setBanners(prev => [convertedBanner, ...prev]);
       toast({
         title: "Succès",
@@ -89,7 +92,7 @@ export const useAdvertising = () => {
 
       if (error) throw error;
 
-      const convertedBanner = convertRowToAdBanner(data);
+      const convertedBanner = convertRowToAdBanner(data as AdBannerRow);
       setBanners(prev => prev.map(banner => 
         banner.id === id ? convertedBanner : banner
       ));
@@ -145,7 +148,7 @@ export const useAdvertising = () => {
           user_agent: navigator.userAgent
         }]);
 
-      // Increment banner impression count using raw SQL
+      // Increment banner impression count using RPC
       await supabase.rpc('increment_impressions', { banner_id: bannerId });
     } catch (error) {
       console.error('Error recording impression:', error);
@@ -162,7 +165,7 @@ export const useAdvertising = () => {
           user_agent: navigator.userAgent
         }]);
 
-      // Increment banner click count using raw SQL
+      // Increment banner click count using RPC
       await supabase.rpc('increment_clicks', { banner_id: bannerId });
     } catch (error) {
       console.error('Error recording click:', error);
@@ -212,7 +215,7 @@ export const useAdvertising = () => {
         .limit(3);
 
       if (error) throw error;
-      return (data || []).map(convertRowToAdBanner);
+      return (data || []).map((row) => convertRowToAdBanner(row as AdBannerRow));
     } catch (error) {
       console.error('Error fetching active banners:', error);
       return [];

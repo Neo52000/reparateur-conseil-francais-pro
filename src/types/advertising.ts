@@ -48,7 +48,7 @@ export interface AdStats {
   period: string;
 }
 
-// Helper type for database rows
+// Helper type for database rows - updated to handle Json type from Supabase
 export interface AdBannerRow {
   id: string;
   title: string;
@@ -63,7 +63,7 @@ export interface AdBannerRow {
   max_clicks: number | null;
   current_clicks: number;
   daily_budget: number | null;
-  targeting_config: Record<string, any>;
+  targeting_config: any; // Changed from Record<string, any> to any to handle Json type
   created_by: string | null;
   created_at: string;
   updated_at: string;

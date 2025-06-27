@@ -1996,6 +1996,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      increment_clicks: {
+        Args: { banner_id: string }
+        Returns: undefined
+      }
+      increment_impressions: {
+        Args: { banner_id: string }
+        Returns: undefined
+      }
       validate_and_use_promo_code: {
         Args: { promo_code_text: string }
         Returns: Json

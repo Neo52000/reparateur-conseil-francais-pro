@@ -5,16 +5,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import Navigation from '@/components/Navigation';
 import HeroSection from '@/components/sections/HeroSection';
-import { FeaturesSection } from '@/components/sections/FeaturesSection';
-import { HowItWorksSection } from '@/components/sections/HowItWorksSection';
-import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
-import { FaqSection } from '@/components/sections/FaqSection';
-import { ContactSection } from '@/components/sections/ContactSection';
 import Footer from '@/components/Footer';
-import { CallToActionSection } from '@/components/sections/CallToActionSection';
-import { TestimonialsSection } from '@/components/sections/TestimonialsSection';
 import CookieConsent from '@/components/CookieBanner';
-import { supabase } from '@/integrations/supabase/client';
+import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 
 const Index = () => {
@@ -45,17 +38,23 @@ const Index = () => {
     }
   };
 
+  const handleViewProfile = (repairer: any) => {
+    // Handle view profile logic
+    console.log('View profile:', repairer);
+  };
+
+  const handleCall = (phone: string) => {
+    // Handle call logic
+    window.location.href = `tel:${phone}`;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
 
       <main>
-        <HeroSection onRepairerSignup={handleRepairerSignup} />
+        <HeroSection />
 
-        <FeaturesSection />
-
-        <HowItWorksSection />
-        
         {/* Client Ad Banner - Above repairers carousel */}
         <section className="py-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
@@ -67,21 +66,18 @@ const Index = () => {
           </div>
         </section>
 
-        <RepairersCarouselSection />
-
-        <TestimonialsSection />
-
-        <CallToActionSection />
-
-        <FaqSection />
-
-        <ContactSection />
+        <RepairersCarouselSection 
+          onViewProfile={handleViewProfile}
+          onCall={handleCall}
+        />
       </main>
 
       <Footer />
 
       {!isCookieConsentGiven && (
-        <CookieConsent onConsent={handleCookieConsent} />
+        <div className="fixed bottom-0 left-0 right-0 z-50">
+          <CookieConsent onConsent={handleCookieConsent} />
+        </div>
       )}
     </div>
   );
