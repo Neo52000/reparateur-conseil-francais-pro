@@ -1,93 +1,60 @@
 
 import React, { useState } from 'react';
+import { useScrapingAuth } from '@/hooks/scraping/useScrapingAuth';
 import { useScrapingStatus } from '@/hooks/scraping/useScrapingStatus';
-import { useToast } from '@/hooks/use-toast';
-import MassiveScrapingStats from './MassiveScrapingStats';
+import AuthenticationStatus from './AuthenticationStatus';
 import MassiveScrapingInterface from './MassiveScrapingInterface';
 
 const MassiveScrapingControl = () => {
-  const { startScraping, stopScraping, isScrapingRunning, logs, refetch } = useScrapingStatus();
-  const { toast } = useToast();
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const { user, isAdmin, checkAuthAndPermissions } = useScrapingAuth();
+  const { 
+    isScrapingRunning, 
+    latestLog, 
+    startScraping, 
+    stopScraping, 
+    loading: authLoading 
+  } = useScrapingStatus();
+  
+  const [selectedDepartment, setSelectedDepartment] = useState("75"); // Default to Paris
 
-  const handleMassiveScraping = async (source: string, test: boolean = false) => {
-    try {
-      const departmentCode = selectedDepartment === 'all' ? null : selectedDepartment;
-      
-      await startScraping(source, test, departmentCode);
-      
-      if (!test) {
-        toast({
-          title: "🚀 Scraping Massif Démarré",
-          description: `Extraction en cours ${departmentCode ? `pour le département ${departmentCode}` : 'pour toute la France'}. Cela peut prendre plusieurs heures.`,
-        });
-      }
-    } catch (error) {
-      console.error('Erreur scraping massif:', error);
-      toast({
-        title: "Erreur de scraping",
-        description: "Impossible de démarrer le scraping massif. Vérifiez les logs.",
-        variant: "destructive"
-      });
-    }
+  if (!checkAuthAndPermissions()) {
+    return (
+      <AuthenticationStatus
+        authLoading={authLoading}
+        user={user}
+        isAdmin={isAdmin}
+        profile={user}
+      />
+    );
+  }
+
+  const handleMassiveScraping = async (source: string, isTest: boolean) => {
+    console.log('🚀 Starting massive scraping:', { source, isTest, selectedDepartment });
+    await startScraping(source, selectedDepartment, isTest);
   };
 
   const handleStopScraping = async () => {
-    try {
-      console.log('🛑 Tentative d\'arrêt du scraping...');
-      await stopScraping();
-      
-      // Forcer un refresh pour voir les changements immédiatement
-      setTimeout(() => {
-        console.log('🔄 Refresh après arrêt du scraping');
-        refetch();
-      }, 500);
-      
-    } catch (error) {
-      console.error('Erreur arrêt scraping:', error);
-      toast({
-        title: "Erreur d'arrêt",
-        description: "Impossible d'arrêter le scraping. Vérifiez les logs.",
-        variant: "destructive"
-      });
-    }
+    console.log('🛑 Stopping scraping from MassiveScrapingControl');
+    await stopScraping();
   };
 
-  const latestLog = logs[0];
   const getProgress = () => {
-    if (!latestLog) return 0;
-    if (latestLog.status === 'completed') return 100;
-    if (latestLog.status === 'running') return 50;
-    return 0;
+    if (!latestLog || latestLog.status !== 'running') return 0;
+    
+    const total = (latestLog.items_added || 0) + (latestLog.items_updated || 0) + (latestLog.items_scraped || 0);
+    return Math.min(total * 2, 100); // Simple progress estimation
   };
-
-  const getTotalStats = () => {
-    const completedLogs = logs.filter(log => log.status === 'completed');
-    const totalAdded = completedLogs.reduce((sum, log) => sum + (log.items_added || 0), 0);
-    const totalUpdated = completedLogs.reduce((sum, log) => sum + (log.items_updated || 0), 0);
-    return { totalAdded, totalUpdated, totalProcessed: totalAdded + totalUpdated };
-  };
-
-  const stats = getTotalStats();
 
   return (
-    <div className="space-y-6">
-      <MassiveScrapingStats
-        totalAdded={stats.totalAdded}
-        totalUpdated={stats.totalUpdated}
-        totalProcessed={stats.totalProcessed}
-      />
-
-      <MassiveScrapingInterface
-        selectedDepartment={selectedDepartment}
-        onDepartmentChange={setSelectedDepartment}
-        isScrapingRunning={isScrapingRunning}
-        latestLog={latestLog}
-        onMassiveScraping={handleMassiveScraping}
-        onStopScraping={handleStopScraping}
-        getProgress={getProgress}
-      />
-    </div>
+    <MassiveScrapingInterface
+      selectedDepartment={selectedDepartment}
+      onDepartmentChange={setSelectedDepartment}
+      isScrapingRunning={isScrapingRunning}
+      latestLog={latestLog}
+      onMassiveScraping={handleMassiveScraping}
+      onStopScraping={handleStopScraping}
+      getProgress={getProgress}
+    />
   );
 };
 
