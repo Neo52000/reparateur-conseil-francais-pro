@@ -20,6 +20,10 @@ const Index = () => {
   const [showQuickSearch, setShowQuickSearch] = useState(false);
   const [showMapSearch, setShowMapSearch] = useState(false);
   const [searchFilters, setSearchFilters] = useState<any>(null);
+  
+  // Hero section states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
 
   const handleViewProfile = (repairer: any) => {
     setSelectedRepairerId(repairer.id);
@@ -34,6 +38,10 @@ const Index = () => {
   const handleQuickSearchResults = (filters: any) => {
     setSearchFilters(filters);
     setShowMapSearch(true);
+  };
+
+  const handleHeroQuickSearch = () => {
+    setShowQuickSearch(true);
   };
 
   if (showMapSearch) {
@@ -53,7 +61,13 @@ const Index = () => {
       <Navigation />
       
       <main>
-        <HeroSectionSimplified />
+        <HeroSectionSimplified 
+          searchTerm={searchTerm}
+          selectedLocation={selectedLocation}
+          onSearchTermChange={setSearchTerm}
+          onLocationChange={setSelectedLocation}
+          onQuickSearch={handleHeroQuickSearch}
+        />
         
         {/* Search Section */}
         <section className="py-16 bg-gradient-to-br from-blue-50 via-white to-green-50">
