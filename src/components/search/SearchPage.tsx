@@ -74,10 +74,7 @@ const SearchPage = () => {
       {showFilters && (
         <div className="bg-white border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <SearchFilters
-              onFiltersChange={setSearchFilters}
-              initialFilters={searchFilters}
-            />
+            <SearchFilters />
           </div>
         </div>
       )}
@@ -121,7 +118,7 @@ const SearchPage = () => {
         {viewMode === 'map' ? (
           <EnhancedRepairersMap searchFilters={searchFilters} />
         ) : (
-          <RepairersList repairers={repairers} loading={loading} />
+          <RepairersList filters={searchFilters} />
         )}
       </div>
     </div>

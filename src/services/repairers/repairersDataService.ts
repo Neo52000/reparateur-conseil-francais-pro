@@ -38,8 +38,8 @@ export class RepairersDataService {
       }
 
       // Order by rating and review count for better results
-      query = query.order('rating', { ascending: false, nullsLast: true })
-                  .order('review_count', { ascending: false, nullsLast: true })
+      query = query.order('rating', { ascending: false, nullsFirst: false })
+                  .order('review_count', { ascending: false, nullsFirst: false })
                   .limit(200);
 
       const { data, error } = await query;
