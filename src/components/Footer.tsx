@@ -20,7 +20,7 @@ const Footer = () => {
               <img
                 src="/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png"
                 alt="TopRéparateurs.fr"
-                className="h-16 object-contain"
+                className="h-16 object-contain brightness-0 invert"
               />
             </div>
             <p className="text-gray-300 mb-4">
