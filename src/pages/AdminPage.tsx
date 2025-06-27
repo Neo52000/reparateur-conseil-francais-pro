@@ -16,6 +16,8 @@ const AdminPage = () => {
   const navigate = useNavigate();
   const { user, isAdmin, signOut } = useAuth();
 
+  console.log('🔍 AdminPage render - user:', user, 'isAdmin:', isAdmin);
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -27,8 +29,11 @@ const AdminPage = () => {
 
   // Show login form if user is not authenticated or not admin
   if (!user || !isAdmin) {
+    console.log('🔄 Showing AdminAuthForm - user:', !!user, 'isAdmin:', isAdmin);
     return <AdminAuthForm />;
   }
+
+  console.log('✅ Rendering admin interface for user:', user.email);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -73,21 +78,32 @@ const AdminPage = () => {
           </div>
         </div>
       </header>
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <AdminDashboard />
-        
-        {/* Hub de scraping intelligent */}
-        <section className="bg-white rounded shadow mt-10 p-6">
-          <EnhancedScrapingHub />
-        </section>
 
-        <section className="bg-white rounded shadow mt-10 p-5">
-          <h2 className="text-xl font-bold mb-4">Zone expérimentale</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="border rounded p-3"><ReferralInvite /></div>
-            <div className="border rounded p-3"><AIPreDiagChatBox /></div>
-          </div>
-        </section>
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="space-y-10">
+          {/* Dashboard principal */}
+          <section>
+            <AdminDashboard />
+          </section>
+
+          {/* Hub de scraping intelligent */}
+          <section className="bg-white rounded-lg shadow p-6">
+            <EnhancedScrapingHub />
+          </section>
+
+          {/* Zone expérimentale */}
+          <section className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-bold mb-4">Zone expérimentale</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="border rounded-lg p-4">
+                <ReferralInvite />
+              </div>
+              <div className="border rounded-lg p-4">
+                <AIPreDiagChatBox />
+              </div>
+            </div>
+          </section>
+        </div>
       </main>
     </div>
   );
