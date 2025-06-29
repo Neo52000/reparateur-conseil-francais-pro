@@ -1,8 +1,11 @@
 
 import React from 'react';
-import { Heart, Megaphone } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Users, UserCheck, Heart, Tag, AdIcon as Ad, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-type TabType = 'subscriptions' | 'repairers' | 'interest' | 'promocodes' | 'scraping' | 'advertising';
+export type TabType = 'subscriptions' | 'repairers' | 'interest' | 'promocodes' | 'advertising' | 'scraping';
 
 interface AdminNavigationTabsProps {
   activeTab: TabType;
@@ -10,56 +13,47 @@ interface AdminNavigationTabsProps {
 }
 
 const AdminNavigationTabs: React.FC<AdminNavigationTabsProps> = ({ activeTab, onTabChange }) => {
-  const getTabClassName = (tab: TabType) => 
-    `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-      activeTab === tab
-        ? 'bg-white text-gray-900 shadow'
-        : 'text-gray-600 hover:text-gray-900'
-    }`;
-
   return (
-    <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-      <button
-        onClick={() => onTabChange('subscriptions')}
-        className={getTabClassName('subscriptions')}
-      >
-        Abonnements
-      </button>
-      <button
-        onClick={() => onTabChange('repairers')}
-        className={getTabClassName('repairers')}
-      >
-        Réparateurs
-      </button>
-      <button
-        onClick={() => onTabChange('interest')}
-        className={getTabClassName('interest')}
-      >
-        <Heart className="h-4 w-4 mr-1 inline" />
-        Demandes d'intérêt
-      </button>
-      <button
-        onClick={() => onTabChange('promocodes')}
-        className={getTabClassName('promocodes')}
-      >
-        Codes Promo
-      </button>
-      <button
-        onClick={() => onTabChange('advertising')}
-        className={getTabClassName('advertising')}
-      >
-        <Megaphone className="h-4 w-4 mr-1 inline" />
-        Publicités
-      </button>
-      <button
-        onClick={() => onTabChange('scraping')}
-        className={getTabClassName('scraping')}
-      >
-        Scraping Moderne
-      </button>
+    <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
+      <Tabs value={activeTab} onValueChange={(value) => onTabChange(value as TabType)} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 gap-1">
+          <TabsTrigger value="subscriptions" className="flex items-center gap-2">
+            <UserCheck className="h-4 w-4" />
+            <span className="hidden sm:inline">Abonnements</span>
+          </TabsTrigger>
+          <TabsTrigger value="repairers" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            <span className="hidden sm:inline">Réparateurs</span>
+          </TabsTrigger>
+          <TabsTrigger value="interest" className="flex items-center gap-2">
+            <Heart className="h-4 w-4" />
+            <span className="hidden sm:inline">Intérêts</span>
+          </TabsTrigger>
+          <TabsTrigger value="promocodes" className="flex items-center gap-2">
+            <Tag className="h-4 w-4" />
+            <span className="hidden sm:inline">Codes Promo</span>
+          </TabsTrigger>
+          <TabsTrigger value="advertising" className="flex items-center gap-2">
+            <Ad className="h-4 w-4" />
+            <span className="hidden sm:inline">Publicité</span>
+          </TabsTrigger>
+          <TabsTrigger value="scraping" className="flex items-center gap-2">
+            <Search className="h-4 w-4" />
+            <span className="hidden sm:inline">Scraping</span>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+      
+      <div className="flex gap-2">
+        <Button asChild variant="outline" size="sm">
+          <Link to="/admin/repairers">
+            <Users className="h-4 w-4 mr-2" />
+            Gestion complète
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 };
 
 export default AdminNavigationTabs;
-export type { TabType };

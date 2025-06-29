@@ -144,42 +144,9 @@ export const useRepairersData = () => {
 
   const fetchRepairers = async () => {
     try {
-      console.log('🔄 useRepairersData - Fetching repairers from profiles...');
+      console.log('🔄 useRepairersData - Fetching repairers from main table...');
       
-      // Essayer d'abord avec repairer_profiles
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('repairer_profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (!profilesError && profilesData && profilesData.length > 0) {
-        console.log('✅ useRepairersData - Found repairer profiles:', profilesData.length);
-        
-        const processedRepairers: RepairerData[] = profilesData.map((profile) => ({
-          id: profile.user_id,
-          name: profile.business_name || 'Nom non renseigné',
-          email: profile.email || 'Email non renseigné',
-          phone: profile.phone || 'Téléphone non renseigné',
-          city: profile.city || 'Ville non renseignée',
-          department: profile.postal_code?.substring(0, 2) || '00',
-          subscription_tier: 'free', // Sera enrichi avec les vraies données
-          subscribed: false,
-          total_repairs: Math.floor(Math.random() * 200),
-          rating: 4.5,
-          created_at: profile.created_at
-        }));
-
-        setRepairers(processedRepairers);
-        setStats(prev => ({
-          ...prev,
-          totalRepairers: processedRepairers.length,
-          activeRepairers: processedRepairers.length
-        }));
-        return;
-      }
-
-      // Fallback sur la table repairers
-      console.log('🔄 useRepairersData - Trying repairers table as fallback...');
+      // Récupérer DIRECTEMENT depuis la table repairers
       const { data: repairersData, error: repairersError } = await supabase
         .from('repairers')
         .select('*')
@@ -191,7 +158,7 @@ export const useRepairersData = () => {
         return;
       }
 
-      console.log('✅ useRepairersData - Repairers loaded from fallback:', repairersData?.length || 0);
+      console.log('✅ useRepairersData - Repairers loaded from main table:', repairersData?.length || 0);
 
       const processedRepairers: RepairerData[] = (repairersData || []).map((repairer) => ({
         id: repairer.id,
@@ -199,15 +166,17 @@ export const useRepairersData = () => {
         email: repairer.email || 'Non renseigné',
         phone: repairer.phone || 'Non renseigné',
         city: repairer.city,
-        department: repairer.department || '00',
-        subscription_tier: 'free',
+        department: repairer.department || repairer.postal_code?.substring(0, 2) || '00',
+        subscription_tier: 'free', // Défaut
         subscribed: repairer.is_verified || false,
         total_repairs: Math.floor(Math.random() * 200),
         rating: repairer.rating || 4.5,
         created_at: repairer.created_at
       }));
 
+      console.log('✅ useRepairersData - Processed repairers:', processedRepairers);
       setRepairers(processedRepairers);
+      
       setStats(prev => ({
         ...prev,
         totalRepairers: processedRepairers.length,
