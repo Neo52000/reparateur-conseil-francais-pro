@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { RepairerDB } from '@/hooks/useRepairers';
+import { Repairer } from '@/types/repairer';
 import { useDemoMode } from '@/hooks/useDemoMode';
 import { DemoDataService } from '@/services/demoDataService';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
  * Hook pour gérer les réparateurs avec prise en compte du mode démo
  */
 export const useRepairersWithDemo = () => {
-  const [repairers, setRepairers] = useState<RepairerDB[]>([]);
+  const [repairers, setRepairers] = useState<Repairer[]>([]);
   const [loading, setLoading] = useState(false);
   const { demoModeEnabled } = useDemoMode();
   const { toast } = useToast();

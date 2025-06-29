@@ -1,5 +1,5 @@
 
-import { RepairerDB } from '@/hooks/useRepairers';
+import { Repairer } from '@/types/repairer';
 import { useDemoMode } from '@/hooks/useDemoMode';
 
 /**
@@ -9,7 +9,7 @@ export class DemoDataService {
   /**
    * Données de démonstration pour les réparateurs
    */
-  static getDemoRepairers(): RepairerDB[] {
+  static getDemoRepairers(): Repairer[] {
     return [
       {
         id: 'demo-repairer-1',
@@ -25,7 +25,7 @@ export class DemoDataService {
         review_count: 127,
         specialties: ['Téléphone', 'Tablette', 'Ordinateur'],
         services: ['Réparation express', 'Récupération de données', 'Devis gratuit'],
-        price_range: '€€',
+        price_range: 'medium',
         response_time: '< 2h',
         is_open: true,
         opening_hours: {
@@ -37,7 +37,7 @@ export class DemoDataService {
           samedi: '10:00-16:00',
           dimanche: 'Fermé'
         },
-        source: 'demo',
+        source: 'manual',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         scraped_at: new Date().toISOString(),
@@ -65,7 +65,7 @@ export class DemoDataService {
         review_count: 89,
         specialties: ['Téléphone', 'Montre connectée'],
         services: ['Réparation sur place', 'Remplacement écran', 'Changement batterie'],
-        price_range: '€',
+        price_range: 'low',
         response_time: '< 1h',
         is_open: true,
         opening_hours: {
@@ -77,7 +77,7 @@ export class DemoDataService {
           samedi: '09:00-17:00',
           dimanche: 'Fermé'
         },
-        source: 'demo',
+        source: 'manual',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         scraped_at: new Date().toISOString(),
