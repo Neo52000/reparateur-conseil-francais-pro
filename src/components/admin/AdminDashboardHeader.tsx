@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
-import ClientAccessControl from '@/components/ClientAccessControl';
+import DemoModeControl from '@/components/DemoModeControl';
 
 interface AdminDashboardHeaderProps {
   onRefresh: () => void;
@@ -22,8 +22,8 @@ const AdminDashboardHeader: React.FC<AdminDashboardHeaderProps> = ({ onRefresh }
         </Button>
       </div>
 
-      {/* Client Access Control - Added at the top for visibility */}
-      <ClientAccessControl />
+      {/* Demo Mode Control - Remplace le Client Access Control */}
+      <DemoModeControl />
     </>
   );
 };
