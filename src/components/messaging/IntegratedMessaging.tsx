@@ -62,9 +62,12 @@ const IntegratedMessaging: React.FC<IntegratedMessagingProps> = ({
           filter: `conversation_id=eq.${conversationId}`
         },
         (payload) => {
-          const newMessage = payload.new as Message;
-          setMessages(prev => [...prev, newMessage]);
-          scrollToBottom();
+          const newMessage = payload.new as any;
+          // Validation des types avant d'ajouter le message
+          if (newMessage.sender_type === 'client' || newMessage.sender_type === 'repairer') {
+            setMessages(prev => [...prev, newMessage as Message]);
+            scrollToBottom();
+          }
         }
       )
       .subscribe();
@@ -83,7 +86,13 @@ const IntegratedMessaging: React.FC<IntegratedMessagingProps> = ({
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Filtrer et valider les types
+      const validMessages = (data || []).filter((msg: any) => 
+        msg.sender_type === 'client' || msg.sender_type === 'repairer'
+      ) as Message[];
+      
+      setMessages(validMessages);
       scrollToBottom();
     } catch (error) {
       console.error('Erreur chargement messages:', error);

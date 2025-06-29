@@ -878,6 +878,68 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount: number
+          client_id: string
+          confirmed_at: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          hold_funds: boolean
+          id: string
+          payment_intent_id: string
+          quote_id: string | null
+          refund_reason: string | null
+          refunded_at: string | null
+          repairer_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          client_id: string
+          confirmed_at?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          hold_funds?: boolean
+          id?: string
+          payment_intent_id: string
+          quote_id?: string | null
+          refund_reason?: string | null
+          refunded_at?: string | null
+          repairer_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          confirmed_at?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          hold_funds?: boolean
+          id?: string
+          payment_intent_id?: string
+          quote_id?: string | null
+          refund_reason?: string | null
+          refunded_at?: string | null
+          repairer_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes_with_timeline"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pricing_grid: {
         Row: {
           average_price: number

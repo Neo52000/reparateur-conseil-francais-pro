@@ -80,14 +80,14 @@ export class PaymentService {
   }
 
   /**
-   * Récupérer l'historique des paiements
+   * Récupérer l'historique des paiements pour un utilisateur
    */
   static async getPaymentHistory(userId: string): Promise<any[]> {
     try {
       const { data, error } = await supabase
         .from('payments')
         .select('*')
-        .eq('user_id', userId)
+        .or(`client_id.eq.${userId},repairer_id.eq.${userId}`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

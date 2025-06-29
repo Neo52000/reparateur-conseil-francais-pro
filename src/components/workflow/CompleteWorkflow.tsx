@@ -29,16 +29,18 @@ interface WorkflowStep {
   timestamp?: string;
 }
 
+type WorkflowStepType = 'quote' | 'appointment' | 'payment' | 'repair' | 'completion';
+
 interface CompleteWorkflowProps {
   quoteId: string;
-  initialStep?: 'quote' | 'appointment' | 'payment' | 'repair' | 'completion';
+  initialStep?: WorkflowStepType;
 }
 
 const CompleteWorkflow: React.FC<CompleteWorkflowProps> = ({
   quoteId,
   initialStep = 'quote'
 }) => {
-  const [currentStep, setCurrentStep] = useState(initialStep);
+  const [currentStep, setCurrentStep] = useState<WorkflowStepType>(initialStep);
   const [workflowData, setWorkflowData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
@@ -162,6 +164,10 @@ const CompleteWorkflow: React.FC<CompleteWorkflowProps> = ({
     }
   };
 
+  const handleTabChange = (value: string) => {
+    setCurrentStep(value as WorkflowStepType);
+  };
+
   if (!workflowData) {
     return <div>Chargement du workflow...</div>;
   }
@@ -194,7 +200,7 @@ const CompleteWorkflow: React.FC<CompleteWorkflowProps> = ({
       </Card>
 
       {/* Contenu principal selon l'étape */}
-      <Tabs value={currentStep} onValueChange={setCurrentStep}>
+      <Tabs value={currentStep} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="quote">Devis</TabsTrigger>
           <TabsTrigger value="appointment">RDV</TabsTrigger>
