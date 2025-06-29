@@ -40,7 +40,17 @@ export const useRepairersWithDemo = () => {
         ...item,
         business_status: item.business_status || 'active',
         pappers_verified: item.pappers_verified || false,
-        price_range: (item.price_range as 'low' | 'medium' | 'high') || 'medium'
+        price_range: (item.price_range as 'low' | 'medium' | 'high') || 'medium',
+        department: item.department || '',
+        region: item.region || '',
+        phone: item.phone || undefined,
+        website: item.website || undefined,
+        email: item.email || undefined,
+        opening_hours: item.opening_hours ? 
+          (typeof item.opening_hours === 'object' ? item.opening_hours as Record<string, string> : null) : 
+          null,
+        services: item.services || [],
+        specialties: item.specialties || []
       }));
 
       // Appliquer la logique du mode démo
@@ -74,4 +84,3 @@ export const useRepairersWithDemo = () => {
     refetch: fetchRepairers
   };
 };
-

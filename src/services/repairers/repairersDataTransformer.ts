@@ -1,4 +1,3 @@
-
 import type { Database } from '@/integrations/supabase/types';
 import type { Repairer } from '@/types/repairer';
 
@@ -65,7 +64,12 @@ export class RepairersDataTransformer {
         source: repairer.source as 'pages_jaunes' | 'google_places' | 'manual',
         scraped_at: repairer.scraped_at,
         updated_at: repairer.updated_at,
-        created_at: repairer.created_at
+        created_at: repairer.created_at,
+        business_status: repairer.business_status || 'active',
+        pappers_verified: repairer.pappers_verified || false,
+        pappers_last_check: repairer.pappers_last_check || undefined,
+        siret: repairer.siret || undefined,
+        siren: repairer.siren || undefined
       };
     });
   }
@@ -121,7 +125,7 @@ export class RepairersDataTransformer {
     
     // Remplacer les caractères corrompus courants
     return text
-      .replace(/�/g, 'e') // Remplacer � par e
+      .replace(//g, 'e') // Remplacer  par e
       .replace(/Ã©/g, 'é')
       .replace(/Ã¨/g, 'è')
       .replace(/Ã /g, 'à')

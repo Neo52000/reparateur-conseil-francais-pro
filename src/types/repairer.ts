@@ -1,5 +1,4 @@
 
-
 export interface Repairer {
   id: string;
   name: string;
@@ -50,4 +49,3 @@ export interface RepairerDisplay extends Repairer {
   averagePrice: string;
   responseTime: string;
 }
-
