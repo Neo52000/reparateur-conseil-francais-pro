@@ -23,7 +23,7 @@ export interface Repairer {
   is_verified: boolean;
   is_open?: boolean;
   has_qualirepar_label?: boolean;
-  source: 'pages_jaunes' | 'google_places' | 'manual';
+  source: 'pages_jaunes' | 'google_places' | 'manual' | 'demo';
   scraped_at: string;
   updated_at: string;
   created_at: string;
