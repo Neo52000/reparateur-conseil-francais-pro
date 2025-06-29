@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Index from '@/pages/Index';
 import AdminPage from '@/pages/AdminPage';
 import AdminFeaturesPage from '@/pages/AdminFeaturesPage';
+import AdminCatalogPage from '@/pages/AdminCatalogPage';
 import RepairersManagementPage from '@/pages/RepairersManagementPage';
 import { Toaster } from '@/components/ui/toaster';
 import RepairWorkflowPage from '@/pages/RepairWorkflowPage';
@@ -21,6 +22,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/admin/features" element={<AdminFeaturesPage />} />
+            <Route path="/admin/catalog" element={<AdminCatalogPage />} />
             <Route path="/admin/repairers" element={<RepairersManagementPage />} />
             <Route path="/repair-workflow/:quoteId" element={<RepairWorkflowPage />} />
           </Routes>
