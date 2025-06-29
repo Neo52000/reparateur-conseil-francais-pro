@@ -2,7 +2,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import SearchPage from '@/components/search/SearchPage';
+import Index from '@/pages/Index';
 import AdminPage from '@/pages/AdminPage';
 import { Toaster } from '@/components/ui/toaster';
 import RepairWorkflowPage from '@/pages/RepairWorkflowPage';
@@ -16,7 +16,7 @@ function App() {
         <div className="min-h-screen bg-background">
           <Toaster />
           <Routes>
-            <Route path="/" element={<SearchPage />} />
+            <Route path="/" element={<Index />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/repair-workflow/:quoteId" element={<RepairWorkflowPage />} />
           </Routes>
