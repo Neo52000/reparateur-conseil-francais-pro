@@ -61,16 +61,24 @@ export const useRepairersWithDemo = () => {
           : 'manual'
       }));
 
-      // Appliquer la logique du mode démo CORRIGÉE
-      const demoData = DemoDataService.getDemoRepairers();
-      const combinedData = DemoDataService.combineWithDemoData(
-        transformedRealData,
-        demoData,
-        demoModeEnabled
-      );
+      // CORRECTION : Appliquer correctement la logique du mode démo
+      let finalData: Repairer[];
+      
+      if (demoModeEnabled) {
+        // Mode démo activé : données réelles (sans démo) + nouvelles données démo
+        const demoData = DemoDataService.getDemoRepairers();
+        finalData = DemoDataService.combineWithDemoData(
+          transformedRealData,
+          demoData,
+          true
+        );
+      } else {
+        // Mode démo désactivé : UNIQUEMENT données réelles (filtrer toute donnée de démo)
+        finalData = transformedRealData.filter(item => item.source !== 'demo');
+      }
 
-      console.log('✅ Données finales:', combinedData.length, 'réparateurs');
-      setRepairers(combinedData);
+      console.log('✅ Données finales:', finalData.length, 'réparateurs');
+      setRepairers(finalData);
     } catch (error) {
       console.error('❌ Erreur lors du chargement des réparateurs:', error);
       toast({

@@ -70,13 +70,21 @@ export class DataService {
         : 'manual'
     }));
 
-    // Appliquer la logique du mode démo CORRIGÉE
-    const demoData = DemoDataService.getDemoRepairers();
-    const result = DemoDataService.combineWithDemoData(
-      transformedRealData,
-      demoData,
-      demoModeEnabled
-    );
+    // CORRECTION : Appliquer correctement la logique du mode démo
+    let result: Repairer[];
+    
+    if (demoModeEnabled) {
+      // Mode démo activé : données réelles (sans démo) + données démo
+      const demoData = DemoDataService.getDemoRepairers();
+      result = DemoDataService.combineWithDemoData(
+        transformedRealData,
+        demoData,
+        true
+      );
+    } else {
+      // Mode démo désactivé : UNIQUEMENT données réelles (filtrer toute donnée de démo)
+      result = transformedRealData.filter(item => item.source !== 'demo');
+    }
 
     console.log('✅ DataService - Résultat final:', result.length, 'réparateurs');
     return result;
