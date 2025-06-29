@@ -1,8 +1,9 @@
 
+
 export interface Repairer {
   id: string;
   name: string;
-  business_name?: string; // Ajout de business_name
+  business_name?: string;
   address: string;
   city: string;
   postal_code: string;
@@ -19,17 +20,17 @@ export interface Repairer {
   specialties: string[];
   price_range: 'low' | 'medium' | 'high';
   response_time?: string;
-  opening_hours?: Record<string, string> | null; // Harmonisation du type
+  opening_hours?: Record<string, string> | null;
   is_verified: boolean;
   is_open?: boolean;
-  has_qualirepar_label?: boolean; // Ajout de has_qualirepar_label
+  has_qualirepar_label?: boolean;
   source: 'pages_jaunes' | 'google_places' | 'manual';
   scraped_at: string;
   updated_at: string;
   created_at: string;
-  // Propriétés manquantes de Supabase
-  business_status?: string;
-  pappers_verified?: boolean;
+  // Required properties from Supabase schema
+  business_status: string;
+  pappers_verified: boolean;
   pappers_last_check?: string;
   siret?: string;
   siren?: string;
@@ -49,3 +50,4 @@ export interface RepairerDisplay extends Repairer {
   averagePrice: string;
   responseTime: string;
 }
+

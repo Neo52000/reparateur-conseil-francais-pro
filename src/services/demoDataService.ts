@@ -1,6 +1,5 @@
 
 import { Repairer } from '@/types/repairer';
-import { useDemoMode } from '@/hooks/useDemoMode';
 
 /**
  * Service pour gérer les données de démonstration
@@ -127,3 +126,4 @@ export class DemoDataService {
     return data;
   }
 }
+

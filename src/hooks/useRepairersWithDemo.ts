@@ -35,10 +35,18 @@ export const useRepairersWithDemo = () => {
         return;
       }
 
+      // Transformer les données de la base pour correspondre au type Repairer
+      const transformedRealData: Repairer[] = (realData || []).map(item => ({
+        ...item,
+        business_status: item.business_status || 'active',
+        pappers_verified: item.pappers_verified || false,
+        price_range: (item.price_range as 'low' | 'medium' | 'high') || 'medium'
+      }));
+
       // Appliquer la logique du mode démo
       const demoData = DemoDataService.getDemoRepairers();
       const combinedData = DemoDataService.combineWithDemoData(
-        realData || [],
+        transformedRealData,
         demoData,
         demoModeEnabled
       );
@@ -66,3 +74,4 @@ export const useRepairersWithDemo = () => {
     refetch: fetchRepairers
   };
 };
+
