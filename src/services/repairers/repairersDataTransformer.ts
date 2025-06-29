@@ -1,3 +1,4 @@
+
 import type { Database } from '@/integrations/supabase/types';
 import type { Repairer } from '@/types/repairer';
 
@@ -125,7 +126,7 @@ export class RepairersDataTransformer {
     
     // Remplacer les caractères corrompus courants
     return text
-      .replace(//g, 'e') // Remplacer  par e
+      .replace(/�/g, 'e') // Remplacer � par e
       .replace(/Ã©/g, 'é')
       .replace(/Ã¨/g, 'è')
       .replace(/Ã /g, 'à')
