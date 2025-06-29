@@ -2,7 +2,7 @@
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Users, UserCheck, Heart, Tag, AdIcon as Ad, Search } from 'lucide-react';
+import { Users, UserCheck, Heart, Tag, Megaphone, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export type TabType = 'subscriptions' | 'repairers' | 'interest' | 'promocodes' | 'advertising' | 'scraping';
@@ -34,7 +34,7 @@ const AdminNavigationTabs: React.FC<AdminNavigationTabsProps> = ({ activeTab, on
             <span className="hidden sm:inline">Codes Promo</span>
           </TabsTrigger>
           <TabsTrigger value="advertising" className="flex items-center gap-2">
-            <Ad className="h-4 w-4" />
+            <Megaphone className="h-4 w-4" />
             <span className="hidden sm:inline">Publicité</span>
           </TabsTrigger>
           <TabsTrigger value="scraping" className="flex items-center gap-2">
