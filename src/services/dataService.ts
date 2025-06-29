@@ -19,9 +19,11 @@ export class DataService {
         .eq('plan_name', 'Enterprise')
         .single();
 
-      return flags?.enabled || false;
+      const enabled = flags?.enabled || false;
+      console.log('🎯 DataService - Mode démo vérifié:', enabled);
+      return enabled;
     } catch (error) {
-      console.error('Erreur lors de la vérification du mode démo:', error);
+      console.error('❌ Erreur lors de la vérification du mode démo:', error);
       return false;
     }
   }
@@ -31,6 +33,7 @@ export class DataService {
    */
   static async getRepairers(): Promise<Repairer[]> {
     const demoModeEnabled = await this.isDemoModeEnabled();
+    console.log('🔄 DataService - Récupération réparateurs, mode démo:', demoModeEnabled);
     
     // Récupérer les données réelles
     const { data: realData, error } = await supabase
@@ -41,6 +44,8 @@ export class DataService {
     if (error) {
       throw error;
     }
+
+    console.log('📊 DataService - Données réelles récupérées:', realData?.length || 0);
 
     // Transformer les données de la base pour correspondre au type Repairer
     const transformedRealData: Repairer[] = (realData || []).map(item => ({
@@ -60,18 +65,21 @@ export class DataService {
         null,
       services: item.services || [],
       specialties: item.specialties || [],
-      source: (['pages_jaunes', 'google_places', 'manual'].includes(item.source)) 
-        ? item.source as 'pages_jaunes' | 'google_places' | 'manual'
+      source: (['pages_jaunes', 'google_places', 'manual', 'demo'].includes(item.source)) 
+        ? item.source as 'pages_jaunes' | 'google_places' | 'manual' | 'demo'
         : 'manual'
     }));
 
-    // Appliquer la logique du mode démo
+    // Appliquer la logique du mode démo CORRIGÉE
     const demoData = DemoDataService.getDemoRepairers();
-    return DemoDataService.combineWithDemoData(
+    const result = DemoDataService.combineWithDemoData(
       transformedRealData,
       demoData,
       demoModeEnabled
     );
+
+    console.log('✅ DataService - Résultat final:', result.length, 'réparateurs');
+    return result;
   }
 
   /**
@@ -79,6 +87,7 @@ export class DataService {
    */
   static async filterByDemoMode<T extends { source?: string }>(data: T[]): Promise<T[]> {
     const demoModeEnabled = await this.isDemoModeEnabled();
+    console.log('🔍 DataService - Filtrage par mode démo:', demoModeEnabled);
     return DemoDataService.filterDataByDemoMode(data, demoModeEnabled);
   }
 }

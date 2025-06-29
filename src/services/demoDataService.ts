@@ -36,7 +36,7 @@ export class DemoDataService {
           samedi: '10:00-16:00',
           dimanche: 'Fermé'
         },
-        source: 'manual',
+        source: 'demo',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         scraped_at: new Date().toISOString(),
@@ -76,7 +76,7 @@ export class DemoDataService {
           samedi: '09:00-17:00',
           dimanche: 'Fermé'
         },
-        source: 'manual',
+        source: 'demo',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         scraped_at: new Date().toISOString(),
@@ -94,21 +94,30 @@ export class DemoDataService {
   }
 
   /**
-   * Combine les données réelles avec les données de démo si le mode démo est activé
+   * Combine les données réelles avec les données de démo selon le mode démo
+   * CORRECTION : La logique était inversée
    */
   static combineWithDemoData<T extends { id: string; source?: string }>(
     realData: T[],
     demoData: T[],
     demoModeEnabled: boolean
   ): T[] {
-    if (!demoModeEnabled) {
-      // Mode démo désactivé : retourner uniquement les vraies données
-      return realData.filter(item => item.source !== 'demo');
-    }
+    console.log('🎯 DemoDataService - Mode démo:', demoModeEnabled);
+    console.log('📊 Données réelles:', realData.length);
+    console.log('🎭 Données démo:', demoData.length);
 
-    // Mode démo activé : combiner les données réelles (non-démo) avec les données de démo
-    const realNonDemoData = realData.filter(item => item.source !== 'demo');
-    return [...realNonDemoData, ...demoData];
+    if (demoModeEnabled) {
+      // Mode démo ACTIVÉ : montrer vraies données + données de démo
+      const realNonDemoData = realData.filter(item => item.source !== 'demo');
+      const result = [...realNonDemoData, ...demoData];
+      console.log('✅ Mode démo activé - Total affiché:', result.length, '(réelles + démo)');
+      return result;
+    } else {
+      // Mode démo DÉSACTIVÉ : montrer UNIQUEMENT les vraies données
+      const result = realData.filter(item => item.source !== 'demo');
+      console.log('🚫 Mode démo désactivé - Total affiché:', result.length, '(réelles seulement)');
+      return result;
+    }
   }
 
   /**
@@ -118,12 +127,17 @@ export class DemoDataService {
     data: T[],
     demoModeEnabled: boolean
   ): T[] {
-    if (!demoModeEnabled) {
+    console.log('🔍 Filtrage mode démo:', demoModeEnabled, 'sur', data.length, 'éléments');
+    
+    if (demoModeEnabled) {
+      // Mode démo activé : inclure toutes les données
+      console.log('✅ Mode démo activé - Garder tous les éléments');
+      return data;
+    } else {
       // Mode démo désactivé : exclure les données de démo
-      return data.filter(item => item.source !== 'demo');
+      const filtered = data.filter(item => item.source !== 'demo');
+      console.log('🚫 Mode démo désactivé - Filtré:', filtered.length, 'éléments (exclu démo)');
+      return filtered;
     }
-    // Mode démo activé : inclure toutes les données
-    return data;
   }
 }
-

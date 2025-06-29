@@ -18,6 +18,7 @@ export const useRepairersWithDemo = () => {
   const fetchRepairers = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Chargement des réparateurs - Mode démo:', demoModeEnabled);
       
       // Récupérer les données réelles
       const { data: realData, error } = await supabase
@@ -26,7 +27,7 @@ export const useRepairersWithDemo = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Erreur lors du chargement des réparateurs:', error);
+        console.error('❌ Erreur lors du chargement des réparateurs:', error);
         toast({
           title: 'Erreur',
           description: 'Impossible de charger les réparateurs',
@@ -34,6 +35,8 @@ export const useRepairersWithDemo = () => {
         });
         return;
       }
+
+      console.log('📊 Données réelles récupérées:', realData?.length || 0);
 
       // Transformer les données de la base pour correspondre au type Repairer
       const transformedRealData: Repairer[] = (realData || []).map(item => ({
@@ -53,12 +56,12 @@ export const useRepairersWithDemo = () => {
           null,
         services: item.services || [],
         specialties: item.specialties || [],
-        source: (['pages_jaunes', 'google_places', 'manual'].includes(item.source)) 
-          ? item.source as 'pages_jaunes' | 'google_places' | 'manual'
+        source: (['pages_jaunes', 'google_places', 'manual', 'demo'].includes(item.source)) 
+          ? item.source as 'pages_jaunes' | 'google_places' | 'manual' | 'demo'
           : 'manual'
       }));
 
-      // Appliquer la logique du mode démo
+      // Appliquer la logique du mode démo CORRIGÉE
       const demoData = DemoDataService.getDemoRepairers();
       const combinedData = DemoDataService.combineWithDemoData(
         transformedRealData,
@@ -66,9 +69,10 @@ export const useRepairersWithDemo = () => {
         demoModeEnabled
       );
 
+      console.log('✅ Données finales:', combinedData.length, 'réparateurs');
       setRepairers(combinedData);
     } catch (error) {
-      console.error('Erreur lors du chargement des réparateurs:', error);
+      console.error('❌ Erreur lors du chargement des réparateurs:', error);
       toast({
         title: 'Erreur',
         description: 'Une erreur inattendue s\'est produite',
@@ -79,7 +83,9 @@ export const useRepairersWithDemo = () => {
     }
   };
 
+  // Recharger quand le mode démo change
   useEffect(() => {
+    console.log('🔄 Mode démo changé:', demoModeEnabled, '- Rechargement des données');
     fetchRepairers();
   }, [demoModeEnabled]);
 
