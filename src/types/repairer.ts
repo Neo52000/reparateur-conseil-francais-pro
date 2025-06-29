@@ -27,6 +27,12 @@ export interface Repairer {
   scraped_at: string;
   updated_at: string;
   created_at: string;
+  // Propriétés manquantes de Supabase
+  business_status?: string;
+  pappers_verified?: boolean;
+  pappers_last_check?: string;
+  siret?: string;
+  siren?: string;
 }
 
 // Alias pour compatibilité avec le code existant
