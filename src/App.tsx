@@ -40,7 +40,7 @@ function App() {
             <Route path="/repairer-auth" element={<RepairerAuth />} />
             <Route path="/repairer" element={<RepairerDashboardPage />} />
             <Route path="/blog" element={<BlogPage />} />
-            <Route path="/blog/:slug" element={<BlogArticlePage />} />
+            <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
             <Route path="/blog/clients" element={<BlogClientPage />} />
             <Route path="/blog/repairers" element={<BlogRepairerPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />

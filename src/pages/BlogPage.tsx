@@ -114,7 +114,7 @@ const BlogPage: React.FC = () => {
                 )}
                 
                 <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
-                  <Link to={`/blog/${post.slug}`} className="hover:text-blue-600 transition-colors">
+                  <Link to={`/blog/article/${post.slug}`} className="hover:text-blue-600 transition-colors">
                     {post.title}
                   </Link>
                 </h3>
@@ -146,7 +146,7 @@ const BlogPage: React.FC = () => {
                   </div>
                 </div>
 
-                <Link to={`/blog/${post.slug}`}>
+                <Link to={`/blog/article/${post.slug}`}>
                   <Button size="sm" className="w-full">
                     Lire l'article
                   </Button>
