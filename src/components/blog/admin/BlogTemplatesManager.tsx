@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -264,6 +263,7 @@ const BlogTemplatesManager: React.FC = () => {
                       <SelectContent>
                         <SelectItem value="openai">OpenAI GPT-4</SelectItem>
                         <SelectItem value="mistral">Mistral</SelectItem>
+                        <SelectItem value="perplexity">Perplexity</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
