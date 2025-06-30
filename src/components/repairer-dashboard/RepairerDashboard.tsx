@@ -26,7 +26,7 @@ import { supabase } from '@/integrations/supabase/client';
 import UpgradeModal from '@/components/UpgradeModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 import DemoModeControl from '@/components/DemoModeControl';
-import { useRepairerDashboardData } from '@/services/repairerDemoDataService';
+import { useDemoMode } from '@/hooks/useDemoMode';
 import OverviewTabSection from "./OverviewTabSection";
 import OrdersTabSection from "./OrdersTabSection";
 import CalendarTabSection from "./CalendarTabSection";
@@ -42,20 +42,21 @@ const RepairerDashboard = () => {
   const { signOut, user, isAdmin } = useAuth();
   const navigate = useNavigate();
   
-  // Hook pour le mode démo
-  const { 
-    demoModeEnabled, 
-    getFilteredOrders, 
-    getFilteredInventory, 
-    getFilteredAppointments, 
-    getFilteredStats 
-  } = useRepairerDashboardData();
+  // Hook pour le mode démo - Simplifié
+  const { demoModeEnabled } = useDemoMode();
   
   // Hook pour gérer le popup d'upgrade
   const { shouldShowModal, isModalOpen, closeModal } = useUpgradeModal(user?.email || null);
 
+  console.log('🔍 RepairerDashboard - Rendu avec:', { 
+    demoModeEnabled, 
+    userId: user?.id,
+    userEmail: user?.email,
+    isAdmin 
+  });
+
   // Données de base RÉELLES (sans aucune donnée de démo)
-  const baseRepairerData = {
+  const realData = {
     profile: {
       name: 'top reparateurs.fr',
       rating: 4.9,
@@ -99,21 +100,107 @@ const RepairerDashboard = () => {
     ]
   };
 
-  // Application du filtre mode démo
-  const repairerData = {
-    ...baseRepairerData,
-    stats: getFilteredStats(baseRepairerData.stats),
-    orders: getFilteredOrders(baseRepairerData.orders),
-    inventory: getFilteredInventory(baseRepairerData.inventory),
-    appointments: getFilteredAppointments(baseRepairerData.appointments)
+  // Données de démonstration
+  const demoData = {
+    stats: {
+      monthlyRevenue: 5450,
+      pendingOrders: 8,
+      completedThisMonth: 24,
+      avgRepairTime: 2.5
+    },
+    orders: [
+      {
+        id: 'demo-1',
+        client: 'Jean Dupont (Démo)',
+        device: 'iPhone 14 Pro',
+        issue: 'Écran cassé',
+        status: 'En cours',
+        priority: 'Urgente',
+        estimatedPrice: 180
+      },
+      {
+        id: 'demo-2',
+        client: 'Marie Martin (Démo)',
+        device: 'Samsung Galaxy S23',
+        issue: 'Batterie défaillante',
+        status: 'Diagnostic',
+        priority: 'Normale',
+        estimatedPrice: 85
+      },
+      {
+        id: 'demo-3',
+        client: 'Pierre Durand (Démo)',
+        device: 'iPad Air',
+        issue: 'Problème de charge',
+        status: 'Terminé',
+        priority: 'Normale',
+        estimatedPrice: 120
+      }
+    ],
+    inventory: [
+      {
+        id: 'demo-inv-1',
+        part: 'Écran iPhone 14 Pro (Démo)',
+        stock: 5,
+        minStock: 2,
+        price: 150
+      },
+      {
+        id: 'demo-inv-2',
+        part: 'Batterie Samsung S23 (Démo)',
+        stock: 1,
+        minStock: 3,
+        price: 65
+      },
+      {
+        id: 'demo-inv-3',
+        part: 'Connecteur Lightning (Démo)',
+        stock: 0,
+        minStock: 5,
+        price: 25
+      }
+    ],
+    appointments: [
+      {
+        id: 'demo-apt-1',
+        client: 'Paul Durand (Démo)',
+        time: '14:00',
+        service: 'Diagnostic iPhone',
+        phone: '+33 6 12 34 56 78'
+      },
+      {
+        id: 'demo-apt-2',
+        client: 'Sophie Legrand (Démo)',
+        time: '16:30',
+        service: 'Réparation écran',
+        phone: '+33 6 98 76 54 32'
+      },
+      {
+        id: 'demo-apt-3',
+        client: 'Thomas Rousseau (Démo)',
+        time: '10:00',
+        service: 'Changement batterie',
+        phone: '+33 6 11 22 33 44'
+      }
+    ]
   };
 
-  console.log('🔍 RepairerDashboard - Mode démo:', demoModeEnabled);
-  console.log('📊 RepairerDashboard - Données finales:', {
-    stats: repairerData.stats,
+  // Logique simplifiée : choisir les données selon le mode démo
+  const repairerData = demoModeEnabled ? {
+    ...realData,
+    stats: demoData.stats,
+    orders: [...realData.orders, ...demoData.orders],
+    inventory: [...realData.inventory, ...demoData.inventory],
+    appointments: [...realData.appointments, ...demoData.appointments]
+  } : realData;
+
+  console.log('📊 RepairerDashboard - Données finales utilisées:', {
+    demoModeEnabled,
+    statsRevenue: repairerData.stats.monthlyRevenue,
     ordersCount: repairerData.orders.length,
     inventoryCount: repairerData.inventory.length,
-    appointmentsCount: repairerData.appointments.length
+    appointmentsCount: repairerData.appointments.length,
+    orderTitles: repairerData.orders.map(o => o.client)
   });
 
   useEffect(() => {
