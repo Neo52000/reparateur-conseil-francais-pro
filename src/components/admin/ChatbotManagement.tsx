@@ -95,18 +95,32 @@ const ChatbotManagement = () => {
     setIsLoading(false);
   };
 
-  const saveTrainingData = async (data: Partial<TrainingData>) => {
+  const saveTrainingData = async (data: TrainingData) => {
     try {
+      // S'assurer que toutes les propriétés obligatoires sont présentes
+      const trainingDataToSave = {
+        intent: data.intent,
+        training_text: data.training_text,
+        response_template: data.response_template,
+        category: data.category,
+        confidence_threshold: data.confidence_threshold,
+        is_active: data.is_active,
+        device_type: data.device_type || null,
+        brand: data.brand || null,
+        model: data.model || null,
+        metadata: {}
+      };
+
       if (data.id) {
         await supabase
           .from('chatbot_training_data')
-          .update(data)
+          .update(trainingDataToSave)
           .eq('id', data.id);
         toast.success('Données d\'entraînement mises à jour');
       } else {
         await supabase
           .from('chatbot_training_data')
-          .insert(data);
+          .insert(trainingDataToSave);
         toast.success('Nouvelles données d\'entraînement ajoutées');
       }
       loadData();
