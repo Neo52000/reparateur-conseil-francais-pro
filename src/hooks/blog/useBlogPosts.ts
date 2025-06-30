@@ -18,6 +18,8 @@ export const useBlogPosts = () => {
   }) => {
     setLoading(true);
     try {
+      console.log('Fetching posts with filters:', filters);
+      
       let query = supabase
         .from('blog_posts')
         .select(`
@@ -45,8 +47,13 @@ export const useBlogPosts = () => {
 
       const { data, error } = await query;
 
-      if (error) throw error;
-      return data as BlogPost[];
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+      
+      console.log('Raw data from database:', data?.length || 0);
+      return data as BlogPost[] || [];
     } catch (error) {
       console.error('Error fetching blog posts:', error);
       toast({

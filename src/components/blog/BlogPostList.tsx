@@ -62,6 +62,13 @@ const BlogPostList: React.FC<BlogPostListProps> = ({
     }
   };
 
+  console.log('BlogPostList render:', { 
+    postsCount: posts.length, 
+    loading, 
+    selectedCategory,
+    sortedPostsCount: sortedPosts.length 
+  });
+
   if (loading && posts.length === 0) {
     return (
       <div className="space-y-6">
@@ -136,9 +143,20 @@ const BlogPostList: React.FC<BlogPostListProps> = ({
       </div>
 
       {/* Liste des articles */}
-      {sortedPosts.length === 0 ? (
+      {sortedPosts.length === 0 && !loading ? (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">Aucun article trouvé</p>
+          <p className="text-gray-500 text-lg">
+            {selectedCategory ? 'Aucun article trouvé dans cette catégorie' : 'Aucun article trouvé'}
+          </p>
+          {selectedCategory && (
+            <Button 
+              variant="outline" 
+              onClick={() => onCategoryFilter?.(null)}
+              className="mt-4"
+            >
+              Voir tous les articles
+            </Button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -13,52 +13,75 @@ const BlogClientPage: React.FC = () => {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
 
-  const loadPosts = async (reset = false) => {
+  const loadPosts = async (reset = false, categoryId?: string | null) => {
+    console.log('Loading posts for category:', categoryId);
     const currentPage = reset ? 0 : page;
     const filters = {
-      // Afficher les articles publics et mixtes pour les clients
       status: 'published',
+      category: categoryId || undefined,
       limit: 12,
       offset: currentPage * 12
     };
 
-    const allPosts = await fetchPosts(filters);
-    // Filtrer côté client pour inclure 'public' et 'both'
-    const filteredPosts = allPosts.filter(post => 
-      post.visibility === 'public' || post.visibility === 'both'
-    );
-    
-    if (reset) {
-      setPosts(filteredPosts);
-      setPage(1);
-    } else {
-      setPosts(prev => [...prev, ...filteredPosts]);
-      setPage(prev => prev + 1);
+    try {
+      const allPosts = await fetchPosts(filters);
+      console.log('Fetched posts:', allPosts.length);
+      
+      // Filtrer côté client pour inclure 'public' et 'both'
+      const filteredPosts = allPosts.filter(post => 
+        post.visibility === 'public' || post.visibility === 'both'
+      );
+      
+      console.log('Filtered posts:', filteredPosts.length);
+      
+      if (reset) {
+        setPosts(filteredPosts);
+        setPage(1);
+      } else {
+        setPosts(prev => [...prev, ...filteredPosts]);
+        setPage(prev => prev + 1);
+      }
+      
+      setHasMore(filteredPosts.length === 12);
+    } catch (error) {
+      console.error('Error loading posts:', error);
+      setPosts([]);
+      setHasMore(false);
     }
-    
-    setHasMore(filteredPosts.length === 12);
   };
 
   const loadCategories = async () => {
-    const cats = await fetchCategories();
-    setCategories(cats);
+    try {
+      const cats = await fetchCategories();
+      console.log('Loaded categories:', cats.length);
+      setCategories(cats);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      setCategories([]);
+    }
   };
 
   useEffect(() => {
     loadCategories();
-    loadPosts(true);
+  }, []);
+
+  useEffect(() => {
+    console.log('Selected category changed:', selectedCategory);
+    loadPosts(true, selectedCategory);
   }, [selectedCategory]);
 
   const handleSearch = (query: string) => {
     console.log('Recherche clients:', query);
+    // TODO: Implémenter la recherche textuelle
   };
 
   const handleCategoryFilter = (categoryId: string | null) => {
+    console.log('Category filter changed:', categoryId);
     setSelectedCategory(categoryId);
   };
 
   const handleLoadMore = () => {
-    loadPosts(false);
+    loadPosts(false, selectedCategory);
   };
 
   return (
