@@ -214,6 +214,57 @@ export type Database = {
           },
         ]
       }
+      admin_audit_logs: {
+        Row: {
+          action_details: Json | null
+          action_type: string
+          admin_user_id: string
+          after_data: Json | null
+          before_data: Json | null
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          resource_id: string | null
+          resource_type: string
+          session_id: string | null
+          severity_level: string
+          timestamp: string
+          user_agent: string | null
+        }
+        Insert: {
+          action_details?: Json | null
+          action_type: string
+          admin_user_id: string
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type: string
+          session_id?: string | null
+          severity_level?: string
+          timestamp?: string
+          user_agent?: string | null
+        }
+        Update: {
+          action_details?: Json | null
+          action_type?: string
+          admin_user_id?: string
+          after_data?: Json | null
+          before_data?: Json | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type?: string
+          session_id?: string | null
+          severity_level?: string
+          timestamp?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       ai_pre_diagnostic_chats: {
         Row: {
           ended_at: string | null
