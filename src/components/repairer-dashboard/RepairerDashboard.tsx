@@ -54,7 +54,7 @@ const RepairerDashboard = () => {
   // Hook pour gérer le popup d'upgrade
   const { shouldShowModal, isModalOpen, closeModal } = useUpgradeModal(user?.email || null);
 
-  // Données de base (qui seraient normalement récupérées depuis la DB)
+  // Données de base RÉELLES (sans aucune donnée de démo)
   const baseRepairerData = {
     profile: {
       name: 'top reparateurs.fr',
@@ -107,6 +107,14 @@ const RepairerDashboard = () => {
     inventory: getFilteredInventory(baseRepairerData.inventory),
     appointments: getFilteredAppointments(baseRepairerData.appointments)
   };
+
+  console.log('🔍 RepairerDashboard - Mode démo:', demoModeEnabled);
+  console.log('📊 RepairerDashboard - Données finales:', {
+    stats: repairerData.stats,
+    ordersCount: repairerData.orders.length,
+    inventoryCount: repairerData.inventory.length,
+    appointmentsCount: repairerData.appointments.length
+  });
 
   useEffect(() => {
     const fetchCurrentPlan = async () => {

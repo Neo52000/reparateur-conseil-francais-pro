@@ -141,13 +141,15 @@ export class RepairerDemoDataService {
     console.log('🎭 Données démo:', demoData.length);
 
     if (demoModeEnabled) {
-      // Mode démo ACTIVÉ : UNIQUEMENT les données de démo
-      console.log('✅ Mode démo activé - Affichage données de démo uniquement');
-      return demoData;
+      // Mode démo ACTIVÉ : mélanger données réelles (non-démo) + données démo
+      const filteredRealData = realData.filter(item => !item.source || item.source !== 'demo');
+      const combinedData = [...filteredRealData, ...demoData];
+      console.log('✅ Mode démo activé - Données combinées:', combinedData.length);
+      return combinedData;
     } else {
-      // Mode démo DÉSACTIVÉ : UNIQUEMENT les données réelles (filtrer toute donnée de démo)
-      const filteredRealData = realData.filter(item => item.source !== 'demo');
-      console.log('🚫 Mode démo désactivé - Affichage données réelles uniquement:', filteredRealData.length);
+      // Mode démo DÉSACTIVÉ : UNIQUEMENT les données réelles (exclure toute donnée de démo)
+      const filteredRealData = realData.filter(item => !item.source || item.source !== 'demo');
+      console.log('🚫 Mode démo désactivé - Données réelles uniquement:', filteredRealData.length);
       return filteredRealData;
     }
   }
@@ -156,9 +158,13 @@ export class RepairerDemoDataService {
    * Combine les statistiques selon le mode démo
    */
   static getStatsForDemoMode(realStats: any, demoModeEnabled: boolean) {
+    console.log('📈 Stats - Mode démo:', demoModeEnabled);
     if (demoModeEnabled) {
-      return this.getDemoStats();
+      const demoStats = this.getDemoStats();
+      console.log('✅ Retour des stats de démo:', demoStats);
+      return demoStats;
     }
+    console.log('🚫 Retour des vraies stats:', realStats);
     return realStats;
   }
 }
