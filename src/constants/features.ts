@@ -19,6 +19,16 @@ export const FEATURES: Feature[] = [
   { key: "geolocation", name: "Géolocalisation automatique", category: "Base" },
   { key: "sorting_advanced", name: "Tri par distance, prix, délai ou note", category: "Base" },
 
+  // Blog et contenu
+  { key: "blog_access_client", name: "Accès blog client", category: "Blog" },
+  { key: "blog_access_repairer", name: "Accès blog réparateur", category: "Blog" },
+  { key: "blog_exclusive_content", name: "Contenu exclusif réparateurs", category: "Blog" },
+  { key: "blog_ai_suggestions", name: "Suggestions d'articles IA", category: "Blog" },
+  { key: "blog_advanced_analytics", name: "Analytics blog avancées", category: "Blog" },
+  { key: "blog_commenting", name: "Système de commentaires", category: "Blog" },
+  { key: "blog_newsletter", name: "Newsletter automatique", category: "Blog" },
+  { key: "blog_social_sharing", name: "Partage sur réseaux sociaux", category: "Blog" },
+
   // Espace client
   { key: "client_dashboard", name: "Espace client complet avec tableau de bord", category: "Client" },
   { key: "repair_history", name: "Historique des réparations", category: "Client" },

@@ -14,6 +14,9 @@ import RepairerDashboardPage from '@/pages/RepairerDashboardPage';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import CookiesPolicy from '@/pages/CookiesPolicy';
+import BlogPage from '@/pages/BlogPage';
+import BlogClientPage from '@/pages/BlogClientPage';
+import BlogRepairerPage from '@/pages/BlogRepairerPage';
 import { Toaster } from '@/components/ui/toaster';
 import RepairWorkflowPage from '@/pages/RepairWorkflowPage';
 
@@ -35,6 +38,9 @@ function App() {
             <Route path="/client" element={<ClientDashboardPage />} />
             <Route path="/repairer-auth" element={<RepairerAuth />} />
             <Route path="/repairer" element={<RepairerDashboardPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/clients" element={<BlogClientPage />} />
+            <Route path="/blog/repairers" element={<BlogRepairerPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/cookies" element={<CookiesPolicy />} />
