@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { CalendarDays, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,11 @@ import { useToast } from "@/hooks/use-toast";
 // Sous-composants
 import AppointmentListForDay from "./AppointmentListForDay";
 import CreateAppointmentPopover from "./CreateAppointmentPopover";
+import CalendarViewSelector from "./calendar/CalendarViewSelector";
+import WeekView from "./calendar/WeekView";
+import MonthView from "./calendar/MonthView";
+
+type CalendarView = 'day' | 'week' | 'month';
 
 type Appointment = {
   id: string;
@@ -27,6 +33,7 @@ export default function RepairerAppointmentsCalendar() {
   const { user, profile } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [currentView, setCurrentView] = useState<CalendarView>('day');
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newTime, setNewTime] = useState<string>("14:00");
@@ -112,41 +119,85 @@ export default function RepairerAppointmentsCalendar() {
     setLoading(false);
   };
 
+  const handleAppointmentClick = (appointment: Appointment) => {
+    // Logique pour afficher les détails du rendez-vous
+    console.log('Rendez-vous sélectionné:', appointment);
+  };
+
   // Filtrer les RDVs pour la date sélectionnée
   const appointmentsForDay = selectedDate
     ? appointments.filter(a => isSameDay(new Date(a.appointment_date), selectedDate))
     : [];
 
+  const renderCurrentView = () => {
+    if (!selectedDate) return null;
+
+    switch (currentView) {
+      case 'week':
+        return (
+          <WeekView
+            selectedDate={selectedDate}
+            appointments={appointments}
+            onAppointmentClick={handleAppointmentClick}
+          />
+        );
+      case 'month':
+        return (
+          <MonthView
+            selectedDate={selectedDate}
+            appointments={appointments}
+            onDateSelect={setSelectedDate}
+            onAppointmentClick={handleAppointmentClick}
+          />
+        );
+      default: // day view
+        return (
+          <div className="flex flex-col md:flex-row gap-6">
+            <div>
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="pointer-events-auto"
+                locale={fr}
+              />
+              <div className="mt-3">
+                <Button onClick={() => setShowCreateModal(true)} className="w-full" disabled={!selectedDate}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {selectedDate ? "Ajouter un rendez-vous le " + format(selectedDate, "PPP", { locale: fr }) : "Sélectionnez une date"}
+                </Button>
+              </div>
+            </div>
+            {/* Liste des rendez-vous pour la journée */}
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold flex items-center mb-2">
+                <CalendarDays className="h-5 w-5 mr-2" /> Rendez-vous du jour
+              </h3>
+              <AppointmentListForDay
+                appointments={appointmentsForDay}
+                loading={loading}
+                onDelete={handleDelete}
+              />
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="p-4 rounded-lg bg-white shadow-sm">
-      <div className="flex flex-col md:flex-row gap-6">
-        <div>
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={setSelectedDate}
-            className="pointer-events-auto"
-            locale={fr}
-          />
-          <div className="mt-3">
-            <Button onClick={() => setShowCreateModal(true)} className="w-full" disabled={!selectedDate}>
-              <Plus className="mr-2 h-4 w-4" />
-              {selectedDate ? "Ajouter un rendez-vous le " + format(selectedDate, "PPP", { locale: fr }) : "Sélectionnez une date"}
-            </Button>
-          </div>
-        </div>
-        {/* Liste des rendez-vous pour la journée */}
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold flex items-center mb-2">
-            <CalendarDays className="h-5 w-5 mr-2" /> Rendez-vous du jour
-          </h3>
-          <AppointmentListForDay
-            appointments={appointmentsForDay}
-            loading={loading}
-            onDelete={handleDelete}
-          />
-        </div>
+      {/* Sélecteur de vue */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold">Planning des rendez-vous</h2>
+        <CalendarViewSelector
+          currentView={currentView}
+          onViewChange={setCurrentView}
+        />
       </div>
+
+      {/* Vue actuelle */}
+      {renderCurrentView()}
+
       {/* Modale création rapide */}
       <Popover open={showCreateModal} onOpenChange={setShowCreateModal}>
         <CreateAppointmentPopover
