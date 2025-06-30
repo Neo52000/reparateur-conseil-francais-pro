@@ -10,12 +10,14 @@ interface RepairersTableHeaderProps {
 
 const RepairersTableHeader: React.FC<RepairersTableHeaderProps> = ({ onAddRepairer }) => {
   return (
-    <CardHeader className="flex flex-row items-center justify-between">
-      <CardTitle>Gestion des Réparateurs</CardTitle>
-      <Button onClick={onAddRepairer}>
-        <Plus className="h-4 w-4 mr-2" />
-        Ajouter un réparateur
-      </Button>
+    <CardHeader>
+      <div className="flex items-center justify-between">
+        <CardTitle>Gestion des réparateurs</CardTitle>
+        <Button onClick={onAddRepairer} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          Ajouter un réparateur
+        </Button>
+      </div>
     </CardHeader>
   );
 };
