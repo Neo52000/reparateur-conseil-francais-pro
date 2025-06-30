@@ -1,0 +1,110 @@
+
+/* Styles personnalisés pour l'éditeur Markdown */
+.w-md-editor {
+  background-color: white !important;
+}
+
+.w-md-editor-text-pre, 
+.w-md-editor-text-input, 
+.w-md-editor-text {
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace !important;
+}
+
+.w-md-editor-preview {
+  background-color: #fafafa !important;
+}
+
+.w-md-editor-toolbar {
+  border-bottom: 1px solid #e5e7eb !important;
+  background-color: #f9fafb !important;
+}
+
+.w-md-editor-toolbar-child {
+  color: #374151 !important;
+}
+
+.w-md-editor-toolbar-child:hover {
+  background-color: #e5e7eb !important;
+}
+
+/* Amélioration de l'aperçu markdown */
+.w-md-editor-preview blockquote {
+  border-left: 4px solid #3b82f6 !important;
+  background-color: #eff6ff !important;
+  padding: 12px 16px !important;
+  margin: 16px 0 !important;
+}
+
+.w-md-editor-preview blockquote p {
+  margin: 0 !important;
+  color: #1e40af !important;
+}
+
+.w-md-editor-preview h1,
+.w-md-editor-preview h2,
+.w-md-editor-preview h3,
+.w-md-editor-preview h4 {
+  margin-top: 24px !important;
+  margin-bottom: 16px !important;
+  color: #111827 !important;
+}
+
+.w-md-editor-preview h1 {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+}
+
+.w-md-editor-preview h2 {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+}
+
+.w-md-editor-preview h3 {
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+}
+
+.w-md-editor-preview code {
+  background-color: #f3f4f6 !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  font-size: 0.875rem !important;
+}
+
+.w-md-editor-preview pre {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+  overflow-x: auto !important;
+}
+
+.w-md-editor-preview table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  margin: 16px 0 !important;
+}
+
+.w-md-editor-preview th,
+.w-md-editor-preview td {
+  border: 1px solid #d1d5db !important;
+  padding: 8px 12px !important;
+  text-align: left !important;
+}
+
+.w-md-editor-preview th {
+  background-color: #f9fafb !important;
+  font-weight: 600 !important;
+}
+
+/* Style pour les listes de tâches */
+.w-md-editor-preview .task-list-item {
+  list-style: none !important;
+  margin: 4px 0 !important;
+}
+
+.w-md-editor-preview .task-list-item input {
+  margin-right: 8px !important;
+}
