@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -58,22 +58,25 @@ const AIEnhancementButton: React.FC<AIEnhancementButtonProps> = ({
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur Supabase:', error);
+        throw new Error(error.message || 'Erreur de communication avec le serveur');
+      }
 
-      if (data.success) {
+      if (data?.success) {
         onEnhanced(data.enhanced_value);
         toast({
           title: "Succès",
-          description: `${fieldLabels[field]} amélioré avec ${selectedAI}`,
+          description: `${fieldLabels[field]} amélioré avec ${data.ai_model || selectedAI}`,
         });
       } else {
-        throw new Error(data.error);
+        throw new Error(data?.error || 'Erreur inconnue');
       }
     } catch (error) {
       console.error('Erreur amélioration IA:', error);
       toast({
-        title: "Erreur",
-        description: `Impossible d'améliorer le ${fieldLabels[field]}`,
+        title: "Erreur d'amélioration IA",
+        description: error.message || `Impossible d'améliorer le ${fieldLabels[field]}`,
         variant: "destructive"
       });
     } finally {

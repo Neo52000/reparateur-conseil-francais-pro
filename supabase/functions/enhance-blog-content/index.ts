@@ -17,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { field, currentValue, content, ai_model = 'perplexity', context } = await req.json();
+    const { field, currentValue, content, ai_model = 'perplexity' } = await req.json();
 
     if (!field || !currentValue) {
       throw new Error('Field et currentValue sont requis');
@@ -26,17 +26,17 @@ serve(async (req) => {
     console.log(`🚀 Enhancing field: ${field} with AI: ${ai_model}`);
 
     const prompts = {
-      title: `Améliore ce titre d'article de blog sur la réparation de smartphones : "${currentValue}". Rends-le plus accrocheur, SEO-friendly et engageant. Réponds uniquement avec le nouveau titre.`,
+      title: `Améliore ce titre d'article de blog sur la réparation de smartphones : "${currentValue}". Rends-le plus accrocheur, SEO-friendly et engageant. Réponds uniquement avec le nouveau titre, sans guillemets.`,
       
-      slug: `Génère un slug URL optimisé pour ce titre : "${currentValue}". Le slug doit être en français, avec des tirets, sans caractères spéciaux, et optimisé SEO. Réponds uniquement avec le slug.`,
+      slug: `Génère un slug URL optimisé pour ce titre : "${currentValue}". Le slug doit être en français, avec des tirets, sans caractères spéciaux, et optimisé SEO. Réponds uniquement avec le slug, sans guillemets.`,
       
-      excerpt: `Crée un extrait accrocheur de 2-3 phrases pour cet article de blog sur la réparation de smartphones. Titre: "${currentValue}". Contenu: "${content?.substring(0, 500) || ''}". L'extrait doit donner envie de lire l'article. Réponds uniquement avec l'extrait.`,
+      excerpt: `Crée un extrait accrocheur de 2-3 phrases pour cet article de blog sur la réparation de smartphones. Titre: "${currentValue}". Contenu: "${content?.substring(0, 500) || ''}". L'extrait doit donner envie de lire l'article. Réponds uniquement avec l'extrait, sans guillemets.`,
       
-      meta_title: `Optimise ce titre pour le SEO (max 60 caractères) : "${currentValue}". Il doit être accrocheur et inclure des mots-clés pertinents pour la réparation de smartphones. Réponds uniquement avec le titre SEO.`,
+      meta_title: `Optimise ce titre pour le SEO (max 60 caractères) : "${currentValue}". Il doit être accrocheur et inclure des mots-clés pertinents pour la réparation de smartphones. Réponds uniquement avec le titre SEO, sans guillemets.`,
       
-      meta_description: `Crée une meta-description SEO optimisée (max 160 caractères) pour cet article. Titre: "${currentValue}". Contenu: "${content?.substring(0, 300) || ''}". Elle doit inciter au clic. Réponds uniquement avec la meta-description.`,
+      meta_description: `Crée une meta-description SEO optimisée (max 160 caractères) pour cet article. Titre: "${currentValue}". Contenu: "${content?.substring(0, 300) || ''}". Elle doit inciter au clic. Réponds uniquement avec la meta-description, sans guillemets.`,
       
-      keywords: `Génère 8-12 mots-clés SEO pertinents pour cet article sur la réparation de smartphones. Titre: "${currentValue}". Contenu: "${content?.substring(0, 300) || ''}". Réponds uniquement avec les mots-clés séparés par des virgules.`,
+      keywords: `Génère 8-12 mots-clés SEO pertinents pour cet article sur la réparation de smartphones. Titre: "${currentValue}". Contenu: "${content?.substring(0, 300) || ''}". Réponds uniquement avec les mots-clés séparés par des virgules, sans guillemets.`,
       
       content: `Améliore ce contenu d'article de blog en le rendant plus engageant et visuellement attrayant. Remplace les balises markdown par un formatage naturel, ajoute des emojis contextuels pertinents, et améliore la lisibilité. Contenu: "${currentValue}". Garde la même structure mais rends-le plus moderne et attractif.`
     };
@@ -47,31 +47,47 @@ serve(async (req) => {
     }
 
     let enhancedValue = '';
+    let usedModel = ai_model;
 
-    // Essayer avec l'IA sélectionnée, puis fallback
-    try {
-      if (ai_model === 'perplexity' && perplexityApiKey) {
-        enhancedValue = await enhanceWithPerplexity(prompt);
-      } else if (ai_model === 'openai' && openAIApiKey) {
-        enhancedValue = await enhanceWithOpenAI(prompt);
-      } else if (ai_model === 'mistral' && mistralApiKey) {
-        enhancedValue = await enhanceWithMistral(prompt);
-      } else {
-        // Fallback sur la première IA disponible
-        if (perplexityApiKey) {
-          enhancedValue = await enhanceWithPerplexity(prompt);
-        } else if (openAIApiKey) {
-          enhancedValue = await enhanceWithOpenAI(prompt);
-        } else if (mistralApiKey) {
-          enhancedValue = await enhanceWithMistral(prompt);
-        } else {
-          throw new Error('Aucune clé API disponible');
-        }
+    // Essayer avec l'IA sélectionnée, puis fallback sur les autres
+    const aiProviders = [
+      { name: 'perplexity', available: !!perplexityApiKey, fn: enhanceWithPerplexity },
+      { name: 'openai', available: !!openAIApiKey, fn: enhanceWithOpenAI },
+      { name: 'mistral', available: !!mistralApiKey, fn: enhanceWithMistral }
+    ];
+
+    // Commencer par l'IA demandée
+    const preferredProvider = aiProviders.find(p => p.name === ai_model);
+    const otherProviders = aiProviders.filter(p => p.name !== ai_model);
+    const orderedProviders = preferredProvider ? [preferredProvider, ...otherProviders] : aiProviders;
+
+    let lastError = null;
+    
+    for (const provider of orderedProviders) {
+      if (!provider.available) {
+        console.log(`⚠️ ${provider.name} non disponible (clé API manquante)`);
+        continue;
       }
-    } catch (apiError) {
-      console.error(`Erreur avec ${ai_model}:`, apiError);
-      throw new Error(`Échec de l'amélioration avec ${ai_model}: ${apiError.message}`);
+
+      try {
+        console.log(`Tentative avec ${provider.name}...`);
+        enhancedValue = await provider.fn(prompt);
+        usedModel = provider.name;
+        console.log(`✅ Succès avec ${provider.name}`);
+        break;
+      } catch (error) {
+        console.error(`❌ Erreur avec ${provider.name}:`, error.message);
+        lastError = error;
+        continue;
+      }
     }
+
+    if (!enhancedValue) {
+      throw new Error(`Aucune IA disponible. Dernière erreur: ${lastError?.message || 'Inconnue'}`);
+    }
+
+    // Nettoyer la réponse
+    enhancedValue = enhancedValue.trim().replace(/^["']|["']$/g, '');
 
     async function enhanceWithPerplexity(prompt: string): Promise<string> {
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
@@ -89,7 +105,8 @@ serve(async (req) => {
       });
 
       if (!response.ok) {
-        throw new Error(`Perplexity API error: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`Perplexity API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
@@ -112,7 +129,8 @@ serve(async (req) => {
       });
 
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
@@ -135,7 +153,8 @@ serve(async (req) => {
       });
 
       if (!response.ok) {
-        throw new Error(`Mistral API error: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`Mistral API error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
@@ -147,7 +166,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       success: true,
       enhanced_value: enhancedValue,
-      ai_model: ai_model
+      ai_model: usedModel
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

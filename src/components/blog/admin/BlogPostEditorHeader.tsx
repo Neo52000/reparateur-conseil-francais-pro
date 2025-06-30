@@ -16,6 +16,9 @@ const BlogPostEditorHeader: React.FC<BlogPostEditorHeaderProps> = ({
   onCancel,
   aiGenerated
 }) => {
+  // Vérifier si l'article est généré par IA
+  const isAIGenerated = aiGenerated || post?.ai_generated || false;
+  
   return (
     <div className="flex items-center gap-4">
       <Button variant="ghost" onClick={onCancel}>
@@ -25,8 +28,8 @@ const BlogPostEditorHeader: React.FC<BlogPostEditorHeaderProps> = ({
       <h2 className="text-2xl font-bold">
         {post ? 'Modifier l\'article' : 'Nouvel article'}
       </h2>
-      {aiGenerated && (
-        <Badge variant="secondary">
+      {isAIGenerated && (
+        <Badge variant="secondary" className="bg-purple-100 text-purple-800">
           <Wand2 className="h-3 w-3 mr-1" />
           Généré par IA
         </Badge>
