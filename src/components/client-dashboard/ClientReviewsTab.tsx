@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -195,13 +196,7 @@ const ClientReviewsTab = () => {
         demoModeEnabled
       ) as Quote[];
       
-      // Filtrer les devis qui n'ont pas encore d'avis
-      const reviewedQuoteIds = reviews.map(r => r.quote_id).filter(Boolean);
-      const availableQuotes = combinedQuotes.filter(quote => 
-        !reviewedQuoteIds.includes(quote.id)
-      );
-      
-      setAvailableQuotes(availableQuotes);
+      setAvailableQuotes(combinedQuotes);
     } catch (error) {
       console.error('Erreur chargement devis:', error);
       // En cas d'erreur, utiliser seulement les données démo si le mode est activé
@@ -235,6 +230,14 @@ const ClientReviewsTab = () => {
     }
   };
 
+  // Calculer les devis disponibles pour les avis (non encore notés)
+  const getAvailableQuotesForReview = () => {
+    const reviewedQuoteIds = reviews.map(r => r.quote_id).filter(Boolean);
+    return availableQuotes.filter(quote => 
+      !reviewedQuoteIds.includes(quote.id)
+    );
+  };
+
   const resetForm = () => {
     setSelectedQuoteId('');
     setOverallRating(0);
@@ -244,6 +247,11 @@ const ClientReviewsTab = () => {
     setCons('');
     setWouldRecommend(null);
     setEditingReview(null);
+  };
+
+  const handleOpenNewReviewDialog = () => {
+    resetForm();
+    setIsReviewDialogOpen(true);
   };
 
   const handleSubmitReview = async () => {
@@ -350,11 +358,14 @@ const ClientReviewsTab = () => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  // Calculer les statistiques
   const approvedReviews = reviews.filter(r => r.status === 'approved').length;
   const pendingReviews = reviews.filter(r => r.status === 'pending').length;
   const averageRating = reviews.length > 0 
     ? reviews.reduce((sum, r) => sum + r.overall_rating, 0) / reviews.length 
     : 0;
+
+  const availableQuotesForReview = getAvailableQuotesForReview();
 
   if (loading) {
     return (
@@ -425,10 +436,18 @@ const ClientReviewsTab = () => {
               <p className="text-sm text-gray-600">
                 Partagez votre expérience sur les réparations effectuées
               </p>
+              {availableQuotesForReview.length === 0 && (
+                <p className="text-sm text-orange-600 mt-1">
+                  Aucune réparation terminée disponible pour notation
+                </p>
+              )}
             </div>
             <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
               <DialogTrigger asChild>
-                <Button onClick={resetForm} disabled={availableQuotes.length === 0}>
+                <Button 
+                  onClick={handleOpenNewReviewDialog} 
+                  disabled={availableQuotesForReview.length === 0}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Nouvel avis
                 </Button>
@@ -448,9 +467,14 @@ const ClientReviewsTab = () => {
                           <SelectValue placeholder="Choisir une réparation" />
                         </SelectTrigger>
                         <SelectContent>
-                          {availableQuotes.map((quote) => (
+                          {availableQuotesForReview.map((quote) => (
                             <SelectItem key={quote.id} value={quote.id}>
                               {quote.device_brand} {quote.device_model} - {quote.repair_type}
+                              {ClientDemoDataService.isDemoData(quote) && (
+                                <Badge variant="outline" className="ml-2 text-xs">
+                                  Démo
+                                </Badge>
+                              )}
                             </SelectItem>
                           ))}
                         </SelectContent>
