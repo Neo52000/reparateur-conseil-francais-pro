@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -120,6 +121,7 @@ const BlogNewsTracker: React.FC = () => {
         description: "Le contenu a été copié dans le presse-papiers"
       });
     } catch (error) {
+      console.error('Error copying to clipboard:', error);
       toast({
         title: "Erreur",
         description: "Impossible de copier le contenu",
@@ -128,33 +130,60 @@ const BlogNewsTracker: React.FC = () => {
     }
   };
 
-  const copyAllNews = () => {
+  const copyAllNews = async () => {
+    if (newsData.length === 0) {
+      toast({
+        title: "Aucune actualité",
+        description: "Il n'y a pas d'actualités à copier",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const allNewsText = newsData.map((item, index) => 
-      `${index + 1}. **${item.title}**\n${item.summary}\n${item.date ? `Date: ${item.date}` : ''}${item.source ? ` - Source: ${item.source}` : ''}\n`
+      `${index + 1}. **${item.title}**\n\n${item.summary}\n\n**Date:** ${item.date || 'Non spécifiée'}\n**Source:** ${item.source || 'Non spécifiée'}\n\n---\n`
     ).join('\n');
     
-    copyToClipboard(allNewsText);
+    await copyToClipboard(allNewsText);
   };
 
   const exportNews = () => {
-    const exportText = `# Actualités Mobiles - ${new Date().toLocaleDateString('fr-FR')}\n\n${newsData.map((item, index) => 
-      `## ${index + 1}. ${item.title}\n\n${item.summary}\n\n**Date:** ${item.date || 'Non spécifiée'}\n**Source:** ${item.source || 'Non spécifiée'}\n\n---\n`
-    ).join('\n')}`;
+    if (newsData.length === 0) {
+      toast({
+        title: "Aucune actualité",
+        description: "Il n'y a pas d'actualités à exporter",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    const blob = new Blob([exportText], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `actualites-mobiles-${new Date().toISOString().split('T')[0]}.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+      const exportText = `# Actualités Mobiles - ${new Date().toLocaleDateString('fr-FR')}\n\n${newsData.map((item, index) => 
+        `## ${index + 1}. ${item.title}\n\n${item.summary}\n\n**Date:** ${item.date || 'Non spécifiée'}\n**Source:** ${item.source || 'Non spécifiée'}\n\n---\n`
+      ).join('\n')}`;
 
-    toast({
-      title: "Export réussi",
-      description: "Les actualités ont été exportées en fichier Markdown"
-    });
+      const blob = new Blob([exportText], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `actualites-mobiles-${new Date().toISOString().split('T')[0]}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Export réussi",
+        description: "Les actualités ont été exportées en fichier Markdown"
+      });
+    } catch (error) {
+      console.error('Error exporting news:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'exporter les actualités",
+        variant: "destructive"
+      });
+    }
   };
 
   const generateBlogPost = async (newsItem: NewsItem) => {
@@ -166,7 +195,9 @@ Contenu: ${newsItem.summary}
 Date: ${newsItem.date}
 Source: ${newsItem.source || 'Non spécifiée'}
 
-Structure l'article avec une introduction engageante, un développement détaillé et une conclusion. Ajoute des conseils pratiques pour les utilisateurs et réparateurs de smartphones si pertinent.`;
+Structure l'article avec une introduction engageante, un développement détaillé et une conclusion. Ajoute des conseils pratiques pour les utilisateurs et réparateurs de smartphones si pertinent. L'article doit faire environ 800-1200 mots.`;
+
+      console.log('🔄 Generating blog post from news item...');
 
       const { data, error } = await supabase.functions.invoke('generate-blog-content', {
         body: {
@@ -176,8 +207,13 @@ Structure l'article avec une introduction engageante, un développement détaill
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Blog generation error:', error);
+        throw error;
+      }
 
+      console.log('✅ Blog post generated successfully:', data);
+      
       toast({
         title: "Article généré !",
         description: "Un article de blog a été créé à partir de cette actualité"
