@@ -11,6 +11,7 @@ import PromoCodesManagement from '@/components/PromoCodesManagement';
 import AdBannerManagement from '@/components/advertising/AdBannerManagement';
 import EnhancedScrapingHub from '@/components/scraping/EnhancedScrapingHub';
 import BlogManagement from '@/components/blog/admin/BlogManagement';
+import ChatbotManagement from '@/components/admin/ChatbotManagement';
 import AdminAuthForm from '@/components/AdminAuthForm';
 import { useAuth } from '@/hooks/useAuth';
 import { useRepairersData } from '@/hooks/useRepairersData';
@@ -60,6 +61,7 @@ const AdminPage = () => {
       case 'advertising': return 'Publicités';
       case 'scraping': return 'Scraping';
       case 'blog': return 'Blog';
+      case 'chatbot': return 'Chatbot IA';
       default: return 'Dashboard';
     }
   };
@@ -74,6 +76,7 @@ const AdminPage = () => {
       case 'advertising': return 'Banières publicitaires';
       case 'scraping': return 'Outils de collecte de données';
       case 'blog': return 'Gestion du contenu éditorial';
+      case 'chatbot': return 'Administration et configuration de l\'assistant intelligent';
       default: return 'Administration de RepairHub';
     }
   };
@@ -132,6 +135,10 @@ const AdminPage = () => {
 
     if (activeTab === 'blog') {
       return <BlogManagement />;
+    }
+
+    if (activeTab === 'chatbot') {
+      return <ChatbotManagement />;
     }
 
     // Default dashboard

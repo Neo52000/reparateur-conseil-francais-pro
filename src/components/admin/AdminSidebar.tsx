@@ -13,7 +13,8 @@ import {
   Package,
   Settings,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Bot
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -104,6 +105,11 @@ const AdminSidebar: React.FC = () => {
     {
       title: 'outils',
       items: [
+        {
+          title: 'Chatbot IA',
+          icon: Bot,
+          tab: 'chatbot'
+        },
         {
           title: 'Scraping',
           icon: Search,
