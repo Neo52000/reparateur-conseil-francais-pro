@@ -140,7 +140,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
         };
         setMessages(prev => [...prev, botMessage]);
         setIsLoading(false);
-      }, 1500); // Simule le temps de réflexion
+      }, 1500);
     } catch (error) {
       setIsTyping(false);
       setIsLoading(false);
@@ -182,9 +182,16 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
       <div className="fixed bottom-6 right-6 z-50">
         <Button
           onClick={() => setIsOpen(true)}
-          className="rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-700 shadow-lg animate-pulse"
+          className="rounded-full w-16 h-16 bg-blue-600 hover:bg-blue-700 shadow-lg relative overflow-hidden group"
         >
-          <MessageCircle className="h-6 w-6 text-white" />
+          <div className="absolute inset-0 flex items-center justify-center transition-transform group-hover:scale-110">
+            <img 
+              src="/lovable-uploads/68f25ab9-7b95-45e4-abba-df8bbdb8b6eb.png" 
+              alt="Assistant IA"
+              className="w-12 h-12 rounded-full object-cover border-2 border-white"
+            />
+          </div>
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
         </Button>
       </div>
     );
@@ -199,19 +206,30 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
       <Card className={`h-full flex flex-col ${
         isFullscreen ? 'rounded-none' : 'rounded-lg shadow-2xl'
       }`}>
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-blue-600 text-white rounded-t-lg">
-          <div className="flex items-center space-x-2">
-            <MessageCircle className="h-5 w-5" />
-            <span className="font-semibold">Assistant IA</span>
-            <Badge variant="secondary" className="text-xs">En ligne</Badge>
+        {/* Header avec avatar */}
+        <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <img 
+                src="/lovable-uploads/68f25ab9-7b95-45e4-abba-df8bbdb8b6eb.png" 
+                alt="Assistant IA"
+                className="w-10 h-10 rounded-full object-cover border-2 border-white/20"
+              />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+            </div>
+            <div>
+              <span className="font-semibold text-sm">Assistant IA</span>
+              <Badge variant="secondary" className="text-xs ml-2 bg-white/20 text-white border-white/30">
+                En ligne
+              </Badge>
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleFullscreen}
-              className="text-white hover:bg-blue-700"
+              className="text-white hover:bg-white/10"
             >
               {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </Button>
@@ -222,7 +240,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
                 setIsOpen(false);
                 onClose?.();
               }}
-              className="text-white hover:bg-blue-700"
+              className="text-white hover:bg-white/10"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -233,25 +251,39 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
           {messages.map((message) => (
             <div key={message.id} className={`flex ${message.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-lg p-3 ${
-                message.sender_type === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-800 shadow-sm border'
-              }`}>
-                <p className="text-sm">{message.content}</p>
-                {message.suggestions && message.suggestions.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {message.suggestions.map((suggestion, index) => (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        className="text-xs w-full justify-start"
-                      >
-                        {suggestion}
-                      </Button>
-                    ))}
+              <div className={`flex items-start space-x-2 max-w-[80%] ${message.sender_type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                {message.sender_type === 'bot' && (
+                  <img 
+                    src="/lovable-uploads/68f25ab9-7b95-45e4-abba-df8bbdb8b6eb.png" 
+                    alt="Assistant"
+                    className="w-8 h-8 rounded-full object-cover border border-gray-200 flex-shrink-0"
+                  />
+                )}
+                <div className={`rounded-lg p-3 ${
+                  message.sender_type === 'user'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-800 shadow-sm border'
+                }`}>
+                  <p className="text-sm">{message.content}</p>
+                  {message.suggestions && message.suggestions.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {message.suggestions.map((suggestion, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          className="text-xs w-full justify-start bg-gray-50 hover:bg-gray-100 text-gray-700 border-gray-200"
+                        >
+                          {suggestion}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {message.sender_type === 'user' && (
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                    {user?.email?.charAt(0).toUpperCase() || 'U'}
                   </div>
                 )}
               </div>
@@ -260,11 +292,18 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
           
           {isTyping && (
             <div className="flex justify-start">
-              <div className="bg-white rounded-lg p-3 shadow-sm border">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="flex items-start space-x-2">
+                <img 
+                  src="/lovable-uploads/68f25ab9-7b95-45e4-abba-df8bbdb8b6eb.png" 
+                  alt="Assistant"
+                  className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                />
+                <div className="bg-white rounded-lg p-3 shadow-sm border">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -289,7 +328,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
                 variant="outline"
                 size="sm"
                 onClick={isListening ? stopVoiceRecognition : startVoiceRecognition}
-                className={isListening ? 'bg-red-100 text-red-600' : ''}
+                className={isListening ? 'bg-red-100 text-red-600 border-red-200' : ''}
               >
                 {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
               </Button>
@@ -298,6 +337,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
               onClick={() => sendMessage()}
               disabled={!inputValue.trim() || isLoading}
               size="sm"
+              className="bg-blue-600 hover:bg-blue-700"
             >
               <Send className="h-4 w-4" />
             </Button>
