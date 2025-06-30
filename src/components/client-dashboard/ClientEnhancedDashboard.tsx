@@ -85,6 +85,21 @@ const ClientEnhancedDashboard = () => {
     }
   };
 
+  // Transform profile data to match ClientProfileTab interface
+  const transformedProfile = profile ? {
+    name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Utilisateur',
+    email: profile.email,
+    phone: 'Non renseigné', // This would come from user profile when extended
+    address: 'Non renseignée', // This would come from user profile when extended
+    memberSince: 'Janvier 2024' // This could be calculated from created_at when available
+  } : {
+    name: 'Utilisateur',
+    email: user?.email || '',
+    phone: 'Non renseigné',
+    address: 'Non renseignée',
+    memberSince: 'Récent'
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -266,7 +281,7 @@ const ClientEnhancedDashboard = () => {
         </TabsContent>
 
         <TabsContent value="profile">
-          <ClientProfileTab profile={profile} />
+          <ClientProfileTab profile={transformedProfile} />
         </TabsContent>
       </Tabs>
     </div>
