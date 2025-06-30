@@ -1,13 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { Shield, Lock, Mail, Eye, EyeOff, RefreshCw } from 'lucide-react';
+import AdminAuthFormContent from '@/components/admin/AdminAuthFormContent';
+import AdminDebugPanel from '@/components/admin/AdminDebugPanel';
 
+/**
+ * Composant principal de connexion administrateur
+ * 
+ * Gère deux cas :
+ * 1. Affichage du formulaire de connexion pour les utilisateurs non connectés
+ * 2. Panneau de debug pour les utilisateurs connectés sans droits admin
+ */
 const AdminAuthForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,6 +20,9 @@ const AdminAuthForm = () => {
   const { toast } = useToast();
   const { signInAdmin, user, isAdmin, profile, loading: authLoading, refreshProfile } = useAuth();
 
+  /**
+   * Gestion de la soumission du formulaire de connexion
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -52,6 +59,9 @@ const AdminAuthForm = () => {
     }
   };
 
+  /**
+   * Gestion du rafraîchissement du profil avec feedback utilisateur
+   */
   const handleRefreshProfile = async () => {
     if (refreshProfile) {
       try {
@@ -71,131 +81,31 @@ const AdminAuthForm = () => {
     }
   };
 
-  // Afficher un état de debug si l'utilisateur est connecté mais pas admin
+  // Affichage du panneau de debug si l'utilisateur est connecté mais pas admin
   if (user && !isAdmin && !authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="w-full max-w-md mx-auto border-yellow-200 shadow-lg">
-          <CardHeader className="bg-yellow-50 text-center">
-            <CardTitle className="flex items-center justify-center text-yellow-800">
-              <Shield className="h-6 w-6 mr-2" />
-              Problème d'accès admin
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="mt-6 space-y-4">
-            <div className="text-sm space-y-2">
-              <p><strong>Utilisateur:</strong> {user.email}</p>
-              <p><strong>Profil chargé:</strong> {profile ? 'Oui' : 'Non'}</p>
-              <p><strong>Rôle:</strong> {profile?.role || 'Non défini'}</p>
-              <p><strong>Admin:</strong> {isAdmin ? 'Oui' : 'Non'}</p>
-            </div>
-            
-            <div className="space-y-2">
-              <Button 
-                onClick={handleRefreshProfile} 
-                className="w-full" 
-                variant="outline"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Actualiser le profil
-              </Button>
-              
-              <Button 
-                onClick={() => {
-                  localStorage.clear();
-                  window.location.reload();
-                }}
-                className="w-full" 
-                variant="destructive"
-              >
-                Réinitialiser et recharger
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AdminDebugPanel
+        user={user}
+        profile={profile}
+        isAdmin={isAdmin}
+        onRefreshProfile={handleRefreshProfile}
+      />
     );
   }
 
+  // Affichage du formulaire de connexion standard
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md mx-auto border-blue-200 shadow-lg">
-        <CardHeader className="bg-blue-50 text-center">
-          <CardTitle className="flex items-center justify-center text-blue-800">
-            <Shield className="h-6 w-6 mr-2" />
-            Accès Administrateur
-          </CardTitle>
-          <p className="text-sm text-blue-600 mt-2">
-            Connexion requise pour accéder au panneau d'administration
-          </p>
-        </CardHeader>
-        <CardContent className="mt-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email administrateur</Label>
-              <div className="relative">
-                <Mail className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  placeholder="admin@repairhub.com"
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="password">Mot de passe</Label>
-              <div className="relative">
-                <Lock className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10"
-                  placeholder="••••••••"
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-gray-500" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-gray-500" />
-                  )}
-                </Button>
-              </div>
-            </div>
-            <Button 
-              type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700" 
-              disabled={loading || authLoading}
-            >
-              {(loading || authLoading) ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Connexion en cours...
-                </>
-              ) : (
-                <>
-                  <Shield className="h-4 w-4 mr-2" />
-                  Se connecter
-                </>
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+    <AdminAuthFormContent
+      email={email}
+      setEmail={setEmail}
+      password={password}
+      setPassword={setPassword}
+      showPassword={showPassword}
+      setShowPassword={setShowPassword}
+      loading={loading}
+      authLoading={authLoading}
+      onSubmit={handleSubmit}
+    />
   );
 };
 
