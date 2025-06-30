@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import AdminDashboardHeader from '@/components/admin/AdminDashboardHeader';
+import AdminLayout from '@/components/admin/AdminLayout';
+import DashboardOverview from '@/components/admin/DashboardOverview';
 import AdminDashboardContent from '@/components/admin/AdminDashboardContent';
-import AdminNavigationTabs, { TabType } from '@/components/admin/AdminNavigationTabs';
 import RepairersTable from '@/components/repairers/RepairersTable';
 import ClientInterestManagement from '@/components/ClientInterestManagement';
 import PromoCodesManagement from '@/components/PromoCodesManagement';
@@ -13,12 +13,14 @@ import EnhancedScrapingHub from '@/components/scraping/EnhancedScrapingHub';
 import BlogManagement from '@/components/blog/admin/BlogManagement';
 import AdminAuthForm from '@/components/AdminAuthForm';
 import { useAuth } from '@/hooks/useAuth';
+import { useRepairersData } from '@/hooks/useRepairersData';
 
 const AdminPage = () => {
   const { user, profile, isAdmin, loading } = useAuth();
-  const [activeTab, setActiveTab] = useState<TabType>('subscriptions');
+  const [searchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'dashboard';
+  const { subscriptions, repairers, loading: dataLoading, stats, fetchData } = useRepairersData();
 
-  // Debug logs pour comprendre l'état
   console.log('🔍 AdminPage - Auth state:', {
     hasUser: !!user,
     userEmail: user?.email,
@@ -40,61 +42,121 @@ const AdminPage = () => {
     );
   }
 
-  // Si pas d'utilisateur connecté, afficher le formulaire de connexion admin
-  if (!user) {
-    console.log('🚫 AdminPage: No user - showing admin auth form');
-    return <AdminAuthForm />;
-  }
-
-  // Si utilisateur connecté mais pas admin, afficher le debug ou rediriger
-  if (!isAdmin || profile?.role !== 'admin') {
-    console.log('🚫 AdminPage: User not admin - showing debug or auth form');
+  // Si pas d'utilisateur connecté ou pas admin, afficher le formulaire de connexion
+  if (!user || !isAdmin || profile?.role !== 'admin') {
+    console.log('🚫 AdminPage: User not admin - showing admin auth form');
     return <AdminAuthForm />;
   }
 
   console.log('✅ AdminPage: Admin access granted');
 
-  const handleRefresh = () => {
-    console.log('🔄 AdminPage: Refreshing data...');
+  const getPageTitle = () => {
+    switch (activeTab) {
+      case 'dashboard': return 'Dashboard';
+      case 'subscriptions': return 'Abonnements';
+      case 'repairers': return 'Réparateurs';
+      case 'interest': return 'Demandes d\'intérêt';
+      case 'promocodes': return 'Codes promo';
+      case 'advertising': return 'Publicités';
+      case 'scraping': return 'Scraping';
+      case 'blog': return 'Blog';
+      default: return 'Dashboard';
+    }
+  };
+
+  const getPageSubtitle = () => {
+    switch (activeTab) {
+      case 'dashboard': return 'Vue d\'ensemble de la plateforme RepairHub';
+      case 'subscriptions': return 'Gestion des abonnements réparateurs';
+      case 'repairers': return 'Liste et gestion des réparateurs';
+      case 'interest': return 'Demandes d\'intérêt clients';
+      case 'promocodes': return 'Codes de réduction et promotions';
+      case 'advertising': return 'Banières publicitaires';
+      case 'scraping': return 'Outils de collecte de données';
+      case 'blog': return 'Gestion du contenu éditorial';
+      default: return 'Administration de RepairHub';
+    }
+  };
+
+  const renderContent = () => {
+    if (activeTab === 'dashboard') {
+      return (
+        <DashboardOverview 
+          stats={{
+            totalRepairers: stats?.totalRepairers || 0,
+            totalSubscriptions: stats?.totalSubscriptions || 0,
+            totalInterests: stats?.totalInterests || 0,
+            revenue: stats?.totalRevenue || 0
+          }}
+        />
+      );
+    }
+
+    if (activeTab === 'subscriptions') {
+      return (
+        <AdminDashboardContent 
+          activeTab="subscriptions"
+          subscriptions={subscriptions}
+          repairers={repairers}
+          onViewProfile={() => {}}
+          onRefresh={fetchData}
+        />
+      );
+    }
+
+    if (activeTab === 'repairers') {
+      return (
+        <RepairersTable
+          repairers={repairers}
+          onViewProfile={() => {}}
+          onRefresh={fetchData}
+        />
+      );
+    }
+
+    if (activeTab === 'interest') {
+      return <ClientInterestManagement />;
+    }
+
+    if (activeTab === 'promocodes') {
+      return <PromoCodesManagement />;
+    }
+
+    if (activeTab === 'advertising') {
+      return <AdBannerManagement />;
+    }
+
+    if (activeTab === 'scraping') {
+      return <EnhancedScrapingHub />;
+    }
+
+    if (activeTab === 'blog') {
+      return <BlogManagement />;
+    }
+
+    // Default dashboard
+    return (
+      <DashboardOverview 
+        stats={{
+          totalRepairers: stats?.totalRepairers || 0,
+          totalSubscriptions: stats?.totalSubscriptions || 0,
+          totalInterests: stats?.totalInterests || 0,
+          revenue: stats?.totalRevenue || 0
+        }}
+      />
+    );
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <AdminDashboardHeader onRefresh={handleRefresh} />
-        
-        <div className="mt-8">
-          <AdminNavigationTabs 
-            activeTab={activeTab} 
-            onTabChange={setActiveTab} 
-          />
-          
-          <div className="mt-6">
-            {activeTab === 'subscriptions' && (
-              <AdminDashboardContent 
-                activeTab={activeTab}
-                subscriptions={[]}
-                repairers={[]}
-                onViewProfile={() => {}}
-                onRefresh={handleRefresh}
-              />
-            )}
-            {activeTab === 'repairers' && (
-              <RepairersTable
-                repairers={[]}
-                onViewProfile={() => {}}
-                onRefresh={handleRefresh}
-              />
-            )}
-            {activeTab === 'interest' && <ClientInterestManagement />}
-            {activeTab === 'promocodes' && <PromoCodesManagement />}
-            {activeTab === 'advertising' && <AdBannerManagement />}
-            {activeTab === 'scraping' && <EnhancedScrapingHub />}
-            {activeTab === 'blog' && <BlogManagement />}
-          </div>
-        </div>
-      </div>
+      <AdminLayout
+        title={getPageTitle()}
+        subtitle={getPageSubtitle()}
+        onRefresh={fetchData}
+      >
+        {renderContent()}
+      </AdminLayout>
     </div>
   );
 };
