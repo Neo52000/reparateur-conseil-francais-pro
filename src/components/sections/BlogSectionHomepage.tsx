@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar, Eye, MessageCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,26 +11,28 @@ const BlogSectionHomepage: React.FC = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
 
-  const loadRecentPosts = useCallback(async () => {
+  useEffect(() => {
     if (hasLoaded) return;
     
-    try {
-      const recentPosts = await fetchPosts({
-        visibility: 'public',
-        status: 'published',
-        limit: 6
-      });
-      setPosts(recentPosts);
-      setHasLoaded(true);
-    } catch (error) {
-      console.error('Error loading blog posts:', error);
-      setHasLoaded(true);
-    }
-  }, [fetchPosts, hasLoaded]);
+    const loadRecentPosts = async () => {
+      console.log('🔄 Loading recent blog posts for homepage...');
+      try {
+        const recentPosts = await fetchPosts({
+          visibility: 'public',
+          status: 'published',
+          limit: 6
+        });
+        console.log('✅ Blog posts loaded:', recentPosts?.length || 0);
+        setPosts(recentPosts);
+        setHasLoaded(true);
+      } catch (error) {
+        console.error('❌ Error loading blog posts:', error);
+        setHasLoaded(true);
+      }
+    };
 
-  useEffect(() => {
     loadRecentPosts();
-  }, [loadRecentPosts]);
+  }, [fetchPosts, hasLoaded]);
 
   if (loading && !hasLoaded) {
     return (
@@ -60,6 +61,7 @@ const BlogSectionHomepage: React.FC = () => {
   }
 
   if (!posts.length && hasLoaded) {
+    console.log('⚠️ No blog posts to display on homepage');
     return null;
   }
 

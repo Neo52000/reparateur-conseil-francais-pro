@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { BlogPost } from '@/types/blog';
 import * as blogPostService from './services/blogPostService';
@@ -9,8 +9,8 @@ export const useBlogPosts = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  // Récupération des articles avec filtres
-  const fetchPosts = async (filters?: {
+  // Récupération des articles avec filtres - maintenant mémorisée avec useCallback
+  const fetchPosts = useCallback(async (filters?: {
     visibility?: string;
     category?: string;
     status?: string;
@@ -20,6 +20,7 @@ export const useBlogPosts = () => {
     setLoading(true);
     try {
       const data = await blogPostService.fetchPosts(filters);
+      console.log('📝 Blog posts fetched successfully:', data?.length || 0);
       return data;
     } catch (error) {
       console.error('Error fetching blog posts:', error);
@@ -32,10 +33,10 @@ export const useBlogPosts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   // Récupération d'un article par slug
-  const fetchPostBySlug = async (slug: string) => {
+  const fetchPostBySlug = useCallback(async (slug: string) => {
     try {
       const data = await blogPostService.fetchPostBySlug(slug);
       return data;
@@ -43,10 +44,10 @@ export const useBlogPosts = () => {
       console.error('Error fetching blog post:', error);
       return null;
     }
-  };
+  }, []);
 
   // Création/mise à jour d'un article
-  const savePost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
+  const savePost = useCallback(async (post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
     try {
       const result = await blogPostService.savePost(post);
       toast({
@@ -66,10 +67,10 @@ export const useBlogPosts = () => {
       });
       return null;
     }
-  };
+  }, [toast]);
 
   // Suppression d'un article
-  const deletePost = async (id: string) => {
+  const deletePost = useCallback(async (id: string) => {
     try {
       await blogPostService.deletePost(id);
       toast({
@@ -86,7 +87,7 @@ export const useBlogPosts = () => {
       });
       return false;
     }
-  };
+  }, [toast]);
 
   return {
     loading,
