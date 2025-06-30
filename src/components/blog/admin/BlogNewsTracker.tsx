@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { RefreshCw, Newspaper, Settings, Save, Play } from 'lucide-react';
+import { RefreshCw, Newspaper, Settings, Save, Play, Copy, Download, List, FileText, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -24,6 +23,7 @@ const BlogNewsTracker: React.FC = () => {
   const [newsData, setNewsData] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   // Charger le prompt sauvegardé au démarrage
   useEffect(() => {
@@ -108,6 +108,90 @@ const BlogNewsTracker: React.FC = () => {
     }
   };
 
+  const copyToClipboard = async (text: string, index?: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      if (typeof index === 'number') {
+        setCopiedIndex(index);
+        setTimeout(() => setCopiedIndex(null), 2000);
+      }
+      toast({
+        title: "Copié !",
+        description: "Le contenu a été copié dans le presse-papiers"
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de copier le contenu",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const copyAllNews = () => {
+    const allNewsText = newsData.map((item, index) => 
+      `${index + 1}. **${item.title}**\n${item.summary}\n${item.date ? `Date: ${item.date}` : ''}${item.source ? ` - Source: ${item.source}` : ''}\n`
+    ).join('\n');
+    
+    copyToClipboard(allNewsText);
+  };
+
+  const exportNews = () => {
+    const exportText = `# Actualités Mobiles - ${new Date().toLocaleDateString('fr-FR')}\n\n${newsData.map((item, index) => 
+      `## ${index + 1}. ${item.title}\n\n${item.summary}\n\n**Date:** ${item.date || 'Non spécifiée'}\n**Source:** ${item.source || 'Non spécifiée'}\n\n---\n`
+    ).join('\n')}`;
+
+    const blob = new Blob([exportText], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `actualites-mobiles-${new Date().toISOString().split('T')[0]}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export réussi",
+      description: "Les actualités ont été exportées en fichier Markdown"
+    });
+  };
+
+  const generateBlogPost = async (newsItem: NewsItem) => {
+    try {
+      const blogPrompt = `Écris un article de blog professionnel en français basé sur cette actualité mobile :
+
+Titre: ${newsItem.title}
+Contenu: ${newsItem.summary}
+Date: ${newsItem.date}
+Source: ${newsItem.source || 'Non spécifiée'}
+
+Structure l'article avec une introduction engageante, un développement détaillé et une conclusion. Ajoute des conseils pratiques pour les utilisateurs et réparateurs de smartphones si pertinent.`;
+
+      const { data, error } = await supabase.functions.invoke('generate-blog-content', {
+        body: {
+          prompt: blogPrompt,
+          ai_model: 'perplexity',
+          visibility: 'public'
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Article généré !",
+        description: "Un article de blog a été créé à partir de cette actualité"
+      });
+    } catch (error) {
+      console.error('Error generating blog post:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer l'article de blog",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -164,26 +248,82 @@ const BlogNewsTracker: React.FC = () => {
       {newsData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Actualités récupérées ({newsData.length})</CardTitle>
-            <CardDescription>
-              Dernières actualités dans la téléphonie mobile
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <List className="h-5 w-5" />
+                  Actualités récupérées ({newsData.length})
+                </CardTitle>
+                <CardDescription>
+                  Dernières actualités dans la téléphonie mobile
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={copyAllNews} variant="outline" size="sm">
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copier tout
+                </Button>
+                <Button onClick={exportNews} variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Exporter
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {newsData.map((item, index) => (
-                <div key={index} className="border rounded-lg p-4">
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg">{item.title}</h3>
-                    {item.source && (
-                      <Badge variant="secondary" className="text-xs">
-                        {item.source}
-                      </Badge>
-                    )}
-                    <p className="text-gray-700 leading-relaxed">{item.summary}</p>
-                    {item.date && (
-                      <p className="text-sm text-muted-foreground">{item.date}</p>
-                    )}
+                <div key={index} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                            #{index + 1}
+                          </span>
+                          {item.source && (
+                            <Badge variant="secondary" className="text-xs">
+                              {item.source}
+                            </Badge>
+                          )}
+                          {item.date && (
+                            <span className="text-xs text-muted-foreground">
+                              {item.date}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-semibold text-lg mb-2 text-gray-900">
+                          {item.title}
+                        </h3>
+                        <p className="text-gray-700 leading-relaxed text-sm">
+                          {item.summary}
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-2 ml-4">
+                        <Button
+                          onClick={() => copyToClipboard(`**${item.title}**\n\n${item.summary}\n\nDate: ${item.date || 'Non spécifiée'}\nSource: ${item.source || 'Non spécifiée'}`, index)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          title="Copier cette actualité"
+                        >
+                          {copiedIndex === index ? (
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          onClick={() => generateBlogPost(item)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          title="Générer un article de blog"
+                        >
+                          <FileText className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                   {index < newsData.length - 1 && <Separator className="mt-4" />}
                 </div>
