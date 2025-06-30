@@ -39,7 +39,7 @@ serve(async (req) => {
     console.log('🚀 Generating blog content with:', { template_id, ai_model, visibility });
 
     let finalPrompt = prompt;
-    let finalModel = ai_model || 'openai'; // Utiliser le modèle passé en paramètre ou OpenAI par défaut
+    let finalModel = ai_model || 'perplexity'; // Changer le défaut vers Perplexity
     let finalCategoryId = category_id;
     let finalVisibility = visibility || 'public';
 
@@ -64,8 +64,7 @@ serve(async (req) => {
       }
 
       finalPrompt = template.prompt_template;
-      // Utiliser le modèle passé en paramètre, sinon celui du template, sinon OpenAI par défaut
-      finalModel = ai_model || template.ai_model || 'openai';
+      finalModel = ai_model || template.ai_model || 'perplexity';
       finalCategoryId = template.category_id;
       finalVisibility = template.visibility;
       console.log('✅ Template loaded successfully');
@@ -88,8 +87,16 @@ serve(async (req) => {
     console.log('📝 Final prompt prepared, length:', finalPrompt.length);
     console.log('🤖 Using AI model:', finalModel);
 
-    // Vérifier qu'on a au moins une clé API
-    if (!openAIApiKey && !mistralApiKey && !perplexityApiKey) {
+    // Vérifier la disponibilité des clés API
+    const availableAPIs = {
+      perplexity: !!perplexityApiKey,
+      openai: !!openAIApiKey,
+      mistral: !!mistralApiKey
+    };
+
+    console.log('🔑 Available APIs:', availableAPIs);
+
+    if (!availableAPIs.perplexity && !availableAPIs.openai && !availableAPIs.mistral) {
       console.error('❌ Aucune clé API disponible');
       return new Response(JSON.stringify({ 
         error: 'Aucune clé API configurée (OpenAI, Mistral ou Perplexity)',
@@ -100,140 +107,95 @@ serve(async (req) => {
       });
     }
 
-    // Générer le contenu selon le modèle choisi
+    // Générer le contenu selon le modèle choisi avec fallback
     let generatedContent = '';
     let title = '';
     let excerpt = '';
+    let usedModel = finalModel;
 
+    // Essayer avec l'IA demandée, puis fallback sur les autres
     try {
       if (finalModel === 'perplexity' && perplexityApiKey) {
         console.log('🔄 Attempting Perplexity generation...');
-        await generateWithPerplexity();
+        const result = await generateWithPerplexity(finalPrompt);
+        parseGeneratedContent(result);
       } else if (finalModel === 'mistral' && mistralApiKey) {
         console.log('🔄 Attempting Mistral generation...');
-        await generateWithMistral();
+        const result = await generateWithMistral(finalPrompt);
+        parseGeneratedContent(result);
       } else if (finalModel === 'openai' && openAIApiKey) {
         console.log('🔄 Attempting OpenAI generation...');
-        await generateWithOpenAI();
+        const result = await generateWithOpenAI(finalPrompt);
+        parseGeneratedContent(result);
       } else {
         // Fallback sur la première IA disponible
-        if (openAIApiKey) {
-          console.log('🔄 Falling back to OpenAI...');
-          await generateWithOpenAI();
+        if (perplexityApiKey) {
+          console.log('🔄 Falling back to Perplexity...');
+          const result = await generateWithPerplexity(finalPrompt);
+          parseGeneratedContent(result);
+          usedModel = 'perplexity';
         } else if (mistralApiKey) {
           console.log('🔄 Falling back to Mistral...');
-          await generateWithMistral();
-        } else if (perplexityApiKey) {
-          console.log('🔄 Falling back to Perplexity...');
-          await generateWithPerplexity();
+          const result = await generateWithMistral(finalPrompt);
+          parseGeneratedContent(result);
+          usedModel = 'mistral';
+        } else if (openAIApiKey) {
+          console.log('🔄 Falling back to OpenAI...');
+          const result = await generateWithOpenAI(finalPrompt);
+          parseGeneratedContent(result);
+          usedModel = 'openai';
         } else {
           throw new Error('Aucune clé API disponible pour la génération');
         }
       }
-    } catch (error) {
-      console.error('❌ Generation failed:', error);
-      return new Response(JSON.stringify({ 
-        error: `Génération IA échouée: ${error.message}`,
-        success: false 
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    } catch (apiError) {
+      console.error(`❌ Error with ${finalModel}:`, apiError);
+      
+      // Essayer avec une autre IA en cas d'échec
+      const alternatives = Object.entries(availableAPIs)
+        .filter(([key, available]) => key !== finalModel && available)
+        .map(([key]) => key);
+
+      if (alternatives.length > 0) {
+        console.log(`🔄 Trying fallback with ${alternatives[0]}...`);
+        try {
+          if (alternatives[0] === 'perplexity') {
+            const result = await generateWithPerplexity(finalPrompt);
+            parseGeneratedContent(result);
+            usedModel = 'perplexity';
+          } else if (alternatives[0] === 'mistral') {
+            const result = await generateWithMistral(finalPrompt);
+            parseGeneratedContent(result);
+            usedModel = 'mistral';
+          } else if (alternatives[0] === 'openai') {
+            const result = await generateWithOpenAI(finalPrompt);
+            parseGeneratedContent(result);
+            usedModel = 'openai';
+          }
+        } catch (fallbackError) {
+          console.error(`❌ Fallback also failed:`, fallbackError);
+          throw new Error(`Génération échouée avec ${finalModel} et ${alternatives[0]}. Vérifiez vos clés API.`);
+        }
+      } else {
+        throw new Error(`Génération échouée avec ${finalModel}. ${apiError.message}`);
+      }
     }
 
-    async function generateWithOpenAI() {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `Tu es un expert rédacteur pour un blog de réparation de smartphones. 
-              Génère un article de blog professionnel en français avec :
-              1. Un titre accrocheur
-              2. Un extrait de 2-3 phrases
-              3. Un contenu détaillé et informatif (800-1200 mots)
-              
-              Format de réponse :
-              TITRE: [titre ici]
-              EXTRAIT: [extrait ici]
-              CONTENU: [contenu ici]`
-            },
-            {
-              role: 'user',
-              content: finalPrompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 2000
-        }),
-      });
+    function parseGeneratedContent(rawContent: string) {
+      const titleMatch = rawContent.match(/TITRE:\s*(.+)/);
+      const excerptMatch = rawContent.match(/EXTRAIT:\s*(.+?)(?=\nCONTENU:)/s);
+      const contentMatch = rawContent.match(/CONTENU:\s*([\s\S]+)/);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ OpenAI API error:', response.status, errorText);
-        throw new Error(`OpenAI API error: ${response.status}`);
+      title = titleMatch ? titleMatch[1].trim() : 'Article généré par IA';
+      excerpt = excerptMatch ? excerptMatch[1].trim() : '';
+      generatedContent = contentMatch ? contentMatch[1].trim() : rawContent;
+    }
+
+    async function generateWithPerplexity(prompt: string): Promise<string> {
+      if (!perplexityApiKey) {
+        throw new Error('Clé API Perplexity non configurée');
       }
 
-      const data = await response.json();
-      const rawContent = data.choices[0].message.content;
-      
-      parseGeneratedContent(rawContent);
-      console.log('✅ OpenAI generation successful');
-    }
-
-    async function generateWithMistral() {
-      const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${mistralApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'mistral-small-latest',
-          messages: [
-            {
-              role: 'system',
-              content: `Tu es un expert rédacteur pour un blog de réparation de smartphones. 
-              Génère un article de blog professionnel en français avec :
-              1. Un titre accrocheur
-              2. Un extrait de 2-3 phrases
-              3. Un contenu détaillé et informatif (800-1200 mots)
-              
-              Format de réponse :
-              TITRE: [titre ici]
-              EXTRAIT: [extrait ici]
-              CONTENU: [contenu ici]`
-            },
-            {
-              role: 'user',
-              content: finalPrompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 2000
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Mistral API error:', response.status, errorText);
-        throw new Error(`Mistral API error: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      const rawContent = data.choices[0].message.content;
-      
-      parseGeneratedContent(rawContent);
-      console.log('✅ Mistral generation successful');
-    }
-
-    async function generateWithPerplexity() {
       const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
@@ -259,7 +221,7 @@ serve(async (req) => {
             },
             {
               role: 'user',
-              content: finalPrompt
+              content: prompt
             }
           ],
           temperature: 0.2,
@@ -280,20 +242,113 @@ serve(async (req) => {
       }
 
       const data = await response.json();
-      const rawContent = data.choices[0].message.content;
-      
-      parseGeneratedContent(rawContent);
-      console.log('✅ Perplexity generation successful');
+      return data.choices[0].message.content;
     }
 
-    function parseGeneratedContent(rawContent: string) {
-      const titleMatch = rawContent.match(/TITRE:\s*(.+)/);
-      const excerptMatch = rawContent.match(/EXTRAIT:\s*(.+?)(?=\nCONTENU:)/s);
-      const contentMatch = rawContent.match(/CONTENU:\s*([\s\S]+)/);
+    async function generateWithMistral(prompt: string): Promise<string> {
+      if (!mistralApiKey) {
+        throw new Error('Clé API Mistral non configurée');
+      }
 
-      title = titleMatch ? titleMatch[1].trim() : 'Article généré par IA';
-      excerpt = excerptMatch ? excerptMatch[1].trim() : '';
-      generatedContent = contentMatch ? contentMatch[1].trim() : rawContent;
+      const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${mistralApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'mistral-small-latest',
+          messages: [
+            {
+              role: 'system',
+              content: `Tu es un expert rédacteur pour un blog de réparation de smartphones. 
+              Génère un article de blog professionnel en français avec :
+              1. Un titre accrocheur
+              2. Un extrait de 2-3 phrases
+              3. Un contenu détaillé et informatif (800-1200 mots)
+              
+              Format de réponse :
+              TITRE: [titre ici]
+              EXTRAIT: [extrait ici]
+              CONTENU: [contenu ici]`
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 2000
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Mistral API error:', response.status, errorText);
+        throw new Error(`Mistral API error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
+    }
+
+    async function generateWithOpenAI(prompt: string): Promise<string> {
+      if (!openAIApiKey) {
+        throw new Error('Clé API OpenAI non configurée');
+      }
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `Tu es un expert rédacteur pour un blog de réparation de smartphones. 
+              Génère un article de blog professionnel en français avec :
+              1. Un titre accrocheur
+              2. Un extrait de 2-3 phrases
+              3. Un contenu détaillé et informatif (800-1200 mots)
+              
+              Format de réponse :
+              TITRE: [titre ici]
+              EXTRAIT: [extrait ici]
+              CONTENU: [contenu ici]`
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 2000
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ OpenAI API error:', response.status, errorText);
+        
+        // Parser l'erreur pour avoir plus de détails
+        let errorDetail = `OpenAI API error: ${response.status}`;
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.error?.message) {
+            errorDetail = errorData.error.message;
+          }
+        } catch (e) {
+          // Garder le message par défaut
+        }
+        
+        throw new Error(errorDetail);
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content;
     }
 
     // Générer un slug à partir du titre
@@ -323,7 +378,7 @@ serve(async (req) => {
         visibility: finalVisibility,
         status: 'draft',
         ai_generated: true,
-        ai_model: finalModel,
+        ai_model: usedModel,
         generation_prompt: finalPrompt,
         view_count: 0,
         comment_count: 0,
@@ -348,8 +403,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       success: true,
       post: post,
-      ai_model: finalModel,
-      message: `Article généré et créé avec succès via ${finalModel}`
+      ai_model: usedModel,
+      message: `Article généré et créé avec succès via ${usedModel}`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
