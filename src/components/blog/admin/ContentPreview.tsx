@@ -67,8 +67,11 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({ content, title = "Aper√
               li: ({ children }) => (
                 <li className="text-gray-700">{children}</li>
               ),
-              code: ({ inline, children, ...props }) => (
-                inline ? (
+              code: ({ children, className, ...props }) => {
+                const match = /language-(\w+)/.exec(className || '');
+                const isInline = !match;
+                
+                return isInline ? (
                   <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono text-gray-800" {...props}>
                     {children}
                   </code>
@@ -76,8 +79,8 @@ const ContentPreview: React.FC<ContentPreviewProps> = ({ content, title = "Aper√
                   <code className="block bg-gray-100 p-3 rounded text-sm font-mono overflow-x-auto" {...props}>
                     {children}
                   </code>
-                )
-              ),
+                );
+              },
               pre: ({ children }) => (
                 <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4">
                   {children}
