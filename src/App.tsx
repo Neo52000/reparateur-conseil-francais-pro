@@ -14,7 +14,6 @@ import RepairerDashboardPage from '@/pages/RepairerDashboardPage';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import CookiesPolicy from '@/pages/CookiesPolicy';
-import BlogPage from '@/pages/BlogPage';
 import { Toaster } from '@/components/ui/toaster';
 import RepairWorkflowPage from '@/pages/RepairWorkflowPage';
 
@@ -28,7 +27,6 @@ function App() {
           <Toaster />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/blog" element={<BlogPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/admin/features" element={<AdminFeaturesPage />} />
             <Route path="/admin/catalog" element={<AdminCatalogPage />} />
