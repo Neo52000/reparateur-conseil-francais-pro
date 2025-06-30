@@ -22,7 +22,12 @@ const BlogRepairerPage: React.FC = () => {
   };
 
   return (
-    <BlogLayout title="Blog Réparateurs" subtitle="Ressources et actualités pour les professionnels">
+    <BlogLayout 
+      title="Blog Réparateurs" 
+      subtitle="Ressources et actualités pour les professionnels"
+      backButtonUrl="/repairer"
+      backButtonText="Retour à l'espace réparateur"
+    >
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {[...Array(6)].map((_, i) => (

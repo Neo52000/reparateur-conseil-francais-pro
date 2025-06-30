@@ -9,13 +9,17 @@ interface BlogLayoutProps {
   title?: string;
   subtitle?: string;
   showBackButton?: boolean;
+  backButtonUrl?: string;
+  backButtonText?: string;
 }
 
 const BlogLayout: React.FC<BlogLayoutProps> = ({ 
   children, 
   title = "Blog", 
   subtitle = "Nos derniers articles et conseils",
-  showBackButton = true 
+  showBackButton = true,
+  backButtonUrl = "/",
+  backButtonText = "Retour à l'accueil"
 }) => {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -23,10 +27,10 @@ const BlogLayout: React.FC<BlogLayoutProps> = ({
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {showBackButton && (
-            <Link to="/">
+            <Link to={backButtonUrl}>
               <Button variant="ghost" className="mb-4">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Retour à l'accueil
+                {backButtonText}
               </Button>
             </Link>
           )}

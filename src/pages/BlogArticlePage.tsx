@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, Calendar, Eye, MessageCircle, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,9 +11,14 @@ import { fr } from 'date-fns/locale';
 
 const BlogArticlePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
   const { fetchPostBySlug, loading } = useBlog();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [notFound, setNotFound] = useState(false);
+
+  // Déterminer si on vient du blog réparateurs
+  const isFromRepairersBlog = location.pathname.includes('/blog/repairers') || 
+                              (post && post.visibility === 'repairers');
 
   useEffect(() => {
     if (!slug) return;
@@ -92,17 +97,35 @@ const BlogArticlePage: React.FC = () => {
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex gap-4">
-            <Link to="/">
-              <Button variant="ghost">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Retour à l'accueil
-              </Button>
-            </Link>
-            <Link to="/blog">
-              <Button variant="outline">
-                Retour au blog
-              </Button>
-            </Link>
+            {isFromRepairersBlog ? (
+              <>
+                <Link to="/repairer">
+                  <Button variant="ghost">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Retour à l'espace réparateur
+                  </Button>
+                </Link>
+                <Link to="/blog/repairers">
+                  <Button variant="outline">
+                    Retour au blog réparateurs
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/">
+                  <Button variant="ghost">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Retour à l'accueil
+                  </Button>
+                </Link>
+                <Link to="/blog">
+                  <Button variant="outline">
+                    Retour au blog
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
