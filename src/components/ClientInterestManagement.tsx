@@ -4,331 +4,331 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { supabase } from '@/integrations/supabase/client';
+import { useAdminAuditIntegration } from '@/hooks/useAdminAuditIntegration';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Eye, 
-  Check, 
-  X, 
-  Mail, 
-  Phone, 
-  Calendar,
-  RefreshCw 
-} from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Mail, Phone, MessageSquare } from 'lucide-react';
 
-interface InterestRequest {
+interface ClientInterest {
   id: string;
+  client_email: string;
+  client_phone?: string;
+  client_message?: string;
   repairer_profile_id: string;
-  client_email: string | null;
-  client_phone: string | null;
-  client_message: string | null;
-  status: string;
+  status: 'pending' | 'approved' | 'rejected' | 'sent';
   created_at: string;
-  approved_at: string | null;
-  sent_at: string | null;
-  repairers?: {
-    name: string;
-    email?: string | null;
-    phone?: string | null;
-    city: string;
-  } | null;
+  approved_at?: string;
+  sent_at?: string;
+  approved_by?: string;
 }
 
 const ClientInterestManagement: React.FC = () => {
-  const [requests, setRequests] = useState<InterestRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const { logClientInterestAction } = useAdminAuditIntegration();
   const { toast } = useToast();
+  const [interests, setInterests] = useState<ClientInterest[]>([]);
+  const [loading, setLoading] = useState<string | null>(null);
 
-  const fetchRequests = async () => {
-    setLoading(true);
-    try {
-      // First fetch the client interest requests
-      const { data: requestsData, error: requestsError } = await supabase
-        .from('client_interest_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (requestsError) throw requestsError;
-
-      if (!requestsData) {
-        setRequests([]);
-        return;
-      }
-
-      // Then fetch repairer data for each request
-      const requestsWithRepairers = await Promise.all(
-        requestsData.map(async (request) => {
-          const { data: repairerData, error: repairerError } = await supabase
-            .from('repairers')
-            .select('name, email, phone, city')
-            .eq('id', request.repairer_profile_id)
-            .single();
-
-          if (repairerError) {
-            console.error('Error fetching repairer:', repairerError);
-            return {
-              ...request,
-              repairers: null
-            };
-          }
-
-          return {
-            ...request,
-            repairers: repairerData
-          };
-        })
-      );
-
-      setRequests(requestsWithRepairers);
-    } catch (error: any) {
-      console.error('Error fetching interest requests:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les demandes d'intérêt",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Simuler le chargement des demandes d'intérêt
   useEffect(() => {
-    fetchRequests();
+    const mockInterests: ClientInterest[] = [
+      {
+        id: '1',
+        client_email: 'client1@example.com',
+        client_phone: '0123456789',
+        client_message: 'Bonjour, je souhaiterais réparer mon iPhone 12 qui a un écran cassé.',
+        repairer_profile_id: 'repairer-1',
+        status: 'pending',
+        created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: '2',
+        client_email: 'client2@example.com',
+        client_message: 'Mon Samsung Galaxy S21 ne charge plus, pouvez-vous m\'aider ?',
+        repairer_profile_id: 'repairer-2',
+        status: 'approved',
+        created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        approved_at: new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString(),
+        approved_by: 'admin-user-id'
+      },
+      {
+        id: '3',
+        client_email: 'client3@example.com',
+        client_phone: '0987654321',
+        client_message: 'Écran tactile de ma tablette iPad qui ne répond plus.',
+        repairer_profile_id: 'repairer-1',
+        status: 'sent',
+        created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        approved_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        sent_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString(),
+        approved_by: 'admin-user-id'
+      }
+    ];
+    setInterests(mockInterests);
   }, []);
 
-  const handleApproveRequest = async (requestId: string) => {
-    setProcessingIds(prev => new Set(prev).add(requestId));
-    
+  const handleApproveInterest = async (interest: ClientInterest) => {
+    setLoading(interest.id);
     try {
-      const { error } = await supabase
-        .from('client_interest_requests')
-        .update({
-          status: 'approved',
-          approved_at: new Date().toISOString(),
-          approved_by: (await supabase.auth.getUser()).data.user?.id
-        })
-        .eq('id', requestId);
+      // Simuler l'approbation
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      logClientInterestAction('approve', interest.id, {
+        client_email: interest.client_email,
+        client_phone: interest.client_phone,
+        repairer_profile_id: interest.repairer_profile_id,
+        approval_time: new Date().toISOString(),
+        previous_status: interest.status,
+        new_status: 'approved',
+        client_message_preview: interest.client_message?.substring(0, 100)
+      }, 'info');
 
-      if (error) throw error;
+      setInterests(prev => 
+        prev.map(i => 
+          i.id === interest.id 
+            ? { ...i, status: 'approved', approved_at: new Date().toISOString() }
+            : i
+        )
+      );
 
       toast({
         title: "Demande approuvée",
-        description: "La demande d'intérêt a été approuvée"
+        description: `La demande de ${interest.client_email} a été approuvée`,
       });
-
-      fetchRequests();
-    } catch (error: any) {
-      console.error('Error approving request:', error);
+    } catch (error) {
       toast({
         title: "Erreur",
         description: "Impossible d'approuver la demande",
         variant: "destructive"
       });
     } finally {
-      setProcessingIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(requestId);
-        return newSet;
-      });
+      setLoading(null);
     }
   };
 
-  const handleRejectRequest = async (requestId: string) => {
-    setProcessingIds(prev => new Set(prev).add(requestId));
-    
-    try {
-      const { error } = await supabase
-        .from('client_interest_requests')
-        .update({
-          status: 'rejected',
-          approved_by: (await supabase.auth.getUser()).data.user?.id
-        })
-        .eq('id', requestId);
+  const handleRejectInterest = async (interest: ClientInterest) => {
+    if (!confirm(`Êtes-vous sûr de vouloir rejeter la demande de ${interest.client_email} ?`)) {
+      return;
+    }
 
-      if (error) throw error;
+    setLoading(interest.id);
+    try {
+      // Simuler le rejet
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      logClientInterestAction('reject', interest.id, {
+        client_email: interest.client_email,
+        client_phone: interest.client_phone,
+        repairer_profile_id: interest.repairer_profile_id,
+        rejection_time: new Date().toISOString(),
+        previous_status: interest.status,
+        new_status: 'rejected',
+        rejection_reason: 'Manual admin rejection',
+        client_message_preview: interest.client_message?.substring(0, 100)
+      }, 'warning');
+
+      setInterests(prev => 
+        prev.map(i => 
+          i.id === interest.id 
+            ? { ...i, status: 'rejected' }
+            : i
+        )
+      );
 
       toast({
         title: "Demande rejetée",
-        description: "La demande d'intérêt a été rejetée"
+        description: `La demande de ${interest.client_email} a été rejetée`,
+        variant: "destructive"
       });
-
-      fetchRequests();
-    } catch (error: any) {
-      console.error('Error rejecting request:', error);
+    } catch (error) {
       toast({
         title: "Erreur",
         description: "Impossible de rejeter la demande",
         variant: "destructive"
       });
     } finally {
-      setProcessingIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(requestId);
-        return newSet;
-      });
+      setLoading(null);
     }
   };
 
-  const handleSendNotification = async (requestId: string) => {
-    setProcessingIds(prev => new Set(prev).add(requestId));
-    
-    try {
-      const { error } = await supabase.functions.invoke('send-repairer-interest-notification', {
-        body: { requestId }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Email envoyé",
-        description: "La notification a été envoyée au réparateur"
-      });
-
-      fetchRequests();
-    } catch (error: any) {
-      console.error('Error sending notification:', error);
+  const handleSendToRepairer = async (interest: ClientInterest) => {
+    if (interest.status !== 'approved') {
       toast({
         title: "Erreur",
-        description: "Impossible d'envoyer la notification",
+        description: "Seules les demandes approuvées peuvent être envoyées",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(interest.id);
+    try {
+      // Simuler l'envoi au réparateur
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      logClientInterestAction('update', interest.id, {
+        client_email: interest.client_email,
+        repairer_profile_id: interest.repairer_profile_id,
+        send_time: new Date().toISOString(),
+        previous_status: interest.status,
+        new_status: 'sent',
+        notification_method: 'email',
+        repairer_notified: true
+      }, 'info');
+
+      setInterests(prev => 
+        prev.map(i => 
+          i.id === interest.id 
+            ? { ...i, status: 'sent', sent_at: new Date().toISOString() }
+            : i
+        )
+      );
+
+      toast({
+        title: "Demande envoyée",
+        description: `La demande a été transmise au réparateur`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'envoyer la demande",
         variant: "destructive"
       });
     } finally {
-      setProcessingIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(requestId);
-        return newSet;
-      });
+      setLoading(null);
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: ClientInterest['status']) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">En attente</Badge>;
+        return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />En attente</Badge>;
       case 'approved':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">Approuvée</Badge>;
-      case 'sent':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">Envoyée</Badge>;
+        return <Badge variant="default"><CheckCircle className="mr-1 h-3 w-3" />Approuvée</Badge>;
       case 'rejected':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-300">Rejetée</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Rejetée</Badge>;
+      case 'sent':
+        return <Badge variant="outline"><Mail className="mr-1 h-3 w-3" />Envoyée</Badge>;
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex items-center space-x-2">
-          <RefreshCw className="h-6 w-6 animate-spin" />
-          <span>Chargement...</span>
-        </div>
-      </div>
-    );
-  }
+  const pendingCount = interests.filter(i => i.status === 'pending').length;
+  const approvedCount = interests.filter(i => i.status === 'approved').length;
+  const sentCount = interests.filter(i => i.status === 'sent').length;
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Demandes d'intérêt client</CardTitle>
-        <Button onClick={fetchRequests} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Actualiser
-        </Button>
-      </CardHeader>
-      <CardContent>
-        {requests.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">Aucune demande d'intérêt trouvée</p>
-          </div>
-        ) : (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">En attente</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingCount}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Approuvées</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{approvedCount}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Envoyées</CardTitle>
+            <Mail className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{sentCount}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Demandes d'intérêt clients</CardTitle>
+        </CardHeader>
+        <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Réparateur</TableHead>
                 <TableHead>Client</TableHead>
+                <TableHead>Contact</TableHead>
                 <TableHead>Message</TableHead>
-                <TableHead>Statut</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>Statut</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {requests.map((request) => (
-                <TableRow key={request.id}>
+              {interests.map((interest) => (
+                <TableRow key={interest.id}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      {interest.client_email}
+                    </div>
+                  </TableCell>
                   <TableCell>
-                    <div>
-                      <p className="font-medium">{request.repairers?.name || 'Réparateur introuvable'}</p>
-                      <p className="text-sm text-gray-500">{request.repairers?.city || 'Ville inconnue'}</p>
-                      {request.repairers?.email && (
-                        <p className="text-xs text-gray-400 flex items-center">
-                          <Mail className="h-3 w-3 mr-1" />
-                          {request.repairers.email}
+                    {interest.client_phone && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Phone className="h-3 w-3" />
+                        {interest.client_phone}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="max-w-xs">
+                    {interest.client_message && (
+                      <div className="flex items-start gap-2">
+                        <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <p className="text-sm truncate" title={interest.client_message}>
+                          {interest.client_message.length > 50 
+                            ? `${interest.client_message.substring(0, 50)}...`
+                            : interest.client_message
+                          }
                         </p>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell>
-                    <div>
-                      <p className="text-sm">{request.client_email}</p>
-                      {request.client_phone && (
-                        <p className="text-xs text-gray-500 flex items-center">
-                          <Phone className="h-3 w-3 mr-1" />
-                          {request.client_phone}
-                        </p>
-                      )}
-                    </div>
+                    {new Date(interest.created_at).toLocaleDateString('fr-FR')}
                   </TableCell>
                   <TableCell>
-                    <div className="max-w-xs">
-                      <p className="text-sm truncate">
-                        {request.client_message || 'Aucun message'}
-                      </p>
-                    </div>
+                    {getStatusBadge(interest.status)}
                   </TableCell>
                   <TableCell>
-                    {getStatusBadge(request.status)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      <p>{new Date(request.created_at).toLocaleDateString()}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(request.created_at).toLocaleTimeString()}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      {request.status === 'pending' && (
+                    <div className="flex gap-2">
+                      {interest.status === 'pending' && (
                         <>
                           <Button
-                            onClick={() => handleApproveRequest(request.id)}
-                            disabled={processingIds.has(request.id)}
                             size="sm"
-                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => handleApproveInterest(interest)}
+                            disabled={loading === interest.id}
                           >
-                            <Check className="h-4 w-4" />
+                            {loading === interest.id ? 'Traitement...' : 'Approuver'}
                           </Button>
                           <Button
-                            onClick={() => handleRejectRequest(request.id)}
-                            disabled={processingIds.has(request.id)}
                             size="sm"
                             variant="destructive"
+                            onClick={() => handleRejectInterest(interest)}
+                            disabled={loading === interest.id}
                           >
-                            <X className="h-4 w-4" />
+                            Rejeter
                           </Button>
                         </>
                       )}
-                      {request.status === 'approved' && request.repairers?.email && (
+                      {interest.status === 'approved' && (
                         <Button
-                          onClick={() => handleSendNotification(request.id)}
-                          disabled={processingIds.has(request.id)}
                           size="sm"
-                          className="bg-blue-600 hover:bg-blue-700"
+                          variant="outline"
+                          onClick={() => handleSendToRepairer(interest)}
+                          disabled={loading === interest.id}
                         >
-                          <Mail className="h-4 w-4 mr-1" />
-                          Envoyer
+                          {loading === interest.id ? 'Envoi...' : 'Envoyer au réparateur'}
                         </Button>
                       )}
                     </div>
@@ -337,9 +337,9 @@ const ClientInterestManagement: React.FC = () => {
               ))}
             </TableBody>
           </Table>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

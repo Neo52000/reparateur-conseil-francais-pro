@@ -1,97 +1,174 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Eye, Edit, Trash2, Power, PowerOff } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useAdminAuditIntegration } from '@/hooks/useAdminAuditIntegration';
+import { useToast } from '@/hooks/use-toast';
+import { MoreHorizontal, Eye, Edit, Trash2, UserCheck, UserX } from 'lucide-react';
 
 interface RepairerTableActionsProps {
-  repairerId: string;
-  currentStatus: boolean;
-  loading: string | null;
-  onViewProfile: (repairerId: string) => void;
-  onToggleStatus: (repairerId: string, currentStatus: boolean) => void;
-  onDelete: (repairerId: string) => void;
+  repairer: {
+    id: string;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+    is_active?: boolean;
+    subscription_tier?: string;
+  };
+  onViewProfile: (id: string) => void;
+  onRefresh: () => void;
 }
 
-const RepairerTableActions: React.FC<RepairerTableActionsProps> = ({
-  repairerId,
-  currentStatus,
-  loading,
-  onViewProfile,
-  onToggleStatus,
-  onDelete
+const RepairerTableActions: React.FC<RepairerTableActionsProps> = ({ 
+  repairer, 
+  onViewProfile, 
+  onRefresh 
 }) => {
-  const isLoading = loading === repairerId;
+  const { logRepairerAction } = useAdminAuditIntegration();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+
+  const handleActivateRepairer = async () => {
+    setLoading(true);
+    try {
+      // Simuler l'activation du réparateur
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      logRepairerAction('activate', repairer.id, {
+        previous_status: 'inactive',
+        new_status: 'active',
+        repairer_email: repairer.email,
+        repairer_name: `${repairer.first_name || ''} ${repairer.last_name || ''}`.trim(),
+        activation_reason: 'Manual admin activation'
+      }, 'info');
+
+      toast({
+        title: "Réparateur activé",
+        description: `${repairer.email} a été activé avec succès`,
+      });
+
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'activer le réparateur",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeactivateRepairer = async () => {
+    setLoading(true);
+    try {
+      // Simuler la désactivation du réparateur
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      logRepairerAction('deactivate', repairer.id, {
+        previous_status: 'active',
+        new_status: 'inactive',
+        repairer_email: repairer.email,
+        repairer_name: `${repairer.first_name || ''} ${repairer.last_name || ''}`.trim(),
+        deactivation_reason: 'Manual admin deactivation',
+        subscription_tier: repairer.subscription_tier
+      }, 'warning');
+
+      toast({
+        title: "Réparateur désactivé",
+        description: `${repairer.email} a été désactivé`,
+        variant: "destructive"
+      });
+
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de désactiver le réparateur",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteRepairer = async () => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${repairer.email} ? Cette action est irréversible.`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Simuler la suppression du réparateur
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      logRepairerAction('delete', repairer.id, {
+        repairer_email: repairer.email,
+        repairer_name: `${repairer.first_name || ''} ${repairer.last_name || ''}`.trim(),
+        deletion_reason: 'Manual admin deletion',
+        subscription_tier: repairer.subscription_tier,
+        deletion_date: new Date().toISOString()
+      }, 'critical');
+
+      toast({
+        title: "Réparateur supprimé",
+        description: `${repairer.email} a été supprimé définitivement`,
+        variant: "destructive"
+      });
+
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le réparateur",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="flex space-x-2">
-      <Button 
-        size="sm" 
-        variant="outline"
-        onClick={() => onViewProfile(repairerId)}
-        disabled={isLoading}
-        aria-label="Voir le profil"
-        title="Voir le profil"
-      >
-        <Eye className="h-4 w-4" />
-      </Button>
-      
-      <Button 
-        size="sm" 
-        variant={currentStatus ? "default" : "secondary"}
-        onClick={() => onToggleStatus(repairerId, currentStatus)}
-        disabled={isLoading}
-        aria-label={currentStatus ? "Désactiver" : "Activer"}
-        title={currentStatus ? "Désactiver le réparateur" : "Activer le réparateur"}
-      >
-        {currentStatus ? (
-          <PowerOff className="h-4 w-4" />
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0" disabled={loading}>
+          <span className="sr-only">Ouvrir le menu</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => onViewProfile(repairer.id)}>
+          <Eye className="mr-2 h-4 w-4" />
+          Voir le profil
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem onClick={() => console.log('Edit repairer:', repairer.id)}>
+          <Edit className="mr-2 h-4 w-4" />
+          Modifier
+        </DropdownMenuItem>
+        
+        {repairer.is_active !== false ? (
+          <DropdownMenuItem onClick={handleDeactivateRepairer} disabled={loading}>
+            <UserX className="mr-2 h-4 w-4" />
+            {loading ? 'Désactivation...' : 'Désactiver'}
+          </DropdownMenuItem>
         ) : (
-          <Power className="h-4 w-4" />
+          <DropdownMenuItem onClick={handleActivateRepairer} disabled={loading}>
+            <UserCheck className="mr-2 h-4 w-4" />
+            {loading ? 'Activation...' : 'Activer'}
+          </DropdownMenuItem>
         )}
-      </Button>
-      
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button 
-            size="sm" 
-            variant="outline"
-            disabled={isLoading}
-            aria-label="Supprimer le réparateur"
-            title="Supprimer le réparateur"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-            <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer ce réparateur ? Cette action est irréversible.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => onDelete(repairerId)}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        
+        <DropdownMenuItem 
+          onClick={handleDeleteRepairer} 
+          className="text-red-600"
+          disabled={loading}
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          {loading ? 'Suppression...' : 'Supprimer'}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

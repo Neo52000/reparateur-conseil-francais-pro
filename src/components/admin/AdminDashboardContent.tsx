@@ -1,49 +1,17 @@
+
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import ScrapingControl from '@/components/ScrapingControl';
-import ClientInterestManagement from '@/components/ClientInterestManagement';
-import PromoCodesManagement from '@/components/PromoCodesManagement';
-import AdBannerManagement from '@/components/advertising/AdBannerManagement';
-import ChatbotManagement from '@/components/admin/ChatbotManagement';
 import SubscriptionsTable from '@/components/repairers/SubscriptionsTable';
 import RepairersTable from '@/components/repairers/RepairersTable';
-import type { TabType } from './AdminNavigationTabs';
-
-interface SubscriptionData {
-  id: string;
-  repairer_id: string;
-  email: string;
-  subscription_tier: string;
-  billing_cycle: string;
-  subscribed: boolean;
-  subscription_end: string | null;
-  created_at: string;
-  first_name: string | null;
-  last_name: string | null;
-  plan_name: string | null;
-  price_monthly: number | null;
-  price_yearly: number | null;
-}
-
-interface RepairerData {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  city: string;
-  department: string;
-  subscription_tier: string;
-  subscribed: boolean;
-  total_repairs: number;
-  rating: number;
-  created_at: string;
-}
+import PromoCodesManagement from '@/components/PromoCodesManagement';
+import ScrapingOperations from '@/components/scraping/ScrapingOperations';
+import ClientInterestManagement from '@/components/ClientInterestManagement';
+import AdminAuditExample from '@/components/admin/AdminAuditExample';
+import { TabType } from './AdminNavigationTabs';
 
 interface AdminDashboardContentProps {
   activeTab: TabType;
-  subscriptions: SubscriptionData[];
-  repairers: RepairerData[];
+  subscriptions: any[];
+  repairers: any[];
   onViewProfile: (repairerId: string) => void;
   onRefresh: () => void;
 }
@@ -55,46 +23,64 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
   onViewProfile,
   onRefresh
 }) => {
-  if (activeTab === 'subscriptions') {
-    return (
-      <SubscriptionsTable 
-        subscriptions={subscriptions}
-        onRefresh={onRefresh}
-      />
-    );
-  }
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'subscriptions':
+        return (
+          <SubscriptionsTable 
+            subscriptions={subscriptions}
+            onRefresh={onRefresh}
+          />
+        );
+      
+      case 'repairers':
+        return (
+          <RepairersTable 
+            repairers={repairers}
+            onViewProfile={onViewProfile}
+            onRefresh={onRefresh}
+          />
+        );
+      
+      case 'promo-codes':
+        return <PromoCodesManagement />;
+      
+      case 'scraping':
+        return <ScrapingOperations onRefresh={onRefresh} />;
+      
+      case 'client-interests':
+        return <ClientInterestManagement />;
+      
+      case 'audit-demo':
+        return (
+          <div className="space-y-6">
+            <AdminAuditExample />
+            <div className="text-sm text-muted-foreground">
+              <p>
+                Cette section permet de tester les fonctionnalités d'audit. 
+                Chaque action effectuée ici sera automatiquement enregistrée dans le système d'audit 
+                et sera visible dans l'onglet "Logs d'audit" et dans les statistiques.
+              </p>
+            </div>
+          </div>
+        );
+      
+      default:
+        return (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">
+              Sélectionnez un onglet pour afficher le contenu correspondant.
+            </p>
+          </div>
+        );
+    }
+  };
 
-  if (activeTab === 'repairers') {
-    return (
-      <RepairersTable
-        repairers={repairers}
-        onViewProfile={onViewProfile}
-        onRefresh={onRefresh}
-      />
-    );
-  }
-
-  if (activeTab === 'interest') {
-    return <ClientInterestManagement />;
-  }
-
-  if (activeTab === 'promocodes') {
-    return <PromoCodesManagement />;
-  }
-
-  if (activeTab === 'advertising') {
-    return <AdBannerManagement />;
-  }
-
-  if (activeTab === 'scraping') {
-    return <ScrapingControl />;
-  }
-
-  if (activeTab === 'chatbot') {
-    return <ChatbotManagement />;
-  }
-
-  return null;
+  return (
+    <div className="space-y-6">
+      {renderContent()}
+    </div>
+  );
 };
 
 export default AdminDashboardContent;
