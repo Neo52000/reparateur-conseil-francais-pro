@@ -1,61 +1,64 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/hooks/useAuth';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/auth/AuthProvider";
-import AdminAuditMiddleware from "@/components/admin/AdminAuditMiddleware";
-import Index from "./pages/Index";
-import AuthPage from "./pages/AuthPage";
-import ClientAuth from "./pages/ClientAuth";
-import RepairerAuth from "./pages/RepairerAuth";
-import ClientDashboardPage from "./pages/ClientDashboardPage";
-import RepairerDashboardPage from "./pages/RepairerDashboardPage";
-import AdminPage from "./pages/AdminPage";
-import AdminAuditPage from "./pages/AdminAuditPage";
-import BlogPage from "./pages/BlogPage";
-import BlogArticlePage from "./pages/BlogArticlePage";
-import BlogRepairerPage from "./pages/BlogRepairerPage";
-import RepairerPlans from "./pages/RepairerPlans";
-import NotFound from "./pages/NotFound";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
+import LandingPage from '@/pages/LandingPage';
+import RepairersPage from '@/pages/RepairersPage';
+import ProfilePage from '@/pages/ProfilePage';
+import ContactPage from '@/pages/ContactPage';
+import LegalPage from '@/pages/LegalPage';
+import PrivacyPage from '@/pages/PrivacyPage';
+import CguPage from '@/pages/CguPage';
+import NotFound from '@/pages/NotFound';
+import AdminAuthPage from '@/pages/AdminAuthPage';
+import AdminDashboardPage from '@/pages/AdminDashboardPage';
+import ClientInterestPage from '@/pages/ClientInterestPage';
+import ScrapingControl from '@/components/ScrapingControl';
+import AdminAuditMiddleware from '@/components/admin/AdminAuditMiddleware';
+import AdminAuditPage from '@/pages/AdminAuditPage';
+import AdminAuditDashboardPage from '@/pages/AdminAuditDashboardPage';
+import AdminAuditAnalyticsPage from '@/pages/AdminAuditAnalyticsPage';
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <AdminAuditMiddleware>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/client-auth" element={<ClientAuth />} />
-              <Route path="/repairer-auth" element={<RepairerAuth />} />
-              <Route path="/client" element={<ClientDashboardPage />} />
-              <Route path="/repairer" element={<RepairerDashboardPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="/admin/audit" element={<AdminAuditPage />} />
-              <Route path="/blog" element={<BlogPage />} />
-              <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
-              <Route path="/blog/repairers" element={<BlogRepairerPage />} />
-              <Route path="/blog/repairers/article/:slug" element={<BlogRepairerPage />} />
-              <Route path="/repairer/plans" element={<RepairerPlans />} />
-              <Route path="/contact" element={<Index />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms-of-service" element={<TermsOfService />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AdminAuditMiddleware>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <AdminAuditMiddleware>
+          <div className="min-h-screen bg-background">
+            <Toaster />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/repairers" element={<RepairersPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/legal" element={<LegalPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/cgu" element={<CguPage />} />
+                <Route path="/admin/auth" element={<AdminAuthPage />} />
+                <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+                <Route path="/admin/scraping" element={<ScrapingControl />} />
+                <Route path="/client-interest" element={<ClientInterestPage />} />
+                
+                {/* Admin Audit Routes */}
+                <Route path="/admin/audit" element={<AdminAuditPage />} />
+                <Route path="/admin/audit/dashboard" element={<AdminAuditDashboardPage />} />
+                <Route path="/admin/audit/analytics" element={<AdminAuditAnalyticsPage />} />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </div>
+        </AdminAuditMiddleware>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;

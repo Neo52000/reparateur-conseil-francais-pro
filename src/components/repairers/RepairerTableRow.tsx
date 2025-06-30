@@ -1,101 +1,76 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Star } from 'lucide-react';
-import SubscriptionTierBadge from './SubscriptionTierBadge';
 import RepairerTableActions from './RepairerTableActions';
-import { Checkbox } from '@/components/ui/checkbox';
-
-interface RepairerData {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  city: string;
-  department: string;
-  subscription_tier: string;
-  subscribed: boolean;
-  total_repairs: number;
-  rating: number;
-  created_at: string;
-}
 
 interface RepairerTableRowProps {
-  repairer: RepairerData;
-  loading: string | null;
+  repairer: {
+    id: string;
+    email: string;
+    first_name?: string;
+    last_name?: string;
+    is_active?: boolean;
+    subscription_tier?: string;
+    created_at?: string;
+    city?: string;
+    phone?: string;
+  };
   onViewProfile: (repairerId: string) => void;
-  onToggleStatus: (repairerId: string, currentStatus: boolean) => void;
-  onDelete: (repairerId: string) => void;
-  checked: boolean;
-  onCheck: (checked: boolean) => void;
+  onRefresh: () => void;
 }
 
 const RepairerTableRow: React.FC<RepairerTableRowProps> = ({
   repairer,
-  loading,
   onViewProfile,
-  onToggleStatus,
-  onDelete,
-  checked,
-  onCheck,
+  onRefresh
 }) => {
-  // Générer l'ID personnalisé avec nom de boutique + code postal
-  const generateCustomId = (name: string, city: string) => {
-    const shopName = name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase().substring(0, 15);
-    // Extraire le code postal de la ville si possible, sinon utiliser les 2 premiers caractères
-    const postalCode = city.match(/\d{5}/) ? city.match(/\d{5}/)[0] : city.substring(0, 2).toLowerCase();
-    return `${shopName}-${postalCode}`;
+  const getTierBadgeVariant = (tier: string) => {
+    switch (tier) {
+      case 'premium': return 'default';
+      case 'pro': return 'secondary';
+      case 'free': return 'outline';
+      default: return 'outline';
+    }
   };
 
-  const customId = generateCustomId(repairer.name, repairer.city);
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('fr-FR');
+  };
 
   return (
     <TableRow>
-      <TableCell>
-        <Checkbox
-          checked={checked}
-          onCheckedChange={value => onCheck(Boolean(value))}
-          aria-label="Sélectionner le réparateur"
-        />
-      </TableCell>
       <TableCell className="font-medium">
-        <div>
-          <div className="font-semibold">{repairer.name}</div>
-          <div className="text-xs text-gray-500">ID: {customId}</div>
-        </div>
-      </TableCell>
-      <TableCell>{repairer.email}</TableCell>
-      <TableCell>{repairer.phone}</TableCell>
-      <TableCell>
-        <div>
-          <div>{repairer.city}</div>
-          <div className="text-xs text-gray-500">Dept. {repairer.department || '00'}</div>
-        </div>
+        {repairer.email}
       </TableCell>
       <TableCell>
-        <SubscriptionTierBadge tier={repairer.subscription_tier} />
-      </TableCell>
-      <TableCell>{repairer.total_repairs}</TableCell>
-      <TableCell>
-        <div className="flex items-center space-x-1">
-          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-          <span>{repairer.rating}</span>
-        </div>
+        {`${repairer.first_name || ''} ${repairer.last_name || ''}`.trim() || 'N/A'}
       </TableCell>
       <TableCell>
-        <Badge variant={repairer.subscribed ? "default" : "secondary"}>
-          {repairer.subscribed ? 'Actif' : 'Inactif'}
+        {repairer.city || 'N/A'}
+      </TableCell>
+      <TableCell>
+        {repairer.phone || 'N/A'}
+      </TableCell>
+      <TableCell>
+        <Badge variant={getTierBadgeVariant(repairer.subscription_tier || 'free')}>
+          {repairer.subscription_tier || 'free'}
         </Badge>
       </TableCell>
       <TableCell>
+        <Badge variant={repairer.is_active !== false ? 'default' : 'secondary'}>
+          {repairer.is_active !== false ? 'Actif' : 'Inactif'}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        {formatDate(repairer.created_at)}
+      </TableCell>
+      <TableCell>
         <RepairerTableActions
-          repairerId={repairer.id}
-          currentStatus={repairer.subscribed}
-          loading={loading}
+          repairer={repairer}
           onViewProfile={onViewProfile}
-          onToggleStatus={onToggleStatus}
-          onDelete={onDelete}
+          onRefresh={onRefresh}
         />
       </TableCell>
     </TableRow>
