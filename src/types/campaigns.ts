@@ -27,7 +27,7 @@ export interface CampaignBanner {
   id: string;
   campaign_id: string;
   banner_id: string;
-  weight: number; // Poids pour la rotation
+  weight: number;
   is_active: boolean;
 }
 
@@ -46,4 +46,23 @@ export interface TargetingRule {
   field: string;
   operator: 'equals' | 'in' | 'not_in' | 'contains';
   value: string | string[];
+}
+
+export interface TargetingSegment {
+  id: string;
+  name: string;
+  description: string;
+  criteria: {
+    user_types?: string[];
+    subscription_tiers?: string[];
+    cities?: string[];
+    postal_codes?: string[];
+    device_preferences?: string[];
+    age_ranges?: string[];
+    behavior_patterns?: string[];
+    purchase_history?: string[];
+  };
+  estimated_reach: number;
+  is_active: boolean;
+  created_at: string;
 }

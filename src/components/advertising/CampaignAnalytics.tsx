@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { supabase } from '@/integrations/supabase/client';
 import { AdCampaign } from '@/types/advertising';
 import { Eye, MousePointer, TrendingUp, Euro, Target, Users } from 'lucide-react';
 
@@ -33,168 +32,77 @@ const CampaignAnalytics: React.FC = () => {
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
-  // Charger les campagnes
+  // Données mock pour la démo
+  const mockCampaigns: AdCampaign[] = [
+    {
+      id: '1',
+      name: 'Campagne Réparateurs Premium',
+      description: 'Ciblage des réparateurs avec abonnement premium',
+      budget_total: 1000,
+      budget_daily: 50,
+      budget_spent: 250,
+      start_date: new Date().toISOString(),
+      status: 'active',
+      targeting_config: {
+        user_types: ['repairer'],
+        subscription_tiers: ['premium'],
+        global: false
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+  ];
+
+  const mockPerformance: CampaignPerformance[] = [
+    {
+      campaign_id: '1',
+      campaign_name: 'Campagne Réparateurs Premium',
+      impressions: 5420,
+      clicks: 234,
+      conversions: 12,
+      cost: 125.50,
+      ctr: 4.32,
+      cpc: 0.54,
+      roi: 15.2,
+      budget_used: 250,
+      budget_total: 1000
+    }
+  ];
+
+  const mockDailyStats = [
+    { date: '2024-01-01', impressions: 120, clicks: 8, cost: 4.32 },
+    { date: '2024-01-02', impressions: 150, clicks: 12, cost: 6.48 },
+    { date: '2024-01-03', impressions: 180, clicks: 15, cost: 8.10 },
+    { date: '2024-01-04', impressions: 160, clicks: 11, cost: 5.94 },
+    { date: '2024-01-05', impressions: 200, clicks: 18, cost: 9.72 },
+    { date: '2024-01-06', impressions: 140, clicks: 9, cost: 4.86 },
+    { date: '2024-01-07', impressions: 190, clicks: 16, cost: 8.64 }
+  ];
+
+  const mockTargetingBreakdown = [
+    { name: 'Réparateurs', value: 65 },
+    { name: 'Clients', value: 35 }
+  ];
+
+  // Charger les campagnes (mock pour l'instant)
   const fetchCampaigns = async () => {
     try {
-      const { data, error } = await supabase
-        .from('ad_campaigns')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setCampaigns(data || []);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setCampaigns(mockCampaigns);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
     }
   };
 
-  // Charger les statistiques
+  // Charger les statistiques (mock pour l'instant)
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      const now = new Date();
-      const startDate = new Date();
-      switch (dateRange) {
-        case '7d':
-          startDate.setDate(now.getDate() - 7);
-          break;
-        case '30d':
-          startDate.setDate(now.getDate() - 30);
-          break;
-        case '90d':
-          startDate.setDate(now.getDate() - 90);
-          break;
-        default:
-          startDate.setDate(now.getDate() - 7);
-      }
-
-      // Récupérer les impressions avec les campagnes associées
-      const { data: impressionsData, error: impressionsError } = await supabase
-        .from('ad_impressions')
-        .select(`
-          *,
-          ad_banners!inner(
-            id,
-            title,
-            campaign_id
-          )
-        `)
-        .gte('created_at', startDate.toISOString());
-
-      if (impressionsError) throw impressionsError;
-
-      // Récupérer les clics avec les campagnes associées
-      const { data: clicksData, error: clicksError } = await supabase
-        .from('ad_clicks')
-        .select(`
-          *,
-          ad_banners!inner(
-            id,
-            title,
-            campaign_id
-          )
-        `)
-        .gte('created_at', startDate.toISOString());
-
-      if (clicksError) throw clicksError;
-
-      // Calculer les performances par campagne
-      const campaignStats = new Map<string, CampaignPerformance>();
-      
-      // Initialiser les stats pour chaque campagne
-      campaigns.forEach(campaign => {
-        if (selectedCampaign === 'all' || selectedCampaign === campaign.id) {
-          campaignStats.set(campaign.id, {
-            campaign_id: campaign.id,
-            campaign_name: campaign.name,
-            impressions: 0,
-            clicks: 0,
-            conversions: 0,
-            cost: 0,
-            ctr: 0,
-            cpc: 0,
-            roi: 0,
-            budget_used: campaign.budget_spent,
-            budget_total: campaign.budget_total
-          });
-        }
-      });
-
-      // Compter les impressions par campagne
-      impressionsData?.forEach((impression: any) => {
-        const campaignId = impression.ad_banners?.campaign_id;
-        if (campaignId && campaignStats.has(campaignId)) {
-          const stats = campaignStats.get(campaignId)!;
-          stats.impressions++;
-        }
-      });
-
-      // Compter les clics par campagne
-      clicksData?.forEach((click: any) => {
-        const campaignId = click.ad_banners?.campaign_id;
-        if (campaignId && campaignStats.has(campaignId)) {
-          const stats = campaignStats.get(campaignId)!;
-          stats.clicks++;
-        }
-      });
-
-      // Calculer les métriques dérivées
-      campaignStats.forEach(stats => {
-        stats.ctr = stats.impressions > 0 ? (stats.clicks / stats.impressions) * 100 : 0;
-        stats.cpc = stats.clicks > 0 ? stats.cost / stats.clicks : 0;
-        stats.roi = stats.cost > 0 ? ((stats.conversions * 100 - stats.cost) / stats.cost) * 100 : 0;
-      });
-
-      setPerformance(Array.from(campaignStats.values()));
-
-      // Calculer les stats quotidiennes
-      const dailyStatsMap = new Map<string, { date: string; impressions: number; clicks: number; cost: number }>();
-      
-      for (let d = new Date(startDate); d <= now; d.setDate(d.getDate() + 1)) {
-        const dateStr = d.toISOString().split('T')[0];
-        dailyStatsMap.set(dateStr, {
-          date: dateStr,
-          impressions: 0,
-          clicks: 0,
-          cost: 0
-        });
-      }
-
-      // Remplir les stats quotidiennes
-      impressionsData?.forEach((impression: any) => {
-        const date = impression.created_at.split('T')[0];
-        const stat = dailyStatsMap.get(date);
-        if (stat) {
-          stat.impressions++;
-        }
-      });
-
-      clicksData?.forEach((click: any) => {
-        const date = click.created_at.split('T')[0];
-        const stat = dailyStatsMap.get(date);
-        if (stat) {
-          stat.clicks++;
-          stat.cost += 0.1; // Coût simulé par clic
-        }
-      });
-
-      setDailyStats(Array.from(dailyStatsMap.values()).sort((a, b) => a.date.localeCompare(b.date)));
-
-      // Analyse du ciblage
-      const targetingStats = new Map<string, number>();
-      campaigns.forEach(campaign => {
-        const targeting = campaign.targeting_config as any;
-        if (targeting.user_types) {
-          targeting.user_types.forEach((type: string) => {
-            targetingStats.set(type, (targetingStats.get(type) || 0) + 1);
-          });
-        }
-      });
-
-      setTargetingBreakdown(
-        Array.from(targetingStats.entries()).map(([name, value]) => ({ name, value }))
-      );
+      setPerformance(mockPerformance);
+      setDailyStats(mockDailyStats);
+      setTargetingBreakdown(mockTargetingBreakdown);
 
     } catch (error) {
       console.error('Error fetching analytics:', error);

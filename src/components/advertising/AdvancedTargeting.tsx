@@ -4,32 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, X, Target, Users, MapPin, Smartphone } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Plus, Target, Users, MapPin, Smartphone } from 'lucide-react';
+import { TargetingSegment } from '@/types/advertising';
 import { toast } from 'sonner';
-
-interface TargetingSegment {
-  id: string;
-  name: string;
-  description: string;
-  criteria: {
-    user_types?: string[];
-    subscription_tiers?: string[];
-    cities?: string[];
-    postal_codes?: string[];
-    device_preferences?: string[];
-    age_ranges?: string[];
-    behavior_patterns?: string[];
-    purchase_history?: string[];
-  };
-  estimated_reach: number;
-  is_active: boolean;
-  created_at: string;
-}
 
 const AdvancedTargeting: React.FC = () => {
   const [segments, setSegments] = useState<TargetingSegment[]>([]);
@@ -95,17 +75,44 @@ const AdvancedTargeting: React.FC = () => {
     { value: 'abandoned_cart', label: 'Panier abandonné' }
   ];
 
-  // Charger les segments
+  // Données mock pour la démo
+  const mockSegments: TargetingSegment[] = [
+    {
+      id: '1',
+      name: 'Réparateurs Premium Paris',
+      description: 'Réparateurs avec abonnement premium dans la région parisienne',
+      criteria: {
+        user_types: ['repairer'],
+        subscription_tiers: ['premium'],
+        cities: ['Paris', 'Boulogne-Billancourt', 'Levallois-Perret'],
+        device_preferences: ['smartphone', 'tablet']
+      },
+      estimated_reach: 1250,
+      is_active: true,
+      created_at: new Date().toISOString()
+    },
+    {
+      id: '2',
+      name: 'Clients Fidèles Lyon',
+      description: 'Clients récurrents basés à Lyon',
+      criteria: {
+        user_types: ['client'],
+        cities: ['Lyon'],
+        behavior_patterns: ['repeat_customer', 'brand_loyal'],
+        purchase_history: ['repeat_customer', 'high_value']
+      },
+      estimated_reach: 850,
+      is_active: true,
+      created_at: new Date().toISOString()
+    }
+  ];
+
+  // Charger les segments (mock pour l'instant)
   const fetchSegments = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('targeting_segments')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setSegments(data || []);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setSegments(mockSegments);
     } catch (error) {
       console.error('Error fetching segments:', error);
       toast.error('Erreur lors du chargement des segments');
@@ -162,7 +169,7 @@ const AdvancedTargeting: React.FC = () => {
     setShowForm(false);
   };
 
-  // Sauvegarder un segment
+  // Sauvegarder un segment (mock pour l'instant)
   const saveSegment = async () => {
     try {
       const criteria = {
@@ -178,32 +185,24 @@ const AdvancedTargeting: React.FC = () => {
 
       const estimated_reach = await calculateEstimatedReach(criteria);
 
-      const segmentData = {
+      const segmentData: TargetingSegment = {
+        id: editingSegment?.id || Date.now().toString(),
         name: formData.name,
         description: formData.description,
         criteria,
         estimated_reach,
-        is_active: formData.is_active
+        is_active: formData.is_active,
+        created_at: new Date().toISOString()
       };
 
       if (editingSegment) {
-        const { error } = await supabase
-          .from('targeting_segments')
-          .update(segmentData)
-          .eq('id', editingSegment.id);
-
-        if (error) throw error;
+        setSegments(prev => prev.map(s => s.id === editingSegment.id ? segmentData : s));
         toast.success('Segment mis à jour avec succès');
       } else {
-        const { error } = await supabase
-          .from('targeting_segments')
-          .insert([segmentData]);
-
-        if (error) throw error;
+        setSegments(prev => [...prev, segmentData]);
         toast.success('Segment créé avec succès');
       }
 
-      fetchSegments();
       resetForm();
     } catch (error) {
       console.error('Error saving segment:', error);

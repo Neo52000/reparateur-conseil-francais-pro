@@ -10,7 +10,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Edit, Trash2, Play, Pause, BarChart3, Target } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { AdCampaign, AdBanner } from '@/types/advertising';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -40,17 +39,52 @@ const CampaignManagement: React.FC = () => {
     targeting_global: false
   });
 
-  // Charger les campagnes
+  // Données mock temporaires pour la démo
+  const mockCampaigns: AdCampaign[] = [
+    {
+      id: '1',
+      name: 'Campagne Réparateurs Premium',
+      description: 'Ciblage des réparateurs avec abonnement premium',
+      budget_total: 1000,
+      budget_daily: 50,
+      budget_spent: 250,
+      start_date: new Date().toISOString(),
+      end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      status: 'active',
+      targeting_config: {
+        user_types: ['repairer'],
+        subscription_tiers: ['premium'],
+        global: false
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      name: 'Promotion Clients Paris',
+      description: 'Offres spéciales pour les clients parisiens',
+      budget_total: 500,
+      budget_daily: 25,
+      budget_spent: 125,
+      start_date: new Date().toISOString(),
+      status: 'active',
+      targeting_config: {
+        user_types: ['client'],
+        cities: ['Paris'],
+        global: false
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+  ];
+
+  // Charger les campagnes (mock pour l'instant)
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('ad_campaigns')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setCampaigns(data || []);
+      // Simuler un délai réseau
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setCampaigns(mockCampaigns);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
       toast.error('Erreur lors du chargement des campagnes');
@@ -59,22 +93,11 @@ const CampaignManagement: React.FC = () => {
     }
   };
 
-  // Charger les bannières
+  // Charger les bannières existantes
   const fetchBanners = async () => {
     try {
-      const { data, error } = await supabase
-        .from('ad_banners')
-        .select('*')
-        .eq('is_active', true);
-
-      if (error) throw error;
-      
-      const typedBanners = (data || []).map(banner => ({
-        ...banner,
-        target_type: banner.target_type as 'client' | 'repairer'
-      })) as AdBanner[];
-      
-      setBanners(typedBanners);
+      // Pour l'instant, on utilise des données mock
+      setBanners([]);
     } catch (error) {
       console.error('Error fetching banners:', error);
     }
@@ -107,11 +130,11 @@ const CampaignManagement: React.FC = () => {
     setShowForm(false);
   };
 
-  // Sauvegarder une campagne
+  // Sauvegarder une campagne (mock pour l'instant)
   const saveCampaign = async () => {
     try {
       const targeting_config = {
-        user_types: formData.targeting_user_types,
+        user_types: formData.targeting_user_types as ('client' | 'repairer')[],
         subscription_tiers: formData.targeting_subscription_tiers ? 
           formData.targeting_subscription_tiers.split(',').map(s => s.trim()) : [],
         device_types: formData.targeting_device_types ? 
@@ -125,37 +148,30 @@ const CampaignManagement: React.FC = () => {
         global: formData.targeting_global
       };
 
-      const campaignData = {
+      const campaignData: AdCampaign = {
+        id: editingCampaign?.id || Date.now().toString(),
         name: formData.name,
         description: formData.description,
         budget_total: parseFloat(formData.budget_total),
         budget_daily: parseFloat(formData.budget_daily),
         budget_spent: 0,
         start_date: formData.start_date,
-        end_date: formData.end_date || null,
+        end_date: formData.end_date || undefined,
         status: formData.status,
         targeting_config,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         created_by: user?.id
       };
 
       if (editingCampaign) {
-        const { error } = await supabase
-          .from('ad_campaigns')
-          .update(campaignData)
-          .eq('id', editingCampaign.id);
-
-        if (error) throw error;
+        setCampaigns(prev => prev.map(c => c.id === editingCampaign.id ? campaignData : c));
         toast.success('Campagne mise à jour avec succès');
       } else {
-        const { error } = await supabase
-          .from('ad_campaigns')
-          .insert([campaignData]);
-
-        if (error) throw error;
+        setCampaigns(prev => [...prev, campaignData]);
         toast.success('Campagne créée avec succès');
       }
 
-      fetchCampaigns();
       resetForm();
     } catch (error) {
       console.error('Error saving campaign:', error);
@@ -165,7 +181,7 @@ const CampaignManagement: React.FC = () => {
 
   // Éditer une campagne
   const editCampaign = (campaign: AdCampaign) => {
-    const targeting = campaign.targeting_config as any;
+    const targeting = campaign.targeting_config;
     setFormData({
       name: campaign.name,
       description: campaign.description || '',
@@ -190,13 +206,9 @@ const CampaignManagement: React.FC = () => {
   const toggleCampaignStatus = async (campaign: AdCampaign) => {
     try {
       const newStatus = campaign.status === 'active' ? 'paused' : 'active';
-      const { error } = await supabase
-        .from('ad_campaigns')
-        .update({ status: newStatus })
-        .eq('id', campaign.id);
-
-      if (error) throw error;
-      fetchCampaigns();
+      setCampaigns(prev => prev.map(c => 
+        c.id === campaign.id ? { ...c, status: newStatus } : c
+      ));
       toast.success(`Campagne ${newStatus === 'active' ? 'activée' : 'mise en pause'}`);
     } catch (error) {
       console.error('Error toggling campaign status:', error);
@@ -209,14 +221,8 @@ const CampaignManagement: React.FC = () => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer cette campagne ?')) return;
 
     try {
-      const { error } = await supabase
-        .from('ad_campaigns')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      setCampaigns(prev => prev.filter(c => c.id !== id));
       toast.success('Campagne supprimée');
-      fetchCampaigns();
     } catch (error) {
       console.error('Error deleting campaign:', error);
       toast.error('Erreur lors de la suppression');

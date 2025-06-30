@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       ad_banners: {
         Row: {
+          campaign_id: string | null
           created_at: string
           created_by: string | null
           current_clicks: number
@@ -30,6 +31,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          campaign_id?: string | null
           created_at?: string
           created_by?: string | null
           current_clicks?: number
@@ -49,6 +51,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          campaign_id?: string | null
           created_at?: string
           created_by?: string | null
           current_clicks?: number
@@ -65,6 +68,62 @@ export type Database = {
           target_url?: string
           targeting_config?: Json | null
           title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_banners_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_campaigns: {
+        Row: {
+          budget_daily: number
+          budget_spent: number
+          budget_total: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          start_date: string
+          status: string
+          targeting_config: Json
+          updated_at: string
+        }
+        Insert: {
+          budget_daily?: number
+          budget_spent?: number
+          budget_total?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          start_date: string
+          status?: string
+          targeting_config?: Json
+          updated_at?: string
+        }
+        Update: {
+          budget_daily?: number
+          budget_spent?: number
+          budget_total?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          start_date?: string
+          status?: string
+          targeting_config?: Json
           updated_at?: string
         }
         Relationships: []
@@ -693,6 +752,48 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      campaign_banners: {
+        Row: {
+          banner_id: string
+          campaign_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          weight: number
+        }
+        Insert: {
+          banner_id: string
+          campaign_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          weight?: number
+        }
+        Update: {
+          banner_id?: string
+          campaign_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_banners_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "ad_banners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_banners_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chat_messages: {
         Row: {
@@ -2796,6 +2897,39 @@ export type Database = {
           price_yearly?: number
           stripe_price_id_monthly?: string | null
           stripe_price_id_yearly?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      targeting_segments: {
+        Row: {
+          created_at: string
+          criteria: Json
+          description: string | null
+          estimated_reach: number
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criteria?: Json
+          description?: string | null
+          estimated_reach?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criteria?: Json
+          description?: string | null
+          estimated_reach?: number
+          id?: string
+          is_active?: boolean
+          name?: string
           updated_at?: string
         }
         Relationships: []
