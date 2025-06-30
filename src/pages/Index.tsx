@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
@@ -7,6 +6,7 @@ import Footer from '@/components/Footer';
 import HeroSectionSimplified from '@/components/sections/HeroSectionSimplified';
 import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
 import QuickStatsSection from '@/components/sections/QuickStatsSection';
+import BlogSectionHomepage from '@/components/sections/BlogSectionHomepage';
 import QuickSearchModal from '@/components/search/QuickSearchModal';
 import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
@@ -150,6 +150,9 @@ const Index = () => {
         />
         
         <QuickStatsSection />
+        
+        {/* Section blog avant le footer */}
+        <BlogSectionHomepage />
       </main>
 
       <Footer />
@@ -173,4 +176,3 @@ const Index = () => {
 };
 
 export default Index;
-
