@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,6 +26,7 @@ import { useUpgradeModal } from '@/hooks/useUpgradeModal';
 import { supabase } from '@/integrations/supabase/client';
 import UpgradeModal from '@/components/UpgradeModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
+import Logo from '@/components/Logo';
 import OverviewTabSection from "./repairer-dashboard/OverviewTabSection";
 import OrdersTabSection from "./repairer-dashboard/OrdersTabSection";
 import CalendarTabSection from "./repairer-dashboard/CalendarTabSection";
@@ -117,7 +119,7 @@ const RepairerDashboard = () => {
   // Données mockées pour la démo
   const repairerData = {
     profile: {
-      name: 'TechRepair Pro',
+      name: 'top reparateurs.fr',
       rating: 4.9,
       totalRepairs: 156,
       joinDate: '2023-03-15'
@@ -236,11 +238,14 @@ const RepairerDashboard = () => {
           />
         )}
 
-        {/* Top bar with title, name and logout button */}
+        {/* Top bar with logo, title, name and logout button */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Tableau de bord Réparateur</h1>
-            <p className="text-gray-600 mt-2">{repairerData.profile.name}</p>
+          <div className="flex items-center gap-4">
+            <Logo variant="icon" size="lg" />
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Tableau de bord Réparateur</h1>
+              <p className="text-gray-600 mt-2">{repairerData.profile.name}</p>
+            </div>
           </div>
           <Button
             onClick={handleLogout}
@@ -293,7 +298,6 @@ const RepairerDashboard = () => {
           />
         </div>
 
-        {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
