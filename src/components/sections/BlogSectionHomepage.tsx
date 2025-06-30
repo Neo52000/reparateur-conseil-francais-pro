@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar, Eye, MessageCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,21 +10,30 @@ import { BlogPost } from '@/types/blog';
 const BlogSectionHomepage: React.FC = () => {
   const { fetchPosts, loading } = useBlog();
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
-  useEffect(() => {
-    const loadRecentPosts = async () => {
+  const loadRecentPosts = useCallback(async () => {
+    if (hasLoaded) return;
+    
+    try {
       const recentPosts = await fetchPosts({
         visibility: 'public',
         status: 'published',
         limit: 6
       });
       setPosts(recentPosts);
-    };
+      setHasLoaded(true);
+    } catch (error) {
+      console.error('Error loading blog posts:', error);
+      setHasLoaded(true);
+    }
+  }, [fetchPosts, hasLoaded]);
 
+  useEffect(() => {
     loadRecentPosts();
-  }, [fetchPosts]);
+  }, [loadRecentPosts]);
 
-  if (loading) {
+  if (loading && !hasLoaded) {
     return (
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,7 +59,7 @@ const BlogSectionHomepage: React.FC = () => {
     );
   }
 
-  if (!posts.length) {
+  if (!posts.length && hasLoaded) {
     return null;
   }
 
