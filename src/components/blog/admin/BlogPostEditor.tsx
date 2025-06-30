@@ -1,18 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Save, ArrowLeft, Image, Wand2 } from 'lucide-react';
 import { useBlog } from '@/hooks/useBlog';
 import { BlogPost, BlogCategory } from '@/types/blog';
 import { useToast } from '@/hooks/use-toast';
 import AIImageGenerator from './AIImageGenerator';
+import BlogPostEditorHeader from './BlogPostEditorHeader';
+import BlogPostEditorMainContent from './BlogPostEditorMainContent';
+import BlogPostEditorImageSection from './BlogPostEditorImageSection';
+import BlogPostEditorSidebar from './BlogPostEditorSidebar';
 
 interface BlogPostEditorProps {
   post?: BlogPost | null;
@@ -115,219 +110,48 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={onCancel}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Retour
-        </Button>
-        <h2 className="text-2xl font-bold">
-          {post ? 'Modifier l\'article' : 'Nouvel article'}
-        </h2>
-        {formData.ai_generated && (
-          <Badge variant="secondary">
-            <Wand2 className="h-3 w-3 mr-1" />
-            Généré par IA
-          </Badge>
-        )}
-      </div>
+      <BlogPostEditorHeader
+        post={post}
+        onCancel={onCancel}
+        aiGenerated={formData.ai_generated}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Contenu principal</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="title">Titre</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => handleTitleChange(e.target.value)}
-                  placeholder="Titre de l'article"
-                />
-              </div>
+          <BlogPostEditorMainContent
+            title={formData.title}
+            slug={formData.slug}
+            excerpt={formData.excerpt}
+            content={formData.content}
+            onTitleChange={handleTitleChange}
+            onSlugChange={(slug) => setFormData(prev => ({ ...prev, slug }))}
+            onExcerptChange={(excerpt) => setFormData(prev => ({ ...prev, excerpt }))}
+            onContentChange={(content) => setFormData(prev => ({ ...prev, content }))}
+          />
 
-              <div>
-                <Label htmlFor="slug">Slug (URL)</Label>
-                <Input
-                  id="slug"
-                  value={formData.slug}
-                  onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                  placeholder="slug-de-larticle"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="excerpt">Extrait</Label>
-                <Textarea
-                  id="excerpt"
-                  value={formData.excerpt}
-                  onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
-                  placeholder="Court résumé de l'article"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="content">Contenu</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                  placeholder="Contenu complet de l'article (Markdown supporté)"
-                  rows={15}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                Image à la une
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowImageGenerator(true)}
-                >
-                  <Wand2 className="h-4 w-4 mr-2" />
-                  Générer avec IA
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="featured_image">URL de l'image</Label>
-                  <Input
-                    id="featured_image"
-                    value={formData.featured_image_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, featured_image_url: e.target.value }))}
-                    placeholder="https://exemple.com/image.jpg"
-                  />
-                </div>
-                {formData.featured_image_url && (
-                  <div className="border rounded-lg p-4">
-                    <img 
-                      src={formData.featured_image_url} 
-                      alt="Aperçu" 
-                      className="max-w-full h-48 object-cover rounded"
-                    />
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <BlogPostEditorImageSection
+            featuredImageUrl={formData.featured_image_url}
+            onImageUrlChange={(featured_image_url) => setFormData(prev => ({ ...prev, featured_image_url }))}
+            onShowImageGenerator={() => setShowImageGenerator(true)}
+          />
         </div>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Publication</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="status">Statut</Label>
-                <Select 
-                  value={formData.status} 
-                  onValueChange={(value: 'draft' | 'pending' | 'scheduled' | 'published' | 'archived') => 
-                    setFormData(prev => ({ ...prev, status: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">Brouillon</SelectItem>
-                    <SelectItem value="pending">En attente</SelectItem>
-                    <SelectItem value="scheduled">Programmé</SelectItem>
-                    <SelectItem value="published">Publié</SelectItem>
-                    <SelectItem value="archived">Archivé</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="visibility">Visibilité</Label>
-                <Select 
-                  value={formData.visibility} 
-                  onValueChange={(value: 'public' | 'repairers' | 'both') => 
-                    setFormData(prev => ({ ...prev, visibility: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">Public</SelectItem>
-                    <SelectItem value="repairers">Réparateurs uniquement</SelectItem>
-                    <SelectItem value="both">Les deux</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="category">Catégorie</Label>
-                <Select value={formData.category_id} onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner une catégorie" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button onClick={handleSave} className="w-full">
-                <Save className="h-4 w-4 mr-2" />
-                Sauvegarder
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>SEO</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="meta_title">Titre SEO</Label>
-                <Input
-                  id="meta_title"
-                  value={formData.meta_title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, meta_title: e.target.value }))}
-                  placeholder="Titre pour les moteurs de recherche"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="meta_description">Description SEO</Label>
-                <Textarea
-                  id="meta_description"
-                  value={formData.meta_description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, meta_description: e.target.value }))}
-                  placeholder="Description pour les moteurs de recherche"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="keywords">Mots-clés (séparés par des virgules)</Label>
-                <Input
-                  id="keywords"
-                  value={formData.keywords.join(', ')}
-                  onChange={(e) => handleKeywordsChange(e.target.value)}
-                  placeholder="réparation, smartphone, conseil"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <BlogPostEditorSidebar
+          status={formData.status}
+          visibility={formData.visibility}
+          categoryId={formData.category_id}
+          metaTitle={formData.meta_title}
+          metaDescription={formData.meta_description}
+          keywords={formData.keywords}
+          categories={categories}
+          onStatusChange={(status) => setFormData(prev => ({ ...prev, status }))}
+          onVisibilityChange={(visibility) => setFormData(prev => ({ ...prev, visibility }))}
+          onCategoryChange={(category_id) => setFormData(prev => ({ ...prev, category_id }))}
+          onMetaTitleChange={(meta_title) => setFormData(prev => ({ ...prev, meta_title }))}
+          onMetaDescriptionChange={(meta_description) => setFormData(prev => ({ ...prev, meta_description }))}
+          onKeywordsChange={handleKeywordsChange}
+          onSave={handleSave}
+        />
       </div>
 
       {showImageGenerator && (
