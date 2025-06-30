@@ -11,7 +11,6 @@ import {
   Shield, 
   MessageCircle, 
   Star, 
-  Gift,
   User,
   Settings,
   Bell,
@@ -24,12 +23,12 @@ import ClientAppointmentsTab from './ClientAppointmentsTab';
 import ClientRepairsTab from './ClientRepairsTab';
 import ClientProfileTab from './ClientProfileTab';
 import ClientFavoritesTab from './ClientFavoritesTab';
-import ClientLoyaltyTab from './ClientLoyaltyTab';
 
 // Import des nouveaux composants
 import ClientInvoicesTab from './ClientInvoicesTab';
 import ClientWarrantiesTab from './ClientWarrantiesTab';
 import ClientReviewsTab from './ClientReviewsTab';
+import ClientMessagingTab from './ClientMessagingTab';
 
 const ClientEnhancedDashboard = () => {
   const { user, profile } = useAuth();
@@ -149,12 +148,12 @@ const ClientEnhancedDashboard = () => {
             <span className="hidden sm:inline">Garanties</span>
           </TabsTrigger>
           <TabsTrigger value="reviews" className="flex items-center gap-2">
-            <MessageCircle className="h-4 w-4" />
+            <Star className="h-4 w-4" />
             <span className="hidden sm:inline">Avis</span>
           </TabsTrigger>
-          <TabsTrigger value="loyalty" className="flex items-center gap-2">
-            <Gift className="h-4 w-4" />
-            <span className="hidden sm:inline">Fidélité</span>
+          <TabsTrigger value="messaging" className="flex items-center gap-2">
+            <MessageCircle className="h-4 w-4" />
+            <span className="hidden sm:inline">Messages</span>
           </TabsTrigger>
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
@@ -193,27 +192,27 @@ const ClientEnhancedDashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Garanties actives */}
+            {/* Messages récents */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-lg font-semibold">Garanties actives</CardTitle>
-                <Shield className="h-5 w-5 text-green-600" />
+                <CardTitle className="text-lg font-semibold">Messages récents</CardTitle>
+                <MessageCircle className="h-5 w-5 text-green-600" />
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                     <div>
-                      <p className="font-medium">iPhone 13 - Écran</p>
-                      <p className="text-sm text-gray-600">Expire dans 67 jours</p>
+                      <p className="font-medium">TechRepair Pro</p>
+                      <p className="text-sm text-gray-600">Votre iPhone est prêt !</p>
                     </div>
-                    <Badge variant="default">Active</Badge>
+                    <Badge variant="default">Nouveau</Badge>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
-                      <p className="font-medium">MacBook Pro - Batterie</p>
-                      <p className="text-sm text-gray-600">Expire dans 12 jours</p>
+                      <p className="font-medium">Mobile Expert</p>
+                      <p className="text-sm text-gray-600">Diagnostic terminé</p>
                     </div>
-                    <Badge variant="secondary">Expire bientôt</Badge>
+                    <Badge variant="outline">Lu</Badge>
                   </div>
                 </div>
               </CardContent>
@@ -240,15 +239,15 @@ const ClientEnhancedDashboard = () => {
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-green-600 rounded-full mt-2"></div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Rendez-vous confirmé</p>
-                    <p className="text-xs text-gray-600">Demain à 14h30 • Il y a 5 heures</p>
+                    <p className="text-sm font-medium">Message reçu</p>
+                    <p className="text-xs text-gray-600">TechRepair Pro • Il y a 3 heures</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-purple-600 rounded-full mt-2"></div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Points de fidélité gagnés</p>
-                    <p className="text-xs text-gray-600">+150 points • Hier</p>
+                    <p className="text-sm font-medium">Rendez-vous confirmé</p>
+                    <p className="text-xs text-gray-600">Demain à 14h30 • Hier</p>
                   </div>
                 </div>
               </div>
@@ -276,8 +275,8 @@ const ClientEnhancedDashboard = () => {
           <ClientReviewsTab />
         </TabsContent>
 
-        <TabsContent value="loyalty">
-          <ClientLoyaltyTab loyaltyPoints={stats.loyaltyPoints} />
+        <TabsContent value="messaging">
+          <ClientMessagingTab />
         </TabsContent>
 
         <TabsContent value="profile">
