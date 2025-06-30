@@ -18,12 +18,14 @@ export interface AdminAuditLogEntry {
   before_data?: Record<string, any>;
   after_data?: Record<string, any>;
   severity_level?: 'info' | 'warning' | 'critical';
+  created_at?: string;
 }
 
 export interface AdminAuditFilters {
   admin_user_id?: string;
   action_type?: string;
   resource_type?: string;
+  resource_id?: string;
   severity_level?: string;
   start_date?: string;
   end_date?: string;
@@ -152,6 +154,9 @@ export class AdminAuditService {
       if (filters.resource_type) {
         query = query.eq('resource_type', filters.resource_type);
       }
+      if (filters.resource_id) {
+        query = query.eq('resource_id', filters.resource_id);
+      }
       if (filters.severity_level) {
         query = query.eq('severity_level', filters.severity_level);
       }
@@ -174,9 +179,16 @@ export class AdminAuditService {
         throw error;
       }
 
-      console.log('✅ AdminAuditService - Fetched', data?.length || 0, 'logs');
+      // Cast the data to ensure proper typing
+      const typedLogs: AdminAuditLogEntry[] = (data || []).map(row => ({
+        ...row,
+        action_type: row.action_type as AdminAuditLogEntry['action_type'],
+        severity_level: row.severity_level as AdminAuditLogEntry['severity_level']
+      }));
+
+      console.log('✅ AdminAuditService - Fetched', typedLogs.length, 'logs');
       return {
-        logs: data || [],
+        logs: typedLogs,
         total: count || 0
       };
     } catch (error) {
@@ -203,7 +215,7 @@ export class AdminAuditService {
     ];
 
     const csvRows = logs.map(log => [
-      log.timestamp || '',
+      log.timestamp || log.created_at || '',
       log.admin_user_id,
       log.action_type,
       log.resource_type,

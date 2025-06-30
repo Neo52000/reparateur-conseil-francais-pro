@@ -1,9 +1,10 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider } from "@/hooks/auth/AuthProvider";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import ClientAuth from "./pages/ClientAuth";
@@ -14,13 +15,11 @@ import AdminPage from "./pages/AdminPage";
 import AdminAuditPage from "./pages/AdminAuditPage";
 import BlogPage from "./pages/BlogPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
-import BlogRepairersPage from "./pages/BlogRepairersPage";
-import BlogRepairersArticlePage from "./pages/BlogRepairersArticlePage";
-import PricingPage from "./pages/PricingPage";
-import ContactPage from "./pages/ContactPage";
-import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
-import TermsOfServicePage from "./pages/TermsOfServicePage";
-import NotFoundPage from "./pages/NotFoundPage";
+import BlogRepairerPage from "./pages/BlogRepairerPage";
+import RepairerPlans from "./pages/RepairerPlans";
+import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 const queryClient = new QueryClient();
 
@@ -42,13 +41,13 @@ const App = () => (
             <Route path="/admin/audit" element={<AdminAuditPage />} />
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
-            <Route path="/blog/repairers" element={<BlogRepairersPage />} />
-            <Route path="/blog/repairers/article/:slug" element={<BlogRepairersArticlePage />} />
-            <Route path="/repairer/plans" element={<PricingPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-            <Route path="/terms-of-service" element={<TermsOfServicePage />} />
-            <Route path="*" element={<NotFoundPage />} />
+            <Route path="/blog/repairers" element={<BlogRepairerPage />} />
+            <Route path="/blog/repairers/article/:slug" element={<BlogRepairerPage />} />
+            <Route path="/repairer/plans" element={<RepairerPlans />} />
+            <Route path="/contact" element={<Index />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
