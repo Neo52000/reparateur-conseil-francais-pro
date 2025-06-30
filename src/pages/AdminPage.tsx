@@ -5,6 +5,7 @@ import Navigation from '@/components/Navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import DashboardOverview from '@/components/admin/DashboardOverview';
 import AdminDashboardContent from '@/components/admin/AdminDashboardContent';
+import AdminDashboardHeader from '@/components/admin/AdminDashboardHeader';
 import RepairersTable from '@/components/repairers/RepairersTable';
 import ClientInterestManagement from '@/components/ClientInterestManagement';
 import PromoCodesManagement from '@/components/PromoCodesManagement';
@@ -157,6 +158,12 @@ const AdminPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
+      
+      {/* Header avec contrôle du mode démo */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AdminDashboardHeader onRefresh={fetchData} />
+      </div>
+
       <AdminLayout
         title={getPageTitle()}
         subtitle={getPageSubtitle()}

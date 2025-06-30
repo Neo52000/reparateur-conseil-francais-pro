@@ -10,7 +10,7 @@ interface AdminDashboardHeaderProps {
 
 const AdminDashboardHeader: React.FC<AdminDashboardHeaderProps> = ({ onRefresh }) => {
   return (
-    <>
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Backoffice Administrateur</h1>
@@ -22,9 +22,9 @@ const AdminDashboardHeader: React.FC<AdminDashboardHeaderProps> = ({ onRefresh }
         </Button>
       </div>
 
-      {/* Demo Mode Control - Remplace le Client Access Control */}
+      {/* Demo Mode Control - Ajouté ici pour qu'il soit visible */}
       <DemoModeControl />
-    </>
+    </div>
   );
 };
 
