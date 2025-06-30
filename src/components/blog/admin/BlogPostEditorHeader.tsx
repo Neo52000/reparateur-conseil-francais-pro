@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Wand2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { BlogPost } from '@/types/blog';
 
 interface BlogPostEditorHeaderProps {
@@ -13,12 +12,8 @@ interface BlogPostEditorHeaderProps {
 
 const BlogPostEditorHeader: React.FC<BlogPostEditorHeaderProps> = ({
   post,
-  onCancel,
-  aiGenerated
+  onCancel
 }) => {
-  // Vérifier si l'article est généré par IA
-  const isAIGenerated = aiGenerated || post?.ai_generated || false;
-  
   return (
     <div className="flex items-center gap-4">
       <Button variant="ghost" onClick={onCancel}>
@@ -28,12 +23,6 @@ const BlogPostEditorHeader: React.FC<BlogPostEditorHeaderProps> = ({
       <h2 className="text-2xl font-bold">
         {post ? 'Modifier l\'article' : 'Nouvel article'}
       </h2>
-      {isAIGenerated && (
-        <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-          <Wand2 className="h-3 w-3 mr-1" />
-          Généré par IA
-        </Badge>
-      )}
     </div>
   );
 };

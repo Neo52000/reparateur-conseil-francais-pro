@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -188,10 +189,7 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
               {filteredPosts.map((post) => (
                 <TableRow key={post.id}>
                   <TableCell>
-                    <div>
-                      <div className="font-medium">{post.title}</div>
-                      {post.ai_generated && <Badge variant="secondary" className="text-xs mt-1">IA</Badge>}
-                    </div>
+                    <div className="font-medium">{post.title}</div>
                   </TableCell>
                   <TableCell>
                     {post.category?.name || 'Non catégorisé'}

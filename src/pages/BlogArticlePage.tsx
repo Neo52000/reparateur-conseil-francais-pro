@@ -113,11 +113,6 @@ const BlogArticlePage: React.FC = () => {
               {post.category && (
                 <Badge variant="outline">{post.category.name}</Badge>
               )}
-              {post.ai_generated && (
-                <Badge variant="secondary" className="text-xs">
-                  Généré par IA
-                </Badge>
-              )}
               <div className="flex items-center text-sm text-gray-500 space-x-4">
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-1" />

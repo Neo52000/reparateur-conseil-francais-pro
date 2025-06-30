@@ -56,11 +56,6 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
               <Badge variant="outline">{post.category.name}</Badge>
             )}
             {getVisibilityBadge()}
-            {post.ai_generated && (
-              <Badge variant="secondary" className="text-xs">
-                IA
-              </Badge>
-            )}
           </div>
         </div>
         
