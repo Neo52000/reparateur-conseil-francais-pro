@@ -727,6 +727,236 @@ export type Database = {
         }
         Relationships: []
       }
+      chatbot_analytics: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          metadata: Json | null
+          metric_type: string
+          metric_value: number
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          metric_value?: number
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          metric_value?: number
+        }
+        Relationships: []
+      }
+      chatbot_configuration: {
+        Row: {
+          config_key: string
+          config_value: Json
+          description: string | null
+          id: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          config_key: string
+          config_value: Json
+          description?: string | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          description?: string | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      chatbot_conversations: {
+        Row: {
+          completed_at: string | null
+          context: Json | null
+          created_at: string | null
+          id: string
+          satisfaction_score: number | null
+          session_id: string
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+          user_type: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          satisfaction_score?: number | null
+          session_id: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          user_type?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          satisfaction_score?: number | null
+          session_id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          user_type?: string | null
+        }
+        Relationships: []
+      }
+      chatbot_feedback: {
+        Row: {
+          conversation_id: string | null
+          created_at: string | null
+          feedback_text: string | null
+          feedback_type: string
+          id: string
+          message_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string | null
+          feedback_text?: string | null
+          feedback_type: string
+          id?: string
+          message_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string | null
+          feedback_text?: string | null
+          feedback_type?: string
+          id?: string
+          message_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_feedback_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chatbot_feedback_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_messages: {
+        Row: {
+          confidence_score: number | null
+          content: string
+          conversation_id: string | null
+          created_at: string | null
+          id: string
+          message_type: string | null
+          metadata: Json | null
+          sender_type: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          content: string
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          message_type?: string | null
+          metadata?: Json | null
+          sender_type: string
+        }
+        Update: {
+          confidence_score?: number | null
+          content?: string
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          message_type?: string | null
+          metadata?: Json | null
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_training_data: {
+        Row: {
+          brand: string | null
+          category: string
+          confidence_threshold: number | null
+          created_at: string | null
+          device_type: string | null
+          id: string
+          intent: string
+          is_active: boolean | null
+          metadata: Json | null
+          model: string | null
+          repair_type: string | null
+          response_template: string
+          training_text: string
+          updated_at: string | null
+        }
+        Insert: {
+          brand?: string | null
+          category: string
+          confidence_threshold?: number | null
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          intent: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          model?: string | null
+          repair_type?: string | null
+          response_template: string
+          training_text: string
+          updated_at?: string | null
+        }
+        Update: {
+          brand?: string | null
+          category?: string
+          confidence_threshold?: number | null
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          intent?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          model?: string | null
+          repair_type?: string | null
+          response_template?: string
+          training_text?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       client_interest_requests: {
         Row: {
           approved_at: string | null
@@ -2407,6 +2637,10 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      increment_chatbot_metric: {
+        Args: { metric_name: string; increment_by?: number }
+        Returns: undefined
       }
       increment_clicks: {
         Args: { banner_id: string }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
@@ -11,6 +10,7 @@ import QuickSearchModal from '@/components/search/QuickSearchModal';
 import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
+import ChatWidget from '@/components/chatbot/ChatWidget';
 import { useAuth } from '@/hooks/useAuth';
 import { usePendingAction } from '@/hooks/usePendingAction';
 import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
@@ -156,6 +156,9 @@ const Index = () => {
       </main>
 
       <Footer />
+
+      {/* Widget de Chat IA */}
+      <ChatWidget />
 
       {/* Modals */}
       <QuickSearchModal
