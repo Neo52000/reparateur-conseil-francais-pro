@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -77,6 +78,50 @@ export const useRepairersData = () => {
     }
   };
 
+  const fetchRealRepairCount = async (repairerId: string): Promise<number> => {
+    try {
+      // Essayer de récupérer le nombre réel de réparations depuis différentes tables
+      const [quotesResult, appointmentsResult, trackingResult] = await Promise.all([
+        supabase
+          .from('quotes')
+          .select('*', { count: 'exact', head: true })
+          .eq('repairer_id', repairerId)
+          .eq('status', 'completed'),
+        
+        supabase
+          .from('appointments')
+          .select('*', { count: 'exact', head: true })
+          .eq('repairer_id', repairerId)
+          .eq('status', 'completed'),
+        
+        supabase
+          .from('repair_tracking')
+          .select('*', { count: 'exact', head: true })
+          .eq('repairer_id', repairerId)
+          .eq('status', 'completed')
+      ]);
+
+      const completedQuotes = quotesResult.count || 0;
+      const completedAppointments = appointmentsResult.count || 0;
+      const completedTracking = trackingResult.count || 0;
+
+      // Prendre le maximum des trois sources pour avoir une estimation réaliste
+      const totalRepairs = Math.max(completedQuotes, completedAppointments, completedTracking);
+      
+      console.log(`📊 Real repair count for ${repairerId}:`, {
+        quotes: completedQuotes,
+        appointments: completedAppointments,
+        tracking: completedTracking,
+        total: totalRepairs
+      });
+
+      return totalRepairs;
+    } catch (error) {
+      console.error('❌ Error fetching real repair count:', error);
+      return 0;
+    }
+  };
+
   const fetchRepairers = async () => {
     try {
       console.log('🔄 useRepairersData - Fetching repairers from main table...');
@@ -95,21 +140,28 @@ export const useRepairersData = () => {
 
       console.log('✅ useRepairersData - Repairers loaded from main table:', repairersData?.length || 0);
 
-      const processedRepairers: RepairerData[] = (repairersData || []).map((repairer) => ({
-        id: repairer.id,
-        name: repairer.name,
-        email: repairer.email || 'Non renseigné',
-        phone: repairer.phone || 'Non renseigné',
-        city: repairer.city,
-        department: repairer.department || repairer.postal_code?.substring(0, 2) || '00',
-        subscription_tier: 'free', // Défaut
-        subscribed: repairer.is_verified || false,
-        total_repairs: Math.floor(Math.random() * 200),
-        rating: repairer.rating || 4.5,
-        created_at: repairer.created_at
-      }));
+      // Traiter les réparateurs avec de vraies données de réparations
+      const processedRepairers: RepairerData[] = await Promise.all(
+        (repairersData || []).map(async (repairer) => {
+          const realRepairCount = await fetchRealRepairCount(repairer.id);
+          
+          return {
+            id: repairer.id,
+            name: repairer.name,
+            email: repairer.email || 'Non renseigné',
+            phone: repairer.phone || 'Non renseigné',
+            city: repairer.city,
+            department: repairer.department || repairer.postal_code?.substring(0, 2) || '00',
+            subscription_tier: 'free', // Défaut
+            subscribed: repairer.is_verified || false,
+            total_repairs: realRepairCount, // UTILISER LES VRAIES DONNÉES
+            rating: repairer.rating || 4.5,
+            created_at: repairer.created_at
+          };
+        })
+      );
 
-      console.log('✅ useRepairersData - Processed repairers:', processedRepairers);
+      console.log('✅ useRepairersData - Processed repairers with real repair counts:', processedRepairers);
       setRepairers(processedRepairers);
       
       setStats(prev => ({

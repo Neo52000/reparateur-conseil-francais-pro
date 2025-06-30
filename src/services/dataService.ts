@@ -70,32 +70,74 @@ export class DataService {
         : 'manual'
     }));
 
-    // CORRECTION : Appliquer correctement la logique du mode démo
+    // Appliquer correctement la logique du mode démo - CORRECTION CRITIQUE
     let result: Repairer[];
     
     if (demoModeEnabled) {
-      // Mode démo activé : données réelles (sans démo) + données démo
+      // Mode démo activé : données réelles (sans démo existante) + données démo fraîches
+      const realNonDemoData = transformedRealData.filter(item => item.source !== 'demo');
       const demoData = DemoDataService.getDemoRepairers();
-      result = DemoDataService.combineWithDemoData(
-        transformedRealData,
-        demoData,
-        true
-      );
+      result = [...realNonDemoData, ...demoData];
+      console.log('✅ Mode démo activé - Données combinées:', result.length, '(réelles:', realNonDemoData.length, '+ démo:', demoData.length, ')');
     } else {
       // Mode démo désactivé : UNIQUEMENT données réelles (filtrer toute donnée de démo)
       result = transformedRealData.filter(item => item.source !== 'demo');
+      console.log('🚫 Mode démo désactivé - Données réelles uniquement:', result.length);
     }
 
-    console.log('✅ DataService - Résultat final:', result.length, 'réparateurs');
     return result;
   }
 
   /**
-   * Filtre les données selon le mode démo actuel
+   * Filtre les données selon le mode démo actuel - VERSION CORRIGÉE
    */
   static async filterByDemoMode<T extends { source?: string }>(data: T[]): Promise<T[]> {
     const demoModeEnabled = await this.isDemoModeEnabled();
-    console.log('🔍 DataService - Filtrage par mode démo:', demoModeEnabled);
-    return DemoDataService.filterDataByDemoMode(data, demoModeEnabled);
+    console.log('🔍 DataService - Filtrage par mode démo:', demoModeEnabled, 'sur', data.length, 'éléments');
+    
+    if (demoModeEnabled) {
+      // Mode démo activé : inclure toutes les données (réelles + démo)
+      console.log('✅ Mode démo activé - Garder tous les éléments');
+      return data;
+    } else {
+      // Mode démo désactivé : exclure TOUTES les données avec source = 'demo'
+      const filtered = data.filter(item => item.source !== 'demo');
+      console.log('🚫 Mode démo désactivé - Filtré:', filtered.length, 'éléments (exclu les données démo)');
+      return filtered;
+    }
+  }
+
+  /**
+   * Vérifie l'intégrité des données et la cohérence du mode démo
+   */
+  static async auditDataIntegrity(): Promise<{
+    demoModeEnabled: boolean;
+    realDataCount: number;
+    demoDataCount: number;
+    inconsistencies: string[];
+  }> {
+    const demoModeEnabled = await this.isDemoModeEnabled();
+    const allRepairers = await this.getRepairers();
+    
+    const realDataCount = allRepairers.filter(r => r.source !== 'demo').length;
+    const demoDataCount = allRepairers.filter(r => r.source === 'demo').length;
+    
+    const inconsistencies: string[] = [];
+    
+    // Vérifier les incohérences
+    if (!demoModeEnabled && demoDataCount > 0) {
+      inconsistencies.push(`Mode démo désactivé mais ${demoDataCount} données démo détectées`);
+    }
+    
+    if (demoModeEnabled && demoDataCount === 0) {
+      inconsistencies.push('Mode démo activé mais aucune donnée démo disponible');
+    }
+
+    return {
+      demoModeEnabled,
+      realDataCount,
+      demoDataCount,
+      inconsistencies
+    };
   }
 }
