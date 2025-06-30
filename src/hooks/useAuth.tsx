@@ -163,6 +163,23 @@ export const useAuth = (): UseAuthReturn => {
     return result;
   };
 
+  // Nouvelle fonction de connexion spécifique pour les admins
+  const signInAdmin = async (email: string, password: string) => {
+    setLoading(true);
+    console.log('🔑 Starting admin sign in process for:', email);
+    
+    const result = await authService.signIn(email, password);
+    
+    if (result.error) {
+      console.error('❌ Admin sign in failed:', result.error);
+      setLoading(false);
+    } else {
+      console.log('✅ Admin sign in successful, staying on admin page');
+    }
+    
+    return result;
+  };
+
   const signUp = async (email: string, password: string, userData?: UserSignUpData) => {
     return await authService.signUp(email, password, userData);
   };
@@ -216,6 +233,7 @@ export const useAuth = (): UseAuthReturn => {
     profile,
     loading,
     signIn,
+    signInAdmin,
     signUp,
     signOut,
     refreshProfile,

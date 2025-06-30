@@ -31,10 +31,11 @@ export interface UseAuthReturn {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<any>;
-  signUp: (email: string, password: string, userData?: UserSignUpData) => Promise<any>;
-  signOut: () => Promise<any>;
-  refreshProfile?: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInAdmin: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, userData?: UserSignUpData) => Promise<{ error: any }>;
+  signOut: () => Promise<{ error: any }>;
+  refreshProfile: () => Promise<void>;
   isAdmin: boolean;
   canAccessClient: boolean;
   canAccessRepairer: boolean;

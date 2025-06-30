@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
 import { Shield, Lock, Mail, Eye, EyeOff, RefreshCw } from 'lucide-react';
 
 const AdminAuthForm = () => {
@@ -14,15 +14,7 @@ const AdminAuthForm = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
-  const { signIn, user, isAdmin, profile, loading: authLoading, refreshProfile } = useAuth();
-  const navigate = useNavigate();
-
-  // Redirection automatique si l'utilisateur est déjà connecté et admin
-  useEffect(() => {
-    if (user && isAdmin) {
-      console.log('✅ User is authenticated and admin, staying on admin page');
-    }
-  }, [user, isAdmin, navigate]);
+  const { signInAdmin, user, isAdmin, profile, loading: authLoading, refreshProfile } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +22,7 @@ const AdminAuthForm = () => {
 
     try {
       console.log('🔐 Attempting admin login for:', email);
-      const { error } = await signIn(email, password);
+      const { error } = await signInAdmin(email, password);
       
       if (error) {
         console.error('❌ Admin login error:', error);
