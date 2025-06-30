@@ -38,7 +38,10 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
     meta_title: '',
     meta_description: '',
     keywords: [] as string[],
-    ai_generated: false
+    ai_generated: false,
+    view_count: 0,
+    comment_count: 0,
+    share_count: 0
   });
 
   useEffect(() => {
@@ -56,7 +59,10 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
         meta_title: post.meta_title || '',
         meta_description: post.meta_description || '',
         keywords: post.keywords || [],
-        ai_generated: post.ai_generated
+        ai_generated: post.ai_generated,
+        view_count: post.view_count,
+        comment_count: post.comment_count,
+        share_count: post.share_count
       });
     }
   }, [post]);

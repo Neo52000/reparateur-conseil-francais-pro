@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
@@ -31,11 +32,16 @@ const AdminPage = () => {
     );
   }
 
+  const handleRefresh = () => {
+    // Refresh logic can be implemented here
+    console.log('Refreshing data...');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <AdminDashboardHeader />
+        <AdminDashboardHeader onRefresh={handleRefresh} />
         
         <div className="mt-8">
           <AdminNavigationTabs 
@@ -44,8 +50,22 @@ const AdminPage = () => {
           />
           
           <div className="mt-6">
-            {activeTab === 'subscriptions' && <AdminDashboardContent />}
-            {activeTab === 'repairers' && <RepairersTable />}
+            {activeTab === 'subscriptions' && (
+              <AdminDashboardContent 
+                activeTab={activeTab}
+                subscriptions={[]}
+                repairers={[]}
+                onViewProfile={() => {}}
+                onRefresh={handleRefresh}
+              />
+            )}
+            {activeTab === 'repairers' && (
+              <RepairersTable
+                repairers={[]}
+                onViewProfile={() => {}}
+                onRefresh={handleRefresh}
+              />
+            )}
             {activeTab === 'interest' && <ClientInterestManagement />}
             {activeTab === 'promocodes' && <PromoCodesManagement />}
             {activeTab === 'advertising' && <AdBannerManagement />}
