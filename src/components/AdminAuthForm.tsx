@@ -28,11 +28,19 @@ const AdminAuthForm = () => {
     setLoading(true);
 
     try {
-      console.log('🔐 Attempting admin login for:', email);
+      console.log('🔐 AdminAuthForm: Attempting admin login for:', email);
+      console.log('🔍 AdminAuthForm: Current auth state before login:', {
+        hasUser: !!user,
+        hasProfile: !!profile,
+        profileRole: profile?.role,
+        isAdmin,
+        authLoading
+      });
+      
       const { error } = await signInAdmin(email, password);
       
       if (error) {
-        console.error('❌ Admin login error:', error);
+        console.error('❌ AdminAuthForm: Admin login error:', error);
         toast({
           title: "Erreur de connexion admin",
           description: error.message === 'Invalid login credentials' 
@@ -41,14 +49,25 @@ const AdminAuthForm = () => {
           variant: "destructive"
         });
       } else {
-        console.log('✅ Admin login successful');
+        console.log('✅ AdminAuthForm: Admin login successful');
         toast({
           title: "Connexion admin réussie",
           description: "Bienvenue dans l'interface d'administration"
         });
+        
+        // Attendre un moment puis vérifier l'état
+        setTimeout(() => {
+          console.log('🔍 AdminAuthForm: Auth state after login:', {
+            hasUser: !!user,
+            hasProfile: !!profile,
+            profileRole: profile?.role,
+            isAdmin,
+            authLoading
+          });
+        }, 2000);
       }
     } catch (error) {
-      console.error('💥 Exception during admin login:', error);
+      console.error('💥 AdminAuthForm: Exception during admin login:', error);
       toast({
         title: "Erreur",
         description: "Une erreur inattendue s'est produite",
@@ -65,13 +84,14 @@ const AdminAuthForm = () => {
   const handleRefreshProfile = async () => {
     if (refreshProfile) {
       try {
+        console.log('🔄 AdminAuthForm: Refreshing profile manually...');
         await refreshProfile();
         toast({
           title: "Profil actualisé",
           description: "Tentative de récupération du profil effectuée"
         });
       } catch (error) {
-        console.error('❌ Error refreshing profile:', error);
+        console.error('❌ AdminAuthForm: Error refreshing profile:', error);
         toast({
           title: "Erreur",
           description: "Impossible d'actualiser le profil",
@@ -81,8 +101,18 @@ const AdminAuthForm = () => {
     }
   };
 
+  // Debug: Log de l'état actuel
+  console.log('🏗️ AdminAuthForm render:', {
+    hasUser: !!user,
+    isAdmin,
+    authLoading,
+    profileRole: profile?.role,
+    userEmail: user?.email
+  });
+
   // Affichage du panneau de debug si l'utilisateur est connecté mais pas admin
   if (user && !isAdmin && !authLoading) {
+    console.log('🚫 AdminAuthForm: Showing debug panel - user connected but not admin');
     return (
       <AdminDebugPanel
         user={user}
@@ -94,6 +124,7 @@ const AdminAuthForm = () => {
   }
 
   // Affichage du formulaire de connexion standard
+  console.log('📝 AdminAuthForm: Showing login form');
   return (
     <AdminAuthFormContent
       email={email}
