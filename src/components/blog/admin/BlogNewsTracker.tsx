@@ -1,15 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { RefreshCw, Newspaper, Settings, Save, Play, Copy, Download, List, FileText, CheckCircle, Brain, Zap, Bot } from 'lucide-react';
+import { Newspaper } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import AISelector from './news-tracker/AISelector';
+import NewsPromptEditor from './news-tracker/NewsPromptEditor';
+import NewsResults from './news-tracker/NewsResults';
 
 interface NewsItem {
   title: string;
@@ -27,7 +24,6 @@ const BlogNewsTracker: React.FC = () => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [selectedAI, setSelectedAI] = useState<'perplexity' | 'openai' | 'mistral'>('perplexity');
 
-  // Charger le prompt sauvegardé au démarrage
   useEffect(() => {
     loadSavedPrompt();
   }, []);
@@ -88,7 +84,16 @@ const BlogNewsTracker: React.FC = () => {
 
       if (error) {
         console.error('❌ News fetch error:', error);
-        throw error;
+        // Afficher un message d'erreur plus informatif
+        let errorMessage = 'Erreur inconnue';
+        if (error.message?.includes('insufficient_quota')) {
+          errorMessage = `Quota ${selectedAI.toUpperCase()} dépassé. Essayez avec une autre IA.`;
+        } else if (error.message?.includes('Unauthorized')) {
+          errorMessage = `Clé API ${selectedAI.toUpperCase()} non configurée ou invalide.`;
+        } else if (error.message?.includes('non-2xx status code')) {
+          errorMessage = `Erreur API ${selectedAI.toUpperCase()}. Vérifiez la configuration.`;
+        }
+        throw new Error(errorMessage);
       }
 
       if (data?.error) {
@@ -235,32 +240,6 @@ Structure l'article avec une introduction engageante, un développement détaill
     }
   };
 
-  const getAIIcon = (aiType: string) => {
-    switch (aiType) {
-      case 'perplexity':
-        return <Zap className="h-4 w-4" />;
-      case 'openai':
-        return <Brain className="h-4 w-4" />;
-      case 'mistral':
-        return <Bot className="h-4 w-4" />;
-      default:
-        return <Brain className="h-4 w-4" />;
-    }
-  };
-
-  const getAIColor = (aiType: string) => {
-    switch (aiType) {
-      case 'perplexity':
-        return 'bg-purple-500 hover:bg-purple-600';
-      case 'openai':
-        return 'bg-green-500 hover:bg-green-600';
-      case 'mistral':
-        return 'bg-orange-500 hover:bg-orange-600';
-      default:
-        return 'bg-blue-500 hover:bg-blue-600';
-    }
-  };
-
   return (
     <div className="space-y-6">
       <Card>
@@ -274,175 +253,32 @@ Structure l'article avec une introduction engageante, un développement détaill
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <div>
-              <Label>Sélection de l'IA</Label>
-              <div className="flex gap-2 mt-2">
-                <Button
-                  onClick={() => setSelectedAI('perplexity')}
-                  variant={selectedAI === 'perplexity' ? 'default' : 'outline'}
-                  className={selectedAI === 'perplexity' ? 'bg-purple-500 hover:bg-purple-600 text-white' : ''}
-                  size="sm"
-                >
-                  <Zap className="h-4 w-4 mr-2" />
-                  Perplexity
-                </Button>
-                <Button
-                  onClick={() => setSelectedAI('openai')}
-                  variant={selectedAI === 'openai' ? 'default' : 'outline'}
-                  className={selectedAI === 'openai' ? 'bg-green-500 hover:bg-green-600 text-white' : ''}
-                  size="sm"
-                >
-                  <Brain className="h-4 w-4 mr-2" />
-                  OpenAI
-                </Button>
-                <Button
-                  onClick={() => setSelectedAI('mistral')}
-                  variant={selectedAI === 'mistral' ? 'default' : 'outline'}
-                  className={selectedAI === 'mistral' ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}
-                  size="sm"
-                >
-                  <Bot className="h-4 w-4 mr-2" />
-                  Mistral
-                </Button>
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                IA sélectionnée : <span className="font-medium capitalize">{selectedAI}</span>
-              </p>
-            </div>
-
-            <div>
-              <Label htmlFor="news-prompt">Prompt de recherche</Label>
-              <Textarea
-                id="news-prompt"
-                value={newsPrompt}
-                onChange={(e) => setNewsPrompt(e.target.value)}
-                placeholder="Saisir le prompt pour rechercher les actualités..."
-                rows={4}
-                className="mt-2"
-              />
-              <p className="text-sm text-muted-foreground mt-2">
-                Personnalisez ce prompt pour obtenir les actualités qui vous intéressent le plus
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              <Button onClick={savePrompt} variant="outline">
-                <Save className="h-4 w-4 mr-2" />
-                Sauvegarder
-              </Button>
-              <Button onClick={fetchNews} disabled={isLoading}>
-                {isLoading ? (
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Play className="h-4 w-4 mr-2" />
-                )}
-                Rechercher avec {selectedAI}
-              </Button>
-            </div>
-          </div>
-
-          {lastUpdate && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Badge variant="outline">
-                Dernière mise à jour: {lastUpdate}
-              </Badge>
-              <Badge variant="outline" className="capitalize">
-                {getAIIcon(selectedAI)}
-                <span className="ml-1">{selectedAI}</span>
-              </Badge>
-            </div>
-          )}
+          <AISelector 
+            selectedAI={selectedAI} 
+            onAIChange={setSelectedAI} 
+          />
+          
+          <NewsPromptEditor
+            prompt={newsPrompt}
+            onPromptChange={setNewsPrompt}
+            onSave={savePrompt}
+            onFetch={fetchNews}
+            isLoading={isLoading}
+            selectedAI={selectedAI}
+          />
         </CardContent>
       </Card>
 
-      {newsData.length > 0 && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <List className="h-5 w-5" />
-                  Actualités récupérées ({newsData.length})
-                </CardTitle>
-                <CardDescription>
-                  Dernières actualités dans la téléphonie mobile
-                </CardDescription>
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={copyAllNews} variant="outline" size="sm">
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copier tout
-                </Button>
-                <Button onClick={exportNews} variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Exporter
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {newsData.map((item, index) => (
-                <div key={index} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                            #{index + 1}
-                          </span>
-                          {item.source && (
-                            <Badge variant="secondary" className="text-xs">
-                              {item.source}
-                            </Badge>
-                          )}
-                          {item.date && (
-                            <span className="text-xs text-muted-foreground">
-                              {item.date}
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="font-semibold text-lg mb-2 text-gray-900">
-                          {item.title}
-                        </h3>
-                        <p className="text-gray-700 leading-relaxed text-sm">
-                          {item.summary}
-                        </p>
-                      </div>
-                      <div className="flex flex-col gap-2 ml-4">
-                        <Button
-                          onClick={() => copyToClipboard(`**${item.title}**\n\n${item.summary}\n\nDate: ${item.date || 'Non spécifiée'}\nSource: ${item.source || 'Non spécifiée'}`, index)}
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          title="Copier cette actualité"
-                        >
-                          {copiedIndex === index ? (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )}
-                        </Button>
-                        <Button
-                          onClick={() => generateBlogPost(item)}
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          title="Générer un article de blog"
-                        >
-                          <FileText className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  {index < newsData.length - 1 && <Separator className="mt-4" />}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <NewsResults
+        newsData={newsData}
+        lastUpdate={lastUpdate}
+        selectedAI={selectedAI}
+        copiedIndex={copiedIndex}
+        onCopyAll={copyAllNews}
+        onExport={exportNews}
+        onCopyItem={copyToClipboard}
+        onGenerateBlog={generateBlogPost}
+      />
     </div>
   );
 };

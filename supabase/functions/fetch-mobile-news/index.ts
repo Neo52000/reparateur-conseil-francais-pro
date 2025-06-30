@@ -33,25 +33,83 @@ serve(async (req) => {
 
     console.log(`🔍 Fetching mobile news with ${ai_model}...`);
 
+    // Vérifier la disponibilité des clés API
+    const availableAPIs = {
+      perplexity: !!perplexityApiKey,
+      openai: !!openAIApiKey,
+      mistral: !!mistralApiKey
+    };
+
+    console.log('🔑 Available APIs:', availableAPIs);
+
+    // Si l'IA demandée n'est pas disponible, proposer une alternative
+    if (!availableAPIs[ai_model as keyof typeof availableAPIs]) {
+      const fallbackAI = Object.entries(availableAPIs).find(([_, available]) => available)?.[0];
+      if (!fallbackAI) {
+        return new Response(JSON.stringify({ 
+          error: 'Aucune clé API configurée. Veuillez configurer au moins une clé API (Perplexity, OpenAI ou Mistral) dans les secrets Supabase.',
+          success: false 
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      console.log(`⚠️ ${ai_model} not available, falling back to ${fallbackAI}`);
+    }
+
     let rawContent = '';
+    let usedModel = ai_model;
     
-    // Choisir l'IA selon le paramètre
-    if (ai_model === 'perplexity' && perplexityApiKey) {
-      rawContent = await fetchWithPerplexity(prompt);
-    } else if (ai_model === 'openai' && openAIApiKey) {
-      rawContent = await fetchWithOpenAI(prompt);
-    } else if (ai_model === 'mistral' && mistralApiKey) {
-      rawContent = await fetchWithMistral(prompt);
-    } else {
-      // Fallback sur la première IA disponible
-      if (perplexityApiKey) {
+    // Essayer avec l'IA demandée, puis fallback sur les autres
+    try {
+      if (ai_model === 'perplexity' && perplexityApiKey) {
         rawContent = await fetchWithPerplexity(prompt);
-      } else if (openAIApiKey) {
+      } else if (ai_model === 'openai' && openAIApiKey) {
         rawContent = await fetchWithOpenAI(prompt);
-      } else if (mistralApiKey) {
+      } else if (ai_model === 'mistral' && mistralApiKey) {
         rawContent = await fetchWithMistral(prompt);
       } else {
-        throw new Error('Aucune clé API configurée');
+        // Fallback sur la première IA disponible
+        if (perplexityApiKey) {
+          rawContent = await fetchWithPerplexity(prompt);
+          usedModel = 'perplexity';
+        } else if (openAIApiKey) {
+          rawContent = await fetchWithOpenAI(prompt);
+          usedModel = 'openai';
+        } else if (mistralApiKey) {
+          rawContent = await fetchWithMistral(prompt);
+          usedModel = 'mistral';
+        } else {
+          throw new Error('Aucune clé API configurée');
+        }
+      }
+    } catch (apiError) {
+      console.error(`❌ Error with ${ai_model}:`, apiError);
+      
+      // Essayer avec une autre IA en cas d'échec
+      const alternatives = Object.entries(availableAPIs)
+        .filter(([key, available]) => key !== ai_model && available)
+        .map(([key]) => key);
+
+      if (alternatives.length > 0) {
+        console.log(`🔄 Trying fallback with ${alternatives[0]}...`);
+        try {
+          if (alternatives[0] === 'perplexity') {
+            rawContent = await fetchWithPerplexity(prompt);
+            usedModel = 'perplexity';
+          } else if (alternatives[0] === 'openai') {
+            rawContent = await fetchWithOpenAI(prompt);
+            usedModel = 'openai';
+          } else if (alternatives[0] === 'mistral') {
+            rawContent = await fetchWithMistral(prompt);
+            usedModel = 'mistral';
+          }
+        } catch (fallbackError) {
+          console.error(`❌ Fallback also failed:`, fallbackError);
+          throw apiError; // Throw original error
+        }
+      } else {
+        throw apiError;
       }
     }
 
@@ -71,7 +129,7 @@ serve(async (req) => {
             title: "Actualités mobiles récupérées",
             summary: rawContent,
             date: new Date().toLocaleDateString('fr-FR'),
-            source: ai_model.charAt(0).toUpperCase() + ai_model.slice(1) + ' AI'
+            source: usedModel.charAt(0).toUpperCase() + usedModel.slice(1) + ' AI'
           }]
         };
       }
@@ -83,7 +141,7 @@ serve(async (req) => {
           title: "Actualités mobiles du jour",
           summary: rawContent,
           date: new Date().toLocaleDateString('fr-FR'),
-          source: ai_model.charAt(0).toUpperCase() + ai_model.slice(1) + ' AI'
+          source: usedModel.charAt(0).toUpperCase() + usedModel.slice(1) + ' AI'
         }]
       };
     }
@@ -93,16 +151,27 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       success: true,
       news: newsData.news,
-      ai_model: ai_model,
-      message: `${newsData.news.length} actualités récupérées avec succès via ${ai_model}`
+      ai_model: usedModel,
+      message: `${newsData.news.length} actualités récupérées avec succès via ${usedModel}`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error('❌ Error in fetch-mobile-news function:', error);
+    
+    // Messages d'erreur plus spécifiques
+    let errorMessage = error.message || 'Erreur interne du serveur';
+    if (error.message?.includes('429')) {
+      errorMessage = 'Quota API dépassé. Essayez avec une autre IA ou attendez quelques minutes.';
+    } else if (error.message?.includes('401')) {
+      errorMessage = 'Clé API invalide ou non configurée. Vérifiez la configuration dans les secrets Supabase.';
+    } else if (error.message?.includes('insufficient_quota')) {
+      errorMessage = 'Quota API dépassé. Vérifiez votre plan ou essayez avec une autre IA.';
+    }
+    
     return new Response(JSON.stringify({ 
-      error: error.message || 'Erreur interne du serveur',
+      error: errorMessage,
       success: false 
     }), {
       status: 500,
@@ -212,7 +281,19 @@ async function fetchWithOpenAI(prompt: string): Promise<string> {
   if (!response.ok) {
     const errorText = await response.text();
     console.error('❌ OpenAI API error:', response.status, errorText);
-    throw new Error(`OpenAI API error: ${response.status}`);
+    
+    // Parser l'erreur pour avoir plus de détails
+    let errorDetail = `OpenAI API error: ${response.status}`;
+    try {
+      const errorData = JSON.parse(errorText);
+      if (errorData.error?.message) {
+        errorDetail = errorData.error.message;
+      }
+    } catch (e) {
+      // Garder le message par défaut
+    }
+    
+    throw new Error(errorDetail);
   }
 
   const data = await response.json();
@@ -263,7 +344,7 @@ async function fetchWithMistral(prompt: string): Promise<string> {
   if (!response.ok) {
     const errorText = await response.text();
     console.error('❌ Mistral API error:', response.status, errorText);
-    throw new Error(`Mistral API error: ${response.status}`);
+    throw new Error(`Mistral API error: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
