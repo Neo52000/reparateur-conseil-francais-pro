@@ -27,16 +27,17 @@ const AdminAuthForm = () => {
     e.preventDefault();
     setLoading(true);
 
+    console.log('🔐 AdminAuthForm: Starting admin login process');
+    console.log('📧 Email:', email);
+    console.log('🔍 Current auth state before login:', {
+      hasUser: !!user,
+      hasProfile: !!profile,
+      profileRole: profile?.role,
+      isAdmin,
+      authLoading
+    });
+
     try {
-      console.log('🔐 AdminAuthForm: Attempting admin login for:', email);
-      console.log('🔍 AdminAuthForm: Current auth state before login:', {
-        hasUser: !!user,
-        hasProfile: !!profile,
-        profileRole: profile?.role,
-        isAdmin,
-        authLoading
-      });
-      
       const { error } = await signInAdmin(email, password);
       
       if (error) {
@@ -54,17 +55,6 @@ const AdminAuthForm = () => {
           title: "Connexion admin réussie",
           description: "Bienvenue dans l'interface d'administration"
         });
-        
-        // Attendre un moment puis vérifier l'état
-        setTimeout(() => {
-          console.log('🔍 AdminAuthForm: Auth state after login:', {
-            hasUser: !!user,
-            hasProfile: !!profile,
-            profileRole: profile?.role,
-            isAdmin,
-            authLoading
-          });
-        }, 2000);
       }
     } catch (error) {
       console.error('💥 AdminAuthForm: Exception during admin login:', error);
@@ -102,12 +92,13 @@ const AdminAuthForm = () => {
   };
 
   // Debug: Log de l'état actuel
-  console.log('🏗️ AdminAuthForm render:', {
+  console.log('🏗️ AdminAuthForm render state:', {
     hasUser: !!user,
+    userEmail: user?.email,
     isAdmin,
     authLoading,
     profileRole: profile?.role,
-    userEmail: user?.email
+    profileEmail: profile?.email
   });
 
   // Affichage du panneau de debug si l'utilisateur est connecté mais pas admin

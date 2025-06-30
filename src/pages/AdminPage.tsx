@@ -11,30 +11,51 @@ import PromoCodesManagement from '@/components/PromoCodesManagement';
 import AdBannerManagement from '@/components/advertising/AdBannerManagement';
 import EnhancedScrapingHub from '@/components/scraping/EnhancedScrapingHub';
 import BlogManagement from '@/components/blog/admin/BlogManagement';
+import AdminAuthForm from '@/components/AdminAuthForm';
 import { useAuth } from '@/hooks/useAuth';
 
 const AdminPage = () => {
-  const { user, profile, isAdmin } = useAuth();
+  const { user, profile, isAdmin, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('subscriptions');
 
-  if (!user) {
-    return <Navigate to="/client-auth" replace />;
-  }
+  // Debug logs pour comprendre l'état
+  console.log('🔍 AdminPage - Auth state:', {
+    hasUser: !!user,
+    userEmail: user?.email,
+    hasProfile: !!profile,
+    profileRole: profile?.role,
+    isAdmin,
+    loading
+  });
 
-  if (!isAdmin || profile?.role !== 'admin') {
+  // Si on est en cours de chargement, afficher un loading
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-red-600 mb-4">Accès Refusé</h1>
-          <p className="text-gray-700">Vous n'avez pas les autorisations nécessaires pour accéder à cette page.</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Vérification des permissions...</p>
         </div>
       </div>
     );
   }
 
+  // Si pas d'utilisateur connecté, afficher le formulaire de connexion admin
+  if (!user) {
+    console.log('🚫 AdminPage: No user - showing admin auth form');
+    return <AdminAuthForm />;
+  }
+
+  // Si utilisateur connecté mais pas admin, afficher le debug ou rediriger
+  if (!isAdmin || profile?.role !== 'admin') {
+    console.log('🚫 AdminPage: User not admin - showing debug or auth form');
+    return <AdminAuthForm />;
+  }
+
+  console.log('✅ AdminPage: Admin access granted');
+
   const handleRefresh = () => {
-    // Refresh logic can be implemented here
-    console.log('Refreshing data...');
+    console.log('🔄 AdminPage: Refreshing data...');
   };
 
   return (
