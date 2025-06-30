@@ -50,7 +50,7 @@ const BlogSettings: React.FC = () => {
     allow_comments: true,
     moderate_comments: true,
     default_meta_description: '',
-    google_analytics_id: '',
+    google_analytics_id: 'G-NH6F3RVC9G',
     sitemap_enabled: true,
     newsletter_enabled: true,
     newsletter_welcome_subject: 'Bienvenue sur notre newsletter !',
@@ -224,6 +224,9 @@ const BlogSettings: React.FC = () => {
                 onChange={(e) => updateSetting('google_analytics_id', e.target.value)}
                 placeholder="G-XXXXXXXXXX"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                ID actuellement configuré : G-NH6F3RVC9G
+              </p>
             </div>
             
             <div className="flex items-center space-x-2">
