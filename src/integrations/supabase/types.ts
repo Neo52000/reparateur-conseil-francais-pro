@@ -442,6 +442,33 @@ export type Database = {
           },
         ]
       }
+      audit_cleanup_config: {
+        Row: {
+          auto_cleanup_enabled: boolean
+          created_at: string
+          days_to_keep: number
+          id: string
+          last_cleanup: string | null
+          updated_at: string
+        }
+        Insert: {
+          auto_cleanup_enabled?: boolean
+          created_at?: string
+          days_to_keep?: number
+          id?: string
+          last_cleanup?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auto_cleanup_enabled?: boolean
+          created_at?: string
+          days_to_keep?: number
+          id?: string
+          last_cleanup?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blog_categories: {
         Row: {
           created_at: string

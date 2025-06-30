@@ -21,6 +21,7 @@ const AdminAuditLogsViewer: React.FC = () => {
     end_date: '',
     search: ''
   });
+  const [showCleanupConfig, setShowCleanupConfig] = useState(false);
 
   const { logs, total, loading, error, fetchLogs, exportLogs } = useAdminAuditLogs(filters);
 
@@ -72,6 +73,23 @@ const AdminAuditLogsViewer: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+    );
+  }
+
+  if (showCleanupConfig) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">Configuration du nettoyage</h3>
+          <Button 
+            onClick={() => setShowCleanupConfig(false)}
+            variant="outline"
+          >
+            Retour aux logs
+          </Button>
+        </div>
+        <AdminAuditCleanupConfig />
+      </div>
     );
   }
 
@@ -153,6 +171,14 @@ const AdminAuditLogsViewer: React.FC = () => {
             <Button onClick={handleExport} variant="outline" className="mt-6">
               <Download className="h-4 w-4 mr-2" />
               Exporter CSV
+            </Button>
+            <Button 
+              onClick={() => setShowCleanupConfig(true)} 
+              variant="outline" 
+              className="mt-6"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Configuration
             </Button>
           </div>
         </CardContent>
