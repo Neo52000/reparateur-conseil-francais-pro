@@ -55,24 +55,22 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-image-1',
+        model: 'dall-e-3',
         prompt: enhancedPrompt,
         n: 1,
         size: size || '1024x1024',
-        quality: 'hd',
-        response_format: 'b64_json'
+        quality: 'hd'
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
       console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
     }
 
     const data = await response.json();
-    const imageBase64 = data.data[0].b64_json;
-    const imageUrl = `data:image/png;base64,${imageBase64}`;
+    const imageUrl = data.data[0].url;
 
     console.log('Image generated successfully');
 
