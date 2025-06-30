@@ -39,7 +39,7 @@ serve(async (req) => {
     console.log('🚀 Generating blog content with:', { template_id, ai_model, visibility });
 
     let finalPrompt = prompt;
-    let finalModel = 'openai'; // Utiliser OpenAI par défaut
+    let finalModel = ai_model || 'openai'; // Utiliser le modèle passé en paramètre ou OpenAI par défaut
     let finalCategoryId = category_id;
     let finalVisibility = visibility || 'public';
 
@@ -64,7 +64,8 @@ serve(async (req) => {
       }
 
       finalPrompt = template.prompt_template;
-      finalModel = template.ai_model || 'openai';
+      // Utiliser le modèle passé en paramètre, sinon celui du template, sinon OpenAI par défaut
+      finalModel = ai_model || template.ai_model || 'openai';
       finalCategoryId = template.category_id;
       finalVisibility = template.visibility;
       console.log('✅ Template loaded successfully');
@@ -85,6 +86,7 @@ serve(async (req) => {
       .replace(/{saison}/g, currentSeason);
 
     console.log('📝 Final prompt prepared, length:', finalPrompt.length);
+    console.log('🤖 Using AI model:', finalModel);
 
     // Vérifier qu'on a au moins une clé API
     if (!openAIApiKey && !mistralApiKey && !perplexityApiKey) {
@@ -103,8 +105,6 @@ serve(async (req) => {
     let title = '';
     let excerpt = '';
 
-    console.log('🤖 Using AI model:', finalModel);
-
     try {
       if (finalModel === 'perplexity' && perplexityApiKey) {
         console.log('🔄 Attempting Perplexity generation...');
@@ -112,17 +112,23 @@ serve(async (req) => {
       } else if (finalModel === 'mistral' && mistralApiKey) {
         console.log('🔄 Attempting Mistral generation...');
         await generateWithMistral();
-      } else if (openAIApiKey) {
+      } else if (finalModel === 'openai' && openAIApiKey) {
         console.log('🔄 Attempting OpenAI generation...');
         await generateWithOpenAI();
-      } else if (mistralApiKey) {
-        console.log('🔄 Falling back to Mistral...');
-        await generateWithMistral();
-      } else if (perplexityApiKey) {
-        console.log('🔄 Falling back to Perplexity...');
-        await generateWithPerplexity();
       } else {
-        throw new Error('Aucune clé API disponible pour la génération');
+        // Fallback sur la première IA disponible
+        if (openAIApiKey) {
+          console.log('🔄 Falling back to OpenAI...');
+          await generateWithOpenAI();
+        } else if (mistralApiKey) {
+          console.log('🔄 Falling back to Mistral...');
+          await generateWithMistral();
+        } else if (perplexityApiKey) {
+          console.log('🔄 Falling back to Perplexity...');
+          await generateWithPerplexity();
+        } else {
+          throw new Error('Aucune clé API disponible pour la génération');
+        }
       }
     } catch (error) {
       console.error('❌ Generation failed:', error);
@@ -342,7 +348,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       success: true,
       post: post,
-      message: 'Article généré et créé avec succès'
+      ai_model: finalModel,
+      message: `Article généré et créé avec succès via ${finalModel}`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
