@@ -8,7 +8,7 @@ export interface Feature {
 }
 
 // Définir les plans disponibles (non readonly pour compatibilité)
-export const PLANS = ['Gratuit', 'Basique', 'Premium', 'Enterprise'];
+export const PLANS = ['Gratuit', 'Basique', 'Premium', 'Enterprise'] as const;
 export type PlanName = typeof PLANS[number];
 
 export const FEATURES: Feature[] = [
