@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar, Eye, MessageCircle } from 'lucide-react';
@@ -73,6 +74,16 @@ const BlogSectionHomepage: React.FC = () => {
     });
   };
 
+  // Fonction pour nettoyer et encoder correctement les slugs
+  const getArticleUrl = (slug: string) => {
+    console.log('🔗 Creating article URL for slug:', slug);
+    // Nettoyer le slug en enlevant les caractères problématiques
+    const cleanSlug = slug.replace(/[^a-zA-Z0-9\-]/g, '-').replace(/-+/g, '-');
+    const url = `/blog/article/${cleanSlug}`;
+    console.log('🔗 Final article URL:', url);
+    return url;
+  };
+
   return (
     <section className="py-16 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -106,7 +117,7 @@ const BlogSectionHomepage: React.FC = () => {
                 )}
                 
                 <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 hover:text-blue-600 transition-colors">
-                  <Link to={`/blog/${post.slug}`}>
+                  <Link to={getArticleUrl(post.slug)} onClick={() => console.log('🔗 Navigating to article:', post.slug)}>
                     {post.title}
                   </Link>
                 </h3>

@@ -24,15 +24,31 @@ const BlogArticlePage: React.FC = () => {
     if (!slug) return;
 
     const loadPost = async () => {
-      console.log('🔄 Loading blog post:', slug);
+      console.log('🔄 Loading blog post with slug:', slug);
       try {
-        const postData = await fetchPostBySlug(slug);
+        // Essayer d'abord avec le slug tel quel
+        let postData = await fetchPostBySlug(slug);
+        
+        // Si pas trouvé, essayer avec le slug décodé
+        if (!postData && slug.includes('%')) {
+          const decodedSlug = decodeURIComponent(slug);
+          console.log('🔄 Trying with decoded slug:', decodedSlug);
+          postData = await fetchPostBySlug(decodedSlug);
+        }
+        
+        // Si toujours pas trouvé, essayer avec le slug nettoyé
+        if (!postData) {
+          const cleanSlug = slug.replace(/[^a-zA-Z0-9\-]/g, '-').replace(/-+/g, '-');
+          console.log('🔄 Trying with clean slug:', cleanSlug);
+          postData = await fetchPostBySlug(cleanSlug);
+        }
+        
         if (postData) {
           setPost(postData);
           console.log('✅ Blog post loaded:', postData.title);
         } else {
           setNotFound(true);
-          console.log('❌ Blog post not found');
+          console.log('❌ Blog post not found for slug:', slug);
         }
       } catch (error) {
         console.error('❌ Error loading blog post:', error);
