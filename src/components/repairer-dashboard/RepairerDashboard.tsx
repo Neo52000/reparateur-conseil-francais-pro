@@ -27,14 +27,14 @@ import UpgradeModal from '@/components/UpgradeModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 import DemoModeControl from '@/components/DemoModeControl';
 import { useRepairerDashboardData } from '@/services/repairerDemoDataService';
-import OverviewTabSection from "./repairer-dashboard/OverviewTabSection";
-import OrdersTabSection from "./repairer-dashboard/OrdersTabSection";
-import CalendarTabSection from "./repairer-dashboard/CalendarTabSection";
-import InventoryTabSection from "./repairer-dashboard/InventoryTabSection";
-import AnalyticsTabSection from "./repairer-dashboard/AnalyticsTabSection";
-import BillingTabSection from "./repairer-dashboard/BillingTabSection";
-import ProfileTabSection from "./repairer-dashboard/ProfileTabSection";
-import PricingTabSection from "./repairer-dashboard/PricingTabSection";
+import OverviewTabSection from "./OverviewTabSection";
+import OrdersTabSection from "./OrdersTabSection";
+import CalendarTabSection from "./CalendarTabSection";
+import InventoryTabSection from "./InventoryTabSection";
+import AnalyticsTabSection from "./AnalyticsTabSection";
+import BillingTabSection from "./BillingTabSection";
+import ProfileTabSection from "./ProfileTabSection";
+import PricingTabSection from "./PricingTabSection";
 
 const RepairerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
