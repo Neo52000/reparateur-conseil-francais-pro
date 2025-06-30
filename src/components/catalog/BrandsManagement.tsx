@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash, Package } from 'lucide-react';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useToast } from '@/hooks/use-toast';
+import BrandLogoPreview from './BrandLogoPreview';
+import BrandLogoSelector from './BrandLogoSelector';
 import type { Brand } from '@/types/catalog';
 
 const BrandsManagement = () => {
@@ -115,11 +117,11 @@ const BrandsManagement = () => {
               Ajouter une marque
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Créer une nouvelle marque</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleCreate} className="space-y-4">
+            <form onSubmit={handleCreate} className="space-y-6">
               <div>
                 <Label htmlFor="name">Nom de la marque</Label>
                 <Input
@@ -129,15 +131,13 @@ const BrandsManagement = () => {
                   required
                 />
               </div>
-              <div>
-                <Label htmlFor="logo_url">URL du logo (optionnel)</Label>
-                <Input
-                  id="logo_url"
-                  type="url"
-                  value={formData.logo_url}
-                  onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                />
-              </div>
+              
+              <BrandLogoSelector
+                brandName={formData.name}
+                logoUrl={formData.logo_url}
+                onLogoChange={(url) => setFormData({ ...formData, logo_url: url })}
+              />
+              
               <div className="flex justify-end space-x-2">
                 <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
                   Annuler
@@ -154,6 +154,7 @@ const BrandsManagement = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Logo</TableHead>
                 <TableHead>Marque</TableHead>
                 <TableHead>Modèles</TableHead>
                 <TableHead>Date de création</TableHead>
@@ -163,17 +164,15 @@ const BrandsManagement = () => {
             <TableBody>
               {brands.map((brand) => (
                 <TableRow key={brand.id}>
+                  <TableCell>
+                    <BrandLogoPreview 
+                      logoUrl={brand.logo_url} 
+                      brandName={brand.name} 
+                      size="md" 
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">
-                    <div className="flex items-center space-x-2">
-                      {brand.logo_url && (
-                        <img 
-                          src={brand.logo_url} 
-                          alt={brand.name}
-                          className="w-6 h-6 object-contain"
-                        />
-                      )}
-                      <span>{brand.name}</span>
-                    </div>
+                    {brand.name}
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">
@@ -210,11 +209,11 @@ const BrandsManagement = () => {
       </Card>
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Modifier la marque</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleEdit} className="space-y-4">
+          <form onSubmit={handleEdit} className="space-y-6">
             <div>
               <Label htmlFor="edit_name">Nom de la marque</Label>
               <Input
@@ -224,15 +223,13 @@ const BrandsManagement = () => {
                 required
               />
             </div>
-            <div>
-              <Label htmlFor="edit_logo_url">URL du logo (optionnel)</Label>
-              <Input
-                id="edit_logo_url"
-                type="url"
-                value={formData.logo_url}
-                onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-              />
-            </div>
+            
+            <BrandLogoSelector
+              brandName={formData.name}
+              logoUrl={formData.logo_url}
+              onLogoChange={(url) => setFormData({ ...formData, logo_url: url })}
+            />
+            
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
                 Annuler
