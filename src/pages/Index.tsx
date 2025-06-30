@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import HeroSection from '@/components/sections/HeroSection';
 import QuickStatsSection from '@/components/sections/QuickStatsSection';
 import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
+import BlogWidget from '@/components/blog/BlogWidget';
 import { Repairer } from '@/types/repairer';
 
 const Index = () => {
@@ -37,10 +38,23 @@ const Index = () => {
           onQuickSearch={handleQuickSearch}
         />
         <QuickStatsSection />
-        <RepairersCarouselSection 
-          onViewProfile={handleViewProfile}
-          onCall={handleCall}
-        />
+        
+        {/* Section Blog Widget */}
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <RepairersCarouselSection 
+                  onViewProfile={handleViewProfile}
+                  onCall={handleCall}
+                />
+              </div>
+              <div className="lg:col-span-1">
+                <BlogWidget limit={4} />
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
       
       <Footer />
