@@ -64,12 +64,19 @@ const BlogArticlePage: React.FC = () => {
           <p className="text-lg text-gray-600 mb-8">
             L'article que vous recherchez n'existe pas ou a été supprimé.
           </p>
-          <Link to="/blog">
-            <Button>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Retour au blog
-            </Button>
-          </Link>
+          <div className="flex gap-4 justify-center">
+            <Link to="/">
+              <Button>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Retour à l'accueil
+              </Button>
+            </Link>
+            <Link to="/blog">
+              <Button variant="outline">
+                Retour au blog
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -84,12 +91,19 @@ const BlogArticlePage: React.FC = () => {
       {/* Header avec navigation */}
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Link to="/blog">
-            <Button variant="ghost" className="mb-4">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Retour au blog
-            </Button>
-          </Link>
+          <div className="flex gap-4">
+            <Link to="/">
+              <Button variant="ghost">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Retour à l'accueil
+              </Button>
+            </Link>
+            <Link to="/blog">
+              <Button variant="outline">
+                Retour au blog
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
