@@ -40,7 +40,12 @@ const AdminDashboard = () => {
       <div className="space-y-6">
         <AdminDashboardHeader onRefresh={fetchData} />
 
-        <AdminStatsCards stats={stats} />
+        <AdminStatsCards stats={{
+          totalRepairers: stats.totalRepairers,
+          totalSubscriptions: stats.totalSubscriptions,
+          totalInterests: stats.totalInterests,
+          totalRevenue: stats.totalRevenue
+        }} />
 
         <AdminNavigationTabs 
           activeTab={activeTab} 

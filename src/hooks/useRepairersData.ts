@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -38,8 +37,10 @@ interface Stats {
   activeSubscriptions: number;
   monthlyRevenue: number;
   yearlyRevenue: number;
+  totalRevenue: number;
   totalRepairers: number;
   activeRepairers: number;
+  totalInterests: number;
 }
 
 export const useRepairersData = () => {
@@ -51,10 +52,82 @@ export const useRepairersData = () => {
     activeSubscriptions: 0,
     monthlyRevenue: 0,
     yearlyRevenue: 0,
+    totalRevenue: 0,
     totalRepairers: 0,
-    activeRepairers: 0
+    activeRepairers: 0,
+    totalInterests: 0
   });
   const { toast } = useToast();
+
+  const fetchInterestsCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('client_interest_requests')
+        .select('*', { count: 'exact', head: true });
+
+      if (error) {
+        console.error('❌ useRepairersData - Error fetching interests count:', error);
+        return 0;
+      }
+
+      return count || 0;
+    } catch (error) {
+      console.error('❌ useRepairersData - Exception fetching interests:', error);
+      return 0;
+    }
+  };
+
+  const fetchRepairers = async () => {
+    try {
+      console.log('🔄 useRepairersData - Fetching repairers from main table...');
+      
+      // Récupérer DIRECTEMENT depuis la table repairers
+      const { data: repairersData, error: repairersError } = await supabase
+        .from('repairers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (repairersError) {
+        console.error('❌ useRepairersData - Repairers fetch error:', repairersError);
+        setRepairers([]);
+        return;
+      }
+
+      console.log('✅ useRepairersData - Repairers loaded from main table:', repairersData?.length || 0);
+
+      const processedRepairers: RepairerData[] = (repairersData || []).map((repairer) => ({
+        id: repairer.id,
+        name: repairer.name,
+        email: repairer.email || 'Non renseigné',
+        phone: repairer.phone || 'Non renseigné',
+        city: repairer.city,
+        department: repairer.department || repairer.postal_code?.substring(0, 2) || '00',
+        subscription_tier: 'free', // Défaut
+        subscribed: repairer.is_verified || false,
+        total_repairs: Math.floor(Math.random() * 200),
+        rating: repairer.rating || 4.5,
+        created_at: repairer.created_at
+      }));
+
+      console.log('✅ useRepairersData - Processed repairers:', processedRepairers);
+      setRepairers(processedRepairers);
+      
+      setStats(prev => ({
+        ...prev,
+        totalRepairers: processedRepairers.length,
+        activeRepairers: processedRepairers.filter(r => r.subscribed).length
+      }));
+
+    } catch (error) {
+      console.error('❌ useRepairersData - Error fetching repairers:', error);
+      setRepairers([]);
+      setStats(prev => ({
+        ...prev,
+        totalRepairers: 0,
+        activeRepairers: 0
+      }));
+    }
+  };
 
   const fetchSubscriptions = async () => {
     try {
@@ -128,12 +201,15 @@ export const useRepairersData = () => {
         return sum;
       }, 0);
 
+      const totalRev = monthlyRev + yearlyRev;
+
       setStats(prev => ({
         ...prev,
         totalSubscriptions: total,
         activeSubscriptions: active,
         monthlyRevenue: monthlyRev,
-        yearlyRevenue: yearlyRev
+        yearlyRevenue: yearlyRev,
+        totalRevenue: totalRev
       }));
 
     } catch (error) {
@@ -142,62 +218,20 @@ export const useRepairersData = () => {
     }
   };
 
-  const fetchRepairers = async () => {
-    try {
-      console.log('🔄 useRepairersData - Fetching repairers from main table...');
-      
-      // Récupérer DIRECTEMENT depuis la table repairers
-      const { data: repairersData, error: repairersError } = await supabase
-        .from('repairers')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (repairersError) {
-        console.error('❌ useRepairersData - Repairers fetch error:', repairersError);
-        setRepairers([]);
-        return;
-      }
-
-      console.log('✅ useRepairersData - Repairers loaded from main table:', repairersData?.length || 0);
-
-      const processedRepairers: RepairerData[] = (repairersData || []).map((repairer) => ({
-        id: repairer.id,
-        name: repairer.name,
-        email: repairer.email || 'Non renseigné',
-        phone: repairer.phone || 'Non renseigné',
-        city: repairer.city,
-        department: repairer.department || repairer.postal_code?.substring(0, 2) || '00',
-        subscription_tier: 'free', // Défaut
-        subscribed: repairer.is_verified || false,
-        total_repairs: Math.floor(Math.random() * 200),
-        rating: repairer.rating || 4.5,
-        created_at: repairer.created_at
-      }));
-
-      console.log('✅ useRepairersData - Processed repairers:', processedRepairers);
-      setRepairers(processedRepairers);
-      
-      setStats(prev => ({
-        ...prev,
-        totalRepairers: processedRepairers.length,
-        activeRepairers: processedRepairers.filter(r => r.subscribed).length
-      }));
-
-    } catch (error) {
-      console.error('❌ useRepairersData - Error fetching repairers:', error);
-      setRepairers([]);
-      setStats(prev => ({
-        ...prev,
-        totalRepairers: 0,
-        activeRepairers: 0
-      }));
-    }
-  };
-
   const fetchData = async () => {
     setLoading(true);
     try {
       console.log('🚀 useRepairersData - Starting data fetch...');
+      
+      // Fetch interests count
+      const interestsCount = await fetchInterestsCount();
+      
+      // Update stats with interests count
+      setStats(prev => ({
+        ...prev,
+        totalInterests: interestsCount
+      }));
+      
       await Promise.all([fetchSubscriptions(), fetchRepairers()]);
       console.log('✅ useRepairersData - Data fetch completed successfully');
     } catch (error) {
