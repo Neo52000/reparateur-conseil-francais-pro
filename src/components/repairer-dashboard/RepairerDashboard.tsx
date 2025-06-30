@@ -27,14 +27,20 @@ import UpgradeModal from '@/components/UpgradeModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 import DemoModeControl from '@/components/DemoModeControl';
 import { useDemoMode } from '@/hooks/useDemoMode';
-import OverviewTabSection from "./OverviewTabSection";
-import OrdersTabSection from "./OrdersTabSection";
-import CalendarTabSection from "./CalendarTabSection";
-import InventoryTabSection from "./InventoryTabSection";
-import AnalyticsTabSection from "./AnalyticsTabSection";
-import BillingTabSection from "./BillingTabSection";
-import ProfileTabSection from "./ProfileTabSection";
-import PricingTabSection from "./PricingTabSection";
+import OverviewTabSection from "./repairer-dashboard/OverviewTabSection";
+import OrdersTabSection from "./repairer-dashboard/OrdersTabSection";
+import CalendarTabSection from "./repairer-dashboard/CalendarTabSection";
+import InventoryTabSection from "./repairer-dashboard/InventoryTabSection";
+import AnalyticsTabSection from "./repairer-dashboard/AnalyticsTabSection";
+import BillingTabSection from "./repairer-dashboard/BillingTabSection";
+import ProfileTabSection from "./repairer-dashboard/ProfileTabSection";
+import PricingTabSection from "./repairer-dashboard/PricingTabSection";
+
+import DayView from "./calendar/DayView";
+import AdvancedAnalytics from "./analytics/AdvancedAnalytics";
+import InventoryManagement from "./inventory/InventoryManagement";
+import NotificationCenter from "./notifications/NotificationCenter";
+import LoyaltyProgram from "./loyalty/LoyaltyProgram";
 
 const RepairerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -462,13 +468,15 @@ const RepairerDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="overview">Aperçu</TabsTrigger>
             <TabsTrigger value="orders">Commandes</TabsTrigger>
             <TabsTrigger value="calendar">Planning</TabsTrigger>
             <TabsTrigger value="inventory">Stock</TabsTrigger>
             <TabsTrigger value="pricing">Tarifs</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="loyalty">Fidélité</TabsTrigger>
             <TabsTrigger value="billing">Facturation</TabsTrigger>
             <TabsTrigger value="profile">Profil</TabsTrigger>
           </TabsList>
@@ -485,11 +493,36 @@ const RepairerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="calendar">
-            <CalendarTabSection />
+            <div className="space-y-6">
+              <CalendarTabSection />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Vue détaillée du planning</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <DayView
+                    selectedDate={new Date()}
+                    appointments={repairerData.appointments.map(apt => ({
+                      id: apt.id,
+                      appointment_date: new Date().toISOString(),
+                      duration_minutes: 60,
+                      client_name: apt.client,
+                      service: apt.service,
+                      status: 'scheduled'
+                    }))}
+                    onAppointmentClick={(apt) => console.log('Appointment clicked:', apt)}
+                    onTimeSlotClick={(time) => console.log('Time slot clicked:', time)}
+                  />
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="inventory">
-            <InventoryTabSection inventory={repairerData.inventory} />
+            <InventoryManagement 
+              inventory={repairerData.inventory}
+              demoModeEnabled={demoModeEnabled}
+            />
           </TabsContent>
 
           <TabsContent value="pricing">
@@ -497,7 +530,18 @@ const RepairerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="analytics">
-            <AnalyticsTabSection avgRepairTime={repairerData.stats.avgRepairTime} />
+            <div className="space-y-6">
+              <AnalyticsTabSection avgRepairTime={repairerData.stats.avgRepairTime} />
+              <AdvancedAnalytics demoModeEnabled={demoModeEnabled} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <NotificationCenter demoModeEnabled={demoModeEnabled} />
+          </TabsContent>
+
+          <TabsContent value="loyalty">
+            <LoyaltyProgram demoModeEnabled={demoModeEnabled} />
           </TabsContent>
 
           <TabsContent value="billing">
