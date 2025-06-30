@@ -1,24 +1,5 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { 
-  BarChart3, 
-  Package, 
-  Calendar, 
-  MessageSquare, 
-  FileText, 
-  Euro,
-  TrendingUp,
-  Users,
-  Clock,
-  Star,
-  LogOut,
-  Crown,
-  ArrowUp,
-  Calculator
-} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useUpgradeModal } from '@/hooks/useUpgradeModal';
@@ -27,20 +8,10 @@ import UpgradeModal from '@/components/UpgradeModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 import DemoModeControl from '@/components/DemoModeControl';
 import { useDemoMode } from '@/hooks/useDemoMode';
-import OverviewTabSection from "./OverviewTabSection";
-import OrdersTabSection from "./OrdersTabSection";
-import CalendarTabSection from "./CalendarTabSection";
-import InventoryTabSection from "./InventoryTabSection";
-import AnalyticsTabSection from "./AnalyticsTabSection";
-import BillingTabSection from "./BillingTabSection";
-import ProfileTabSection from "./ProfileTabSection";
-import PricingTabSection from "./PricingTabSection";
-
-import DayView from "./calendar/DayView";
-import AdvancedAnalytics from "./analytics/AdvancedAnalytics";
-import InventoryManagement from "./inventory/InventoryManagement";
-import NotificationCenter from "./notifications/NotificationCenter";
-import LoyaltyProgram from "./loyalty/LoyaltyProgram";
+import RepairerDashboardHeader from './RepairerDashboardHeader';
+import RepairerDashboardStats from './RepairerDashboardStats';
+import RepairerDashboardPlanCard from './RepairerDashboardPlanCard';
+import RepairerDashboardTabs from './RepairerDashboardTabs';
 
 const RepairerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -295,32 +266,6 @@ const RepairerDashboard = () => {
     navigate('/repairer/plans');
   };
 
-  const getPlanDisplayName = (plan: string) => {
-    switch (plan) {
-      case 'basic':
-        return 'Basique';
-      case 'premium':
-        return 'Premium';
-      case 'enterprise':
-        return 'Enterprise';
-      default:
-        return 'Gratuit';
-    }
-  };
-
-  const getPlanColor = (plan: string) => {
-    switch (plan) {
-      case 'basic':
-        return 'border-l-blue-500';
-      case 'premium':
-        return 'border-l-purple-500';
-      case 'enterprise':
-        return 'border-l-yellow-500';
-      default:
-        return 'border-l-gray-500';
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -333,32 +278,10 @@ const RepairerDashboard = () => {
           />
         )}
 
-        {/* Top bar with logo, title and logout button */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <img
-              src="/lovable-uploads/bdac6a2d-e8e5-46cb-b897-64a0a8383a78.png"
-              alt="TopRéparateurs.fr"
-              className="h-16 object-contain"
-            />
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Tableau de bord Réparateur</h1>
-              {demoModeEnabled && (
-                <Badge variant="secondary" className="mt-1 bg-blue-100 text-blue-800">
-                  Mode Démonstration
-                </Badge>
-              )}
-            </div>
-          </div>
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="self-end flex items-center gap-2 border-orange-600 text-orange-600 hover:bg-orange-50"
-          >
-            <LogOut className="h-5 w-5" />
-            <span>Déconnexion</span>
-          </Button>
-        </div>
+        <RepairerDashboardHeader 
+          onLogout={handleLogout}
+          demoModeEnabled={demoModeEnabled}
+        />
 
         {/* Contrôle du mode démo pour les admins */}
         {isAdmin && (
@@ -367,40 +290,14 @@ const RepairerDashboard = () => {
           </div>
         )}
 
-        {/* Plan actuel et bandeau d'upgrade avec debug info */}
-        <Card className={`mb-6 border-l-4 ${getPlanColor(currentPlan)}`}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Crown className="h-6 w-6 text-gray-500" />
-                <div>
-                  <h3 className="font-semibold text-gray-900">
-                    Plan actuel : {getPlanDisplayName(currentPlan)}
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    {currentPlan === 'free' 
-                      ? 'Passez à un plan payant pour accéder à plus de fonctionnalités'
-                      : 'Vous bénéficiez des fonctionnalités avancées'
-                    }
-                  </p>
-                  {user?.email === 'demo@demo.fr' && (
-                    <p className="text-xs text-blue-600 mt-1">
-                      Debug: User ID = {user.id} | Email = {user.email} | Plan = {currentPlan}
-                    </p>
-                  )}
-                </div>
-              </div>
-              {currentPlan === 'free' && (
-                <Button onClick={handleUpgradePlan} className="flex items-center gap-2">
-                  <ArrowUp className="h-4 w-4" />
-                  Changer de plan
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <RepairerDashboardPlanCard
+          currentPlan={currentPlan}
+          userEmail={user?.email}
+          userId={user?.id}
+          onUpgradePlan={handleUpgradePlan}
+        />
 
-        {/* Bannière publicitaire pour les réparateurs - sous l'affichage du plan */}
+        {/* Bannière publicitaire pour les réparateurs */}
         <div className="mb-6">
           <AdBannerDisplay 
             placement="repairer_dashboard" 
@@ -408,150 +305,22 @@ const RepairerDashboard = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Euro className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">CA mensuel</p>
-                  <p className="text-2xl font-bold text-gray-900">{repairerData.stats.monthlyRevenue}€</p>
-                  {demoModeEnabled && (
-                    <p className="text-xs text-blue-600">Donnée de démo</p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <RepairerDashboardStats
+          stats={repairerData.stats}
+          profile={repairerData.profile}
+          demoModeEnabled={demoModeEnabled}
+        />
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Clock className="h-8 w-8 text-orange-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Commandes en attente</p>
-                  <p className="text-2xl font-bold text-gray-900">{repairerData.stats.pendingOrders}</p>
-                  {demoModeEnabled && (
-                    <p className="text-xs text-blue-600">Donnée de démo</p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <TrendingUp className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Réparations ce mois</p>
-                  <p className="text-2xl font-bold text-gray-900">{repairerData.stats.completedThisMonth}</p>
-                  {demoModeEnabled && (
-                    <p className="text-xs text-blue-600">Donnée de démo</p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Star className="h-8 w-8 text-yellow-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Note moyenne</p>
-                  <p className="text-2xl font-bold text-gray-900">{repairerData.profile.rating}/5</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10">
-            <TabsTrigger value="overview">Aperçu</TabsTrigger>
-            <TabsTrigger value="orders">Commandes</TabsTrigger>
-            <TabsTrigger value="calendar">Planning</TabsTrigger>
-            <TabsTrigger value="inventory">Stock</TabsTrigger>
-            <TabsTrigger value="pricing">Tarifs</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="loyalty">Fidélité</TabsTrigger>
-            <TabsTrigger value="billing">Facturation</TabsTrigger>
-            <TabsTrigger value="profile">Profil</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview">
-            <OverviewTabSection
-              orders={repairerData.orders}
-              appointments={repairerData.appointments}
-            />
-          </TabsContent>
-
-          <TabsContent value="orders">
-            <OrdersTabSection orders={repairerData.orders} />
-          </TabsContent>
-
-          <TabsContent value="calendar">
-            <div className="space-y-6">
-              <CalendarTabSection />
-              <Card>
-                <CardHeader>
-                  <CardTitle>Vue détaillée du planning</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <DayView
-                    selectedDate={new Date()}
-                    appointments={repairerData.appointments.map(apt => ({
-                      id: apt.id,
-                      appointment_date: new Date().toISOString(),
-                      duration_minutes: 60,
-                      client_name: apt.client,
-                      service: apt.service,
-                      status: 'scheduled'
-                    }))}
-                    onAppointmentClick={(apt) => console.log('Appointment clicked:', apt)}
-                    onTimeSlotClick={(time) => console.log('Time slot clicked:', time)}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="inventory">
-            <InventoryManagement 
-              inventory={repairerData.inventory}
-              demoModeEnabled={demoModeEnabled}
-            />
-          </TabsContent>
-
-          <TabsContent value="pricing">
-            <PricingTabSection />
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <div className="space-y-6">
-              <AnalyticsTabSection avgRepairTime={repairerData.stats.avgRepairTime} />
-              <AdvancedAnalytics demoModeEnabled={demoModeEnabled} />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="notifications">
-            <NotificationCenter demoModeEnabled={demoModeEnabled} />
-          </TabsContent>
-
-          <TabsContent value="loyalty">
-            <LoyaltyProgram demoModeEnabled={demoModeEnabled} />
-          </TabsContent>
-
-          <TabsContent value="billing">
-            <BillingTabSection />
-          </TabsContent>
-
-          <TabsContent value="profile">
-            <ProfileTabSection profileData={repairerData.profile} />
-          </TabsContent>
-        </Tabs>
+        <RepairerDashboardTabs
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          orders={repairerData.orders}
+          appointments={repairerData.appointments}
+          inventory={repairerData.inventory}
+          profileData={repairerData.profile}
+          avgRepairTime={repairerData.stats.avgRepairTime}
+          demoModeEnabled={demoModeEnabled}
+        />
       </div>
     </div>
   );
