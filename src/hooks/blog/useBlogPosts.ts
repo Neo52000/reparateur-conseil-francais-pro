@@ -96,13 +96,50 @@ export const useBlogPosts = () => {
     }
   };
 
+  // Fonction pour nettoyer les données avant sauvegarde
+  const cleanPostData = (post: any) => {
+    const cleanedPost = { ...post };
+    
+    // Convertir les chaînes vides en null pour les UUIDs
+    if (cleanedPost.category_id === '') {
+      cleanedPost.category_id = null;
+    }
+    if (cleanedPost.author_id === '') {
+      cleanedPost.author_id = null;
+    }
+    
+    // Nettoyer les autres champs optionnels
+    if (cleanedPost.featured_image_url === '') {
+      cleanedPost.featured_image_url = null;
+    }
+    if (cleanedPost.meta_title === '') {
+      cleanedPost.meta_title = null;
+    }
+    if (cleanedPost.meta_description === '') {
+      cleanedPost.meta_description = null;
+    }
+    if (cleanedPost.excerpt === '') {
+      cleanedPost.excerpt = null;
+    }
+    
+    // S'assurer que les keywords sont un tableau
+    if (!Array.isArray(cleanedPost.keywords)) {
+      cleanedPost.keywords = [];
+    }
+    
+    return cleanedPost;
+  };
+
   // Création/mise à jour d'un article
   const savePost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
     try {
+      // Nettoyer les données avant sauvegarde
+      const cleanedPost = cleanPostData(post);
+      
       if (post.id) {
         const { data, error } = await supabase
           .from('blog_posts')
-          .update(post)
+          .update(cleanedPost)
           .eq('id', post.id)
           .select()
           .single();
@@ -116,7 +153,7 @@ export const useBlogPosts = () => {
       } else {
         const { data, error } = await supabase
           .from('blog_posts')
-          .insert(post)
+          .insert(cleanedPost)
           .select()
           .single();
 
