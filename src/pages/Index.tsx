@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -38,13 +39,13 @@ const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const { location, fetchLocation } = useGeolocation();
+  const { userLocation: geoLocation, getUserLocation } = useGeolocation();
 
   useEffect(() => {
-    if (location) {
-      setUserLocation([location.longitude, location.latitude]);
+    if (geoLocation) {
+      setUserLocation([geoLocation[1], geoLocation[0]]);
     }
-  }, [location]);
+  }, [geoLocation]);
 
   const handleCityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCity(e.target.value);
@@ -107,7 +108,13 @@ const Index = () => {
   const handleDemoRequest = async () => {
     setIsDemoLoading(true);
     try {
-      const { error } = await supabase.from("demo_requests").insert({ email: demoEmail });
+      // Simuler une insertion de démo en utilisant les notifications
+      const { error } = await supabase.from("notifications").insert({ 
+        title: "Demande de démo",
+        message: `Demande de démo reçue pour: ${demoEmail}`,
+        user_id: user?.id || '00000000-0000-0000-0000-000000000000',
+        type: 'info'
+      });
 
       if (error) {
         toast({
@@ -136,8 +143,8 @@ const Index = () => {
   const handleGeolocation = async () => {
     setLocationError(null);
     try {
-      await fetchLocation();
-      if (!location) {
+      await getUserLocation();
+      if (!geoLocation) {
         setLocationError("Impossible de récupérer votre position.");
         toast({
           title: "Erreur de géolocalisation",
@@ -267,7 +274,7 @@ const Index = () => {
         </section>
 
         <section className="mt-12">
-          <AdBannerDisplay placement="home_page" />
+          <AdBannerDisplay placement="home" />
         </section>
 
         <section className="mt-12 text-center">

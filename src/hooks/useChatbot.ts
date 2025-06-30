@@ -52,6 +52,7 @@ export const useChatbot = () => {
 
       const formattedConversations = data.map((conv: any) => ({
         ...conv,
+        status: conv.status as 'active' | 'completed' | 'escalated',
         messages: conv.chatbot_messages || []
       }));
 
@@ -79,6 +80,7 @@ export const useChatbot = () => {
       if (data) {
         const conversation = {
           ...data,
+          status: data.status as 'active' | 'completed' | 'escalated',
           messages: data.chatbot_messages || []
         };
         setCurrentConversation(conversation);

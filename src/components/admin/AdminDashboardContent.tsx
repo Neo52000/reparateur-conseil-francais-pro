@@ -59,6 +59,7 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
               <RepairersTable 
                 repairers={repairers} 
                 onViewProfile={onViewProfile}
+                onRefresh={onRefresh}
               />
             </CardContent>
           </Card>

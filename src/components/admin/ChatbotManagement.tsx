@@ -40,6 +40,10 @@ interface TrainingData {
   training_text: string;
   response_template: string;
   confidence_threshold: number;
+  device_type?: string;
+  brand?: string;
+  model?: string;
+  repair_type?: string;
   is_active: boolean;
 }
 
@@ -137,7 +141,9 @@ const ChatbotManagement = () => {
       if (error) throw error;
 
       const configObject = data.reduce((acc, item) => {
-        acc[item.config_key] = JSON.parse(item.config_value);
+        acc[item.config_key] = typeof item.config_value === 'string' 
+          ? JSON.parse(item.config_value) 
+          : item.config_value;
         return acc;
       }, {} as any);
 
@@ -147,7 +153,7 @@ const ChatbotManagement = () => {
     }
   };
 
-  const saveTrainingData = async (data: Partial<TrainingData>) => {
+  const saveTrainingData = async (data: Omit<TrainingData, 'id'>) => {
     setLoading(true);
     try {
       if (editingTraining) {
@@ -203,7 +209,7 @@ const ChatbotManagement = () => {
 
   const TrainingDataForm = ({ data, onSave, onCancel }: {
     data?: TrainingData;
-    onSave: (data: Partial<TrainingData>) => void;
+    onSave: (data: Omit<TrainingData, 'id'>) => void;
     onCancel: () => void;
   }) => {
     const [formData, setFormData] = useState({
