@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,7 +28,7 @@ const CampaignManagement: React.FC = () => {
     budget_daily: '',
     start_date: '',
     end_date: '',
-    status: 'draft' as const,
+    status: 'draft' as 'draft' | 'active' | 'paused' | 'completed',
     targeting_user_types: [] as string[],
     targeting_subscription_tiers: '',
     targeting_device_types: '',
@@ -297,7 +296,7 @@ const CampaignManagement: React.FC = () => {
                     <Label htmlFor="status">Statut</Label>
                     <Select
                       value={formData.status}
-                      onValueChange={(value: any) => setFormData(prev => ({ ...prev, status: value }))}
+                      onValueChange={(value: 'draft' | 'active' | 'paused' | 'completed') => setFormData(prev => ({ ...prev, status: value }))}
                     >
                       <SelectTrigger>
                         <SelectValue />

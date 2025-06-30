@@ -16,7 +16,7 @@ export const useEnhancedAdvertising = (placement: AdPlacement, userProfile?: Use
   const [banners, setBanners] = useState<AdBanner[]>([]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
 
   console.log('🔥 useEnhancedAdvertising - Hook initialized for placement:', placement, 'with profile:', userProfile);
 
@@ -112,11 +112,11 @@ export const useEnhancedAdvertising = (placement: AdPlacement, userProfile?: Use
         target_type: banner.target_type as 'client' | 'repairer'
       })) as AdBanner[];
 
-      // Construire le profil utilisateur effectif
+      // Construire le profil utilisateur effectif avec subscription_tier par défaut
       const effectiveProfile: UserProfile = {
         ...userProfile,
         user_type: userProfile?.user_type || (placement === 'repairer_dashboard' ? 'repairer' : 'client'),
-        subscription_tier: userProfile?.subscription_tier || profile?.subscription_tier || 'free'
+        subscription_tier: userProfile?.subscription_tier || 'free' // Valeur par défaut
       };
 
       console.log('👤 Effective user profile for targeting:', effectiveProfile);
@@ -147,7 +147,7 @@ export const useEnhancedAdvertising = (placement: AdPlacement, userProfile?: Use
     } finally {
       setLoading(false);
     }
-  }, [placement, userProfile, profile?.subscription_tier, calculateTargetingScore]);
+  }, [placement, userProfile, calculateTargetingScore]);
 
   // Enregistrer une impression
   const trackImpression = useCallback(async (bannerId: string) => {
