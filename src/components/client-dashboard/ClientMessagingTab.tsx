@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ interface Conversation {
   last_message_time: string;
   unread_count: number;
   status: 'active' | 'closed';
+  source?: 'demo';
 }
 
 interface Message {
@@ -28,6 +30,7 @@ interface Message {
   message: string;
   created_at: string;
   conversation_id: string;
+  source?: 'demo';
 }
 
 const ClientMessagingTab = () => {
@@ -109,7 +112,8 @@ const ClientMessagingTab = () => {
         sender_type: 'client',
         message: newMessage.trim(),
         created_at: new Date().toISOString(),
-        conversation_id: selectedConversation.id
+        conversation_id: selectedConversation.id,
+        source: 'demo'
       };
 
       setMessages(prev => [...prev, message]);

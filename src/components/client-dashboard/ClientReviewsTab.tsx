@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +38,7 @@ interface ClientReview {
   helpful_count: number;
   created_at: string;
   updated_at: string;
+  source?: 'demo';
 }
 
 interface Quote {
@@ -46,6 +48,7 @@ interface Quote {
   repair_type: string;
   repairer_id: string;
   status: string;
+  source?: 'demo';
 }
 
 const ClientReviewsTab = () => {
@@ -305,7 +308,7 @@ const ClientReviewsTab = () => {
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  const approgedReviews = reviews.filter(r => r.status === 'approved').length;
+  const approvedReviews = reviews.filter(r => r.status === 'approved').length;
   const pendingReviews = reviews.filter(r => r.status === 'pending').length;
   const averageRating = reviews.length > 0 
     ? reviews.reduce((sum, r) => sum + r.overall_rating, 0) / reviews.length 
@@ -342,7 +345,7 @@ const ClientReviewsTab = () => {
               <MessageCircle className="h-5 w-5 text-blue-600" />
               <div>
                 <p className="text-sm text-gray-600">Avis publiés</p>
-                <p className="text-xl font-bold">{approgedReviews}</p>
+                <p className="text-xl font-bold">{approvedReviews}</p>
               </div>
             </div>
           </CardContent>
