@@ -5,9 +5,9 @@ import { BlogPost, BlogCategory } from '@/types/blog';
 import { useToast } from '@/hooks/use-toast';
 import AIImageGenerator from './AIImageGenerator';
 import BlogPostEditorHeader from './BlogPostEditorHeader';
-import BlogPostEditorMainContent from './BlogPostEditorMainContent';
+import BlogPostEditorMainContentEnhanced from './BlogPostEditorMainContentEnhanced';
 import BlogPostEditorImageSection from './BlogPostEditorImageSection';
-import BlogPostEditorSidebar from './BlogPostEditorSidebar';
+import BlogPostEditorSidebarEnhanced from './BlogPostEditorSidebarEnhanced';
 
 interface BlogPostEditorProps {
   post?: BlogPost | null;
@@ -70,6 +70,12 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
+      .replace(/[àáâãäå]/g, 'a')
+      .replace(/[èéêë]/g, 'e')
+      .replace(/[ìíîï]/g, 'i')
+      .replace(/[òóôõö]/g, 'o')
+      .replace(/[ùúûü]/g, 'u')
+      .replace(/[ç]/g, 'c')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
   };
@@ -118,7 +124,7 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <BlogPostEditorMainContent
+          <BlogPostEditorMainContentEnhanced
             title={formData.title}
             slug={formData.slug}
             excerpt={formData.excerpt}
@@ -136,7 +142,7 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
           />
         </div>
 
-        <BlogPostEditorSidebar
+        <BlogPostEditorSidebarEnhanced
           status={formData.status}
           visibility={formData.visibility}
           categoryId={formData.category_id}
@@ -144,6 +150,8 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
           metaDescription={formData.meta_description}
           keywords={formData.keywords}
           categories={categories}
+          title={formData.title}
+          content={formData.content}
           onStatusChange={(status) => setFormData(prev => ({ ...prev, status }))}
           onVisibilityChange={(visibility) => setFormData(prev => ({ ...prev, visibility }))}
           onCategoryChange={(category_id) => setFormData(prev => ({ ...prev, category_id }))}
