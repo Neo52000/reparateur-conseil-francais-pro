@@ -131,6 +131,15 @@ export class AdminAuditService {
   }
 
   /**
+   * Convertit l'adresse IP en string
+   */
+  private static parseIpAddress(ipData: any): string | undefined {
+    if (!ipData) return undefined;
+    if (typeof ipData === 'string') return ipData;
+    return String(ipData);
+  }
+
+  /**
    * Récupère les logs d'audit avec filtres
    */
   static async getLogs(filters: AdminAuditFilters = {}): Promise<{
@@ -202,7 +211,8 @@ export class AdminAuditService {
         severity_level: row.severity_level as AdminAuditLogEntry['severity_level'],
         action_details: this.parseJsonField(row.action_details),
         before_data: this.parseJsonField(row.before_data),
-        after_data: this.parseJsonField(row.after_data)
+        after_data: this.parseJsonField(row.after_data),
+        ip_address: this.parseIpAddress(row.ip_address)
       }));
 
       console.log('✅ AdminAuditService - Fetched', typedLogs.length, 'logs');
