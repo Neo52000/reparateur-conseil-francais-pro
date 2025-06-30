@@ -27,6 +27,7 @@ const ClientAuth = () => {
         if (oldPendingQuote) {
           navigate('/', { replace: true });
         } else {
+          // Toujours rediriger vers l'espace client après connexion depuis /client-auth
           navigate('/client', { replace: true });
         }
       }
