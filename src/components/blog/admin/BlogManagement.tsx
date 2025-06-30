@@ -3,12 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, FileText, Settings, Users, BarChart3 } from 'lucide-react';
+import { Plus, FileText, Settings, Users, BarChart3, Newspaper } from 'lucide-react';
 import BlogPostsManager from './BlogPostsManager';
 import BlogCategoriesManager from './BlogCategoriesManager';
 import BlogTemplatesManager from './BlogTemplatesManager';
 import BlogAnalytics from './BlogAnalytics';
 import BlogSettings from './BlogSettings';
+import BlogNewsTracker from './BlogNewsTracker';
 
 const BlogManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState('posts');
@@ -33,7 +34,7 @@ const BlogManagement: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="posts" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Articles
@@ -45,6 +46,10 @@ const BlogManagement: React.FC = () => {
           <TabsTrigger value="templates" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Templates IA
+          </TabsTrigger>
+          <TabsTrigger value="news" className="flex items-center gap-2">
+            <Newspaper className="h-4 w-4" />
+            Actualités
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
@@ -69,6 +74,10 @@ const BlogManagement: React.FC = () => {
 
         <TabsContent value="templates" className="space-y-4">
           <BlogTemplatesManager />
+        </TabsContent>
+
+        <TabsContent value="news" className="space-y-4">
+          <BlogNewsTracker />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
