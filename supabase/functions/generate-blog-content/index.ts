@@ -25,30 +25,48 @@ serve(async (req) => {
     const { template_id, prompt, ai_model, category_id, visibility, custom_variables } = await req.json();
 
     if (!template_id && !prompt) {
-      throw new Error('Template ID ou prompt requis');
+      console.error('❌ Template ID ou prompt requis');
+      return new Response(JSON.stringify({ 
+        error: 'Template ID ou prompt requis',
+        success: false 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    console.log('Generating blog content with:', { template_id, ai_model, visibility });
+    console.log('🚀 Generating blog content with:', { template_id, ai_model, visibility });
 
     let finalPrompt = prompt;
-    let finalModel = ai_model || 'openai'; // Utiliser OpenAI par défaut
+    let finalModel = 'openai'; // Utiliser OpenAI par défaut
     let finalCategoryId = category_id;
     let finalVisibility = visibility || 'public';
 
     // Si un template_id est fourni, récupérer le template
     if (template_id) {
+      console.log('📋 Fetching template:', template_id);
       const { data: template, error: templateError } = await supabase
         .from('blog_generation_templates')
         .select('*')
         .eq('id', template_id)
         .single();
 
-      if (templateError) throw templateError;
+      if (templateError) {
+        console.error('❌ Template error:', templateError);
+        return new Response(JSON.stringify({ 
+          error: `Impossible de récupérer le template: ${templateError.message}`,
+          success: false 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
 
       finalPrompt = template.prompt_template;
-      finalModel = template.ai_model;
+      finalModel = template.ai_model || 'openai';
       finalCategoryId = template.category_id;
       finalVisibility = template.visibility;
+      console.log('✅ Template loaded successfully');
     }
 
     // Remplacer les variables dans le prompt
@@ -65,16 +83,30 @@ serve(async (req) => {
       .replace(/{date}/g, currentDate)
       .replace(/{saison}/g, currentSeason);
 
+    console.log('📝 Final prompt prepared, length:', finalPrompt.length);
+
+    // Vérifier qu'on a au moins une clé API
+    if (!openAIApiKey && !mistralApiKey) {
+      console.error('❌ Aucune clé API disponible');
+      return new Response(JSON.stringify({ 
+        error: 'Aucune clé API configurée (OpenAI ou Mistral)',
+        success: false 
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Générer le contenu selon le modèle choisi
     let generatedContent = '';
     let title = '';
     let excerpt = '';
 
-    console.log('Using AI model:', finalModel, 'with prompt:', finalPrompt.substring(0, 100) + '...');
+    console.log('🤖 Using AI model:', finalModel);
 
-    // Essayer OpenAI en premier si disponible
-    if (openAIApiKey && (finalModel === 'openai' || !mistralApiKey)) {
-      console.log('Attempting OpenAI generation...');
+    // Utiliser OpenAI en priorité
+    if (openAIApiKey) {
+      console.log('🔄 Attempting OpenAI generation...');
       try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -110,7 +142,7 @@ serve(async (req) => {
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('OpenAI API error:', response.status, errorText);
+          console.error('❌ OpenAI API error:', response.status, errorText);
           throw new Error(`OpenAI API error: ${response.status}`);
         }
 
@@ -126,24 +158,50 @@ serve(async (req) => {
         excerpt = excerptMatch ? excerptMatch[1].trim() : '';
         generatedContent = contentMatch ? contentMatch[1].trim() : rawContent;
 
-        console.log('OpenAI generation successful');
+        console.log('✅ OpenAI generation successful');
 
       } catch (openAIError) {
-        console.error('OpenAI generation failed:', openAIError);
+        console.error('❌ OpenAI generation failed:', openAIError);
         
-        // Fallback vers Mistral si OpenAI échoue
+        // Fallback vers Mistral si disponible
         if (mistralApiKey) {
-          console.log('Falling back to Mistral...');
-          await generateWithMistral();
+          console.log('🔄 Falling back to Mistral...');
+          try {
+            await generateWithMistral();
+          } catch (mistralError) {
+            console.error('❌ Mistral fallback also failed:', mistralError);
+            return new Response(JSON.stringify({ 
+              error: `Génération IA échouée: ${openAIError.message}`,
+              success: false 
+            }), {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
         } else {
-          throw new Error('Aucune clé API disponible pour la génération');
+          return new Response(JSON.stringify({ 
+            error: `Génération OpenAI échouée: ${openAIError.message}`,
+            success: false 
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
         }
       }
-    } else if (mistralApiKey && finalModel === 'mistral') {
-      console.log('Attempting Mistral generation...');
-      await generateWithMistral();
-    } else {
-      throw new Error('Aucune clé API configurée pour le modèle demandé');
+    } else if (mistralApiKey) {
+      console.log('🔄 Attempting Mistral generation...');
+      try {
+        await generateWithMistral();
+      } catch (mistralError) {
+        console.error('❌ Mistral generation failed:', mistralError);
+        return new Response(JSON.stringify({ 
+          error: `Génération Mistral échouée: ${mistralError.message}`,
+          success: false 
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     async function generateWithMistral() {
@@ -154,7 +212,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'mistral-small-latest', // Utiliser mistral-small-latest au lieu de mistral-large-latest
+          model: 'mistral-small-latest',
           messages: [
             {
               role: 'system',
@@ -181,7 +239,7 @@ serve(async (req) => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Mistral API error:', response.status, errorText);
+        console.error('❌ Mistral API error:', response.status, errorText);
         throw new Error(`Mistral API error: ${response.status} - ${errorText}`);
       }
 
@@ -197,7 +255,7 @@ serve(async (req) => {
       excerpt = excerptMatch ? excerptMatch[1].trim() : '';
       generatedContent = contentMatch ? contentMatch[1].trim() : rawContent;
 
-      console.log('Mistral generation successful');
+      console.log('✅ Mistral generation successful');
     }
 
     // Générer un slug à partir du titre
@@ -211,7 +269,9 @@ serve(async (req) => {
       .replace(/[ç]/g, 'c')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '')
-      + '-' + Date.now(); // Ajouter timestamp pour éviter les doublons
+      + '-' + Date.now();
+
+    console.log('📝 Creating blog post in database...');
 
     // Créer l'article dans la base de données
     const { data: post, error: postError } = await supabase
@@ -235,11 +295,17 @@ serve(async (req) => {
       .single();
 
     if (postError) {
-      console.error('Database error:', postError);
-      throw postError;
+      console.error('❌ Database error:', postError);
+      return new Response(JSON.stringify({ 
+        error: `Erreur base de données: ${postError.message}`,
+        success: false 
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    console.log('Blog post created successfully:', post.id);
+    console.log('✅ Blog post created successfully:', post.id);
 
     return new Response(JSON.stringify({ 
       success: true,
@@ -250,9 +316,9 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error in generate-blog-content function:', error);
+    console.error('❌ Error in generate-blog-content function:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: error.message || 'Erreur interne du serveur',
       success: false 
     }), {
       status: 500,
