@@ -115,9 +115,16 @@ const ClientDashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Mon espace client</h1>
-            <p className="text-gray-600 mt-2">Gérez vos réparations et votre profil</p>
+          <div className="flex items-center gap-4">
+            <img
+              src="/lovable-uploads/bdac6a2d-e8e5-46cb-b897-64a0a8383a78.png"
+              alt="TopRéparateurs.fr"
+              className="h-16 object-contain"
+            />
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Mon espace client</h1>
+              <p className="text-gray-600 mt-2">Gérez vos réparations et votre profil</p>
+            </div>
           </div>
           
           <div className="flex space-x-2">
