@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/auth/AuthProvider";
+import AdminAuditMiddleware from "@/components/admin/AdminAuditMiddleware";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import ClientAuth from "./pages/ClientAuth";
@@ -30,25 +31,27 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/client-auth" element={<ClientAuth />} />
-            <Route path="/repairer-auth" element={<RepairerAuth />} />
-            <Route path="/client" element={<ClientDashboardPage />} />
-            <Route path="/repairer" element={<RepairerDashboardPage />} />
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/admin/audit" element={<AdminAuditPage />} />
-            <Route path="/blog" element={<BlogPage />} />
-            <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
-            <Route path="/blog/repairers" element={<BlogRepairerPage />} />
-            <Route path="/blog/repairers/article/:slug" element={<BlogRepairerPage />} />
-            <Route path="/repairer/plans" element={<RepairerPlans />} />
-            <Route path="/contact" element={<Index />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AdminAuditMiddleware>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/client-auth" element={<ClientAuth />} />
+              <Route path="/repairer-auth" element={<RepairerAuth />} />
+              <Route path="/client" element={<ClientDashboardPage />} />
+              <Route path="/repairer" element={<RepairerDashboardPage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/admin/audit" element={<AdminAuditPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
+              <Route path="/blog/repairers" element={<BlogRepairerPage />} />
+              <Route path="/blog/repairers/article/:slug" element={<BlogRepairerPage />} />
+              <Route path="/repairer/plans" element={<RepairerPlans />} />
+              <Route path="/contact" element={<Index />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-of-service" element={<TermsOfService />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AdminAuditMiddleware>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

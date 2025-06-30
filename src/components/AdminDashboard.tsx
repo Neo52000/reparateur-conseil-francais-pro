@@ -7,7 +7,7 @@ import AdminDashboardHeader from './admin/AdminDashboardHeader';
 import AdminStatsCards from './admin/AdminStatsCards';
 import AdminNavigationTabs, { type TabType } from './admin/AdminNavigationTabs';
 import AdminDashboardContent from './admin/AdminDashboardContent';
-import SystemAuditPanel from './admin/SystemAuditPanel';
+import AdminAuditStats from './admin/AdminAuditStats';
 
 const AdminDashboard = () => {
   const { subscriptions, repairers, loading, stats, fetchData } = useRepairersData();
@@ -49,7 +49,7 @@ const AdminDashboard = () => {
         }} />
 
         {/* Nouveau panneau d'audit système */}
-        <SystemAuditPanel />
+        <AdminAuditStats />
 
         <AdminNavigationTabs 
           activeTab={activeTab} 
