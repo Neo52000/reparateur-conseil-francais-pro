@@ -1,21 +1,49 @@
 
 import React from 'react';
-import { TabType } from './AdminNavigationTabs';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RefreshCw } from 'lucide-react';
-import SubscriptionsTable from '@/components/repairers/SubscriptionsTable';
-import RepairersTable from '@/components/repairers/RepairersTable';
+import { Badge } from '@/components/ui/badge';
+import ScrapingControl from '@/components/ScrapingControl';
+import ClientInterestManagement from '@/components/ClientInterestManagement';
 import PromoCodesManagement from '@/components/PromoCodesManagement';
 import AdBannerManagement from '@/components/advertising/AdBannerManagement';
-import EnhancedScrapingHub from '@/components/scraping/EnhancedScrapingHub';
-import BlogManagement from '@/components/blog/admin/BlogManagement';
-import ChatbotManagement from '@/components/admin/ChatbotManagement';
+import SubscriptionsTable from '@/components/repairers/SubscriptionsTable';
+import RepairersTable from '@/components/repairers/RepairersTable';
+import type { TabType } from './AdminNavigationTabs';
+
+interface SubscriptionData {
+  id: string;
+  repairer_id: string;
+  email: string;
+  subscription_tier: string;
+  billing_cycle: string;
+  subscribed: boolean;
+  subscription_end: string | null;
+  created_at: string;
+  first_name: string | null;
+  last_name: string | null;
+  plan_name: string | null;
+  price_monthly: number | null;
+  price_yearly: number | null;
+}
+
+interface RepairerData {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  department: string;
+  subscription_tier: string;
+  subscribed: boolean;
+  total_repairs: number;
+  rating: number;
+  created_at: string;
+}
 
 interface AdminDashboardContentProps {
   activeTab: TabType;
-  subscriptions: any[];
-  repairers: any[];
+  subscriptions: SubscriptionData[];
+  repairers: RepairerData[];
   onViewProfile: (repairerId: string) => void;
   onRefresh: () => void;
 }
@@ -27,85 +55,42 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
   onViewProfile,
   onRefresh
 }) => {
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'subscriptions':
-        return (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Gestion des Abonnements</CardTitle>
-              <Button onClick={onRefresh} size="sm" variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Actualiser
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <SubscriptionsTable subscriptions={subscriptions} />
-            </CardContent>
-          </Card>
-        );
+  if (activeTab === 'subscriptions') {
+    return (
+      <SubscriptionsTable 
+        subscriptions={subscriptions}
+        onRefresh={onRefresh}
+      />
+    );
+  }
 
-      case 'repairers':
-        return (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Gestion des Réparateurs</CardTitle>
-              <Button onClick={onRefresh} size="sm" variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Actualiser
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <RepairersTable 
-                repairers={repairers} 
-                onViewProfile={onViewProfile}
-                onRefresh={onRefresh}
-              />
-            </CardContent>
-          </Card>
-        );
+  if (activeTab === 'repairers') {
+    return (
+      <RepairersTable
+        repairers={repairers}
+        onViewProfile={onViewProfile}
+        onRefresh={onRefresh}
+      />
+    );
+  }
 
-      case 'interest':
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Demandes d'Intérêt Client</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Interface de gestion des demandes d'intérêt à implémenter...
-              </p>
-            </CardContent>
-          </Card>
-        );
+  if (activeTab === 'interest') {
+    return <ClientInterestManagement />;
+  }
 
-      case 'promocodes':
-        return <PromoCodesManagement />;
+  if (activeTab === 'promocodes') {
+    return <PromoCodesManagement />;
+  }
 
-      case 'advertising':
-        return <AdBannerManagement />;
+  if (activeTab === 'advertising') {
+    return <AdBannerManagement />;
+  }
 
-      case 'scraping':
-        return <EnhancedScrapingHub />;
+  if (activeTab === 'scraping') {
+    return <ScrapingControl />;
+  }
 
-      case 'blog':
-        return <BlogManagement />;
-
-      case 'chatbot':
-        return <ChatbotManagement />;
-
-      default:
-        return (
-          <Card>
-            <CardContent className="p-6">
-              <p className="text-muted-foreground">Sélectionnez un onglet pour voir le contenu.</p>
-            </CardContent>
-          </Card>
-        );
-    }
-  };
-
-  return <div className="space-y-6">{renderContent()}</div>;
+  return null;
 };
 
 export default AdminDashboardContent;

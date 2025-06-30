@@ -1,27 +1,19 @@
 
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
-import { Link } from "react-router-dom";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { supabase } from "@/integrations/supabase/client";
-import AdBannerDisplay from "@/components/advertising/AdBannerDisplay";
-import ChatbotWidget from '@/components/ChatbotWidget';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 import HeroSectionSimplified from '@/components/sections/HeroSectionSimplified';
-import { useRepairersData } from "@/hooks/useRepairersData";
+import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
+import QuickStatsSection from '@/components/sections/QuickStatsSection';
+import BlogSectionHomepage from '@/components/sections/BlogSectionHomepage';
+import QuickSearchModal from '@/components/search/QuickSearchModal';
+import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
+import RepairerProfileModal from '@/components/RepairerProfileModal';
+import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
+import { useAuth } from '@/hooks/useAuth';
+import { usePendingAction } from '@/hooks/usePendingAction';
+import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
 
 interface SearchCriteria {
   deviceType: string;
@@ -33,160 +25,152 @@ interface SearchCriteria {
 }
 
 const Index = () => {
-  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
-  const [demoEmail, setDemoEmail] = useState("");
-  const [isDemoLoading, setIsDemoLoading] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { user } = useAuth();
-  const { repairers } = useRepairersData();
+  const { pendingAction, clearPendingAction } = usePendingAction();
+  const {
+    isQuoteModalOpen,
+    isAppointmentModalOpen,
+    selectedRepairerId,
+    selectedQuoteId,
+    handleRequestQuote,
+    handleBookAppointment,
+    closeQuoteModal,
+    closeAppointmentModal
+  } = useQuoteAndAppointment();
+  
+  const [selectedRepairerForProfile, setSelectedRepairerForProfile] = useState<string | null>(null);
+  const [showQuickSearch, setShowQuickSearch] = useState(false);
+  const [showMapSearch, setShowMapSearch] = useState(false);
+  const [searchFilters, setSearchFilters] = useState<any>(null);
 
-  const handleQuickSearch = (searchCriteria: SearchCriteria) => {
-    // Naviguer vers la page de recherche avec les critères
-    const searchParams = new URLSearchParams({
-      deviceType: searchCriteria.deviceType,
-      brand: searchCriteria.brand,
-      model: searchCriteria.model,
-      repairType: searchCriteria.repairType,
-      city: searchCriteria.city,
-      postalCode: searchCriteria.postalCode
-    });
-    
-    navigate(`/search?${searchParams.toString()}`);
-  };
+  console.log('🏠 Index page rendering');
 
-  const handleMapSearch = () => {
-    navigate('/search?mode=map');
-  };
-
-  const handleDemoRequest = async () => {
-    setIsDemoLoading(true);
-    try {
-      const { error } = await supabase.from("notifications").insert({ 
-        title: "Demande de démo",
-        message: `Demande de démo reçue pour: ${demoEmail}`,
-        user_id: user?.id || '00000000-0000-0000-0000-000000000000',
-        type: 'info'
-      });
-
-      if (error) {
-        toast({
-          title: "Erreur",
-          description: "Une erreur s'est produite lors de la demande de démo.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Demande envoyée",
-          description: "Votre demande de démo a été envoyée avec succès.",
-        });
-        setIsDemoModalOpen(false);
-        setDemoEmail("");
+  // Gérer la restauration des actions après connexion
+  useEffect(() => {
+    if (user && pendingAction) {
+      if (pendingAction.type === 'quote_request') {
+        const data = pendingAction.data as any;
+        if (data.repairerId) {
+          handleRequestQuote(data.repairerId);
+        }
+        clearPendingAction();
+      } else if (pendingAction.type === 'appointment_request') {
+        const data = pendingAction.data as { repairerId: string; quoteId?: string };
+        handleBookAppointment(data.repairerId, data.quoteId);
+        clearPendingAction();
       }
-    } catch (err: any) {
-      toast({
-        title: "Erreur",
-        description: "Une erreur inattendue s'est produite.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDemoLoading(false);
+    }
+  }, [user, pendingAction, handleRequestQuote, handleBookAppointment, clearPendingAction]);
+
+  // Gérer l'ancien système pour les devis (rétrocompatibilité)
+  useEffect(() => {
+    if (user) {
+      const oldPendingQuote = localStorage.getItem('pendingQuoteAction');
+      if (oldPendingQuote) {
+        try {
+          const data = JSON.parse(oldPendingQuote);
+          if (data.type === 'quote_request' && data.data?.repairerId) {
+            handleRequestQuote(data.data.repairerId);
+          }
+        } catch (error) {
+          console.error('Error parsing old pending quote:', error);
+        }
+        localStorage.removeItem('pendingQuoteAction');
+      }
+    }
+  }, [user, handleRequestQuote]);
+
+  const handleViewProfile = (repairer: any) => {
+    setSelectedRepairerForProfile(repairer.id);
+  };
+
+  const handleCall = (phone: string) => {
+    if (phone) {
+      window.location.href = `tel:${phone}`;
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-muted py-6">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="text-2xl font-bold">
-              TopRéparateurs.fr
-            </Link>
-            <div>
-              {user ? (
-                <Button onClick={() => navigate("/account")}>Mon compte</Button>
-              ) : (
-                <div className="flex space-x-2">
-                  <Button variant="outline" onClick={() => navigate("/login")}>
-                    Se connecter
-                  </Button>
-                  <Button onClick={() => navigate("/register")}>S'inscrire</Button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+  const handleQuickSearchResults = (filters: any) => {
+    setSearchFilters(filters);
+    setShowMapSearch(true);
+  };
 
+  const handleHeroQuickSearch = (searchCriteria: SearchCriteria) => {
+    // Transform search criteria to filters format
+    const filters = {
+      city: searchCriteria.city,
+      postalCode: searchCriteria.postalCode,
+      deviceType: searchCriteria.deviceType,
+      brand: searchCriteria.brand,
+      model: searchCriteria.model,
+      repairType: searchCriteria.repairType
+    };
+    setSearchFilters(filters);
+    setShowMapSearch(true);
+  };
+
+  const handleHeroMapSearch = () => {
+    setShowMapSearch(true);
+  };
+
+  if (showMapSearch) {
+    return (
+      <EnhancedRepairersMap
+        searchFilters={searchFilters}
+        onClose={() => {
+          setShowMapSearch(false);
+          setSearchFilters(null);
+        }}
+      />
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white">
+      <Navigation />
+      
       <main>
         <HeroSectionSimplified 
-          onQuickSearch={handleQuickSearch}
-          onMapSearch={handleMapSearch}
+          onQuickSearch={handleHeroQuickSearch}
+          onMapSearch={handleHeroMapSearch}
         />
 
-        <div className="container mx-auto px-4 py-8">
-          <section className="mb-12">
-            <AdBannerDisplay placement="homepage_carousel" />
-          </section>
-
-          <section className="mb-12 text-center">
-            <Dialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Demander une démo
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Demander une démo</DialogTitle>
-                  <DialogDescription>
-                    Entrez votre adresse e-mail et nous vous contacterons pour organiser une
-                    démonstration personnalisée.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="email" className="text-right">
-                      Email
-                    </Label>
-                    <Input
-                      id="email"
-                      value={demoEmail}
-                      onChange={(e) => setDemoEmail(e.target.value)}
-                      className="col-span-3"
-                      type="email"
-                    />
-                  </div>
-                </div>
-                <Button type="submit" onClick={handleDemoRequest} disabled={isDemoLoading}>
-                  {isDemoLoading ? "Envoi en cours..." : "Envoyer la demande"}
-                </Button>
-              </DialogContent>
-            </Dialog>
-          </section>
-
-          <section className="mb-12">
-            <Card>
-              <CardHeader>
-                <CardTitle>Vous êtes réparateur ?</CardTitle>
-                <CardDescription>
-                  Rejoignez notre plateforme et développez votre activité.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Inscrivez-vous dès maintenant et bénéficiez d'une visibilité accrue auprès de
-                  milliers de clients potentiels.
-                </p>
-                <Button onClick={() => navigate("/register")}>Devenir réparateur</Button>
-              </CardContent>
-            </Card>
-          </section>
+        {/* Section bannière publicitaire - déplacée au-dessus du carrousel */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <AdBannerDisplay 
+            placement="homepage_carousel" 
+            className=""
+          />
         </div>
+
+        <RepairersCarouselSection 
+          onViewProfile={handleViewProfile}
+          onCall={handleCall}
+        />
+        
+        <QuickStatsSection />
+        
+        {/* Section blog avant le footer */}
+        <BlogSectionHomepage />
       </main>
-      
-      <ChatbotWidget />
+
+      <Footer />
+
+      {/* Modals */}
+      <QuickSearchModal
+        isOpen={showQuickSearch}
+        onClose={() => setShowQuickSearch(false)}
+        onSearch={handleQuickSearchResults}
+      />
+
+      {selectedRepairerForProfile && (
+        <RepairerProfileModal
+          isOpen={!!selectedRepairerForProfile}
+          onClose={() => setSelectedRepairerForProfile(null)}
+          repairerId={selectedRepairerForProfile}
+        />
+      )}
     </div>
   );
 };
