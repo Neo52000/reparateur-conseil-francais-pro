@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -107,7 +106,7 @@ export const useBlog = () => {
   };
 
   // Création/mise à jour d'un article
-  const savePost = async (post: Partial<BlogPost>) => {
+  const savePost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
     try {
       if (post.id) {
         const { data, error } = await supabase
@@ -191,7 +190,7 @@ export const useBlog = () => {
     }
   };
 
-  const addComment = async (comment: Partial<BlogComment>) => {
+  const addComment = async (comment: Omit<BlogComment, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       const { data, error } = await supabase
         .from('blog_comments')
