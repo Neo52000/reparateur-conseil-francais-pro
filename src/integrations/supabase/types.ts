@@ -996,6 +996,74 @@ export type Database = {
         }
         Relationships: []
       }
+      client_reviews: {
+        Row: {
+          client_id: string
+          comment: string | null
+          cons: string | null
+          created_at: string | null
+          criteria_ratings: Json
+          helpful_count: number
+          id: string
+          moderated_at: string | null
+          moderated_by: string | null
+          moderation_notes: string | null
+          overall_rating: number
+          pros: string | null
+          quote_id: string | null
+          repairer_id: string
+          status: string
+          updated_at: string | null
+          would_recommend: boolean | null
+        }
+        Insert: {
+          client_id: string
+          comment?: string | null
+          cons?: string | null
+          created_at?: string | null
+          criteria_ratings?: Json
+          helpful_count?: number
+          id?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          overall_rating: number
+          pros?: string | null
+          quote_id?: string | null
+          repairer_id: string
+          status?: string
+          updated_at?: string | null
+          would_recommend?: boolean | null
+        }
+        Update: {
+          client_id?: string
+          comment?: string | null
+          cons?: string | null
+          created_at?: string | null
+          criteria_ratings?: Json
+          helpful_count?: number
+          id?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          overall_rating?: number
+          pros?: string | null
+          quote_id?: string | null
+          repairer_id?: string
+          status?: string
+          updated_at?: string | null
+          would_recommend?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_reviews_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes_with_timeline"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       closed_businesses: {
         Row: {
           address: string | null
@@ -1181,6 +1249,128 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      invoice_items: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          invoice_id: string
+          item_type: string
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          invoice_id: string
+          item_type?: string
+          quantity?: number
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          invoice_id?: string
+          item_type?: string
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          appointment_id: string | null
+          client_id: string
+          created_at: string | null
+          due_date: string
+          id: string
+          invoice_date: string
+          invoice_number: string
+          notes: string | null
+          payment_date: string | null
+          payment_method: string | null
+          pdf_url: string | null
+          quote_id: string | null
+          repairer_id: string
+          status: string
+          subtotal_amount: number
+          tax_amount: number
+          tax_rate: number
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          client_id: string
+          created_at?: string | null
+          due_date?: string
+          id?: string
+          invoice_date?: string
+          invoice_number: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          pdf_url?: string | null
+          quote_id?: string | null
+          repairer_id: string
+          status?: string
+          subtotal_amount?: number
+          tax_amount?: number
+          tax_rate?: number
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          client_id?: string
+          created_at?: string | null
+          due_date?: string
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          pdf_url?: string | null
+          quote_id?: string | null
+          repairer_id?: string
+          status?: string
+          subtotal_amount?: number
+          tax_amount?: number
+          tax_rate?: number
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_with_quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes_with_timeline"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       newsletter_subscribers: {
         Row: {
@@ -2410,6 +2600,33 @@ export type Database = {
         }
         Relationships: []
       }
+      review_criteria: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           comment: string | null
@@ -2606,6 +2823,74 @@ export type Database = {
           start_time?: string
         }
         Relationships: []
+      }
+      warranties: {
+        Row: {
+          claim_date: string | null
+          claim_description: string | null
+          claim_status: string | null
+          client_id: string
+          created_at: string | null
+          device_brand: string
+          device_model: string
+          id: string
+          quote_id: string | null
+          repair_type: string
+          repairer_id: string
+          status: string
+          terms_conditions: string | null
+          updated_at: string | null
+          warranty_duration_days: number
+          warranty_end_date: string
+          warranty_start_date: string
+        }
+        Insert: {
+          claim_date?: string | null
+          claim_description?: string | null
+          claim_status?: string | null
+          client_id: string
+          created_at?: string | null
+          device_brand: string
+          device_model: string
+          id?: string
+          quote_id?: string | null
+          repair_type: string
+          repairer_id: string
+          status?: string
+          terms_conditions?: string | null
+          updated_at?: string | null
+          warranty_duration_days?: number
+          warranty_end_date: string
+          warranty_start_date?: string
+        }
+        Update: {
+          claim_date?: string | null
+          claim_description?: string | null
+          claim_status?: string | null
+          client_id?: string
+          created_at?: string | null
+          device_brand?: string
+          device_model?: string
+          id?: string
+          quote_id?: string | null
+          repair_type?: string
+          repairer_id?: string
+          status?: string
+          terms_conditions?: string | null
+          updated_at?: string | null
+          warranty_duration_days?: number
+          warranty_end_date?: string
+          warranty_start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warranties_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes_with_timeline"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
