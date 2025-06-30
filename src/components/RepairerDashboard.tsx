@@ -239,7 +239,7 @@ const RepairerDashboard = () => {
 
         {/* Top bar with logo, title and logout button */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <Logo variant="icon" size="xxl" />
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Tableau de bord Réparateur</h1>
