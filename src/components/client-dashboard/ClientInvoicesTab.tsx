@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -63,7 +62,14 @@ const ClientInvoicesTab = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setInvoices(data || []);
+      
+      // Mapper les données pour assurer la conformité des types
+      const mappedInvoices: Invoice[] = (data || []).map(invoice => ({
+        ...invoice,
+        status: invoice.status as 'pending' | 'paid' | 'overdue' | 'cancelled'
+      }));
+      
+      setInvoices(mappedInvoices);
     } catch (error) {
       console.error('Erreur chargement factures:', error);
       toast.error('Erreur lors du chargement des factures');
@@ -81,7 +87,14 @@ const ClientInvoicesTab = () => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setInvoiceItems(data || []);
+      
+      // Mapper les données pour assurer la conformité des types
+      const mappedItems: InvoiceItem[] = (data || []).map(item => ({
+        ...item,
+        item_type: item.item_type as 'service' | 'part' | 'labor' | 'other'
+      }));
+      
+      setInvoiceItems(mappedItems);
     } catch (error) {
       console.error('Erreur chargement détails facture:', error);
       toast.error('Erreur lors du chargement des détails');

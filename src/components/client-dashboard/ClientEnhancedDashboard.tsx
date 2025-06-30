@@ -1,9 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Calendar, 
   FileText, 
@@ -33,6 +34,64 @@ import ClientReviewsTab from './ClientReviewsTab';
 const ClientEnhancedDashboard = () => {
   const { user, profile } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [stats, setStats] = useState({
+    totalRepairs: 0,
+    totalSpent: 0,
+    loyaltyPoints: 0,
+    avgRating: 0
+  });
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadDashboardData();
+    }
+  }, [user]);
+
+  const loadDashboardData = async () => {
+    try {
+      // Charger les statistiques (exemple avec données mockées pour l'instant)
+      setStats({
+        totalRepairs: 12,
+        totalSpent: 850,
+        loyaltyPoints: 150,
+        avgRating: 4.5
+      });
+
+      // Charger les rendez-vous (exemple avec données mockées)
+      setAppointments([
+        {
+          id: '1',
+          repairer: 'TechRepair Paris',
+          date: '2024-01-15',
+          time: '14:30',
+          service: 'Réparation écran iPhone 13',
+          status: 'Confirmé'
+        },
+        {
+          id: '2',
+          repairer: 'Mobile Expert',
+          date: '2024-01-18',
+          time: '10:00',
+          service: 'Diagnostic Samsung Galaxy',
+          status: 'En attente'
+        }
+      ]);
+    } catch (error) {
+      console.error('Erreur chargement données dashboard:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -90,7 +149,7 @@ const ClientEnhancedDashboard = () => {
 
         {/* Contenu des onglets */}
         <TabsContent value="overview" className="space-y-6">
-          <ClientStatsCards />
+          <ClientStatsCards stats={stats} />
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Prochains rendez-vous */}
@@ -183,11 +242,11 @@ const ClientEnhancedDashboard = () => {
         </TabsContent>
 
         <TabsContent value="appointments">
-          <ClientAppointmentsTab />
+          <ClientAppointmentsTab appointments={appointments} />
         </TabsContent>
 
         <TabsContent value="repairs">
-          <ClientRepairsTab />
+          <ClientRepairsTab repairs={[]} />
         </TabsContent>
 
         <TabsContent value="invoices">
@@ -203,11 +262,11 @@ const ClientEnhancedDashboard = () => {
         </TabsContent>
 
         <TabsContent value="loyalty">
-          <ClientLoyaltyTab />
+          <ClientLoyaltyTab loyaltyPoints={stats.loyaltyPoints} />
         </TabsContent>
 
         <TabsContent value="profile">
-          <ClientProfileTab />
+          <ClientProfileTab profile={profile} />
         </TabsContent>
       </Tabs>
     </div>

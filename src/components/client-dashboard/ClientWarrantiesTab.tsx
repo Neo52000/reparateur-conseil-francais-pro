@@ -54,7 +54,15 @@ const ClientWarrantiesTab = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setWarranties(data || []);
+      
+      // Mapper les données pour assurer la conformité des types
+      const mappedWarranties: Warranty[] = (data || []).map(warranty => ({
+        ...warranty,
+        status: warranty.status as 'active' | 'expired' | 'claimed' | 'void',
+        claim_status: warranty.claim_status as 'pending' | 'approved' | 'rejected' | 'resolved' | undefined
+      }));
+      
+      setWarranties(mappedWarranties);
     } catch (error) {
       console.error('Erreur chargement garanties:', error);
       toast.error('Erreur lors du chargement des garanties');
@@ -106,7 +114,7 @@ const ClientWarrantiesTab = () => {
         resolved: { label: 'Réclamation résolue', variant: 'default' as const, icon: CheckCircle }
       };
       
-      const config = claimConfig[warranty.claim_status as keyof typeof claimConfig];
+      const config = warranty.claim_status ? claimConfig[warranty.claim_status] : claimConfig.pending;
       const IconComponent = config.icon;
       
       return (

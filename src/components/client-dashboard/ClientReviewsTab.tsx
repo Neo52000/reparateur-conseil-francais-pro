@@ -93,7 +93,15 @@ const ClientReviewsTab = () => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    setReviews(data || []);
+    
+    // Mapper les données pour assurer la conformité des types
+    const mappedReviews: ClientReview[] = (data || []).map(review => ({
+      ...review,
+      status: review.status as 'pending' | 'approved' | 'rejected' | 'hidden',
+      criteria_ratings: (review.criteria_ratings as any) || {}
+    }));
+    
+    setReviews(mappedReviews);
   };
 
   const loadAvailableQuotes = async () => {
