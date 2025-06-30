@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
+import { useDemoMode } from '@/hooks/useDemoMode';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Calendar, 
@@ -14,8 +15,10 @@ import {
   User,
   Settings,
   Bell,
-  History
+  History,
+  TestTube
 } from 'lucide-react';
+import { ClientDemoDataService } from '@/services/clientDemoDataService';
 
 // Import des composants existants
 import ClientStatsCards from './ClientStatsCards';
@@ -32,6 +35,7 @@ import ClientMessagingTab from './ClientMessagingTab';
 
 const ClientEnhancedDashboard = () => {
   const { user, profile } = useAuth();
+  const { demoModeEnabled } = useDemoMode();
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState({
     totalRepairs: 0,
@@ -46,37 +50,36 @@ const ClientEnhancedDashboard = () => {
     if (user) {
       loadDashboardData();
     }
-  }, [user]);
+  }, [user, demoModeEnabled]);
 
   const loadDashboardData = async () => {
     try {
-      // Charger les statistiques (exemple avec données mockées pour l'instant)
-      setStats({
-        totalRepairs: 12,
-        totalSpent: 850,
-        loyaltyPoints: 150,
-        avgRating: 4.5
-      });
+      // Charger les vraies statistiques (pour l'instant simulées)
+      const realStats = {
+        totalRepairs: 0,
+        totalSpent: 0,
+        loyaltyPoints: 0,
+        avgRating: 0
+      };
 
-      // Charger les rendez-vous (exemple avec données mockées)
-      setAppointments([
-        {
-          id: '1',
-          repairer: 'TechRepair Paris',
-          date: '2024-01-15',
-          time: '14:30',
-          service: 'Réparation écran iPhone 13',
-          status: 'Confirmé'
-        },
-        {
-          id: '2',
-          repairer: 'Mobile Expert',
-          date: '2024-01-18',
-          time: '10:00',
-          service: 'Diagnostic Samsung Galaxy',
-          status: 'En attente'
-        }
-      ]);
+      // Obtenir les statistiques de démo
+      const demoStats = ClientDemoDataService.getDemoStats();
+      
+      // Utiliser les stats de démo si le mode est activé, sinon les vraies stats
+      const finalStats = demoModeEnabled ? demoStats : realStats;
+      setStats(finalStats);
+
+      // Charger les rendez-vous
+      const realAppointments = [];
+      const demoAppointments = ClientDemoDataService.getDemoAppointments();
+      
+      const combinedAppointments = ClientDemoDataService.combineWithDemoData(
+        realAppointments,
+        demoAppointments,
+        demoModeEnabled
+      );
+      
+      setAppointments(combinedAppointments);
     } catch (error) {
       console.error('Erreur chargement données dashboard:', error);
     } finally {
@@ -119,9 +122,17 @@ const ClientEnhancedDashboard = () => {
             Gérez vos réparations et suivez vos appareils
           </p>
         </div>
-        <Badge variant="secondary" className="text-sm">
-          Client Premium
-        </Badge>
+        <div className="flex items-center gap-2">
+          {demoModeEnabled && (
+            <Badge variant="outline" className="flex items-center gap-1">
+              <TestTube className="h-3 w-3" />
+              Mode Démo
+            </Badge>
+          )}
+          <Badge variant="secondary" className="text-sm">
+            Client Premium
+          </Badge>
+        </div>
       </div>
 
       {/* Navigation par onglets */}
@@ -173,22 +184,32 @@ const ClientEnhancedDashboard = () => {
                 <Calendar className="h-5 w-5 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                    <div>
-                      <p className="font-medium">Réparation écran iPhone 13</p>
-                      <p className="text-sm text-gray-600">Demain à 14h30</p>
-                    </div>
-                    <Badge variant="secondary">Confirmé</Badge>
+                {appointments.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">
+                    {demoModeEnabled ? (
+                      <p className="text-sm">Aucun rendez-vous planifié</p>
+                    ) : (
+                      <p className="text-sm">Aucun rendez-vous planifié</p>
+                    )}
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium">Diagnostic Samsung Galaxy</p>
-                      <p className="text-sm text-gray-600">Vendredi à 10h00</p>
-                    </div>
-                    <Badge variant="outline">En attente</Badge>
+                ) : (
+                  <div className="space-y-3">
+                    {appointments.slice(0, 2).map((appointment) => (
+                      <div key={appointment.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg relative">
+                        {ClientDemoDataService.isDemoData(appointment) && (
+                          <Badge variant="outline" className="absolute top-1 right-1 text-xs">
+                            Démo
+                          </Badge>
+                        )}
+                        <div>
+                          <p className="font-medium">{appointment.service}</p>
+                          <p className="text-sm text-gray-600">{appointment.date} à {appointment.time}</p>
+                        </div>
+                        <Badge variant="secondary">{appointment.status}</Badge>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -199,22 +220,34 @@ const ClientEnhancedDashboard = () => {
                 <MessageCircle className="h-5 w-5 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                    <div>
-                      <p className="font-medium">TechRepair Pro</p>
-                      <p className="text-sm text-gray-600">Votre iPhone est prêt !</p>
+                {demoModeEnabled ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg relative">
+                      <Badge variant="outline" className="absolute top-1 right-1 text-xs">
+                        Démo
+                      </Badge>
+                      <div>
+                        <p className="font-medium">TechRepair Pro</p>
+                        <p className="text-sm text-gray-600">Votre iPhone est prêt !</p>
+                      </div>
+                      <Badge variant="default">Nouveau</Badge>
                     </div>
-                    <Badge variant="default">Nouveau</Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium">Mobile Expert</p>
-                      <p className="text-sm text-gray-600">Diagnostic terminé</p>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg relative">
+                      <Badge variant="outline" className="absolute top-1 right-1 text-xs">
+                        Démo
+                      </Badge>
+                      <div>
+                        <p className="font-medium">Mobile Expert</p>
+                        <p className="text-sm text-gray-600">Diagnostic terminé</p>
+                      </div>
+                      <Badge variant="outline">Lu</Badge>
                     </div>
-                    <Badge variant="outline">Lu</Badge>
                   </div>
-                </div>
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    <p className="text-sm">Aucun message récent</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -228,29 +261,45 @@ const ClientEnhancedDashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Nouveau devis reçu</p>
-                    <p className="text-xs text-gray-600">Réparation iPhone 13 - 89€ • Il y a 2 heures</p>
+              {demoModeEnabled ? (
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
+                    <div className="flex-1 relative">
+                      <Badge variant="outline" className="absolute top-0 right-0 text-xs">
+                        Démo
+                      </Badge>
+                      <p className="text-sm font-medium">Nouveau devis reçu</p>
+                      <p className="text-xs text-gray-600">Réparation iPhone 13 - 89€ • Il y a 2 heures</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-2 h-2 bg-green-600 rounded-full mt-2"></div>
+                    <div className="flex-1 relative">
+                      <Badge variant="outline" className="absolute top-0 right-0 text-xs">
+                        Démo
+                      </Badge>
+                      <p className="text-sm font-medium">Message reçu</p>
+                      <p className="text-xs text-gray-600">TechRepair Pro • Il y a 3 heures</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <div className="w-2 h-2 bg-purple-600 rounded-full mt-2"></div>
+                    <div className="flex-1 relative">
+                      <Badge variant="outline" className="absolute top-0 right-0 text-xs">
+                        Démo
+                      </Badge>
+                      <p className="text-sm font-medium">Rendez-vous confirmé</p>
+                      <p className="text-xs text-gray-600">Demain à 14h30 • Hier</p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-green-600 rounded-full mt-2"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Message reçu</p>
-                    <p className="text-xs text-gray-600">TechRepair Pro • Il y a 3 heures</p>
-                  </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Bell className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>Aucune activité récente</p>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Rendez-vous confirmé</p>
-                    <p className="text-xs text-gray-600">Demain à 14h30 • Hier</p>
-                  </div>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

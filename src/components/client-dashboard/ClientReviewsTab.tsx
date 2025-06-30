@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,10 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Star, MessageCircle, ThumbsUp, ThumbsDown, Edit, Plus } from 'lucide-react';
+import { useDemoMode } from '@/hooks/useDemoMode';
+import { Star, MessageCircle, ThumbsUp, ThumbsDown, Edit, Plus, TestTube } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { ClientDemoDataService, DemoReview, DemoQuote } from '@/services/clientDemoDataService';
 
 interface ReviewCriteria {
   id: string;
@@ -49,6 +50,7 @@ interface Quote {
 
 const ClientReviewsTab = () => {
   const { user } = useAuth();
+  const { demoModeEnabled } = useDemoMode();
   const [reviews, setReviews] = useState<ClientReview[]>([]);
   const [availableQuotes, setAvailableQuotes] = useState<Quote[]>([]);
   const [reviewCriteria, setReviewCriteria] = useState<ReviewCriteria[]>([]);
@@ -69,7 +71,7 @@ const ClientReviewsTab = () => {
     if (user) {
       loadData();
     }
-  }, [user]);
+  }, [user, demoModeEnabled]);
 
   const loadData = async () => {
     try {
@@ -86,52 +88,106 @@ const ClientReviewsTab = () => {
   };
 
   const loadReviews = async () => {
-    const { data, error } = await supabase
-      .from('client_reviews')
-      .select('*')
-      .eq('client_id', user?.id)
-      .order('created_at', { ascending: false });
+    try {
+      // Charger les vrais avis depuis la base de données
+      const { data: realReviewsData, error } = await supabase
+        .from('client_reviews')
+        .select('*')
+        .eq('client_id', user?.id)
+        .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    
-    // Mapper les données pour assurer la conformité des types
-    const mappedReviews: ClientReview[] = (data || []).map(review => ({
-      ...review,
-      status: review.status as 'pending' | 'approved' | 'rejected' | 'hidden',
-      criteria_ratings: (review.criteria_ratings as any) || {}
-    }));
-    
-    setReviews(mappedReviews);
+      if (error) throw error;
+      
+      const realReviews: ClientReview[] = (realReviewsData || []).map(review => ({
+        ...review,
+        status: review.status as 'pending' | 'approved' | 'rejected' | 'hidden',
+        criteria_ratings: (review.criteria_ratings as any) || {}
+      }));
+
+      // Obtenir les avis de démo
+      const demoReviews = ClientDemoDataService.getDemoReviews();
+      
+      // Combiner selon le mode démo
+      const combinedReviews = ClientDemoDataService.combineWithDemoData(
+        realReviews,
+        demoReviews,
+        demoModeEnabled
+      );
+      
+      setReviews(combinedReviews);
+    } catch (error) {
+      console.error('Erreur chargement avis:', error);
+      // En cas d'erreur, utiliser seulement les données démo si le mode est activé
+      if (demoModeEnabled) {
+        setReviews(ClientDemoDataService.getDemoReviews());
+      } else {
+        setReviews([]);
+      }
+    }
   };
 
   const loadAvailableQuotes = async () => {
-    const { data, error } = await supabase
-      .from('quotes_with_timeline')
-      .select('*')
-      .eq('client_id', user?.id)
-      .in('status', ['completed', 'accepted'])
-      .order('created_at', { ascending: false });
+    try {
+      // Charger les vrais devis depuis la base de données
+      const { data: realQuotesData, error } = await supabase
+        .from('quotes_with_timeline')
+        .select('*')
+        .eq('client_id', user?.id)
+        .in('status', ['completed', 'accepted'])
+        .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    
-    // Filtrer les devis qui n'ont pas encore d'avis
-    const reviewedQuoteIds = reviews.map(r => r.quote_id).filter(Boolean);
-    const availableQuotes = (data || []).filter(quote => 
-      !reviewedQuoteIds.includes(quote.id)
-    );
-    
-    setAvailableQuotes(availableQuotes);
+      if (error) throw error;
+      
+      const realQuotes = realQuotesData || [];
+      
+      // Obtenir les devis de démo
+      const demoQuotes = ClientDemoDataService.getDemoAvailableQuotes();
+      
+      // Combiner selon le mode démo
+      const combinedQuotes = ClientDemoDataService.combineWithDemoData(
+        realQuotes,
+        demoQuotes,
+        demoModeEnabled
+      );
+      
+      // Filtrer les devis qui n'ont pas encore d'avis
+      const reviewedQuoteIds = reviews.map(r => r.quote_id).filter(Boolean);
+      const availableQuotes = combinedQuotes.filter(quote => 
+        !reviewedQuoteIds.includes(quote.id)
+      );
+      
+      setAvailableQuotes(availableQuotes);
+    } catch (error) {
+      console.error('Erreur chargement devis:', error);
+      // En cas d'erreur, utiliser seulement les données démo si le mode est activé
+      if (demoModeEnabled) {
+        setAvailableQuotes(ClientDemoDataService.getDemoAvailableQuotes());
+      } else {
+        setAvailableQuotes([]);
+      }
+    }
   };
 
   const loadReviewCriteria = async () => {
-    const { data, error } = await supabase
-      .from('review_criteria')
-      .select('*')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('review_criteria')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
 
-    if (error) throw error;
-    setReviewCriteria(data || []);
+      if (error) throw error;
+      setReviewCriteria(data || []);
+    } catch (error) {
+      console.error('Erreur chargement critères:', error);
+      // Critères par défaut
+      setReviewCriteria([
+        { id: '1', name: 'quality', description: 'Qualité du travail', display_order: 1 },
+        { id: '2', name: 'speed', description: 'Rapidité du service', display_order: 2 },
+        { id: '3', name: 'price', description: 'Rapport qualité/prix', display_order: 3 },
+        { id: '4', name: 'communication', description: 'Communication', display_order: 4 }
+      ]);
+    }
   };
 
   const resetForm = () => {
@@ -157,6 +213,15 @@ const ClientReviewsTab = () => {
       return;
     }
 
+    // Si c'est un devis de démo, simuler l'envoi
+    if (ClientDemoDataService.isDemoData(selectedQuote)) {
+      toast.success('Avis envoyé avec succès (mode démo)');
+      setIsReviewDialogOpen(false);
+      resetForm();
+      return;
+    }
+
+    // Logique pour les vrais avis
     try {
       const reviewData = {
         client_id: user?.id,
@@ -256,6 +321,19 @@ const ClientReviewsTab = () => {
 
   return (
     <div className="space-y-6">
+      {/* Indicateur mode démo */}
+      {demoModeEnabled && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 text-blue-800">
+              <TestTube className="h-4 w-4" />
+              <span className="text-sm font-medium">Mode démo activé</span>
+              <span className="text-xs">- Les avis affichés incluent des exemples</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
@@ -442,7 +520,14 @@ const ClientReviewsTab = () => {
           {reviews.length === 0 ? (
             <div className="text-center py-8">
               <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">Aucun avis publié</p>
+              {demoModeEnabled ? (
+                <div>
+                  <p className="text-gray-500">Aucun avis publié</p>
+                  <p className="text-xs text-gray-400 mt-2">Activez le mode démo pour voir des exemples</p>
+                </div>
+              ) : (
+                <p className="text-gray-500">Aucun avis publié</p>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -450,7 +535,7 @@ const ClientReviewsTab = () => {
                 const quote = availableQuotes.find(q => q.id === review.quote_id);
                 
                 return (
-                  <Card key={review.id}>
+                  <Card key={review.id} className={ClientDemoDataService.isDemoData(review) ? 'border-blue-200' : ''}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div>
@@ -459,6 +544,11 @@ const ClientReviewsTab = () => {
                             <span className="text-sm text-gray-600">
                               {format(new Date(review.created_at), 'dd MMMM yyyy', { locale: fr })}
                             </span>
+                            {ClientDemoDataService.isDemoData(review) && (
+                              <Badge variant="outline" className="text-xs">
+                                Démo
+                              </Badge>
+                            )}
                           </div>
                           {quote && (
                             <p className="text-sm text-gray-600">
@@ -468,7 +558,7 @@ const ClientReviewsTab = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           {getStatusBadge(review.status)}
-                          {review.status === 'pending' && (
+                          {review.status === 'pending' && !ClientDemoDataService.isDemoData(review) && (
                             <Button
                               variant="outline"
                               size="sm"
