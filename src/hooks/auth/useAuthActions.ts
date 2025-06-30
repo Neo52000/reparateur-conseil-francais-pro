@@ -1,4 +1,3 @@
-
 import { Session } from '@supabase/supabase-js';
 import { authService } from '@/services/authService';
 import { fetchOrCreateProfile } from './authHelpers';
@@ -51,7 +50,7 @@ export const useAuthActions = (
       // Attendre un moment pour que la session soit établie
       setTimeout(async () => {
         try {
-          const { data: { session: newSession } } = await authService.getSession();
+          const { session: newSession } = await authService.getSession();
           console.log('🔍 Session after admin login:', {
             hasSession: !!newSession,
             userEmail: newSession?.user?.email,
