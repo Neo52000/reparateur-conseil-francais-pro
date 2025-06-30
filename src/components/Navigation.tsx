@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import NotificationSystem from './NotificationSystem';
 import Logo from './Logo';
-import { User, Wrench, Shield } from 'lucide-react';
+import { User, Wrench, Shield, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Navigation = () => {
@@ -56,37 +56,45 @@ const Navigation = () => {
               <Logo variant="compact" size="xxl" />
             </Link>
 
-            {/* Navigation pour les utilisateurs connectés avec accès multiple */}
-            {user && (canAccessClient || canAccessRepairer || canAccessAdmin) && (
-              <div className="hidden md:flex space-x-4">
-                {canAccessClient && (
-                  <Link to="/client" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
-                    <User className="h-4 w-4 mr-1" />
-                    Client
-                    {isAdmin && profile?.role === 'admin' && (
-                      <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-1 rounded">Test</span>
-                    )}
-                  </Link>
-                )}
-                
-                {canAccessRepairer && (
-                  <Link to="/repairer" className="text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
-                    <Wrench className="h-4 w-4 mr-1" />
-                    Réparateur
-                    {isAdmin && profile?.role === 'admin' && (
-                      <span className="ml-1 text-xs bg-orange-100 text-orange-600 px-1 rounded">Test</span>
-                    )}
-                  </Link>
-                )}
+            {/* Navigation principale */}
+            <div className="hidden md:flex space-x-6">
+              <Link to="/blog" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                <BookOpen className="h-4 w-4 mr-1" />
+                Blog
+              </Link>
 
-                {canAccessAdmin && (
-                  <Link to="/admin" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
-                    <Shield className="h-4 w-4 mr-1" />
-                    Admin
-                  </Link>
-                )}
-              </div>
-            )}
+              {/* Navigation pour les utilisateurs connectés avec accès multiple */}
+              {user && (canAccessClient || canAccessRepairer || canAccessAdmin) && (
+                <>
+                  {canAccessClient && (
+                    <Link to="/client" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                      <User className="h-4 w-4 mr-1" />
+                      Client
+                      {isAdmin && profile?.role === 'admin' && (
+                        <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-1 rounded">Test</span>
+                      )}
+                    </Link>
+                  )}
+                  
+                  {canAccessRepairer && (
+                    <Link to="/repairer" className="text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                      <Wrench className="h-4 w-4 mr-1" />
+                      Réparateur
+                      {isAdmin && profile?.role === 'admin' && (
+                        <span className="ml-1 text-xs bg-orange-100 text-orange-600 px-1 rounded">Test</span>
+                      )}
+                    </Link>
+                  )}
+
+                  {canAccessAdmin && (
+                    <Link to="/admin" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                      <Shield className="h-4 w-4 mr-1" />
+                      Admin
+                    </Link>
+                  )}
+                </>
+              )}
+            </div>
           </div>
           
           <div className="flex items-center space-x-4">
