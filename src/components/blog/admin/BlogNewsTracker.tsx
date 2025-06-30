@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { RefreshCw, Newspaper, Settings, Save, Play, Copy, Download, List, FileText, CheckCircle } from 'lucide-react';
+import { RefreshCw, Newspaper, Settings, Save, Play, Copy, Download, List, FileText, CheckCircle, Brain, Zap, Bot } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,6 +25,7 @@ const BlogNewsTracker: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [selectedAI, setSelectedAI] = useState<'perplexity' | 'openai' | 'mistral'>('perplexity');
 
   // Charger le prompt sauvegardé au démarrage
   useEffect(() => {
@@ -34,8 +35,12 @@ const BlogNewsTracker: React.FC = () => {
   const loadSavedPrompt = async () => {
     try {
       const savedPrompt = localStorage.getItem('blog_news_prompt');
+      const savedAI = localStorage.getItem('blog_news_ai') as 'perplexity' | 'openai' | 'mistral';
       if (savedPrompt) {
         setNewsPrompt(savedPrompt);
+      }
+      if (savedAI) {
+        setSelectedAI(savedAI);
       }
     } catch (error) {
       console.error('Error loading saved prompt:', error);
@@ -45,15 +50,16 @@ const BlogNewsTracker: React.FC = () => {
   const savePrompt = async () => {
     try {
       localStorage.setItem('blog_news_prompt', newsPrompt);
+      localStorage.setItem('blog_news_ai', selectedAI);
       toast({
         title: "Succès",
-        description: "Prompt sauvegardé avec succès"
+        description: "Prompt et IA sauvegardés avec succès"
       });
     } catch (error) {
       console.error('Error saving prompt:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de sauvegarder le prompt",
+        description: "Impossible de sauvegarder les paramètres",
         variant: "destructive"
       });
     }
@@ -70,12 +76,13 @@ const BlogNewsTracker: React.FC = () => {
     }
 
     setIsLoading(true);
-    console.log('🔍 Fetching mobile news with Perplexity...');
+    console.log(`🔍 Fetching mobile news with ${selectedAI}...`);
 
     try {
       const { data, error } = await supabase.functions.invoke('fetch-mobile-news', {
         body: {
-          prompt: newsPrompt
+          prompt: newsPrompt,
+          ai_model: selectedAI
         }
       });
 
@@ -95,7 +102,7 @@ const BlogNewsTracker: React.FC = () => {
       
       toast({
         title: "Succès",
-        description: `${data.news?.length || 0} actualités récupérées`
+        description: `${data.news?.length || 0} actualités récupérées avec ${selectedAI}`
       });
     } catch (error) {
       console.error('❌ Error fetching news:', error);
@@ -202,7 +209,7 @@ Structure l'article avec une introduction engageante, un développement détaill
       const { data, error } = await supabase.functions.invoke('generate-blog-content', {
         body: {
           prompt: blogPrompt,
-          ai_model: 'perplexity',
+          ai_model: selectedAI,
           visibility: 'public'
         }
       });
@@ -216,7 +223,7 @@ Structure l'article avec une introduction engageante, un développement détaill
       
       toast({
         title: "Article généré !",
-        description: "Un article de blog a été créé à partir de cette actualité"
+        description: `Un article de blog a été créé à partir de cette actualité avec ${selectedAI}`
       });
     } catch (error) {
       console.error('Error generating blog post:', error);
@@ -225,6 +232,32 @@ Structure l'article avec une introduction engageante, un développement détaill
         description: "Impossible de générer l'article de blog",
         variant: "destructive"
       });
+    }
+  };
+
+  const getAIIcon = (aiType: string) => {
+    switch (aiType) {
+      case 'perplexity':
+        return <Zap className="h-4 w-4" />;
+      case 'openai':
+        return <Brain className="h-4 w-4" />;
+      case 'mistral':
+        return <Bot className="h-4 w-4" />;
+      default:
+        return <Brain className="h-4 w-4" />;
+    }
+  };
+
+  const getAIColor = (aiType: string) => {
+    switch (aiType) {
+      case 'perplexity':
+        return 'bg-purple-500 hover:bg-purple-600';
+      case 'openai':
+        return 'bg-green-500 hover:bg-green-600';
+      case 'mistral':
+        return 'bg-orange-500 hover:bg-orange-600';
+      default:
+        return 'bg-blue-500 hover:bg-blue-600';
     }
   };
 
@@ -237,11 +270,47 @@ Structure l'article avec une introduction engageante, un développement détaill
             Suivi des actualités mobiles
           </CardTitle>
           <CardDescription>
-            Surveillez les dernières actualités dans la téléphonie mobile et les réparations avec Perplexity
+            Surveillez les dernières actualités dans la téléphonie mobile et les réparations avec l'IA
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4">
+            <div>
+              <Label>Sélection de l'IA</Label>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  onClick={() => setSelectedAI('perplexity')}
+                  variant={selectedAI === 'perplexity' ? 'default' : 'outline'}
+                  className={selectedAI === 'perplexity' ? 'bg-purple-500 hover:bg-purple-600 text-white' : ''}
+                  size="sm"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Perplexity
+                </Button>
+                <Button
+                  onClick={() => setSelectedAI('openai')}
+                  variant={selectedAI === 'openai' ? 'default' : 'outline'}
+                  className={selectedAI === 'openai' ? 'bg-green-500 hover:bg-green-600 text-white' : ''}
+                  size="sm"
+                >
+                  <Brain className="h-4 w-4 mr-2" />
+                  OpenAI
+                </Button>
+                <Button
+                  onClick={() => setSelectedAI('mistral')}
+                  variant={selectedAI === 'mistral' ? 'default' : 'outline'}
+                  className={selectedAI === 'mistral' ? 'bg-orange-500 hover:bg-orange-600 text-white' : ''}
+                  size="sm"
+                >
+                  <Bot className="h-4 w-4 mr-2" />
+                  Mistral
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                IA sélectionnée : <span className="font-medium capitalize">{selectedAI}</span>
+              </p>
+            </div>
+
             <div>
               <Label htmlFor="news-prompt">Prompt de recherche</Label>
               <Textarea
@@ -260,7 +329,7 @@ Structure l'article avec une introduction engageante, un développement détaill
             <div className="flex gap-2">
               <Button onClick={savePrompt} variant="outline">
                 <Save className="h-4 w-4 mr-2" />
-                Sauvegarder le prompt
+                Sauvegarder
               </Button>
               <Button onClick={fetchNews} disabled={isLoading}>
                 {isLoading ? (
@@ -268,14 +337,20 @@ Structure l'article avec une introduction engageante, un développement détaill
                 ) : (
                   <Play className="h-4 w-4 mr-2" />
                 )}
-                Rechercher les actualités
+                Rechercher avec {selectedAI}
               </Button>
             </div>
           </div>
 
           {lastUpdate && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Badge variant="outline">Dernière mise à jour: {lastUpdate}</Badge>
+              <Badge variant="outline">
+                Dernière mise à jour: {lastUpdate}
+              </Badge>
+              <Badge variant="outline" className="capitalize">
+                {getAIIcon(selectedAI)}
+                <span className="ml-1">{selectedAI}</span>
+              </Badge>
             </div>
           )}
         </CardContent>
