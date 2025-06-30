@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, Wand2, Play } from 'lucide-react';
+import { Plus, Edit, Trash2, Wand2, Play, RefreshCw } from 'lucide-react';
 import { useBlog } from '@/hooks/useBlog';
 import { BlogGenerationTemplate, BlogCategory } from '@/types/blog';
 import { useToast } from '@/hooks/use-toast';
@@ -30,7 +30,7 @@ const BlogTemplatesManager: React.FC = () => {
     category_id: '',
     visibility: 'public' as 'public' | 'repairers' | 'both',
     prompt_template: '',
-    ai_model: 'mistral',
+    ai_model: 'openai',
     is_active: true
   });
 
@@ -50,7 +50,6 @@ const BlogTemplatesManager: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      // Cast the data to ensure proper typing
       setTemplates((data || []) as BlogGenerationTemplate[]);
     } catch (error) {
       console.error('Error loading templates:', error);
@@ -73,7 +72,7 @@ const BlogTemplatesManager: React.FC = () => {
       category_id: '',
       visibility: 'public',
       prompt_template: '',
-      ai_model: 'mistral',
+      ai_model: 'openai',
       is_active: true
     });
     setEditingTemplate(null);
@@ -167,29 +166,48 @@ const BlogTemplatesManager: React.FC = () => {
   };
 
   const generateArticle = async (template: BlogGenerationTemplate) => {
+    console.log('🚀 Starting article generation with template:', template.name);
     setIsGenerating(template.id);
+    
     try {
+      console.log('📝 Calling generate-blog-content function with:', {
+        template_id: template.id,
+        ai_model: template.ai_model,
+        category_id: template.category_id,
+        visibility: template.visibility
+      });
+
       const { data, error } = await supabase.functions.invoke('generate-blog-content', {
         body: {
           template_id: template.id,
-          prompt: template.prompt_template,
           ai_model: template.ai_model,
           category_id: template.category_id,
           visibility: template.visibility
         }
       });
 
-      if (error) throw error;
+      console.log('📊 Function response:', { data, error });
 
+      if (error) {
+        console.error('❌ Function error:', error);
+        throw error;
+      }
+
+      if (data?.error) {
+        console.error('❌ Response error:', data.error);
+        throw new Error(data.error);
+      }
+
+      console.log('✅ Article generated successfully:', data);
       toast({
         title: "Succès",
         description: "Article généré avec succès ! Consultez la liste des articles."
       });
     } catch (error) {
-      console.error('Error generating article:', error);
+      console.error('❌ Error generating article:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de générer l'article",
+        description: `Impossible de générer l'article: ${error.message}`,
         variant: "destructive"
       });
     } finally {
@@ -244,9 +262,8 @@ const BlogTemplatesManager: React.FC = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="mistral">Mistral</SelectItem>
                         <SelectItem value="openai">OpenAI GPT-4</SelectItem>
-                        <SelectItem value="claude">Claude</SelectItem>
+                        <SelectItem value="mistral">Mistral</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -360,13 +377,19 @@ const BlogTemplatesManager: React.FC = () => {
                         size="icon"
                         onClick={() => generateArticle(template)}
                         disabled={isGenerating === template.id}
+                        title="Générer un article"
                       >
-                        <Play className="h-4 w-4" />
+                        {isGenerating === template.id ? (
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Play className="h-4 w-4" />
+                        )}
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="icon"
                         onClick={() => handleEdit(template)}
+                        title="Modifier"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -374,6 +397,7 @@ const BlogTemplatesManager: React.FC = () => {
                         variant="ghost" 
                         size="icon"
                         onClick={() => handleDelete(template.id)}
+                        title="Supprimer"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

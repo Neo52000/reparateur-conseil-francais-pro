@@ -12,6 +12,12 @@ import BlogSettings from './BlogSettings';
 
 const BlogManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState('posts');
+  const [showNewArticleEditor, setShowNewArticleEditor] = useState(false);
+
+  const handleNewArticleClick = () => {
+    setActiveTab('posts');
+    setShowNewArticleEditor(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -20,7 +26,7 @@ const BlogManagement: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900">Gestion du Blog</h2>
           <p className="text-gray-600">Gérez vos articles, catégories et templates de génération IA</p>
         </div>
-        <Button>
+        <Button onClick={handleNewArticleClick}>
           <Plus className="h-4 w-4 mr-2" />
           Nouvel article
         </Button>
@@ -51,7 +57,10 @@ const BlogManagement: React.FC = () => {
         </TabsList>
 
         <TabsContent value="posts" className="space-y-4">
-          <BlogPostsManager />
+          <BlogPostsManager 
+            forceShowEditor={showNewArticleEditor}
+            onEditorStateChange={setShowNewArticleEditor}
+          />
         </TabsContent>
 
         <TabsContent value="categories" className="space-y-4">

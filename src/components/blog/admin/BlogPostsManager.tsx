@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,15 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import BlogPostEditor from './BlogPostEditor';
 
-const BlogPostsManager: React.FC = () => {
+interface BlogPostsManagerProps {
+  forceShowEditor?: boolean;
+  onEditorStateChange?: (show: boolean) => void;
+}
+
+const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({ 
+  forceShowEditor = false, 
+  onEditorStateChange 
+}) => {
   const { fetchPosts, fetchCategories, deletePost, loading } = useBlog();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
@@ -22,6 +29,13 @@ const BlogPostsManager: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [showEditor, setShowEditor] = useState(false);
+
+  useEffect(() => {
+    if (forceShowEditor) {
+      setShowEditor(true);
+      setSelectedPost(null);
+    }
+  }, [forceShowEditor]);
 
   useEffect(() => {
     loadPosts();
@@ -49,6 +63,19 @@ const BlogPostsManager: React.FC = () => {
         loadPosts();
       }
     }
+  };
+
+  const handleShowEditor = (post: BlogPost | null = null) => {
+    setSelectedPost(post);
+    setShowEditor(true);
+    onEditorStateChange?.(true);
+  };
+
+  const handleCloseEditor = () => {
+    setShowEditor(false);
+    setSelectedPost(null);
+    onEditorStateChange?.(false);
+    loadPosts();
   };
 
   const getStatusBadge = (status: string) => {
@@ -84,15 +111,8 @@ const BlogPostsManager: React.FC = () => {
     return (
       <BlogPostEditor
         post={selectedPost}
-        onSave={() => {
-          loadPosts();
-          setShowEditor(false);
-          setSelectedPost(null);
-        }}
-        onCancel={() => {
-          setShowEditor(false);
-          setSelectedPost(null);
-        }}
+        onSave={handleCloseEditor}
+        onCancel={handleCloseEditor}
       />
     );
   }
@@ -105,7 +125,7 @@ const BlogPostsManager: React.FC = () => {
             <CardTitle>Articles du Blog</CardTitle>
             <CardDescription>Gérez tous vos articles de blog</CardDescription>
           </div>
-          <Button onClick={() => setShowEditor(true)}>
+          <Button onClick={() => handleShowEditor()}>
             <Plus className="h-4 w-4 mr-2" />
             Nouvel article
           </Button>
@@ -194,10 +214,7 @@ const BlogPostsManager: React.FC = () => {
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        onClick={() => {
-                          setSelectedPost(post);
-                          setShowEditor(true);
-                        }}
+                        onClick={() => handleShowEditor(post)}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
