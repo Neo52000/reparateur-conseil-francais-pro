@@ -1,0 +1,96 @@
+
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    const { prompt, size, style } = await req.json();
+
+    if (!prompt) {
+      throw new Error('Prompt is required');
+    }
+
+    console.log('Generating image with prompt:', prompt);
+
+    // Enhance prompt based on style
+    let enhancedPrompt = prompt;
+    switch (style) {
+      case 'realistic':
+        enhancedPrompt += ', photorealistic, high quality, professional photography';
+        break;
+      case 'digital-art':
+        enhancedPrompt += ', digital art, vibrant colors, modern design';
+        break;
+      case 'illustration':
+        enhancedPrompt += ', illustration style, clean lines, artistic';
+        break;
+      case 'minimalist':
+        enhancedPrompt += ', minimalist design, clean, simple, modern';
+        break;
+      case 'corporate':
+        enhancedPrompt += ', professional, corporate style, clean, business-like';
+        break;
+    }
+
+    const response = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-image-1',
+        prompt: enhancedPrompt,
+        n: 1,
+        size: size || '1024x1024',
+        quality: 'hd',
+        response_format: 'b64_json'
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI API error:', errorData);
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const imageBase64 = data.data[0].b64_json;
+    const imageUrl = `data:image/png;base64,${imageBase64}`;
+
+    console.log('Image generated successfully');
+
+    return new Response(JSON.stringify({ 
+      imageUrl,
+      success: true 
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    console.error('Error in generate-blog-image function:', error);
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      success: false 
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});

@@ -56,6 +56,13 @@ const Navigation = () => {
               <Logo variant="compact" size="xxl" />
             </Link>
 
+            {/* Navigation générale */}
+            <div className="hidden md:flex space-x-4">
+              <Link to="/blog" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                Blog
+              </Link>
+            </div>
+
             {/* Navigation pour les utilisateurs connectés avec accès multiple */}
             {user && (canAccessClient || canAccessRepairer || canAccessAdmin) && (
               <div className="hidden md:flex space-x-4">

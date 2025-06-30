@@ -2,10 +2,10 @@
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Users, UserCheck, Heart, Tag, Megaphone, Search, Package } from 'lucide-react';
+import { Users, UserCheck, Heart, Tag, Megaphone, Search, Package, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export type TabType = 'subscriptions' | 'repairers' | 'interest' | 'promocodes' | 'advertising' | 'scraping';
+export type TabType = 'subscriptions' | 'repairers' | 'interest' | 'promocodes' | 'advertising' | 'scraping' | 'blog';
 
 interface AdminNavigationTabsProps {
   activeTab: TabType;
@@ -16,7 +16,7 @@ const AdminNavigationTabs: React.FC<AdminNavigationTabsProps> = ({ activeTab, on
   return (
     <div className="flex flex-col space-y-4 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
       <Tabs value={activeTab} onValueChange={(value) => onTabChange(value as TabType)} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 gap-1">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7 gap-1">
           <TabsTrigger value="subscriptions" className="flex items-center gap-2">
             <UserCheck className="h-4 w-4" />
             <span className="hidden sm:inline">Abonnements</span>
@@ -40,6 +40,10 @@ const AdminNavigationTabs: React.FC<AdminNavigationTabsProps> = ({ activeTab, on
           <TabsTrigger value="scraping" className="flex items-center gap-2">
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">Scraping</span>
+          </TabsTrigger>
+          <TabsTrigger value="blog" className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4" />
+            <span className="hidden sm:inline">Blog</span>
           </TabsTrigger>
         </TabsList>
       </Tabs>
