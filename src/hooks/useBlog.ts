@@ -78,9 +78,17 @@ export const useBlog = () => {
   // Create or update blog post
   const createOrUpdatePost = useMutation({
     mutationFn: async (post: Partial<BlogPost> & { id?: string }) => {
+      // Filtrer les propriétés non autorisées pour l'insertion/mise à jour
+      const {
+        blog_categories,
+        profiles,
+        ...cleanPost
+      } = post;
+
       const postData = {
-        ...post,
-        author_id: post.author_id || user?.id,
+        ...cleanPost,
+        author_id: cleanPost.author_id || user?.id,
+        content: cleanPost.content || '', // S'assurer que content n'est pas undefined
         updated_at: new Date().toISOString()
       };
 
@@ -116,6 +124,7 @@ export const useBlog = () => {
       });
     },
     onError: (error) => {
+      console.error('Error saving blog post:', error);
       toast({
         title: "Erreur",
         description: "Impossible de sauvegarder l'article.",
