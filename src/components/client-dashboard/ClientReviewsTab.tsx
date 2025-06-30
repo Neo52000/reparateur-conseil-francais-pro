@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -41,6 +40,7 @@ interface ClientReview {
   source?: 'demo';
 }
 
+// Interface corrigée pour correspondre aux données réelles de quotes_with_timeline
 interface Quote {
   id: string;
   device_brand: string;
@@ -48,6 +48,23 @@ interface Quote {
   repair_type: string;
   repairer_id: string;
   status: string;
+  client_id?: string;
+  client_name?: string;
+  client_email?: string;
+  client_phone?: string;
+  estimated_price?: number;
+  created_at?: string;
+  updated_at?: string;
+  accepted_at?: string;
+  quoted_at?: string;
+  rejected_at?: string;
+  client_acceptance_deadline?: string;
+  repairer_response_deadline?: string;
+  client_response_notes?: string;
+  repairer_notes?: string;
+  warranty_info?: string;
+  repair_duration?: string;
+  issue_description?: string;
   source?: 'demo';
 }
 
@@ -141,7 +158,32 @@ const ClientReviewsTab = () => {
 
       if (error) throw error;
       
-      const realQuotes = realQuotesData || [];
+      // Transformer les données réelles pour correspondre à l'interface Quote
+      const realQuotes: Quote[] = (realQuotesData || []).map(quote => ({
+        id: quote.id,
+        device_brand: quote.device_brand,
+        device_model: quote.device_model,
+        repair_type: quote.repair_type,
+        repairer_id: quote.repairer_id,
+        status: quote.status,
+        client_id: quote.client_id,
+        client_name: quote.client_name,
+        client_email: quote.client_email,
+        client_phone: quote.client_phone,
+        estimated_price: quote.estimated_price,
+        created_at: quote.created_at,
+        updated_at: quote.updated_at,
+        accepted_at: quote.accepted_at,
+        quoted_at: quote.quoted_at,
+        rejected_at: quote.rejected_at,
+        client_acceptance_deadline: quote.client_acceptance_deadline,
+        repairer_response_deadline: quote.repairer_response_deadline,
+        client_response_notes: quote.client_response_notes,
+        repairer_notes: quote.repairer_notes,
+        warranty_info: quote.warranty_info,
+        repair_duration: quote.repair_duration,
+        issue_description: quote.issue_description
+      }));
       
       // Obtenir les devis de démo
       const demoQuotes = ClientDemoDataService.getDemoAvailableQuotes();
@@ -151,7 +193,7 @@ const ClientReviewsTab = () => {
         realQuotes,
         demoQuotes,
         demoModeEnabled
-      );
+      ) as Quote[];
       
       // Filtrer les devis qui n'ont pas encore d'avis
       const reviewedQuoteIds = reviews.map(r => r.quote_id).filter(Boolean);
