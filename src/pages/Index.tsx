@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -273,7 +274,7 @@ const Index = () => {
         </section>
 
         <section className="mt-12">
-          <AdBannerDisplay placement="home" />
+          <AdBannerDisplay placement="homepage_carousel" />
         </section>
 
         <section className="mt-12 text-center">
