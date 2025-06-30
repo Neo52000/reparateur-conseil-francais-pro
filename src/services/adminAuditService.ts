@@ -115,6 +115,22 @@ export class AdminAuditService {
   }
 
   /**
+   * Convertit les données JSON de Supabase en Record<string, any>
+   */
+  private static parseJsonField(jsonData: any): Record<string, any> {
+    if (!jsonData) return {};
+    if (typeof jsonData === 'object' && jsonData !== null) return jsonData;
+    if (typeof jsonData === 'string') {
+      try {
+        return JSON.parse(jsonData);
+      } catch {
+        return {};
+      }
+    }
+    return {};
+  }
+
+  /**
    * Récupère les logs d'audit avec filtres
    */
   static async getLogs(filters: AdminAuditFilters = {}): Promise<{
@@ -179,11 +195,14 @@ export class AdminAuditService {
         throw error;
       }
 
-      // Cast the data to ensure proper typing
+      // Convertir et typer les données correctement
       const typedLogs: AdminAuditLogEntry[] = (data || []).map(row => ({
         ...row,
         action_type: row.action_type as AdminAuditLogEntry['action_type'],
-        severity_level: row.severity_level as AdminAuditLogEntry['severity_level']
+        severity_level: row.severity_level as AdminAuditLogEntry['severity_level'],
+        action_details: this.parseJsonField(row.action_details),
+        before_data: this.parseJsonField(row.before_data),
+        after_data: this.parseJsonField(row.after_data)
       }));
 
       console.log('✅ AdminAuditService - Fetched', typedLogs.length, 'logs');
