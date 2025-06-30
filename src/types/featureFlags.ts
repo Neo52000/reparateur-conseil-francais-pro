@@ -33,7 +33,7 @@ export interface FeatureFlag {
 export interface FeatureFlagsTableProps {
   category: string;
   features: Feature[];
-  plans: PlanName[];
+  plans: readonly PlanName[];
   getFlag: (plan: PlanName, featureKey: string) => FeatureFlag | undefined;
   onToggleFlag: (plan: PlanName, featureKey: string, enabled: boolean) => void;
 }
