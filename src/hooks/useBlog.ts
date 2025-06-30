@@ -85,11 +85,28 @@ export const useBlog = () => {
         ...cleanPost
       } = post;
 
+      // Préparer les données pour Supabase en s'assurant que tous les champs requis sont présents
       const postData = {
-        ...cleanPost,
+        title: cleanPost.title || '',
+        slug: cleanPost.slug || cleanPost.title?.toLowerCase().replace(/\s+/g, '-') || '',
+        content: cleanPost.content || '',
         author_id: cleanPost.author_id || user?.id,
-        content: cleanPost.content || '', // S'assurer que content n'est pas undefined
-        updated_at: new Date().toISOString()
+        visibility: cleanPost.visibility || 'public',
+        status: cleanPost.status || 'draft',
+        ...(cleanPost.excerpt && { excerpt: cleanPost.excerpt }),
+        ...(cleanPost.featured_image_url && { featured_image_url: cleanPost.featured_image_url }),
+        ...(cleanPost.category_id && { category_id: cleanPost.category_id }),
+        ...(cleanPost.meta_title && { meta_title: cleanPost.meta_title }),
+        ...(cleanPost.meta_description && { meta_description: cleanPost.meta_description }),
+        ...(cleanPost.keywords && { keywords: cleanPost.keywords }),
+        ...(cleanPost.published_at && { published_at: cleanPost.published_at }),
+        ...(cleanPost.scheduled_at && { scheduled_at: cleanPost.scheduled_at }),
+        ...(cleanPost.ai_generated !== undefined && { ai_generated: cleanPost.ai_generated }),
+        ...(cleanPost.ai_model && { ai_model: cleanPost.ai_model }),
+        ...(cleanPost.generation_prompt && { generation_prompt: cleanPost.generation_prompt }),
+        ...(cleanPost.view_count !== undefined && { view_count: cleanPost.view_count }),
+        ...(cleanPost.comment_count !== undefined && { comment_count: cleanPost.comment_count }),
+        ...(cleanPost.share_count !== undefined && { share_count: cleanPost.share_count })
       };
 
       if (post.id) {
@@ -105,10 +122,7 @@ export const useBlog = () => {
       } else {
         const { data, error } = await supabase
           .from('blog_posts')
-          .insert({
-            ...postData,
-            created_at: new Date().toISOString()
-          })
+          .insert(postData)
           .select()
           .single();
         

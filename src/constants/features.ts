@@ -7,8 +7,8 @@ export interface Feature {
   planRestriction?: string[];
 }
 
-// Définir les plans disponibles
-export const PLANS = ['Gratuit', 'Basique', 'Premium', 'Enterprise'] as const;
+// Définir les plans disponibles (non readonly pour compatibilité)
+export const PLANS = ['Gratuit', 'Basique', 'Premium', 'Enterprise'];
 export type PlanName = typeof PLANS[number];
 
 export const FEATURES: Feature[] = [
