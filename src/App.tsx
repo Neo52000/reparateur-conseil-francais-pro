@@ -7,6 +7,11 @@ import AdminPage from '@/pages/AdminPage';
 import AdminFeaturesPage from '@/pages/AdminFeaturesPage';
 import AdminCatalogPage from '@/pages/AdminCatalogPage';
 import RepairersManagementPage from '@/pages/RepairersManagementPage';
+import ClientAuth from '@/pages/ClientAuth';
+import RepairerAuth from '@/pages/RepairerAuth';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import TermsOfService from '@/pages/TermsOfService';
+import CookiesPolicy from '@/pages/CookiesPolicy';
 import { Toaster } from '@/components/ui/toaster';
 import RepairWorkflowPage from '@/pages/RepairWorkflowPage';
 
@@ -24,6 +29,11 @@ function App() {
             <Route path="/admin/features" element={<AdminFeaturesPage />} />
             <Route path="/admin/catalog" element={<AdminCatalogPage />} />
             <Route path="/admin/repairers" element={<RepairersManagementPage />} />
+            <Route path="/client-auth" element={<ClientAuth />} />
+            <Route path="/repairer-auth" element={<RepairerAuth />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/cookies" element={<CookiesPolicy />} />
             <Route path="/repair-workflow/:quoteId" element={<RepairWorkflowPage />} />
           </Routes>
         </div>
