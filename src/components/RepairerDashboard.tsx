@@ -25,7 +25,6 @@ import { useUpgradeModal } from '@/hooks/useUpgradeModal';
 import { supabase } from '@/integrations/supabase/client';
 import UpgradeModal from '@/components/UpgradeModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
-import Logo from '@/components/Logo';
 import OverviewTabSection from "./repairer-dashboard/OverviewTabSection";
 import OrdersTabSection from "./repairer-dashboard/OrdersTabSection";
 import CalendarTabSection from "./repairer-dashboard/CalendarTabSection";
@@ -240,7 +239,11 @@ const RepairerDashboard = () => {
         {/* Top bar with logo, title and logout button */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Logo variant="icon" size="xxl" />
+            <img
+              src="/lovable-uploads/bdac6a2d-e8e5-46cb-b897-64a0a8383a78.png"
+              alt="TopRéparateurs.fr"
+              className="h-16 object-contain"
+            />
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Tableau de bord Réparateur</h1>
             </div>
