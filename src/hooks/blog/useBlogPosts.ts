@@ -98,13 +98,16 @@ export const useBlogPosts = () => {
 
   // Fonction pour nettoyer les données avant sauvegarde
   const cleanPostData = (post: any) => {
+    console.log('🧹 Cleaning post data:', post);
     const cleanedPost = { ...post };
     
     // Convertir les chaînes vides en null pour les UUIDs
     if (cleanedPost.category_id === '') {
+      console.log('Converting empty category_id to null');
       cleanedPost.category_id = null;
     }
     if (cleanedPost.author_id === '') {
+      console.log('Converting empty author_id to null');
       cleanedPost.author_id = null;
     }
     
@@ -127,48 +130,112 @@ export const useBlogPosts = () => {
       cleanedPost.keywords = [];
     }
     
+    // Supprimer les champs undefined
+    Object.keys(cleanedPost).forEach(key => {
+      if (cleanedPost[key] === undefined) {
+        delete cleanedPost[key];
+      }
+    });
+    
+    console.log('🧹 Cleaned post data:', cleanedPost);
     return cleanedPost;
   };
 
   // Création/mise à jour d'un article
   const savePost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
     try {
+      console.log('💾 Starting savePost with data:', post);
+      
       // Nettoyer les données avant sauvegarde
       const cleanedPost = cleanPostData(post);
       
+      // Validation des champs requis
+      if (!cleanedPost.title?.trim()) {
+        throw new Error('Le titre est requis');
+      }
+      if (!cleanedPost.content?.trim()) {
+        throw new Error('Le contenu est requis');
+      }
+      if (!cleanedPost.slug?.trim()) {
+        throw new Error('Le slug est requis');
+      }
+      
       if (post.id) {
+        console.log('📝 Updating existing post with ID:', post.id);
+        
+        // Retirer l'ID des données à mettre à jour
+        const { id, ...updateData } = cleanedPost;
+        
         const { data, error } = await supabase
           .from('blog_posts')
-          .update(cleanedPost)
+          .update(updateData)
           .eq('id', post.id)
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Update error:', error);
+          throw error;
+        }
+        
+        console.log('✅ Post updated successfully:', data);
         toast({
           title: "Succès",
           description: "Article mis à jour avec succès"
         });
         return data;
       } else {
+        console.log('📝 Creating new post');
+        
+        // Pour la création, on doit s'assurer que l'author_id est défini
+        if (!cleanedPost.author_id) {
+          // Récupérer l'utilisateur actuel
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            cleanedPost.author_id = user.id;
+            console.log('Setting author_id to current user:', user.id);
+          }
+        }
+        
         const { data, error } = await supabase
           .from('blog_posts')
           .insert(cleanedPost)
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Insert error:', error);
+          throw error;
+        }
+        
+        console.log('✅ Post created successfully:', data);
         toast({
           title: "Succès",
           description: "Article créé avec succès"
         });
         return data;
       }
-    } catch (error) {
-      console.error('Error saving blog post:', error);
+    } catch (error: any) {
+      console.error('❌ Error saving blog post:', error);
+      
+      // Messages d'erreur plus spécifiques
+      let errorMessage = "Impossible de sauvegarder l'article";
+      
+      if (error.message?.includes('duplicate key value violates unique constraint')) {
+        if (error.message.includes('slug')) {
+          errorMessage = "Ce slug existe déjà. Veuillez en choisir un autre.";
+        }
+      } else if (error.message?.includes('invalid input syntax for type uuid')) {
+        errorMessage = "Erreur de format des identifiants. Veuillez réessayer.";
+      } else if (error.message?.includes('not-null constraint')) {
+        errorMessage = "Certains champs obligatoires sont manquants.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder l'article",
+        title: "Erreur de sauvegarde",
+        description: errorMessage,
         variant: "destructive"
       });
       return null;
