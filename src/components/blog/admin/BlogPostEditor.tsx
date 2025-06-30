@@ -32,8 +32,8 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
     excerpt: '',
     content: '',
     category_id: '',
-    visibility: 'public',
-    status: 'draft',
+    visibility: 'public' as 'public' | 'repairers' | 'both',
+    status: 'draft' as 'draft' | 'pending' | 'scheduled' | 'published' | 'archived',
     featured_image_url: '',
     meta_title: '',
     meta_description: '',
@@ -229,7 +229,12 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="status">Statut</Label>
-                <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+                <Select 
+                  value={formData.status} 
+                  onValueChange={(value: 'draft' | 'pending' | 'scheduled' | 'published' | 'archived') => 
+                    setFormData(prev => ({ ...prev, status: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -245,7 +250,12 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
 
               <div>
                 <Label htmlFor="visibility">Visibilité</Label>
-                <Select value={formData.visibility} onValueChange={(value) => setFormData(prev => ({ ...prev, visibility: value }))}>
+                <Select 
+                  value={formData.visibility} 
+                  onValueChange={(value: 'public' | 'repairers' | 'both') => 
+                    setFormData(prev => ({ ...prev, visibility: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

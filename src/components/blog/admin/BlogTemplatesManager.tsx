@@ -28,7 +28,7 @@ const BlogTemplatesManager: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     category_id: '',
-    visibility: 'public',
+    visibility: 'public' as 'public' | 'repairers' | 'both',
     prompt_template: '',
     ai_model: 'mistral',
     is_active: true
@@ -50,7 +50,8 @@ const BlogTemplatesManager: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTemplates(data || []);
+      // Cast the data to ensure proper typing
+      setTemplates((data || []) as BlogGenerationTemplate[]);
     } catch (error) {
       console.error('Error loading templates:', error);
       toast({
@@ -269,7 +270,12 @@ const BlogTemplatesManager: React.FC = () => {
                   </div>
                   <div>
                     <Label htmlFor="visibility">Visibilité</Label>
-                    <Select value={formData.visibility} onValueChange={(value) => setFormData(prev => ({ ...prev, visibility: value }))}>
+                    <Select 
+                      value={formData.visibility} 
+                      onValueChange={(value: 'public' | 'repairers' | 'both') => 
+                        setFormData(prev => ({ ...prev, visibility: value }))
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
