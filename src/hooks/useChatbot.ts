@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -50,10 +49,13 @@ export const useChatbot = () => {
 
       if (error) throw error;
 
-      const formattedConversations = data.map((conv: any) => ({
+      const formattedConversations: ChatbotConversation[] = data.map((conv: any) => ({
         ...conv,
         status: conv.status as 'active' | 'completed' | 'escalated',
-        messages: conv.chatbot_messages || []
+        messages: (conv.chatbot_messages || []).map((msg: any) => ({
+          ...msg,
+          sender_type: msg.sender_type as 'user' | 'bot' | 'system'
+        }))
       }));
 
       setConversations(formattedConversations);
@@ -78,10 +80,13 @@ export const useChatbot = () => {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        const conversation = {
+        const conversation: ChatbotConversation = {
           ...data,
           status: data.status as 'active' | 'completed' | 'escalated',
-          messages: data.chatbot_messages || []
+          messages: (data.chatbot_messages || []).map((msg: any) => ({
+            ...msg,
+            sender_type: msg.sender_type as 'user' | 'bot' | 'system'
+          }))
         };
         setCurrentConversation(conversation);
       }

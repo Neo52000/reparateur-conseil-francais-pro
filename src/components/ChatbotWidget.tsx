@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   MessageCircle, 
   X, 
@@ -89,6 +90,13 @@ const ChatbotWidget: React.FC<ChatbotWidgetProps> = ({ className }) => {
         "flex mb-4",
         isUser ? "justify-end" : "justify-start"
       )}>
+        {isBot && (
+          <Avatar className="h-8 w-8 mr-2 mt-1">
+            <AvatarImage src="/lovable-uploads/0cc1089d-ae78-4aa2-a433-2a364ba71f6d.png" />
+            <AvatarFallback>AI</AvatarFallback>
+          </Avatar>
+        )}
+        
         <div className={cn(
           "max-w-[80%] p-3 rounded-lg",
           isBot ? "bg-blue-100 text-blue-900" : "bg-gray-100 text-gray-900",
@@ -232,7 +240,10 @@ const ChatbotWidget: React.FC<ChatbotWidgetProps> = ({ className }) => {
         <CardHeader className="p-3 bg-blue-600 text-white rounded-t-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <MessageCircle className="h-5 w-5" />
+              <Avatar className="h-6 w-6">
+                <AvatarImage src="/lovable-uploads/0cc1089d-ae78-4aa2-a433-2a364ba71f6d.png" />
+                <AvatarFallback>AI</AvatarFallback>
+              </Avatar>
               <CardTitle className="text-sm">Assistant TopRéparateurs</CardTitle>
               {isTyping && (
                 <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
@@ -288,6 +299,10 @@ const ChatbotWidget: React.FC<ChatbotWidgetProps> = ({ className }) => {
                 
                 {isTyping && (
                   <div className="flex justify-start mb-4">
+                    <Avatar className="h-8 w-8 mr-2 mt-1">
+                      <AvatarImage src="/lovable-uploads/0cc1089d-ae78-4aa2-a433-2a364ba71f6d.png" />
+                      <AvatarFallback>AI</AvatarFallback>
+                    </Avatar>
                     <div className="bg-gray-100 p-3 rounded-lg">
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
