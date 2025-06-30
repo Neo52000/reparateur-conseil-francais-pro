@@ -9,6 +9,8 @@ import AdminCatalogPage from '@/pages/AdminCatalogPage';
 import RepairersManagementPage from '@/pages/RepairersManagementPage';
 import ClientAuth from '@/pages/ClientAuth';
 import RepairerAuth from '@/pages/RepairerAuth';
+import ClientDashboardPage from '@/pages/ClientDashboardPage';
+import RepairerDashboardPage from '@/pages/RepairerDashboardPage';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import CookiesPolicy from '@/pages/CookiesPolicy';
@@ -30,7 +32,9 @@ function App() {
             <Route path="/admin/catalog" element={<AdminCatalogPage />} />
             <Route path="/admin/repairers" element={<RepairersManagementPage />} />
             <Route path="/client-auth" element={<ClientAuth />} />
+            <Route path="/client" element={<ClientDashboardPage />} />
             <Route path="/repairer-auth" element={<RepairerAuth />} />
+            <Route path="/repairer" element={<RepairerDashboardPage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/cookies" element={<CookiesPolicy />} />
