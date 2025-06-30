@@ -48,6 +48,13 @@ export const authService = {
       
       if (error) {
         console.error('❌ Sign out error:', error);
+        
+        // Traiter les erreurs de session comme des succès partiels
+        if (error.message?.includes('session_not_found') || error.message?.includes('Session not found')) {
+          console.log('⚠️ Session already expired, treating as successful logout');
+          return { error: null };
+        }
+        
         return { error };
       }
       

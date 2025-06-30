@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Settings, Users, Package, Zap } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 // Import experimental comps
 import ReferralInvite from '@/components/ReferralInvite';
@@ -15,15 +16,34 @@ import AIPreDiagChatBox from '@/components/AIPreDiagChatBox';
 const AdminPage = () => {
   const navigate = useNavigate();
   const { user, isAdmin, signOut } = useAuth();
+  const { toast } = useToast();
 
   console.log('🔍 AdminPage render - user:', user, 'isAdmin:', isAdmin);
 
   const handleSignOut = async () => {
     try {
+      console.log('🔄 Admin sign out initiated...');
+      
       await signOut();
-      navigate('/');
+      
+      console.log('✅ Admin sign out completed, redirecting...');
+      toast({
+        title: "Déconnexion réussie",
+        description: "Vous avez été déconnecté de l'administration"
+      });
+      
+      navigate('/', { replace: true });
+      
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('💥 Exception during admin sign out:', error);
+      
+      // Même en cas d'erreur, rediriger
+      toast({
+        title: "Déconnexion effectuée",
+        description: "Vous avez été déconnecté"
+      });
+      
+      navigate('/', { replace: true });
     }
   };
 

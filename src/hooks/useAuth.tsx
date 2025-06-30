@@ -170,19 +170,35 @@ export const useAuth = (): UseAuthReturn => {
   const signOut = async () => {
     console.log('👋 Starting sign out process');
     
-    const result = await authService.signOut();
-    
-    if (result.error) {
-      console.error('❌ Sign out failed:', result.error);
-      // Force le nettoyage même en cas d'erreur
+    try {
+      // Toujours nettoyer l'état local d'abord
       clearState();
-      return result;
+      
+      // Tentative de déconnexion Supabase
+      const result = await authService.signOut();
+      
+      if (result.error) {
+        console.error('❌ Supabase sign out failed:', result.error);
+        
+        // Gestion spécifique de l'erreur de session manquante
+        if (result.error.message?.includes('session_not_found') || result.error.message?.includes('Session not found')) {
+          console.log('⚠️ Session already expired, continuing with local cleanup');
+          return { error: null }; // Traiter comme un succès car l'utilisateur n'est déjà plus connecté
+        }
+        
+        // Pour d'autres erreurs, on considère quand même la déconnexion comme réussie localement
+        console.log('⚠️ Supabase logout failed but local state cleared');
+        return { error: null };
+      }
+      
+      console.log('✅ Sign out completed successfully');
+      return { error: null };
+      
+    } catch (error) {
+      console.error('💥 Exception during sign out:', error);
+      // Même en cas d'exception, l'état local est déjà nettoyé
+      return { error: null };
     }
-    
-    clearState();
-    console.log('✅ Sign out completed');
-    
-    return result;
   };
 
   console.log('🔐 Current auth state:', { 

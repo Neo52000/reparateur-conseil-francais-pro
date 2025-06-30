@@ -17,31 +17,29 @@ const Navigation = () => {
   const handleSignOut = async () => {
     try {
       console.log('🔄 Initiating sign out from Navigation...');
-      const { error } = await signOut();
       
-      if (error) {
-        console.error('❌ Sign out failed:', error);
-        toast({
-          title: "Erreur de déconnexion",
-          description: "Une erreur s'est produite lors de la déconnexion",
-          variant: "destructive"
-        });
-      } else {
-        console.log('✅ Sign out successful, redirecting to home...');
-        toast({
-          title: "Déconnexion réussie",
-          description: "Vous avez été déconnecté avec succès"
-        });
-        // Force redirect to home page
-        navigate('/', { replace: true });
-      }
+      // Toujours effectuer la déconnexion et rediriger
+      await signOut();
+      
+      console.log('✅ Sign out completed, redirecting to home...');
+      toast({
+        title: "Déconnexion réussie",
+        description: "Vous avez été déconnecté avec succès"
+      });
+      
+      // Force redirect to home page
+      navigate('/', { replace: true });
+      
     } catch (error) {
       console.error('💥 Exception during sign out:', error);
+      
+      // Même en cas d'erreur, rediriger vers l'accueil
       toast({
-        title: "Erreur de déconnexion",
-        description: "Une erreur inattendue s'est produite",
-        variant: "destructive"
+        title: "Déconnexion effectuée",
+        description: "Vous avez été déconnecté"
       });
+      
+      navigate('/', { replace: true });
     }
   };
 
