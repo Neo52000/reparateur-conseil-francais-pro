@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -238,13 +237,12 @@ const RepairerDashboard = () => {
           />
         )}
 
-        {/* Top bar with logo, title, name and logout button */}
+        {/* Top bar with logo, title and logout button */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Logo variant="icon" size="lg" />
+          <div className="flex items-center gap-6">
+            <Logo variant="icon" size="xxl" />
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Tableau de bord Réparateur</h1>
-              <p className="text-gray-600 mt-2">{repairerData.profile.name}</p>
             </div>
           </div>
           <Button
