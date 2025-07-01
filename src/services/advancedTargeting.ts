@@ -3,102 +3,106 @@ import { supabase } from '@/integrations/supabase/client';
 import { EnhancedTargetingSegment, GeoTargetingZone, UserBehaviorEvent, PersonalizationData } from '@/types/advancedAdvertising';
 
 export class AdvancedTargetingService {
-  // Gestion des segments de ciblage - Version simplifiée utilisant les tables existantes
-  static async createTargetingSegment(segment: Omit<EnhancedTargetingSegment, 'id' | 'created_at' | 'updated_at' | 'estimated_reach'>) {
-    // Pour l'instant, on utilise une approche simplifiée
-    console.log('Creating targeting segment:', segment);
-    return { id: Date.now().toString(), ...segment, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), estimated_reach: 1000 };
+  // Gestion des segments de ciblage - Maintenant avec vraies données Supabase
+  static async createTargetingSegment(segment: Omit<EnhancedTargetingSegment, 'id' | 'created_at' | 'updated_at'>) {
+    try {
+      const { data, error } = await supabase
+        .from('advanced_targeting_segments')
+        .insert([{
+          name: segment.name,
+          description: segment.description,
+          criteria: segment.criteria,
+          estimated_reach: segment.estimated_reach || 0,
+          is_active: segment.is_active
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating targeting segment:', error);
+      throw error;
+    }
   }
 
   static async getTargetingSegments(includeInactive = false) {
-    // Simulation de données pour l'instant
-    const mockSegments: EnhancedTargetingSegment[] = [
-      {
-        id: '1',
-        name: 'Clients Premium Paris',
-        description: 'Clients premium basés à Paris',
-        criteria: {
-          cities: ['Paris'],
-          user_types: ['client'],
-          subscription_tiers: ['premium']
-        },
-        estimated_reach: 2500,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: '2',
-        name: 'Réparateurs Lyon',
-        description: 'Réparateurs actifs à Lyon',
-        criteria: {
-          cities: ['Lyon'],
-          user_types: ['repairer']
-        },
-        estimated_reach: 150,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    ];
+    try {
+      let query = supabase
+        .from('advanced_targeting_segments')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    return includeInactive ? mockSegments : mockSegments.filter(s => s.is_active);
+      if (!includeInactive) {
+        query = query.eq('is_active', true);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching targeting segments:', error);
+      return [];
+    }
   }
 
   static async updateTargetingSegment(id: string, updates: Partial<EnhancedTargetingSegment>) {
-    console.log('Updating targeting segment:', id, updates);
-    return { id, ...updates, updated_at: new Date().toISOString() };
+    try {
+      const { data, error } = await supabase
+        .from('advanced_targeting_segments')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating targeting segment:', error);
+      throw error;
+    }
   }
 
-  // Gestion des zones géographiques - Version simplifiée
+  // Gestion des zones géographiques - Maintenant avec vraies données Supabase
   static async createGeoZone(zone: Omit<GeoTargetingZone, 'id' | 'created_at'>) {
-    console.log('Creating geo zone:', zone);
-    return { id: Date.now().toString(), ...zone, created_at: new Date().toISOString() };
+    try {
+      const { data, error } = await supabase
+        .from('geo_targeting_zones')
+        .insert([zone])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating geo zone:', error);
+      throw error;
+    }
   }
 
   static async getGeoZones() {
-    // Simulation de données
-    const mockZones: GeoTargetingZone[] = [
-      {
-        id: '1',
-        name: 'Centre-ville Paris',
-        type: 'radius',
-        coordinates: {
-          lat: 48.8566,
-          lng: 2.3522,
-          radius: 5
-        },
-        metadata: {},
-        is_active: true,
-        created_at: new Date().toISOString()
-      },
-      {
-        id: '2',
-        name: 'Lyon Métropole',
-        type: 'city',
-        metadata: { city: 'Lyon' },
-        is_active: true,
-        created_at: new Date().toISOString()
-      }
-    ];
+    try {
+      const { data, error } = await supabase
+        .from('geo_targeting_zones')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-    return mockZones;
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching geo zones:', error);
+      return [];
+    }
   }
 
-  // Tracking comportemental - Version simplifiée
+  // Tracking comportemental - Maintenant avec vraies données Supabase
   static async trackUserBehavior(event: Omit<UserBehaviorEvent, 'id' | 'created_at'>) {
     try {
-      // Pour l'instant, on log simplement les événements
-      console.log('Tracking user behavior:', event);
-      
-      // On pourrait utiliser la table analytics_events existante
       const { error } = await supabase
-        .from('analytics_events')
-        .insert([{
-          user_id: event.user_id,
-          event_type: event.event_type,
-          event_data: event.event_data
-        }]);
+        .from('user_behavior_events')
+        .insert([event]);
 
       if (error) {
         console.error('Error tracking user behavior:', error);
@@ -111,34 +115,21 @@ export class AdvancedTargetingService {
   static async getUserBehaviorProfile(userId: string, days = 30) {
     try {
       const { data, error } = await supabase
-        .from('analytics_events')
+        .from('user_behavior_events')
         .select('*')
         .eq('user_id', userId)
         .gte('created_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      // Transformer les données analytics en format UserBehaviorEvent
-      return (data || []).map(event => ({
-        id: event.id,
-        user_id: event.user_id,
-        session_id: null,
-        event_type: event.event_type,
-        event_data: event.event_data || {},
-        page_url: null,
-        referrer: null,
-        user_agent: null,
-        ip_address: null,
-        created_at: event.created_at
-      })) as UserBehaviorEvent[];
+      return data || [];
     } catch (error) {
       console.error('Error fetching user behavior profile:', error);
       return [];
     }
   }
 
-  // Personnalisation des messages - Version simplifiée
+  // Personnalisation des messages - Maintenant avec vraies données Supabase
   static async getPersonalizationData(userId?: string, sessionId?: string): Promise<PersonalizationData> {
     if (!userId && !sessionId) {
       return {};
@@ -159,17 +150,16 @@ export class AdvancedTargetingService {
           personalizationData.user_name = profile.first_name;
         }
 
-        // Récupérer les événements récents depuis analytics_events
-        const { data: analytics } = await supabase
-          .from('analytics_events')
+        // Récupérer les événements comportementaux récents
+        const { data: behaviors } = await supabase
+          .from('user_behavior_events')
           .select('event_type, event_data, created_at')
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(10);
 
-        if (analytics) {
-          personalizationData.interaction_history = analytics.map(event => {
-            // Vérifier que event_data est un objet et contient la propriété target
+        if (behaviors) {
+          personalizationData.interaction_history = behaviors.map(event => {
             const eventData = event.event_data as Record<string, any> | null;
             const target = eventData && typeof eventData === 'object' ? eventData.target : 'unknown';
             
@@ -179,6 +169,27 @@ export class AdvancedTargetingService {
               timestamp: event.created_at
             };
           });
+        }
+
+        // Récupérer l'historique des interactions
+        const { data: interactions } = await supabase
+          .from('user_interaction_history')
+          .select('interaction_type, target_type, target_id, created_at')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        if (interactions) {
+          const interactionHistory = interactions.map(interaction => ({
+            type: interaction.interaction_type,
+            target: interaction.target_id || 'unknown',
+            timestamp: interaction.created_at
+          }));
+
+          personalizationData.interaction_history = [
+            ...(personalizationData.interaction_history || []),
+            ...interactionHistory
+          ];
         }
       } catch (error) {
         console.error('Error fetching personalization data:', error);
@@ -247,14 +258,16 @@ export class AdvancedTargetingService {
   // Géofencing
   static isWithinGeoZone(userLocation: {lat: number, lng: number}, zone: GeoTargetingZone): boolean {
     if (zone.type === 'radius' && zone.coordinates) {
-      const distance = this.calculateDistance(
-        userLocation.lat, userLocation.lng,
-        zone.coordinates.lat, zone.coordinates.lng
-      );
-      return distance <= zone.coordinates.radius;
+      const coords = zone.coordinates as any;
+      if (coords.lat && coords.lng && coords.radius) {
+        const distance = this.calculateDistance(
+          userLocation.lat, userLocation.lng,
+          coords.lat, coords.lng
+        );
+        return distance <= coords.radius;
+      }
     }
     
-    // Pour les autres types, on peut implémenter des vérifications plus complexes
     return false;
   }
 
@@ -267,5 +280,43 @@ export class AdvancedTargetingService {
               Math.sin(dLng/2) * Math.sin(dLng/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
+  }
+
+  // Fonctions utilitaires pour l'analytics
+  static async getCampaignPerformanceMetrics(campaignId: string, days = 30) {
+    try {
+      const { data, error } = await supabase
+        .from('campaign_performance_metrics')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .gte('date', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching campaign performance metrics:', error);
+      return [];
+    }
+  }
+
+  static async trackUserInteraction(userId: string, interactionType: string, targetType: string, targetId: string, metadata: Record<string, any> = {}) {
+    try {
+      const { error } = await supabase
+        .from('user_interaction_history')
+        .insert([{
+          user_id: userId,
+          interaction_type: interactionType,
+          target_type: targetType,
+          target_id: targetId,
+          metadata
+        }]);
+
+      if (error) {
+        console.error('Error tracking user interaction:', error);
+      }
+    } catch (error) {
+      console.error('Error tracking user interaction:', error);
+    }
   }
 }

@@ -6,140 +6,88 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Globe, MapPin, Target, Trash2 } from 'lucide-react';
-import { GeoTargetingZone } from '@/types/advancedAdvertising';
+import { Globe, Plus, MapPin, Circle, Map } from 'lucide-react';
 import { AdvancedTargetingService } from '@/services/advancedTargeting';
-import { toast } from 'sonner';
+import { GeoTargetingZone } from '@/types/advancedAdvertising';
 
 const GeoTargetingManager: React.FC = () => {
   const [zones, setZones] = useState<GeoTargetingZone[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-
-  const [formData, setFormData] = useState({
+  const [loading, setLoading] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newZone, setNewZone] = useState({
     name: '',
-    type: 'city' as 'city' | 'postal_code' | 'radius' | 'region',
-    coordinates: {
-      lat: 48.8566,  // Paris par défaut
-      lng: 2.3522,
-      radius: 10
-    },
+    type: 'city' as const,
+    coordinates: { lat: 0, lng: 0, radius: 5 },
     metadata: {}
   });
 
-  const zoneTypes = [
-    {
-      value: 'city',
-      label: 'Ville',
-      description: 'Ciblage par ville',
-      icon: '🏙️'
-    },
-    {
-      value: 'postal_code',
-      label: 'Code postal',
-      description: 'Ciblage par code postal',
-      icon: '📮'
-    },
-    {
-      value: 'radius',
-      label: 'Zone circulaire',
-      description: 'Rayon autour d\'un point',
-      icon: '⭕'
-    },
-    {
-      value: 'region',
-      label: 'Région',
-      description: 'Ciblage régional',
-      icon: '🗺️'
-    }
-  ];
-
-  const popularCities = [
-    { name: 'Paris', lat: 48.8566, lng: 2.3522 },
-    { name: 'Lyon', lat: 45.7640, lng: 4.8357 },
-    { name: 'Marseille', lat: 43.2965, lng: 5.3698 },
-    { name: 'Toulouse', lat: 43.6047, lng: 1.4442 },
-    { name: 'Nice', lat: 43.7102, lng: 7.2620 },
-    { name: 'Nantes', lat: 47.2184, lng: -1.5536 },
-    { name: 'Strasbourg', lat: 48.5734, lng: 7.7521 },
-    { name: 'Montpellier', lat: 43.6110, lng: 3.8767 }
-  ];
-
   useEffect(() => {
-    fetchGeoZones();
+    loadGeoZones();
   }, []);
 
-  const fetchGeoZones = async () => {
+  const loadGeoZones = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const data = await AdvancedTargetingService.getGeoZones();
-      setZones(data || []);
+      setZones(data);
     } catch (error) {
-      console.error('Error fetching geo zones:', error);
-      toast.error('Erreur lors du chargement des zones');
+      console.error('Error loading geo zones:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSave = async () => {
+  const handleCreateZone = async () => {
     try {
       await AdvancedTargetingService.createGeoZone({
-        ...formData,
+        ...newZone,
         is_active: true
       });
       
-      toast.success('Zone géographique créée');
-      resetForm();
-      fetchGeoZones();
+      setShowCreateForm(false);
+      setNewZone({
+        name: '',
+        type: 'city',
+        coordinates: { lat: 0, lng: 0, radius: 5 },
+        metadata: {}
+      });
+      
+      await loadGeoZones();
     } catch (error) {
-      console.error('Error saving geo zone:', error);
-      toast.error('Erreur lors de la sauvegarde');
+      console.error('Error creating geo zone:', error);
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      type: 'city',
-      coordinates: {
-        lat: 48.8566,
-        lng: 2.3522,
-        radius: 10
-      },
-      metadata: {}
-    });
-    setShowForm(false);
+  const getZoneIcon = (type: string) => {
+    switch (type) {
+      case 'radius': return Circle;
+      case 'city': return MapPin;
+      case 'region': return Map;
+      default: return Globe;
+    }
   };
 
-  const setQuickCity = (city: typeof popularCities[0]) => {
-    setFormData(prev => ({
-      ...prev,
-      coordinates: {
-        ...prev.coordinates,
-        lat: city.lat,
-        lng: city.lng
-      }
-    }));
+  const getZoneTypeLabel = (type: string) => {
+    switch (type) {
+      case 'radius': return 'Zone circulaire';
+      case 'city': return 'Ville';
+      case 'postal_code': return 'Code postal';
+      case 'region': return 'Région';
+      default: return type;
+    }
   };
-
-  if (loading) {
-    return <div className="flex justify-center p-8">Chargement...</div>;
-  }
 
   return (
     <div className="space-y-6">
-      {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Globe className="h-6 w-6 text-blue-500" />
             Géofencing & Ciblage Géographique
-            <Badge variant="secondary">Beta</Badge>
           </h2>
-          <p className="text-gray-600">Créez des zones de ciblage géographique précises</p>
+          <p className="text-gray-600">Zones de ciblage géographique avancées</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button onClick={() => setShowCreateForm(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Nouvelle zone
         </Button>
@@ -154,19 +102,7 @@ const GeoTargetingManager: React.FC = () => {
                 <p className="text-sm text-gray-600">Zones actives</p>
                 <p className="text-2xl font-bold">{zones.length}</p>
               </div>
-              <Target className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Villes ciblées</p>
-                <p className="text-2xl font-bold">{zones.filter(z => z.type === 'city').length}</p>
-              </div>
-              <MapPin className="h-8 w-8 text-green-500" />
+              <Globe className="h-8 w-8 text-blue-500" />
             </div>
           </CardContent>
         </Card>
@@ -178,7 +114,19 @@ const GeoTargetingManager: React.FC = () => {
                 <p className="text-sm text-gray-600">Zones circulaires</p>
                 <p className="text-2xl font-bold">{zones.filter(z => z.type === 'radius').length}</p>
               </div>
-              <Globe className="h-8 w-8 text-purple-500" />
+              <Circle className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Villes ciblées</p>
+                <p className="text-2xl font-bold">{zones.filter(z => z.type === 'city').length}</p>
+              </div>
+              <MapPin className="h-8 w-8 text-purple-500" />
             </div>
           </CardContent>
         </Card>
@@ -188,131 +136,102 @@ const GeoTargetingManager: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Portée estimée</p>
-                <p className="text-2xl font-bold">~125k</p>
+                <p className="text-2xl font-bold">12.5K</p>
               </div>
-              <Target className="h-8 w-8 text-orange-500" />
+              <Map className="h-8 w-8 text-yellow-500" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Formulaire */}
-      {showForm && (
+      {/* Formulaire de création */}
+      {showCreateForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Nouvelle zone de ciblage géographique</CardTitle>
+            <CardTitle>Créer une nouvelle zone de géociblage</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="name">Nom de la zone</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Ex: Centre-ville Paris"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="zone-name">Nom de la zone</Label>
+                <Input
+                  id="zone-name"
+                  value={newZone.name}
+                  onChange={(e) => setNewZone({ ...newZone, name: e.target.value })}
+                  placeholder="Ex: Centre-ville Paris"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="zone-type">Type de zone</Label>
+                <Select
+                  value={newZone.type}
+                  onValueChange={(value: any) => setNewZone({ ...newZone, type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="city">Ville</SelectItem>
+                    <SelectItem value="radius">Zone circulaire</SelectItem>
+                    <SelectItem value="postal_code">Code postal</SelectItem>
+                    <SelectItem value="region">Région</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="type">Type de zone</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value: any) => setFormData(prev => ({ ...prev, type: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {zoneTypes.map(type => (
-                    <SelectItem key={type.value} value={type.value}>
-                      <div className="flex items-center gap-2">
-                        <span>{type.icon}</span>
-                        <div>
-                          <div className="font-medium">{type.label}</div>
-                          <div className="text-sm text-gray-500">{type.description}</div>
-                        </div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {formData.type === 'radius' && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="lat">Latitude</Label>
-                    <Input
-                      id="lat"
-                      type="number"
-                      step="0.0001"
-                      value={formData.coordinates.lat}
-                      onChange={(e) =>
-                        setFormData(prev => ({
-                          ...prev,
-                          coordinates: { ...prev.coordinates, lat: parseFloat(e.target.value) }
-                        }))
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="lng">Longitude</Label>
-                    <Input
-                      id="lng"
-                      type="number"
-                      step="0.0001"
-                      value={formData.coordinates.lng}
-                      onChange={(e) =>
-                        setFormData(prev => ({
-                          ...prev,
-                          coordinates: { ...prev.coordinates, lng: parseFloat(e.target.value) }
-                        }))
-                      }
-                    />
-                  </div>
+            {newZone.type === 'radius' && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="lat">Latitude</Label>
+                  <Input
+                    id="lat"
+                    type="number"
+                    value={newZone.coordinates.lat}
+                    onChange={(e) => setNewZone({
+                      ...newZone,
+                      coordinates: { ...newZone.coordinates, lat: parseFloat(e.target.value) }
+                    })}
+                    placeholder="48.8566"
+                  />
                 </div>
-
+                
+                <div>
+                  <Label htmlFor="lng">Longitude</Label>
+                  <Input
+                    id="lng"
+                    type="number"
+                    value={newZone.coordinates.lng}
+                    onChange={(e) => setNewZone({
+                      ...newZone,
+                      coordinates: { ...newZone.coordinates, lng: parseFloat(e.target.value) }
+                    })}
+                    placeholder="2.3522"
+                  />
+                </div>
+                
                 <div>
                   <Label htmlFor="radius">Rayon (km)</Label>
                   <Input
                     id="radius"
                     type="number"
-                    min="1"
-                    max="100"
-                    value={formData.coordinates.radius}
-                    onChange={(e) =>
-                      setFormData(prev => ({
-                        ...prev,
-                        coordinates: { ...prev.coordinates, radius: parseInt(e.target.value) }
-                      }))
-                    }
+                    value={newZone.coordinates.radius}
+                    onChange={(e) => setNewZone({
+                      ...newZone,
+                      coordinates: { ...newZone.coordinates, radius: parseFloat(e.target.value) }
+                    })}
+                    placeholder="5"
                   />
                 </div>
-
-                <div>
-                  <Label>Villes populaires (raccourcis)</Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {popularCities.map(city => (
-                      <Button
-                        key={city.name}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setQuickCity(city)}
-                      >
-                        {city.name}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </>
+              </div>
             )}
 
-            <div className="flex space-x-2">
-              <Button onClick={handleSave}>
+            <div className="flex gap-2">
+              <Button onClick={handleCreateZone}>
                 Créer la zone
               </Button>
-              <Button variant="outline" onClick={resetForm}>
+              <Button variant="outline" onClick={() => setShowCreateForm(false)}>
                 Annuler
               </Button>
             </div>
@@ -322,57 +241,66 @@ const GeoTargetingManager: React.FC = () => {
 
       {/* Liste des zones */}
       <div className="grid gap-4">
-        {zones.map((zone) => (
-          <Card key={zone.id}>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-4 mb-2">
-                    <h3 className="text-lg font-semibold">{zone.name}</h3>
-                    <Badge variant="outline">
-                      {zoneTypes.find(t => t.value === zone.type)?.icon} {zoneTypes.find(t => t.value === zone.type)?.label}
-                    </Badge>
-                    <Badge variant={zone.is_active ? "default" : "secondary"}>
-                      {zone.is_active ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                    {zone.type === 'radius' && zone.coordinates && (
-                      <>
-                        <span>📍 {zone.coordinates.lat.toFixed(4)}, {zone.coordinates.lng.toFixed(4)}</span>
-                        <span>⭕ Rayon: {zone.coordinates.radius}km</span>
-                      </>
-                    )}
-                    <span>📅 Créé: {new Date(zone.created_at).toLocaleDateString()}</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
-                    Modifier
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-red-600">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+        {loading ? (
+          <div className="text-center py-8">Chargement des zones...</div>
+        ) : zones.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-8">
+              <Globe className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Aucune zone de géociblage configurée</p>
+              <p className="text-sm text-gray-500 mt-2">
+                Créez votre première zone pour commencer le ciblage géographique
+              </p>
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          zones.map((zone) => {
+            const IconComponent = getZoneIcon(zone.type);
+            return (
+              <Card key={zone.id}>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <IconComponent className="h-6 w-6 text-blue-600" />
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-lg font-semibold">{zone.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="outline">
+                            {getZoneTypeLabel(zone.type)}
+                          </Badge>
+                          {zone.type === 'radius' && zone.coordinates && (
+                            <Badge variant="secondary">
+                              Rayon: {(zone.coordinates as any).radius}km
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Badge variant={zone.is_active ? "default" : "secondary"}>
+                        {zone.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                      <Button variant="outline" size="sm">
+                        Modifier
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {zone.type === 'radius' && zone.coordinates && (
+                    <div className="mt-4 text-sm text-gray-600">
+                      Centre: {(zone.coordinates as any).lat?.toFixed(4)}, {(zone.coordinates as any).lng?.toFixed(4)}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })
+        )}
       </div>
-
-      {zones.length === 0 && (
-        <Card>
-          <CardContent className="text-center p-8">
-            <Globe className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 mb-4">Aucune zone géographique configurée.</p>
-            <Button onClick={() => setShowForm(true)}>
-              Créer votre première zone
-            </Button>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

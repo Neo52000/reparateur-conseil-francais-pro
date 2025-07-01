@@ -265,6 +265,39 @@ export type Database = {
         }
         Relationships: []
       }
+      advanced_targeting_segments: {
+        Row: {
+          created_at: string
+          criteria: Json
+          description: string | null
+          estimated_reach: number | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criteria?: Json
+          description?: string | null
+          estimated_reach?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criteria?: Json
+          description?: string | null
+          estimated_reach?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_pre_diagnostic_chats: {
         Row: {
           ended_at: string | null
@@ -468,6 +501,53 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      automated_campaigns: {
+        Row: {
+          campaign_id: string | null
+          campaign_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          last_executed: string | null
+          next_execution: string | null
+          rules: Json
+          triggers: Json
+          updated_at: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          campaign_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_executed?: string | null
+          next_execution?: string | null
+          rules?: Json
+          triggers?: Json
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string | null
+          campaign_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_executed?: string | null
+          next_execution?: string | null
+          rules?: Json
+          triggers?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automated_campaigns_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       blog_categories: {
         Row: {
@@ -866,6 +946,155 @@ export type Database = {
           },
           {
             foreignKeyName: "campaign_banners_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_creatives: {
+        Row: {
+          ai_generated: boolean
+          campaign_id: string | null
+          created_at: string
+          creative_data: Json
+          creative_type: string
+          creative_url: string | null
+          id: string
+          is_active: boolean
+          performance_score: number | null
+        }
+        Insert: {
+          ai_generated?: boolean
+          campaign_id?: string | null
+          created_at?: string
+          creative_data?: Json
+          creative_type: string
+          creative_url?: string | null
+          id?: string
+          is_active?: boolean
+          performance_score?: number | null
+        }
+        Update: {
+          ai_generated?: boolean
+          campaign_id?: string | null
+          created_at?: string
+          creative_data?: Json
+          creative_type?: string
+          creative_url?: string | null
+          id?: string
+          is_active?: boolean
+          performance_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_creatives_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_performance_metrics: {
+        Row: {
+          campaign_id: string | null
+          clicks: number
+          conversions: number
+          cost: number
+          created_at: string
+          date: string
+          geo_zone_id: string | null
+          id: string
+          impressions: number
+          revenue: number
+          segment_id: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          clicks?: number
+          conversions?: number
+          cost?: number
+          created_at?: string
+          date?: string
+          geo_zone_id?: string | null
+          id?: string
+          impressions?: number
+          revenue?: number
+          segment_id?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          clicks?: number
+          conversions?: number
+          cost?: number
+          created_at?: string
+          date?: string
+          geo_zone_id?: string | null
+          id?: string
+          impressions?: number
+          revenue?: number
+          segment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_performance_metrics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_performance_metrics_geo_zone_id_fkey"
+            columns: ["geo_zone_id"]
+            isOneToOne: false
+            referencedRelation: "geo_targeting_zones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_performance_metrics_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "advanced_targeting_segments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_variants: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          performance_metrics: Json
+          traffic_split: number
+          variant_data: Json
+          variant_name: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          performance_metrics?: Json
+          traffic_split?: number
+          variant_data?: Json
+          variant_name: string
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          performance_metrics?: Json
+          traffic_split?: number
+          variant_data?: Json
+          variant_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_variants_campaign_id_fkey"
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "ad_campaigns"
@@ -1426,6 +1655,39 @@ export type Database = {
           id?: string
           plan_name?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      geo_targeting_zones: {
+        Row: {
+          coordinates: Json | null
+          created_at: string
+          id: string
+          is_active: boolean
+          metadata: Json
+          name: string
+          polygons: Json | null
+          type: string
+        }
+        Insert: {
+          coordinates?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          name: string
+          polygons?: Json | null
+          type: string
+        }
+        Update: {
+          coordinates?: Json | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          name?: string
+          polygons?: Json | null
+          type?: string
         }
         Relationships: []
       }
@@ -3033,6 +3295,75 @@ export type Database = {
           is_booked?: boolean | null
           repairer_id?: string
           start_time?: string
+        }
+        Relationships: []
+      }
+      user_behavior_events: {
+        Row: {
+          created_at: string
+          event_data: Json
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          page_url: string | null
+          referrer: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_data?: Json
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          page_url?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_data?: Json
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          page_url?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_interaction_history: {
+        Row: {
+          created_at: string
+          id: string
+          interaction_type: string
+          metadata: Json
+          target_id: string | null
+          target_type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interaction_type: string
+          metadata?: Json
+          target_id?: string | null
+          target_type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interaction_type?: string
+          metadata?: Json
+          target_id?: string | null
+          target_type?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

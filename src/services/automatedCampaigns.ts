@@ -4,76 +4,54 @@ import { AutomatedCampaign, CampaignVariant } from '@/types/advancedAdvertising'
 import { AdvancedTargetingService } from './advancedTargeting';
 
 export class AutomatedCampaignService {
-  // Gestion des campagnes automatisées - Version simplifiée
+  // Gestion des campagnes automatisées - Maintenant avec vraies données Supabase
   static async createAutomatedCampaign(campaign: Omit<AutomatedCampaign, 'id' | 'created_at' | 'updated_at'>) {
-    // Pour l'instant, simulation des données
-    console.log('Creating automated campaign:', campaign);
-    return {
-      id: Date.now().toString(),
-      ...campaign,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+    try {
+      const { data, error } = await supabase
+        .from('automated_campaigns')
+        .insert([campaign])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating automated campaign:', error);
+      throw error;
+    }
   }
 
   static async getAutomatedCampaigns() {
-    // Simulation de données pour l'instant
-    const mockCampaigns = [
-      {
-        id: '1',
-        campaign_id: 'camp-1',
-        campaign_type: 'acquisition' as const,
-        triggers: {
-          schedule: {
-            frequency: 'daily',
-            time: '09:00',
-            days: ['1', '2', '3', '4', '5']
-          }
-        },
-        rules: {
-          budget_adjustments: {
-            increase_threshold: 80,
-            decrease_threshold: 20,
-            max_adjustment: 50
-          },
-          targeting_optimization: true,
-          creative_rotation: true
-        },
-        is_active: true,
-        last_executed: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        next_execution: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: '2',
-        campaign_id: 'camp-2',
-        campaign_type: 'reactivation' as const,
-        triggers: {
-          schedule: {
-            frequency: 'weekly',
-            time: '10:00',
-            days: ['1']
-          }
-        },
-        rules: {
-          budget_adjustments: {
-            increase_threshold: 70,
-            decrease_threshold: 30,
-            max_adjustment: 30
-          },
-          targeting_optimization: false,
-          creative_rotation: true
-        },
-        is_active: true,
-        last_executed: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        next_execution: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    ];
+    try {
+      const { data, error } = await supabase
+        .from('automated_campaigns')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-    return mockCampaigns;
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching automated campaigns:', error);
+      return [];
+    }
+  }
+
+  static async updateAutomatedCampaign(id: string, updates: Partial<AutomatedCampaign>) {
+    try {
+      const { data, error } = await supabase
+        .from('automated_campaigns')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating automated campaign:', error);
+      throw error;
+    }
   }
 
   // Exécution des campagnes automatisées
@@ -85,6 +63,13 @@ export class AutomatedCampaignService {
       try {
         if (this.shouldExecuteCampaign(campaign, now)) {
           await this.executeCampaign(campaign);
+          
+          // Mettre à jour les timestamps d'exécution
+          await this.updateAutomatedCampaign(campaign.id, {
+            last_executed: now.toISOString(),
+            next_execution: this.calculateNextExecution(campaign, now).toISOString()
+          });
+          
           console.log(`Executed automated campaign ${campaign.id}`);
         }
       } catch (error) {
@@ -147,22 +132,74 @@ export class AutomatedCampaignService {
 
   private static async executeAcquisitionCampaign(campaign: any) {
     console.log('Executing acquisition campaign:', campaign.id);
-    // Logique simplifiée pour les campagnes d'acquisition
+    
+    // Logique d'acquisition - cibler les nouveaux utilisateurs
+    if (campaign.rules.targeting_optimization) {
+      const segments = await AdvancedTargetingService.getTargetingSegments();
+      const newUserSegments = segments.filter(s => 
+        s.criteria.behavior_patterns?.includes('new_user')
+      );
+      
+      for (const segment of newUserSegments) {
+        await this.optimizeCampaignForSegment(campaign.campaign_id, segment.id);
+      }
+    }
   }
 
   private static async executeReactivationCampaign(campaign: any) {
     console.log('Executing reactivation campaign:', campaign.id);
-    // Logique simplifiée pour les campagnes de réactivation
+    
+    // Logique de réactivation - cibler les utilisateurs inactifs
+    const inactiveUsers = await this.getInactiveUsers(30); // 30 jours d'inactivité
+    
+    for (const userId of inactiveUsers) {
+      await AdvancedTargetingService.trackUserInteraction(
+        userId,
+        'reactivation_campaign',
+        'campaign',
+        campaign.id,
+        { campaign_type: 'reactivation' }
+      );
+    }
   }
 
   private static async executeLoyaltyCampaign(campaign: any) {
     console.log('Executing loyalty campaign:', campaign.id);
-    // Logique simplifiée pour les campagnes de fidélisation
+    
+    // Logique de fidélisation - cibler les utilisateurs actifs
+    const loyalUsers = await this.getLoyalUsers();
+    
+    for (const userId of loyalUsers) {
+      await AdvancedTargetingService.trackUserInteraction(
+        userId,
+        'loyalty_campaign',
+        'campaign',
+        campaign.id,
+        { campaign_type: 'loyalty' }
+      );
+    }
   }
 
   private static async executeContextualCampaign(campaign: any) {
     console.log('Executing contextual campaign:', campaign.id);
-    // Logique simplifiée pour les campagnes contextuelles
+    
+    // Logique contextuelle - basée sur l'activité récente
+    const recentActivity = await this.getRecentUserActivity(7); // 7 derniers jours
+    
+    for (const activity of recentActivity) {
+      if (this.matchesContextualTriggers(activity, campaign.triggers)) {
+        await AdvancedTargetingService.trackUserInteraction(
+          activity.user_id,
+          'contextual_campaign',
+          'campaign',
+          campaign.id,
+          { 
+            campaign_type: 'contextual',
+            trigger_activity: activity.event_type
+          }
+        );
+      }
+    }
   }
 
   private static calculateNextExecution(campaign: any, lastExecution: Date): Date {
@@ -181,76 +218,151 @@ export class AutomatedCampaignService {
     return nextExecution;
   }
 
-  // Gestion des variantes A/B - Version simplifiée
+  // Gestion des variantes A/B - Maintenant avec vraies données Supabase
   static async createCampaignVariant(variant: Omit<CampaignVariant, 'id' | 'created_at'>) {
-    console.log('Creating campaign variant:', variant);
-    return {
-      id: Date.now().toString(),
-      ...variant,
-      created_at: new Date().toISOString()
-    };
+    try {
+      const { data, error } = await supabase
+        .from('campaign_variants')
+        .insert([variant])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error creating campaign variant:', error);
+      throw error;
+    }
   }
 
   static async getCampaignVariants(campaignId: string) {
-    // Simulation de données
-    const mockVariants: CampaignVariant[] = [
-      {
-        id: '1',
-        campaign_id: campaignId,
-        variant_name: 'Variante A - Original',
-        variant_data: {
-          creative_id: 'creative-1',
-          message_variations: {
-            title: 'Réparation rapide',
-            description: 'Service professionnel',
-            cta_text: 'Réserver maintenant'
-          }
-        },
-        traffic_split: 50,
-        performance_metrics: {
-          impressions: 1000,
-          clicks: 30,
-          conversions: 5,
-          ctr: 3.0,
-          conversion_rate: 16.7
-        },
-        is_active: true,
-        created_at: new Date().toISOString()
-      },
-      {
-        id: '2',
-        campaign_id: campaignId,
-        variant_name: 'Variante B - Optimisée',
-        variant_data: {
-          creative_id: 'creative-2',
-          message_variations: {
-            title: 'Réparation express',
-            description: 'Experts certifiés',
-            cta_text: 'Prendre RDV'
-          }
-        },
-        traffic_split: 50,
-        performance_metrics: {
-          impressions: 1000,
-          clicks: 45,
-          conversions: 9,
-          ctr: 4.5,
-          conversion_rate: 20.0
-        },
-        is_active: true,
-        created_at: new Date().toISOString()
-      }
-    ];
+    try {
+      const { data, error } = await supabase
+        .from('campaign_variants')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-    return mockVariants;
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching campaign variants:', error);
+      return [];
+    }
   }
 
   static async updateVariantPerformance(variantId: string, metrics: Partial<CampaignVariant['performance_metrics']>) {
-    console.log('Updating variant performance:', variantId, metrics);
-    return {
-      id: variantId,
-      performance_metrics: metrics,
-      updated_at: new Date().toISOString()
-    };
+    try {
+      const { data, error } = await supabase
+        .from('campaign_variants')
+        .update({ performance_metrics: metrics })
+        .eq('id', variantId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating variant performance:', error);
+      throw error;
+    }
+  }
+
+  // Fonctions utilitaires
+  private static async getInactiveUsers(daysSinceLastActivity: number): Promise<string[]> {
+    try {
+      const cutoffDate = new Date(Date.now() - daysSinceLastActivity * 24 * 60 * 60 * 1000);
+      
+      const { data, error } = await supabase
+        .from('user_behavior_events')
+        .select('user_id')
+        .lt('created_at', cutoffDate.toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Retourner les IDs utilisateurs unique
+      const uniqueUserIds = [...new Set(data?.map(event => event.user_id).filter(Boolean) || [])];
+      return uniqueUserIds;
+    } catch (error) {
+      console.error('Error fetching inactive users:', error);
+      return [];
+    }
+  }
+
+  private static async getLoyalUsers(): Promise<string[]> {
+    try {
+      const { data, error } = await supabase
+        .from('user_behavior_events')
+        .select('user_id')
+        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Compter les activités par utilisateur et retourner les plus actifs
+      const userActivityCount = {};
+      data?.forEach(event => {
+        if (event.user_id) {
+          userActivityCount[event.user_id] = (userActivityCount[event.user_id] || 0) + 1;
+        }
+      });
+
+      // Retourner les utilisateurs avec plus de 10 activités
+      return Object.keys(userActivityCount).filter(userId => 
+        userActivityCount[userId] > 10
+      );
+    } catch (error) {
+      console.error('Error fetching loyal users:', error);
+      return [];
+    }
+  }
+
+  private static async getRecentUserActivity(days: number): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('user_behavior_events')
+        .select('*')
+        .gte('created_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching recent user activity:', error);
+      return [];
+    }
+  }
+
+  private static matchesContextualTriggers(activity: any, triggers: any): boolean {
+    if (!triggers.events || !Array.isArray(triggers.events)) {
+      return false;
+    }
+    
+    return triggers.events.includes(activity.event_type);
+  }
+
+  private static async optimizeCampaignForSegment(campaignId: string, segmentId: string) {
+    try {
+      // Enregistrer une métrique de performance pour ce segment
+      const { error } = await supabase
+        .from('campaign_performance_metrics')
+        .insert([{
+          campaign_id: campaignId,
+          segment_id: segmentId,
+          impressions: 1,
+          clicks: 0,
+          conversions: 0,
+          cost: 0,
+          revenue: 0
+        }]);
+
+      if (error) {
+        console.error('Error optimizing campaign for segment:', error);
+      }
+    } catch (error) {
+      console.error('Error optimizing campaign for segment:', error);
+    }
   }
 }
