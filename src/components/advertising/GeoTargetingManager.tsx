@@ -87,9 +87,14 @@ const GeoTargetingManager: React.FC = () => {
     }
   };
 
-  // Calculate zone counts using type-safe filtering with explicit type checking
-  const radiusZonesCount = zones.filter(zone => String(zone.type) === 'radius').length;
-  const cityZonesCount = zones.filter(zone => String(zone.type) === 'city').length;
+  // Calculate zone counts using proper type narrowing
+  const radiusZonesCount = zones.reduce((count, zone) => {
+    return zone.type === 'radius' ? count + 1 : count;
+  }, 0);
+  
+  const cityZonesCount = zones.reduce((count, zone) => {
+    return zone.type === 'city' ? count + 1 : count;
+  }, 0);
 
   return (
     <div className="space-y-6">
@@ -271,7 +276,7 @@ const GeoTargetingManager: React.FC = () => {
           zones.map((zone) => {
             const IconComponent = getZoneIcon(zone.type);
             const hasCoordinates = zone.coordinates && typeof zone.coordinates === 'object';
-            const isRadiusZone = String(zone.type) === 'radius';
+            const isRadiusZone = zone.type === 'radius';
             
             return (
               <Card key={zone.id}>
