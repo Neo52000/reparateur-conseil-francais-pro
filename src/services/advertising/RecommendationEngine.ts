@@ -60,4 +60,4 @@ class RecommendationEngine {
 }
 
 export default RecommendationEngine;
-export { Recommendation, ActionableTask } from './types/RecommendationTypes';
+export type { Recommendation, ActionableTask } from './types/RecommendationTypes';
