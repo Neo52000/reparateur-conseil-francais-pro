@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -176,10 +177,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 lineHeight: 1.6,
                 fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace'
               }
-            }}
-            previewOptions={{
-              rehypePlugins: [[require('rehype-highlight')]],
-              remarkPlugins: [[require('remark-gfm')], [require('remark-breaks')]]
             }}
           />
         </div>

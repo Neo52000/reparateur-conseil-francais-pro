@@ -17,6 +17,8 @@ import AdminAuditMiddleware from '@/components/admin/AdminAuditMiddleware';
 import AdminAuditPage from '@/pages/AdminAuditPage';
 import AdminAuditDashboardPage from '@/pages/AdminAuditDashboardPage';
 import AdminAuditAnalyticsPage from '@/pages/AdminAuditAnalyticsPage';
+import BlogPage from '@/pages/BlogPage';
+import BlogArticlePage from '@/pages/BlogArticlePage';
 
 const queryClient = new QueryClient();
 
@@ -41,6 +43,10 @@ function App() {
                 <Route path="/admin/audit" element={<AdminAuditPage />} />
                 <Route path="/admin/audit/dashboard" element={<AdminAuditDashboardPage />} />
                 <Route path="/admin/audit/analytics" element={<AdminAuditAnalyticsPage />} />
+                
+                {/* Blog Routes */}
+                <Route path="/blog" element={<BlogPage />} />
+                <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>
