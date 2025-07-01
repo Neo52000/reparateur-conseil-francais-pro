@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
@@ -16,6 +15,7 @@ import ChatbotManagement from '@/components/admin/ChatbotManagement';
 import AdminAuthForm from '@/components/AdminAuthForm';
 import { useAuth } from '@/hooks/useAuth';
 import { useRepairersData } from '@/hooks/useRepairersData';
+import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdvertisingDashboard';
 
 const AdminPage = () => {
   const { user, profile, isAdmin, loading } = useAuth();
@@ -127,7 +127,7 @@ const AdminPage = () => {
     }
 
     if (activeTab === 'advertising') {
-      return <AdBannerManagement />;
+      return <AdvancedAdvertisingDashboard />;
     }
 
     if (activeTab === 'scraping') {

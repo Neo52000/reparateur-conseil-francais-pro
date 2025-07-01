@@ -13,7 +13,8 @@ import {
   TrendingUp,
   TestTube,
   Brush,
-  Brain
+  Brain,
+  Image
 } from 'lucide-react';
 import CampaignManagement from './CampaignManagement';
 import AdvancedTargeting from './AdvancedTargeting';
@@ -22,6 +23,7 @@ import AutomatedCampaigns from './AutomatedCampaigns';
 import ABTestingManager from './ABTestingManager';
 import CreativesLibrary from './CreativesLibrary';
 import GeoTargetingManager from './GeoTargetingManager';
+import AdBannerManagement from './AdBannerManagement';
 
 const AdvancedAdvertisingDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -38,6 +40,12 @@ const AdvancedAdvertisingDashboard: React.FC = () => {
       label: 'Campagnes',
       icon: Target,
       description: 'Gestion des campagnes publicitaires'
+    },
+    {
+      id: 'banners',
+      label: 'Bannières',
+      icon: Image,
+      description: 'Gestion des bannières publicitaires'
     },
     {
       id: 'targeting',
@@ -153,7 +161,7 @@ const AdvancedAdvertisingDashboard: React.FC = () => {
       {/* Navigation par onglets */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <div className="overflow-x-auto">
-          <TabsList className="grid w-full grid-cols-8 lg:w-full">
+          <TabsList className="grid w-full grid-cols-9 lg:w-full">
             {tabsConfig.map((tab) => (
               <TabsTrigger 
                 key={tab.id} 
@@ -220,6 +228,10 @@ const AdvancedAdvertisingDashboard: React.FC = () => {
 
         <TabsContent value="campaigns">
           <CampaignManagement />
+        </TabsContent>
+
+        <TabsContent value="banners">
+          <AdBannerManagement />
         </TabsContent>
 
         <TabsContent value="targeting">
