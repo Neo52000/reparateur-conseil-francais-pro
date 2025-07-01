@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/blog';
-import { cleanPostData } from '../utils/postDataCleaner';
 
 export const fetchPosts = async (filters?: {
   visibility?: string;
@@ -10,8 +9,6 @@ export const fetchPosts = async (filters?: {
   limit?: number;
   offset?: number;
 }) => {
-  console.log('Fetching posts with filters:', filters);
-  
   let query = supabase
     .from('blog_posts')
     .select(`
@@ -21,18 +18,23 @@ export const fetchPosts = async (filters?: {
     `)
     .order('created_at', { ascending: false });
 
-  if (filters?.visibility) {
+  // Application des filtres
+  if (filters?.visibility && filters.visibility !== 'all') {
     query = query.eq('visibility', filters.visibility);
   }
-  if (filters?.category) {
+  
+  if (filters?.category && filters.category !== 'all') {
     query = query.eq('category_id', filters.category);
   }
-  if (filters?.status) {
+  
+  if (filters?.status && filters.status !== 'all') {
     query = query.eq('status', filters.status);
   }
+  
   if (filters?.limit) {
     query = query.limit(filters.limit);
   }
+  
   if (filters?.offset) {
     query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
   }
@@ -40,12 +42,11 @@ export const fetchPosts = async (filters?: {
   const { data, error } = await query;
 
   if (error) {
-    console.error('Database error:', error);
+    console.error('Error fetching blog posts:', error);
     throw error;
   }
-  
-  console.log('Raw data from database:', data?.length || 0);
-  return data as BlogPost[] || [];
+
+  return data || [];
 };
 
 export const fetchPostBySlug = async (slug: string) => {
@@ -57,82 +58,52 @@ export const fetchPostBySlug = async (slug: string) => {
       author:profiles(first_name, last_name, email)
     `)
     .eq('slug', slug)
-    .eq('status', 'published')
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching blog post by slug:', error);
+    throw error;
+  }
 
-  // Incrémenter le compteur de vues
-  await supabase
-    .from('blog_posts')
-    .update({ view_count: (data.view_count || 0) + 1 })
-    .eq('id', data.id);
-
-  return data as BlogPost;
+  return data;
 };
 
 export const savePost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
-  console.log('💾 Starting savePost with data:', post);
-  
-  // Nettoyer les données avant sauvegarde
-  const cleanedPost = cleanPostData(post);
-  
-  // Validation des champs requis
-  if (!cleanedPost.title?.trim()) {
-    throw new Error('Le titre est requis');
-  }
-  if (!cleanedPost.content?.trim()) {
-    throw new Error('Le contenu est requis');
-  }
-  if (!cleanedPost.slug?.trim()) {
-    throw new Error('Le slug est requis');
-  }
-  
   if (post.id) {
-    console.log('📝 Updating existing post with ID:', post.id);
-    
-    // Retirer l'ID des données à mettre à jour
-    const { id, ...updateData } = cleanedPost;
-    
+    // Mise à jour
     const { data, error } = await supabase
       .from('blog_posts')
-      .update(updateData)
+      .update({
+        ...post,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', post.id)
       .select()
       .single();
 
     if (error) {
-      console.error('❌ Update error:', error);
+      console.error('Error updating blog post:', error);
       throw error;
     }
-    
-    console.log('✅ Post updated successfully:', data);
+
     return data;
   } else {
-    console.log('📝 Creating new post');
-    
-    // Pour la création, on doit s'assurer que l'author_id est défini
-    if (!cleanedPost.author_id) {
-      // Récupérer l'utilisateur actuel
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        cleanedPost.author_id = user.id;
-        console.log('Setting author_id to current user:', user.id);
-      }
-    }
-    
+    // Création
     const { data, error } = await supabase
       .from('blog_posts')
-      .insert(cleanedPost)
+      .insert({
+        ...post,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
       .select()
       .single();
 
     if (error) {
-      console.error('❌ Insert error:', error);
+      console.error('Error creating blog post:', error);
       throw error;
     }
-    
-    console.log('✅ Post created successfully:', data);
+
     return data;
   }
 };
@@ -143,6 +114,10 @@ export const deletePost = async (id: string) => {
     .delete()
     .eq('id', id);
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error deleting blog post:', error);
+    throw error;
+  }
+
   return true;
 };
