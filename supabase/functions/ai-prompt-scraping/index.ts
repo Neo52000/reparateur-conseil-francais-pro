@@ -209,7 +209,7 @@ async function executeScraping(prompt: string, aiModel: string, outputFormat: st
 
   try {
     // Génération de données de test basées sur l'analyse
-    const mockResults = generateMockResults(analysis);
+    const mockResults = generateEnhancedMockResults(analysis);
     const formattedResults = formatResults(mockResults, analysis.output_format);
 
     console.log(`✅ Scraping simulé terminé: ${formattedResults.length} résultats générés`);
@@ -243,31 +243,184 @@ async function executeScraping(prompt: string, aiModel: string, outputFormat: st
   }
 }
 
-function generateMockResults(analysis: PromptAnalysis): any[] {
+function generateEnhancedMockResults(analysis: PromptAnalysis): any[] {
   const mockData = [];
   const businessTypes = analysis.business_types || ['réparateur'];
   const location = analysis.location || 'France';
   const department = analysis.department || '01';
 
-  const resultCount = Math.min(analysis.max_results || 20, 25);
-
-  for (let i = 0; i < resultCount; i++) {
-    const businessType = businessTypes[i % businessTypes.length];
-    mockData.push({
-      nom: `${businessType} ${i + 1}`,
-      adresse: `${10 + i} rue de la Réparation, ${location}`,
-      telephone: `0${Math.floor(Math.random() * 9) + 1}${Math.random().toString().slice(2, 10)}`,
-      services: analysis.services?.slice(0, 2).join(', ') || 'Réparation générale',
+  // Réparateurs spécialisés avec micro-soudure
+  const specializedRepairers = [
+    {
+      nom: "Docteur IT / Acta Micro",
+      adresse: "123 Avenue de la Réparation",
+      city: "Bourg-en-Bresse",
+      services: "Réparation smartphones, tablettes, ordinateurs",
+      specialites: "Micro-soudure, réparation high-tech",
+      telephone: "04 74 XX XX XX",
+      website: "www.docteur-it.fr",
+      email: "contact@docteur-it.fr",
       department: department,
-      verified: Math.random() > 0.3,
-      email: `contact@${businessType.replace(/\s+/g, '')}${i + 1}.fr`,
-      website: Math.random() > 0.5 ? `www.${businessType.replace(/\s+/g, '')}${i + 1}.fr` : null,
-      specialites: analysis.keywords?.slice(0, 3).join(', ') || 'Smartphone, Tablette',
-      created_at: new Date().toISOString()
-    });
-  }
+      verified: true,
+      category: "specialise"
+    },
+    {
+      nom: "CHRONOPHONE",
+      adresse: "45 Rue du Commerce",
+      city: "Bourg-en-Bresse",
+      services: "Réparation smartphones et tablettes",
+      specialites: "Magasin spécialisé",
+      telephone: "04 74 XX XX XX",
+      website: "chronophone01.fr",
+      email: "info@chronophone01.fr",
+      department: department,
+      verified: true,
+      category: "specialise"
+    },
+    {
+      nom: "Bresse Media Phone",
+      adresse: "67 Boulevard Principal",
+      city: "Bourg-en-Bresse",
+      services: "Réparation téléphones portables",
+      specialites: "+20 ans d'expérience",
+      telephone: "04 74 XX XX XX",
+      website: null,
+      email: "contact@bresse-media-phone.fr",
+      department: department,
+      verified: true,
+      category: "specialise"
+    },
+    {
+      nom: "Ain Point Phone",
+      adresse: "89 Place du Marché",
+      city: "Bourg-en-Bresse",
+      services: "Réparation iPhone, iPad, iPod, smartphones",
+      specialites: "Pièces détachées et accessoires",
+      telephone: "04 74 XX XX XX",
+      website: "ain-point-phone.fr",
+      email: "service@ain-point-phone.fr",
+      department: department,
+      verified: true,
+      category: "specialise"
+    },
+    {
+      nom: "Cash and Repair",
+      adresse: "12 Rue de la Technologie",
+      city: "Bourg-en-Bresse",
+      services: "Réparation smartphones et tablettes",
+      specialites: "Micro-soudure disponible",
+      telephone: "04 74 XX XX XX",
+      website: "ateliers.cashandrepair.fr",
+      email: "bourg@cashandrepair.fr",
+      department: department,
+      verified: true,
+      category: "specialise"
+    }
+  ];
 
-  return mockData;
+  // Grandes enseignes avec corners
+  const chainStores = [
+    {
+      nom: "Save (Corner Fnac)",
+      adresse: "Magasin Fnac, Centre Commercial",
+      city: "Viriat",
+      services: "Réparation smartphones et tablettes",
+      specialites: "Réparation en 40 min (80% des cas), garantie 1 an",
+      telephone: "04 74 XX XX XX",
+      website: "magasin.save.co",
+      email: "viriat@save.co",
+      department: department,
+      verified: true,
+      category: "enseigne"
+    },
+    {
+      nom: "Mister Minit",
+      adresse: "Centre Commercial Carrefour",
+      city: "Bourg-en-Bresse",
+      services: "Réparation smartphones",
+      specialites: "Remplacement écrans, batteries, protections",
+      telephone: "04 74 XX XX XX",
+      website: "misterminit.eu",
+      email: "bourg@misterminit.eu",
+      department: department,
+      verified: true,
+      category: "enseigne"
+    },
+    {
+      nom: "WeFix",
+      adresse: "Plusieurs emplacements",
+      city: `Département ${department}`,
+      services: "Réparation smartphones et tablettes",
+      specialites: "Réseau national spécialisé",
+      telephone: "Service client national",
+      website: "boutique.wefix.net",
+      email: "contact@wefix.net",
+      department: department,
+      verified: true,
+      category: "enseigne"
+    }
+  ];
+
+  // Boutiques opérateurs
+  const operatorStores = [
+    {
+      nom: "Orange",
+      adresse: "1 Rue Montaigne",
+      city: "Oyonnax (01100)",
+      services: "Vente smartphones, tablettes, montres connectées",
+      specialites: "Boutique officielle",
+      telephone: "Tél. disponible sur place",
+      website: "orange.fr",
+      email: "oyonnax@orange.fr",
+      department: department,
+      verified: true,
+      category: "operateur"
+    },
+    {
+      nom: "SFR",
+      adresse: "93 rue Anatole France",
+      city: "Oyonnax (01100)",
+      services: "Vente smartphones, tablettes, montres connectées",
+      specialites: "Boutique officielle",
+      telephone: "04 74 XX XX XX",
+      website: "sfr.fr",
+      email: "oyonnax@sfr.fr",
+      department: department,
+      verified: true,
+      category: "operateur"
+    },
+    {
+      nom: "Free",
+      adresse: "22 rue Gambetta",
+      city: "Bourg-en-Bresse (01000)",
+      services: "Vente smartphones, tablettes",
+      specialites: "Free Center",
+      telephone: "10 44",
+      website: "free.fr",
+      email: "bourg@free.fr",
+      department: department,
+      verified: true,
+      category: "operateur"
+    },
+    {
+      nom: "Orange",
+      adresse: "Centre commercial",
+      city: "Bourg-en-Bresse",
+      services: "Vente smartphones, tablettes, montres connectées",
+      specialites: "Boutique/Corner",
+      telephone: "04 74 XX XX XX",
+      website: "orange.fr",
+      email: "bourg@orange.fr",
+      department: department,
+      verified: true,
+      category: "operateur"
+    }
+  ];
+
+  // Combinaison de toutes les catégories
+  mockData.push(...specializedRepairers, ...chainStores, ...operatorStores);
+
+  return mockData.slice(0, analysis.max_results || 20);
 }
 
 function formatResults(results: any[], format: string): any[] {

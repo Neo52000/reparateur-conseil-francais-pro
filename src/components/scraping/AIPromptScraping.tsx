@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Sparkles, Play, History, FileText, Download, AlertTriangle, CheckCircle, Info, Zap } from 'lucide-react';
+import { Brain, Sparkles, Play, History, FileText, Download, AlertTriangle, CheckCircle, Info, Zap, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -179,6 +180,89 @@ const AIPromptScraping = () => {
     document.body.removeChild(link);
   };
 
+  const clearResults = () => {
+    setResults([]);
+    setAnalysisInfo(null);
+    toast({
+      title: "🗑️ Résultats supprimés",
+      description: "Tous les résultats ont été effacés",
+    });
+  };
+
+  const groupResultsByCategory = (results: any[]) => {
+    if (!results || results.length === 0) return {};
+    
+    const groups: { [key: string]: any[] } = {};
+    
+    results.forEach(result => {
+      let category = "Boutiques générales";
+      
+      // Catégorisation basée sur les services et le nom
+      if (result.services?.includes('micro-soudure') || result.specialites?.includes('micro-soudure')) {
+        category = "Réparation spécialisée et micro-soudure";
+      } else if (result.nom?.toLowerCase().includes('orange') || result.nom?.toLowerCase().includes('sfr') || result.nom?.toLowerCase().includes('free') || result.nom?.toLowerCase().includes('bouygues')) {
+        category = "Boutiques opérateurs mobiles";
+      } else if (result.nom?.toLowerCase().includes('fnac') || result.nom?.toLowerCase().includes('darty') || result.nom?.toLowerCase().includes('boulanger')) {
+        category = "Grandes enseignes avec corners réparation";
+      } else if (result.services?.includes('réparation')) {
+        category = "Réparation spécialisée et micro-soudure";
+      }
+      
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(result);
+    });
+    
+    return groups;
+  };
+
+  const renderGroupedResults = () => {
+    const groupedResults = groupResultsByCategory(results);
+    
+    return Object.entries(groupedResults).map(([category, items]) => (
+      <div key={category} className="mb-8">
+        <h3 className="text-lg font-semibold mb-4 text-blue-800 border-b-2 border-blue-200 pb-2">
+          {category}
+        </h3>
+        <div className="grid gap-4">
+          {items.map((result, index) => (
+            <div key={index} className="bg-gray-50 p-4 rounded-lg border">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div>
+                  <strong className="text-blue-700">Nom:</strong>
+                  <p className="text-sm">{result.nom || 'Non spécifié'}</p>
+                </div>
+                <div>
+                  <strong className="text-blue-700">Adresse:</strong>
+                  <p className="text-sm">{result.adresse || 'Non spécifiée'}</p>
+                </div>
+                <div>
+                  <strong className="text-blue-700">Services:</strong>
+                  <p className="text-sm">{result.services || 'Non spécifiés'}</p>
+                </div>
+                <div>
+                  <strong className="text-blue-700">Coordonnées:</strong>
+                  <div className="text-sm">
+                    {result.telephone && <p>Tél: {result.telephone}</p>}
+                    {result.website && <p>Web: {result.website}</p>}
+                    {result.email && <p>Email: {result.email}</p>}
+                  </div>
+                </div>
+              </div>
+              {result.specialites && (
+                <div className="mt-2 pt-2 border-t border-gray-200">
+                  <strong className="text-blue-700">Spécialités:</strong>
+                  <p className="text-sm">{result.specialites}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    ));
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -199,22 +283,6 @@ const AIPromptScraping = () => {
           </Badge>
         </div>
       </div>
-
-      {/* Info Notice */}
-      {/* <Card className="border-blue-200 bg-blue-50">
-        <CardContent className="pt-4">
-          <div className="flex items-center space-x-2 text-blue-800">
-            <Info className="h-4 w-4" />
-            <div>
-              <p className="text-sm font-medium">Mode de fonctionnement actuel</p>
-              <p className="text-xs mt-1">
-                Le système fonctionne actuellement en mode simulation pour éviter les erreurs d'API. 
-                Les résultats générés sont des exemples basés sur votre prompt.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card> */}
 
       {/* Error Display */}
       {error && (
@@ -388,36 +456,21 @@ const AIPromptScraping = () => {
                 <FileText className="h-5 w-5 mr-2 text-blue-600" />
                 Résultats ({results.length})
               </div>
-              <Button onClick={exportResults} variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Exporter CSV
-              </Button>
+              <div className="flex space-x-2">
+                <Button onClick={clearResults} variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Supprimer
+                </Button>
+                <Button onClick={exportResults} variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Exporter CSV
+                </Button>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-200">
-                <thead>
-                  <tr className="bg-gray-50">
-                    {results[0] && Object.keys(results[0]).map((key) => (
-                      <th key={key} className="border border-gray-200 px-4 py-2 text-left text-sm font-medium">
-                        {key}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {results.map((result, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      {Object.values(result).map((value: any, valueIndex) => (
-                        <td key={valueIndex} className="border border-gray-200 px-4 py-2 text-sm">
-                          {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-6">
+              {renderGroupedResults()}
             </div>
           </CardContent>
         </Card>
