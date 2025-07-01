@@ -52,7 +52,7 @@ const BlogPostEditorMainContentEnhanced: React.FC<BlogPostEditorMainContentEnhan
               <AIEnhancementButton
                 field="title"
                 currentValue={title}
-                onEnhance={onTitleChange}
+                onEnhanced={onTitleChange}
                 size="sm"
                 content={content}
               />
@@ -72,7 +72,7 @@ const BlogPostEditorMainContentEnhanced: React.FC<BlogPostEditorMainContentEnhan
               <AIEnhancementButton
                 field="slug"
                 currentValue={slug}
-                onEnhance={onSlugChange}
+                onEnhanced={onSlugChange}
                 size="sm"
                 content={title}
               />
@@ -95,7 +95,7 @@ const BlogPostEditorMainContentEnhanced: React.FC<BlogPostEditorMainContentEnhan
               <AIEnhancementButton
                 field="excerpt"
                 currentValue={excerpt}
-                onEnhance={onExcerptChange}
+                onEnhanced={onExcerptChange}
                 size="sm"
                 content={content}
               />
@@ -122,7 +122,7 @@ const BlogPostEditorMainContentEnhanced: React.FC<BlogPostEditorMainContentEnhan
             <AIEnhancementButton
               field="content"
               currentValue={content}
-              onEnhance={onContentChange}
+              onEnhanced={onContentChange}
               size="sm"
               content={content}
             />
