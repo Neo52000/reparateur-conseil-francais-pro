@@ -1,408 +1,134 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Plus, TestTube, TrendingUp, Award } from 'lucide-react';
-import { CampaignVariant } from '@/types/advancedAdvertising';
-import { AutomatedCampaignService } from '@/services/automatedCampaigns';
-import { toast } from 'sonner';
+import { TestTube, Plus, TrendingUp, BarChart } from 'lucide-react';
 
 const ABTestingManager: React.FC = () => {
-  const [variants, setVariants] = useState<CampaignVariant[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-
-  const [formData, setFormData] = useState({
-    campaign_id: '',
-    variant_name: '',
-    variant_data: {
-      message_variations: {
-        title: '',
-        description: '',
-        cta_text: ''
-      }
-    },
-    traffic_split: 50
-  });
-
-  // Données mock pour la démonstration
-  const mockVariants: CampaignVariant[] = [
+  const [tests] = useState([
     {
       id: '1',
-      campaign_id: '1',
-      variant_name: 'Version A - Message Standard',
-      variant_data: {
-        message_variations: {
-          title: 'Réparation iPhone rapide',
-          description: 'Réparez votre iPhone en moins de 2h',
-          cta_text: 'Trouver un réparateur'
-        }
-      },
-      traffic_split: 50,
-      performance_metrics: {
-        impressions: 15420,
-        clicks: 890,
-        conversions: 125,
-        ctr: 5.77,
-        conversion_rate: 14.04
-      },
-      is_active: true,
-      created_at: new Date().toISOString()
+      name: 'Test Bannière Homepage',
+      status: 'running',
+      variants: 2,
+      traffic_split: '50/50',
+      conversion_rate_a: 3.2,
+      conversion_rate_b: 4.1,
+      confidence: 85
     },
     {
       id: '2',
-      campaign_id: '1',
-      variant_name: 'Version B - Message Urgence',
-      variant_data: {
-        message_variations: {
-          title: 'iPhone cassé ? Réparation immédiate !',
-          description: 'Service express - Votre iPhone réparé aujourd\'hui',
-          cta_text: 'Réparer maintenant'
-        }
-      },
-      traffic_split: 50,
-      performance_metrics: {
-        impressions: 15280,
-        clicks: 1205,
-        conversions: 178,
-        ctr: 7.89,
-        conversion_rate: 14.77
-      },
-      is_active: true,
-      created_at: new Date().toISOString()
+      name: 'Test CTA Réparateurs',
+      status: 'completed',
+      variants: 3,
+      traffic_split: '33/33/34',
+      conversion_rate_a: 2.8,
+      conversion_rate_b: 3.5,
+      confidence: 92
     }
-  ];
-
-  useEffect(() => {
-    fetchVariants();
-  }, []);
-
-  const fetchVariants = async () => {
-    try {
-      setLoading(true);
-      // Pour l'instant, utiliser les données mock
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setVariants(mockVariants);
-    } catch (error) {
-      console.error('Error fetching variants:', error);
-      toast.error('Erreur lors du chargement des variantes');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSave = async () => {
-    try {
-      await AutomatedCampaignService.createCampaignVariant({
-        ...formData,
-        performance_metrics: {},
-        is_active: true
-      });
-      
-      toast.success('Variante A/B créée');
-      resetForm();
-      fetchVariants();
-    } catch (error) {
-      console.error('Error saving variant:', error);
-      toast.error('Erreur lors de la sauvegarde');
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      campaign_id: '',
-      variant_name: '',
-      variant_data: {
-        message_variations: {
-          title: '',
-          description: '',
-          cta_text: ''
-        }
-      },
-      traffic_split: 50
-    });
-    setShowForm(false);
-  };
-
-  const getWinnerBadge = (variants: CampaignVariant[]) => {
-    if (variants.length < 2) return null;
-    
-    const winner = variants.reduce((prev, current) => 
-      (current.performance_metrics?.conversion_rate || 0) > (prev.performance_metrics?.conversion_rate || 0) 
-        ? current : prev
-    );
-    
-    return winner;
-  };
-
-  const winner = getWinnerBadge(variants);
-
-  if (loading) {
-    return <div className="flex justify-center p-8">Chargement...</div>;
-  }
+  ]);
 
   return (
     <div className="space-y-6">
-      {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <TestTube className="h-6 w-6 text-green-500" />
-            Tests A/B & Optimisation
+            <TestTube className="h-6 w-6 text-purple-500" />
+            A/B Testing Manager
           </h2>
-          <p className="text-gray-600">Testez et optimisez vos campagnes publicitaires</p>
+          <p className="text-gray-600">Optimisation continue par tests A/B</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button>
           <Plus className="h-4 w-4 mr-2" />
-          Nouveau test A/B
+          Nouveau test
         </Button>
       </div>
 
-      {/* Résumé des performances */}
-      {variants.length > 0 && (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-yellow-500" />
-              Résultats du test A/B
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-green-600">
-                  +{((winner?.performance_metrics?.conversion_rate || 0) - 
-                      (variants.find(v => v.id !== winner?.id)?.performance_metrics?.conversion_rate || 0)).toFixed(1)}%
-                </p>
-                <p className="text-sm text-gray-600">Amélioration de conversion</p>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Tests actifs</p>
+                <p className="text-2xl font-bold">1</p>
               </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600">
-                  {winner?.performance_metrics?.ctr?.toFixed(2)}%
-                </p>
-                <p className="text-sm text-gray-600">Meilleur CTR</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-purple-600">
-                  {winner?.performance_metrics?.conversions}
-                </p>
-                <p className="text-sm text-gray-600">Conversions totales</p>
-              </div>
+              <TestTube className="h-8 w-8 text-purple-500" />
             </div>
           </CardContent>
         </Card>
-      )}
-
-      {/* Formulaire */}
-      {showForm && (
+        
         <Card>
-          <CardHeader>
-            <CardTitle>Nouveau test A/B</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="variant_name">Nom de la variante</Label>
-              <Input
-                id="variant_name"
-                value={formData.variant_name}
-                onChange={(e) => setFormData(prev => ({ ...prev, variant_name: e.target.value }))}
-                placeholder="Ex: Version avec urgence"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="title">Titre de l'annonce</Label>
-              <Input
-                id="title"
-                value={formData.variant_data.message_variations?.title}
-                onChange={(e) =>
-                  setFormData(prev => ({
-                    ...prev,
-                    variant_data: {
-                      ...prev.variant_data,
-                      message_variations: {
-                        ...prev.variant_data.message_variations!,
-                        title: e.target.value
-                      }
-                    }
-                  }))
-                }
-                placeholder="Titre accrocheur"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Input
-                id="description"
-                value={formData.variant_data.message_variations?.description}
-                onChange={(e) =>
-                  setFormData(prev => ({
-                    ...prev,
-                    variant_data: {
-                      ...prev.variant_data,
-                      message_variations: {
-                        ...prev.variant_data.message_variations!,
-                        description: e.target.value
-                      }
-                    }
-                  }))
-                }
-                placeholder="Description détaillée"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="cta_text">Texte du bouton</Label>
-              <Input
-                id="cta_text"
-                value={formData.variant_data.message_variations?.cta_text}
-                onChange={(e) =>
-                  setFormData(prev => ({
-                    ...prev,
-                    variant_data: {
-                      ...prev.variant_data,
-                      message_variations: {
-                        ...prev.variant_data.message_variations!,
-                        cta_text: e.target.value
-                      }
-                    }
-                  }))
-                }
-                placeholder="Ex: Réparer maintenant"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="traffic_split">Répartition du trafic (%)</Label>
-              <Input
-                id="traffic_split"
-                type="number"
-                min="10"
-                max="90"
-                value={formData.traffic_split}
-                onChange={(e) => setFormData(prev => ({ ...prev, traffic_split: parseInt(e.target.value) }))}
-              />
-            </div>
-
-            <div className="flex space-x-2">
-              <Button onClick={handleSave}>
-                Créer le test
-              </Button>
-              <Button variant="outline" onClick={resetForm}>
-                Annuler
-              </Button>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Gain de conversion</p>
+                <p className="text-2xl font-bold">+28%</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-green-500" />
             </div>
           </CardContent>
         </Card>
-      )}
-
-      {/* Liste des variantes */}
-      <div className="grid gap-4">
-        {variants.map((variant) => {
-          const isWinner = winner?.id === variant.id;
-          
-          return (
-            <Card key={variant.id} className={isWinner ? 'border-green-500 shadow-md' : ''}>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-semibold">{variant.variant_name}</h3>
-                      {isWinner && (
-                        <Badge className="bg-green-500">
-                          <Award className="h-3 w-3 mr-1" />
-                          Gagnant
-                        </Badge>
-                      )}
-                      <Badge variant="outline">
-                        {variant.traffic_split}% du trafic
-                      </Badge>
-                    </div>
-                    <Badge variant={variant.is_active ? "default" : "secondary"}>
-                      {variant.is_active ? 'Active' : 'Inactive'}
-                    </Badge>
-                  </div>
-
-                  {/* Aperçu du message */}
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-blue-600">
-                      {variant.variant_data.message_variations?.title}
-                    </h4>
-                    <p className="text-gray-700 text-sm mt-1">
-                      {variant.variant_data.message_variations?.description}
-                    </p>
-                    <Button variant="outline" size="sm" className="mt-2">
-                      {variant.variant_data.message_variations?.cta_text}
-                    </Button>
-                  </div>
-
-                  {/* Métriques de performance */}
-                  {variant.performance_metrics && (
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-600">Impressions</p>
-                        <p className="text-lg font-semibold">
-                          {variant.performance_metrics.impressions?.toLocaleString()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Clics</p>
-                        <p className="text-lg font-semibold">
-                          {variant.performance_metrics.clicks?.toLocaleString()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">CTR</p>
-                        <p className="text-lg font-semibold text-blue-600">
-                          {variant.performance_metrics.ctr?.toFixed(2)}%
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Conversions</p>
-                        <p className="text-lg font-semibold text-green-600">
-                          {variant.performance_metrics.conversions}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Taux de conversion</p>
-                        <p className="text-lg font-semibold text-purple-600">
-                          {variant.performance_metrics.conversion_rate?.toFixed(2)}%
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Barre de progression pour le trafic */}
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Répartition du trafic</span>
-                      <span>{variant.traffic_split}%</span>
-                    </div>
-                    <Progress value={variant.traffic_split} className="h-2" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Tests terminés</p>
+                <p className="text-2xl font-bold">12</p>
+              </div>
+              <BarChart className="h-8 w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {variants.length === 0 && (
-        <Card>
-          <CardContent className="text-center p-8">
-            <TestTube className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 mb-4">Aucun test A/B configuré.</p>
-            <Button onClick={() => setShowForm(true)}>
-              Créer votre premier test A/B
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      <div className="grid gap-4">
+        {tests.map((test) => (
+          <Card key={test.id}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-4 mb-2">
+                    <h3 className="text-lg font-semibold">{test.name}</h3>
+                    <Badge variant={test.status === 'running' ? "default" : "secondary"}>
+                      {test.status === 'running' ? 'En cours' : 'Terminé'}
+                    </Badge>
+                    <Badge variant="outline">
+                      {test.variants} variantes
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-3">
+                    <span>Répartition: {test.traffic_split}</span>
+                    <span>Confiance: {test.confidence}%</span>
+                    <span>Conv. A: {test.conversion_rate_a}%</span>
+                    <span>Conv. B: {test.conversion_rate_b}%</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {test.conversion_rate_b > test.conversion_rate_a && (
+                      <Badge variant="default" className="bg-green-100 text-green-800">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        Variante B gagnante
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm">
+                    Analyser
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    {test.status === 'running' ? 'Arrêter' : 'Dupliquer'}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };

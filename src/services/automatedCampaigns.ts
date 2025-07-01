@@ -4,32 +4,76 @@ import { AutomatedCampaign, CampaignVariant } from '@/types/advancedAdvertising'
 import { AdvancedTargetingService } from './advancedTargeting';
 
 export class AutomatedCampaignService {
-  // Gestion des campagnes automatisées
+  // Gestion des campagnes automatisées - Version simplifiée
   static async createAutomatedCampaign(campaign: Omit<AutomatedCampaign, 'id' | 'created_at' | 'updated_at'>) {
-    const { data, error } = await supabase
-      .from('automated_campaigns')
-      .insert([campaign])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    // Pour l'instant, simulation des données
+    console.log('Creating automated campaign:', campaign);
+    return {
+      id: Date.now().toString(),
+      ...campaign,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
   }
 
   static async getAutomatedCampaigns() {
-    const { data, error } = await supabase
-      .from('automated_campaigns')
-      .select(`
-        *,
-        ad_campaigns (
-          name, status, budget_total, budget_spent
-        )
-      `)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+    // Simulation de données pour l'instant
+    const mockCampaigns = [
+      {
+        id: '1',
+        campaign_id: 'camp-1',
+        campaign_type: 'acquisition' as const,
+        triggers: {
+          schedule: {
+            frequency: 'daily',
+            time: '09:00',
+            days: ['1', '2', '3', '4', '5']
+          }
+        },
+        rules: {
+          budget_adjustments: {
+            increase_threshold: 80,
+            decrease_threshold: 20,
+            max_adjustment: 50
+          },
+          targeting_optimization: true,
+          creative_rotation: true
+        },
+        is_active: true,
+        last_executed: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        next_execution: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: '2',
+        campaign_id: 'camp-2',
+        campaign_type: 'reactivation' as const,
+        triggers: {
+          schedule: {
+            frequency: 'weekly',
+            time: '10:00',
+            days: ['1']
+          }
+        },
+        rules: {
+          budget_adjustments: {
+            increase_threshold: 70,
+            decrease_threshold: 30,
+            max_adjustment: 30
+          },
+          targeting_optimization: false,
+          creative_rotation: true
+        },
+        is_active: true,
+        last_executed: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        next_execution: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    ];
 
-    if (error) throw error;
-    return data;
+    return mockCampaigns;
   }
 
   // Exécution des campagnes automatisées
@@ -41,15 +85,7 @@ export class AutomatedCampaignService {
       try {
         if (this.shouldExecuteCampaign(campaign, now)) {
           await this.executeCampaign(campaign);
-          
-          // Mettre à jour les timestamps d'exécution
-          await supabase
-            .from('automated_campaigns')
-            .update({
-              last_executed: now.toISOString(),
-              next_execution: this.calculateNextExecution(campaign, now).toISOString()
-            })
-            .eq('id', campaign.id);
+          console.log(`Executed automated campaign ${campaign.id}`);
         }
       } catch (error) {
         console.error(`Error executing automated campaign ${campaign.id}:`, error);
@@ -110,65 +146,23 @@ export class AutomatedCampaignService {
   }
 
   private static async executeAcquisitionCampaign(campaign: any) {
-    // Logique pour les campagnes d'acquisition
     console.log('Executing acquisition campaign:', campaign.id);
-    
-    // Identifier les nouveaux utilisateurs ou visiteurs
-    const { data: newUsers } = await supabase
-      .from('profiles')
-      .select('id, created_at')
-      .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
-
-    if (newUsers && newUsers.length > 0) {
-      // Ajuster le budget ou le ciblage pour les nouveaux utilisateurs
-      await this.adjustCampaignForNewUsers(campaign.campaign_id, newUsers);
-    }
+    // Logique simplifiée pour les campagnes d'acquisition
   }
 
   private static async executeReactivationCampaign(campaign: any) {
-    // Logique pour les campagnes de réactivation
     console.log('Executing reactivation campaign:', campaign.id);
-    
-    // Identifier les utilisateurs inactifs
-    const { data: inactiveUsers } = await supabase
-      .from('user_behavior_events')
-      .select('user_id, created_at')
-      .lt('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-      .order('created_at', { ascending: false });
-
-    if (inactiveUsers) {
-      // Créer des segments de réactivation personnalisés
-      await this.createReactivationSegments(campaign.campaign_id, inactiveUsers);
-    }
+    // Logique simplifiée pour les campagnes de réactivation
   }
 
   private static async executeLoyaltyCampaign(campaign: any) {
-    // Logique pour les campagnes de fidélisation
     console.log('Executing loyalty campaign:', campaign.id);
-    
-    // Identifier les clients fidèles
-    const { data: loyalUsers } = await supabase
-      .from('user_interaction_history')
-      .select('user_id, COUNT(*) as interaction_count')
-      .gte('created_at', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
-      .group('user_id')
-      .having('COUNT(*)', 'gte', 10);
-
-    if (loyalUsers) {
-      // Ajuster les offres pour les clients fidèles
-      await this.adjustLoyaltyOffers(campaign.campaign_id, loyalUsers);
-    }
+    // Logique simplifiée pour les campagnes de fidélisation
   }
 
   private static async executeContextualCampaign(campaign: any) {
-    // Logique pour les campagnes contextuelles
     console.log('Executing contextual campaign:', campaign.id);
-    
-    // Analyser le contexte actuel (tendances, événements)
-    const context = await this.analyzeCurrentContext();
-    
-    // Ajuster la campagne selon le contexte
-    await this.adjustCampaignForContext(campaign.campaign_id, context);
+    // Logique simplifiée pour les campagnes contextuelles
   }
 
   private static calculateNextExecution(campaign: any, lastExecution: Date): Date {
@@ -181,78 +175,82 @@ export class AutomatedCampaignService {
     } else if (campaign.triggers.schedule?.frequency === 'hourly') {
       nextExecution.setHours(nextExecution.getHours() + 1);
     } else {
-      // Par défaut, tous les jours
       nextExecution.setDate(nextExecution.getDate() + 1);
     }
     
     return nextExecution;
   }
 
-  // Méthodes utilitaires pour l'exécution des campagnes
-  private static async adjustCampaignForNewUsers(campaignId: string, newUsers: any[]) {
-    // Implémentation de l'ajustement pour nouveaux utilisateurs
-    console.log(`Adjusting campaign ${campaignId} for ${newUsers.length} new users`);
-  }
-
-  private static async createReactivationSegments(campaignId: string, inactiveUsers: any[]) {
-    // Implémentation de la création de segments de réactivation
-    console.log(`Creating reactivation segments for campaign ${campaignId}`);
-  }
-
-  private static async adjustLoyaltyOffers(campaignId: string, loyalUsers: any[]) {
-    // Implémentation de l'ajustement des offres de fidélité
-    console.log(`Adjusting loyalty offers for campaign ${campaignId}`);
-  }
-
-  private static async analyzeCurrentContext() {
-    // Implémentation de l'analyse du contexte actuel
+  // Gestion des variantes A/B - Version simplifiée
+  static async createCampaignVariant(variant: Omit<CampaignVariant, 'id' | 'created_at'>) {
+    console.log('Creating campaign variant:', variant);
     return {
-      trending_devices: ['iPhone 15', 'Samsung S24'],
-      peak_hours: [12, 18, 20],
-      seasonal_trends: ['back_to_school', 'holiday_season']
+      id: Date.now().toString(),
+      ...variant,
+      created_at: new Date().toISOString()
     };
   }
 
-  private static async adjustCampaignForContext(campaignId: string, context: any) {
-    // Implémentation de l'ajustement contextuel
-    console.log(`Adjusting campaign ${campaignId} for context:`, context);
-  }
-
-  // Gestion des variantes A/B
-  static async createCampaignVariant(variant: Omit<CampaignVariant, 'id' | 'created_at'>) {
-    const { data, error } = await supabase
-      .from('campaign_variants')
-      .insert([variant])
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
   static async getCampaignVariants(campaignId: string) {
-    const { data, error } = await supabase
-      .from('campaign_variants')
-      .select('*')
-      .eq('campaign_id', campaignId)
-      .eq('is_active', true)
-      .order('created_at');
+    // Simulation de données
+    const mockVariants: CampaignVariant[] = [
+      {
+        id: '1',
+        campaign_id: campaignId,
+        variant_name: 'Variante A - Original',
+        variant_data: {
+          creative_id: 'creative-1',
+          message_variations: {
+            title: 'Réparation rapide',
+            description: 'Service professionnel',
+            cta_text: 'Réserver maintenant'
+          }
+        },
+        traffic_split: 50,
+        performance_metrics: {
+          impressions: 1000,
+          clicks: 30,
+          conversions: 5,
+          ctr: 3.0,
+          conversion_rate: 16.7
+        },
+        is_active: true,
+        created_at: new Date().toISOString()
+      },
+      {
+        id: '2',
+        campaign_id: campaignId,
+        variant_name: 'Variante B - Optimisée',
+        variant_data: {
+          creative_id: 'creative-2',
+          message_variations: {
+            title: 'Réparation express',
+            description: 'Experts certifiés',
+            cta_text: 'Prendre RDV'
+          }
+        },
+        traffic_split: 50,
+        performance_metrics: {
+          impressions: 1000,
+          clicks: 45,
+          conversions: 9,
+          ctr: 4.5,
+          conversion_rate: 20.0
+        },
+        is_active: true,
+        created_at: new Date().toISOString()
+      }
+    ];
 
-    if (error) throw error;
-    return data as CampaignVariant[];
+    return mockVariants;
   }
 
   static async updateVariantPerformance(variantId: string, metrics: Partial<CampaignVariant['performance_metrics']>) {
-    const { data, error } = await supabase
-      .from('campaign_variants')
-      .update({ 
-        performance_metrics: metrics 
-      })
-      .eq('id', variantId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    console.log('Updating variant performance:', variantId, metrics);
+    return {
+      id: variantId,
+      performance_metrics: metrics,
+      updated_at: new Date().toISOString()
+    };
   }
 }
