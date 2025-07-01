@@ -19,6 +19,10 @@ import AdminAuditDashboardPage from '@/pages/AdminAuditDashboardPage';
 import AdminAuditAnalyticsPage from '@/pages/AdminAuditAnalyticsPage';
 import BlogPage from '@/pages/BlogPage';
 import BlogArticlePage from '@/pages/BlogArticlePage';
+import ClientAuth from '@/pages/ClientAuth';
+import RepairerAuth from '@/pages/RepairerAuth';
+import ClientSpace from '@/pages/ClientSpace';
+import RepairerSpace from '@/pages/RepairerSpace';
 
 const queryClient = new QueryClient();
 
@@ -33,8 +37,20 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/search" element={<NewSearchPage />} />
+                
+                {/* Authentication Routes */}
+                <Route path="/client-auth" element={<ClientAuth />} />
+                <Route path="/repairer-auth" element={<RepairerAuth />} />
+                
+                {/* User Spaces */}
+                <Route path="/client" element={<ClientSpace />} />
+                <Route path="/repairer" element={<RepairerSpace />} />
+                
+                {/* Dashboard Routes (for compatibility) */}
                 <Route path="/client-dashboard" element={<ClientDashboardPage />} />
                 <Route path="/repairer-dashboard" element={<RepairerDashboardPage />} />
+                
+                {/* Admin Routes */}
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/admin/repairers" element={<RepairersManagementPage />} />
                 <Route path="/admin/scraping" element={<ScrapingControl />} />
