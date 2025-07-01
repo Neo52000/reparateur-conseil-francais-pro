@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, Code, Eye } from 'lucide-react';
 import MarkdownEditor from './MarkdownEditor';
 import ContentPreview from './ContentPreview';
+import AIEnhancementButton from './AIEnhancementButton';
 
 interface BlogPostEditorMainContentEnhancedProps {
   title: string;
@@ -46,7 +47,16 @@ const BlogPostEditorMainContentEnhanced: React.FC<BlogPostEditorMainContentEnhan
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="title">Titre de l'article</Label>
+            <div className="flex items-center gap-2 mb-2">
+              <Label htmlFor="title">Titre de l'article</Label>
+              <AIEnhancementButton
+                field="title"
+                currentValue={title}
+                onEnhance={onTitleChange}
+                size="sm"
+                content={content}
+              />
+            </div>
             <Input
               id="title"
               value={title}
@@ -57,7 +67,16 @@ const BlogPostEditorMainContentEnhanced: React.FC<BlogPostEditorMainContentEnhan
           </div>
           
           <div>
-            <Label htmlFor="slug">URL (slug)</Label>
+            <div className="flex items-center gap-2 mb-2">
+              <Label htmlFor="slug">URL (slug)</Label>
+              <AIEnhancementButton
+                field="slug"
+                currentValue={slug}
+                onEnhance={onSlugChange}
+                size="sm"
+                content={title}
+              />
+            </div>
             <Input
               id="slug"
               value={slug}
@@ -71,7 +90,16 @@ const BlogPostEditorMainContentEnhanced: React.FC<BlogPostEditorMainContentEnhan
           </div>
 
           <div>
-            <Label htmlFor="excerpt">Extrait (optionnel)</Label>
+            <div className="flex items-center gap-2 mb-2">
+              <Label htmlFor="excerpt">Extrait (optionnel)</Label>
+              <AIEnhancementButton
+                field="excerpt"
+                currentValue={excerpt}
+                onEnhance={onExcerptChange}
+                size="sm"
+                content={content}
+              />
+            </div>
             <Textarea
               id="excerpt"
               value={excerpt}
@@ -89,7 +117,16 @@ const BlogPostEditorMainContentEnhanced: React.FC<BlogPostEditorMainContentEnhan
       {/* Éditeur de contenu */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Contenu de l'article</h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold">Contenu de l'article</h3>
+            <AIEnhancementButton
+              field="content"
+              currentValue={content}
+              onEnhance={onContentChange}
+              size="sm"
+              content={content}
+            />
+          </div>
           <div className="flex items-center gap-2">
             <Badge variant={editorMode === 'markdown' ? 'default' : 'outline'}>
               Markdown

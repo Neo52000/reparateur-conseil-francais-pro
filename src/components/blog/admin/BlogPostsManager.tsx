@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Eye, Edit, Trash2, Plus, Search, Filter } from 'lucide-react';
+import { Eye, Edit, Trash2, Plus, Search, Filter, ExternalLink } from 'lucide-react';
 import { useBlog } from '@/hooks/useBlog';
 import { BlogPost, BlogCategory } from '@/types/blog';
 import { format } from 'date-fns';
@@ -77,6 +77,47 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
     setSelectedPost(null);
     onEditorStateChange?.(false);
     loadPosts();
+  };
+
+  const handlePreviewPost = (post: BlogPost) => {
+    if (post.status === 'published') {
+      // Si l'article est publié, ouvrir la page publique
+      window.open(`/blog/article/${post.slug}`, '_blank');
+    } else {
+      // Pour les autres statuts, afficher les informations dans une nouvelle fenêtre
+      const previewWindow = window.open('', '_blank');
+      if (previewWindow) {
+        previewWindow.document.write(`
+          <html>
+            <head>
+              <title>Aperçu - ${post.title}</title>
+              <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 2rem; line-height: 1.6; }
+                .header { border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 2rem; }
+                .status { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.875rem; }
+                .draft { background: #f3f4f6; color: #374151; }
+                .pending { background: #fef3c7; color: #92400e; }
+                .scheduled { background: #dbeafe; color: #1e40af; }
+                .archived { background: #f3f4f6; color: #6b7280; }
+                .content { max-width: 800px; }
+                pre { background: #f8f9fa; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+              </style>
+            </head>
+            <body>
+              <div class="header">
+                <h1>${post.title}</h1>
+                <p><span class="status ${post.status}">${post.status.toUpperCase()}</span></p>
+                ${post.excerpt ? `<p><em>${post.excerpt}</em></p>` : ''}
+              </div>
+              <div class="content">
+                <pre>${post.content}</pre>
+              </div>
+            </body>
+          </html>
+        `);
+        previewWindow.document.close();
+      }
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -206,13 +247,23 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
                   <TableCell>{post.view_count}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon">
-                        <Eye className="h-4 w-4" />
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handlePreviewPost(post)}
+                        title="Prévisualiser l'article"
+                      >
+                        {post.status === 'published' ? (
+                          <ExternalLink className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="icon"
                         onClick={() => handleShowEditor(post)}
+                        title="Modifier l'article"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -220,6 +271,7 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
                         variant="ghost" 
                         size="icon"
                         onClick={() => handleDeletePost(post.id)}
+                        title="Supprimer l'article"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
