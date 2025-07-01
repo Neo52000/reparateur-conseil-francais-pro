@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Phone, ArrowDown } from 'lucide-react';
@@ -40,7 +39,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onContactAdvisor }) => {
             onClick={scrollToPlans}
             variant="outline"
             size="lg"
-            className="border-white text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-4 text-lg"
+            className="border-2 border-white bg-white/10 text-white hover:bg-white hover:text-blue-600 font-semibold px-8 py-4 text-lg backdrop-blur-sm"
           >
             Voir nos plans
             <ArrowDown className="ml-2 h-5 w-5" />
