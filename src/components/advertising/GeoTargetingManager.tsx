@@ -274,7 +274,7 @@ const GeoTargetingManager: React.FC = () => {
         ) : (
           zones.map((zone) => {
             const IconComponent = getZoneIcon(zone.type);
-            const isRadiusZone = zone.type === 'radius';
+            const hasCoordinates = zone.coordinates && typeof zone.coordinates === 'object';
             
             return (
               <Card key={zone.id}>
@@ -291,7 +291,7 @@ const GeoTargetingManager: React.FC = () => {
                           <Badge variant="outline">
                             {getZoneTypeLabel(zone.type)}
                           </Badge>
-                          {isRadiusZone && zone.coordinates && (
+                          {zone.type === 'radius' && hasCoordinates && (
                             <Badge variant="secondary">
                               Rayon: {(zone.coordinates as any)?.radius || 0}km
                             </Badge>
@@ -310,7 +310,7 @@ const GeoTargetingManager: React.FC = () => {
                     </div>
                   </div>
                   
-                  {isRadiusZone && zone.coordinates && (
+                  {zone.type === 'radius' && hasCoordinates && (
                     <div className="mt-4 text-sm text-gray-600">
                       Centre: {(zone.coordinates as any)?.lat?.toFixed(4) || 0}, {(zone.coordinates as any)?.lng?.toFixed(4) || 0}
                     </div>
