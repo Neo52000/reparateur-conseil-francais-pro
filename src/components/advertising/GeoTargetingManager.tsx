@@ -87,9 +87,14 @@ const GeoTargetingManager: React.FC = () => {
     }
   };
 
-  // Calculate zone counts using filter with proper type checking
-  const radiusZones = zones.filter(zone => zone.type === 'radius');
-  const cityZones = zones.filter(zone => zone.type === 'city');
+  // Calculate zone counts using safe filtering
+  const radiusZonesCount = zones.reduce((count, zone) => {
+    return zone.type === 'radius' ? count + 1 : count;
+  }, 0);
+  
+  const cityZonesCount = zones.reduce((count, zone) => {
+    return zone.type === 'city' ? count + 1 : count;
+  }, 0);
 
   return (
     <div className="space-y-6">
@@ -126,7 +131,7 @@ const GeoTargetingManager: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Zones circulaires</p>
-                <p className="text-2xl font-bold">{radiusZones.length}</p>
+                <p className="text-2xl font-bold">{radiusZonesCount}</p>
               </div>
               <Circle className="h-8 w-8 text-green-500" />
             </div>
@@ -138,7 +143,7 @@ const GeoTargetingManager: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Villes ciblées</p>
-                <p className="text-2xl font-bold">{cityZones.length}</p>
+                <p className="text-2xl font-bold">{cityZonesCount}</p>
               </div>
               <MapPin className="h-8 w-8 text-purple-500" />
             </div>
@@ -271,7 +276,7 @@ const GeoTargetingManager: React.FC = () => {
           zones.map((zone) => {
             const IconComponent = getZoneIcon(zone.type);
             const hasCoordinates = zone.coordinates && typeof zone.coordinates === 'object';
-            const isRadiusType = zone.type === 'radius';
+            const isRadiusZone = zone.type === 'radius';
             
             return (
               <Card key={zone.id}>
@@ -288,7 +293,7 @@ const GeoTargetingManager: React.FC = () => {
                           <Badge variant="outline">
                             {getZoneTypeLabel(zone.type)}
                           </Badge>
-                          {isRadiusType && hasCoordinates && (
+                          {isRadiusZone && hasCoordinates && (
                             <Badge variant="secondary">
                               Rayon: {(zone.coordinates as any)?.radius || 0}km
                             </Badge>
@@ -307,7 +312,7 @@ const GeoTargetingManager: React.FC = () => {
                     </div>
                   </div>
                   
-                  {isRadiusType && hasCoordinates && (
+                  {isRadiusZone && hasCoordinates && (
                     <div className="mt-4 text-sm text-gray-600">
                       Centre: {(zone.coordinates as any)?.lat?.toFixed(4) || 0}, {(zone.coordinates as any)?.lng?.toFixed(4) || 0}
                     </div>
