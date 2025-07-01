@@ -27,6 +27,7 @@ serve(async (req) => {
     const { action, prompt, ai_model, output_format, analysis } = await req.json();
 
     console.log(`🤖 AI Prompt Scraping - Action: ${action}, Model: ${ai_model}`);
+    console.log(`📝 Prompt reçu: "${prompt}"`);
 
     if (action === 'analyze') {
       return await analyzePrompt(prompt, ai_model, output_format);
@@ -39,14 +40,26 @@ serve(async (req) => {
   } catch (error) {
     console.error('❌ Erreur AI Prompt Scraping:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: 'Vérifiez que les clés API sont configurées dans Supabase'
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });
 
 async function analyzePrompt(prompt: string, aiModel: string, outputFormat: string) {
-  console.log('🧠 Analyse du prompt avec', aiModel);
+  console.log('🧠 Début analyse du prompt avec', aiModel);
+
+  // Vérifier que la clé API existe
+  const apiKey = getAPIKey(aiModel);
+  if (!apiKey) {
+    console.error(`❌ Clé API manquante pour ${aiModel}`);
+    throw new Error(`Clé API ${aiModel.toUpperCase()}_API_KEY non configurée dans Supabase. Veuillez l'ajouter dans les secrets Edge Functions.`);
+  }
+
+  console.log(`✅ Clé API trouvée pour ${aiModel}`);
 
   const analysisPrompt = `
 Analyse ce prompt de scraping et extrais les informations structurées au format JSON :
@@ -70,21 +83,25 @@ Exemples de services: "réparation écran", "micro soudure", "vente", "dépannag
 `;
 
   try {
+    console.log(`🚀 Appel API ${aiModel}...`);
     const analysis = await callAI(aiModel, analysisPrompt);
+    console.log(`📥 Réponse brute de ${aiModel}:`, analysis.substring(0, 200) + '...');
     
     // Parser le JSON de réponse
     const jsonMatch = analysis.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error('Format de réponse IA invalide');
+      console.error('❌ Aucun JSON trouvé dans la réponse IA');
+      throw new Error('Format de réponse IA invalide - aucun JSON détecté');
     }
 
     const parsedAnalysis: PromptAnalysis = JSON.parse(jsonMatch[0]);
+    console.log('✅ JSON parsé avec succès:', parsedAnalysis);
     
     // Enrichir l'analyse avec des données par défaut
     parsedAnalysis.output_format = parsedAnalysis.output_format || outputFormat;
     parsedAnalysis.max_results = parsedAnalysis.max_results || 100;
 
-    console.log('✅ Analyse terminée:', parsedAnalysis);
+    console.log('✅ Analyse terminée avec succès');
 
     return new Response(
       JSON.stringify({ 
@@ -96,8 +113,19 @@ Exemples de services: "réparation écran", "micro soudure", "vente", "dépannag
     );
 
   } catch (error) {
-    console.error('❌ Erreur analyse:', error);
-    throw new Error(`Erreur d'analyse: ${error.message}`);
+    console.error('❌ Erreur lors de l\'analyse:', error);
+    
+    // Erreur spécifique pour les problèmes d'API
+    if (error.message.includes('fetch')) {
+      throw new Error(`Erreur de connexion à l'API ${aiModel}. Vérifiez votre connexion internet et la validité de votre clé API.`);
+    }
+    
+    // Erreur de parsing JSON
+    if (error.message.includes('JSON')) {
+      throw new Error(`L'IA ${aiModel} n'a pas retourné un format valide. Essayez avec un autre modèle.`);
+    }
+    
+    throw new Error(`Erreur d'analyse avec ${aiModel}: ${error.message}`);
   }
 }
 
@@ -110,14 +138,15 @@ async function executeScraping(prompt: string, aiModel: string, outputFormat: st
   // Formater les résultats selon le format demandé
   const formattedResults = formatResults(mockResults, analysis.output_format);
 
-  console.log(`✅ Scraping terminé: ${formattedResults.length} résultats`);
+  console.log(`✅ Scraping simulé terminé: ${formattedResults.length} résultats`);
 
   return new Response(
     JSON.stringify({ 
       success: true, 
       results: formattedResults,
       analysis: analysis,
-      total_count: formattedResults.length
+      total_count: formattedResults.length,
+      note: "Résultats simulés - intégration du vrai scraping en cours"
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
@@ -129,6 +158,8 @@ async function callAI(model: string, prompt: string): Promise<string> {
   if (!apiKey) {
     throw new Error(`Clé API manquante pour ${model}`);
   }
+
+  console.log(`🔑 Utilisation de la clé API pour ${model} (${apiKey.substring(0, 10)}...)`);
 
   switch (model) {
     case 'deepseek':
@@ -143,19 +174,28 @@ async function callAI(model: string, prompt: string): Promise<string> {
 }
 
 function getAPIKey(model: string): string | undefined {
+  let key: string | undefined;
   switch (model) {
     case 'deepseek':
-      return Deno.env.get('DEEPSEEK_API_KEY');
+      key = Deno.env.get('DEEPSEEK_API_KEY');
+      break;
     case 'mistral':
-      return Deno.env.get('MISTRAL_API_KEY');
+      key = Deno.env.get('MISTRAL_API_KEY');
+      break;
     case 'openai':
-      return Deno.env.get('OPENAI_API_KEY');
+      key = Deno.env.get('OPENAI_API_KEY');
+      break;
     default:
       return undefined;
   }
+  
+  console.log(`🔍 Clé API ${model}: ${key ? 'Trouvée' : 'Manquante'}`);
+  return key;
 }
 
 async function callDeepSeek(apiKey: string, prompt: string): Promise<string> {
+  console.log('📡 Appel DeepSeek API...');
+  
   const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -171,14 +211,20 @@ async function callDeepSeek(apiKey: string, prompt: string): Promise<string> {
   });
 
   if (!response.ok) {
-    throw new Error(`DeepSeek API error: ${response.status}`);
+    const errorText = await response.text();
+    console.error(`❌ DeepSeek API error ${response.status}:`, errorText);
+    throw new Error(`DeepSeek API error: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
-  return data.choices[0]?.message?.content || '';
+  const result = data.choices[0]?.message?.content || '';
+  console.log('✅ DeepSeek API réponse reçue');
+  return result;
 }
 
 async function callMistral(apiKey: string, prompt: string): Promise<string> {
+  console.log('📡 Appel Mistral API...');
+  
   const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -194,14 +240,20 @@ async function callMistral(apiKey: string, prompt: string): Promise<string> {
   });
 
   if (!response.ok) {
-    throw new Error(`Mistral API error: ${response.status}`);
+    const errorText = await response.text();
+    console.error(`❌ Mistral API error ${response.status}:`, errorText);
+    throw new Error(`Mistral API error: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
-  return data.choices[0]?.message?.content || '';
+  const result = data.choices[0]?.message?.content || '';
+  console.log('✅ Mistral API réponse reçue');  
+  return result;
 }
 
 async function callOpenAI(apiKey: string, prompt: string): Promise<string> {
+  console.log('📡 Appel OpenAI API...');
+  
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -217,11 +269,15 @@ async function callOpenAI(apiKey: string, prompt: string): Promise<string> {
   });
 
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.status}`);
+    const errorText = await response.text();
+    console.error(`❌ OpenAI API error ${response.status}:`, errorText);    
+    throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
-  return data.choices[0]?.message?.content || '';
+  const result = data.choices[0]?.message?.content || '';
+  console.log('✅ OpenAI API réponse reçue');
+  return result;
 }
 
 function generateMockResults(analysis: PromptAnalysis): any[] {

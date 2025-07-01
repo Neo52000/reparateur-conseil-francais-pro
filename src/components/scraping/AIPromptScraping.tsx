@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Sparkles, Play, History, FileText, Download } from 'lucide-react';
+import { Brain, Sparkles, Play, History, FileText, Download, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -40,10 +40,12 @@ const AIPromptScraping = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [analysisInfo, setAnalysisInfo] = useState<any>(null);
+  const [error, setError] = useState<string>('');
   const { toast } = useToast();
 
   const handlePromptExample = (example: PromptExample) => {
     setPrompt(example.prompt);
+    setError(''); // Clear any previous errors
   };
 
   const analyzePrompt = async () => {
@@ -57,7 +59,11 @@ const AIPromptScraping = () => {
     }
 
     setIsProcessing(true);
+    setError('');
+    
     try {
+      console.log('🚀 Démarrage analyse prompt...');
+      
       const { data, error } = await supabase.functions.invoke('ai-prompt-scraping', {
         body: {
           action: 'analyze',
@@ -67,7 +73,16 @@ const AIPromptScraping = () => {
         }
       });
 
-      if (error) throw error;
+      console.log('📥 Réponse analyse:', data, error);
+
+      if (error) {
+        console.error('❌ Erreur Supabase:', error);
+        throw new Error(error.message || 'Erreur lors de l\'appel à la fonction');
+      }
+
+      if (!data || !data.success) {
+        throw new Error(data?.error || 'Réponse invalide du serveur');
+      }
 
       setAnalysisInfo(data.analysis);
       toast({
@@ -75,11 +90,14 @@ const AIPromptScraping = () => {
         description: "Le prompt a été analysé avec succès. Vérifiez les paramètres détectés.",
       });
 
-    } catch (error) {
-      console.error('Erreur analyse prompt:', error);
+    } catch (error: any) {
+      console.error('💥 Erreur analyse prompt:', error);
+      const errorMessage = error.message || 'Erreur inconnue lors de l\'analyse';
+      setError(errorMessage);
+      
       toast({
         title: "❌ Erreur d'analyse",
-        description: "Impossible d'analyser le prompt. Vérifiez votre connexion.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -98,7 +116,11 @@ const AIPromptScraping = () => {
     }
 
     setIsProcessing(true);
+    setError('');
+    
     try {
+      console.log('🚀 Démarrage exécution scraping...');
+      
       const { data, error } = await supabase.functions.invoke('ai-prompt-scraping', {
         body: {
           action: 'execute',
@@ -109,19 +131,31 @@ const AIPromptScraping = () => {
         }
       });
 
-      if (error) throw error;
+      console.log('📥 Réponse scraping:', data, error);
+
+      if (error) {
+        console.error('❌ Erreur Supabase:', error);
+        throw new Error(error.message || 'Erreur lors de l\'exécution');
+      }
+
+      if (!data || !data.success) {
+        throw new Error(data?.error || 'Réponse invalide du serveur');
+      }
 
       setResults(data.results || []);
       toast({
         title: "🎯 Scraping terminé",
-        description: `${data.results?.length || 0} résultats obtenus`,
+        description: `${data.results?.length || 0} résultats obtenus ${data.note ? '(simulés)' : ''}`,
       });
 
-    } catch (error) {
-      console.error('Erreur scraping:', error);
+    } catch (error: any) {
+      console.error('💥 Erreur scraping:', error);
+      const errorMessage = error.message || 'Erreur inconnue lors du scraping';
+      setError(errorMessage);
+      
       toast({
         title: "❌ Erreur de scraping",
-        description: "Impossible d'exécuter le scraping. Vérifiez les logs.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -165,6 +199,18 @@ const AIPromptScraping = () => {
           </Badge>
         </div>
       </div>
+
+      {/* Error Display */}
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-4">
+            <div className="flex items-center space-x-2 text-red-800">
+              <AlertTriangle className="h-4 w-4" />
+              <p className="text-sm">{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Configuration */}
       <Card>
@@ -222,14 +268,14 @@ const AIPromptScraping = () => {
               variant="outline"
             >
               <Brain className="h-4 w-4 mr-2" />
-              Analyser le prompt
+              {isProcessing && !analysisInfo ? 'Analyse...' : 'Analyser le prompt'}
             </Button>
             <Button 
               onClick={executeScraping} 
               disabled={isProcessing || !analysisInfo}
             >
               <Play className="h-4 w-4 mr-2" />
-              {isProcessing ? 'Traitement...' : 'Exécuter le scraping'}
+              {isProcessing && analysisInfo ? 'Scraping...' : 'Exécuter le scraping'}
             </Button>
           </div>
         </CardContent>
