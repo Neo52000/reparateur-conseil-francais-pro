@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { AutomatedCampaign, CampaignVariant } from '@/types/advancedAdvertising';
 import { AdvancedTargetingService } from './advancedTargeting';
@@ -85,8 +84,9 @@ export class AutomatedCampaignService {
     }
 
     // Vérifier les conditions de déclenchement
-    if (campaign.triggers.schedule) {
-      return this.checkScheduleTrigger(campaign.triggers.schedule, now);
+    const triggers = typeof campaign.triggers === 'string' ? JSON.parse(campaign.triggers) : campaign.triggers;
+    if (triggers.schedule) {
+      return this.checkScheduleTrigger(triggers.schedule, now);
     }
 
     return true;
@@ -114,7 +114,9 @@ export class AutomatedCampaignService {
   }
 
   private static async executeCampaign(campaign: any) {
-    switch (campaign.campaign_type) {
+    const campaignType = typeof campaign.campaign_type === 'string' ? campaign.campaign_type : 'acquisition';
+    
+    switch (campaignType) {
       case 'acquisition':
         await this.executeAcquisitionCampaign(campaign);
         break;
@@ -134,11 +136,15 @@ export class AutomatedCampaignService {
     console.log('Executing acquisition campaign:', campaign.id);
     
     // Logique d'acquisition - cibler les nouveaux utilisateurs
-    if (campaign.rules.targeting_optimization) {
+    const rules = typeof campaign.rules === 'string' ? JSON.parse(campaign.rules) : campaign.rules;
+    
+    if (rules && rules.targeting_optimization) {
       const segments = await AdvancedTargetingService.getTargetingSegments();
-      const newUserSegments = segments.filter(s => 
-        s.criteria.behavior_patterns?.includes('new_user')
-      );
+      const newUserSegments = segments.filter(s => {
+        const criteria = typeof s.criteria === 'string' ? JSON.parse(s.criteria) : s.criteria;
+        return criteria && Array.isArray(criteria.behavior_patterns) && 
+               criteria.behavior_patterns.includes('new_user');
+      });
       
       for (const segment of newUserSegments) {
         await this.optimizeCampaignForSegment(campaign.campaign_id, segment.id);
@@ -185,9 +191,10 @@ export class AutomatedCampaignService {
     
     // Logique contextuelle - basée sur l'activité récente
     const recentActivity = await this.getRecentUserActivity(7); // 7 derniers jours
+    const triggers = typeof campaign.triggers === 'string' ? JSON.parse(campaign.triggers) : campaign.triggers;
     
     for (const activity of recentActivity) {
-      if (this.matchesContextualTriggers(activity, campaign.triggers)) {
+      if (this.matchesContextualTriggers(activity, triggers)) {
         await AdvancedTargetingService.trackUserInteraction(
           activity.user_id,
           'contextual_campaign',
@@ -204,12 +211,13 @@ export class AutomatedCampaignService {
 
   private static calculateNextExecution(campaign: any, lastExecution: Date): Date {
     const nextExecution = new Date(lastExecution);
+    const triggers = typeof campaign.triggers === 'string' ? JSON.parse(campaign.triggers) : campaign.triggers;
     
-    if (campaign.triggers.schedule?.frequency === 'daily') {
+    if (triggers.schedule?.frequency === 'daily') {
       nextExecution.setDate(nextExecution.getDate() + 1);
-    } else if (campaign.triggers.schedule?.frequency === 'weekly') {
+    } else if (triggers.schedule?.frequency === 'weekly') {
       nextExecution.setDate(nextExecution.getDate() + 7);
-    } else if (campaign.triggers.schedule?.frequency === 'hourly') {
+    } else if (triggers.schedule?.frequency === 'hourly') {
       nextExecution.setHours(nextExecution.getHours() + 1);
     } else {
       nextExecution.setDate(nextExecution.getDate() + 1);
@@ -302,7 +310,7 @@ export class AutomatedCampaignService {
       if (error) throw error;
       
       // Compter les activités par utilisateur et retourner les plus actifs
-      const userActivityCount = {};
+      const userActivityCount: Record<string, number> = {};
       data?.forEach(event => {
         if (event.user_id) {
           userActivityCount[event.user_id] = (userActivityCount[event.user_id] || 0) + 1;

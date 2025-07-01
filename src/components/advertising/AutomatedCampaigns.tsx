@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -84,7 +83,16 @@ const AutomatedCampaigns: React.FC = () => {
     try {
       setLoading(true);
       const data = await AutomatedCampaignService.getAutomatedCampaigns();
-      setCampaigns(data || []);
+      
+      // Convert Supabase data to proper TypeScript types
+      const convertedData: AutomatedCampaign[] = (data || []).map(campaign => ({
+        ...campaign,
+        campaign_type: campaign.campaign_type as 'acquisition' | 'reactivation' | 'loyalty' | 'contextual',
+        triggers: typeof campaign.triggers === 'string' ? JSON.parse(campaign.triggers) : campaign.triggers,
+        rules: typeof campaign.rules === 'string' ? JSON.parse(campaign.rules) : campaign.rules
+      }));
+      
+      setCampaigns(convertedData);
     } catch (error) {
       console.error('Error fetching automated campaigns:', error);
       toast.error('Erreur lors du chargement des campagnes automatisées');
@@ -231,6 +239,8 @@ const AutomatedCampaigns: React.FC = () => {
                 </div>
               </TabsContent>
 
+              
+              
               <TabsContent value="triggers" className="space-y-4">
                 <div>
                   <Label htmlFor="frequency">Fréquence d'exécution</Label>
@@ -380,7 +390,7 @@ const AutomatedCampaigns: React.FC = () => {
                   <div className="flex items-center space-x-4 mb-2">
                     <h3 className="text-lg font-semibold">
                       {campaignTypes.find(t => t.value === campaign.campaign_type)?.label} - 
-                      Campagne #{campaign.campaign_id.slice(0, 8)}
+                      Campagne #{campaign.campaign_id?.slice(0, 8) || 'N/A'}
                     </h3>
                     <Badge variant={campaign.is_active ? "default" : "secondary"}>
                       {campaign.is_active ? 'Active' : 'Inactive'}
@@ -396,7 +406,7 @@ const AutomatedCampaigns: React.FC = () => {
                   <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-3">
                     <span className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      {campaign.triggers.schedule?.frequency || 'Programmé'}
+                      {campaign.triggers?.schedule?.frequency || 'Programmé'}
                     </span>
                     {campaign.last_executed && (
                       <span>Dernière exécution: {new Date(campaign.last_executed).toLocaleDateString()}</span>
@@ -407,18 +417,18 @@ const AutomatedCampaigns: React.FC = () => {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    {campaign.rules.targeting_optimization && (
+                    {campaign.rules?.targeting_optimization && (
                       <Badge variant="outline" className="text-xs">
                         <TrendingUp className="h-3 w-3 mr-1" />
                         Ciblage optimisé
                       </Badge>
                     )}
-                    {campaign.rules.creative_rotation && (
+                    {campaign.rules?.creative_rotation && (
                       <Badge variant="outline" className="text-xs">
                         Rotation créatifs
                       </Badge>
                     )}
-                    {campaign.rules.budget_adjustments && (
+                    {campaign.rules?.budget_adjustments && (
                       <Badge variant="outline" className="text-xs">
                         Budget auto
                       </Badge>

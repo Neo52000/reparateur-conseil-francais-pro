@@ -29,7 +29,17 @@ const GeoTargetingManager: React.FC = () => {
     setLoading(true);
     try {
       const data = await AdvancedTargetingService.getGeoZones();
-      setZones(data);
+      
+      // Convert Supabase data to proper TypeScript types
+      const convertedData: GeoTargetingZone[] = (data || []).map(zone => ({
+        ...zone,
+        type: zone.type as 'city' | 'postal_code' | 'radius' | 'region',
+        coordinates: typeof zone.coordinates === 'string' ? JSON.parse(zone.coordinates) : zone.coordinates,
+        polygons: typeof zone.polygons === 'string' ? JSON.parse(zone.polygons) : zone.polygons,
+        metadata: typeof zone.metadata === 'string' ? JSON.parse(zone.metadata) : zone.metadata
+      }));
+      
+      setZones(convertedData);
     } catch (error) {
       console.error('Error loading geo zones:', error);
     } finally {
@@ -273,7 +283,7 @@ const GeoTargetingManager: React.FC = () => {
                           </Badge>
                           {zone.type === 'radius' && zone.coordinates && (
                             <Badge variant="secondary">
-                              Rayon: {(zone.coordinates as any).radius}km
+                              Rayon: {(zone.coordinates as any)?.radius || 0}km
                             </Badge>
                           )}
                         </div>
@@ -292,7 +302,7 @@ const GeoTargetingManager: React.FC = () => {
                   
                   {zone.type === 'radius' && zone.coordinates && (
                     <div className="mt-4 text-sm text-gray-600">
-                      Centre: {(zone.coordinates as any).lat?.toFixed(4)}, {(zone.coordinates as any).lng?.toFixed(4)}
+                      Centre: {(zone.coordinates as any)?.lat?.toFixed(4) || 0}, {(zone.coordinates as any)?.lng?.toFixed(4) || 0}
                     </div>
                   )}
                 </CardContent>
