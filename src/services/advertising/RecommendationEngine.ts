@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { AIInsight } from './AIInsightsService';
 
@@ -84,7 +83,7 @@ class RecommendationEngine {
       if (!campaigns || campaigns.length === 0) {
         recommendations.push({
           id: 'real_no_campaigns',
-          type: 'budget',
+          type: 'budget' as const,
           title: 'Démarrez votre première campagne publicitaire',
           description: 'Aucune campagne active détectée. Créez votre première campagne pour commencer à attirer des clients.',
           impact: {
@@ -98,7 +97,7 @@ class RecommendationEngine {
             'Fixer un budget initial de test',
             'Lancer la campagne et suivre les performances'
           ],
-          priority: 'high',
+          priority: 'high' as const,
           estimatedImplementationTime: 45,
           resources: ['Guide de démarrage', 'Templates de campagne', 'Calculateur de budget']
         });
@@ -112,7 +111,7 @@ class RecommendationEngine {
         if (ctr < 2.0 && totalImpressions > 100) {
           recommendations.push({
             id: 'real_low_ctr_optimization',
-            type: 'creative',
+            type: 'creative' as const,
             title: 'Optimisation nécessaire - CTR faible',
             description: `Votre CTR actuel de ${ctr.toFixed(2)}% est en dessous de la moyenne du secteur (2.5%)`,
             impact: {
@@ -126,7 +125,7 @@ class RecommendationEngine {
               'Améliorer les accroches et call-to-action',
               'A/B tester les nouvelles versions'
             ],
-            priority: 'high',
+            priority: 'high' as const,
             estimatedImplementationTime: 90,
             resources: ['Bibliothèque de créatifs', 'Guide A/B testing', 'Exemples d\'accroches']
           });
@@ -135,7 +134,7 @@ class RecommendationEngine {
         if (totalImpressions > 500 && ctr > 3.0) {
           recommendations.push({
             id: 'real_scale_success',
-            type: 'budget',
+            type: 'budget' as const,
             title: 'Opportunité de scaling - Performance excellente',
             description: `Votre CTR de ${ctr.toFixed(2)}% est excellent. Considérez augmenter le budget.`,
             impact: {
@@ -149,7 +148,7 @@ class RecommendationEngine {
               'Surveiller les métriques de performance',
               'Ajuster si le CPA augmente trop'
             ],
-            priority: 'medium',
+            priority: 'medium' as const,
             estimatedImplementationTime: 20,
             resources: ['Calculateur de scaling', 'Guide budgétaire', 'Tableaux de suivi']
           });
@@ -160,7 +159,7 @@ class RecommendationEngine {
       if (recommendations.length === 0) {
         recommendations.push({
           id: 'real_general_optimization',
-          type: 'targeting',
+          type: 'targeting' as const,
           title: 'Analyse et optimisation générale',
           description: 'Optimisez votre stratégie publicitaire avec une analyse complète de vos performances',
           impact: {
@@ -174,7 +173,7 @@ class RecommendationEngine {
             'Optimiser le ciblage géographique et démographique',
             'Ajuster les budgets selon les performances'
           ],
-          priority: 'medium',
+          priority: 'medium' as const,
           estimatedImplementationTime: 60,
           resources: ['Analytics avancés', 'Rapport de performance', 'Guide d\'optimisation']
         });
@@ -194,7 +193,7 @@ class RecommendationEngine {
     return [
       {
         id: 'demo_budget_reallocation_001',
-        type: 'budget',
+        type: 'budget' as const,
         title: 'Réallocation budgétaire intelligente (Démo)',
         description: 'Déplacer 20% du budget des campagnes à faible ROI vers les campagnes performantes',
         impact: {
@@ -208,13 +207,13 @@ class RecommendationEngine {
           'Redistribuer vers les campagnes avec ROI > 250%',
           'Surveiller les performances pendant 7 jours'
         ],
-        priority: 'high',
+        priority: 'high' as const,
         estimatedImplementationTime: 15,
         resources: ['Dashboard Analytics', 'Historique des performances']
       },
       {
         id: 'demo_budget_scaling_002',
-        type: 'budget',
+        type: 'budget' as const,
         title: 'Opportunité de scale-up (Démo)',
         description: 'La campagne "Réparateurs Premium Lyon" peut supporter +50% de budget',
         impact: {
@@ -228,13 +227,13 @@ class RecommendationEngine {
           'Étendre à d\'autres villes similaires',
           'Optimiser les heures de diffusion'
         ],
-        priority: 'high',
+        priority: 'high' as const,
         estimatedImplementationTime: 10,
         resources: ['Données de performance Lyon', 'Comparaison villes similaires']
       },
       {
         id: 'demo_targeting_segment_001',
-        type: 'targeting',
+        type: 'targeting' as const,
         title: 'Nouveau segment à fort potentiel (Démo)',
         description: 'Les utilisateurs iOS 25-34 ans montrent un taux de conversion 3x supérieur',
         impact: {
@@ -248,13 +247,13 @@ class RecommendationEngine {
           'Ajuster les enchères pour ce segment',
           'Tester différents messages personnalisés'
         ],
-        priority: 'high',
+        priority: 'high' as const,
         estimatedImplementationTime: 25,
         resources: ['Données démographiques', 'Analytics iOS', 'Templates créatifs']
       },
       {
         id: 'demo_creative_refresh_001',
-        type: 'creative',
+        type: 'creative' as const,
         title: 'Rafraîchissement créatifs nécessaire (Démo)',
         description: 'Les créatifs actuels montrent des signes de fatigue (-12% CTR)',
         impact: {
@@ -268,13 +267,13 @@ class RecommendationEngine {
           'Utiliser des témoignages clients récents',
           'A/B tester les nouveaux créatifs'
         ],
-        priority: 'medium',
+        priority: 'medium' as const,
         estimatedImplementationTime: 60,
         resources: ['Designer', 'Témoignages clients', 'Templates vidéo']
       },
       {
         id: 'demo_timing_optimization_001',
-        type: 'timing',
+        type: 'timing' as const,
         title: 'Optimisation des heures de diffusion (Démo)',
         description: 'Les mardis 14h-16h montrent un CPA 40% plus bas',
         impact: {
@@ -288,7 +287,7 @@ class RecommendationEngine {
           'Tester les jeudis matin comme alternative',
           'Automatiser les ajustements horaires'
         ],
-        priority: 'high',
+        priority: 'high' as const,
         estimatedImplementationTime: 20,
         resources: ['Analytics temporelles', 'Outils d\'automatisation']
       }
