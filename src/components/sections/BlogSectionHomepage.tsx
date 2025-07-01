@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useBlog } from '@/hooks/useBlog';
 import { BlogPost } from '@/types/blog';
+import { NavigationService } from '@/services/navigationService';
 
 const BlogSectionHomepage: React.FC = () => {
   const { fetchPosts, loading } = useBlog();
@@ -24,7 +25,7 @@ const BlogSectionHomepage: React.FC = () => {
           limit: 6
         });
         console.log('✅ Blog posts loaded:', recentPosts?.length || 0);
-        setPosts(recentPosts);
+        setPosts(recentPosts || []);
         setHasLoaded(true);
       } catch (error) {
         console.error('❌ Error loading blog posts:', error);
@@ -74,26 +75,38 @@ const BlogSectionHomepage: React.FC = () => {
     });
   };
 
-  // Fonction pour nettoyer et valider les slugs d'articles
-  const getArticleUrl = (slug: string) => {
-    console.log('🔗 Creating article URL for slug:', slug);
+  // Fonction pour créer des URLs d'articles sécurisées
+  const getArticleUrl = (post: BlogPost) => {
+    console.log('🔗 Creating article URL for post:', { id: post.id, slug: post.slug, title: post.title });
     
-    if (!slug || slug.trim() === '') {
-      console.warn('⚠️ Empty slug detected, using fallback');
-      return '#';
+    if (!post.slug || post.slug.trim() === '') {
+      console.warn('⚠️ Empty slug detected for post:', post.title);
+      // Générer un slug à partir du titre comme fallback
+      const fallbackSlug = post.title
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '') // Supprimer les caractères spéciaux
+        .replace(/\s+/g, '-') // Remplacer les espaces par des tirets
+        .replace(/-+/g, '-') // Remplacer les tirets multiples par un seul
+        .replace(/^-|-$/g, ''); // Supprimer les tirets en début et fin
+      
+      console.log('🔧 Generated fallback slug:', fallbackSlug);
+      return fallbackSlug ? `/blog/article/${fallbackSlug}` : '#';
     }
     
-    // Nettoyer le slug plus rigoureusement
-    const cleanSlug = slug
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9\-_]/g, '-') // Remplacer tous les caractères non alphanumériques par des tirets
-      .replace(/-+/g, '-') // Remplacer les tirets multiples par un seul
-      .replace(/^-|-$/g, ''); // Supprimer les tirets en début et fin
-    
-    const url = `/blog/article/${cleanSlug}`;
+    // Utiliser le service de navigation pour nettoyer le slug
+    const url = NavigationService.getBlogArticleUrl(post.slug);
     console.log('🔗 Final article URL:', url);
     return url;
+  };
+
+  const handleArticleClick = (post: BlogPost) => {
+    console.log('🔗 Article clicked:', {
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      url: getArticleUrl(post)
+    });
   };
 
   return (
@@ -130,8 +143,8 @@ const BlogSectionHomepage: React.FC = () => {
                 
                 <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 hover:text-blue-600 transition-colors">
                   <Link 
-                    to={getArticleUrl(post.slug)} 
-                    onClick={() => console.log('🔗 Navigating to article:', post.slug)}
+                    to={getArticleUrl(post)}
+                    onClick={() => handleArticleClick(post)}
                   >
                     {post.title}
                   </Link>

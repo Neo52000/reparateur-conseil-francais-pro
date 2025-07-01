@@ -57,10 +57,27 @@ export class NavigationService {
    * Nettoie et valide un slug de blog
    */
   static cleanSlug(slug: string): string {
-    return slug
-      .replace(/[^a-zA-Z0-9\-]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
+    if (!slug || typeof slug !== 'string') {
+      console.warn('NavigationService.cleanSlug: Invalid slug provided:', slug);
+      return 'article-sans-slug';
+    }
+
+    const cleaned = slug
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-_]/g, '') // Garder seulement les caractères alphanumériques, espaces, tirets et underscores
+      .replace(/\s+/g, '-') // Remplacer les espaces par des tirets
+      .replace(/-+/g, '-') // Remplacer les tirets multiples par un seul
+      .replace(/^-|-$/g, ''); // Supprimer les tirets en début et fin
+
+    // Si le slug nettoyé est vide, retourner un fallback
+    if (!cleaned || cleaned.length === 0) {
+      console.warn('NavigationService.cleanSlug: Slug became empty after cleaning:', slug);
+      return 'article-sans-titre';
+    }
+
+    console.log('NavigationService.cleanSlug:', { original: slug, cleaned });
+    return cleaned;
   }
 
   /**
@@ -68,9 +85,12 @@ export class NavigationService {
    */
   static getBlogArticleUrl(slug: string, isRepairers = false): string {
     const cleanSlug = this.cleanSlug(slug);
-    return isRepairers 
+    const url = isRepairers 
       ? this.routes.blogRepairersArticle(cleanSlug)
       : this.routes.blogArticle(cleanSlug);
+    
+    console.log('NavigationService.getBlogArticleUrl:', { slug, cleanSlug, url, isRepairers });
+    return url;
   }
 
   /**
@@ -134,6 +154,17 @@ export class NavigationService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Génère un slug sécurisé à partir d'un titre
+   */
+  static generateSlugFromTitle(title: string): string {
+    if (!title || typeof title !== 'string') {
+      return 'article-sans-titre';
+    }
+
+    return this.cleanSlug(title);
   }
 
   /**
