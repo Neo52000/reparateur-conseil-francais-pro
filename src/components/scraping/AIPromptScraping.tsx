@@ -4,7 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Sparkles, Play, History, FileText, Download, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Brain, Sparkles, Play, History, FileText, Download, AlertTriangle, CheckCircle, Info, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -34,7 +34,7 @@ const promptExamples: PromptExample[] = [
 
 const AIPromptScraping = () => {
   const [prompt, setPrompt] = useState('');
-  const [selectedAI, setSelectedAI] = useState('simulation');
+  const [selectedAI, setSelectedAI] = useState('deepseek');
   const [outputFormat, setOutputFormat] = useState('tableau');
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<any[]>([]);
@@ -87,7 +87,7 @@ const AIPromptScraping = () => {
       
       toast({
         title: "✅ Prompt analysé avec succès",
-        description: `Analyse terminée en mode ${data.method || 'standard'}. Paramètres détectés et prêts pour l'exécution.`,
+        description: `Analyse terminée avec ${selectedAI}. Paramètres détectés et prêts pour l'exécution.`,
       });
 
     } catch (error: any) {
@@ -145,7 +145,7 @@ const AIPromptScraping = () => {
       setResults(data.results || []);
       toast({
         title: "🎯 Scraping terminé avec succès",
-        description: `${data.results?.length || 0} résultats obtenus en mode ${data.method || 'standard'}`,
+        description: `${data.results?.length || 0} résultats obtenus avec ${selectedAI}`,
       });
 
     } catch (error: any) {
@@ -192,7 +192,7 @@ const AIPromptScraping = () => {
         </div>
         <div className="flex space-x-2">
           <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-            🧠 IA Intelligente
+            🧠 IA Configurée
           </Badge>
           <Badge variant="secondary" className="bg-green-100 text-green-800">
             📊 Multi-format
@@ -201,7 +201,7 @@ const AIPromptScraping = () => {
       </div>
 
       {/* Info Notice */}
-      <Card className="border-blue-200 bg-blue-50">
+      {/* <Card className="border-blue-200 bg-blue-50">
         <CardContent className="pt-4">
           <div className="flex items-center space-x-2 text-blue-800">
             <Info className="h-4 w-4" />
@@ -214,7 +214,7 @@ const AIPromptScraping = () => {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </Card> */}
 
       {/* Error Display */}
       {error && (
@@ -248,17 +248,38 @@ const AIPromptScraping = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="simulation">
+                  <SelectItem value="deepseek">
                     <div className="flex items-center space-x-2">
-                      <span>Simulation (Recommandé)</span>
+                      <Zap className="h-3 w-3 text-blue-600" />
+                      <span>DeepSeek</span>
                       <CheckCircle className="h-3 w-3 text-green-600" />
                     </div>
                   </SelectItem>
-                  <SelectItem value="deepseek">DeepSeek (API requise)</SelectItem>
-                  <SelectItem value="mistral">Mistral (API requise)</SelectItem>
-                  <SelectItem value="openai">OpenAI (API requise)</SelectItem>
+                  <SelectItem value="mistral">
+                    <div className="flex items-center space-x-2">
+                      <Brain className="h-3 w-3 text-orange-600" />
+                      <span>Mistral</span>
+                      <CheckCircle className="h-3 w-3 text-green-600" />
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="openai">
+                    <div className="flex items-center space-x-2">
+                      <Sparkles className="h-3 w-3 text-purple-600" />
+                      <span>OpenAI</span>
+                      <CheckCircle className="h-3 w-3 text-green-600" />
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="simulation">
+                    <div className="flex items-center space-x-2">
+                      <span>Simulation (Test)</span>
+                      <Info className="h-3 w-3 text-blue-600" />
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                Les API IA sont configurées dans Supabase
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Format de sortie</label>
