@@ -1,4 +1,3 @@
-
 export interface AdCampaign {
   id: string;
   name: string;
@@ -64,5 +63,42 @@ export interface TargetingSegment {
   };
   estimated_reach: number;
   is_active: boolean;
+  created_at: string;
+}
+
+// Extension pour les nouvelles fonctionnalités avancées
+export interface EnhancedAdCampaign extends AdCampaign {
+  automation_config?: {
+    type: 'acquisition' | 'reactivation' | 'loyalty' | 'contextual';
+    triggers: Record<string, any>;
+    rules: Record<string, any>;
+  };
+  variants?: CampaignVariant[];
+  performance_metrics?: CampaignPerformanceMetrics[];
+  geo_targeting?: string[]; // IDs des zones géographiques
+}
+
+export interface CampaignVariant {
+  id: string;
+  campaign_id: string;
+  variant_name: string;
+  variant_data: Record<string, any>;
+  traffic_split: number;
+  performance_metrics: Record<string, any>;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface CampaignPerformanceMetrics {
+  id: string;
+  campaign_id: string;
+  date: string;
+  segment_id?: string;
+  geo_zone_id?: string;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  cost: number;
+  revenue: number;
   created_at: string;
 }
