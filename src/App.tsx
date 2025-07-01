@@ -23,6 +23,10 @@ import ClientAuth from '@/pages/ClientAuth';
 import RepairerAuth from '@/pages/RepairerAuth';
 import ClientSpace from '@/pages/ClientSpace';
 import RepairerSpace from '@/pages/RepairerSpace';
+import RepairerPlans from '@/pages/RepairerPlans';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import TermsOfService from '@/pages/TermsOfService';
+import CookiesPolicy from '@/pages/CookiesPolicy';
 
 const queryClient = new QueryClient();
 
@@ -45,6 +49,7 @@ function App() {
                 {/* User Spaces */}
                 <Route path="/client" element={<ClientSpace />} />
                 <Route path="/repairer" element={<RepairerSpace />} />
+                <Route path="/repairer/plans" element={<RepairerPlans />} />
                 
                 {/* Dashboard Routes (for compatibility) */}
                 <Route path="/client-dashboard" element={<ClientDashboardPage />} />
@@ -63,6 +68,11 @@ function App() {
                 {/* Blog Routes */}
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
+                
+                {/* Legal Pages */}
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/cookies" element={<CookiesPolicy />} />
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>

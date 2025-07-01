@@ -74,11 +74,23 @@ const BlogSectionHomepage: React.FC = () => {
     });
   };
 
-  // Fonction pour nettoyer et encoder correctement les slugs
+  // Fonction pour nettoyer et valider les slugs d'articles
   const getArticleUrl = (slug: string) => {
     console.log('🔗 Creating article URL for slug:', slug);
-    // Nettoyer le slug en enlevant les caractères problématiques
-    const cleanSlug = slug.replace(/[^a-zA-Z0-9\-]/g, '-').replace(/-+/g, '-');
+    
+    if (!slug || slug.trim() === '') {
+      console.warn('⚠️ Empty slug detected, using fallback');
+      return '#';
+    }
+    
+    // Nettoyer le slug plus rigoureusement
+    const cleanSlug = slug
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\-_]/g, '-') // Remplacer tous les caractères non alphanumériques par des tirets
+      .replace(/-+/g, '-') // Remplacer les tirets multiples par un seul
+      .replace(/^-|-$/g, ''); // Supprimer les tirets en début et fin
+    
     const url = `/blog/article/${cleanSlug}`;
     console.log('🔗 Final article URL:', url);
     return url;
@@ -117,7 +129,10 @@ const BlogSectionHomepage: React.FC = () => {
                 )}
                 
                 <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 hover:text-blue-600 transition-colors">
-                  <Link to={getArticleUrl(post.slug)} onClick={() => console.log('🔗 Navigating to article:', post.slug)}>
+                  <Link 
+                    to={getArticleUrl(post.slug)} 
+                    onClick={() => console.log('🔗 Navigating to article:', post.slug)}
+                  >
                     {post.title}
                   </Link>
                 </h3>
