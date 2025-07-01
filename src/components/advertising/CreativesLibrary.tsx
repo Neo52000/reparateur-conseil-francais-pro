@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { AICreativeService } from '@/services/advertising/AICreativeService';
 import CreateCreativeModal from './modals/CreateCreativeModal';
 import EditCreativeModal from './modals/EditCreativeModal';
 import AIGenerationModal from './modals/AIGenerationModal';
-import { Creative } from '@/types/creatives';
+import { Creative, AIGenerationRequest, CreateCreativeData } from '@/types/creatives';
 import { toast } from 'sonner';
 
 const CreativesLibrary: React.FC = () => {
@@ -30,14 +29,16 @@ const CreativesLibrary: React.FC = () => {
   const [selectedCreative, setSelectedCreative] = useState<Creative | null>(null);
   const [activeTab, setActiveTab] = useState('all');
 
-  const handleAIGeneration = async (request: any) => {
+  const handleAIGeneration = async (request: AIGenerationRequest): Promise<CreateCreativeData> => {
     try {
       const generated = await AICreativeService.generateCreative(request);
       await createCreative(generated);
       toast.success('Créatif généré avec succès par l\'IA !');
+      return generated;
     } catch (error) {
       console.error('Error generating creative:', error);
       toast.error('Erreur lors de la génération IA');
+      throw error;
     }
   };
 
