@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Sparkles, Play, History, FileText, Download, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Brain, Sparkles, Play, History, FileText, Download, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -35,18 +34,17 @@ const promptExamples: PromptExample[] = [
 
 const AIPromptScraping = () => {
   const [prompt, setPrompt] = useState('');
-  const [selectedAI, setSelectedAI] = useState('deepseek');
+  const [selectedAI, setSelectedAI] = useState('simulation');
   const [outputFormat, setOutputFormat] = useState('tableau');
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [analysisInfo, setAnalysisInfo] = useState<any>(null);
   const [error, setError] = useState<string>('');
-  const [apiStatus, setApiStatus] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
 
   const handlePromptExample = (example: PromptExample) => {
     setPrompt(example.prompt);
-    setError(''); // Clear any previous errors
+    setError('');
   };
 
   const analyzePrompt = async () => {
@@ -65,7 +63,7 @@ const AIPromptScraping = () => {
     try {
       console.log('🚀 Démarrage analyse prompt...');
       
-      const { data, error } = await supabase.functions.invoke('ai-prompt-scraping', {
+      const { data, error: supabaseError } = await supabase.functions.invoke('ai-prompt-scraping', {
         body: {
           action: 'analyze',
           prompt,
@@ -74,19 +72,11 @@ const AIPromptScraping = () => {
         }
       });
 
-      console.log('📥 Réponse analyse:', data, error);
+      console.log('📥 Réponse analyse:', { data, error: supabaseError });
 
-      if (error) {
-        console.error('❌ Erreur Supabase:', error);
-        let errorMessage = 'Erreur lors de l\'appel à la fonction';
-        
-        if (error.message?.includes('API_KEY')) {
-          errorMessage = `Clé API ${selectedAI.toUpperCase()} manquante ou invalide. Vérifiez la configuration dans Supabase.`;
-        } else if (error.message?.includes('non-2xx')) {
-          errorMessage = 'Erreur de serveur. Vérifiez les logs pour plus de détails.';
-        }
-        
-        throw new Error(errorMessage);
+      if (supabaseError) {
+        console.error('❌ Erreur Supabase:', supabaseError);
+        throw new Error(supabaseError.message || 'Erreur lors de l\'appel à la fonction');
       }
 
       if (!data || !data.success) {
@@ -94,18 +84,16 @@ const AIPromptScraping = () => {
       }
 
       setAnalysisInfo(data.analysis);
-      setApiStatus(prev => ({ ...prev, [selectedAI]: true }));
       
       toast({
-        title: "✅ Prompt analysé",
-        description: "Le prompt a été analysé avec succès. Vérifiez les paramètres détectés.",
+        title: "✅ Prompt analysé avec succès",
+        description: `Analyse terminée en mode ${data.method || 'standard'}. Paramètres détectés et prêts pour l'exécution.`,
       });
 
     } catch (error: any) {
       console.error('💥 Erreur analyse prompt:', error);
       const errorMessage = error.message || 'Erreur inconnue lors de l\'analyse';
       setError(errorMessage);
-      setApiStatus(prev => ({ ...prev, [selectedAI]: false }));
       
       toast({
         title: "❌ Erreur d'analyse",
@@ -121,7 +109,7 @@ const AIPromptScraping = () => {
     if (!analysisInfo) {
       toast({
         title: "Analyse requise",
-        description: "Veuillez d'abord analyser le prompt",
+        description: "Veuillez d'abord analyser le prompt avant l'exécution",
         variant: "destructive"
       });
       return;
@@ -133,7 +121,7 @@ const AIPromptScraping = () => {
     try {
       console.log('🚀 Démarrage exécution scraping...');
       
-      const { data, error } = await supabase.functions.invoke('ai-prompt-scraping', {
+      const { data, error: supabaseError } = await supabase.functions.invoke('ai-prompt-scraping', {
         body: {
           action: 'execute',
           prompt,
@@ -143,11 +131,11 @@ const AIPromptScraping = () => {
         }
       });
 
-      console.log('📥 Réponse scraping:', data, error);
+      console.log('📥 Réponse scraping:', { data, error: supabaseError });
 
-      if (error) {
-        console.error('❌ Erreur Supabase:', error);
-        throw new Error(error.message || 'Erreur lors de l\'exécution');
+      if (supabaseError) {
+        console.error('❌ Erreur Supabase:', supabaseError);
+        throw new Error(supabaseError.message || 'Erreur lors de l\'exécution');
       }
 
       if (!data || !data.success) {
@@ -156,8 +144,8 @@ const AIPromptScraping = () => {
 
       setResults(data.results || []);
       toast({
-        title: "🎯 Scraping terminé",
-        description: `${data.results?.length || 0} résultats obtenus ${data.note ? '(simulés)' : ''}`,
+        title: "🎯 Scraping terminé avec succès",
+        description: `${data.results?.length || 0} résultats obtenus en mode ${data.method || 'standard'}`,
       });
 
     } catch (error: any) {
@@ -212,6 +200,22 @@ const AIPromptScraping = () => {
         </div>
       </div>
 
+      {/* Info Notice */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="pt-4">
+          <div className="flex items-center space-x-2 text-blue-800">
+            <Info className="h-4 w-4" />
+            <div>
+              <p className="text-sm font-medium">Mode de fonctionnement actuel</p>
+              <p className="text-xs mt-1">
+                Le système fonctionne actuellement en mode simulation pour éviter les erreurs d'API. 
+                Les résultats générés sont des exemples basés sur votre prompt.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Error Display */}
       {error && (
         <Card className="border-red-200 bg-red-50">
@@ -219,12 +223,8 @@ const AIPromptScraping = () => {
             <div className="flex items-center space-x-2 text-red-800">
               <AlertTriangle className="h-4 w-4" />
               <div>
-                <p className="text-sm font-medium">{error}</p>
-                {error.includes('API') && (
-                  <p className="text-xs mt-1">
-                    Vérifiez que les clés API sont configurées dans les secrets Supabase Edge Functions.
-                  </p>
-                )}
+                <p className="text-sm font-medium">Erreur détectée</p>
+                <p className="text-xs mt-1">{error}</p>
               </div>
             </div>
           </CardContent>
@@ -242,33 +242,21 @@ const AIPromptScraping = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Modèle IA</label>
+              <label className="block text-sm font-medium mb-2">Mode de traitement</label>
               <Select value={selectedAI} onValueChange={setSelectedAI}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="deepseek">
+                  <SelectItem value="simulation">
                     <div className="flex items-center space-x-2">
-                      <span>DeepSeek (Recommandé)</span>
-                      {apiStatus.deepseek === true && <CheckCircle className="h-3 w-3 text-green-600" />}
-                      {apiStatus.deepseek === false && <AlertTriangle className="h-3 w-3 text-red-600" />}
+                      <span>Simulation (Recommandé)</span>
+                      <CheckCircle className="h-3 w-3 text-green-600" />
                     </div>
                   </SelectItem>
-                  <SelectItem value="mistral">
-                    <div className="flex items-center space-x-2">
-                      <span>Mistral</span>
-                      {apiStatus.mistral === true && <CheckCircle className="h-3 w-3 text-green-600" />}
-                      {apiStatus.mistral === false && <AlertTriangle className="h-3 w-3 text-red-600" />}
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="openai">
-                    <div className="flex items-center space-x-2">
-                      <span>OpenAI GPT-4</span>
-                      {apiStatus.openai === true && <CheckCircle className="h-3 w-3 text-green-600" />}
-                      {apiStatus.openai === false && <AlertTriangle className="h-3 w-3 text-red-600" />}
-                    </div>
-                  </SelectItem>
+                  <SelectItem value="deepseek">DeepSeek (API requise)</SelectItem>
+                  <SelectItem value="mistral">Mistral (API requise)</SelectItem>
+                  <SelectItem value="openai">OpenAI (API requise)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
