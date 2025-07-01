@@ -68,7 +68,35 @@ export const fetchPostBySlug = async (slug: string) => {
   return cleanBlogPostData(data);
 };
 
-export const savePost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
+export const checkSlugExists = async (slug: string, excludeId?: string) => {
+  let query = supabase
+    .from('blog_posts')
+    .select('id')
+    .eq('slug', slug);
+
+  if (excludeId) {
+    query = query.neq('id', excludeId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error checking slug existence:', error);
+    throw error;
+  }
+
+  return data && data.length > 0;
+};
+
+export const savePost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> & { id?: string }, overwriteExisting = false) => {
+  // Vérifier si le slug existe déjà
+  if (!overwriteExisting) {
+    const slugExists = await checkSlugExists(post.slug, post.id);
+    if (slugExists) {
+      throw new Error('DUPLICATE_SLUG');
+    }
+  }
+
   if (post.id) {
     // Mise à jour
     const { data, error } = await supabase

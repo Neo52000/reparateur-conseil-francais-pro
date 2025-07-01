@@ -8,6 +8,7 @@ import BlogPostEditorHeader from './BlogPostEditorHeader';
 import BlogPostEditorMainContentEnhanced from './BlogPostEditorMainContentEnhanced';
 import BlogPostEditorImageSection from './BlogPostEditorImageSection';
 import BlogPostEditorSidebarEnhanced from './BlogPostEditorSidebarEnhanced';
+import SlugConflictModal from './SlugConflictModal';
 
 interface BlogPostEditorProps {
   post?: BlogPost | null;
@@ -20,6 +21,7 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
   const { toast } = useToast();
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [showImageGenerator, setShowImageGenerator] = useState(false);
+  const [showSlugConflict, setShowSlugConflict] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -93,7 +95,7 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
     setFormData(prev => ({ ...prev, keywords }));
   };
 
-  const handleSave = async () => {
+  const handleSave = async (overwriteExisting = false) => {
     if (!formData.title || !formData.content) {
       toast({
         title: "Erreur",
@@ -108,9 +110,47 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
       id: post?.id
     };
 
-    const result = await savePost(postData);
-    if (result) {
-      onSave();
+    try {
+      const result = await savePost(postData, overwriteExisting);
+      if (result) {
+        onSave();
+      }
+    } catch (error: any) {
+      if (error.message === 'DUPLICATE_SLUG') {
+        setShowSlugConflict(true);
+      }
+    }
+  };
+
+  const handleSlugConflictOverwrite = async () => {
+    setShowSlugConflict(false);
+    await handleSave(true);
+  };
+
+  const handleSlugConflictNewSlug = async (newSlug: string) => {
+    setFormData(prev => ({ ...prev, slug: newSlug }));
+    setShowSlugConflict(false);
+    
+    // Sauvegarder avec le nouveau slug
+    const postData = {
+      ...formData,
+      slug: newSlug,
+      id: post?.id
+    };
+
+    try {
+      const result = await savePost(postData, false);
+      if (result) {
+        onSave();
+      }
+    } catch (error: any) {
+      if (error.message === 'DUPLICATE_SLUG') {
+        toast({
+          title: "Erreur",
+          description: "Ce slug existe également. Veuillez en choisir un autre.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -158,7 +198,7 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
           onMetaTitleChange={(meta_title) => setFormData(prev => ({ ...prev, meta_title }))}
           onMetaDescriptionChange={(meta_description) => setFormData(prev => ({ ...prev, meta_description }))}
           onKeywordsChange={handleKeywordsChange}
-          onSave={handleSave}
+          onSave={() => handleSave(false)}
         />
       </div>
 
@@ -172,6 +212,14 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
           articleTitle={formData.title}
         />
       )}
+
+      <SlugConflictModal
+        isOpen={showSlugConflict}
+        onClose={() => setShowSlugConflict(false)}
+        currentSlug={formData.slug}
+        onOverwrite={handleSlugConflictOverwrite}
+        onUseNewSlug={handleSlugConflictNewSlug}
+      />
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { BlogPost } from '@/types/blog';
@@ -47,9 +46,9 @@ export const useBlogPosts = () => {
   }, []);
 
   // Création/mise à jour d'un article
-  const savePost = useCallback(async (post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
+  const savePost = useCallback(async (post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> & { id?: string }, overwriteExisting = false) => {
     try {
-      const result = await blogPostService.savePost(post);
+      const result = await blogPostService.savePost(post, overwriteExisting);
       toast({
         title: "Succès",
         description: post.id ? "Article mis à jour avec succès" : "Article créé avec succès"
@@ -60,6 +59,11 @@ export const useBlogPosts = () => {
       
       const errorMessage = getBlogErrorMessage(error);
       
+      // Si c'est un conflit de slug, on le relance pour que le composant puisse le gérer
+      if (errorMessage === 'DUPLICATE_SLUG') {
+        throw new Error('DUPLICATE_SLUG');
+      }
+      
       toast({
         title: "Erreur de sauvegarde",
         description: errorMessage,
@@ -68,6 +72,16 @@ export const useBlogPosts = () => {
       return null;
     }
   }, [toast]);
+
+  // Vérifier si un slug existe
+  const checkSlugExists = useCallback(async (slug: string, excludeId?: string) => {
+    try {
+      return await blogPostService.checkSlugExists(slug, excludeId);
+    } catch (error) {
+      console.error('Error checking slug:', error);
+      return false;
+    }
+  }, []);
 
   // Suppression d'un article
   const deletePost = useCallback(async (id: string) => {
@@ -94,6 +108,7 @@ export const useBlogPosts = () => {
     fetchPosts,
     fetchPostBySlug,
     savePost,
-    deletePost
+    deletePost,
+    checkSlugExists
   };
 };

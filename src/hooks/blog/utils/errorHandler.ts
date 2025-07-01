@@ -5,7 +5,7 @@ export const getBlogErrorMessage = (error: any): string => {
   if (error?.message) {
     // Erreurs spécifiques de Supabase
     if (error.message.includes('duplicate key')) {
-      return 'Un article avec ce slug existe déjà';
+      return 'DUPLICATE_SLUG';
     }
     if (error.message.includes('foreign key')) {
       return 'Catégorie invalide sélectionnée';
@@ -23,7 +23,7 @@ export const getBlogErrorMessage = (error: any): string => {
   if (error?.code) {
     switch (error.code) {
       case '23505':
-        return 'Un article avec ce titre ou slug existe déjà';
+        return 'DUPLICATE_SLUG';
       case '23503':
         return 'Catégorie ou auteur invalide';
       case '42501':

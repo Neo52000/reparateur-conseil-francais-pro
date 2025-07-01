@@ -6,7 +6,7 @@ import { useBlogNewsletter } from './blog/useBlogNewsletter';
 import { useBlogSocial } from './blog/useBlogSocial';
 
 export const useBlog = () => {
-  const { loading, fetchPosts, fetchPostBySlug, savePost, deletePost } = useBlogPosts();
+  const { loading, fetchPosts, fetchPostBySlug, savePost, deletePost, checkSlugExists } = useBlogPosts();
   const { fetchCategories } = useBlogCategories();
   const { fetchComments, addComment } = useBlogComments();
   const { subscribeToNewsletter } = useBlogNewsletter();
@@ -22,6 +22,7 @@ export const useBlog = () => {
     fetchComments,
     addComment,
     subscribeToNewsletter,
-    trackSocialShare
+    trackSocialShare,
+    checkSlugExists
   };
 };
