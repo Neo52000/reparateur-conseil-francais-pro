@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/blog';
+import { cleanBlogPostsData, cleanBlogPostData } from '../utils/postDataCleaner';
 
 export const fetchPosts = async (filters?: {
   visibility?: string;
@@ -46,7 +46,7 @@ export const fetchPosts = async (filters?: {
     throw error;
   }
 
-  return data || [];
+  return cleanBlogPostsData(data || []);
 };
 
 export const fetchPostBySlug = async (slug: string) => {
@@ -65,7 +65,7 @@ export const fetchPostBySlug = async (slug: string) => {
     throw error;
   }
 
-  return data;
+  return cleanBlogPostData(data);
 };
 
 export const savePost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> & { id?: string }) => {
@@ -86,7 +86,7 @@ export const savePost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'updat
       throw error;
     }
 
-    return data;
+    return cleanBlogPostData(data);
   } else {
     // Création
     const { data, error } = await supabase
@@ -104,7 +104,7 @@ export const savePost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'updat
       throw error;
     }
 
-    return data;
+    return cleanBlogPostData(data);
   }
 };
 

@@ -24,12 +24,13 @@ export const useBlogSocial = () => {
       }
 
       // Increment share count on the post
-      await supabase
-        .from('blog_posts')
-        .update({
-          share_count: supabase.raw('share_count + 1')
-        })
-        .eq('id', postId);
+      const { error: updateError } = await supabase.rpc('increment_share_count', {
+        post_id: postId
+      });
+
+      if (updateError) {
+        console.error('Error incrementing share count:', updateError);
+      }
 
       return true;
     } catch (error) {
