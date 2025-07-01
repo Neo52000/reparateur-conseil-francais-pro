@@ -44,47 +44,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setWordCount(words.length);
   }, [onChange]);
 
-  const insertTemplate = (template: string) => {
-    const newValue = value + '\n\n' + template;
-    onChange(newValue);
-  };
-
-  const templates = [
-    {
-      name: 'Guide étape par étape',
-      content: `## Guide de réparation
-
-### Étape 1: Préparation
-- [ ] Outil nécessaire 1
-- [ ] Outil nécessaire 2
-
-### Étape 2: Démontage
-1. Première action
-2. Deuxième action
-
-### Étape 3: Réparation
-> ⚠️ **Attention**: Information importante à retenir
-
-### Étape 4: Remontage
-- Procédure inverse du démontage
-
-> ✅ **Conseil**: Astuce utile pour réussir`
-    },
-    {
-      name: 'Avertissement sécurité',
-      content: `> ⚠️ **ATTENTION - SÉCURITÉ**
-> 
-> Information importante concernant la sécurité lors de cette réparation.
-> Ne pas ignorer ces consignes.`
-    },
-    {
-      name: 'Astuce technique',
-      content: `> 💡 **Conseil d'expert**
-> 
-> Astuce technique pour faciliter la réparation ou éviter les erreurs courantes.`
-    }
-  ];
-
   return (
     <Card className={isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -97,21 +56,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         </div>
         
         <div className="flex items-center gap-2">
-          {/* Templates rapides */}
-          <div className="flex gap-1">
-            {templates.map((template, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                size="sm"
-                onClick={() => insertTemplate(template.content)}
-                title={`Insérer: ${template.name}`}
-              >
-                {template.name}
-              </Button>
-            ))}
-          </div>
-          
           {/* Contrôles d'affichage */}
           <div className="flex items-center border rounded-md">
             <Button

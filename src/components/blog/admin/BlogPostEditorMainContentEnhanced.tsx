@@ -7,10 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Code, Eye } from 'lucide-react';
+import { FileText, Code, Eye, Upload, Template } from 'lucide-react';
 import MarkdownEditor from './MarkdownEditor';
 import ContentPreview from './ContentPreview';
 import AIEnhancementButton from './AIEnhancementButton';
+import FileUploadButton from './FileUploadButton';
+import TemplateSelector from './TemplateSelector';
 
 interface BlogPostEditorMainContentEnhancedProps {
   title: string;
@@ -34,6 +36,20 @@ const BlogPostEditorMainContentEnhanced: React.FC<BlogPostEditorMainContentEnhan
   onContentChange
 }) => {
   const [editorMode, setEditorMode] = useState<'markdown' | 'simple'>('markdown');
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showFileUpload, setShowFileUpload] = useState(false);
+
+  const handleTemplateSelect = (templateContent: string) => {
+    const newContent = content + '\n\n' + templateContent;
+    onContentChange(newContent);
+    setShowTemplates(false);
+  };
+
+  const handleFileContent = (fileContent: string) => {
+    const newContent = content + '\n\n' + fileContent;
+    onContentChange(newContent);
+    setShowFileUpload(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -128,6 +144,22 @@ const BlogPostEditorMainContentEnhanced: React.FC<BlogPostEditorMainContentEnhan
             />
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowTemplates(!showTemplates)}
+            >
+              <Template className="h-4 w-4 mr-2" />
+              Templates
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFileUpload(!showFileUpload)}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Importer fichier
+            </Button>
             <Badge variant={editorMode === 'markdown' ? 'default' : 'outline'}>
               Markdown
             </Badge>
@@ -150,6 +182,19 @@ const BlogPostEditorMainContentEnhanced: React.FC<BlogPostEditorMainContentEnhan
             </Button>
           </div>
         </div>
+
+        {/* Templates et upload de fichier */}
+        {showTemplates && (
+          <div className="mb-4">
+            <TemplateSelector onTemplateSelect={handleTemplateSelect} />
+          </div>
+        )}
+
+        {showFileUpload && (
+          <div className="mb-4">
+            <FileUploadButton onFileContent={handleFileContent} />
+          </div>
+        )}
 
         {editorMode === 'markdown' ? (
           <MarkdownEditor
