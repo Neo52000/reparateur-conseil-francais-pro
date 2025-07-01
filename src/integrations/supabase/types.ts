@@ -958,34 +958,49 @@ export type Database = {
           ai_generated: boolean
           campaign_id: string | null
           created_at: string
+          created_by: string | null
           creative_data: Json
           creative_type: string
           creative_url: string | null
           id: string
           is_active: boolean
+          metadata: Json | null
+          name: string
           performance_score: number | null
+          status: string
+          updated_at: string
         }
         Insert: {
           ai_generated?: boolean
           campaign_id?: string | null
           created_at?: string
+          created_by?: string | null
           creative_data?: Json
           creative_type: string
           creative_url?: string | null
           id?: string
           is_active?: boolean
+          metadata?: Json | null
+          name?: string
           performance_score?: number | null
+          status?: string
+          updated_at?: string
         }
         Update: {
           ai_generated?: boolean
           campaign_id?: string | null
           created_at?: string
+          created_by?: string | null
           creative_data?: Json
           creative_type?: string
           creative_url?: string | null
           id?: string
           is_active?: boolean
+          metadata?: Json | null
+          name?: string
           performance_score?: number | null
+          status?: string
+          updated_at?: string
         }
         Relationships: [
           {
