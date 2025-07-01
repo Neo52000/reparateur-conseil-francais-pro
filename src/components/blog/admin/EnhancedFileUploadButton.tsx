@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, AlertCircle, Eye, Settings, Wand2 } from 'lucide-react';
+import { Upload, FileText, AlertCircle, Eye, Settings, Wand2, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ContentPreprocessor, PreprocessOptions } from '@/services/blog/contentPreprocessor';
 import ContentPreview from './ContentPreview';
@@ -27,11 +27,13 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
   const [originalContent, setOriginalContent] = useState('');
   const [processedContent, setProcessedContent] = useState('');
   const [detectedFormat, setDetectedFormat] = useState<any>(null);
+  const [contentComparison, setContentComparison] = useState<any>(null);
   const [preprocessOptions, setPreprocessOptions] = useState<PreprocessOptions>({
     preserveFormatting: true,
     cleanMetadata: true,
-    convertCallouts: true,
-    normalizeLineBreaks: true
+    convertCallouts: false, // Désactivé par défaut
+    normalizeLineBreaks: true,
+    conservative: true // Mode conservateur par défaut
   });
 
   const supportedFormats = ['.md', '.txt', '.json'];
@@ -54,21 +56,31 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
   };
 
   const processFileContent = (content: string) => {
+    console.log('🔄 Processing file content...');
+    console.log('📋 Original content preview:', content.substring(0, 200));
+    
     // Détecter le format
     const format = ContentPreprocessor.detectFormat(content);
     setDetectedFormat(format);
+    console.log('🔍 Detected format:', format);
 
     // Traiter le contenu
     let processed = ContentPreprocessor.preprocess(content, preprocessOptions);
     
-    // Traitement spécifique selon la source
+    // Traitement spécifique selon la source (mode conservateur)
     if (format.source === 'claude') {
       processed = ContentPreprocessor.processClaudeExport(processed);
     }
 
+    // Comparer les contenus
+    const comparison = ContentPreprocessor.compareContents(content, processed);
+    setContentComparison(comparison);
+    console.log('📊 Content comparison:', comparison);
+
     // Validation
     const validation = ContentPreprocessor.validateProcessedContent(processed);
     if (!validation.isValid) {
+      console.warn('⚠️ Validation issues:', validation.issues);
       toast({
         title: "Attention",
         description: `Problèmes détectés: ${validation.issues.join(', ')}`,
@@ -79,6 +91,9 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
     setOriginalContent(content);
     setProcessedContent(processed);
     setShowPreview(true);
+    
+    console.log('✅ Processing complete');
+    console.log('📝 Processed content preview:', processed.substring(0, 200));
   };
 
   const handleFileSelect = async (file: File) => {
@@ -96,10 +111,11 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
       processFileContent(content);
       
       toast({
-        title: "Fichier lu avec succès",
+        title: "Fichier lu avec succès ✅",
         description: `${file.name} analysé - prévisualisez avant d'importer`
       });
     } catch (error) {
+      console.error('❌ File reading error:', error);
       toast({
         title: "Erreur de lecture",
         description: "Impossible de lire le contenu du fichier",
@@ -110,11 +126,14 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
 
   const handleImport = (useProcessed: boolean = true) => {
     const contentToUse = useProcessed ? processedContent : originalContent;
+    console.log(`📤 Importing ${useProcessed ? 'processed' : 'original'} content`);
+    console.log('📋 Content preview:', contentToUse.substring(0, 200));
+    
     onFileContent(contentToUse);
     setShowPreview(false);
     
     toast({
-      title: "Contenu importé",
+      title: "Contenu importé ✅",
       description: useProcessed ? "Version traitée importée" : "Version originale importée"
     });
   };
@@ -148,6 +167,7 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
 
   const reprocessContent = () => {
     if (originalContent) {
+      console.log('🔄 Reprocessing with new options:', preprocessOptions);
       processFileContent(originalContent);
     }
   };
@@ -168,23 +188,55 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
                     {detectedFormat.source} ({Math.round(detectedFormat.confidence * 100)}%)
                   </Badge>
                 )}
+                {contentComparison && contentComparison.majorChanges.length > 0 && (
+                  <Badge variant="destructive">
+                    {contentComparison.majorChanges.length} changement(s) majeur(s)
+                  </Badge>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowPreview(false)}
                 >
-                  Fermer
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Retour
                 </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Informations sur les changements */}
+            {contentComparison && (
+              <Card className="bg-blue-50 border-blue-200">
+                <CardContent className="pt-4">
+                  <div className="text-sm space-y-1">
+                    <p><strong>Analyse des modifications:</strong></p>
+                    <p>• Lignes modifiées: {contentComparison.linesChanged}</p>
+                    <p>• Caractères modifiés: {contentComparison.charactersChanged}</p>
+                    {contentComparison.majorChanges.length > 0 && (
+                      <div>
+                        <p>• Changements majeurs:</p>
+                        <ul className="ml-4 list-disc">
+                          {contentComparison.majorChanges.map((change: string, index: number) => (
+                            <li key={index}>{change}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Options de preprocessing */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Settings className="h-4 w-4" />
                   Options de traitement
+                  {preprocessOptions.conservative && (
+                    <Badge variant="secondary">Mode conservateur</Badge>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -192,13 +244,13 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
                   <label className="flex items-center space-x-2 text-sm">
                     <input
                       type="checkbox"
-                      checked={preprocessOptions.preserveFormatting}
+                      checked={preprocessOptions.conservative}
                       onChange={(e) => setPreprocessOptions(prev => ({
                         ...prev,
-                        preserveFormatting: e.target.checked
+                        conservative: e.target.checked
                       }))}
                     />
-                    <span>Préserver le formatage</span>
+                    <span>Mode conservateur (recommandé)</span>
                   </label>
                   <label className="flex items-center space-x-2 text-sm">
                     <input
@@ -247,37 +299,48 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
             </Card>
 
             {/* Aperçu comparatif */}
-            <Tabs defaultValue="processed" className="w-full">
+            <Tabs defaultValue="original" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="processed">Version traitée</TabsTrigger>
                 <TabsTrigger value="original">Version originale</TabsTrigger>
+                <TabsTrigger value="processed">
+                  Version traitée
+                  {contentComparison?.majorChanges?.length > 0 && (
+                    <span className="ml-1 text-xs bg-orange-500 text-white rounded-full px-1">
+                      !
+                    </span>
+                  )}
+                </TabsTrigger>
               </TabsList>
-              
-              <TabsContent value="processed" className="mt-4">
-                <div className="max-h-96 overflow-y-auto">
-                  <ContentPreview content={processedContent} />
-                </div>
-              </TabsContent>
               
               <TabsContent value="original" className="mt-4">
                 <div className="max-h-96 overflow-y-auto">
                   <ContentPreview content={originalContent} />
                 </div>
               </TabsContent>
+              
+              <TabsContent value="processed" className="mt-4">
+                <div className="max-h-96 overflow-y-auto">
+                  <ContentPreview content={processedContent} />
+                </div>
+              </TabsContent>
             </Tabs>
 
             {/* Actions d'import */}
             <div className="flex gap-2 pt-4 border-t">
-              <Button onClick={() => handleImport(true)} className="flex-1">
+              <Button onClick={() => handleImport(false)} className="flex-1" variant="outline">
                 <Upload className="h-4 w-4 mr-2" />
-                Importer la version traitée
+                Importer l'original
+                <Badge variant="secondary" className="ml-2">Recommandé</Badge>
               </Button>
               <Button 
-                variant="outline" 
-                onClick={() => handleImport(false)}
+                onClick={() => handleImport(true)}
                 className="flex-1"
+                variant={contentComparison?.majorChanges?.length > 0 ? "destructive" : "default"}
               >
-                Importer l'original
+                Importer la version traitée
+                {contentComparison?.majorChanges?.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">⚠️</Badge>
+                )}
               </Button>
             </div>
           </CardContent>
@@ -304,9 +367,14 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
           <p className="text-xs text-gray-500 mb-4">
             Formats supportés: {supportedFormats.join(', ')}
           </p>
-          <Badge variant="secondary" className="mb-4">
-            Preprocessing intelligent activé
-          </Badge>
+          <div className="flex items-center gap-2 mb-4">
+            <Badge variant="secondary">
+              Preprocessing intelligent
+            </Badge>
+            <Badge variant="outline">
+              Mode conservateur par défaut
+            </Badge>
+          </div>
           
           <Button
             type="button"
