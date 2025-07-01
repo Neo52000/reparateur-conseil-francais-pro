@@ -3147,6 +3147,10 @@ export type Database = {
         Args: { banner_id: string }
         Returns: undefined
       }
+      increment_share_count: {
+        Args: { post_id: string }
+        Returns: undefined
+      }
       validate_and_use_promo_code: {
         Args: { promo_code_text: string }
         Returns: Json
