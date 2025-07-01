@@ -1,84 +1,19 @@
 
 /**
- * Service de preprocessing pour normaliser le contenu importé
- * Gère les formats spécifiques et nettoie le contenu de manière conservatrice
+ * Service principal de preprocessing pour normaliser le contenu importé
  */
 
-export interface PreprocessOptions {
-  preserveFormatting?: boolean;
-  cleanMetadata?: boolean;
-  convertCallouts?: boolean;
-  normalizeLineBreaks?: boolean;
-  conservative?: boolean; // Nouveau: mode conservateur
-}
+import { FormatDetector, DetectedFormat } from './formatDetector';
+import { ContentCleaner, PreprocessOptions } from './contentCleaner';
+import { ContentValidator, ValidationResult, ContentComparison } from './contentValidator';
 
-export interface DetectedFormat {
-  source: 'claude' | 'chatgpt' | 'notion' | 'markdown' | 'unknown';
-  confidence: number;
-  features: string[];
-}
+export { PreprocessOptions, DetectedFormat, ValidationResult, ContentComparison };
 
 export class ContentPreprocessor {
-  
   /**
    * Détecte le format source du contenu
    */
-  static detectFormat(content: string): DetectedFormat {
-    const features: string[] = [];
-    let source: DetectedFormat['source'] = 'unknown';
-    let confidence = 0;
-
-    // Patterns Claude.ai - plus précis
-    const claudePatterns = [
-      /```[\w]*\n[\s\S]*?\n```/g, // Code blocks
-      /^>\s+/gm, // Blockquotes
-      /\*\*[^*]+\*\*/g, // Bold text
-      /^#{1,6}\s+/gm // Headers
-    ];
-    
-    let claudeScore = 0;
-    claudePatterns.forEach(pattern => {
-      if (pattern.test(content)) claudeScore++;
-    });
-    
-    if (claudeScore >= 3) {
-      features.push('claude-markdown', 'code-blocks', 'blockquotes', 'bold-text');
-      source = 'claude';
-      confidence = Math.min(0.9, 0.6 + (claudeScore * 0.1));
-    }
-
-    // Patterns ChatGPT
-    if (content.match(/^\d+\.\s+/gm) && content.includes('**') && content.includes('###')) {
-      features.push('numbered-lists', 'headers', 'bold-text');
-      if (source === 'unknown') {
-        source = 'chatgpt';
-        confidence = 0.7;
-      }
-    }
-
-    // Patterns Notion - plus spécifique
-    const notionEmojis = ['💡', '⚠️', '📝', '✅', '❌', '🔍', '📊', '🎯'];
-    const emojiCount = notionEmojis.filter(emoji => content.includes(emoji)).length;
-    
-    if (emojiCount >= 2) {
-      features.push('emoji-callouts', 'rich-formatting');
-      if (source === 'unknown') {
-        source = 'notion';
-        confidence = 0.6 + (emojiCount * 0.05);
-      }
-    }
-
-    // Standard Markdown
-    if (content.includes('# ') || content.includes('## ') || content.includes('- ')) {
-      features.push('standard-markdown');
-      if (source === 'unknown') {
-        source = 'markdown';
-        confidence = 0.5;
-      }
-    }
-
-    return { source, confidence, features };
-  }
+  static detectFormat = FormatDetector.detectFormat;
 
   /**
    * Nettoie et normalise le contenu de manière conservatrice
@@ -87,23 +22,21 @@ export class ContentPreprocessor {
     const {
       preserveFormatting = true,
       cleanMetadata = true,
-      convertCallouts = false, // Désactivé par défaut pour être plus conservateur
+      convertCallouts = false,
       normalizeLineBreaks = true,
-      conservative = true // Nouveau mode conservateur activé par défaut
+      conservative = true
     } = options;
 
     let processed = content;
 
     // Mode conservateur : transformations minimales
     if (conservative) {
-      // Nettoyer seulement les métadonnées évidentes
       if (cleanMetadata) {
-        processed = this.cleanMetadataConservative(processed);
+        processed = ContentCleaner.cleanMetadataConservative(processed);
       }
       
-      // Normaliser seulement les sauts de ligne excessifs
       if (normalizeLineBreaks) {
-        processed = this.normalizeLineBreaksConservative(processed);
+        processed = ContentCleaner.normalizeLineBreaksConservative(processed);
       }
       
       return processed;
@@ -111,181 +44,36 @@ export class ContentPreprocessor {
 
     // Mode normal (plus agressif)
     if (cleanMetadata) {
-      processed = this.cleanMetadata(processed);
+      processed = ContentCleaner.cleanMetadata(processed);
     }
 
     if (normalizeLineBreaks) {
-      processed = this.normalizeLineBreaks(processed);
+      processed = ContentCleaner.normalizeLineBreaks(processed);
     }
 
     if (convertCallouts) {
-      processed = this.convertCallouts(processed);
+      processed = ContentCleaner.convertCallouts(processed);
     }
 
     if (preserveFormatting) {
-      processed = this.preserveFormatting(processed);
+      processed = ContentCleaner.preserveFormatting(processed);
     }
 
     return processed;
   }
 
   /**
-   * Nettoie les métadonnées de manière conservatrice
+   * Conversion spécifique pour les exports Claude.ai
    */
-  private static cleanMetadataConservative(content: string): string {
-    return content
-      // Supprimer seulement les timestamps d'export évidents
-      .replace(/^Exported on \d{4}-\d{2}-\d{2}.*$/gm, '')
-      .replace(/^Generated by .* on \d{4}-\d{2}-\d{2}.*$/gm, '')
-      // Nettoyer les espaces excessifs seulement
-      .replace(/\n{4,}/g, '\n\n\n')
-      .trim();
-  }
-
-  /**
-   * Normalise les sauts de ligne de manière conservatrice
-   */
-  private static normalizeLineBreaksConservative(content: string): string {
-    return content
-      // Normaliser les fins de ligne seulement
-      .replace(/\r\n/g, '\n')
-      .replace(/\r/g, '\n')
-      // Réduire les sauts de ligne excessifs (4+ vers 2)
-      .replace(/\n{4,}/g, '\n\n');
-  }
-
-  /**
-   * Nettoie les métadonnées et artifacts d'export (mode normal)
-   */
-  private static cleanMetadata(content: string): string {
-    return content
-      // Supprimer les timestamps d'export
-      .replace(/^Exported on.*$/gm, '')
-      .replace(/^Generated by.*$/gm, '')
-      .replace(/^Created with.*$/gm, '')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
-  }
-
-  /**
-   * Normalise les sauts de ligne (mode normal)
-   */
-  private static normalizeLineBreaks(content: string): string {
-    return content
-      // Normaliser les fins de ligne
-      .replace(/\r\n/g, '\n')
-      .replace(/\r/g, '\n')
-      .replace(/(\n-\s.*)\n\n(\s*-\s)/g, '$1\n$2')
-      .replace(/(\n\d+\.\s.*)\n\n(\s*\d+\.\s)/g, '$1\n$2');
-  }
-
-  /**
-   * Convertit les callouts en format markdown standard
-   */
-  private static convertCallouts(content: string): string {
-    return content
-      // Convertir les callouts avec émojis
-      .replace(/^(\s*)💡\s*(.+)$/gm, '$1> 💡 **Conseil**: $2')
-      .replace(/^(\s*)⚠️\s*(.+)$/gm, '$1> ⚠️ **Attention**: $2')
-      .replace(/^(\s*)📝\s*(.+)$/gm, '$1> 📝 **Note**: $2')
-      .replace(/^(\s*)✅\s*(.+)$/gm, '$1> ✅ **Succès**: $2')
-      .replace(/^(\s*)❌\s*(.+)$/gm, '$1> ❌ **Erreur**: $2')
-      .replace(/^(\s*)🔍\s*(.+)$/gm, '$1> 🔍 **Inspection**: $2')
-      .replace(/^(\s*)NOTE:\s*(.+)$/gm, '$1> 📝 **Note**: $2')
-      .replace(/^(\s*)WARNING:\s*(.+)$/gm, '$1> ⚠️ **Attention**: $2')
-      .replace(/^(\s*)TIP:\s*(.+)$/gm, '$1> 💡 **Conseil**: $2');
-  }
-
-  /**
-   * Préserve et améliore le formatage
-   */
-  private static preserveFormatting(content: string): string {
-    return content
-      // Améliorer les listes à puces
-      .replace(/^\s*[\*\+\-]\s+/gm, '- ')
-      .replace(/```(\w+)?\n([\s\S]*?)\n```/g, (match, lang, code) => {
-        return `\`\`\`${lang || ''}\n${code}\n\`\`\``;
-      })
-      .replace(/^#{1,6}\s+/gm, (match) => match.trim() + ' ')
-      .replace(/\[([^\]]+)\]\s*\(\s*([^)]+)\s*\)/g, '[$1]($2)');
-  }
-
-  /**
-   * Conversion spécifique pour les exports Claude.ai (mode conservateur)
-   */
-  static processClaudeExport(content: string): string {
-    return content
-      // Préserver les blockquotes Claude sans les transformer
-      .replace(/^>\s*(.+)$/gm, '> $1')
-      // Améliorer les listes de tâches seulement si elles sont malformées
-      .replace(/^-\s*\[\s*\]\s*(.+)$/gm, '- [ ] $1')
-      .replace(/^-\s*\[x\]\s*(.+)$/gm, '- [x] $1');
-  }
+  static processClaudeExport = ContentCleaner.processClaudeExport;
 
   /**
    * Validation du contenu traité
    */
-  static validateProcessedContent(content: string): { isValid: boolean; issues: string[] } {
-    const issues: string[] = [];
-    
-    // Vérifier les code blocks non fermés
-    const codeBlocks = content.match(/```/g);
-    if (codeBlocks && codeBlocks.length % 2 !== 0) {
-      issues.push('Code block non fermé détecté');
-    }
-
-    const malformedLinks = content.match(/\[([^\]]*)\]\([^)]*$/gm);
-    if (malformedLinks) {
-      issues.push('Liens malformés détectés');
-    }
-
-    return {
-      isValid: issues.length === 0,
-      issues
-    };
-  }
+  static validateProcessedContent = ContentValidator.validateProcessedContent;
 
   /**
-   * Compare deux contenus et retourne les différences principales
+   * Compare deux contenus
    */
-  static compareContents(original: string, processed: string): {
-    linesChanged: number;
-    charactersChanged: number;
-    majorChanges: string[];
-  } {
-    const originalLines = original.split('\n');
-    const processedLines = processed.split('\n');
-    
-    let linesChanged = 0;
-    const majorChanges: string[] = [];
-    
-    // Compter les lignes modifiées
-    const maxLines = Math.max(originalLines.length, processedLines.length);
-    for (let i = 0; i < maxLines; i++) {
-      if (originalLines[i] !== processedLines[i]) {
-        linesChanged++;
-      }
-    }
-    
-    // Détecter les changements majeurs
-    if (original.length !== processed.length) {
-      const diff = Math.abs(original.length - processed.length);
-      if (diff > original.length * 0.1) {
-        majorChanges.push(`Taille du contenu modifiée de ${diff} caractères`);
-      }
-    }
-    
-    // Détecter les transformations de callouts
-    const originalCallouts = (original.match(/[💡⚠️📝✅❌🔍]/g) || []).length;
-    const processedCallouts = (processed.match(/[💡⚠️📝✅❌🔍]/g) || []).length;
-    if (originalCallouts !== processedCallouts) {
-      majorChanges.push('Callouts/émojis modifiés');
-    }
-    
-    return {
-      linesChanged,
-      charactersChanged: Math.abs(original.length - processed.length),
-      majorChanges
-    };
-  }
+  static compareContents = ContentValidator.compareContents;
 }

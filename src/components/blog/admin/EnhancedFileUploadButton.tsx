@@ -1,15 +1,15 @@
-
 import React, { useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, AlertCircle, Eye, Settings, Wand2, ArrowLeft } from 'lucide-react';
+import { Upload, Eye, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ContentPreprocessor, PreprocessOptions } from '@/services/blog/contentPreprocessor';
+import { ContentPreprocessor, PreprocessOptions, DetectedFormat, ContentComparison } from '@/services/blog/contentPreprocessor';
 import ContentPreview from './ContentPreview';
+import FileUploadArea from './file-upload/FileUploadArea';
+import PreprocessingOptions from './file-upload/PreprocessingOptions';
+import ContentAnalysisCard from './file-upload/ContentAnalysisCard';
 
 interface EnhancedFileUploadButtonProps {
   onFileContent: (content: string) => void;
@@ -26,14 +26,14 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
   const [showPreview, setShowPreview] = useState(false);
   const [originalContent, setOriginalContent] = useState('');
   const [processedContent, setProcessedContent] = useState('');
-  const [detectedFormat, setDetectedFormat] = useState<any>(null);
-  const [contentComparison, setContentComparison] = useState<any>(null);
+  const [detectedFormat, setDetectedFormat] = useState<DetectedFormat | null>(null);
+  const [contentComparison, setContentComparison] = useState<ContentComparison | null>(null);
   const [preprocessOptions, setPreprocessOptions] = useState<PreprocessOptions>({
     preserveFormatting: true,
     cleanMetadata: true,
-    convertCallouts: false, // Désactivé par défaut
+    convertCallouts: false,
     normalizeLineBreaks: true,
-    conservative: true // Mode conservateur par défaut
+    conservative: true
   });
 
   const supportedFormats = ['.md', '.txt', '.json'];
@@ -57,30 +57,21 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
 
   const processFileContent = (content: string) => {
     console.log('🔄 Processing file content...');
-    console.log('📋 Original content preview:', content.substring(0, 200));
     
-    // Détecter le format
     const format = ContentPreprocessor.detectFormat(content);
     setDetectedFormat(format);
-    console.log('🔍 Detected format:', format);
 
-    // Traiter le contenu
     let processed = ContentPreprocessor.preprocess(content, preprocessOptions);
     
-    // Traitement spécifique selon la source (mode conservateur)
     if (format.source === 'claude') {
       processed = ContentPreprocessor.processClaudeExport(processed);
     }
 
-    // Comparer les contenus
     const comparison = ContentPreprocessor.compareContents(content, processed);
     setContentComparison(comparison);
-    console.log('📊 Content comparison:', comparison);
 
-    // Validation
     const validation = ContentPreprocessor.validateProcessedContent(processed);
     if (!validation.isValid) {
-      console.warn('⚠️ Validation issues:', validation.issues);
       toast({
         title: "Attention",
         description: `Problèmes détectés: ${validation.issues.join(', ')}`,
@@ -91,9 +82,6 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
     setOriginalContent(content);
     setProcessedContent(processed);
     setShowPreview(true);
-    
-    console.log('✅ Processing complete');
-    console.log('📝 Processed content preview:', processed.substring(0, 200));
   };
 
   const handleFileSelect = async (file: File) => {
@@ -126,9 +114,6 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
 
   const handleImport = (useProcessed: boolean = true) => {
     const contentToUse = useProcessed ? processedContent : originalContent;
-    console.log(`📤 Importing ${useProcessed ? 'processed' : 'original'} content`);
-    console.log('📋 Content preview:', contentToUse.substring(0, 200));
-    
     onFileContent(contentToUse);
     setShowPreview(false);
     
@@ -167,7 +152,6 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
 
   const reprocessContent = () => {
     if (originalContent) {
-      console.log('🔄 Reprocessing with new options:', preprocessOptions);
       processFileContent(originalContent);
     }
   };
@@ -205,100 +189,16 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Informations sur les changements */}
             {contentComparison && (
-              <Card className="bg-blue-50 border-blue-200">
-                <CardContent className="pt-4">
-                  <div className="text-sm space-y-1">
-                    <p><strong>Analyse des modifications:</strong></p>
-                    <p>• Lignes modifiées: {contentComparison.linesChanged}</p>
-                    <p>• Caractères modifiés: {contentComparison.charactersChanged}</p>
-                    {contentComparison.majorChanges.length > 0 && (
-                      <div>
-                        <p>• Changements majeurs:</p>
-                        <ul className="ml-4 list-disc">
-                          {contentComparison.majorChanges.map((change: string, index: number) => (
-                            <li key={index}>{change}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <ContentAnalysisCard comparison={contentComparison} />
             )}
 
-            {/* Options de preprocessing */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Options de traitement
-                  {preprocessOptions.conservative && (
-                    <Badge variant="secondary">Mode conservateur</Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="flex items-center space-x-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={preprocessOptions.conservative}
-                      onChange={(e) => setPreprocessOptions(prev => ({
-                        ...prev,
-                        conservative: e.target.checked
-                      }))}
-                    />
-                    <span>Mode conservateur (recommandé)</span>
-                  </label>
-                  <label className="flex items-center space-x-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={preprocessOptions.cleanMetadata}
-                      onChange={(e) => setPreprocessOptions(prev => ({
-                        ...prev,
-                        cleanMetadata: e.target.checked
-                      }))}
-                    />
-                    <span>Nettoyer les métadonnées</span>
-                  </label>
-                  <label className="flex items-center space-x-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={preprocessOptions.convertCallouts}
-                      onChange={(e) => setPreprocessOptions(prev => ({
-                        ...prev,
-                        convertCallouts: e.target.checked
-                      }))}
-                    />
-                    <span>Convertir les callouts</span>
-                  </label>
-                  <label className="flex items-center space-x-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={preprocessOptions.normalizeLineBreaks}
-                      onChange={(e) => setPreprocessOptions(prev => ({
-                        ...prev,
-                        normalizeLineBreaks: e.target.checked
-                      }))}
-                    />
-                    <span>Normaliser les sauts</span>
-                  </label>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={reprocessContent}
-                  className="w-full"
-                >
-                  <Wand2 className="h-4 w-4 mr-2" />
-                  Retraiter avec ces options
-                </Button>
-              </CardContent>
-            </Card>
+            <PreprocessingOptions
+              options={preprocessOptions}
+              onOptionsChange={setPreprocessOptions}
+              onReprocess={reprocessContent}
+            />
 
-            {/* Aperçu comparatif */}
             <Tabs defaultValue="original" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="original">Version originale</TabsTrigger>
@@ -325,7 +225,6 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
               </TabsContent>
             </Tabs>
 
-            {/* Actions d'import */}
             <div className="flex gap-2 pt-4 border-t">
               <Button onClick={() => handleImport(false)} className="flex-1" variant="outline">
                 <Upload className="h-4 w-4 mr-2" />
@@ -351,51 +250,16 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
 
   return (
     <div className={className}>
-      <Card 
-        className={`border-2 border-dashed transition-colors ${
-          isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-        }`}
+      <FileUploadArea
+        isDragging={isDragging}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-      >
-        <CardContent className="flex flex-col items-center justify-center py-6">
-          <FileText className="h-8 w-8 text-gray-400 mb-2" />
-          <p className="text-sm text-gray-600 mb-2 text-center">
-            Glissez un fichier ici ou cliquez pour sélectionner
-          </p>
-          <p className="text-xs text-gray-500 mb-4">
-            Formats supportés: {supportedFormats.join(', ')}
-          </p>
-          <div className="flex items-center gap-2 mb-4">
-            <Badge variant="secondary">
-              Preprocessing intelligent
-            </Badge>
-            <Badge variant="outline">
-              Mode conservateur par défaut
-            </Badge>
-          </div>
-          
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2"
-          >
-            <Upload className="h-4 w-4" />
-            Choisir un fichier
-          </Button>
-          
-          <Input
-            ref={fileInputRef}
-            type="file"
-            accept={supportedFormats.join(',')}
-            onChange={handleFileInputChange}
-            className="hidden"
-          />
-        </CardContent>
-      </Card>
+        onFileSelect={() => fileInputRef.current?.click()}
+        fileInputRef={fileInputRef}
+        onFileInputChange={handleFileInputChange}
+        supportedFormats={supportedFormats}
+      />
     </div>
   );
 };
