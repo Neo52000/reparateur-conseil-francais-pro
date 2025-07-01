@@ -48,6 +48,14 @@ const PreprocessingOptions: React.FC<PreprocessingOptionsProps> = ({
           <label className="flex items-center space-x-2 text-sm">
             <input
               type="checkbox"
+              checked={options.preserveTables || false}
+              onChange={(e) => updateOption('preserveTables', e.target.checked)}
+            />
+            <span>Préserver les tableaux</span>
+          </label>
+          <label className="flex items-center space-x-2 text-sm">
+            <input
+              type="checkbox"
               checked={options.cleanMetadata || false}
               onChange={(e) => updateOption('cleanMetadata', e.target.checked)}
             />

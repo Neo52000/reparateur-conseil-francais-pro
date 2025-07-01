@@ -1,3 +1,4 @@
+
 /**
  * Service principal de preprocessing pour normaliser le contenu importé
  */
@@ -23,10 +24,16 @@ export class ContentPreprocessor {
       cleanMetadata = true,
       convertCallouts = false,
       normalizeLineBreaks = true,
-      conservative = true
+      conservative = true,
+      preserveTables = true
     } = options;
 
     let processed = content;
+
+    // Préserver les tableaux en premier si demandé
+    if (preserveTables) {
+      processed = ContentCleaner.preserveMarkdownTables(processed);
+    }
 
     // Mode conservateur : transformations minimales
     if (conservative) {

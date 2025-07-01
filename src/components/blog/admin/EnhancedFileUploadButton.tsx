@@ -33,7 +33,8 @@ const EnhancedFileUploadButton: React.FC<EnhancedFileUploadButtonProps> = ({
     cleanMetadata: true,
     convertCallouts: false,
     normalizeLineBreaks: true,
-    conservative: true
+    conservative: true,
+    preserveTables: true
   });
 
   const supportedFormats = ['.md', '.txt', '.json'];

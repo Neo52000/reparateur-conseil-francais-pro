@@ -9,9 +9,36 @@ export interface PreprocessOptions {
   convertCallouts?: boolean;
   normalizeLineBreaks?: boolean;
   conservative?: boolean;
+  preserveTables?: boolean;
 }
 
 export class ContentCleaner {
+  /**
+   * Préserve les tableaux Markdown
+   */
+  static preserveMarkdownTables(content: string): string {
+    // Détecter et préserver les tableaux Markdown
+    return content.replace(
+      /((?:\|[^|\n]*)+\|[\n\r]*)+/g,
+      (tableMatch) => {
+        const lines = tableMatch.split(/[\n\r]+/).filter(line => line.trim());
+        return lines
+          .map(line => {
+            // Nettoyer les espaces autour des pipes tout en préservant la structure
+            return line.replace(/\s*\|\s*/g, ' | ').replace(/^\s*\|\s*/, '| ').replace(/\s*\|\s*$/, ' |');
+          })
+          .join('\n') + '\n';
+      }
+    );
+  }
+
+  /**
+   * Vérifie si une ligne fait partie d'un tableau Markdown
+   */
+  static isTableLine(line: string): boolean {
+    return /^\s*\|.*\|\s*$/.test(line) || /^\s*\|[\s-:]*\|\s*$/.test(line);
+  }
+
   /**
    * Nettoie les métadonnées de manière conservatrice
    */
@@ -26,15 +53,46 @@ export class ContentCleaner {
   }
 
   /**
-   * Normalise les sauts de ligne de manière conservatrice
+   * Normalise les sauts de ligne de manière conservatrice en préservant les tableaux
    */
   static normalizeLineBreaksConservative(content: string): string {
-    return content
-      // Normaliser les fins de ligne seulement
+    const lines = content.split('\n');
+    const result: string[] = [];
+    let inTable = false;
+    let consecutiveEmptyLines = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const isCurrentLineTable = this.isTableLine(line);
+      const isNextLineTable = i < lines.length - 1 ? this.isTableLine(lines[i + 1]) : false;
+
+      // Détecter le début/fin d'un tableau
+      if (isCurrentLineTable && !inTable) {
+        inTable = true;
+      } else if (!isCurrentLineTable && !isNextLineTable && inTable) {
+        inTable = false;
+      }
+
+      if (line.trim() === '') {
+        consecutiveEmptyLines++;
+        // Dans un tableau, préserver au maximum 1 ligne vide
+        if (inTable && consecutiveEmptyLines <= 1) {
+          result.push(line);
+        }
+        // Hors tableau, limiter à 2 lignes vides consécutives
+        else if (!inTable && consecutiveEmptyLines <= 2) {
+          result.push(line);
+        }
+      } else {
+        consecutiveEmptyLines = 0;
+        result.push(line);
+      }
+    }
+
+    return result.join('\n')
+      // Normaliser les fins de ligne
       .replace(/\r\n/g, '\n')
-      .replace(/\r/g, '\n')
-      // Réduire les sauts de ligne excessifs (4+ vers 2)
-      .replace(/\n{4,}/g, '\n\n');
+      .replace(/\r/g, '\n');
   }
 
   /**
@@ -51,13 +109,33 @@ export class ContentCleaner {
   }
 
   /**
-   * Normalise les sauts de ligne (mode normal)
+   * Normalise les sauts de ligne (mode normal) en préservant les tableaux
    */
   static normalizeLineBreaks(content: string): string {
-    return content
+    const lines = content.split('\n');
+    const result: string[] = [];
+    let inTable = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const isCurrentLineTable = this.isTableLine(line);
+      const isNextLineTable = i < lines.length - 1 ? this.isTableLine(lines[i + 1]) : false;
+
+      // Détecter le début/fin d'un tableau
+      if (isCurrentLineTable && !inTable) {
+        inTable = true;
+      } else if (!isCurrentLineTable && !isNextLineTable && inTable) {
+        inTable = false;
+      }
+
+      result.push(line);
+    }
+
+    return result.join('\n')
       // Normaliser les fins de ligne
       .replace(/\r\n/g, '\n')
       .replace(/\r/g, '\n')
+      // Appliquer les règles normales seulement hors des tableaux
       .replace(/(\n-\s.*)\n\n(\s*-\s)/g, '$1\n$2')
       .replace(/(\n\d+\.\s.*)\n\n(\s*\d+\.\s)/g, '$1\n$2');
   }
@@ -83,7 +161,13 @@ export class ContentCleaner {
    * Préserve et améliore le formatage
    */
   static preserveFormatting(content: string): string {
-    return content
+    let processed = content;
+
+    // Préserver les tableaux en premier
+    processed = this.preserveMarkdownTables(processed);
+
+    // Améliorer les autres éléments de formatage
+    processed = processed
       // Améliorer les listes à puces
       .replace(/^\s*[\*\+\-]\s+/gm, '- ')
       .replace(/```(\w+)?\n([\s\S]*?)\n```/g, (match, lang, code) => {
@@ -91,6 +175,8 @@ export class ContentCleaner {
       })
       .replace(/^#{1,6}\s+/gm, (match) => match.trim() + ' ')
       .replace(/\[([^\]]+)\]\s*\(\s*([^)]+)\s*\)/g, '[$1]($2)');
+
+    return processed;
   }
 
   /**
