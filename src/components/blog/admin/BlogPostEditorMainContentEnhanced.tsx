@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,8 +10,8 @@ import { FileText, Code, Eye, Upload } from 'lucide-react';
 import MarkdownEditor from './MarkdownEditor';
 import ContentPreview from './ContentPreview';
 import AIEnhancementButton from './AIEnhancementButton';
-import FileUploadButton from './FileUploadButton';
 import TemplateSelector from './TemplateSelector';
+import EnhancedFileUploadButton from './EnhancedFileUploadButton';
 
 interface BlogPostEditorMainContentEnhancedProps {
   title: string;
@@ -192,7 +191,7 @@ const BlogPostEditorMainContentEnhanced: React.FC<BlogPostEditorMainContentEnhan
 
         {showFileUpload && (
           <div className="mb-4">
-            <FileUploadButton onFileContent={handleFileContent} />
+            <EnhancedFileUploadButton onFileContent={handleFileContent} />
           </div>
         )}
 

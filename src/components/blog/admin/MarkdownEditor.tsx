@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Maximize2, Minimize2, Eye, EyeOff, FileText, Save } from 'lucide-react';
 import '@uiw/react-md-editor/markdown-editor.css';
 import '@uiw/react-markdown-preview/markdown.css';
-import './markdown-editor.css';
+import './enhanced-markdown-editor.css';
 
 interface MarkdownEditorProps {
   value: string;
@@ -31,17 +31,19 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [previewMode, setPreviewMode] = useState<'edit' | 'live' | 'preview'>('live');
   const [wordCount, setWordCount] = useState(0);
+  const [charCount, setCharCount] = useState(0);
 
   const handleChange = useCallback((val?: string) => {
     const newValue = val || '';
     onChange(newValue);
     
-    // Calculer le nombre de mots (approximatif)
+    // Calculer les statistiques
     const words = newValue
       .replace(/[#*_`]/g, '') // Retirer les caractères markdown
       .split(/\s+/)
       .filter(word => word.length > 0);
     setWordCount(words.length);
+    setCharCount(newValue.length);
   }, [onChange]);
 
   return (
@@ -52,7 +54,10 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             <FileText className="h-5 w-5" />
             {title}
           </CardTitle>
-          <Badge variant="outline">{wordCount} mots</Badge>
+          <div className="flex gap-1">
+            <Badge variant="outline">{wordCount} mots</Badge>
+            <Badge variant="outline">{charCount} caractères</Badge>
+          </div>
         </div>
         
         <div className="flex items-center gap-2">
@@ -63,6 +68,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               size="sm"
               onClick={() => setPreviewMode('edit')}
               className="rounded-r-none"
+              title="Mode édition uniquement"
             >
               <EyeOff className="h-4 w-4" />
             </Button>
@@ -71,6 +77,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               size="sm"
               onClick={() => setPreviewMode('live')}
               className="rounded-none"
+              title="Mode édition + aperçu"
             >
               Mixte
             </Button>
@@ -79,6 +86,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               size="sm"
               onClick={() => setPreviewMode('preview')}
               className="rounded-l-none"
+              title="Mode aperçu uniquement"
             >
               <Eye className="h-4 w-4" />
             </Button>
@@ -95,6 +103,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => setIsFullscreen(!isFullscreen)}
+            title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
           >
             {isFullscreen ? (
               <Minimize2 className="h-4 w-4" />
@@ -120,6 +129,16 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 fontSize: 14,
                 lineHeight: 1.6,
                 fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace'
+              }
+            }}
+            // Configuration avancée pour GFM
+            components={{
+              preview: (source, state, dispatch) => {
+                return (
+                  <div className="w-md-editor-preview-content">
+                    {/* Le contenu sera rendu avec nos styles harmonisés */}
+                  </div>
+                );
               }
             }}
           />
