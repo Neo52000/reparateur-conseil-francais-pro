@@ -87,9 +87,13 @@ const GeoTargetingManager: React.FC = () => {
     }
   };
 
-  // Calculate zone counts properly
-  const radiusZones = zones.filter(z => z.type === 'radius');
-  const cityZones = zones.filter(z => z.type === 'city');
+  // Calculate zone counts using proper type checking
+  const getZonesByType = (targetType: GeoTargetingZone['type']) => {
+    return zones.filter(zone => zone.type === targetType);
+  };
+
+  const radiusZones = getZonesByType('radius');
+  const cityZones = getZonesByType('city');
 
   return (
     <div className="space-y-6">
