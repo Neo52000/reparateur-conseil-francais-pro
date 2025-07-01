@@ -4,37 +4,65 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brush, Plus, Image, Video, FileText, Sparkles } from 'lucide-react';
+import { Brush, Plus, Image, Video, FileText, Sparkles, Edit, Copy, Trash2 } from 'lucide-react';
+import { useCreatives } from '@/hooks/useCreatives';
+import { AICreativeService } from '@/services/advertising/AICreativeService';
+import CreateCreativeModal from './modals/CreateCreativeModal';
+import EditCreativeModal from './modals/EditCreativeModal';
+import AIGenerationModal from './modals/AIGenerationModal';
+import { Creative } from '@/types/creatives';
+import { toast } from 'sonner';
 
 const CreativesLibrary: React.FC = () => {
-  const [creatives] = useState([
-    {
-      id: '1',
-      name: 'Bannière Réparation iPhone',
-      type: 'image',
-      url: '/api/placeholder/300/150',
-      ai_generated: true,
-      performance_score: 8.5,
-      status: 'active'
-    },
-    {
-      id: '2',
-      name: 'Vidéo Promo Samsung',
-      type: 'video',
-      url: '/api/placeholder/300/150',
-      ai_generated: false,
-      performance_score: 7.2,
-      status: 'active'
-    },
-    {
-      id: '3',
-      name: 'Texte Offre Spéciale',
-      type: 'text',
-      ai_generated: true,
-      performance_score: 9.1,
-      status: 'draft'
+  const {
+    creatives,
+    loading,
+    createCreative,
+    updateCreative,
+    deleteCreative,
+    duplicateCreative,
+    uploadFile,
+  } = useCreatives();
+
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [selectedCreative, setSelectedCreative] = useState<Creative | null>(null);
+  const [activeTab, setActiveTab] = useState('all');
+
+  const handleAIGeneration = async (request: any) => {
+    try {
+      const generated = await AICreativeService.generateCreative(request);
+      await createCreative(generated);
+      toast.success('Créatif généré avec succès par l\'IA !');
+    } catch (error) {
+      console.error('Error generating creative:', error);
+      toast.error('Erreur lors de la génération IA');
     }
-  ]);
+  };
+
+  const handleEdit = (creative: Creative) => {
+    setSelectedCreative(creative);
+    setEditModalOpen(true);
+  };
+
+  const handleDuplicate = async (creative: Creative) => {
+    try {
+      await duplicateCreative(creative.id);
+    } catch (error) {
+      console.error('Error duplicating creative:', error);
+    }
+  };
+
+  const handleDelete = async (creative: Creative) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce créatif ?')) {
+      try {
+        await deleteCreative(creative.id);
+      } catch (error) {
+        console.error('Error deleting creative:', error);
+      }
+    }
+  };
 
   const creativeTypes = [
     { id: 'all', label: 'Tous', icon: Brush },
@@ -42,6 +70,19 @@ const CreativesLibrary: React.FC = () => {
     { id: 'video', label: 'Vidéos', icon: Video },
     { id: 'text', label: 'Textes', icon: FileText }
   ];
+
+  const filteredCreatives = activeTab === 'all' 
+    ? creatives 
+    : creatives.filter(creative => creative.creative_type === activeTab);
+
+  const stats = {
+    total: creatives.length,
+    aiGenerated: creatives.filter(c => c.ai_generated).length,
+    averageScore: creatives.length > 0 
+      ? (creatives.reduce((sum, c) => sum + c.performance_score, 0) / creatives.length).toFixed(1)
+      : '0',
+    active: creatives.filter(c => c.status === 'active').length,
+  };
 
   return (
     <div className="space-y-6">
@@ -55,11 +96,11 @@ const CreativesLibrary: React.FC = () => {
           <p className="text-gray-600">Gestion et génération automatique de contenus publicitaires</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => setAiModalOpen(true)}>
             <Sparkles className="h-4 w-4 mr-2" />
             Générer avec IA
           </Button>
-          <Button>
+          <Button onClick={() => setCreateModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Ajouter créatif
           </Button>
@@ -72,7 +113,7 @@ const CreativesLibrary: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total créatifs</p>
-                <p className="text-2xl font-bold">{creatives.length}</p>
+                <p className="text-2xl font-bold">{stats.total}</p>
               </div>
               <Brush className="h-8 w-8 text-purple-500" />
             </div>
@@ -84,7 +125,7 @@ const CreativesLibrary: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Générés par IA</p>
-                <p className="text-2xl font-bold">{creatives.filter(c => c.ai_generated).length}</p>
+                <p className="text-2xl font-bold">{stats.aiGenerated}</p>
               </div>
               <Sparkles className="h-8 w-8 text-yellow-500" />
             </div>
@@ -96,7 +137,7 @@ const CreativesLibrary: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Score moyen</p>
-                <p className="text-2xl font-bold">8.3</p>
+                <p className="text-2xl font-bold">{stats.averageScore}</p>
               </div>
               <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
                 <span className="text-green-600 font-bold text-sm">★</span>
@@ -110,7 +151,7 @@ const CreativesLibrary: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">En production</p>
-                <p className="text-2xl font-bold">{creatives.filter(c => c.status === 'active').length}</p>
+                <p className="text-2xl font-bold">{stats.active}</p>
               </div>
               <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
                 <div className="h-3 w-3 bg-blue-500 rounded-full"></div>
@@ -120,7 +161,7 @@ const CreativesLibrary: React.FC = () => {
         </Card>
       </div>
 
-      <Tabs defaultValue="all" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           {creativeTypes.map((type) => (
             <TabsTrigger key={type.id} value={type.id}>
@@ -130,57 +171,145 @@ const CreativesLibrary: React.FC = () => {
           ))}
         </TabsList>
 
-        <TabsContent value="all" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {creatives.map((creative) => (
-              <Card key={creative.id}>
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    {creative.type === 'image' && creative.url && (
-                      <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Image className="h-8 w-8 text-gray-400" />
-                      </div>
-                    )}
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-sm">{creative.name}</h3>
-                        <Badge variant={creative.status === 'active' ? "default" : "secondary"}>
-                          {creative.status === 'active' ? 'Actif' : 'Brouillon'}
-                        </Badge>
+        <TabsContent value={activeTab} className="space-y-4">
+          {loading ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Chargement des créatifs...</p>
+            </div>
+          ) : filteredCreatives.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Aucun créatif trouvé</p>
+              <Button onClick={() => setCreateModalOpen(true)} className="mt-4">
+                <Plus className="h-4 w-4 mr-2" />
+                Créer votre premier créatif
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredCreatives.map((creative) => (
+                <Card key={creative.id}>
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      {creative.creative_type === 'image' && creative.creative_url && (
+                        <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                          <img 
+                            src={creative.creative_url} 
+                            alt={creative.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      
+                      {creative.creative_type === 'text' && (
+                        <div className="aspect-video bg-gray-50 rounded-lg p-4 flex items-center justify-center">
+                          <p className="text-sm text-center line-clamp-3">
+                            {creative.creative_data?.content || 'Contenu textuel'}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {creative.creative_type === 'video' && (
+                        <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                          <Video className="h-8 w-8 text-gray-400" />
+                        </div>
+                      )}
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-sm truncate">{creative.name}</h3>
+                          <Badge variant={creative.status === 'active' ? "default" : "secondary"}>
+                            {creative.status === 'active' ? 'Actif' : 
+                             creative.status === 'draft' ? 'Brouillon' : 'Archivé'}
+                          </Badge>
+                        </div>
+                        
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              {creative.creative_type}
+                            </Badge>
+                            {creative.ai_generated && (
+                              <Badge variant="outline" className="text-xs">
+                                <Sparkles className="h-3 w-3 mr-1" />
+                                IA
+                              </Badge>
+                            )}
+                          </div>
+                          <span>Score: {creative.performance_score}/10</span>
+                        </div>
+
+                        {creative.tags && creative.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {creative.tags.slice(0, 3).map((tag) => (
+                              <Badge key={tag} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {creative.tags.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{creative.tags.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                       </div>
                       
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            {creative.type}
-                          </Badge>
-                          {creative.ai_generated && (
-                            <Badge variant="outline" className="text-xs">
-                              <Sparkles className="h-3 w-3 mr-1" />
-                              IA
-                            </Badge>
-                          )}
-                        </div>
-                        <span>Score: {creative.performance_score}/10</span>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => handleEdit(creative)}
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Modifier
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => handleDuplicate(creative)}
+                        >
+                          <Copy className="h-3 w-3 mr-1" />
+                          Dupliquer
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleDelete(creative)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
-                    
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Modifier
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Dupliquer
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
+
+      {/* Modales */}
+      <CreateCreativeModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onSubmit={createCreative}
+        onUpload={uploadFile}
+      />
+
+      <EditCreativeModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        creative={selectedCreative}
+        onSubmit={updateCreative}
+      />
+
+      <AIGenerationModal
+        isOpen={aiModalOpen}
+        onClose={() => setAiModalOpen(false)}
+        onGenerate={handleAIGeneration}
+      />
     </div>
   );
 };
