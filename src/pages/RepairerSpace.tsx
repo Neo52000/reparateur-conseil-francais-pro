@@ -23,8 +23,8 @@ const RepairerSpace = () => {
     }
     
     if (!user) {
-      console.log('RepairerSpace - No user, redirecting to auth');
-      navigate('/repairer/auth', { replace: true });
+      console.log('RepairerSpace - No user, redirecting to repairer auth');
+      navigate('/repairer-auth', { replace: true });
       return;
     }
 
@@ -40,7 +40,8 @@ const RepairerSpace = () => {
       if (profile?.role === 'client') {
         navigate('/client', { replace: true });
       } else {
-        navigate('/', { replace: true });
+        console.log('RepairerSpace - Unknown role, redirecting to repairer auth');
+        navigate('/repairer-auth', { replace: true });
       }
       return;
     }
@@ -60,7 +61,7 @@ const RepairerSpace = () => {
   }
 
   if (!user) {
-    console.log('RepairerSpace - Rendering null, should redirect');
+    console.log('RepairerSpace - Rendering null, should redirect to auth');
     return null;
   }
 
