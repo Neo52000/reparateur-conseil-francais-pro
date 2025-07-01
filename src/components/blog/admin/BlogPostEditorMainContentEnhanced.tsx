@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, Code, Eye, Upload, Template } from 'lucide-react';
+import { FileText, Code, Eye, Upload } from 'lucide-react';
 import MarkdownEditor from './MarkdownEditor';
 import ContentPreview from './ContentPreview';
 import AIEnhancementButton from './AIEnhancementButton';
@@ -149,7 +149,7 @@ const BlogPostEditorMainContentEnhanced: React.FC<BlogPostEditorMainContentEnhan
               size="sm"
               onClick={() => setShowTemplates(!showTemplates)}
             >
-              <Template className="h-4 w-4 mr-2" />
+              <FileText className="h-4 w-4 mr-2" />
               Templates
             </Button>
             <Button
