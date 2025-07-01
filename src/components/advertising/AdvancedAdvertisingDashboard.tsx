@@ -158,20 +158,21 @@ const AdvancedAdvertisingDashboard: React.FC = () => {
         </Card>
       </div>
 
-      {/* Navigation par onglets */}
+      {/* Navigation par onglets améliorée */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <div className="overflow-x-auto">
-          <TabsList className="grid w-full grid-cols-9 lg:w-full">
+        <div className="w-full">
+          <TabsList className="flex flex-wrap w-full h-auto p-2 bg-gray-100 rounded-lg gap-1">
             {tabsConfig.map((tab) => (
               <TabsTrigger 
                 key={tab.id} 
                 value={tab.id}
-                className="flex items-center gap-2 text-xs lg:text-sm"
+                className="flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-md whitespace-nowrap bg-transparent data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200 hover:bg-white/50"
               >
-                <tab.icon className="h-4 w-4" />
+                <tab.icon className="h-4 w-4 flex-shrink-0" />
                 <span className="hidden sm:inline">{tab.label}</span>
+                <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
                 {tab.badge && (
-                  <Badge variant="secondary" className="ml-1 text-xs">
+                  <Badge variant="secondary" className="ml-1 text-xs px-1.5 py-0.5">
                     {tab.badge}
                   </Badge>
                 )}
