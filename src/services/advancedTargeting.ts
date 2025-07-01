@@ -168,11 +168,17 @@ export class AdvancedTargetingService {
           .limit(10);
 
         if (analytics) {
-          personalizationData.interaction_history = analytics.map(event => ({
-            type: event.event_type,
-            target: event.event_data?.target || 'unknown',
-            timestamp: event.created_at
-          }));
+          personalizationData.interaction_history = analytics.map(event => {
+            // Vérifier que event_data est un objet et contient la propriété target
+            const eventData = event.event_data as Record<string, any> | null;
+            const target = eventData && typeof eventData === 'object' ? eventData.target : 'unknown';
+            
+            return {
+              type: event.event_type,
+              target: typeof target === 'string' ? target : 'unknown',
+              timestamp: event.created_at
+            };
+          });
         }
       } catch (error) {
         console.error('Error fetching personalization data:', error);
