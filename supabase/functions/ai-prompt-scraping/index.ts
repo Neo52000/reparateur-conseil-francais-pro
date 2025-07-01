@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,10 +23,22 @@ serve(async (req) => {
   }
 
   try {
+    console.log('🚀 AI Prompt Scraping function called');
+    
+    // Vérifier les clés API disponibles
+    const deepseekKey = Deno.env.get('DEEPSEEK_API_KEY');
+    const mistralKey = Deno.env.get('MISTRAL_API_KEY');
+    const openaiKey = Deno.env.get('OPENAI_API_KEY');
+    
+    console.log('🔑 API Keys status:', { 
+      deepseek: deepseekKey ? 'Present' : 'Missing',
+      mistral: mistralKey ? 'Present' : 'Missing', 
+      openai: openaiKey ? 'Present' : 'Missing'
+    });
+
     const { action, prompt, ai_model, output_format, analysis } = await req.json();
 
-    console.log(`🤖 AI Prompt Scraping - Action: ${action}, Model: ${ai_model}`);
-    console.log(`📝 Prompt reçu: "${prompt}"`);
+    console.log(`📝 Request details: action=${action}, model=${ai_model}, prompt="${prompt?.substring(0, 100)}..."`);
 
     if (action === 'analyze') {
       return await analyzePrompt(prompt, ai_model, output_format);
@@ -42,9 +53,12 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: 'Vérifiez que les clés API sont configurées dans Supabase'
+        details: 'Vérifiez les logs pour plus d\'informations'
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+        status: 500 
+      }
     );
   }
 });
@@ -56,13 +70,13 @@ async function analyzePrompt(prompt: string, aiModel: string, outputFormat: stri
   const apiKey = getAPIKey(aiModel);
   if (!apiKey) {
     console.error(`❌ Clé API manquante pour ${aiModel}`);
-    throw new Error(`Clé API ${aiModel.toUpperCase()}_API_KEY non configurée dans Supabase. Veuillez l'ajouter dans les secrets Edge Functions.`);
+    throw new Error(`Clé API ${aiModel.toUpperCase()}_API_KEY non configurée. Veuillez l'ajouter dans les secrets Supabase.`);
   }
 
   console.log(`✅ Clé API trouvée pour ${aiModel}`);
 
   const analysisPrompt = `
-Analyse ce prompt de scraping et extrais les informations structurées au format JSON :
+Analyse ce prompt de scraping et extrais les informations au format JSON :
 
 PROMPT: "${prompt}"
 
@@ -77,31 +91,26 @@ Réponds UNIQUEMENT avec un JSON valide contenant :
   "keywords": ["mots-clés importants pour la recherche"],
   "max_results": nombre_max_de_résultats_estimé
 }
-
-Exemples de business_types: "réparateur smartphone", "magasin informatique", "boutique téléphonie", "service après-vente"
-Exemples de services: "réparation écran", "micro soudure", "vente", "dépannage", "maintenance"
 `;
 
   try {
     console.log(`🚀 Appel API ${aiModel}...`);
     const analysis = await callAI(aiModel, analysisPrompt);
-    console.log(`📥 Réponse brute de ${aiModel}:`, analysis.substring(0, 200) + '...');
+    console.log(`📥 Réponse IA reçue (${analysis.length} chars)`);
     
     // Parser le JSON de réponse
     const jsonMatch = analysis.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error('❌ Aucun JSON trouvé dans la réponse IA');
-      throw new Error('Format de réponse IA invalide - aucun JSON détecté');
+      console.error('❌ Aucun JSON dans la réponse IA');
+      throw new Error('L\'IA n\'a pas retourné un format JSON valide');
     }
 
     const parsedAnalysis: PromptAnalysis = JSON.parse(jsonMatch[0]);
-    console.log('✅ JSON parsé avec succès:', parsedAnalysis);
+    console.log('✅ JSON parsé:', parsedAnalysis);
     
-    // Enrichir l'analyse avec des données par défaut
+    // Enrichir l'analyse
     parsedAnalysis.output_format = parsedAnalysis.output_format || outputFormat;
-    parsedAnalysis.max_results = parsedAnalysis.max_results || 100;
-
-    console.log('✅ Analyse terminée avec succès');
+    parsedAnalysis.max_results = parsedAnalysis.max_results || 50;
 
     return new Response(
       JSON.stringify({ 
@@ -114,28 +123,15 @@ Exemples de services: "réparation écran", "micro soudure", "vente", "dépannag
 
   } catch (error) {
     console.error('❌ Erreur lors de l\'analyse:', error);
-    
-    // Erreur spécifique pour les problèmes d'API
-    if (error.message.includes('fetch')) {
-      throw new Error(`Erreur de connexion à l'API ${aiModel}. Vérifiez votre connexion internet et la validité de votre clé API.`);
-    }
-    
-    // Erreur de parsing JSON
-    if (error.message.includes('JSON')) {
-      throw new Error(`L'IA ${aiModel} n'a pas retourné un format valide. Essayez avec un autre modèle.`);
-    }
-    
     throw new Error(`Erreur d'analyse avec ${aiModel}: ${error.message}`);
   }
 }
 
 async function executeScraping(prompt: string, aiModel: string, outputFormat: string, analysis: PromptAnalysis) {
-  console.log('🚀 Exécution du scraping basé sur l\'analyse:', analysis);
+  console.log('🚀 Exécution du scraping simulé');
 
-  // Simuler le scraping pour l'instant - à remplacer par le vrai scraping
+  // Génération de données de test basées sur l'analyse
   const mockResults = generateMockResults(analysis);
-
-  // Formater les résultats selon le format demandé
   const formattedResults = formatResults(mockResults, analysis.output_format);
 
   console.log(`✅ Scraping simulé terminé: ${formattedResults.length} résultats`);
@@ -159,7 +155,7 @@ async function callAI(model: string, prompt: string): Promise<string> {
     throw new Error(`Clé API manquante pour ${model}`);
   }
 
-  console.log(`🔑 Utilisation de la clé API pour ${model} (${apiKey.substring(0, 10)}...)`);
+  console.log(`🔑 Utilisation de la clé API pour ${model}`);
 
   switch (model) {
     case 'deepseek':
@@ -174,21 +170,16 @@ async function callAI(model: string, prompt: string): Promise<string> {
 }
 
 function getAPIKey(model: string): string | undefined {
-  let key: string | undefined;
-  switch (model) {
-    case 'deepseek':
-      key = Deno.env.get('DEEPSEEK_API_KEY');
-      break;
-    case 'mistral':
-      key = Deno.env.get('MISTRAL_API_KEY');
-      break;
-    case 'openai':
-      key = Deno.env.get('OPENAI_API_KEY');
-      break;
-    default:
-      return undefined;
-  }
+  const keyMap = {
+    'deepseek': 'DEEPSEEK_API_KEY',
+    'mistral': 'MISTRAL_API_KEY',
+    'openai': 'OPENAI_API_KEY'
+  };
   
+  const keyName = keyMap[model as keyof typeof keyMap];
+  if (!keyName) return undefined;
+  
+  const key = Deno.env.get(keyName);
   console.log(`🔍 Clé API ${model}: ${key ? 'Trouvée' : 'Manquante'}`);
   return key;
 }
@@ -210,10 +201,12 @@ async function callDeepSeek(apiKey: string, prompt: string): Promise<string> {
     })
   });
 
+  console.log(`📊 DeepSeek response status: ${response.status}`);
+
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`❌ DeepSeek API error ${response.status}:`, errorText);
-    throw new Error(`DeepSeek API error: ${response.status} - ${errorText}`);
+    console.error(`❌ DeepSeek API error:`, errorText);
+    throw new Error(`DeepSeek API error: ${response.status} - Vérifiez votre clé API`);
   }
 
   const data = await response.json();
@@ -239,10 +232,12 @@ async function callMistral(apiKey: string, prompt: string): Promise<string> {
     })
   });
 
+  console.log(`📊 Mistral response status: ${response.status}`);
+
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`❌ Mistral API error ${response.status}:`, errorText);
-    throw new Error(`Mistral API error: ${response.status} - ${errorText}`);
+    console.error(`❌ Mistral API error:`, errorText);
+    throw new Error(`Mistral API error: ${response.status} - Vérifiez votre clé API`);
   }
 
   const data = await response.json();
@@ -268,10 +263,12 @@ async function callOpenAI(apiKey: string, prompt: string): Promise<string> {
     })
   });
 
+  console.log(`📊 OpenAI response status: ${response.status}`);
+
   if (!response.ok) {
     const errorText = await response.text();
-    console.error(`❌ OpenAI API error ${response.status}:`, errorText);    
-    throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+    console.error(`❌ OpenAI API error:`, errorText);    
+    throw new Error(`OpenAI API error: ${response.status} - Vérifiez votre clé API`);
   }
 
   const data = await response.json();
@@ -281,13 +278,12 @@ async function callOpenAI(apiKey: string, prompt: string): Promise<string> {
 }
 
 function generateMockResults(analysis: PromptAnalysis): any[] {
-  // Génération de données de test basées sur l'analyse
   const mockData = [];
   const businessTypes = analysis.business_types || ['réparateur'];
   const location = analysis.location || 'France';
   const department = analysis.department || '01';
 
-  for (let i = 0; i < Math.min(analysis.max_results || 20, 50); i++) {
+  for (let i = 0; i < Math.min(analysis.max_results || 20, 30); i++) {
     mockData.push({
       nom: `${businessTypes[0]} ${i + 1}`,
       adresse: `${10 + i} rue de la Réparation, ${location}`,

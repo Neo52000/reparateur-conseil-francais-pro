@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Sparkles, Play, History, FileText, Download, AlertTriangle } from 'lucide-react';
+import { Brain, Sparkles, Play, History, FileText, Download, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -41,6 +41,7 @@ const AIPromptScraping = () => {
   const [results, setResults] = useState<any[]>([]);
   const [analysisInfo, setAnalysisInfo] = useState<any>(null);
   const [error, setError] = useState<string>('');
+  const [apiStatus, setApiStatus] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
 
   const handlePromptExample = (example: PromptExample) => {
@@ -77,7 +78,15 @@ const AIPromptScraping = () => {
 
       if (error) {
         console.error('❌ Erreur Supabase:', error);
-        throw new Error(error.message || 'Erreur lors de l\'appel à la fonction');
+        let errorMessage = 'Erreur lors de l\'appel à la fonction';
+        
+        if (error.message?.includes('API_KEY')) {
+          errorMessage = `Clé API ${selectedAI.toUpperCase()} manquante ou invalide. Vérifiez la configuration dans Supabase.`;
+        } else if (error.message?.includes('non-2xx')) {
+          errorMessage = 'Erreur de serveur. Vérifiez les logs pour plus de détails.';
+        }
+        
+        throw new Error(errorMessage);
       }
 
       if (!data || !data.success) {
@@ -85,6 +94,8 @@ const AIPromptScraping = () => {
       }
 
       setAnalysisInfo(data.analysis);
+      setApiStatus(prev => ({ ...prev, [selectedAI]: true }));
+      
       toast({
         title: "✅ Prompt analysé",
         description: "Le prompt a été analysé avec succès. Vérifiez les paramètres détectés.",
@@ -94,6 +105,7 @@ const AIPromptScraping = () => {
       console.error('💥 Erreur analyse prompt:', error);
       const errorMessage = error.message || 'Erreur inconnue lors de l\'analyse';
       setError(errorMessage);
+      setApiStatus(prev => ({ ...prev, [selectedAI]: false }));
       
       toast({
         title: "❌ Erreur d'analyse",
@@ -206,7 +218,14 @@ const AIPromptScraping = () => {
           <CardContent className="pt-4">
             <div className="flex items-center space-x-2 text-red-800">
               <AlertTriangle className="h-4 w-4" />
-              <p className="text-sm">{error}</p>
+              <div>
+                <p className="text-sm font-medium">{error}</p>
+                {error.includes('API') && (
+                  <p className="text-xs mt-1">
+                    Vérifiez que les clés API sont configurées dans les secrets Supabase Edge Functions.
+                  </p>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -229,9 +248,27 @@ const AIPromptScraping = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="deepseek">DeepSeek (Recommandé)</SelectItem>
-                  <SelectItem value="mistral">Mistral</SelectItem>
-                  <SelectItem value="openai">OpenAI GPT-4</SelectItem>
+                  <SelectItem value="deepseek">
+                    <div className="flex items-center space-x-2">
+                      <span>DeepSeek (Recommandé)</span>
+                      {apiStatus.deepseek === true && <CheckCircle className="h-3 w-3 text-green-600" />}
+                      {apiStatus.deepseek === false && <AlertTriangle className="h-3 w-3 text-red-600" />}
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="mistral">
+                    <div className="flex items-center space-x-2">
+                      <span>Mistral</span>
+                      {apiStatus.mistral === true && <CheckCircle className="h-3 w-3 text-green-600" />}
+                      {apiStatus.mistral === false && <AlertTriangle className="h-3 w-3 text-red-600" />}
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="openai">
+                    <div className="flex items-center space-x-2">
+                      <span>OpenAI GPT-4</span>
+                      {apiStatus.openai === true && <CheckCircle className="h-3 w-3 text-green-600" />}
+                      {apiStatus.openai === false && <AlertTriangle className="h-3 w-3 text-red-600" />}
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
