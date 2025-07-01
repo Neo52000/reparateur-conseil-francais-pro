@@ -1,4 +1,3 @@
-
 /**
  * Service principal de preprocessing pour normaliser le contenu importé
  */
@@ -7,7 +6,7 @@ import { FormatDetector, DetectedFormat } from './formatDetector';
 import { ContentCleaner, PreprocessOptions } from './contentCleaner';
 import { ContentValidator, ValidationResult, ContentComparison } from './contentValidator';
 
-export { PreprocessOptions, DetectedFormat, ValidationResult, ContentComparison };
+export type { PreprocessOptions, DetectedFormat, ValidationResult, ContentComparison };
 
 export class ContentPreprocessor {
   /**
