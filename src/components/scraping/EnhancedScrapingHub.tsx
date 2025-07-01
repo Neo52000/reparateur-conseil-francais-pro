@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import ScrapingControlPanelEnhanced from './ScrapingControlPanelEnhanced';
 import CSVImportWithGeocoding from './CSVImportWithGeocoding';
 import MassiveScrapingControl from './MassiveScrapingControl';
-import { Globe, Upload, Zap, Database } from 'lucide-react';
+import AIPromptScraping from './AIPromptScraping';
+import { Globe, Upload, Zap, Database, Brain } from 'lucide-react';
 
 const EnhancedScrapingHub = () => {
   const [activeTab, setActiveTab] = useState('ai-scraping');
@@ -33,7 +33,11 @@ const EnhancedScrapingHub = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="ai-prompt" className="flex items-center space-x-2">
+            <Brain className="h-4 w-4" />
+            <span>Prompt IA</span>
+          </TabsTrigger>
           <TabsTrigger value="ai-scraping" className="flex items-center space-x-2">
             <Zap className="h-4 w-4" />
             <span>Scraping IA</span>
@@ -47,6 +51,29 @@ const EnhancedScrapingHub = () => {
             <span>Scraping Massif</span>
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="ai-prompt" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Brain className="h-5 w-5 mr-2 text-purple-600" />
+                Scraping via Prompt IA
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4 p-4 bg-purple-50 rounded-lg">
+                <h4 className="font-semibold text-purple-900 mb-2">🚀 Nouvelle fonctionnalité intelligente</h4>
+                <ul className="text-sm text-purple-800 space-y-1">
+                  <li>• <strong>Langage naturel:</strong> Décrivez simplement ce que vous cherchez</li>
+                  <li>• <strong>Multi-IA:</strong> DeepSeek, Mistral, OpenAI pour l'analyse</li>
+                  <li>• <strong>Auto-configuration:</strong> Paramètres automatiquement détectés</li>
+                  <li>• <strong>Multi-format:</strong> Tableau, CSV, JSON selon vos besoins</li>
+                </ul>
+              </div>
+              <AIPromptScraping />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="ai-scraping" className="space-y-6">
           <Card>
