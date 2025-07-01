@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface AIInsight {
@@ -54,10 +53,43 @@ class AIInsightsService {
     return this.instance;
   }
 
-  // Génère des insights IA basés sur les données réelles
-  async generateInsights(): Promise<AIInsight[]> {
+  // Vérifie si le mode démo est activé
+  private async isDemoModeEnabled(): Promise<boolean> {
     try {
-      // Récupérer les données de performance récentes
+      const { data: flags } = await supabase
+        .from('feature_flags_by_plan')
+        .select('enabled')
+        .eq('feature_key', 'demo_mode_enabled')
+        .eq('plan_name', 'Enterprise')
+        .single();
+
+      const enabled = flags?.enabled || false;
+      console.log('🎯 AIInsightsService - Mode démo vérifié:', enabled);
+      return enabled;
+    } catch (error) {
+      console.error('❌ Erreur lors de la vérification du mode démo:', error);
+      return false;
+    }
+  }
+
+  // Génère des insights IA basés sur les données réelles OU de démo
+  async generateInsights(): Promise<AIInsight[]> {
+    const demoModeEnabled = await this.isDemoModeEnabled();
+    console.log('🔄 AIInsightsService - Génération insights, mode démo:', demoModeEnabled);
+
+    if (demoModeEnabled) {
+      return this.generateDemoInsights();
+    } else {
+      return this.generateRealInsights();
+    }
+  }
+
+  // Génère des insights basés sur de vraies données
+  private async generateRealInsights(): Promise<AIInsight[]> {
+    try {
+      console.log('📊 AIInsightsService - Génération insights réels');
+      
+      // Récupérer les données de performance récentes depuis la base
       const { data: campaigns } = await supabase
         .from('ad_campaigns')
         .select('*')
@@ -65,110 +97,185 @@ class AIInsightsService {
 
       const insights: AIInsight[] = [];
 
-      // Analyser chaque campagne pour générer des insights
-      for (const campaign of campaigns || []) {
-        const campaignInsights = await this.analyzeCampaignPerformance(campaign);
+      // Si pas de campagnes actives, retourner des suggestions de base
+      if (!campaigns || campaigns.length === 0) {
+        insights.push({
+          id: `no_campaigns_${Date.now()}`,
+          type: 'recommendation',
+          priority: 'medium',
+          title: 'Aucune campagne active détectée',
+          description: 'Créez votre première campagne publicitaire pour commencer à générer des leads',
+          impact: 'Commencer à attirer des clients potentiels',
+          confidence: 100,
+          actionable: true,
+          action: {
+            type: 'create_campaign',
+            label: 'Créer une campagne',
+            data: { action: 'redirect_to_campaigns' }
+          },
+          created_at: new Date().toISOString()
+        });
+        return insights;
+      }
+
+      // Analyser chaque campagne pour générer des insights réels
+      for (const campaign of campaigns) {
+        const campaignInsights = await this.analyzeRealCampaignPerformance(campaign);
         insights.push(...campaignInsights);
       }
 
-      // Ajouter des insights généraux
-      const generalInsights = await this.generateGeneralInsights();
+      // Ajouter des insights généraux basés sur les vraies données
+      const generalInsights = await this.generateRealGeneralInsights();
       insights.push(...generalInsights);
 
       return insights.sort((a, b) => this.getPriorityScore(b.priority) - this.getPriorityScore(a.priority));
     } catch (error) {
-      console.error('Error generating AI insights:', error);
+      console.error('❌ Erreur lors de la génération d\'insights réels:', error);
       return [];
     }
   }
 
-  private async analyzeCampaignPerformance(campaign: any): Promise<AIInsight[]> {
-    const insights: AIInsight[] = [];
-
-    // Simuler l'analyse de performance (en production, utiliser de vraies données)
-    const performance = await this.getCampaignPerformance(campaign.id);
+  // Génère des insights de démonstration
+  private generateDemoInsights(): AIInsight[] {
+    console.log('🎭 AIInsightsService - Génération insights de démonstration');
     
-    // Détection d'opportunités
-    if (performance.roi > 200 && performance.trend === 'up') {
-      insights.push({
-        id: `opp_${campaign.id}_${Date.now()}`,
+    return [
+      {
+        id: `demo_opportunity_${Date.now()}`,
         type: 'opportunity',
         priority: 'high',
-        title: `Campagne ${campaign.name} surperforme`,
-        description: `ROI de ${performance.roi}% avec une tendance positive de +${performance.changePercent}%`,
-        impact: `Augmenter le budget pourrait générer +${Math.round(performance.revenue * 0.3)}€ de revenus`,
-        confidence: 87,
+        title: 'Campagne Lyon surperforme (Démo)',
+        description: 'ROI de 285% avec une tendance positive de +15% cette semaine',
+        impact: 'Augmenter le budget pourrait générer +1,200€ de revenus supplémentaires',
+        confidence: 94,
         actionable: true,
         action: {
           type: 'increase_budget',
-          label: 'Augmenter le budget de 30%',
-          data: { campaign_id: campaign.id, increase_percent: 30 }
+          label: 'Augmenter le budget de 25%',
+          data: { campaign: 'lyon_demo', increase_percent: 25 }
         },
         created_at: new Date().toISOString()
-      });
-    }
+      },
+      {
+        id: `demo_alert_${Date.now()}`,
+        type: 'alert',
+        priority: 'medium',
+        title: 'CTR en baisse sur mobiles (Démo)',
+        description: 'CTR mobile de 2.1% contre 3.8% sur desktop',
+        impact: 'Optimiser pour mobile pourrait récupérer 300 clics/semaine',
+        confidence: 87,
+        actionable: true,
+        action: {
+          type: 'optimize_mobile',
+          label: 'Optimiser créatifs mobiles',
+          data: { focus: 'mobile_optimization' }
+        },
+        created_at: new Date().toISOString()
+      },
+      {
+        id: `demo_recommendation_${Date.now()}`,
+        type: 'recommendation',
+        priority: 'high',
+        title: 'Nouveau segment haute performance (Démo)',
+        description: 'iOS Premium 25-35 ans Paris : taux de conversion 8.2%',
+        impact: 'Potentiel de +2,400€/mois en ciblant ce segment',
+        confidence: 91,
+        actionable: true,
+        action: {
+          type: 'create_lookalike',
+          label: 'Créer audience similaire',
+          data: { segment: 'ios_premium_paris_25_35' }
+        },
+        created_at: new Date().toISOString()
+      },
+      {
+        id: `demo_optimization_${Date.now()}`,
+        type: 'optimization',
+        priority: 'medium',
+        title: 'Heures optimales détectées (Démo)',
+        description: 'Mardis 14h-16h : CPA 40% plus bas que la moyenne',
+        impact: 'Réallocation horaire pourrait réduire les coûts de 18%',
+        confidence: 89,
+        actionable: true,
+        action: {
+          type: 'schedule_optimization',
+          label: 'Ajuster la programmation',
+          data: { optimal_hours: 'tuesday_14_16' }
+        },
+        created_at: new Date().toISOString()
+      },
+      {
+        id: `demo_seasonal_${Date.now()}`,
+        type: 'recommendation',
+        priority: 'critical',
+        title: 'Pic saisonnier imminent (Démo)',
+        description: 'Historiquement +67% de demandes la semaine prochaine',
+        impact: 'Préparation nécessaire pour capturer 40% de trafic supplémentaire',
+        confidence: 96,
+        actionable: true,
+        action: {
+          type: 'prepare_seasonal',
+          label: 'Préparer campagne saisonnière',
+          data: { season: 'peak_week', traffic_increase: 67 }
+        },
+        created_at: new Date().toISOString()
+      }
+    ];
+  }
 
-    // Détection de problèmes
-    if (performance.ctr < 1.5) {
+  // Analyse les performances réelles d'une campagne
+  private async analyzeRealCampaignPerformance(campaign: any): Promise<AIInsight[]> {
+    const insights: AIInsight[] = [];
+    
+    // Récupérer les métriques réelles de performance
+    const { data: impressions } = await supabase
+      .from('ad_impressions')
+      .select('id')
+      .eq('banner_id', campaign.id);
+
+    const { data: clicks } = await supabase
+      .from('ad_clicks')
+      .select('id')
+      .eq('banner_id', campaign.id);
+
+    const impressionCount = impressions?.length || 0;
+    const clickCount = clicks?.length || 0;
+    const ctr = impressionCount > 0 ? (clickCount / impressionCount) * 100 : 0;
+
+    // Générer des insights basés sur les vraies métriques
+    if (ctr < 1.0 && impressionCount > 100) {
       insights.push({
-        id: `alert_${campaign.id}_${Date.now()}`,
+        id: `real_low_ctr_${campaign.id}`,
         type: 'alert',
         priority: 'medium',
         title: `CTR faible pour ${campaign.name}`,
-        description: `CTR de ${performance.ctr}% en dessous de la moyenne (2.8%)`,
-        impact: 'Réduire les coûts et améliorer la visibilité',
-        confidence: 92,
+        description: `CTR de ${ctr.toFixed(2)}% sur ${impressionCount} impressions`,
+        impact: 'Optimiser les créatifs pour améliorer l\'engagement',
+        confidence: 85,
         actionable: true,
         action: {
           type: 'optimize_creative',
-          label: 'Optimiser les créatifs',
+          label: 'Revoir les créatifs',
           data: { campaign_id: campaign.id }
         },
         created_at: new Date().toISOString()
       });
     }
 
-    return insights;
-  }
-
-  private async generateGeneralInsights(): Promise<AIInsight[]> {
-    const insights: AIInsight[] = [];
-
-    // Analyse des tendances générales
-    insights.push({
-      id: `general_trend_${Date.now()}`,
-      type: 'recommendation',
-      priority: 'medium',
-      title: 'Tendance émergente détectée',
-      description: 'Les réparations écologiques gagnent +31% de recherches cette semaine',
-      impact: 'Nouveau segment à fort potentiel de conversion',
-      confidence: 76,
-      actionable: true,
-      action: {
-        type: 'create_segment',
-        label: 'Créer un segment "Éco-responsable"',
-        data: { segment_type: 'behavioral', criteria: 'eco_friendly' }
-      },
-      created_at: new Date().toISOString()
-    });
-
-    // Recommandation saisonnière
-    const now = new Date();
-    const month = now.getMonth();
-    if (month >= 10 || month <= 1) { // Hiver
+    if (ctr > 3.0 && impressionCount > 50) {
       insights.push({
-        id: `seasonal_${Date.now()}`,
-        type: 'recommendation',
+        id: `real_high_performance_${campaign.id}`,
+        type: 'opportunity',
         priority: 'high',
-        title: 'Opportunité saisonnière - Réparations d\'hiver',
-        description: 'Hausse de 45% des pannes d\'écran dues au froid',
-        impact: 'Cibler spécifiquement ce problème peut augmenter les conversions de 20%',
-        confidence: 83,
+        title: `Excellente performance : ${campaign.name}`,
+        description: `CTR de ${ctr.toFixed(2)}% - bien au-dessus de la moyenne`,
+        impact: 'Considérer augmenter le budget pour cette campagne performante',
+        confidence: 92,
         actionable: true,
         action: {
-          type: 'create_campaign',
-          label: 'Créer campagne "Réparation écrans hiver"',
-          data: { campaign_type: 'seasonal', focus: 'screen_repair' }
+          type: 'scale_budget',
+          label: 'Augmenter le budget',
+          data: { campaign_id: campaign.id, suggested_increase: 50 }
         },
         created_at: new Date().toISOString()
       });
@@ -177,84 +284,217 @@ class AIInsightsService {
     return insights;
   }
 
-  private async getCampaignPerformance(campaignId: string): Promise<PerformanceMetrics> {
-    // En production, récupérer les vraies métriques de la base de données
-    // Pour l'instant, on simule des données réalistes
-    const baseMetrics = {
-      impressions: Math.floor(Math.random() * 50000) + 10000,
-      clicks: Math.floor(Math.random() * 2000) + 300,
-      conversions: Math.floor(Math.random() * 100) + 15,
-      cost: Math.floor(Math.random() * 5000) + 1000,
-      revenue: Math.floor(Math.random() * 15000) + 3000,
-    };
+  // Génère des insights généraux basés sur les vraies données
+  private async generateRealGeneralInsights(): Promise<AIInsight[]> {
+    const insights: AIInsight[] = [];
 
-    return {
-      ...baseMetrics,
-      ctr: (baseMetrics.clicks / baseMetrics.impressions) * 100,
-      conversionRate: (baseMetrics.conversions / baseMetrics.clicks) * 100,
-      roi: ((baseMetrics.revenue - baseMetrics.cost) / baseMetrics.cost) * 100,
-      trend: Math.random() > 0.5 ? 'up' : (Math.random() > 0.5 ? 'down' : 'stable'),
-      changePercent: Math.floor(Math.random() * 40) - 20
-    };
+    // Analyser les tendances générales dans la base de données
+    const { data: recentClicks } = await supabase
+      .from('ad_clicks')
+      .select('created_at, placement')
+      .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+      .order('created_at', { ascending: false });
+
+    if (recentClicks && recentClicks.length > 0) {
+      // Analyser les placements les plus performants
+      const placementStats: { [key: string]: number } = {};
+      recentClicks.forEach(click => {
+        placementStats[click.placement] = (placementStats[click.placement] || 0) + 1;
+      });
+
+      const topPlacement = Object.entries(placementStats)
+        .sort(([,a], [,b]) => b - a)[0];
+
+      if (topPlacement) {
+        insights.push({
+          id: `real_top_placement_${Date.now()}`,
+          type: 'recommendation',
+          priority: 'medium',
+          title: `Placement performant identifié`,
+          description: `${topPlacement[0]} génère ${topPlacement[1]} clics cette semaine`,
+          impact: 'Concentrer plus de budget sur ce placement pourrait améliorer les résultats',
+          confidence: 78,
+          actionable: true,
+          action: {
+            type: 'optimize_placement',
+            label: 'Optimiser ce placement',
+            data: { placement: topPlacement[0], clicks: topPlacement[1] }
+          },
+          created_at: new Date().toISOString()
+        });
+      }
+    }
+
+    // Si peu de données, suggérer des améliorations de base
+    if (!recentClicks || recentClicks.length < 10) {
+      insights.push({
+        id: `real_low_activity_${Date.now()}`,
+        type: 'recommendation',
+        priority: 'high',
+        title: 'Activité publicitaire faible détectée',
+        description: 'Moins de 10 interactions cette semaine',
+        impact: 'Augmenter la visibilité pour générer plus d\'engagement',
+        confidence: 90,
+        actionable: true,
+        action: {
+          type: 'increase_visibility',
+          label: 'Booster la visibilité',
+          data: { suggestion: 'increase_budget_or_targeting' }
+        },
+        created_at: new Date().toISOString()
+      });
+    }
+
+    return insights;
   }
 
-  // Génère des recommandations personnalisées
   async generateRecommendations(userId?: string): Promise<AIInsight[]> {
+    const demoModeEnabled = await this.isDemoModeEnabled();
+    
+    if (demoModeEnabled) {
+      return this.generateDemoRecommendations();
+    } else {
+      return this.generateRealRecommendations(userId);
+    }
+  }
+
+  private generateDemoRecommendations(): AIInsight[] {
+    return [
+      {
+        id: `demo_rec_budget_${Date.now()}`,
+        type: 'recommendation',
+        priority: 'medium',
+        title: 'Optimisation budgétaire intelligente (Démo)',
+        description: 'Redistribuer 15% du budget des campagnes sous-performantes vers les leaders',
+        impact: 'ROI global estimé: +47%',
+        confidence: 91,
+        actionable: true,
+        action: {
+          type: 'rebalance_budget',
+          label: 'Appliquer la redistribution',
+          data: { optimization_type: 'performance_based' }
+        },
+        created_at: new Date().toISOString()
+      },
+      {
+        id: `demo_rec_targeting_${Date.now()}`,
+        type: 'optimization',
+        priority: 'high',
+        title: 'Nouveau segment haute performance identifié (Démo)',
+        description: 'Clients Premium 25-35 ans à Lyon montrent un taux de conversion de 8.2%',
+        impact: 'Potentiel de revenus additionnels: +2,400€/mois',
+        confidence: 94,
+        actionable: true,
+        action: {
+          type: 'create_lookalike_audience',
+          label: 'Créer une audience similaire',
+          data: { base_segment: 'premium_lyon_25_35', expansion_rate: 5 }
+        },
+        created_at: new Date().toISOString()
+      }
+    ];
+  }
+
+  private async generateRealRecommendations(userId?: string): Promise<AIInsight[]> {
     const recommendations: AIInsight[] = [];
 
-    // Recommandation basée sur l'historique
-    recommendations.push({
-      id: `rec_budget_${Date.now()}`,
-      type: 'recommendation',
-      priority: 'medium',
-      title: 'Optimisation budgétaire intelligente',
-      description: 'Redistribuer 15% du budget des campagnes sous-performantes vers les leaders',
-      impact: 'ROI global estimé: +47%',
-      confidence: 91,
-      actionable: true,
-      action: {
-        type: 'rebalance_budget',
-        label: 'Appliquer la redistribution',
-        data: { optimization_type: 'performance_based' }
-      },
-      created_at: new Date().toISOString()
-    });
+    // Générer des recommandations basées sur les vraies données utilisateur
+    try {
+      const { data: userCampaigns } = await supabase
+        .from('ad_campaigns')
+        .select('*')
+        .eq('created_by', userId);
 
-    // Recommandation de ciblage
-    recommendations.push({
-      id: `rec_targeting_${Date.now()}`,
-      type: 'optimization',
-      priority: 'high',
-      title: 'Nouveau segment haute performance identifié',
-      description: 'Clients Premium 25-35 ans à Lyon montrent un taux de conversion de 8.2%',
-      impact: 'Potentiel de revenus additionnels: +2,400€/mois',
-      confidence: 94,
-      actionable: true,
-      action: {
-        type: 'create_lookalike_audience',
-        label: 'Créer une audience similaire',
-        data: { base_segment: 'premium_lyon_25_35', expansion_rate: 5 }
-      },
-      created_at: new Date().toISOString()
-    });
+      if (!userCampaigns || userCampaigns.length === 0) {
+        recommendations.push({
+          id: `real_first_campaign_${Date.now()}`,
+          type: 'recommendation',
+          priority: 'high',
+          title: 'Créez votre première campagne',
+          description: 'Commencez par une campagne ciblée pour tester vos audiences',
+          impact: 'Démarrer la génération de leads qualifiés',
+          confidence: 100,
+          actionable: true,
+          action: {
+            type: 'create_first_campaign',
+            label: 'Créer ma première campagne',
+            data: { template: 'beginner_friendly' }
+          },
+          created_at: new Date().toISOString()
+        });
+      } else {
+        // Recommandations basées sur les campagnes existantes
+        recommendations.push({
+          id: `real_campaign_optimization_${Date.now()}`,
+          type: 'optimization',
+          priority: 'medium',
+          title: 'Optimisation de vos campagnes existantes',
+          description: `Analysez les performances de vos ${userCampaigns.length} campagnes actives`,
+          impact: 'Améliorer le ROI de vos campagnes actuelles',
+          confidence: 85,
+          actionable: true,
+          action: {
+            type: 'analyze_campaigns',
+            label: 'Analyser les performances',
+            data: { campaign_count: userCampaigns.length }
+          },
+          created_at: new Date().toISOString()
+        });
+      }
+    } catch (error) {
+      console.error('Erreur génération recommandations réelles:', error);
+    }
 
     return recommendations;
   }
 
-  // Génère des prédictions de performance
   async generatePredictions(campaignId: string): Promise<any> {
-    // Simuler des prédictions basées sur l'historique
+    const demoModeEnabled = await this.isDemoModeEnabled();
+    
+    if (demoModeEnabled) {
+      return this.generateDemoPredictions();
+    } else {
+      return this.generateRealPredictions(campaignId);
+    }
+  }
+
+  private generateDemoPredictions(): any {
     return {
       nextWeekPerformance: {
-        impressions: Math.floor(Math.random() * 10000) + 5000,
-        clicks: Math.floor(Math.random() * 500) + 150,
-        conversions: Math.floor(Math.random() * 30) + 8,
-        predictedRoi: Math.floor(Math.random() * 100) + 150
+        impressions: 15000,
+        clicks: 450,
+        conversions: 38,
+        predictedRoi: 275
       },
       budgetOptimization: {
-        recommendedBudget: Math.floor(Math.random() * 2000) + 500,
-        expectedRoi: Math.floor(Math.random() * 50) + 200,
-        confidenceLevel: Math.floor(Math.random() * 30) + 70
+        recommendedBudget: 1200,
+        expectedRoi: 280,
+        confidenceLevel: 87
+      }
+    };
+  }
+
+  private async generateRealPredictions(campaignId: string): Promise<any> {
+    // Récupérer les données historiques de la campagne
+    const { data: historicalData } = await supabase
+      .from('ad_impressions')
+      .select('created_at')
+      .eq('banner_id', campaignId)
+      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+
+    const baseMetrics = historicalData?.length || 0;
+    
+    return {
+      nextWeekPerformance: {
+        impressions: Math.max(baseMetrics * 1.1, 100),
+        clicks: Math.max(Math.floor(baseMetrics * 0.03), 5),
+        conversions: Math.max(Math.floor(baseMetrics * 0.005), 1),
+        predictedRoi: baseMetrics > 0 ? 150 + Math.random() * 100 : 120
+      },
+      budgetOptimization: {
+        recommendedBudget: Math.max(baseMetrics * 0.5, 200),
+        expectedRoi: 180 + Math.random() * 50,
+        confidenceLevel: baseMetrics > 100 ? 85 : 60
       }
     };
   }

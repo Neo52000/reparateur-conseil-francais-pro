@@ -28,26 +28,174 @@ class RecommendationEngine {
     return this.instance;
   }
 
+  // Vérifie si le mode démo est activé
+  private async isDemoModeEnabled(): Promise<boolean> {
+    try {
+      const { data: flags } = await supabase
+        .from('feature_flags_by_plan')
+        .select('enabled')
+        .eq('feature_key', 'demo_mode_enabled')
+        .eq('plan_name', 'Enterprise')
+        .single();
+
+      const enabled = flags?.enabled || false;
+      console.log('🎯 RecommendationEngine - Mode démo vérifié:', enabled);
+      return enabled;
+    } catch (error) {
+      console.error('❌ Erreur lors de la vérification du mode démo:', error);
+      return false;
+    }
+  }
+
   async generateSmartRecommendations(): Promise<Recommendation[]> {
+    const demoModeEnabled = await this.isDemoModeEnabled();
+    console.log('🔄 RecommendationEngine - Génération recommandations, mode démo:', demoModeEnabled);
+
+    if (demoModeEnabled) {
+      return this.generateDemoRecommendations();
+    } else {
+      return this.generateRealRecommendations();
+    }
+  }
+
+  // Génère des recommandations basées sur de vraies données
+  private async generateRealRecommendations(): Promise<Recommendation[]> {
+    console.log('📊 RecommendationEngine - Génération recommandations réelles');
     const recommendations: Recommendation[] = [];
 
-    // Analyser les données actuelles pour générer des recommandations
-    const budgetRecs = await this.generateBudgetRecommendations();
-    const targetingRecs = await this.generateTargetingRecommendations();
-    const creativeRecs = await this.generateCreativeRecommendations();
-    const timingRecs = await this.generateTimingRecommendations();
+    try {
+      // Analyser les données réelles pour générer des recommandations pertinentes
+      const { data: campaigns } = await supabase
+        .from('ad_campaigns')
+        .select('*')
+        .eq('status', 'active');
 
-    recommendations.push(...budgetRecs, ...targetingRecs, ...creativeRecs, ...timingRecs);
+      const { data: recentImpressions } = await supabase
+        .from('ad_impressions')
+        .select('banner_id, created_at')
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+
+      const { data: recentClicks } = await supabase
+        .from('ad_clicks')
+        .select('banner_id, created_at')
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+
+      // Recommandations basées sur l'activité réelle
+      if (!campaigns || campaigns.length === 0) {
+        recommendations.push({
+          id: 'real_no_campaigns',
+          type: 'budget',
+          title: 'Démarrez votre première campagne publicitaire',
+          description: 'Aucune campagne active détectée. Créez votre première campagne pour commencer à attirer des clients.',
+          impact: {
+            metric: 'Génération de leads',
+            expectedChange: 100,
+            confidence: 95
+          },
+          actionSteps: [
+            'Définir votre audience cible',
+            'Créer des visuels attractifs',
+            'Fixer un budget initial de test',
+            'Lancer la campagne et suivre les performances'
+          ],
+          priority: 'high',
+          estimatedImplementationTime: 45,
+          resources: ['Guide de démarrage', 'Templates de campagne', 'Calculateur de budget']
+        });
+      }
+
+      if (recentImpressions && recentClicks) {
+        const totalImpressions = recentImpressions.length;
+        const totalClicks = recentClicks.length;
+        const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+
+        if (ctr < 2.0 && totalImpressions > 100) {
+          recommendations.push({
+            id: 'real_low_ctr_optimization',
+            type: 'creative',
+            title: 'Optimisation nécessaire - CTR faible',
+            description: `Votre CTR actuel de ${ctr.toFixed(2)}% est en dessous de la moyenne du secteur (2.5%)`,
+            impact: {
+              metric: 'Taux de clic (CTR)',
+              expectedChange: 45,
+              confidence: 82
+            },
+            actionSteps: [
+              'Analyser les créatifs les moins performants',
+              'Tester de nouveaux formats visuels',
+              'Améliorer les accroches et call-to-action',
+              'A/B tester les nouvelles versions'
+            ],
+            priority: 'high',
+            estimatedImplementationTime: 90,
+            resources: ['Bibliothèque de créatifs', 'Guide A/B testing', 'Exemples d\'accroches']
+          });
+        }
+
+        if (totalImpressions > 500 && ctr > 3.0) {
+          recommendations.push({
+            id: 'real_scale_success',
+            type: 'budget',
+            title: 'Opportunité de scaling - Performance excellente',
+            description: `Votre CTR de ${ctr.toFixed(2)}% est excellent. Considérez augmenter le budget.`,
+            impact: {
+              metric: 'Revenus mensuels',
+              expectedChange: 300,
+              confidence: 89
+            },
+            actionSteps: [
+              'Analyser la capacité d\'absorption du marché',
+              'Augmenter progressivement le budget (+20%)',
+              'Surveiller les métriques de performance',
+              'Ajuster si le CPA augmente trop'
+            ],
+            priority: 'medium',
+            estimatedImplementationTime: 20,
+            resources: ['Calculateur de scaling', 'Guide budgétaire', 'Tableaux de suivi']
+          });
+        }
+      }
+
+      // Recommandation générale si peu de données
+      if (recommendations.length === 0) {
+        recommendations.push({
+          id: 'real_general_optimization',
+          type: 'targeting',
+          title: 'Analyse et optimisation générale',
+          description: 'Optimisez votre stratégie publicitaire avec une analyse complète de vos performances',
+          impact: {
+            metric: 'Performance globale',
+            expectedChange: 25,
+            confidence: 75
+          },
+          actionSteps: [
+            'Examiner les données de performance actuelles',
+            'Identifier les segments d\'audience les plus engagés',
+            'Optimiser le ciblage géographique et démographique',
+            'Ajuster les budgets selon les performances'
+          ],
+          priority: 'medium',
+          estimatedImplementationTime: 60,
+          resources: ['Analytics avancés', 'Rapport de performance', 'Guide d\'optimisation']
+        });
+      }
+
+    } catch (error) {
+      console.error('❌ Erreur génération recommandations réelles:', error);
+    }
 
     return recommendations.sort((a, b) => this.getPriorityScore(b.priority) - this.getPriorityScore(a.priority));
   }
 
-  private async generateBudgetRecommendations(): Promise<Recommendation[]> {
+  // Génère des recommandations de démonstration
+  private generateDemoRecommendations(): Recommendation[] {
+    console.log('🎭 RecommendationEngine - Génération recommandations de démonstration');
+    
     return [
       {
-        id: 'budget_reallocation_001',
+        id: 'demo_budget_reallocation_001',
         type: 'budget',
-        title: 'Réallocation budgétaire intelligente',
+        title: 'Réallocation budgétaire intelligente (Démo)',
         description: 'Déplacer 20% du budget des campagnes à faible ROI vers les campagnes performantes',
         impact: {
           metric: 'ROI global',
@@ -65,9 +213,9 @@ class RecommendationEngine {
         resources: ['Dashboard Analytics', 'Historique des performances']
       },
       {
-        id: 'budget_scaling_002',
+        id: 'demo_budget_scaling_002',
         type: 'budget',
-        title: 'Opportunité de scale-up',
+        title: 'Opportunité de scale-up (Démo)',
         description: 'La campagne "Réparateurs Premium Lyon" peut supporter +50% de budget',
         impact: {
           metric: 'Revenus mensuels',
@@ -83,16 +231,11 @@ class RecommendationEngine {
         priority: 'high',
         estimatedImplementationTime: 10,
         resources: ['Données de performance Lyon', 'Comparaison villes similaires']
-      }
-    ];
-  }
-
-  private async generateTargetingRecommendations(): Promise<Recommendation[]> {
-    return [
+      },
       {
-        id: 'targeting_segment_001',
+        id: 'demo_targeting_segment_001',
         type: 'targeting',
-        title: 'Nouveau segment à fort potentiel',
+        title: 'Nouveau segment à fort potentiel (Démo)',
         description: 'Les utilisateurs iOS 25-34 ans montrent un taux de conversion 3x supérieur',
         impact: {
           metric: 'Taux de conversion',
@@ -110,34 +253,9 @@ class RecommendationEngine {
         resources: ['Données démographiques', 'Analytics iOS', 'Templates créatifs']
       },
       {
-        id: 'targeting_lookalike_002',
-        type: 'targeting',
-        title: 'Audience lookalike haute qualité',
-        description: 'Créer une audience similaire basée sur vos meilleurs clients',
-        impact: {
-          metric: 'Portée qualifiée',
-          expectedChange: 45000,
-          confidence: 83
-        },
-        actionSteps: [
-          'Exporter la liste des clients avec LTV > 150€',
-          'Créer une audience lookalike 2%',
-          'Tester avec un budget réduit',
-          'Analyser les performances et ajuster'
-        ],
-        priority: 'medium',
-        estimatedImplementationTime: 30,
-        resources: ['Base clients', 'Données LTV', 'Outil lookalike']
-      }
-    ];
-  }
-
-  private async generateCreativeRecommendations(): Promise<Recommendation[]> {
-    return [
-      {
-        id: 'creative_refresh_001',
+        id: 'demo_creative_refresh_001',
         type: 'creative',
-        title: 'Rafraîchissement créatifs nécessaire',
+        title: 'Rafraîchissement créatifs nécessaire (Démo)',
         description: 'Les créatifs actuels montrent des signes de fatigue (-12% CTR)',
         impact: {
           metric: 'CTR',
@@ -155,34 +273,9 @@ class RecommendationEngine {
         resources: ['Designer', 'Témoignages clients', 'Templates vidéo']
       },
       {
-        id: 'creative_personalization_002',
-        type: 'creative',
-        title: 'Personnalisation géographique',
-        description: 'Adapter les créatifs aux spécificités locales pour +30% d\'engagement',
-        impact: {
-          metric: 'Engagement',
-          expectedChange: 30,
-          confidence: 78
-        },
-        actionSteps: [
-          'Identifier les 5 villes principales',
-          'Créer des variations avec références locales',
-          'Adapter les visuels aux préférences régionales',
-          'Tester et optimiser par zone'
-        ],
-        priority: 'medium',
-        estimatedImplementationTime: 45,
-        resources: ['Données géographiques', 'Insights locaux', 'Assets créatifs']
-      }
-    ];
-  }
-
-  private async generateTimingRecommendations(): Promise<Recommendation[]> {
-    return [
-      {
-        id: 'timing_optimization_001',
+        id: 'demo_timing_optimization_001',
         type: 'timing',
-        title: 'Optimisation des heures de diffusion',
+        title: 'Optimisation des heures de diffusion (Démo)',
         description: 'Les mardis 14h-16h montrent un CPA 40% plus bas',
         impact: {
           metric: 'CPA',
@@ -199,7 +292,7 @@ class RecommendationEngine {
         estimatedImplementationTime: 20,
         resources: ['Analytics temporelles', 'Outils d\'automatisation']
       }
-    ];
+    ].sort((a, b) => this.getPriorityScore(b.priority) - this.getPriorityScore(a.priority));
   }
 
   async generateActionableTasks(recommendation: Recommendation): Promise<Array<{
