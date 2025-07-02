@@ -29,11 +29,13 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=scraping', icon: Database, label: 'Scraping', tab: 'scraping' },
     { path: '/admin?tab=blog', icon: PenTool, label: 'Blog', tab: 'blog' },
     { path: '/admin?tab=chatbot', icon: Bot, label: 'Chatbot IA', tab: 'chatbot' },
-    { path: '/admin/audit', icon: ShieldCheck, label: 'Logs d\'audit', tab: 'audit' }
+    { path: '/admin/audit', icon: ShieldCheck, label: 'Logs d\'audit', tab: 'audit' },
+    { path: '/admin/audit/dashboard', icon: FileText, label: 'Dashboard d\'audit', tab: 'audit-dashboard' }
   ];
 
   const getCurrentTab = () => {
     if (location.pathname === '/admin/audit') return 'audit';
+    if (location.pathname === '/admin/audit/dashboard') return 'audit-dashboard';
     const searchParams = new URLSearchParams(location.search);
     return searchParams.get('tab') || 'dashboard';
   };
