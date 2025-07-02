@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Database } from 'lucide-react';
-import { useRepairers } from '@/hooks/useRepairers';
+import { useRepairersOptimized } from '@/hooks/useRepairersOptimized';
 import RepairerProfileModal from './RepairerProfileModal';
 import RepairerCard from './repairers/RepairerCard';
 import { logger } from '@/utils/logger';
@@ -13,11 +13,11 @@ interface RepairersListProps {
   filters?: any;
 }
 
-const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters }) => {
+const RepairersList = memo<RepairersListProps>(({ compact = false, filters }) => {
   const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  const { repairers, loading, error } = useRepairers(filters);
+  const { repairers, loading, error } = useRepairersOptimized(filters);
 
   logger.debug('RepairersList - Real repairers received:', repairers);
   logger.debug('RepairersList - Real repairers count:', repairers.length);
@@ -151,6 +151,8 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
       )}
     </>
   );
-};
+});
+
+RepairersList.displayName = 'RepairersList';
 
 export default RepairersList;
