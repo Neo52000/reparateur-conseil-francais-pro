@@ -1,5 +1,6 @@
 
 import { Repairer } from '@/types/repairer';
+import { logger } from '@/utils/logger';
 
 /**
  * Service pour gérer les données de démonstration
@@ -101,22 +102,24 @@ export class DemoDataService {
     demoData: T[],
     demoModeEnabled: boolean
   ): T[] {
-    console.log('🎯 DemoDataService - Mode démo:', demoModeEnabled);
-    console.log('📊 Données réelles (avant filtrage):', realData.length);
-    console.log('🎭 Données démo:', demoData.length);
+    logger.debug('DemoDataService - Mode démo:', { 
+      demoModeEnabled, 
+      realDataCount: realData.length, 
+      demoDataCount: demoData.length 
+    });
 
     // Toujours filtrer les données de démo existantes des données réelles
     const realNonDemoData = realData.filter(item => item.source !== 'demo');
-    console.log('📊 Données réelles (après filtrage démo):', realNonDemoData.length);
+    logger.debug('Données filtrées:', { filteredRealCount: realNonDemoData.length });
 
     if (demoModeEnabled) {
       // Mode démo ACTIVÉ : vraies données + données de démo
       const result = [...realNonDemoData, ...demoData];
-      console.log('✅ Mode démo activé - Total affiché:', result.length, '(réelles + démo)');
+      logger.info('Mode démo activé - Total affiché:', result.length);
       return result;
     } else {
       // Mode démo DÉSACTIVÉ : UNIQUEMENT les vraies données (sans démo)
-      console.log('🚫 Mode démo désactivé - Total affiché:', realNonDemoData.length, '(réelles seulement)');
+      logger.info('Mode démo désactivé - Total affiché:', realNonDemoData.length);
       return realNonDemoData;
     }
   }
@@ -128,16 +131,19 @@ export class DemoDataService {
     data: T[],
     demoModeEnabled: boolean
   ): T[] {
-    console.log('🔍 Filtrage mode démo:', demoModeEnabled, 'sur', data.length, 'éléments');
+    logger.debug('Filtrage mode démo:', { 
+      demoModeEnabled, 
+      totalElements: data.length 
+    });
     
     if (demoModeEnabled) {
       // Mode démo activé : inclure toutes les données
-      console.log('✅ Mode démo activé - Garder tous les éléments');
+      logger.debug('Mode démo activé - Garder tous les éléments');
       return data;
     } else {
       // Mode démo désactivé : exclure TOUTES les données de démo
       const filtered = data.filter(item => item.source !== 'demo');
-      console.log('🚫 Mode démo désactivé - Filtré:', filtered.length, 'éléments (exclu toute donnée de démo)');
+      logger.debug('Mode démo désactivé - Éléments filtrés:', filtered.length);
       return filtered;
     }
   }
