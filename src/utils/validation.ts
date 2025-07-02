@@ -3,6 +3,7 @@
  */
 
 import { logger } from './logger';
+import type { SearchFilters } from '@/types/searchFilters';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -159,15 +160,6 @@ export const validateRepairerData = (data: Partial<RepairerData>): ValidationRes
 /**
  * Validation des filtres de recherche
  */
-export interface SearchFilters {
-  services?: string[];
-  brands?: string[];
-  priceRange?: [number, number];
-  distance?: number;
-  minRating?: number;
-  city?: string;
-  postalCode?: string;
-}
 
 export const validateSearchFilters = (filters: SearchFilters): ValidationResult => {
   const errors: string[] = [];

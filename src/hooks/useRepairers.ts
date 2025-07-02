@@ -2,21 +2,10 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Repairer } from '@/types/repairer';
+import type { SearchFilters } from '@/types/searchFilters';
 import { RepairersDataService } from '@/services/repairers/repairersDataService';
 import { RepairersDataTransformer } from '@/services/repairers/repairersDataTransformer';
 import { DistanceCalculator } from '@/utils/geolocation/distanceCalculator';
-
-export interface SearchFilters {
-  services?: string[];
-  brands?: string[];
-  priceRange?: string;
-  distance?: number;
-  minRating?: number;
-  openNow?: boolean;
-  fastResponse?: boolean;
-  city?: string;
-  postalCode?: string;
-}
 
 export const useRepairers = (filters?: SearchFilters, userLocation?: [number, number]) => {
   const [repairers, setRepairers] = useState<Repairer[]>([]);

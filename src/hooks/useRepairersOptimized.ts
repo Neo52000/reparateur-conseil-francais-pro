@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Repairer } from '@/types/repairer';
+import type { SearchFilters } from '@/types/searchFilters';
 import { RepairersDataService } from '@/services/repairers/repairersDataService';
 import { RepairersDataTransformer } from '@/services/repairers/repairersDataTransformer';
 import { DistanceCalculator } from '@/utils/geolocation/distanceCalculator';
@@ -8,18 +9,6 @@ import { logger } from '@/utils/logger';
 import { withErrorHandling, ErrorHandler } from '@/utils/errorHandling';
 import { validateSearchFilters } from '@/utils/validation';
 import { measurePerformance, TTLCache } from '@/utils/performance';
-
-export interface SearchFilters {
-  services?: string[];
-  brands?: string[];
-  priceRange?: [number, number];
-  distance?: number;
-  minRating?: number;
-  openNow?: boolean;
-  fastResponse?: boolean;
-  city?: string;
-  postalCode?: string;
-}
 
 // Cache optimisé avec TTL
 const cache = new TTLCache<string, Repairer[]>(5 * 60 * 1000); // 5 minutes

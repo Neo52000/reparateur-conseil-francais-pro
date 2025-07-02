@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { SearchFilters } from '@/hooks/useRepairers';
+import type { SearchFilters } from '@/types/searchFilters';
 
 export class RepairersDataService {
   /**
@@ -30,7 +30,8 @@ export class RepairersDataService {
       }
 
       if (filters?.priceRange) {
-        query = query.eq('price_range', filters.priceRange);
+        const [minPrice, maxPrice] = filters.priceRange;
+        query = query.gte('min_price', minPrice).lte('max_price', maxPrice);
       }
 
       if (filters?.minRating) {
