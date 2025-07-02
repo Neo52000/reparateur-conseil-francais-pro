@@ -4,10 +4,11 @@ import type { Repairer } from '@/types/repairer';
 import { PriorityRepairersService } from '@/services/repairers/priorityRepairersService';
 import { RepairersDataTransformer } from '@/services/repairers/repairersDataTransformer';
 import { logger } from '@/utils/logger';
+import { withErrorHandling, ErrorHandler } from '@/utils/errorHandling';
+import { TTLCache } from '@/utils/performance';
 
-// Cache simple pour les réparateurs prioritaires
-let priorityCache: { data: Repairer[]; timestamp: number; limit: number } | null = null;
-const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes pour les données prioritaires
+// Cache optimisé avec TTL
+const priorityCache = new TTLCache<number, Repairer[]>(10 * 60 * 1000); // 10 minutes
 
 export const usePriorityRepairersOptimized = (limit: number = 50) => {
   const [repairers, setRepairers] = useState<Repairer[]>([]);
@@ -15,12 +16,19 @@ export const usePriorityRepairersOptimized = (limit: number = 50) => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Vérifier si le cache est valide
-  const isCacheValid = useMemo(() => {
-    return priorityCache && 
-           Date.now() - priorityCache.timestamp < CACHE_DURATION &&
-           priorityCache.limit >= limit;
-  }, [limit]);
+  // Fetch avec gestion d'erreur intégrée
+  const fetchPriorityRepairersWithErrorHandling = useMemo(() => {
+    return withErrorHandling(async (fetchLimit: number) => {
+      const supabaseData = await PriorityRepairersService.fetchPriorityRepairers(fetchLimit);
+      
+      if (!supabaseData || supabaseData.length === 0) {
+        return [];
+      }
+      
+      const cleanedData = supabaseData.map(PriorityRepairersService.cleanRepairerData);
+      return RepairersDataTransformer.transformSupabaseData(cleanedData);
+    });
+  }, []);
 
   const fetchPriorityRepairers = useCallback(async () => {
     try {
@@ -28,39 +36,38 @@ export const usePriorityRepairersOptimized = (limit: number = 50) => {
       setError(null);
       
       // Utiliser le cache si valide
-      if (isCacheValid && priorityCache) {
+      const cachedData = priorityCache.get(limit);
+      if (cachedData && cachedData.length >= limit) {
         logger.debug('Using cached priority repairers');
-        setRepairers(priorityCache.data.slice(0, limit));
+        setRepairers(cachedData.slice(0, limit));
         setLoading(false);
         return;
       }
 
       logger.debug('Fetching priority repairers, limit:', limit);
-      const supabaseData = await PriorityRepairersService.fetchPriorityRepairers(limit);
       
-      if (supabaseData && supabaseData.length > 0) {
-        // Nettoyer et transformer les données
-        const cleanedData = supabaseData.map(PriorityRepairersService.cleanRepairerData);
-        const processedData = RepairersDataTransformer.transformSupabaseData(cleanedData);
-        
-        logger.debug('Priority repairers loaded:', processedData.length);
-        
-        // Mettre en cache
-        priorityCache = {
-          data: processedData,
-          timestamp: Date.now(),
-          limit: processedData.length
-        };
-        
-        setRepairers(processedData);
-      } else {
-        logger.debug('No priority repairers found');
+      const result = await fetchPriorityRepairersWithErrorHandling(limit);
+      
+      if (result.error) {
+        const errorMessage = ErrorHandler.getDisplayMessage(result.error);
+        logger.error('Priority repairers error:', result.error);
+        setError(errorMessage);
         setRepairers([]);
+        return;
       }
+
+      const processedData = result.data || [];
+      logger.debug('Priority repairers loaded:', processedData.length);
+      
+      // Mettre en cache
+      priorityCache.set(limit, processedData);
+      setRepairers(processedData);
       
     } catch (err) {
-      logger.error('Priority repairers error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des réparateurs prioritaires';
+      const appError = ErrorHandler.handle(err);
+      const errorMessage = ErrorHandler.getDisplayMessage(appError);
+      
+      logger.error('Priority repairers error:', appError);
       setError(errorMessage);
       setRepairers([]);
       
@@ -69,7 +76,7 @@ export const usePriorityRepairersOptimized = (limit: number = 50) => {
     } finally {
       setLoading(false);
     }
-  }, [limit, isCacheValid]);
+  }, [limit, fetchPriorityRepairersWithErrorHandling]);
 
   useEffect(() => {
     fetchPriorityRepairers();
@@ -78,7 +85,7 @@ export const usePriorityRepairersOptimized = (limit: number = 50) => {
   // Clear cache on update events
   useEffect(() => {
     const handleUpdate = () => {
-      priorityCache = null;
+      priorityCache.clear();
       logger.debug('Priority cache cleared');
     };
 

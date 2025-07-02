@@ -5,11 +5,14 @@ import { RepairersDataService } from '@/services/repairers/repairersDataService'
 import { RepairersDataTransformer } from '@/services/repairers/repairersDataTransformer';
 import { DistanceCalculator } from '@/utils/geolocation/distanceCalculator';
 import { logger } from '@/utils/logger';
+import { withErrorHandling, ErrorHandler } from '@/utils/errorHandling';
+import { validateSearchFilters } from '@/utils/validation';
+import { measurePerformance, TTLCache } from '@/utils/performance';
 
 export interface SearchFilters {
   services?: string[];
   brands?: string[];
-  priceRange?: string;
+  priceRange?: [number, number];
   distance?: number;
   minRating?: number;
   openNow?: boolean;
@@ -18,9 +21,8 @@ export interface SearchFilters {
   postalCode?: string;
 }
 
-// Cache pour éviter les requêtes répétées
-const cache = new Map<string, { data: Repairer[]; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+// Cache optimisé avec TTL
+const cache = new TTLCache<string, Repairer[]>(5 * 60 * 1000); // 5 minutes
 
 export const useRepairersOptimized = (filters?: SearchFilters, userLocation?: [number, number]) => {
   const [repairers, setRepairers] = useState<Repairer[]>([]);
@@ -33,30 +35,60 @@ export const useRepairersOptimized = (filters?: SearchFilters, userLocation?: [n
     return JSON.stringify({ filters, userLocation });
   }, [filters, userLocation]);
 
-  // Vérifier le cache
-  const getCachedData = useCallback((key: string) => {
-    const cached = cache.get(key);
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      logger.debug('Using cached repairers data');
-      return cached.data;
-    }
-    return null;
-  }, []);
+  // Validation des filtres
+  const filtersValidation = useMemo(() => {
+    return validateSearchFilters(filters || {});
+  }, [filters]);
 
-  // Mettre en cache les données
-  const setCachedData = useCallback((key: string, data: Repairer[]) => {
-    cache.set(key, { data, timestamp: Date.now() });
-    logger.debug('Cached repairers data');
-  }, []);
+  // Fonction de fetch avec gestion d'erreur intégrée
+  const fetchRepairersWithErrorHandling = useMemo(() => {
+    return withErrorHandling(measurePerformance('fetchRepairers', async (searchFilters: SearchFilters) => {
+      const supabaseData = await RepairersDataService.fetchRepairers(searchFilters);
+      
+      if (!supabaseData || supabaseData.length === 0) {
+        return [];
+      }
+
+      // Filter out corrupted data
+      const validData = supabaseData.filter(repairer => {
+        const hasValidName = repairer.name && !repairer.name.includes('�');
+        const hasValidCity = repairer.city && !repairer.city.includes('�');
+        return hasValidName && hasValidCity;
+      });
+
+      // Transform data
+      let processedData = RepairersDataTransformer.transformSupabaseData(validData);
+
+      // Apply distance filter if user location is available
+      if (userLocation && searchFilters.distance && processedData.length > 0) {
+        processedData = DistanceCalculator.filterByDistance(
+          processedData, 
+          userLocation, 
+          searchFilters.distance
+        );
+      }
+
+      return processedData;
+    }));
+  }, [userLocation]);
 
   const fetchRepairers = useCallback(async () => {
+    // Validation des filtres avant la requête
+    if (!filtersValidation.isValid) {
+      logger.warn('Filtres invalides:', filtersValidation.errors);
+      setError('Filtres de recherche invalides');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
       // Vérifier le cache d'abord
-      const cachedData = getCachedData(cacheKey);
+      const cachedData = cache.get(cacheKey);
       if (cachedData) {
+        logger.debug('Using cached repairers data');
         setRepairers(cachedData);
         setLoading(false);
         return;
@@ -64,50 +96,38 @@ export const useRepairersOptimized = (filters?: SearchFilters, userLocation?: [n
 
       logger.debug('Fetching repairers with filters:', filters);
       
-      const supabaseData = await RepairersDataService.fetchRepairers(filters);
-      logger.debug('Raw data count:', supabaseData?.length);
+      const result = await fetchRepairersWithErrorHandling(filters || {});
       
-      if (supabaseData && supabaseData.length > 0) {
-        // Filter out repairers with corrupted data
-        const validData = supabaseData.filter(repairer => {
-          const hasValidName = repairer.name && !repairer.name.includes('�');
-          const hasValidCity = repairer.city && !repairer.city.includes('�');
-          return hasValidName && hasValidCity;
-        });
-
-        logger.debug(`Valid repairers: ${validData.length}/${supabaseData.length}`);
-
-        // Transform data
-        let processedData = RepairersDataTransformer.transformSupabaseData(validData);
-
-        // Apply distance filter if user location is available
-        if (userLocation && filters?.distance && processedData.length > 0) {
-          processedData = DistanceCalculator.filterByDistance(
-            processedData, 
-            userLocation, 
-            filters.distance
-          );
-          logger.debug(`After distance filter: ${processedData.length}`);
-        }
-
-        setRepairers(processedData);
-        setCachedData(cacheKey, processedData);
-        
-        // Show success toast only if significant results
-        if (processedData.length > 5) {
-          toast({
-            title: "Réparateurs chargés",
-            description: `${processedData.length} réparateur${processedData.length > 1 ? 's' : ''} trouvé${processedData.length > 1 ? 's' : ''}`,
-          });
-        }
-      } else {
-        logger.debug('No data returned from service');
+      if (result.error) {
+        const errorMessage = ErrorHandler.getDisplayMessage(result.error);
+        setError(errorMessage);
         setRepairers([]);
+        
+        toast({
+          title: "Erreur de chargement",
+          description: errorMessage,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const processedData = result.data || [];
+      setRepairers(processedData);
+      cache.set(cacheKey, processedData);
+      
+      // Show success toast only if significant results
+      if (processedData.length > 5) {
+        toast({
+          title: "Réparateurs chargés",
+          description: `${processedData.length} réparateur${processedData.length > 1 ? 's' : ''} trouvé${processedData.length > 1 ? 's' : ''}`,
+        });
       }
       
     } catch (err) {
-      logger.error('Error fetching repairers:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des réparateurs';
+      const appError = ErrorHandler.handle(err);
+      const errorMessage = ErrorHandler.getDisplayMessage(appError);
+      
+      logger.error('Error fetching repairers:', appError);
       setError(errorMessage);
       setRepairers([]);
       
@@ -119,7 +139,7 @@ export const useRepairersOptimized = (filters?: SearchFilters, userLocation?: [n
     } finally {
       setLoading(false);
     }
-  }, [filters, userLocation, toast, cacheKey, getCachedData, setCachedData]);
+  }, [filters, userLocation, cacheKey, filtersValidation, fetchRepairersWithErrorHandling, toast]);
 
   // Debounced effect pour éviter trop de requêtes
   useEffect(() => {
@@ -133,10 +153,12 @@ export const useRepairersOptimized = (filters?: SearchFilters, userLocation?: [n
   // Listen for repairers update events (optimisé)
   useEffect(() => {
     const handleRepairersUpdate = () => {
-      // Clear cache on update
       cache.clear();
       logger.debug('Cache cleared due to repairers update');
-      fetchRepairers().catch(logger.error);
+      fetchRepairers().catch(err => {
+        const appError = ErrorHandler.handle(err);
+        logger.error('Error during repairers update:', appError);
+      });
     };
 
     window.addEventListener('repairersUpdated', handleRepairersUpdate);
