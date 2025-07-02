@@ -63,6 +63,9 @@ export { useTimeSlots } from './useTimeSlots';
 export { useAdminAudit } from './useAdminAudit';
 export { useHistoryCleanup } from './useHistoryCleanup';
 
+// Hooks de documentation
+export { useDocumentationPDF } from './useDocumentationPDF';
+
 // Hooks de chat
 export { useAIPreDiagChat } from './useAIPreDiagChat';
 export { useChatbot } from './useChatbot';

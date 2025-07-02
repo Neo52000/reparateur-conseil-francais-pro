@@ -44,3 +44,6 @@ export { PaymentService } from './paymentService';
 
 // Services d'audit
 export { AdminAuditService } from './adminAuditService';
+
+// Services de documentation
+export { DocumentationPDFService } from './documentationPDFService';
