@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,12 +10,34 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { X, Filter } from 'lucide-react';
 
-const SearchFilters = () => {
-  const [priceRange, setPriceRange] = useState([0, 300]);
-  const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [rating, setRating] = useState<number | null>(null);
-  const [availability, setAvailability] = useState<string>('');
+interface SearchFiltersProps {
+  onFiltersChange?: (filters: any) => void;
+  initialFilters?: any;
+}
+
+const SearchFilters: React.FC<SearchFiltersProps> = ({ 
+  onFiltersChange,
+  initialFilters = {}
+}) => {
+  const [priceRange, setPriceRange] = useState(initialFilters.priceRange || [0, 300]);
+  const [selectedServices, setSelectedServices] = useState<string[]>(initialFilters.services || []);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(initialFilters.brands || []);
+  const [rating, setRating] = useState<number | null>(initialFilters.minRating || null);
+  const [availability, setAvailability] = useState<string>(initialFilters.availability || '');
+
+  // Notify parent component of filter changes
+  useEffect(() => {
+    if (onFiltersChange) {
+      const filters = {
+        priceRange,
+        services: selectedServices,
+        brands: selectedBrands,
+        minRating: rating,
+        availability
+      };
+      onFiltersChange(filters);
+    }
+  }, [priceRange, selectedServices, selectedBrands, rating, availability, onFiltersChange]);
 
   const services = [
     'Écran cassé',
