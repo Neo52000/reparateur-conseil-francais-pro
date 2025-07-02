@@ -7,7 +7,7 @@ import { useAdminAuditLogs } from '@/hooks/useAdminAudit';
 import { AdminAuditFilters } from '@/services/adminAuditService';
 import AdminAuditLogsViewer from './AdminAuditLogsViewer';
 import AdminAuditStats from './AdminAuditStats';
-import { Activity, BarChart3, Shield, Users, Database, AlertTriangle } from 'lucide-react';
+import { Activity, BarChart3, Shield, Users, Database, AlertTriangle, FileText, BookOpen, File } from 'lucide-react';
 
 const AdminAuditDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -72,7 +72,7 @@ const AdminAuditDashboard: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Vue d'ensemble
@@ -88,6 +88,10 @@ const AdminAuditDashboard: React.FC = () => {
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Utilisateurs
+          </TabsTrigger>
+          <TabsTrigger value="documentation" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Documentation
           </TabsTrigger>
         </TabsList>
 
@@ -307,6 +311,105 @@ const AdminAuditDashboard: React.FC = () => {
                       </div>
                     ));
                 })()}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="documentation" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Documentation complète du projet
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* PRD */}
+                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2 mb-3">
+                    <BookOpen className="h-5 w-5 text-blue-600" />
+                    <h3 className="font-semibold">PRD (Product Requirements)</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Spécifications produit complètes et roadmap
+                  </p>
+                  <a 
+                    href="/docs/PRD.md" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  >
+                    Voir le PRD →
+                  </a>
+                </div>
+
+                {/* Guide utilisateur */}
+                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Users className="h-5 w-5 text-green-600" />
+                    <h3 className="font-semibold">Guide utilisateur</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Manuel d'utilisation pour tous les rôles
+                  </p>
+                  <a 
+                    href="/docs/user-guide.md" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-green-600 hover:text-green-800 text-sm font-medium"
+                  >
+                    Voir le guide →
+                  </a>
+                </div>
+
+                {/* Documentation technique */}
+                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Database className="h-5 w-5 text-purple-600" />
+                    <h3 className="font-semibold">Doc technique</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Architecture et guide développeur
+                  </p>
+                  <a 
+                    href="/docs/README.md" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-purple-600 hover:text-purple-800 text-sm font-medium"
+                  >
+                    Voir la doc →
+                  </a>
+                </div>
+
+                {/* Résumé refactoring */}
+                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-2 mb-3">
+                    <File className="h-5 w-5 text-orange-600" />
+                    <h3 className="font-semibold">Résumé refactoring</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Historique des améliorations et optimisations
+                  </p>
+                  <a 
+                    href="/docs/REFACTORING_SUMMARY.md" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-orange-600 hover:text-orange-800 text-sm font-medium"
+                  >
+                    Voir le résumé →
+                  </a>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">Note d'accès</h4>
+                <p className="text-sm text-blue-700">
+                  Ces documents sont accessibles directement depuis le serveur local. 
+                  En production, ils peuvent être configurés pour être servis statiquement 
+                  ou intégrés dans une section dédiée de l'interface admin.
+                </p>
               </div>
             </CardContent>
           </Card>
