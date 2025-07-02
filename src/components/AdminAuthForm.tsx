@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import AdminAuthFormContent from '@/components/admin/AdminAuthFormContent';
-import AdminDebugPanel from '@/components/admin/AdminDebugPanel';
+import { Button } from '@/components/ui/button';
+import { logger } from '@/utils/logger';
 
 /**
  * Composant principal de connexion administrateur
@@ -27,9 +28,9 @@ const AdminAuthForm = () => {
     e.preventDefault();
     setLoading(true);
 
-    console.log('🔐 AdminAuthForm: Starting admin login process');
-    console.log('📧 Email:', email);
-    console.log('🔍 Current auth state before login:', {
+    logger.debug('Starting admin login process');
+    logger.debug('Email:', email);
+    logger.debug('Current auth state before login:', {
       hasUser: !!user,
       hasProfile: !!profile,
       profileRole: profile?.role,
@@ -41,7 +42,7 @@ const AdminAuthForm = () => {
       const { error } = await signInAdmin(email, password);
       
       if (error) {
-        console.error('❌ AdminAuthForm: Admin login error:', error);
+        logger.error('Admin login error:', error);
         toast({
           title: "Erreur de connexion admin",
           description: error.message === 'Invalid login credentials' 
@@ -50,14 +51,14 @@ const AdminAuthForm = () => {
           variant: "destructive"
         });
       } else {
-        console.log('✅ AdminAuthForm: Admin login successful');
+        logger.debug('Admin login successful');
         toast({
           title: "Connexion admin réussie",
           description: "Bienvenue dans l'interface d'administration"
         });
       }
     } catch (error) {
-      console.error('💥 AdminAuthForm: Exception during admin login:', error);
+      logger.error('Exception during admin login:', error);
       toast({
         title: "Erreur",
         description: "Une erreur inattendue s'est produite",
@@ -74,14 +75,14 @@ const AdminAuthForm = () => {
   const handleRefreshProfile = async () => {
     if (refreshProfile) {
       try {
-        console.log('🔄 AdminAuthForm: Refreshing profile manually...');
+        logger.debug('Refreshing profile manually...');
         await refreshProfile();
         toast({
           title: "Profil actualisé",
           description: "Tentative de récupération du profil effectuée"
         });
       } catch (error) {
-        console.error('❌ AdminAuthForm: Error refreshing profile:', error);
+        logger.error('Error refreshing profile:', error);
         toast({
           title: "Erreur",
           description: "Impossible d'actualiser le profil",
@@ -92,7 +93,7 @@ const AdminAuthForm = () => {
   };
 
   // Debug: Log de l'état actuel
-  console.log('🏗️ AdminAuthForm render state:', {
+  logger.debug('AdminAuthForm render state:', {
     hasUser: !!user,
     userEmail: user?.email,
     isAdmin,
@@ -101,21 +102,24 @@ const AdminAuthForm = () => {
     profileEmail: profile?.email
   });
 
-  // Affichage du panneau de debug si l'utilisateur est connecté mais pas admin
+  // Si utilisateur connecté mais pas admin, afficher erreur d'accès
   if (user && !isAdmin && !authLoading) {
-    console.log('🚫 AdminAuthForm: Showing debug panel - user connected but not admin');
+    logger.debug('User connected but not admin');
     return (
-      <AdminDebugPanel
-        user={user}
-        profile={profile}
-        isAdmin={isAdmin}
-        onRefreshProfile={handleRefreshProfile}
-      />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center p-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Accès non autorisé</h2>
+          <p className="text-gray-600 mb-4">Vous devez être administrateur pour accéder à cette page.</p>
+          <Button onClick={() => window.location.href = '/'}>
+            Retour à l'accueil
+          </Button>
+        </div>
+      </div>
     );
   }
 
   // Affichage du formulaire de connexion standard
-  console.log('📝 AdminAuthForm: Showing login form');
+  logger.debug('Showing login form');
   return (
     <AdminAuthFormContent
       email={email}

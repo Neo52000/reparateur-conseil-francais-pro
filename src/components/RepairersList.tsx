@@ -6,6 +6,7 @@ import { ExternalLink, Database } from 'lucide-react';
 import { useRepairers } from '@/hooks/useRepairers';
 import RepairerProfileModal from './RepairerProfileModal';
 import RepairerCard from './repairers/RepairerCard';
+import { logger } from '@/utils/logger';
 
 interface RepairersListProps {
   compact?: boolean;
@@ -18,10 +19,10 @@ const RepairersList: React.FC<RepairersListProps> = ({ compact = false, filters 
 
   const { repairers, loading, error } = useRepairers(filters);
 
-  console.log('RepairersList - Real repairers received:', repairers);
-  console.log('RepairersList - Real repairers count:', repairers.length);
-  console.log('RepairersList - Loading:', loading);
-  console.log('RepairersList - Error:', error);
+  logger.debug('RepairersList - Real repairers received:', repairers);
+  logger.debug('RepairersList - Real repairers count:', repairers.length);
+  logger.debug('RepairersList - Loading:', loading);
+  logger.debug('RepairersList - Error:', error);
 
   const handleViewProfile = (repairer: any) => {
     console.log('RepairersList - Opening profile for:', repairer.id);

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Brain, Sparkles, Play, History, FileText, Download, AlertTriangle, CheckCircle, Info, Zap, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 interface PromptExample {
   title: string;
@@ -62,7 +63,7 @@ const AIPromptScraping = () => {
     setError('');
     
     try {
-      console.log('🚀 Démarrage analyse prompt...');
+      logger.debug('Démarrage analyse prompt...');
       
       const { data, error: supabaseError } = await supabase.functions.invoke('ai-prompt-scraping', {
         body: {
@@ -73,10 +74,10 @@ const AIPromptScraping = () => {
         }
       });
 
-      console.log('📥 Réponse analyse:', { data, error: supabaseError });
+      logger.debug('Réponse analyse:', { data, error: supabaseError });
 
       if (supabaseError) {
-        console.error('❌ Erreur Supabase:', supabaseError);
+        logger.error('Erreur Supabase:', supabaseError);
         throw new Error(supabaseError.message || 'Erreur lors de l\'appel à la fonction');
       }
 
@@ -92,7 +93,7 @@ const AIPromptScraping = () => {
       });
 
     } catch (error: any) {
-      console.error('💥 Erreur analyse prompt:', error);
+      logger.error('Erreur analyse prompt:', error);
       const errorMessage = error.message || 'Erreur inconnue lors de l\'analyse';
       setError(errorMessage);
       
@@ -120,7 +121,7 @@ const AIPromptScraping = () => {
     setError('');
     
     try {
-      console.log('🚀 Démarrage exécution scraping...');
+      logger.debug('Démarrage exécution scraping...');
       
       const { data, error: supabaseError } = await supabase.functions.invoke('ai-prompt-scraping', {
         body: {
@@ -132,10 +133,10 @@ const AIPromptScraping = () => {
         }
       });
 
-      console.log('📥 Réponse scraping:', { data, error: supabaseError });
+      logger.debug('Réponse scraping:', { data, error: supabaseError });
 
       if (supabaseError) {
-        console.error('❌ Erreur Supabase:', supabaseError);
+        logger.error('Erreur Supabase:', supabaseError);
         throw new Error(supabaseError.message || 'Erreur lors de l\'exécution');
       }
 
@@ -150,7 +151,7 @@ const AIPromptScraping = () => {
       });
 
     } catch (error: any) {
-      console.error('💥 Erreur scraping:', error);
+      logger.error('Erreur scraping:', error);
       const errorMessage = error.message || 'Erreur inconnue lors du scraping';
       setError(errorMessage);
       
