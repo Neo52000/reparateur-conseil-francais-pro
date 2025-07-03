@@ -1649,6 +1649,42 @@ export type Database = {
         }
         Relationships: []
       }
+      documentation_versions: {
+        Row: {
+          content_hash: string
+          created_at: string
+          doc_type: string
+          download_count: number
+          file_size: number
+          generated_at: string
+          id: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          content_hash: string
+          created_at?: string
+          doc_type: string
+          download_count?: number
+          file_size?: number
+          generated_at?: string
+          id?: string
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          content_hash?: string
+          created_at?: string
+          doc_type?: string
+          download_count?: number
+          file_size?: number
+          generated_at?: string
+          id?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
       feature_flags_by_plan: {
         Row: {
           enabled: boolean

@@ -26,7 +26,6 @@ export interface DocumentationChange {
 
 export class DocumentationManagerService {
   private static readonly CACHE_KEY = 'documentation_cache';
-  private static readonly VERSION_TABLE = 'documentation_versions';
   private static readonly CHANGE_DETECTION_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
   /**
@@ -112,14 +111,15 @@ export class DocumentationManagerService {
    */
   static async getVersionHistory(docType: 'prd' | 'user-guide' | 'technical'): Promise<DocumentationVersion[]> {
     try {
-      const { data, error } = await supabase
+      // Utiliser un typage plus flexible pour éviter les erreurs TypeScript
+      const { data, error } = await (supabase as any)
         .from('documentation_versions')
         .select('*')
         .eq('doc_type', docType)
         .order('generated_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []) as DocumentationVersion[];
     } catch (error) {
       console.error('Erreur récupération historique:', error);
       return [];
@@ -136,7 +136,7 @@ export class DocumentationManagerService {
     contentHash: string
   ): Promise<void> {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('documentation_versions')
         .insert({
           doc_type: docType,
@@ -215,7 +215,7 @@ export class DocumentationManagerService {
     
     for (const docType of docTypes) {
       try {
-        const { data: versions } = await supabase
+        const { data: versions } = await (supabase as any)
           .from('documentation_versions')
           .select('id')
           .eq('doc_type', docType)
@@ -223,8 +223,8 @@ export class DocumentationManagerService {
           .range(10, 999);
 
         if (versions && versions.length > 0) {
-          const idsToDelete = versions.map(v => v.id);
-          await supabase
+          const idsToDelete = versions.map((v: any) => v.id);
+          await (supabase as any)
             .from('documentation_versions')
             .delete()
             .in('id', idsToDelete);
