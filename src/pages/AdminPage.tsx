@@ -85,13 +85,12 @@ const AdminPage = () => {
   const renderContent = () => {
     if (activeTab === 'dashboard') {
       return (
-        <DashboardOverview 
-          stats={{
-            totalRepairers: stats?.totalRepairers || 0,
-            totalSubscriptions: stats?.totalSubscriptions || 0,
-            totalInterests: stats?.totalInterests || 0,
-            revenue: stats?.totalRevenue || 0
-          }}
+        <AdminDashboardContent 
+          activeTab={activeTab}
+          subscriptions={subscriptions}
+          repairers={repairers}
+          onViewProfile={() => {}}
+          onRefresh={fetchData}
         />
       );
     }
@@ -144,13 +143,12 @@ const AdminPage = () => {
 
     // Default dashboard
     return (
-      <DashboardOverview 
-        stats={{
-          totalRepairers: stats?.totalRepairers || 0,
-          totalSubscriptions: stats?.totalSubscriptions || 0,
-          totalInterests: stats?.totalInterests || 0,
-          revenue: stats?.totalRevenue || 0
-        }}
+      <AdminDashboardContent 
+        activeTab={activeTab}
+        subscriptions={subscriptions}
+        repairers={repairers}
+        onViewProfile={() => {}}
+        onRefresh={fetchData}
       />
     );
   };
