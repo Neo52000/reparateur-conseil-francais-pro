@@ -17,21 +17,27 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
   onRefresh 
 }) => {
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <AdminSidebar />
-      
-      {/* Main content */}
-      <div className="flex-1 flex flex-col">
-        <AdminHeader 
-          title={title} 
-          subtitle={subtitle} 
-          onRefresh={onRefresh} 
-        />
+    <div className="min-h-screen bg-background">
+      <div className="flex h-screen">
+        {/* Sidebar fixe */}
+        <AdminSidebar />
         
-        <main className="flex-1 p-6 overflow-y-auto">
-          {children}
-        </main>
+        {/* Zone de contenu principal */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header */}
+          <AdminHeader 
+            title={title} 
+            subtitle={subtitle} 
+            onRefresh={onRefresh} 
+          />
+          
+          {/* Contenu principal avec scroll */}
+          <main className="flex-1 overflow-y-auto">
+            <div className="p-6">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

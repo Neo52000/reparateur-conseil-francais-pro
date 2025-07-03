@@ -45,12 +45,15 @@ const AdminSidebar: React.FC = () => {
   };
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
-      <div className="p-6">
-        <h2 className="text-lg font-semibold text-gray-900">Administration</h2>
+    <div className="w-64 bg-card border-r border-border h-full flex flex-col">
+      {/* Header du sidebar */}
+      <div className="p-4 border-b border-border">
+        <h2 className="text-lg font-semibold text-foreground">Administration</h2>
+        <p className="text-sm text-muted-foreground">RepairHub</p>
       </div>
       
-      <nav className="px-4 space-y-1">
+      {/* Navigation */}
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = getCurrentTab() === item.tab;
@@ -59,14 +62,14 @@ const AdminSidebar: React.FC = () => {
             <button
               key={item.path}
               onClick={() => handleNavigation(item.path)}
-              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                 isActive 
-                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' 
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  ? 'bg-primary text-primary-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
               }`}
             >
-              <Icon className="mr-3 h-5 w-5" />
-              {item.label}
+              <Icon className="mr-3 h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{item.label}</span>
             </button>
           );
         })}

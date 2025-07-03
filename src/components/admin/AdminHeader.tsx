@@ -16,48 +16,48 @@ const AdminHeader: React.FC<AdminHeaderProps> = ({
   subtitle = "Vue d'ensemble de la plateforme" 
 }) => {
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4">
+    <header className="bg-card border-b border-border px-6 py-4 shadow-sm">
       <div className="flex items-center justify-between">
         {/* Title section */}
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-          <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl font-bold text-foreground truncate">{title}</h1>
+          <p className="text-sm text-muted-foreground truncate">{subtitle}</p>
         </div>
 
-        {/* Search and actions */}
-        <div className="flex items-center space-x-4">
-          {/* Global search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        {/* Actions section */}
+        <div className="flex items-center space-x-3 ml-4">
+          {/* Search */}
+          <div className="relative hidden md:block">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               placeholder="Rechercher..."
-              className="pl-10 w-80"
+              className="pl-10 w-64 h-9"
             />
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center space-x-2">
+          {/* Action buttons */}
+          <div className="flex items-center space-x-1">
             <Button
               variant="outline"
               size="sm"
               onClick={onRefresh}
-              className="flex items-center space-x-2"
+              className="h-9"
             >
-              <RefreshCw className="w-4 h-4" />
-              <span>Actualiser</span>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Actualiser</span>
             </Button>
 
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
               <Bell className="w-4 h-4" />
             </Button>
 
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="h-9 w-9 p-0">
               <User className="w-4 h-4" />
             </Button>
           </div>
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 
