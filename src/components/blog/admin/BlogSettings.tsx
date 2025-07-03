@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,109 +7,27 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Save, Mail, Bell, Globe, Shield } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-
-interface BlogSettingsData {
-  // Paramètres généraux
-  site_title: string;
-  site_description: string;
-  posts_per_page: number;
-  allow_comments: boolean;
-  moderate_comments: boolean;
-  
-  // SEO
-  default_meta_description: string;
-  google_analytics_id: string;
-  sitemap_enabled: boolean;
-  
-  // Newsletter
-  newsletter_enabled: boolean;
-  newsletter_welcome_subject: string;
-  newsletter_welcome_content: string;
-  
-  // Notifications
-  notify_new_comment: boolean;
-  notify_new_subscriber: boolean;
-  admin_email: string;
-  
-  // IA
-  ai_auto_generate: boolean;
-  ai_default_model: string;
-  ai_content_length: string;
-}
+import { Save, Mail, Bell, Globe, Shield, FileText, Download, RotateCcw } from 'lucide-react';
+import { useDocumentationManager } from '@/hooks/useDocumentationManager';
+import { useBlogSettings } from '@/hooks/useBlogSettings';
 
 const BlogSettings: React.FC = () => {
-  const { toast } = useToast();
-  const [settings, setSettings] = useState<BlogSettingsData>({
-    site_title: 'Blog RepairHub',
-    site_description: 'Le blog de référence pour les réparateurs de smartphones',
-    posts_per_page: 10,
-    allow_comments: true,
-    moderate_comments: true,
-    default_meta_description: '',
-    google_analytics_id: 'G-NH6F3RVC9G',
-    sitemap_enabled: true,
-    newsletter_enabled: true,
-    newsletter_welcome_subject: 'Bienvenue sur notre newsletter !',
-    newsletter_welcome_content: 'Merci de vous être abonné à notre newsletter. Vous recevrez nos derniers articles et conseils.',
-    notify_new_comment: true,
-    notify_new_subscriber: true,
-    admin_email: '',
-    ai_auto_generate: false,
-    ai_default_model: 'mistral',
-    ai_content_length: 'medium'
-  });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const { generateAllPDFs, generating, autoUpdateEnabled, changes } = useDocumentationManager();
+  const { settings, loading, saving, saveSettings, updateSetting, resetSettings } = useBlogSettings();
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
-    try {
-      // En attendant une vraie table de settings, on utilise des valeurs par défaut
-      setLoading(false);
-    } catch (error) {
-      console.error('Error loading settings:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les paramètres",
-        variant: "destructive"
-      });
-      setLoading(false);
+  const handleSave = async () => {
+    if (settings) {
+      await saveSettings(settings);
     }
   };
 
-  const saveSettings = async () => {
-    setSaving(true);
-    try {
-      // Ici on sauvegarderait normalement dans une table blog_settings
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulation
-      
-      toast({
-        title: "Succès",
-        description: "Paramètres sauvegardés avec succès"
-      });
-    } catch (error) {
-      console.error('Error saving settings:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder les paramètres",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
-    }
+  const handleGenerateDocumentation = async () => {
+    await generateAllPDFs();
   };
 
-  const updateSetting = (key: keyof BlogSettingsData, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-  };
+  const needsUpdate = changes.filter(c => c.needs_update).length;
 
-  if (loading) {
+  if (loading || !settings) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center h-64">
@@ -130,13 +47,74 @@ const BlogSettings: React.FC = () => {
           <h2 className="text-2xl font-bold">Paramètres du Blog</h2>
           <p className="text-muted-foreground">Configuration générale du système de blog</p>
         </div>
-        <Button onClick={saveSettings} disabled={saving}>
-          <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={resetSettings} variant="outline" size="sm">
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Réinitialiser
+          </Button>
+          <Button onClick={handleSave} disabled={saving}>
+            <Save className="h-4 w-4 mr-2" />
+            {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Documentation Management */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Gestion de la Documentation
+            </CardTitle>
+            <CardDescription>Génération automatique des PDFs de documentation</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <p className="font-medium">Surveillance automatique</p>
+                <p className="text-sm text-muted-foreground">
+                  {autoUpdateEnabled ? 'Activée - Vérification toutes les 5 minutes' : 'Désactivée'}
+                </p>
+              </div>
+              <div className={`h-3 w-3 rounded-full ${autoUpdateEnabled ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+            </div>
+
+            {needsUpdate > 0 && (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ {needsUpdate} document(s) nécessitent une mise à jour
+                </p>
+              </div>
+            )}
+
+            <Button 
+              onClick={handleGenerateDocumentation}
+              disabled={generating}
+              className="w-full"
+              variant="outline"
+            >
+              {generating ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2"></div>
+                  Génération en cours...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Générer la documentation PDF
+                </>
+              )}
+            </Button>
+
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>• PRD (Product Requirements Document)</p>
+              <p>• Guide utilisateur</p>  
+              <p>• Documentation technique</p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Paramètres généraux */}
         <Card>
           <CardHeader>
@@ -224,9 +202,6 @@ const BlogSettings: React.FC = () => {
                 onChange={(e) => updateSetting('google_analytics_id', e.target.value)}
                 placeholder="G-XXXXXXXXXX"
               />
-              <p className="text-sm text-muted-foreground mt-1">
-                ID actuellement configuré : G-NH6F3RVC9G
-              </p>
             </div>
             
             <div className="flex items-center space-x-2">
@@ -372,39 +347,6 @@ const BlogSettings: React.FC = () => {
                   <SelectItem value="long">Long (1500-2000 mots)</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Newsletter Management */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Gestion Newsletter</CardTitle>
-            <CardDescription>Système de newsletter intégré</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">0</div>
-                <div className="text-sm text-muted-foreground">Abonnés actifs</div>
-              </div>
-              <div className="text-center p-4 border rounded-lg">
-                <div className="text-2xl font-bold text-green-600">0</div>
-                <div className="text-sm text-muted-foreground">Emails envoyés</div>
-              </div>
-            </div>
-            
-            <Separator />
-            
-            <div className="space-y-2">
-              <Button variant="outline" className="w-full">
-                <Mail className="h-4 w-4 mr-2" />
-                Gérer les abonnés
-              </Button>
-              <Button variant="outline" className="w-full">
-                <Bell className="h-4 w-4 mr-2" />
-                Créer une campagne
-              </Button>
             </div>
           </CardContent>
         </Card>
