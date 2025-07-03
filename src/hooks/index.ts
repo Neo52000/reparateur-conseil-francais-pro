@@ -65,6 +65,7 @@ export { useHistoryCleanup } from './useHistoryCleanup';
 
 // Hooks de documentation
 export { useDocumentationPDF } from './useDocumentationPDF';
+export { useDocumentationManager } from './useDocumentationManager';
 
 // Hooks de chat
 export { useAIPreDiagChat } from './useAIPreDiagChat';

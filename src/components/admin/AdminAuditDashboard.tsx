@@ -1,20 +1,16 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useAdminAuditLogs } from '@/hooks/useAdminAudit';
-import { useDocumentationPDF } from '@/hooks/useDocumentationPDF';
 import { AdminAuditFilters } from '@/services/adminAuditService';
 import AdminAuditLogsViewer from './AdminAuditLogsViewer';
 import AdminAuditStats from './AdminAuditStats';
-import { Activity, BarChart3, Shield, Users, Database, AlertTriangle, FileText, BookOpen, File } from 'lucide-react';
+import EnhancedDocumentationManager from './EnhancedDocumentationManager';
+import { Activity, BarChart3, Shield, Users, Database, AlertTriangle, FileText } from 'lucide-react';
 
 const AdminAuditDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  
-  // Hook pour la génération PDF
-  const { generating, generatePDF, generateAllPDFs } = useDocumentationPDF();
   
   // Statistiques en temps réel
   const { logs: recentLogs, loading } = useAdminAuditLogs({ 
@@ -321,166 +317,7 @@ const AdminAuditDashboard: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="documentation" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Documentation complète du projet
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* Boutons de génération PDF */}
-              <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="font-medium text-blue-900 mb-1">Génération PDF Automatique</h4>
-                    <p className="text-sm text-blue-700">
-                      Générez des versions PDF professionnelles de toute la documentation
-                    </p>
-                  </div>
-                  <button
-                    onClick={generateAllPDFs}
-                    disabled={generating}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                  >
-                    {generating ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                        Génération...
-                      </>
-                    ) : (
-                      <>
-                        <FileText className="h-4 w-4" />
-                        Tout générer en PDF
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* PRD */}
-                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-2 mb-3">
-                    <BookOpen className="h-5 w-5 text-blue-600" />
-                    <h3 className="font-semibold">PRD (Product Requirements)</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Spécifications produit complètes et roadmap
-                  </p>
-                  <div className="space-y-2">
-                    <a 
-                      href="/docs/PRD.md" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="block text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      Voir le PRD →
-                    </a>
-                    <button
-                      onClick={() => generatePDF('prd')}
-                      disabled={generating}
-                      className="flex items-center gap-2 text-xs bg-blue-100 hover:bg-blue-200 disabled:bg-gray-100 text-blue-700 px-3 py-1 rounded font-medium transition-colors"
-                    >
-                      <FileText className="h-3 w-3" />
-                      PDF
-                    </button>
-                  </div>
-                </div>
-
-                {/* Guide utilisateur */}
-                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Users className="h-5 w-5 text-green-600" />
-                    <h3 className="font-semibold">Guide utilisateur</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Manuel d'utilisation pour tous les rôles
-                  </p>
-                  <div className="space-y-2">
-                    <a 
-                      href="/docs/user-guide.md" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="block text-green-600 hover:text-green-800 text-sm font-medium"
-                    >
-                      Voir le guide →
-                    </a>
-                    <button
-                      onClick={() => generatePDF('user-guide')}
-                      disabled={generating}
-                      className="flex items-center gap-2 text-xs bg-green-100 hover:bg-green-200 disabled:bg-gray-100 text-green-700 px-3 py-1 rounded font-medium transition-colors"
-                    >
-                      <FileText className="h-3 w-3" />
-                      PDF
-                    </button>
-                  </div>
-                </div>
-
-                {/* Documentation technique */}
-                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Database className="h-5 w-5 text-purple-600" />
-                    <h3 className="font-semibold">Doc technique</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Architecture et guide développeur
-                  </p>
-                  <div className="space-y-2">
-                    <a 
-                      href="/docs/README.md" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="block text-purple-600 hover:text-purple-800 text-sm font-medium"
-                    >
-                      Voir la doc →
-                    </a>
-                    <button
-                      onClick={() => generatePDF('technical')}
-                      disabled={generating}
-                      className="flex items-center gap-2 text-xs bg-purple-100 hover:bg-purple-200 disabled:bg-gray-100 text-purple-700 px-3 py-1 rounded font-medium transition-colors"
-                    >
-                      <FileText className="h-3 w-3" />
-                      PDF
-                    </button>
-                  </div>
-                </div>
-
-                {/* Résumé refactoring */}
-                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-2 mb-3">
-                    <File className="h-5 w-5 text-orange-600" />
-                    <h3 className="font-semibold">Résumé refactoring</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Historique des améliorations et optimisations
-                  </p>
-                  <div className="space-y-2">
-                    <a 
-                      href="/docs/REFACTORING_SUMMARY.md" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="block text-orange-600 hover:text-orange-800 text-sm font-medium"
-                    >
-                      Voir le résumé →
-                    </a>
-                    <span className="text-xs text-gray-500 italic">
-                      PDF inclus dans la génération complète
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <h4 className="font-medium text-green-900 mb-2">✓ Génération PDF Automatique</h4>
-                <p className="text-sm text-green-700">
-                  Les PDFs sont générés automatiquement avec une mise en page professionnelle, 
-                  incluant logos, en-têtes, et mise à jour de la date de génération. 
-                  Parfait pour présenter la documentation aux clients et investisseurs.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <EnhancedDocumentationManager />
         </TabsContent>
       </Tabs>
     </div>

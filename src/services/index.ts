@@ -1,3 +1,4 @@
+
 /**
  * Index central pour tous les services de l'application
  */
@@ -47,3 +48,4 @@ export { AdminAuditService } from './adminAuditService';
 
 // Services de documentation
 export { DocumentationPDFService } from './documentationPDFService';
+export { DocumentationManagerService } from './documentationManagerService';
