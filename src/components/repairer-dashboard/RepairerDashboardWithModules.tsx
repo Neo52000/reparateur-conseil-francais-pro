@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
 import RepairerDashboard from './RepairerDashboard';
 import POSInterface from '@/components/pos/POSInterface';
+import EcommerceInterface from '@/components/ecommerce/EcommerceInterface';
 import ModuleSwitcher from '@/components/modules/ModuleSwitcher';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -91,25 +92,7 @@ const RepairerDashboardWithModules: React.FC = () => {
         )}
 
         {currentView === 'ecommerce' && hasEcommerceAccess && (
-          <div className="min-h-screen flex items-center justify-center">
-            <Card className="w-96">
-              <CardHeader>
-                <CardTitle>Module E-commerce</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  L'interface e-commerce est en cours de développement.
-                </p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setCurrentView('dashboard')}
-                  className="w-full"
-                >
-                  Retour au Dashboard
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+          <EcommerceInterface onBackToDashboard={() => setCurrentView('dashboard')} />
         )}
 
         {/* Fallback si accès non autorisé */}
