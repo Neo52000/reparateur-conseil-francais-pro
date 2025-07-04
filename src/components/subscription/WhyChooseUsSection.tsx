@@ -166,30 +166,6 @@ const WhyChooseUsSection: React.FC = () => {
             </Card>
           </div>
 
-          {/* CTA pour les modules beta */}
-          <div className="text-center mt-12">
-            <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-8 rounded-xl inline-block max-w-4xl">
-              <h3 className="text-2xl font-bold mb-4">🎉 Accès anticipé aux modules BETA</h3>
-              <p className="text-lg mb-6 opacity-90">
-                Les modules POS et E-commerce sont inclus gratuitement dans tous les plans pendant la phase BETA.<br />
-                <span className="font-semibold">Profitez-en dès maintenant et donnez-nous vos retours !</span>
-              </p>
-              <div className="flex flex-wrap justify-center gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-white rounded-full"></span>
-                  <span>Interface intuitive</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-white rounded-full"></span>
-                  <span>Support prioritaire</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-white rounded-full"></span>
-                  <span>Mises à jour fréquentes</span>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div className="text-center mt-16">
