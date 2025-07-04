@@ -137,7 +137,7 @@ export class ImageOptimizer {
 // Service Worker pour le cache
 export class ServiceWorkerManager {
   static async register() {
-    if (!ENVIRONMENT.isProduction || !('serviceWorker' in navigator)) {
+    if (!('serviceWorker' in navigator)) {
       return;
     }
     
@@ -163,21 +163,82 @@ export class ServiceWorkerManager {
   }
 }
 
+// Lazy loading pour les modules POS/E-commerce
+export class ModuleLoader {
+  private static loadedModules = new Set<string>();
+  
+  static async loadPOSModule() {
+    if (this.loadedModules.has('pos')) return;
+    
+    console.log('📦 Chargement du module POS...');
+    // Charger les composants POS de manière asynchrone
+    const { POSInterface } = await import('@/components/pos/POSInterface');
+    this.loadedModules.add('pos');
+    console.log('✅ Module POS chargé');
+    return { POSInterface };
+  }
+  
+  static async loadEcommerceModule() {
+    if (this.loadedModules.has('ecommerce')) return;
+    
+    console.log('📦 Chargement du module E-commerce...');
+    // Charger les composants E-commerce de manière asynchrone
+    const { EcommerceInterface } = await import('@/components/ecommerce/EcommerceInterface');
+    this.loadedModules.add('ecommerce');
+    console.log('✅ Module E-commerce chargé');
+    return { EcommerceInterface };
+  }
+}
+
+// Cache intelligent avec invalidation
+export class IntelligentCache {
+  private static cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+  
+  static set(key: string, data: any, ttl: number = 300000) { // 5 minutes par défaut
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl
+    });
+  }
+  
+  static get(key: string) {
+    const item = this.cache.get(key);
+    if (!item) return null;
+    
+    if (Date.now() - item.timestamp > item.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+    
+    return item.data;
+  }
+  
+  static invalidate(pattern: string) {
+    const keysToDelete = Array.from(this.cache.keys()).filter(key => 
+      key.includes(pattern)
+    );
+    keysToDelete.forEach(key => this.cache.delete(key));
+  }
+  
+  static clear() {
+    this.cache.clear();
+  }
+}
+
 // Initialisation des optimisations
 export const initProductionOptimizations = () => {
-  if (ENVIRONMENT.isProduction) {
-    // Enregistrer le service worker
-    ServiceWorkerManager.register();
-    
-    // Setup lazy loading des images
-    ImageOptimizer.setupLazyLoading();
-    
-    // Précharger les images critiques
-    ImageOptimizer.preloadCriticalImages([
-      '/logo-icon.svg',
-      // Ajouter d'autres images critiques
-    ]);
-  }
+  // Enregistrer le service worker (en développement et production)
+  ServiceWorkerManager.register();
+  
+  // Setup lazy loading des images
+  ImageOptimizer.setupLazyLoading();
+  
+  // Précharger les images critiques
+  ImageOptimizer.preloadCriticalImages([
+    '/logo-icon.svg',
+    // Ajouter d'autres images critiques
+  ]);
   
   if (ENVIRONMENT.isDevelopment) {
     // Monitoring en développement
@@ -188,4 +249,10 @@ export const initProductionOptimizations = () => {
       console.log('📊 Render Report:', RenderOptimizer.getReport());
     }, 5000);
   }
+  
+  // Nettoyer le cache périodiquement
+  setInterval(() => {
+    IntelligentCache.clear();
+    console.log('🧹 Cache nettoyé');
+  }, 600000); // 10 minutes
 };
