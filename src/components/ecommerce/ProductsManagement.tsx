@@ -75,7 +75,11 @@ export const ProductsManagement: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProducts(data || []);
+      setProducts((data || []).map(product => ({
+        ...product,
+        stock_status: product.stock_status as 'in_stock' | 'out_of_stock' | 'low_stock',
+        status: product.status as 'published' | 'draft' | 'archived'
+      }) as Product));
     } catch (error) {
       console.error('Erreur chargement produits:', error);
       toast({
@@ -438,7 +442,6 @@ export const ProductsManagement: React.FC = () => {
                         onCheckedChange={(checked) => 
                           updateProductStatus(product.id, checked ? 'published' : 'draft')
                         }
-                        size="sm"
                       />
                     </div>
                   </TableCell>

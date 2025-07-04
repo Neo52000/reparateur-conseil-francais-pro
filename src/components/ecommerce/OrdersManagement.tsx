@@ -33,7 +33,7 @@ interface Order {
   subtotal: number;
   tax_amount: number;
   total_amount: number;
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  order_status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   payment_status: 'pending' | 'paid' | 'failed' | 'refunded';
   created_at: string;
   items?: OrderItem[];
@@ -82,10 +82,11 @@ export const OrdersManagement: React.FC = () => {
 
       if (error) throw error;
       
-      setOrders(data?.map(order => ({
-        ...order,
+      setOrders((data || []).map(order => ({
+        ...order,  
+        order_status: order.order_status as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled',
         items: order.ecommerce_order_items || []
-      })) || []);
+      }) as Order));
     } catch (error) {
       console.error('Erreur chargement commandes:', error);
       toast({
@@ -148,7 +149,7 @@ export const OrdersManagement: React.FC = () => {
       confirmed: { variant: "default" as const, icon: CheckCircle },
       processing: { variant: "secondary" as const, icon: Package },
       shipped: { variant: "default" as const, icon: Truck },
-      delivered: { variant: "default" as const, icon: CheckCircle, className: "bg-emerald-600" },
+      delivered: { variant: "default" as const, icon: CheckCircle },
       cancelled: { variant: "destructive" as const, icon: XCircle }
     };
     
@@ -156,7 +157,7 @@ export const OrdersManagement: React.FC = () => {
     const Icon = config.icon;
     
     return (
-      <Badge variant={config.variant} className={config.className}>
+      <Badge variant={config.variant} className={status === 'delivered' ? 'bg-emerald-600' : ''}>
         <Icon className="w-3 h-3 mr-1" />
         {getStatusLabel(status)}
       </Badge>
@@ -167,7 +168,7 @@ export const OrdersManagement: React.FC = () => {
   const getPaymentStatusBadge = (status: string) => {
     const configs = {
       pending: { variant: "secondary" as const, label: "En attente" },
-      paid: { variant: "default" as const, label: "Payé", className: "bg-emerald-600" },
+      paid: { variant: "default" as const, label: "Payé" },
       failed: { variant: "destructive" as const, label: "Échec" },
       refunded: { variant: "outline" as const, label: "Remboursé" }
     };
@@ -175,7 +176,7 @@ export const OrdersManagement: React.FC = () => {
     const config = configs[status as keyof typeof configs] || configs.pending;
     
     return (
-      <Badge variant={config.variant} className={config.className}>
+      <Badge variant={config.variant} className={status === 'paid' ? 'bg-emerald-600' : ''}>
         <Euro className="w-3 h-3 mr-1" />
         {config.label}
       </Badge>
@@ -187,16 +188,16 @@ export const OrdersManagement: React.FC = () => {
     const matchesSearch = order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          order.customer_email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || order.order_status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   // Calculer les statistiques
   const stats = {
     total: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    processing: orders.filter(o => o.status === 'processing').length,
-    shipped: orders.filter(o => o.status === 'shipped').length,
+    pending: orders.filter(o => o.order_status === 'pending').length,
+    processing: orders.filter(o => o.order_status === 'processing').length,
+    shipped: orders.filter(o => o.order_status === 'shipped').length,
     revenue: orders.filter(o => o.payment_status === 'paid').reduce((sum, o) => sum + o.total_amount, 0)
   };
 
@@ -362,7 +363,7 @@ export const OrdersManagement: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     <Select 
-                      value={order.status} 
+                      value={order.order_status} 
                       onValueChange={(value) => updateOrderStatus(order.id, value)}
                     >
                       <SelectTrigger className="w-36">
@@ -418,7 +419,7 @@ export const OrdersManagement: React.FC = () => {
                             <div>
                               <h4 className="font-medium mb-2">Statuts</h4>
                               <div className="space-y-2">
-                                <div>Commande: {getStatusBadge(order.status)}</div>
+                                <div>Commande: {getStatusBadge(order.order_status)}</div>
                                 <div>Paiement: {getPaymentStatusBadge(order.payment_status)}</div>
                               </div>
                             </div>
