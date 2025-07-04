@@ -964,6 +964,45 @@ export type Database = {
         }
         Relationships: []
       }
+      business_categories: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          scraping_prompts: Json | null
+          search_keywords: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          scraping_prompts?: Json | null
+          search_keywords?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          scraping_prompts?: Json | null
+          search_keywords?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       campaign_banners: {
         Row: {
           banner_id: string
@@ -3143,7 +3182,10 @@ export type Database = {
       repairers: {
         Row: {
           address: string
+          auto_detected_category: string | null
+          business_category_id: string | null
           business_status: string | null
+          category_confidence: number | null
           city: string
           created_at: string
           data_quality_score: number | null
@@ -3185,7 +3227,10 @@ export type Database = {
         }
         Insert: {
           address: string
+          auto_detected_category?: string | null
+          business_category_id?: string | null
           business_status?: string | null
+          category_confidence?: number | null
           city: string
           created_at?: string
           data_quality_score?: number | null
@@ -3227,7 +3272,10 @@ export type Database = {
         }
         Update: {
           address?: string
+          auto_detected_category?: string | null
+          business_category_id?: string | null
           business_status?: string | null
+          category_confidence?: number | null
           city?: string
           created_at?: string
           data_quality_score?: number | null
@@ -3267,7 +3315,15 @@ export type Database = {
           updated_at?: string
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "repairers_business_category_id_fkey"
+            columns: ["business_category_id"]
+            isOneToOne: false
+            referencedRelation: "business_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       review_criteria: {
         Row: {
