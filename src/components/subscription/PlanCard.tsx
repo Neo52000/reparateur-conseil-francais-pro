@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Check, Star, Zap, Crown, CreditCard, ShoppingCart } from 'lucide-react';
 
 interface Plan {
@@ -28,6 +29,26 @@ const PlanCard: React.FC<PlanCardProps> = ({
   loading,
   onSubscribe
 }) => {
+  const [selectedModules, setSelectedModules] = useState({
+    pos: false,
+    ecommerce: false
+  });
+
+  const modulesPricing = {
+    pos: { monthly: 49.90, yearly: 499.00 },
+    ecommerce: { monthly: 89.90, yearly: 890.00 }
+  };
+
+  const calculateTotalPrice = () => {
+    const basePlan = isYearly ? plan.price_yearly : plan.price_monthly;
+    const posPrice = selectedModules.pos ? (isYearly ? modulesPricing.pos.yearly : modulesPricing.pos.monthly) : 0;
+    const ecommercePrice = selectedModules.ecommerce ? (isYearly ? modulesPricing.ecommerce.yearly : modulesPricing.ecommerce.monthly) : 0;
+    return basePlan + posPrice + ecommercePrice;
+  };
+
+  const getModulesCount = () => {
+    return Object.values(selectedModules).filter(Boolean).length;
+  };
   const getIcon = (planName: string) => {
     switch (planName.toLowerCase()) {
       case 'gratuit': return null;
@@ -87,15 +108,20 @@ const PlanCard: React.FC<PlanCardProps> = ({
         
         <div className="space-y-1">
           <div className="text-3xl font-bold text-gray-900">
-            {isYearly ? plan.price_yearly.toFixed(2) : plan.price_monthly.toFixed(2)}€
+            {calculateTotalPrice().toFixed(2)}€
           </div>
           <div className="text-sm text-gray-500">
             {plan.price_monthly === 0 ? 'Gratuit pour toujours' : 
              isYearly ? 'par an' : 'par mois'}
           </div>
+          {getModulesCount() > 0 && (
+            <div className="text-xs text-blue-600">
+              Inclut {getModulesCount()} module{getModulesCount() > 1 ? 's' : ''} optionnel{getModulesCount() > 1 ? 's' : ''}
+            </div>
+          )}
           {isYearly && plan.price_monthly > 0 && (
             <div className="text-xs text-green-600">
-              Économisez {((plan.price_monthly * 12) - plan.price_yearly).toFixed(2)}€/an
+              Économie sur le plan de base: {((plan.price_monthly * 12) - plan.price_yearly).toFixed(2)}€/an
             </div>
           )}
         </div>
@@ -111,48 +137,95 @@ const PlanCard: React.FC<PlanCardProps> = ({
           ))}
         </ul>
 
-        {/* Section modules additionnels optionnels */}
+        {/* Section modules optionnels avec checkboxes */}
         <div className="border-t pt-4 mt-4">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-4">
             <span className="text-sm font-medium text-gray-700">Modules optionnels</span>
-            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Au choix</span>
+            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Personnalisez votre plan</span>
           </div>
           
-          <ul className="space-y-3">
-            <li className="flex items-center justify-between p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <div className="flex items-start">
-                <CreditCard className="h-4 w-4 text-purple-500 mt-0.5 mr-2 flex-shrink-0" />
-                <div>
-                  <span className="text-sm font-medium text-gray-700">Module POS</span>
+          <div className="space-y-3">
+            {/* Module POS */}
+            <div className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <Checkbox
+                id={`pos-${plan.id}`}
+                checked={selectedModules.pos}
+                onCheckedChange={(checked) => 
+                  setSelectedModules(prev => ({ ...prev, pos: !!checked }))
+                }
+                className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+              />
+              <div className="flex items-center flex-1">
+                <CreditCard className="h-4 w-4 text-purple-500 mr-2 flex-shrink-0" />
+                <div className="flex-1">
+                  <label htmlFor={`pos-${plan.id}`} className="text-sm font-medium text-gray-700 cursor-pointer">
+                    Module POS
+                  </label>
                   <p className="text-xs text-gray-500">Point de vente & inventaire</p>
                 </div>
               </div>
               <div className="text-right">
-                <span className="text-sm font-semibold text-purple-600">+49,90€</span>
-                <p className="text-xs text-gray-500">/mois</p>
+                <span className="text-sm font-semibold text-purple-600">
+                  +{isYearly ? modulesPricing.pos.yearly.toFixed(2) : modulesPricing.pos.monthly.toFixed(2)}€
+                </span>
+                <p className="text-xs text-gray-500">{isYearly ? '/an' : '/mois'}</p>
               </div>
-            </li>
-            <li className="flex items-center justify-between p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <div className="flex items-start">
-                <ShoppingCart className="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
-                <div>
-                  <span className="text-sm font-medium text-gray-700">Module E-commerce</span>
+            </div>
+
+            {/* Module E-commerce */}
+            <div className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <Checkbox
+                id={`ecommerce-${plan.id}`}
+                checked={selectedModules.ecommerce}
+                onCheckedChange={(checked) => 
+                  setSelectedModules(prev => ({ ...prev, ecommerce: !!checked }))
+                }
+                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+              />
+              <div className="flex items-center flex-1">
+                <ShoppingCart className="h-4 w-4 text-blue-500 mr-2 flex-shrink-0" />
+                <div className="flex-1">
+                  <label htmlFor={`ecommerce-${plan.id}`} className="text-sm font-medium text-gray-700 cursor-pointer">
+                    Module E-commerce
+                  </label>
                   <p className="text-xs text-gray-500">Boutique en ligne intégrée</p>
                 </div>
               </div>
               <div className="text-right">
-                <span className="text-sm font-semibold text-blue-600">+89,90€</span>
-                <p className="text-xs text-gray-500">/mois</p>
+                <span className="text-sm font-semibold text-blue-600">
+                  +{isYearly ? modulesPricing.ecommerce.yearly.toFixed(2) : modulesPricing.ecommerce.monthly.toFixed(2)}€
+                </span>
+                <p className="text-xs text-gray-500">{isYearly ? '/an' : '/mois'}</p>
               </div>
-            </li>
-          </ul>
+            </div>
+          </div>
+
+          {/* Récapitulatif du prix */}
+          {getModulesCount() > 0 && (
+            <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">
+                    Plan {plan.name} + {getModulesCount()} module{getModulesCount() > 1 ? 's' : ''}
+                  </p>
+                  <div className="text-xs text-gray-600 mt-1">
+                    {selectedModules.pos && <span className="mr-2">• POS</span>}
+                    {selectedModules.ecommerce && <span>• E-commerce</span>}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-gray-900">
+                    {calculateTotalPrice().toFixed(2)}€
+                  </p>
+                  <p className="text-xs text-gray-500">{isYearly ? '/an' : '/mois'}</p>
+                </div>
+              </div>
+            </div>
+          )}
           
-          <div className="mt-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-xs text-center text-blue-700 font-medium">
-              💡 Modules optionnels - Ajoutez-les selon vos besoins
-            </p>
-            <p className="text-xs text-center text-blue-600 mt-1">
-              Facturation séparée - Activables à tout moment
+          <div className="mt-3 p-2 bg-gray-50 rounded-lg">
+            <p className="text-xs text-center text-gray-600">
+              💡 Modules activables à tout moment depuis votre tableau de bord
             </p>
           </div>
         </div>
