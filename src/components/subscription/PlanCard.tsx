@@ -111,14 +111,15 @@ const PlanCard: React.FC<PlanCardProps> = ({
           ))}
         </ul>
 
-        {/* Section modules additionnels */}
+        {/* Section modules additionnels optionnels */}
         <div className="border-t pt-4 mt-4">
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-sm font-medium text-gray-700">Modules additionnels</span>
+            <span className="text-sm font-medium text-gray-700">Modules optionnels</span>
+            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Au choix</span>
           </div>
           
           <ul className="space-y-3">
-            <li className="flex items-center justify-between">
+            <li className="flex items-center justify-between p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
               <div className="flex items-start">
                 <CreditCard className="h-4 w-4 text-purple-500 mt-0.5 mr-2 flex-shrink-0" />
                 <div>
@@ -126,9 +127,12 @@ const PlanCard: React.FC<PlanCardProps> = ({
                   <p className="text-xs text-gray-500">Point de vente & inventaire</p>
                 </div>
               </div>
-              <span className="text-sm font-semibold text-purple-600">+49,90€</span>
+              <div className="text-right">
+                <span className="text-sm font-semibold text-purple-600">+49,90€</span>
+                <p className="text-xs text-gray-500">/mois</p>
+              </div>
             </li>
-            <li className="flex items-center justify-between">
+            <li className="flex items-center justify-between p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
               <div className="flex items-start">
                 <ShoppingCart className="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
                 <div>
@@ -136,13 +140,19 @@ const PlanCard: React.FC<PlanCardProps> = ({
                   <p className="text-xs text-gray-500">Boutique en ligne intégrée</p>
                 </div>
               </div>
-              <span className="text-sm font-semibold text-blue-600">+89,90€</span>
+              <div className="text-right">
+                <span className="text-sm font-semibold text-blue-600">+89,90€</span>
+                <p className="text-xs text-gray-500">/mois</p>
+              </div>
             </li>
           </ul>
           
-          <div className="mt-3 p-2 bg-gray-50 rounded-lg">
-            <p className="text-xs text-center text-gray-600">
-              Tarifs mensuels - facturation séparée
+          <div className="mt-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-xs text-center text-blue-700 font-medium">
+              💡 Modules optionnels - Ajoutez-les selon vos besoins
+            </p>
+            <p className="text-xs text-center text-blue-600 mt-1">
+              Facturation séparée - Activables à tout moment
             </p>
           </div>
         </div>
