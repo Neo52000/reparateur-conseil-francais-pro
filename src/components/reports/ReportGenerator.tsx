@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DatePickerWithRange } from '@/components/ui/date-range-picker';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { useToast } from '@/hooks/use-toast';
 import { 
   FileText, 
@@ -226,9 +226,12 @@ export const ReportGenerator: React.FC = () => {
 
             <div>
               <label className="text-sm font-medium mb-2 block">Période</label>
-              <DatePickerWithRange
-                date={dateRange}
-                onDateChange={setDateRange}
+              <DateRangePicker
+                value={{ from: dateRange?.from, to: dateRange?.to }}
+                onChange={(range) => setDateRange({ 
+                  from: range.from || new Date(), 
+                  to: range.to || new Date() 
+                })}
               />
             </div>
           </div>

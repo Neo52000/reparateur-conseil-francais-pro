@@ -66,7 +66,9 @@ export const NotificationManager: React.FC = () => {
         .single();
 
       if (data && !error) {
-        setSettings(typeof data.settings === 'object' ? data.settings : settings);
+        // La structure des données peut varier selon la base
+        const dataSettings = (data as any).settings || {};
+        setSettings(typeof dataSettings === 'object' ? dataSettings : settings);
         setPermissions(prev => ({
           ...prev,
           email: data.email_enabled || false,
