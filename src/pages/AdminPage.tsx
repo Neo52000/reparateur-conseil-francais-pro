@@ -5,7 +5,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import DashboardOverview from '@/components/admin/DashboardOverview';
 import AdminDashboardContent from '@/components/admin/AdminDashboardContent';
 import AdminDashboardHeader from '@/components/admin/AdminDashboardHeader';
-import RepairersTable from '@/components/repairers/RepairersTable';
+import RepairerList from '@/components/admin/RepairerList';
 import ClientInterestManagement from '@/components/ClientInterestManagement';
 import PromoCodesManagement from '@/components/PromoCodesManagement';
 import AdBannerManagement from '@/components/advertising/AdBannerManagement';
@@ -107,13 +107,7 @@ const AdminPage = () => {
     }
 
     if (activeTab === 'repairers') {
-      return (
-        <RepairersTable
-          repairers={repairers}
-          onViewProfile={() => {}}
-          onRefresh={fetchData}
-        />
-      );
+      return <RepairerList />;
     }
 
     if (activeTab === 'interest') {

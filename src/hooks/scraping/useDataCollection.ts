@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -10,9 +11,11 @@ interface BusinessCategory {
 }
 
 export const useDataCollection = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [results, setResults] = useState<any[]>([]);
   const [integrating, setIntegrating] = useState(false);
+  const [showRedirection, setShowRedirection] = useState(false);
 
   const generateSerperQuery = (category: BusinessCategory, location: string, customQuery?: string) => {
     if (customQuery) return customQuery;
@@ -130,10 +133,8 @@ export const useDataCollection = () => {
         description: `${stats.totalInserted || 0} réparateurs ajoutés (${stats.totalFound || 0} trouvés, ${stats.totalProcessed || 0} traités). Consultez la gestion des réparateurs.`
       });
       
-      // Redirection automatique après 2 secondes
-      setTimeout(() => {
-        window.location.href = "/admin?tab=repairers";
-      }, 2000);
+      // Afficher le composant de redirection avec countdown
+      setShowRedirection(true);
       
       return data.results || [];
     } catch (error: any) {
@@ -184,15 +185,26 @@ export const useDataCollection = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleRedirectToRepairers = () => {
+    navigate('/admin?tab=repairers');
+  };
+
+  const handleCancelRedirection = () => {
+    setShowRedirection(false);
+  };
+
   return {
     results,
     setResults,
     integrating,
+    showRedirection,
     generateSerperQuery,
     handleSerperSearch,
     handleMultiAIPipeline,
     handleUnifiedScraping,
     handleIntegrateToDatabase,
+    handleRedirectToRepairers,
+    handleCancelRedirection,
     exportResults
   };
 };

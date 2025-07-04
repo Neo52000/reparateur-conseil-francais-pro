@@ -9,6 +9,7 @@ import SerperCollectionTab from './collection-methods/SerperCollectionTab';
 import UnifiedScrapingTab from './collection-methods/UnifiedScrapingTab';
 import ScrapingProgressViewer from './ScrapingProgressViewer';
 import ResultsPreviewTable from './ResultsPreviewTable';
+import RedirectionCountdown from './RedirectionCountdown';
 
 interface BusinessCategory {
   id: string;
@@ -39,11 +40,14 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
   const {
     results,
     integrating,
+    showRedirection,
     generateSerperQuery,
     handleSerperSearch,
     handleMultiAIPipeline,
     handleUnifiedScraping,
     handleIntegrateToDatabase,
+    handleRedirectToRepairers,
+    handleCancelRedirection,
     exportResults
   } = useDataCollection();
 
@@ -88,6 +92,15 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Redirection countdown après scraping */}
+      {showRedirection && (
+        <RedirectionCountdown
+          onRedirect={handleRedirectToRepairers}
+          onCancel={handleCancelRedirection}
+          duration={3}
+        />
+      )}
+
       {/* Paramètres de recherche */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
