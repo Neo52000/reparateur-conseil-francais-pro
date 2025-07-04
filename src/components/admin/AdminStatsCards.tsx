@@ -19,8 +19,8 @@ const AdminStatsCards: React.FC<AdminStatsCardsProps> = ({ stats }) => {
       value: stats.totalRepairers?.toLocaleString() || '0',
       description: 'Total inscrits',
       icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
+      color: 'text-admin-blue',
+      bgColor: 'bg-admin-blue-light',
       trend: '+12%'
     },
     {
@@ -28,8 +28,8 @@ const AdminStatsCards: React.FC<AdminStatsCardsProps> = ({ stats }) => {
       value: stats.totalSubscriptions?.toLocaleString() || '0',
       description: 'Actifs',
       icon: UserCheck,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
+      color: 'text-admin-green',
+      bgColor: 'bg-admin-green-light',
       trend: '+8%'
     },
     {
@@ -37,8 +37,8 @@ const AdminStatsCards: React.FC<AdminStatsCardsProps> = ({ stats }) => {
       value: stats.totalInterests?.toLocaleString() || '0',
       description: 'Demandes clients',
       icon: Heart,
-      color: 'text-pink-600',
-      bgColor: 'bg-pink-50',
+      color: 'text-admin-pink',
+      bgColor: 'bg-admin-pink-light',
       trend: '+15%'
     },
     {
@@ -46,8 +46,8 @@ const AdminStatsCards: React.FC<AdminStatsCardsProps> = ({ stats }) => {
       value: `${stats.totalRevenue?.toLocaleString() || '0'}€`,
       description: 'Ce mois',
       icon: DollarSign,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
+      color: 'text-admin-yellow',
+      bgColor: 'bg-admin-yellow-light',
       trend: '+22%'
     }
   ];
@@ -57,25 +57,25 @@ const AdminStatsCards: React.FC<AdminStatsCardsProps> = ({ stats }) => {
       {cards.map((card, index) => (
         <Card 
           key={index} 
-          className="hover:shadow-lg transition-shadow duration-200 border-0 shadow-sm"
+          className="admin-card-hover border-0 shadow-sm"
         >
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className={`p-3 rounded-xl ${card.bgColor}`}>
                 <card.icon className={`w-6 h-6 ${card.color}`} />
               </div>
-              <div className="flex items-center text-sm text-green-600">
+              <div className="flex items-center text-sm text-admin-green">
                 <TrendingUp className="w-4 h-4 mr-1" />
                 {card.trend}
               </div>
             </div>
             
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">
+              <h3 className="text-2xl font-bold text-foreground mb-1">
                 {card.value}
               </h3>
-              <p className="text-sm text-gray-600 mb-1">{card.title}</p>
-              <p className="text-xs text-gray-500">{card.description}</p>
+              <p className="text-sm text-muted-foreground mb-1">{card.title}</p>
+              <p className="text-xs text-muted-foreground/70">{card.description}</p>
             </div>
           </CardContent>
         </Card>

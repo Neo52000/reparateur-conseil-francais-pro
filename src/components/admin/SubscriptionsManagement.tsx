@@ -26,12 +26,12 @@ const SubscriptionsManagement: React.FC<SubscriptionsManagementProps> = ({
 
   const getSubscriptionBadge = (tier: string) => {
     const variants = {
-      'free': 'bg-gray-100 text-gray-800',
-      'basic': 'bg-blue-100 text-blue-800',
-      'pro': 'bg-purple-100 text-purple-800',
-      'premium': 'bg-gold-100 text-gold-800'
+      'free': 'bg-muted text-muted-foreground',
+      'basic': 'bg-admin-blue-light text-admin-blue',
+      'pro': 'bg-admin-purple-light text-admin-purple',
+      'premium': 'bg-admin-yellow-light text-admin-yellow'
     };
-    return variants[tier as keyof typeof variants] || 'bg-gray-100 text-gray-800';
+    return variants[tier as keyof typeof variants] || 'bg-muted text-muted-foreground';
   };
 
   return (
@@ -53,7 +53,7 @@ const SubscriptionsManagement: React.FC<SubscriptionsManagementProps> = ({
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <CreditCard className="h-8 w-8 text-blue-600" />
+              <CreditCard className="h-8 w-8 text-admin-blue" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Total Abonnements</p>
                 <p className="text-2xl font-bold text-foreground">{stats.totalSubscriptions}</p>
@@ -65,7 +65,7 @@ const SubscriptionsManagement: React.FC<SubscriptionsManagementProps> = ({
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Users className="h-8 w-8 text-green-600" />
+              <Users className="h-8 w-8 text-admin-green" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Actifs</p>
                 <p className="text-2xl font-bold text-foreground">{stats.activeSubscriptions}</p>
@@ -77,7 +77,7 @@ const SubscriptionsManagement: React.FC<SubscriptionsManagementProps> = ({
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <DollarSign className="h-8 w-8 text-purple-600" />
+              <DollarSign className="h-8 w-8 text-admin-purple" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Revenus Mensuels</p>
                 <p className="text-2xl font-bold text-foreground">{stats.totalRevenue}€</p>
@@ -89,7 +89,7 @@ const SubscriptionsManagement: React.FC<SubscriptionsManagementProps> = ({
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <TrendingUp className="h-8 w-8 text-orange-600" />
+              <TrendingUp className="h-8 w-8 text-admin-orange" />
               <div className="ml-4">
                 <p className="text-sm font-medium text-muted-foreground">Taux Conversion</p>
                 <p className="text-2xl font-bold text-foreground">{stats.conversionRate}%</p>

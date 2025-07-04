@@ -18,16 +18,16 @@ const EnhancedScrapingHub = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Hub de Scraping Intelligent</h2>
-          <p className="text-gray-600">Collecte automatisée avec IA, géocodage et validation</p>
+          <p className="text-muted-foreground">Collecte automatisée avec IA, géocodage et validation</p>
         </div>
         <div className="flex space-x-2">
-          <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+          <Badge variant="secondary" className="bg-admin-purple-light text-admin-purple">
             🧠 DeepSeek Configuré
           </Badge>
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+          <Badge variant="secondary" className="bg-admin-blue-light text-admin-blue">
             🗺️ Géocodage Auto
           </Badge>
-          <Badge variant="secondary" className="bg-green-100 text-green-800">
+          <Badge variant="secondary" className="bg-admin-green-light text-admin-green">
             ✅ Prêt
           </Badge>
         </div>
@@ -61,14 +61,14 @@ const EnhancedScrapingHub = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Brain className="h-5 w-5 mr-2 text-purple-600" />
+                <Brain className="h-5 w-5 mr-2 text-admin-purple" />
                 Scraping via Prompt IA
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="mb-4 p-4 bg-purple-50 rounded-lg">
-                <h4 className="font-semibold text-purple-900 mb-2">🚀 Nouvelle fonctionnalité intelligente</h4>
-                <ul className="text-sm text-purple-800 space-y-1">
+              <div className="mb-4 p-4 bg-admin-purple-light rounded-lg">
+                <h4 className="font-semibold text-admin-purple mb-2">🚀 Nouvelle fonctionnalité intelligente</h4>
+                <ul className="text-sm text-admin-purple space-y-1">
                   <li>• <strong>Langage naturel:</strong> Décrivez simplement ce que vous cherchez</li>
                   <li>• <strong>Multi-IA:</strong> DeepSeek, Mistral, OpenAI pour l'analyse</li>
                   <li>• <strong>Auto-configuration:</strong> Paramètres automatiquement détectés</li>
@@ -84,14 +84,14 @@ const EnhancedScrapingHub = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Zap className="h-5 w-5 mr-2 text-purple-600" />
+                <Zap className="h-5 w-5 mr-2 text-admin-purple" />
                 Scraping avec Classification IA
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="mb-4 p-4 bg-purple-50 rounded-lg">
-                <h4 className="font-semibold text-purple-900 mb-2">🤖 Fonctionnalités IA activées</h4>
-                <ul className="text-sm text-purple-800 space-y-1">
+              <div className="mb-4 p-4 bg-admin-purple-light rounded-lg">
+                <h4 className="font-semibold text-admin-purple mb-2">🤖 Fonctionnalités IA activées</h4>
+                <ul className="text-sm text-admin-purple space-y-1">
                   <li>• <strong>DeepSeek:</strong> Classification et validation automatique des réparateurs</li>
                   <li>• <strong>Mistral:</strong> Amélioration des descriptions et services</li>
                   <li>• <strong>Géocodage:</strong> Coordonnées GPS automatiques via Nominatim</li>
@@ -107,14 +107,14 @@ const EnhancedScrapingHub = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Upload className="h-5 w-5 mr-2 text-blue-600" />
+                <Upload className="h-5 w-5 mr-2 text-admin-blue" />
                 Import CSV avec Améliorations
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-2">📈 Améliorations automatiques</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
+              <div className="mb-4 p-4 bg-admin-blue-light rounded-lg">
+                <h4 className="font-semibold text-admin-blue mb-2">📈 Améliorations automatiques</h4>
+                <ul className="text-sm text-admin-blue space-y-1">
                   <li>• <strong>IDs uniques:</strong> Génération automatique d'identifiants uniques</li>
                   <li>• <strong>Géocodage:</strong> Conversion adresses → coordonnées GPS</li>
                   <li>• <strong>Classification IA:</strong> Validation avec DeepSeek (optionnel)</li>
@@ -130,14 +130,14 @@ const EnhancedScrapingHub = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Globe className="h-5 w-5 mr-2 text-green-600" />
+                <Globe className="h-5 w-5 mr-2 text-admin-green" />
                 Scraping Massif par Département
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="mb-4 p-4 bg-green-50 rounded-lg">
-                <h4 className="font-semibold text-green-900 mb-2">🌍 Scraping à grande échelle</h4>
-                <ul className="text-sm text-green-800 space-y-1">
+              <div className="mb-4 p-4 bg-admin-green-light rounded-lg">
+                <h4 className="font-semibold text-admin-green mb-2">🌍 Scraping à grande échelle</h4>
+                <ul className="text-sm text-admin-green space-y-1">
                   <li>• <strong>Pages Jaunes + Google Places:</strong> Sources multiples</li>
                   <li>• <strong>Par département:</strong> Ciblage géographique précis</li>
                   <li>• <strong>Firecrawl:</strong> Scraping fiable et continu</li>
@@ -153,14 +153,14 @@ const EnhancedScrapingHub = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Search className="h-5 w-5 mr-2 text-orange-600" />
+                <Search className="h-5 w-5 mr-2 text-admin-orange" />
                 Recherche avec API Serper
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="mb-4 p-4 bg-orange-50 rounded-lg">
-                <h4 className="font-semibold text-orange-900 mb-2">🎯 Recherche Google avancée</h4>
-                <ul className="text-sm text-orange-800 space-y-1">
+              <div className="mb-4 p-4 bg-admin-orange-light rounded-lg">
+                <h4 className="font-semibold text-admin-orange mb-2">🎯 Recherche Google avancée</h4>
+                <ul className="text-sm text-admin-orange space-y-1">
                   <li>• <strong>Multi-types:</strong> Web, Images, News, Shopping, Vidéos, Local</li>
                   <li>• <strong>Géolocalisation:</strong> Recherches par pays et ville</li>
                   <li>• <strong>Export CSV:</strong> Sauvegarde des résultats structurés</li>

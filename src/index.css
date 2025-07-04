@@ -30,6 +30,23 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+    
+    /* Admin theme colors */
+    --admin-blue: 214 88% 55%;
+    --admin-blue-light: 214 88% 95%;
+    --admin-green: 142 76% 36%;
+    --admin-green-light: 142 76% 95%;
+    --admin-purple: 258 90% 66%;
+    --admin-purple-light: 258 90% 95%;
+    --admin-orange: 24 95% 53%;
+    --admin-orange-light: 24 95% 95%;
+    --admin-pink: 330 81% 60%;
+    --admin-pink-light: 330 81% 95%;
+    --admin-yellow: 45 93% 47%;
+    --admin-yellow-light: 45 93% 95%;
+    
+    /* Animation utilities */
+    --fade-in: fadeIn 0.5s ease-in-out;
   }
 
   .dark {
@@ -84,6 +101,21 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 /* Styles pour les cartes de blog */
@@ -94,4 +126,14 @@
 .blog-card-hover:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Styles pour les cartes admin */
+.admin-card-hover {
+  transition: all 0.2s ease;
+}
+
+.admin-card-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.08);
 }

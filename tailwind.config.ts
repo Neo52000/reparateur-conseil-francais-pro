@@ -61,6 +61,20 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				admin: {
+					blue: 'hsl(var(--admin-blue))',
+					'blue-light': 'hsl(var(--admin-blue-light))',
+					green: 'hsl(var(--admin-green))',
+					'green-light': 'hsl(var(--admin-green-light))',
+					purple: 'hsl(var(--admin-purple))',
+					'purple-light': 'hsl(var(--admin-purple-light))',
+					orange: 'hsl(var(--admin-orange))',
+					'orange-light': 'hsl(var(--admin-orange-light))',
+					pink: 'hsl(var(--admin-pink))',
+					'pink-light': 'hsl(var(--admin-pink-light))',
+					yellow: 'hsl(var(--admin-yellow))',
+					'yellow-light': 'hsl(var(--admin-yellow-light))'
 				}
 			},
 			borderRadius: {

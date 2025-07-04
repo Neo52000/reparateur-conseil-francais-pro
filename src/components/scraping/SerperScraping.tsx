@@ -131,8 +131,8 @@ const SerperScraping: React.FC = () => {
       {/* Configuration de recherche */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Search className="h-5 w-5 mr-2 text-blue-600" />
+            <CardTitle className="flex items-center">
+              <Search className="h-5 w-5 mr-2 text-admin-orange" />
             Configuration de la Recherche Serper
           </CardTitle>
         </CardHeader>
