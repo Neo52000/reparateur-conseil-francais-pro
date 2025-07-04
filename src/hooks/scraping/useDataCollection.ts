@@ -127,8 +127,13 @@ export const useDataCollection = () => {
       
       toast({
         title: "Scraping unifié réussi",
-        description: `${stats.totalInserted || 0} réparateurs ajoutés (${stats.totalFound || 0} trouvés, ${stats.totalProcessed || 0} traités)`
+        description: `${stats.totalInserted || 0} réparateurs ajoutés (${stats.totalFound || 0} trouvés, ${stats.totalProcessed || 0} traités). Consultez la gestion des réparateurs.`
       });
+      
+      // Redirection automatique après 2 secondes
+      setTimeout(() => {
+        window.location.href = "/admin?tab=repairers";
+      }, 2000);
       
       return data.results || [];
     } catch (error: any) {
@@ -143,37 +148,11 @@ export const useDataCollection = () => {
   };
 
   const handleIntegrateToDatabase = async (selectedResults: any[], category: BusinessCategory, location: string) => {
-    setIntegrating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('modern-scraping', {
-        body: {
-          searchTerm: category.search_keywords[0] || category.name,
-          location: location || 'France',
-          source: 'integration',
-          maxResults: selectedResults.length,
-          testMode: false,
-          preProcessedResults: selectedResults
-        }
-      });
-
-      if (error) throw error;
-      
-      toast({
-        title: "Intégration réussie",
-        description: `${selectedResults.length} réparateurs ajoutés à la base de données`
-      });
-      
-      setResults([]);
-    } catch (error: any) {
-      console.error('Erreur intégration:', error);
-      toast({
-        title: "Erreur d'intégration",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setIntegrating(false);
-    }
+    // Plus besoin d'intégration séparée car unified-scraping intègre directement
+    toast({
+      title: "Information",
+      description: "L'intégration se fait automatiquement avec le scraping unifié",
+    });
   };
 
   const exportResults = (results: any[], categoryName: string) => {

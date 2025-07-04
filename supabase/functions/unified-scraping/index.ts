@@ -317,21 +317,33 @@ async function integrateToDatabase(supabase: any, results: any[], categoryId: st
   console.log(`💾 Intégration de ${results.length} résultats...`);
   
   let insertedCount = 0;
-  const batchSize = 25;
+  const batchSize = 10; // Réduire la taille des lots
 
   for (let i = 0; i < results.length; i += batchSize) {
     const batch = results.slice(i, i + batchSize);
     
     try {
       const processedBatch = batch.map(result => ({
-        ...result,
+        name: result.name || 'Sans nom',
+        address: result.address || '',
+        city: result.city || '',
+        postal_code: result.postal_code || '',
+        phone: result.phone || null,
+        email: result.email || null,
+        website: result.website || null,
+        description: result.description || null,
+        lat: result.lat || null,
+        lng: result.lng || null,
         business_category_id: categoryId,
-        unique_id: generateUniqueId(result.name),
+        unique_id: generateUniqueId(result.name || 'unknown'),
+        source: result.source || 'unified',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         is_verified: false,
-        data_quality_score: result.quality_score || 0
+        data_quality_score: result.quality_score || 50
       }));
+
+      console.log(`🔍 Tentative d'insertion lot ${i + 1}:`, processedBatch.slice(0, 2)); // Log sample
 
       const { data, error } = await supabase
         .from('repairers')
@@ -339,20 +351,22 @@ async function integrateToDatabase(supabase: any, results: any[], categoryId: st
         .select('id');
 
       if (error) {
-        console.error(`Erreur insertion lot ${i}:`, error);
+        console.error(`❌ Erreur insertion lot ${i + 1}:`, error);
+        console.error('Détails:', JSON.stringify(error, null, 2));
         continue;
       }
 
       insertedCount += data?.length || 0;
-      console.log(`✅ Lot ${i + 1}-${i + batchSize}: ${data?.length || 0} éléments`);
+      console.log(`✅ Lot ${i + 1}: ${data?.length || 0} éléments insérés avec succès`);
 
     } catch (error) {
-      console.error(`Erreur lot ${i}:`, error);
+      console.error(`💥 Erreur traitement lot ${i + 1}:`, error);
     }
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 200));
   }
 
+  console.log(`🎉 Total inséré: ${insertedCount} réparateurs`);
   return insertedCount;
 }
 

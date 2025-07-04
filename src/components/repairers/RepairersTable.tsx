@@ -67,7 +67,10 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
   return (
     <>
       <Card>
-        <RepairersTableHeader onAddRepairer={() => setAddModalOpen(true)} />
+        <RepairersTableHeader 
+          onAddRepairer={() => setAddModalOpen(true)}
+          onRefresh={onRefresh}
+        />
         <CardContent>
           {selectedIds.length > 0 && (
             <BulkActionsBar
