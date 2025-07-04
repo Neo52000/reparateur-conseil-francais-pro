@@ -7,10 +7,11 @@ import CSVImportWithGeocoding from './CSVImportWithGeocoding';
 import MassiveScrapingControl from './MassiveScrapingControl';
 import AIPromptScraping from './AIPromptScraping';
 import SerperScraping from './SerperScraping';
+import AutoEnhancementDashboard from './AutoEnhancementDashboard';
 import { Globe, Upload, Zap, Database, Brain, Search } from 'lucide-react';
 
 const EnhancedScrapingHub = () => {
-  const [activeTab, setActiveTab] = useState('ai-scraping');
+  const [activeTab, setActiveTab] = useState('auto-enhancement');
 
   return (
     <div className="space-y-6">
@@ -34,7 +35,11 @@ const EnhancedScrapingHub = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="auto-enhancement" className="flex items-center space-x-2">
+            <Database className="h-4 w-4" />
+            <span>Améliorations Auto</span>
+          </TabsTrigger>
           <TabsTrigger value="ai-prompt" className="flex items-center space-x-2">
             <Brain className="h-4 w-4" />
             <span>Prompt IA</span>
@@ -56,6 +61,10 @@ const EnhancedScrapingHub = () => {
             <span>Serper Search</span>
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="auto-enhancement" className="space-y-6">
+          <AutoEnhancementDashboard />
+        </TabsContent>
 
         <TabsContent value="ai-prompt" className="space-y-6">
           <Card>

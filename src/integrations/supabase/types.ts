@@ -298,6 +298,59 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_enhancements: {
+        Row: {
+          ai_model: string
+          confidence_score: number | null
+          created_at: string | null
+          enhancement_type: string
+          error_message: string | null
+          id: string
+          input_data: Json
+          metadata: Json | null
+          output_data: Json
+          processing_time_ms: number | null
+          repairer_id: string | null
+          success: boolean | null
+        }
+        Insert: {
+          ai_model: string
+          confidence_score?: number | null
+          created_at?: string | null
+          enhancement_type: string
+          error_message?: string | null
+          id?: string
+          input_data?: Json
+          metadata?: Json | null
+          output_data?: Json
+          processing_time_ms?: number | null
+          repairer_id?: string | null
+          success?: boolean | null
+        }
+        Update: {
+          ai_model?: string
+          confidence_score?: number | null
+          created_at?: string | null
+          enhancement_type?: string
+          error_message?: string | null
+          id?: string
+          input_data?: Json
+          metadata?: Json | null
+          output_data?: Json
+          processing_time_ms?: number | null
+          repairer_id?: string | null
+          success?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_enhancements_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_pre_diagnostic_chats: {
         Row: {
           ended_at: string | null
@@ -1532,6 +1585,50 @@ export type Database = {
         }
         Relationships: []
       }
+      data_quality_metrics: {
+        Row: {
+          accuracy_score: number | null
+          calculated_at: string | null
+          completeness_score: number | null
+          consistency_score: number | null
+          id: string
+          improvements_suggested: Json | null
+          issues_detected: Json | null
+          overall_score: number | null
+          repairer_id: string | null
+        }
+        Insert: {
+          accuracy_score?: number | null
+          calculated_at?: string | null
+          completeness_score?: number | null
+          consistency_score?: number | null
+          id?: string
+          improvements_suggested?: Json | null
+          issues_detected?: Json | null
+          overall_score?: number | null
+          repairer_id?: string | null
+        }
+        Update: {
+          accuracy_score?: number | null
+          calculated_at?: string | null
+          completeness_score?: number | null
+          consistency_score?: number | null
+          id?: string
+          improvements_suggested?: Json | null
+          issues_detected?: Json | null
+          overall_score?: number | null
+          repairer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_quality_metrics_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       device_models: {
         Row: {
           battery_capacity: number | null
@@ -1741,6 +1838,56 @@ export type Database = {
           type?: string
         }
         Relationships: []
+      }
+      geocoding_history: {
+        Row: {
+          accuracy: string | null
+          created_at: string | null
+          geocoding_service: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          normalized_address: string | null
+          original_address: string
+          repairer_id: string | null
+          response_data: Json | null
+          success: boolean | null
+        }
+        Insert: {
+          accuracy?: string | null
+          created_at?: string | null
+          geocoding_service?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          normalized_address?: string | null
+          original_address: string
+          repairer_id?: string | null
+          response_data?: Json | null
+          success?: boolean | null
+        }
+        Update: {
+          accuracy?: string | null
+          created_at?: string | null
+          geocoding_service?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          normalized_address?: string | null
+          original_address?: string
+          repairer_id?: string | null
+          response_data?: Json | null
+          success?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geocoding_history_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoice_items: {
         Row: {
@@ -2999,13 +3146,22 @@ export type Database = {
           business_status: string | null
           city: string
           created_at: string
+          data_quality_score: number | null
+          deepseek_classification: Json | null
+          deepseek_confidence: number | null
           department: string | null
           email: string | null
+          enhanced_at: string | null
+          enhancement_status: string | null
+          geocoding_accuracy: string | null
+          geocoding_source: string | null
           id: string
           is_open: boolean | null
           is_verified: boolean | null
           lat: number | null
           lng: number | null
+          mistral_enhanced: boolean | null
+          mistral_enhancement_data: Json | null
           name: string
           opening_hours: Json | null
           pappers_last_check: string | null
@@ -3023,6 +3179,7 @@ export type Database = {
           siret: string | null
           source: string
           specialties: string[] | null
+          unique_id: string | null
           updated_at: string
           website: string | null
         }
@@ -3031,13 +3188,22 @@ export type Database = {
           business_status?: string | null
           city: string
           created_at?: string
+          data_quality_score?: number | null
+          deepseek_classification?: Json | null
+          deepseek_confidence?: number | null
           department?: string | null
           email?: string | null
+          enhanced_at?: string | null
+          enhancement_status?: string | null
+          geocoding_accuracy?: string | null
+          geocoding_source?: string | null
           id?: string
           is_open?: boolean | null
           is_verified?: boolean | null
           lat?: number | null
           lng?: number | null
+          mistral_enhanced?: boolean | null
+          mistral_enhancement_data?: Json | null
           name: string
           opening_hours?: Json | null
           pappers_last_check?: string | null
@@ -3055,6 +3221,7 @@ export type Database = {
           siret?: string | null
           source: string
           specialties?: string[] | null
+          unique_id?: string | null
           updated_at?: string
           website?: string | null
         }
@@ -3063,13 +3230,22 @@ export type Database = {
           business_status?: string | null
           city?: string
           created_at?: string
+          data_quality_score?: number | null
+          deepseek_classification?: Json | null
+          deepseek_confidence?: number | null
           department?: string | null
           email?: string | null
+          enhanced_at?: string | null
+          enhancement_status?: string | null
+          geocoding_accuracy?: string | null
+          geocoding_source?: string | null
           id?: string
           is_open?: boolean | null
           is_verified?: boolean | null
           lat?: number | null
           lng?: number | null
+          mistral_enhanced?: boolean | null
+          mistral_enhancement_data?: Json | null
           name?: string
           opening_hours?: Json | null
           pappers_last_check?: string | null
@@ -3087,6 +3263,7 @@ export type Database = {
           siret?: string | null
           source?: string
           specialties?: string[] | null
+          unique_id?: string | null
           updated_at?: string
           website?: string | null
         }
@@ -3156,6 +3333,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      scraping_enhancement_config: {
+        Row: {
+          config_key: string
+          config_value: Json
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          config_key: string
+          config_value?: Json
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       scraping_logs: {
         Row: {
@@ -3511,6 +3715,16 @@ export type Database = {
     Functions: {
       assign_free_plan_to_repairer: {
         Args: { user_email: string; user_id: string }
+        Returns: string
+      }
+      calculate_data_quality_score: {
+        Args: {
+          repairer_record: Database["public"]["Tables"]["repairers"]["Row"]
+        }
+        Returns: number
+      }
+      generate_unique_id: {
+        Args: { prefix?: string }
         Returns: string
       }
       get_current_user_role: {
