@@ -177,14 +177,23 @@ const ResultsPreviewTable: React.FC<ResultsPreviewTableProps> = ({
                 {showOnlySelected ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 <span>{showOnlySelected ? 'Voir tout' : 'Sélectionnés uniquement'}</span>
               </Button>
-              <Button
-                onClick={handleIntegrate}
-                disabled={selectedResults.length === 0 || isIntegrating}
-                className="bg-admin-green hover:bg-admin-green/90"
-              >
-                <Database className="h-4 w-4 mr-2" />
-                Intégrer en Base ({selectedResults.length})
-              </Button>
+                <Button
+                  onClick={handleIntegrate}
+                  disabled={selectedResults.length === 0 || isIntegrating}
+                  className="bg-admin-green hover:bg-admin-green/90"
+                >
+                  {isIntegrating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Intégration...
+                    </>
+                  ) : (
+                    <>
+                      <Database className="h-4 w-4 mr-2" />
+                      Intégrer en Base ({selectedResults.length})
+                    </>
+                  )}
+                </Button>
             </div>
           </div>
         </CardHeader>

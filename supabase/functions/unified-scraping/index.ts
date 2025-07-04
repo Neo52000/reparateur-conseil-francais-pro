@@ -15,6 +15,8 @@ interface UnifiedScrapingOptions {
   enableAI?: boolean;
   enableGeocoding?: boolean;
   categoryId?: string;
+  previewMode?: boolean;
+  providedResults?: any[];
 }
 
 serve(async (req) => {
@@ -43,9 +45,17 @@ serve(async (req) => {
       errors: [] as string[]
     };
 
-    // Phase 1: Collecte depuis toutes les sources
-    const allResults = await collectFromAllSources(supabase, options, stats);
-    stats.totalFound = allResults.length;
+    let allResults: any[] = [];
+    
+    // Phase 1: Collecte depuis toutes les sources OU utilisation des résultats fournis
+    if (options.providedResults && options.providedResults.length > 0) {
+      console.log('📦 Utilisation des résultats fournis:', options.providedResults.length);
+      allResults = options.providedResults;
+      stats.totalFound = allResults.length;
+    } else {
+      allResults = await collectFromAllSources(supabase, options, stats);
+      stats.totalFound = allResults.length;
+    }
 
     if (allResults.length === 0) {
       console.warn('⚠️ Aucun résultat trouvé');
@@ -62,10 +72,12 @@ serve(async (req) => {
     const processedResults = await processWithPipelines(allResults);
     stats.totalProcessed = processedResults.length;
 
-    // Phase 3: Intégration en base
-    if (options.categoryId && processedResults.length > 0) {
+    // Phase 3: Intégration en base (seulement si pas en mode preview)
+    if (!options.previewMode && options.categoryId && processedResults.length > 0) {
       const insertedCount = await integrateToDatabase(supabase, processedResults, options.categoryId);
       stats.totalInserted = insertedCount;
+    } else if (options.previewMode) {
+      console.log('🔍 Mode preview - Pas d\'intégration en base');
     }
 
     stats.processingTime = Date.now() - startTime;

@@ -115,7 +115,8 @@ export const useDataCollection = () => {
           maxResults: 50,
           enableAI: true,
           enableGeocoding: true,
-          categoryId: category.id
+          categoryId: category.id,
+          previewMode: true // Mode preview pour afficher les résultats avant intégration
         }
       });
 
@@ -129,13 +130,11 @@ export const useDataCollection = () => {
       setResults(data.results || []);
       
       toast({
-        title: "Scraping unifié réussi",
-        description: `${stats.totalInserted || 0} réparateurs ajoutés (${stats.totalFound || 0} trouvés, ${stats.totalProcessed || 0} traités). Consultez la gestion des réparateurs.`
+        title: "Collecte réussie",
+        description: `${stats.totalFound || 0} résultats trouvés et ${stats.totalProcessed || 0} traités. Vérifiez et sélectionnez les résultats à intégrer.`
       });
       
-      // Afficher le composant de redirection avec countdown
-      setShowRedirection(true);
-      
+      // Ne pas rediriger automatiquement en mode preview
       return data.results || [];
     } catch (error: any) {
       console.error('Erreur Unified Scraping:', error);
@@ -149,11 +148,58 @@ export const useDataCollection = () => {
   };
 
   const handleIntegrateToDatabase = async (selectedResults: any[], category: BusinessCategory, location: string) => {
-    // Plus besoin d'intégration séparée car unified-scraping intègre directement
-    toast({
-      title: "Information",
-      description: "L'intégration se fait automatiquement avec le scraping unifié",
-    });
+    if (selectedResults.length === 0) {
+      toast({
+        title: "Aucun résultat sélectionné",
+        description: "Veuillez sélectionner au moins un résultat à intégrer",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIntegrating(true);
+    try {
+      console.log('💾 Intégration de', selectedResults.length, 'résultats sélectionnés');
+      
+      const { data, error } = await supabase.functions.invoke('unified-scraping', {
+        body: {
+          searchTerm: category.search_keywords[0] || category.name,
+          location: location || 'France',
+          sources: [], // Pas de nouvelles sources, on intègre les résultats fournis
+          maxResults: selectedResults.length,
+          enableAI: false,
+          enableGeocoding: false,
+          categoryId: category.id,
+          previewMode: false,
+          providedResults: selectedResults // Passer les résultats sélectionnés
+        }
+      });
+
+      if (error) {
+        console.error('❌ Erreur intégration:', error);
+        throw error;
+      }
+      
+      const stats = data.stats || {};
+      
+      toast({
+        title: "Intégration réussie",
+        description: `${stats.totalInserted || 0} réparateurs ajoutés en base de données`
+      });
+      
+      // Afficher le composant de redirection après intégration
+      setShowRedirection(true);
+      
+    } catch (error: any) {
+      console.error('Erreur intégration:', error);
+      toast({
+        title: "Erreur d'intégration",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIntegrating(false);
+    }
   };
 
   const exportResults = (results: any[], categoryName: string) => {
