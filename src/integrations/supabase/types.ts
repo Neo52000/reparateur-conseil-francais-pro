@@ -2050,6 +2050,99 @@ export type Database = {
           },
         ]
       }
+      module_data_migrations: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          migration_status: string
+          migration_type: string
+          module_type: string
+          records_migrated: number | null
+          repairer_id: string
+          started_at: string | null
+          total_records: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          migration_status?: string
+          migration_type: string
+          module_type: string
+          records_migrated?: number | null
+          repairer_id: string
+          started_at?: string | null
+          total_records?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          migration_status?: string
+          migration_type?: string
+          module_type?: string
+          records_migrated?: number | null
+          repairer_id?: string
+          started_at?: string | null
+          total_records?: number | null
+        }
+        Relationships: []
+      }
+      module_subscriptions: {
+        Row: {
+          activated_at: string | null
+          auto_renewal: boolean
+          billing_cycle: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          module_active: boolean
+          module_price: number
+          module_type: string
+          payment_status: string
+          repairer_id: string
+          stripe_subscription_id: string | null
+          subscription_tier: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          auto_renewal?: boolean
+          billing_cycle?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          module_active?: boolean
+          module_price: number
+          module_type: string
+          payment_status?: string
+          repairer_id: string
+          stripe_subscription_id?: string | null
+          subscription_tier?: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          auto_renewal?: boolean
+          billing_cycle?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          module_active?: boolean
+          module_price?: number
+          module_type?: string
+          payment_status?: string
+          repairer_id?: string
+          stripe_subscription_id?: string | null
+          subscription_tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           created_at: string
@@ -3789,6 +3882,10 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      has_module_access: {
+        Args: { user_id: string; module_name: string }
+        Returns: boolean
       }
       increment_chatbot_metric: {
         Args: { metric_name: string; increment_by?: number }
