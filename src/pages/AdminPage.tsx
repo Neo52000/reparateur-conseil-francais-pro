@@ -16,6 +16,7 @@ import AdminAuthForm from '@/components/AdminAuthForm';
 import { useAuth } from '@/hooks/useAuth';
 import { useRepairersData } from '@/hooks/useRepairersData';
 import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdvertisingDashboard';
+import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement';
 
 const AdminPage = () => {
   const { user, profile, isAdmin, loading } = useAuth();
@@ -97,11 +98,9 @@ const AdminPage = () => {
 
     if (activeTab === 'subscriptions') {
       return (
-        <AdminDashboardContent 
-          activeTab="subscriptions"
+        <SubscriptionsManagement
           subscriptions={subscriptions}
           repairers={repairers}
-          onViewProfile={() => {}}
           onRefresh={fetchData}
         />
       );

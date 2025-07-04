@@ -6,7 +6,8 @@ import ScrapingControlPanelEnhanced from './ScrapingControlPanelEnhanced';
 import CSVImportWithGeocoding from './CSVImportWithGeocoding';
 import MassiveScrapingControl from './MassiveScrapingControl';
 import AIPromptScraping from './AIPromptScraping';
-import { Globe, Upload, Zap, Database, Brain } from 'lucide-react';
+import SerperScraping from './SerperScraping';
+import { Globe, Upload, Zap, Database, Brain, Search } from 'lucide-react';
 
 const EnhancedScrapingHub = () => {
   const [activeTab, setActiveTab] = useState('ai-scraping');
@@ -33,7 +34,7 @@ const EnhancedScrapingHub = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="ai-prompt" className="flex items-center space-x-2">
             <Brain className="h-4 w-4" />
             <span>Prompt IA</span>
@@ -49,6 +50,10 @@ const EnhancedScrapingHub = () => {
           <TabsTrigger value="massive-scraping" className="flex items-center space-x-2">
             <Globe className="h-4 w-4" />
             <span>Scraping Massif</span>
+          </TabsTrigger>
+          <TabsTrigger value="serper-search" className="flex items-center space-x-2">
+            <Search className="h-4 w-4" />
+            <span>Serper Search</span>
           </TabsTrigger>
         </TabsList>
 
@@ -140,6 +145,29 @@ const EnhancedScrapingHub = () => {
                 </ul>
               </div>
               <MassiveScrapingControl />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="serper-search" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Search className="h-5 w-5 mr-2 text-orange-600" />
+                Recherche avec API Serper
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4 p-4 bg-orange-50 rounded-lg">
+                <h4 className="font-semibold text-orange-900 mb-2">🎯 Recherche Google avancée</h4>
+                <ul className="text-sm text-orange-800 space-y-1">
+                  <li>• <strong>Multi-types:</strong> Web, Images, News, Shopping, Vidéos, Local</li>
+                  <li>• <strong>Géolocalisation:</strong> Recherches par pays et ville</li>
+                  <li>• <strong>Export CSV:</strong> Sauvegarde des résultats structurés</li>
+                  <li>• <strong>API officielle:</strong> Résultats Google en temps réel</li>
+                </ul>
+              </div>
+              <SerperScraping />
             </CardContent>
           </Card>
         </TabsContent>
