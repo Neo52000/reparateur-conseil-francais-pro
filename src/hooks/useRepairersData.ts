@@ -31,6 +31,8 @@ interface RepairerData {
   total_repairs: number;
   rating: number;
   created_at: string;
+  category_name?: string;
+  category_color?: string;
 }
 
 interface Stats {
@@ -126,10 +128,13 @@ export const useRepairersData = () => {
     try {
       console.log('🔄 useRepairersData - Fetching repairers from main table...');
       
-      // Récupérer DIRECTEMENT depuis la table repairers
+      // Récupérer DIRECTEMENT depuis la table repairers avec les catégories
       const { data: repairersData, error: repairersError } = await supabase
         .from('repairers')
-        .select('*')
+        .select(`
+          *,
+          business_categories(name, color)
+        `)
         .order('created_at', { ascending: false });
 
       if (repairersError) {
@@ -156,7 +161,9 @@ export const useRepairersData = () => {
             subscribed: repairer.is_verified || false,
             total_repairs: realRepairCount, // UTILISER LES VRAIES DONNÉES
             rating: repairer.rating || 4.5,
-            created_at: repairer.created_at
+            created_at: repairer.created_at,
+            category_name: repairer.business_categories?.name || 'Non catégorisé',
+            category_color: repairer.business_categories?.color || '#6b7280'
           };
         })
       );

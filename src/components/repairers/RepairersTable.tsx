@@ -21,6 +21,8 @@ interface RepairerData {
   total_repairs: number;
   rating: number;
   created_at: string;
+  category_name?: string;
+  category_color?: string;
 }
 
 interface RepairersTableProps {
@@ -90,6 +92,7 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
                 <TableHead>Email</TableHead>
                 <TableHead>Téléphone</TableHead>
                 <TableHead>Ville</TableHead>
+                <TableHead>Catégorie</TableHead>
                 <TableHead>Abonnement</TableHead>
                 <TableHead>Réparations</TableHead>
                 <TableHead>Note</TableHead>

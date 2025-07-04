@@ -22,6 +22,8 @@ interface RepairerTableRowProps {
     rating: number;
     created_at: string;
     is_active?: boolean;
+    category_name?: string;
+    category_color?: string;
   };
   loading: string | null;
   onViewProfile: (repairerId: string) => void;
@@ -76,6 +78,14 @@ const RepairerTableRow: React.FC<RepairerTableRowProps> = ({
       </TableCell>
       <TableCell>
         {repairer.city || 'N/A'}
+      </TableCell>
+      <TableCell>
+        <Badge 
+          variant="outline" 
+          style={{ backgroundColor: `${repairer.category_color}20`, borderColor: repairer.category_color, color: repairer.category_color }}
+        >
+          {repairer.category_name || 'Non catégorisé'}
+        </Badge>
       </TableCell>
       <TableCell>
         <Badge variant={getTierBadgeVariant(repairer.subscription_tier || 'free')}>
