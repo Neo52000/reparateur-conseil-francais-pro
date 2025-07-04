@@ -1,57 +1,33 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  TrendingUp, 
-  Users, 
-  Zap, 
-  HeadphonesIcon, 
-  MapPin,
-  Clock,
-  Star,
-  CreditCard,
-  ShoppingCart,
-  Database,
-  BarChart3,
-  Smartphone
-} from 'lucide-react';
-
+import { TrendingUp, Users, Zap, HeadphonesIcon, MapPin, Clock, Star, CreditCard, ShoppingCart, Database, BarChart3, Smartphone } from 'lucide-react';
 const WhyChooseUsSection: React.FC = () => {
-  const benefits = [
-    {
-      icon: <TrendingUp className="h-8 w-8 text-green-500" />,
-      title: "Augmentez votre chiffre d'affaires",
-      description: "Nos partenaires voient en moyenne une augmentation de 150% de leur clientèle après 3 mois"
-    },
-    {
-      icon: <Users className="h-8 w-8 text-blue-500" />,
-      title: "Clients qualifiés",
-      description: "Nous pré-qualifions tous les clients pour vous garantir des demandes sérieuses et pertinentes"
-    },
-    {
-      icon: <MapPin className="h-8 w-8 text-purple-500" />,
-      title: "Visibilité locale maximale",
-      description: "Apparaissez en premier dans les recherches de votre zone géographique"
-    },
-    {
-      icon: <Zap className="h-8 w-8 text-yellow-500" />,
-      title: "Réactivité instantanée",
-      description: "Recevez les demandes en temps réel et répondez avant vos concurrents"
-    },
-    {
-      icon: <HeadphonesIcon className="h-8 w-8 text-indigo-500" />,
-      title: "Support dédié 7j/7",
-      description: "Une équipe dédiée vous accompagne pour optimiser votre profil et vos performances"
-    },
-    {
-      icon: <Star className="h-8 w-8 text-orange-500" />,
-      title: "Réputation renforcée",
-      description: "Système d'avis clients qui valorise votre expertise et attire de nouveaux clients"
-    }
-  ];
-
-  return (
-    <div className="py-16 bg-gray-50">
+  const benefits = [{
+    icon: <TrendingUp className="h-8 w-8 text-green-500" />,
+    title: "Augmentez votre chiffre d'affaires",
+    description: "Nos partenaires voient en moyenne une augmentation de 150% de leur clientèle après 3 mois"
+  }, {
+    icon: <Users className="h-8 w-8 text-blue-500" />,
+    title: "Clients qualifiés",
+    description: "Nous pré-qualifions tous les clients pour vous garantir des demandes sérieuses et pertinentes"
+  }, {
+    icon: <MapPin className="h-8 w-8 text-purple-500" />,
+    title: "Visibilité locale maximale",
+    description: "Apparaissez en premier dans les recherches de votre zone géographique"
+  }, {
+    icon: <Zap className="h-8 w-8 text-yellow-500" />,
+    title: "Réactivité instantanée",
+    description: "Recevez les demandes en temps réel et répondez avant vos concurrents"
+  }, {
+    icon: <HeadphonesIcon className="h-8 w-8 text-indigo-500" />,
+    title: "Support dédié 7j/7",
+    description: "Une équipe dédiée vous accompagne pour optimiser votre profil et vos performances"
+  }, {
+    icon: <Star className="h-8 w-8 text-orange-500" />,
+    title: "Réputation renforcée",
+    description: "Système d'avis clients qui valorise votre expertise et attire de nouveaux clients"
+  }];
+  return <div className="py-16 bg-gray-50">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -64,8 +40,7 @@ const WhyChooseUsSection: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {benefits.map((benefit, index) => (
-            <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow h-full">
+          {benefits.map((benefit, index) => <Card key={index} className="border-0 shadow-md hover:shadow-lg transition-shadow h-full">
               <CardContent className="p-6 text-center h-full flex flex-col">
                 <div className="mb-4">
                   {benefit.icon}
@@ -77,8 +52,7 @@ const WhyChooseUsSection: React.FC = () => {
                   {benefit.description}
                 </p>
               </CardContent>
-            </Card>
-          ))}
+            </Card>)}
         </div>
 
         {/* Section modules beta */}
@@ -92,7 +66,7 @@ const WhyChooseUsSection: React.FC = () => {
             </p>
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-100 to-blue-100 px-4 py-2 rounded-full mt-4">
               <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold">BETA</span>
-              <span className="text-sm font-medium">Accès exclusif aux premiers utilisateurs</span>
+              <span className="text-sm font-medium">En cours de développement - sortie mi-2026</span>
             </div>
           </div>
 
@@ -197,7 +171,7 @@ const WhyChooseUsSection: React.FC = () => {
             <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-8 rounded-xl inline-block max-w-4xl">
               <h3 className="text-2xl font-bold mb-4">🎉 Accès anticipé aux modules BETA</h3>
               <p className="text-lg mb-6 opacity-90">
-                Les modules POS et E-commerce sont inclus gratuitement dans tous les plans pendant la phase BETA.<br/>
+                Les modules POS et E-commerce sont inclus gratuitement dans tous les plans pendant la phase BETA.<br />
                 <span className="font-semibold">Profitez-en dès maintenant et donnez-nous vos retours !</span>
               </p>
               <div className="flex flex-wrap justify-center gap-4 text-sm">
@@ -228,8 +202,6 @@ const WhyChooseUsSection: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default WhyChooseUsSection;
