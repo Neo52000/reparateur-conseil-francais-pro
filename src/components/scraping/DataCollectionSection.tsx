@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Globe, Download, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import ScrapingProgressViewer from './ScrapingProgressViewer';
+import ResultsPreviewTable from './ResultsPreviewTable';
 
 interface BusinessCategory {
   id: string;
@@ -35,6 +37,8 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
   const [customQuery, setCustomQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [activeCollectionTab, setActiveCollectionTab] = useState('serper');
+  const [scrapingInProgress, setScrapingInProgress] = useState(false);
+  const [integrating, setIntegrating] = useState(false);
 
   const generateSerperQuery = () => {
     if (customQuery) return customQuery;
@@ -76,22 +80,33 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
 
   const handleFirecrawlScraping = async () => {
     onLoadingChange(true);
+    setScrapingInProgress(true);
     try {
+      const searchTerm = category.search_keywords[0] || category.name;
       const { data, error } = await supabase.functions.invoke('modern-scraping', {
         body: {
-          mode: 'targeted',
-          category: category.name,
+          searchTerm: searchTerm,
           location: location || 'France',
-          limit: 50
+          source: 'pages_jaunes',
+          maxResults: 20,
+          testMode: true
         }
       });
 
       if (error) throw error;
       
-      toast({
-        title: "Scraping Firecrawl lancé",
-        description: "Le processus de scraping a été démarré"
-      });
+      if (data?.results && data.results.length > 0) {
+        setResults(data.results);
+        toast({
+          title: "Scraping Firecrawl réussi",
+          description: `${data.results.length} résultats trouvés`
+        });
+      } else {
+        toast({
+          title: "Scraping terminé",
+          description: "Aucun résultat trouvé pour cette recherche"
+        });
+      }
     } catch (error: any) {
       console.error('Erreur Firecrawl:', error);
       toast({
@@ -101,6 +116,42 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
       });
     } finally {
       onLoadingChange(false);
+      setScrapingInProgress(false);
+    }
+  };
+
+  const handleIntegrateToDatabase = async (selectedResults: any[]) => {
+    setIntegrating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('modern-scraping', {
+        body: {
+          searchTerm: category.search_keywords[0] || category.name,
+          location: location || 'France',
+          source: 'integration',
+          maxResults: selectedResults.length,
+          testMode: false,
+          preProcessedResults: selectedResults
+        }
+      });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Intégration réussie",
+        description: `${selectedResults.length} réparateurs ajoutés à la base de données`
+      });
+      
+      // Nettoyer les résultats après intégration
+      setResults([]);
+    } catch (error: any) {
+      console.error('Erreur intégration:', error);
+      toast({
+        title: "Erreur d'intégration",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIntegrating(false);
     }
   };
 
@@ -239,46 +290,19 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
         </TabsContent>
       </Tabs>
 
-      {/* Résultats */}
-      {results.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Résultats de recherche</span>
-              <Badge variant="secondary">{results.length} résultats</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {results.slice(0, 10).map((result, index) => (
-                <div key={index} className="border rounded-lg p-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-medium text-sm line-clamp-1">
-                        {result.title}
-                      </h4>
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                        {result.snippet}
-                      </p>
-                      <p className="text-xs text-primary mt-1 truncate">
-                        {result.link}
-                      </p>
-                    </div>
-                    <Badge variant="outline" className="ml-2">
-                      #{result.position}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-              {results.length > 10 && (
-                <p className="text-center text-sm text-muted-foreground">
-                  ... et {results.length - 10} autres résultats (voir export CSV)
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Visualisation du scraping en temps réel */}
+      <ScrapingProgressViewer 
+        isActive={scrapingInProgress}
+        currentStep="scraping"
+      />
+
+      {/* Prévisualisation et validation des résultats */}
+      <ResultsPreviewTable
+        results={results}
+        onResultsChange={setResults}
+        onIntegrateToDatabase={handleIntegrateToDatabase}
+        isIntegrating={integrating}
+      />
     </div>
   );
 };
