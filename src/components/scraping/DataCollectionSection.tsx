@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Search, Globe, Download, MapPin, Brain, Zap } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { Brain, Search, Globe } from 'lucide-react';
+import { useDataCollection } from '@/hooks/scraping/useDataCollection';
+import MultiAICollectionTab from './collection-methods/MultiAICollectionTab';
+import SerperCollectionTab from './collection-methods/SerperCollectionTab';
+import FirecrawlCollectionTab from './collection-methods/FirecrawlCollectionTab';
 import ScrapingProgressViewer from './ScrapingProgressViewer';
 import ResultsPreviewTable from './ResultsPreviewTable';
 
@@ -32,204 +31,59 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
   isLoading,
   onLoadingChange
 }) => {
-  const { toast } = useToast();
   const [location, setLocation] = useState('');
   const [customQuery, setCustomQuery] = useState('');
-  const [results, setResults] = useState<any[]>([]);
   const [activeCollectionTab, setActiveCollectionTab] = useState('multi-ai');
   const [scrapingInProgress, setScrapingInProgress] = useState(false);
-  const [integrating, setIntegrating] = useState(false);
+  
+  const {
+    results,
+    integrating,
+    generateSerperQuery,
+    handleSerperSearch,
+    handleMultiAIPipeline,
+    handleFirecrawlScraping,
+    handleIntegrateToDatabase,
+    exportResults
+  } = useDataCollection();
 
-  const generateSerperQuery = () => {
-    if (customQuery) return customQuery;
-    const baseKeyword = category.search_keywords[0] || category.name;
-    return location ? `${baseKeyword} ${location}` : baseKeyword;
-  };
-
-  const handleSerperSearch = async () => {
-    onLoadingChange(true);
-    try {
-      const query = generateSerperQuery();
-      console.log('🔍 Démarrage recherche Serper avec:', { query, location });
-      
-      const { data, error } = await supabase.functions.invoke('serper-search', {
-        body: {
-          query,
-          type: 'search',
-          location: location || 'France',
-          num: 20
-        }
-      });
-
-      if (error) {
-        console.error('❌ Erreur Serper API:', error);
-        throw error;
-      }
-      
-      console.log('✅ Réponse Serper reçue:', data);
-      const results = data.results || [];
-      setResults(results);
-      toast({
-        title: "Recherche Serper réussie",
-        description: `${results.length} résultats trouvés`
-      });
-    } catch (error: any) {
-      console.error('Erreur Serper:', error);
-      toast({
-        title: "Erreur Serper",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      onLoadingChange(false);
-    }
-  };
-
-  const handleFirecrawlScraping = async () => {
+  const handleMultiAI = async () => {
     onLoadingChange(true);
     setScrapingInProgress(true);
     try {
-      const searchTerm = category.search_keywords[0] || category.name;
-      const { data, error } = await supabase.functions.invoke('modern-scraping', {
-        body: {
-          searchTerm: searchTerm,
-          location: location || 'France',
-          source: 'pages_jaunes',
-          maxResults: 20,
-          testMode: true
-        }
-      });
-
-      if (error) throw error;
-      
-      if (data?.results && data.results.length > 0) {
-        setResults(data.results);
-        toast({
-          title: "Scraping Firecrawl réussi",
-          description: `${data.results.length} résultats trouvés`
-        });
-      } else {
-        toast({
-          title: "Scraping terminé",
-          description: "Aucun résultat trouvé pour cette recherche"
-        });
-      }
-    } catch (error: any) {
-      console.error('Erreur Firecrawl:', error);
-      toast({
-        title: "Erreur Firecrawl",
-        description: error.message,
-        variant: "destructive"
-      });
+      await handleMultiAIPipeline(category, location);
     } finally {
       onLoadingChange(false);
       setScrapingInProgress(false);
     }
   };
 
-  const handleMultiAIPipeline = async () => {
+  const handleSerper = async () => {
+    onLoadingChange(true);
+    try {
+      await handleSerperSearch(category, location, customQuery);
+    } finally {
+      onLoadingChange(false);
+    }
+  };
+
+  const handleFirecrawl = async () => {
     onLoadingChange(true);
     setScrapingInProgress(true);
     try {
-      const searchTerm = category.search_keywords[0] || category.name;
-      console.log('🧠 Démarrage Pipeline Multi-IA avec:', { searchTerm, location });
-      
-      const { data, error } = await supabase.functions.invoke('multi-ai-pipeline', {
-        body: {
-          searchTerm: searchTerm,
-          location: location || 'France',
-          testMode: true
-        }
-      });
-
-      if (error) {
-        console.error('❌ Erreur Pipeline Multi-IA:', error);
-        throw error;
-      }
-      
-      console.log('✅ Pipeline Multi-IA terminé:', data);
-      const results = data.results || [];
-      setResults(results);
-      
-      toast({
-        title: "Pipeline Multi-IA réussi",
-        description: `${results.length} réparateurs trouvés et enrichis par IA`
-      });
-    } catch (error: any) {
-      console.error('Erreur Pipeline Multi-IA:', error);
-      toast({
-        title: "Erreur Pipeline Multi-IA",
-        description: error.message,
-        variant: "destructive"
-      });
+      await handleFirecrawlScraping(category, location);
     } finally {
       onLoadingChange(false);
       setScrapingInProgress(false);
     }
   };
 
-  const handleIntegrateToDatabase = async (selectedResults: any[]) => {
-    setIntegrating(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('modern-scraping', {
-        body: {
-          searchTerm: category.search_keywords[0] || category.name,
-          location: location || 'France',
-          source: 'integration',
-          maxResults: selectedResults.length,
-          testMode: false,
-          preProcessedResults: selectedResults
-        }
-      });
-
-      if (error) throw error;
-      
-      toast({
-        title: "Intégration réussie",
-        description: `${selectedResults.length} réparateurs ajoutés à la base de données`
-      });
-      
-      // Nettoyer les résultats après intégration
-      setResults([]);
-    } catch (error: any) {
-      console.error('Erreur intégration:', error);
-      toast({
-        title: "Erreur d'intégration",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setIntegrating(false);
-    }
+  const handleIntegration = async (selectedResults: any[]) => {
+    await handleIntegrateToDatabase(selectedResults, category, location);
   };
 
-  const exportResults = () => {
-    if (results.length === 0) {
-      toast({
-        title: "Aucun résultat",
-        description: "Pas de données à exporter",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const csv = [
-      ['Titre', 'URL', 'Description', 'Position'].join(','),
-      ...results.map(r => [
-        `"${r.title || ''}"`,
-        `"${r.link || ''}"`,
-        `"${r.snippet || ''}"`,
-        r.position || ''
-      ].join(','))
-    ].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `resultats-${category.name.toLowerCase()}-${Date.now()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExport = () => {
+    exportResults(results, category.name);
   };
 
   return (
@@ -276,120 +130,32 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
         </TabsList>
 
         <TabsContent value="multi-ai" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center text-base">
-                <Brain className="h-4 w-4 mr-2 text-admin-purple" />
-                Pipeline Multi-IA Intelligent
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-gradient-to-r from-admin-purple/10 to-admin-blue/10 rounded-lg border border-admin-purple/20">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Zap className="h-4 w-4 text-admin-purple" />
-                  <span className="font-medium text-admin-purple">Pipeline IA Avancé</span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Orchestration intelligente : Serper → DeepSeek → Mistral → Perplexity → Géocodage
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary" className="text-xs">🔍 Serper Search</Badge>
-                  <Badge variant="secondary" className="text-xs">🧠 DeepSeek Classification</Badge>
-                  <Badge variant="secondary" className="text-xs">✨ Mistral Enrichissement</Badge>
-                  <Badge variant="secondary" className="text-xs">🔍 Perplexity Validation</Badge>
-                  <Badge variant="secondary" className="text-xs">📍 Géocodage Auto</Badge>
-                </div>
-              </div>
-              
-              <Button 
-                onClick={handleMultiAIPipeline}
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-admin-purple to-admin-blue hover:from-admin-purple/90 hover:to-admin-blue/90 text-white"
-              >
-                <Brain className="h-4 w-4 mr-2" />
-                Lancer le Pipeline Multi-IA
-              </Button>
-              
-              {results.length > 0 && (
-                <div className="flex space-x-2">
-                  <Button 
-                    onClick={exportResults}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Exporter CSV ({results.length})
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <MultiAICollectionTab
+            category={category}
+            location={location}
+            isLoading={isLoading}
+            results={results}
+            onStartPipeline={handleMultiAI}
+            onExportResults={handleExport}
+          />
         </TabsContent>
 
         <TabsContent value="serper" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center text-base">
-                <Search className="h-4 w-4 mr-2 text-admin-blue" />
-                Recherche Google via Serper
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-3 bg-admin-blue-light rounded-lg">
-                <p className="text-sm text-admin-blue">
-                  <strong>Requête générée:</strong> {generateSerperQuery()}
-                </p>
-              </div>
-              
-              <div className="flex space-x-2">
-                <Button 
-                  onClick={handleSerperSearch}
-                  disabled={isLoading}
-                  className="bg-admin-blue hover:bg-admin-blue/90"
-                >
-                  <Search className="h-4 w-4 mr-2" />
-                  Lancer la recherche
-                </Button>
-                
-                {results.length > 0 && (
-                  <Button 
-                    onClick={exportResults}
-                    variant="outline"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Exporter CSV ({results.length})
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <SerperCollectionTab
+            query={generateSerperQuery(category, location, customQuery)}
+            isLoading={isLoading}
+            results={results}
+            onStartSearch={handleSerper}
+            onExportResults={handleExport}
+          />
         </TabsContent>
 
         <TabsContent value="firecrawl" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center text-base">
-                <Globe className="h-4 w-4 mr-2 text-admin-green" />
-                Scraping Web via Firecrawl
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-3 bg-admin-green-light rounded-lg">
-                <p className="text-sm text-admin-green">
-                  <strong>Scraping ciblé:</strong> {category.description}
-                </p>
-              </div>
-              
-              <Button 
-                onClick={handleFirecrawlScraping}
-                disabled={isLoading}
-                className="bg-admin-green hover:bg-admin-green/90"
-              >
-                <Globe className="h-4 w-4 mr-2" />
-                Démarrer le scraping
-              </Button>
-            </CardContent>
-          </Card>
+          <FirecrawlCollectionTab
+            category={category}
+            isLoading={isLoading}
+            onStartScraping={handleFirecrawl}
+          />
         </TabsContent>
       </Tabs>
 
@@ -402,8 +168,8 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
       {/* Prévisualisation et validation des résultats */}
       <ResultsPreviewTable
         results={results}
-        onResultsChange={setResults}
-        onIntegrateToDatabase={handleIntegrateToDatabase}
+        onResultsChange={(newResults) => {}} // Géré par le hook maintenant
+        onIntegrateToDatabase={handleIntegration}
         isIntegrating={integrating}
       />
     </div>
