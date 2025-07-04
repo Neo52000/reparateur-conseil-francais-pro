@@ -12,7 +12,9 @@ const DocumentationStatusWidget: React.FC = () => {
     changes,
     checkForChanges,
     generateAllPDFs,
-    generating
+    generating,
+    enableAutoUpdate,
+    disableAutoUpdate
   } = useDocumentationManager();
   
   const [lastCheck, setLastCheck] = useState<Date>(new Date());
@@ -59,13 +61,22 @@ const DocumentationStatusWidget: React.FC = () => {
               </p>
             </div>
           </div>
-          <Button
-            onClick={checkForChanges}
-            variant="ghost"
-            size="sm"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={autoUpdateEnabled ? disableAutoUpdate : enableAutoUpdate}
+              variant={autoUpdateEnabled ? "destructive" : "default"}
+              size="sm"
+            >
+              {autoUpdateEnabled ? 'Désactiver' : 'Activer'}
+            </Button>
+            <Button
+              onClick={checkForChanges}
+              variant="ghost"
+              size="sm"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Horaires */}

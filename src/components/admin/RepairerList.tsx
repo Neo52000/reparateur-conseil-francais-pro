@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
 import { useRepairersData } from '@/hooks/useRepairersData';
-import RepairersTable from '@/components/repairers/RepairersTable';
+import RepairersManagementTabs from '@/components/repairers/RepairersManagementTabs';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
 
 const RepairerList: React.FC = () => {
-  const { repairers, loading, fetchData } = useRepairersData();
+  const { subscriptions, repairers, loading, fetchData } = useRepairersData();
   const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
 
@@ -24,8 +24,9 @@ const RepairerList: React.FC = () => {
 
   return (
     <>
-      <RepairersTable
+      <RepairersManagementTabs
         repairers={repairers}
+        subscriptions={subscriptions}
         onViewProfile={handleViewProfile}
         onRefresh={fetchData}
       />
