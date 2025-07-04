@@ -19,7 +19,7 @@ interface PlanCardProps {
   isYearly: boolean;
   currentPlan: string;
   loading: boolean;
-  onSubscribe: (planId: string) => void;
+  onSubscribe: (planId: string, selectedModules: { pos: boolean; ecommerce: boolean }, totalPrice: number) => void;
 }
 
 const PlanCard: React.FC<PlanCardProps> = ({
@@ -146,7 +146,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
           
           <div className="space-y-3">
             {/* Module POS */}
-            <div className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors">
               <Checkbox
                 id={`pos-${plan.id}`}
                 checked={selectedModules.pos}
@@ -155,16 +155,16 @@ const PlanCard: React.FC<PlanCardProps> = ({
                 }
                 className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
               />
-              <div className="flex items-center flex-1">
+              <div className="flex items-center flex-1 min-w-0">
                 <CreditCard className="h-4 w-4 text-purple-500 mr-2 flex-shrink-0" />
-                <div className="flex-1">
-                  <label htmlFor={`pos-${plan.id}`} className="text-sm font-medium text-gray-700 cursor-pointer">
+                <div className="flex-1 min-w-0">
+                  <label htmlFor={`pos-${plan.id}`} className="text-sm font-medium text-gray-900 cursor-pointer block">
                     Module POS
                   </label>
-                  <p className="text-xs text-gray-500">Point de vente & inventaire</p>
+                  <p className="text-xs text-gray-600">Point de vente & inventaire</p>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-right flex-shrink-0">
                 <span className="text-sm font-semibold text-purple-600">
                   +{isYearly ? modulesPricing.pos.yearly.toFixed(2) : modulesPricing.pos.monthly.toFixed(2)}€
                 </span>
@@ -173,7 +173,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
             </div>
 
             {/* Module E-commerce */}
-            <div className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors">
               <Checkbox
                 id={`ecommerce-${plan.id}`}
                 checked={selectedModules.ecommerce}
@@ -182,16 +182,16 @@ const PlanCard: React.FC<PlanCardProps> = ({
                 }
                 className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
               />
-              <div className="flex items-center flex-1">
+              <div className="flex items-center flex-1 min-w-0">
                 <ShoppingCart className="h-4 w-4 text-blue-500 mr-2 flex-shrink-0" />
-                <div className="flex-1">
-                  <label htmlFor={`ecommerce-${plan.id}`} className="text-sm font-medium text-gray-700 cursor-pointer">
+                <div className="flex-1 min-w-0">
+                  <label htmlFor={`ecommerce-${plan.id}`} className="text-sm font-medium text-gray-900 cursor-pointer block">
                     Module E-commerce
                   </label>
-                  <p className="text-xs text-gray-500">Boutique en ligne intégrée</p>
+                  <p className="text-xs text-gray-600">Boutique en ligne intégrée</p>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-right flex-shrink-0">
                 <span className="text-sm font-semibold text-blue-600">
                   +{isYearly ? modulesPricing.ecommerce.yearly.toFixed(2) : modulesPricing.ecommerce.monthly.toFixed(2)}€
                 </span>
@@ -202,15 +202,15 @@ const PlanCard: React.FC<PlanCardProps> = ({
 
           {/* Récapitulatif du prix */}
           {getModulesCount() > 0 && (
-            <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
               <div className="flex justify-between items-center">
                 <div>
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-gray-900">
                     Plan {plan.name} + {getModulesCount()} module{getModulesCount() > 1 ? 's' : ''}
                   </p>
-                  <div className="text-xs text-gray-600 mt-1">
-                    {selectedModules.pos && <span className="mr-2">• POS</span>}
-                    {selectedModules.ecommerce && <span>• E-commerce</span>}
+                  <div className="text-xs text-gray-600 mt-1 flex flex-wrap gap-2">
+                    {selectedModules.pos && <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full">POS</span>}
+                    {selectedModules.ecommerce && <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">E-commerce</span>}
                   </div>
                 </div>
                 <div className="text-right">
@@ -223,7 +223,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
             </div>
           )}
           
-          <div className="mt-3 p-2 bg-gray-50 rounded-lg">
+          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
             <p className="text-xs text-center text-gray-600">
               💡 Modules activables à tout moment depuis votre tableau de bord
             </p>
@@ -233,7 +233,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
         <Button
           className="w-full"
           variant={plan.name === 'Premium' && !isCurrentUserPlan(plan.name) ? 'default' : 'outline'}
-          onClick={() => onSubscribe(plan.id)}
+          onClick={() => onSubscribe(plan.id, selectedModules, calculateTotalPrice())}
           disabled={loading || isCurrentUserPlan(plan.name)}
         >
           {loading ? 'Traitement...' : getButtonText(plan.name, plan.price_monthly)}

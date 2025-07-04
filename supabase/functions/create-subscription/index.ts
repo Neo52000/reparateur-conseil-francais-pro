@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { planId, billingCycle, repairerId, email } = await req.json();
+    const { planId, billingCycle, repairerId, email, selectedModules, totalPrice } = await req.json();
 
     const stripe = new Stripe(Deno.env.get('stripe_key') || '', {
       apiVersion: '2023-10-16',
@@ -47,28 +47,24 @@ serve(async (req) => {
       customerId = customer.id;
     }
 
-    // Create or get Stripe price for the plan
-    let priceId = billingCycle === 'yearly' ? plan.stripe_price_id_yearly : plan.stripe_price_id_monthly;
+    // Create or get Stripe price for the plan (using total price if modules are selected)
+    const finalAmount = totalPrice ? totalPrice : (billingCycle === 'yearly' ? plan.price_yearly : plan.price_monthly);
+    const modulesDescription = selectedModules && (selectedModules.pos || selectedModules.ecommerce) 
+      ? ` + Modules: ${selectedModules.pos ? 'POS' : ''}${selectedModules.pos && selectedModules.ecommerce ? ' + ' : ''}${selectedModules.ecommerce ? 'E-commerce' : ''}`
+      : '';
     
-    if (!priceId) {
-      const price = await stripe.prices.create({
-        currency: 'eur',
-        unit_amount: Math.round((billingCycle === 'yearly' ? plan.price_yearly : plan.price_monthly) * 100),
-        recurring: {
-          interval: billingCycle === 'yearly' ? 'year' : 'month',
-        },
-        product_data: {
-          name: `TechRepair ${plan.name} - ${billingCycle === 'yearly' ? 'Annuel' : 'Mensuel'}`,
-        },
-      });
-      priceId = price.id;
-
-      // Update plan with price ID
-      await supabase
-        .from('subscription_plans')
-        .update(billingCycle === 'yearly' ? { stripe_price_id_yearly: priceId } : { stripe_price_id_monthly: priceId })
-        .eq('id', planId);
-    }
+    // Create a new price for this specific combination
+    const price = await stripe.prices.create({
+      currency: 'eur',
+      unit_amount: Math.round(finalAmount * 100),
+      recurring: {
+        interval: billingCycle === 'yearly' ? 'year' : 'month',
+      },
+      product_data: {
+        name: `TechRepair ${plan.name}${modulesDescription} - ${billingCycle === 'yearly' ? 'Annuel' : 'Mensuel'}`,
+      },
+    });
+    const priceId = price.id;
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({

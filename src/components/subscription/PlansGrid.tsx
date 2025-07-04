@@ -15,7 +15,7 @@ interface PlansGridProps {
   isYearly: boolean;
   currentPlan: string;
   loading: boolean;
-  onSubscribe: (planId: string) => void;
+  onSubscribe: (planId: string, selectedModules: { pos: boolean; ecommerce: boolean }, totalPrice: number) => void;
 }
 
 const PlansGrid: React.FC<PlansGridProps> = ({

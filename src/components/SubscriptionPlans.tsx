@@ -84,8 +84,10 @@ const SubscriptionPlans = ({
     }
   };
 
-  const handleSubscribe = async (planId: string) => {
+  const handleSubscribe = async (planId: string, selectedModules: { pos: boolean; ecommerce: boolean }, totalPrice: number) => {
     console.log('handleSubscribe called with planId:', planId);
+    console.log('selectedModules:', selectedModules);
+    console.log('totalPrice:', totalPrice);
     console.log('isYearly:', isYearly);
     console.log('repairerId:', repairerId);
     console.log('effectiveUserEmail:', effectiveUserEmail);
@@ -101,6 +103,8 @@ const SubscriptionPlans = ({
           billingCycle: isYearly ? 'yearly' : 'monthly',
           repairerId,
           email: effectiveUserEmail,
+          selectedModules,
+          totalPrice,
         },
       });
 
