@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import NotificationSystem from './NotificationSystem';
+import { OfflineIndicator } from '@/components/common/OfflineIndicator';
 import Logo from './Logo';
 import { User, Wrench, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -97,6 +98,7 @@ const Navigation = () => {
           </div>
           
           <div className="flex items-center space-x-4">
+            <OfflineIndicator />
             {user && <NotificationSystem />}
             
             {user ? (

@@ -1,0 +1,90 @@
+{
+  "name": "Réparateur Pro - Plateforme de Réparation Mobile",
+  "short_name": "Réparateur Pro",
+  "description": "Plateforme professionnelle pour les réparateurs de smartphones avec POS et E-commerce",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f97316",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/logo-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "lang": "fr",
+  "scope": "/",
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Interface desktop de Réparateur Pro"
+    },
+    {
+      "src": "/screenshots/mobile.jpg",
+      "sizes": "400x800",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Interface mobile de Réparateur Pro"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Accéder au tableau de bord",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/logo-icon.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "POS",
+      "short_name": "Point de Vente",
+      "description": "Ouvrir le point de vente",
+      "url": "/pos",
+      "icons": [
+        {
+          "src": "/logo-icon.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "E-commerce",
+      "short_name": "Boutique",
+      "description": "Gérer la boutique en ligne",
+      "url": "/ecommerce",
+      "icons": [
+        {
+          "src": "/logo-icon.svg",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}
