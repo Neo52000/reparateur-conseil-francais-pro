@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Search, Globe, Download, MapPin } from 'lucide-react';
+import { Search, Globe, Download, MapPin, Brain, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import ScrapingProgressViewer from './ScrapingProgressViewer';
@@ -36,7 +36,7 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
   const [location, setLocation] = useState('');
   const [customQuery, setCustomQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
-  const [activeCollectionTab, setActiveCollectionTab] = useState('serper');
+  const [activeCollectionTab, setActiveCollectionTab] = useState('multi-ai');
   const [scrapingInProgress, setScrapingInProgress] = useState(false);
   const [integrating, setIntegrating] = useState(false);
 
@@ -118,6 +118,47 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
       console.error('Erreur Firecrawl:', error);
       toast({
         title: "Erreur Firecrawl",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      onLoadingChange(false);
+      setScrapingInProgress(false);
+    }
+  };
+
+  const handleMultiAIPipeline = async () => {
+    onLoadingChange(true);
+    setScrapingInProgress(true);
+    try {
+      const searchTerm = category.search_keywords[0] || category.name;
+      console.log('🧠 Démarrage Pipeline Multi-IA avec:', { searchTerm, location });
+      
+      const { data, error } = await supabase.functions.invoke('multi-ai-pipeline', {
+        body: {
+          searchTerm: searchTerm,
+          location: location || 'France',
+          testMode: true
+        }
+      });
+
+      if (error) {
+        console.error('❌ Erreur Pipeline Multi-IA:', error);
+        throw error;
+      }
+      
+      console.log('✅ Pipeline Multi-IA terminé:', data);
+      const results = data.results || [];
+      setResults(results);
+      
+      toast({
+        title: "Pipeline Multi-IA réussi",
+        description: `${results.length} réparateurs trouvés et enrichis par IA`
+      });
+    } catch (error: any) {
+      console.error('Erreur Pipeline Multi-IA:', error);
+      toast({
+        title: "Erreur Pipeline Multi-IA",
         description: error.message,
         variant: "destructive"
       });
@@ -219,7 +260,11 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
 
       {/* Méthodes de collecte */}
       <Tabs value={activeCollectionTab} onValueChange={setActiveCollectionTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="multi-ai" className="flex items-center space-x-2">
+            <Brain className="h-4 w-4" />
+            <span>Pipeline Multi-IA</span>
+          </TabsTrigger>
           <TabsTrigger value="serper" className="flex items-center space-x-2">
             <Search className="h-4 w-4" />
             <span>Serper Search</span>
@@ -229,6 +274,57 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
             <span>Firecrawl Scraping</span>
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="multi-ai" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-base">
+                <Brain className="h-4 w-4 mr-2 text-admin-purple" />
+                Pipeline Multi-IA Intelligent
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-4 bg-gradient-to-r from-admin-purple/10 to-admin-blue/10 rounded-lg border border-admin-purple/20">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Zap className="h-4 w-4 text-admin-purple" />
+                  <span className="font-medium text-admin-purple">Pipeline IA Avancé</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Orchestration intelligente : Serper → DeepSeek → Mistral → Perplexity → Géocodage
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="text-xs">🔍 Serper Search</Badge>
+                  <Badge variant="secondary" className="text-xs">🧠 DeepSeek Classification</Badge>
+                  <Badge variant="secondary" className="text-xs">✨ Mistral Enrichissement</Badge>
+                  <Badge variant="secondary" className="text-xs">🔍 Perplexity Validation</Badge>
+                  <Badge variant="secondary" className="text-xs">📍 Géocodage Auto</Badge>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={handleMultiAIPipeline}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-admin-purple to-admin-blue hover:from-admin-purple/90 hover:to-admin-blue/90 text-white"
+              >
+                <Brain className="h-4 w-4 mr-2" />
+                Lancer le Pipeline Multi-IA
+              </Button>
+              
+              {results.length > 0 && (
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={exportResults}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Exporter CSV ({results.length})
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="serper" className="space-y-4">
           <Card>

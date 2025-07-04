@@ -37,25 +37,32 @@ const ScrapingProgressViewer: React.FC<ScrapingProgressViewerProps> = ({
 }) => {
   const [steps, setSteps] = useState<ScrapingStep[]>([
     {
-      id: 'search',
-      name: 'Recherche de données',
+      id: 'serper',
+      name: 'Recherche Serper',
       status: 'pending',
       icon: <Search className="h-4 w-4" />,
-      message: 'En attente de démarrage...'
+      message: 'Recherche Google via Serper API'
     },
     {
-      id: 'scraping',
-      name: 'Scraping web',
-      status: 'pending',
-      icon: <Activity className="h-4 w-4" />,
-      message: 'Extraction des données web'
-    },
-    {
-      id: 'classification',
-      name: 'Classification IA',
+      id: 'deepseek',
+      name: 'Classification DeepSeek',
       status: 'pending',
       icon: <Brain className="h-4 w-4" />,
-      message: 'Analyse et classification des résultats'
+      message: 'Classification IA des résultats'
+    },
+    {
+      id: 'mistral',
+      name: 'Enrichissement Mistral',
+      status: 'pending',
+      icon: <Activity className="h-4 w-4" />,
+      message: 'Enrichissement des données'
+    },
+    {
+      id: 'perplexity',
+      name: 'Validation Perplexity',
+      status: 'pending',
+      icon: <CheckCircle className="h-4 w-4" />,
+      message: 'Validation en ligne des données'
     },
     {
       id: 'geocoding',
@@ -63,13 +70,6 @@ const ScrapingProgressViewer: React.FC<ScrapingProgressViewerProps> = ({
       status: 'pending',
       icon: <MapPin className="h-4 w-4" />,
       message: 'Calcul des coordonnées géographiques'
-    },
-    {
-      id: 'validation',
-      name: 'Validation',
-      status: 'pending',
-      icon: <CheckCircle className="h-4 w-4" />,
-      message: 'Validation des données finales'
     }
   ]);
 
@@ -83,7 +83,7 @@ const ScrapingProgressViewer: React.FC<ScrapingProgressViewerProps> = ({
   }, [isActive]);
 
   const simulateProgress = async () => {
-    const stepSequence = ['search', 'scraping', 'classification', 'geocoding', 'validation'];
+    const stepSequence = ['serper', 'deepseek', 'mistral', 'perplexity', 'geocoding'];
     
     for (let i = 0; i < stepSequence.length; i++) {
       const stepId = stepSequence[i];
