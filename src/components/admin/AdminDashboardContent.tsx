@@ -29,11 +29,6 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
 
   return (
     <div className="space-y-8">
-      {/* Stats cards */}
-      <div className="animate-fade-in">
-        <AdminStatsCards stats={stats} />
-      </div>
-      
       {/* Main content grid */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 animate-fade-in">
         {/* Dashboard overview */}
