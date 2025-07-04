@@ -6,7 +6,7 @@ import { Brain, Search, Globe } from 'lucide-react';
 import { useDataCollection } from '@/hooks/scraping/useDataCollection';
 import MultiAICollectionTab from './collection-methods/MultiAICollectionTab';
 import SerperCollectionTab from './collection-methods/SerperCollectionTab';
-import FirecrawlCollectionTab from './collection-methods/FirecrawlCollectionTab';
+import UnifiedScrapingTab from './collection-methods/UnifiedScrapingTab';
 import ScrapingProgressViewer from './ScrapingProgressViewer';
 import ResultsPreviewTable from './ResultsPreviewTable';
 
@@ -33,7 +33,7 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
 }) => {
   const [location, setLocation] = useState('');
   const [customQuery, setCustomQuery] = useState('');
-  const [activeCollectionTab, setActiveCollectionTab] = useState('multi-ai');
+  const [activeCollectionTab, setActiveCollectionTab] = useState('unified');
   const [scrapingInProgress, setScrapingInProgress] = useState(false);
   
   const {
@@ -42,7 +42,7 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
     generateSerperQuery,
     handleSerperSearch,
     handleMultiAIPipeline,
-    handleFirecrawlScraping,
+    handleUnifiedScraping,
     handleIntegrateToDatabase,
     exportResults
   } = useDataCollection();
@@ -67,11 +67,11 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
     }
   };
 
-  const handleFirecrawl = async () => {
+  const handleUnified = async () => {
     onLoadingChange(true);
     setScrapingInProgress(true);
     try {
-      await handleFirecrawlScraping(category, location);
+      await handleUnifiedScraping(category, location);
     } finally {
       onLoadingChange(false);
       setScrapingInProgress(false);
@@ -115,6 +115,10 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
       {/* Méthodes de collecte */}
       <Tabs value={activeCollectionTab} onValueChange={setActiveCollectionTab}>
         <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="unified" className="flex items-center space-x-2">
+            <Globe className="h-4 w-4" />
+            <span>Scraping Unifié</span>
+          </TabsTrigger>
           <TabsTrigger value="multi-ai" className="flex items-center space-x-2">
             <Brain className="h-4 w-4" />
             <span>Pipeline Multi-IA</span>
@@ -123,11 +127,15 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
             <Search className="h-4 w-4" />
             <span>Serper Search</span>
           </TabsTrigger>
-          <TabsTrigger value="firecrawl" className="flex items-center space-x-2">
-            <Globe className="h-4 w-4" />
-            <span>Firecrawl Scraping</span>
-          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="unified" className="space-y-4">
+          <UnifiedScrapingTab
+            category={category}
+            isLoading={isLoading}
+            onStartScraping={handleUnified}
+          />
+        </TabsContent>
 
         <TabsContent value="multi-ai" className="space-y-4">
           <MultiAICollectionTab
@@ -147,14 +155,6 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
             results={results}
             onStartSearch={handleSerper}
             onExportResults={handleExport}
-          />
-        </TabsContent>
-
-        <TabsContent value="firecrawl" className="space-y-4">
-          <FirecrawlCollectionTab
-            category={category}
-            isLoading={isLoading}
-            onStartScraping={handleFirecrawl}
           />
         </TabsContent>
       </Tabs>

@@ -172,21 +172,18 @@ const ImportExportSection: React.FC<ImportExportSectionProps> = ({
       formData.append('enableAI', 'true');
       formData.append('enableGeocoding', 'true');
 
-      // Utiliser l'endpoint CSV existant avec les nouvelles options
-      const response = await fetch('/api/csv-import', {
-        method: 'POST',
+      // Utiliser la nouvelle edge function CSV intelligente
+      const { data, error } = await supabase.functions.invoke('csv-intelligent-import', {
         body: formData
       });
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de l\'import');
+      if (error) {
+        throw new Error(error.message || 'Erreur lors de l\'import');
       }
-
-      const result = await response.json();
 
       toast({
         title: "Import réussi",
-        description: `${result.imported || 0} réparateurs importés avec succès`
+        description: `${data.imported || 0} réparateurs importés avec succès (${data.processed || 0} traités)`
       });
 
       // Reset

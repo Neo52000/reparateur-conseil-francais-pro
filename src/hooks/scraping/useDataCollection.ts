@@ -99,39 +99,42 @@ export const useDataCollection = () => {
     }
   };
 
-  const handleFirecrawlScraping = async (category: BusinessCategory, location: string) => {
+  const handleUnifiedScraping = async (category: BusinessCategory, location: string) => {
     try {
       const searchTerm = category.search_keywords[0] || category.name;
-      const { data, error } = await supabase.functions.invoke('modern-scraping', {
+      console.log('🚀 Démarrage Unified Scraping avec:', { searchTerm, location });
+      
+      const { data, error } = await supabase.functions.invoke('unified-scraping', {
         body: {
           searchTerm: searchTerm,
           location: location || 'France',
-          source: 'pages_jaunes',
-          maxResults: 20,
-          testMode: true
+          sources: ['google_maps', 'serper', 'multi_ai'],
+          maxResults: 50,
+          enableAI: true,
+          enableGeocoding: true,
+          categoryId: category.id
         }
       });
 
-      if (error) throw error;
-      
-      if (data?.results && data.results.length > 0) {
-        setResults(data.results);
-        toast({
-          title: "Scraping Firecrawl réussi",
-          description: `${data.results.length} résultats trouvés`
-        });
-      } else {
-        toast({
-          title: "Scraping terminé",
-          description: "Aucun résultat trouvé pour cette recherche"
-        });
+      if (error) {
+        console.error('❌ Erreur Unified Scraping:', error);
+        throw error;
       }
+      
+      console.log('✅ Unified Scraping terminé:', data);
+      const stats = data.stats || {};
+      setResults(data.results || []);
+      
+      toast({
+        title: "Scraping unifié réussi",
+        description: `${stats.totalInserted || 0} réparateurs ajoutés (${stats.totalFound || 0} trouvés, ${stats.totalProcessed || 0} traités)`
+      });
       
       return data.results || [];
     } catch (error: any) {
-      console.error('Erreur Firecrawl:', error);
+      console.error('Erreur Unified Scraping:', error);
       toast({
-        title: "Erreur Firecrawl",
+        title: "Erreur Scraping Unifié",
         description: error.message,
         variant: "destructive"
       });
@@ -209,7 +212,7 @@ export const useDataCollection = () => {
     generateSerperQuery,
     handleSerperSearch,
     handleMultiAIPipeline,
-    handleFirecrawlScraping,
+    handleUnifiedScraping,
     handleIntegrateToDatabase,
     exportResults
   };
