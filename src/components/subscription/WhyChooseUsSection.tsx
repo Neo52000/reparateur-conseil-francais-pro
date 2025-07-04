@@ -8,7 +8,12 @@ import {
   HeadphonesIcon, 
   MapPin,
   Clock,
-  Star
+  Star,
+  CreditCard,
+  ShoppingCart,
+  Database,
+  BarChart3,
+  Smartphone
 } from 'lucide-react';
 
 const WhyChooseUsSection: React.FC = () => {
@@ -76,7 +81,144 @@ const WhyChooseUsSection: React.FC = () => {
           ))}
         </div>
 
-        <div className="text-center mt-12">
+        {/* Section modules beta */}
+        <div className="mt-16">
+          <div className="text-center mb-12">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+              🚀 Nouveaux modules en version BETA
+            </h3>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+              Découvrez nos dernières innovations pour digitaliser complètement votre activité
+            </p>
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-100 to-blue-100 px-4 py-2 rounded-full mt-4">
+              <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold">BETA</span>
+              <span className="text-sm font-medium">Accès exclusif aux premiers utilisateurs</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Module POS */}
+            <Card className="border-2 border-purple-200 shadow-lg hover:shadow-xl transition-all hover:border-purple-300">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <CreditCard className="h-8 w-8 text-purple-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-gray-900">Module POS - Point de Vente</h4>
+                    <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded-full">BETA</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Smartphone className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-gray-900">Terminal de paiement intégré</p>
+                      <p className="text-sm text-gray-600">Acceptez les paiements par carte directement sur votre tablette</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <Database className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-gray-900">Gestion d'inventaire</p>
+                      <p className="text-sm text-gray-600">Suivez vos pièces détachées et accessoires en temps réel</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <BarChart3 className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-gray-900">Rapports de vente</p>
+                      <p className="text-sm text-gray-600">Analysez vos performances avec des tableaux de bord détaillés</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-purple-50 rounded-lg">
+                  <p className="text-sm text-purple-700 font-medium">
+                    💡 Parfait pour les ateliers qui souhaitent moderniser leur caisse et optimiser leurs ventes
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Module E-commerce */}
+            <Card className="border-2 border-blue-200 shadow-lg hover:shadow-xl transition-all hover:border-blue-300">
+              <CardContent className="p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <ShoppingCart className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-gray-900">Module E-commerce</h4>
+                    <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">BETA</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <ShoppingCart className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-gray-900">Boutique en ligne intégrée</p>
+                      <p className="text-sm text-gray-600">Vendez vos produits et services directement en ligne</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <Database className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-gray-900">Gestion des commandes</p>
+                      <p className="text-sm text-gray-600">Interface simple pour traiter et suivre vos commandes</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <Users className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-gray-900">Base client unifiée</p>
+                      <p className="text-sm text-gray-600">Centralisez vos clients physiques et en ligne</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-700 font-medium">
+                    🛒 Idéal pour étendre votre activité au-delà de l'atelier et toucher plus de clients
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* CTA pour les modules beta */}
+          <div className="text-center mt-12">
+            <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-8 rounded-xl inline-block max-w-4xl">
+              <h3 className="text-2xl font-bold mb-4">🎉 Accès anticipé aux modules BETA</h3>
+              <p className="text-lg mb-6 opacity-90">
+                Les modules POS et E-commerce sont inclus gratuitement dans tous les plans pendant la phase BETA.<br/>
+                <span className="font-semibold">Profitez-en dès maintenant et donnez-nous vos retours !</span>
+              </p>
+              <div className="flex flex-wrap justify-center gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-white rounded-full"></span>
+                  <span>Interface intuitive</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-white rounded-full"></span>
+                  <span>Support prioritaire</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-white rounded-full"></span>
+                  <span>Mises à jour fréquentes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center mt-16">
           <div className="bg-blue-600 text-white p-6 rounded-lg inline-block">
             <h3 className="text-xl font-bold mb-2">🎯 Objectif : Votre réussite</h3>
             <p className="text-blue-100">

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Zap, Crown } from 'lucide-react';
+import { Check, Star, Zap, Crown, CreditCard, ShoppingCart } from 'lucide-react';
 
 interface Plan {
   id: string;
@@ -110,6 +110,39 @@ const PlanCard: React.FC<PlanCardProps> = ({
             </li>
           ))}
         </ul>
+
+        {/* Section modules BETA - disponible pour tous les plans */}
+        <div className="border-t pt-4 mt-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+              BETA
+            </span>
+            <span className="text-sm font-medium text-gray-700">Modules inclus</span>
+          </div>
+          
+          <ul className="space-y-2">
+            <li className="flex items-start">
+              <CreditCard className="h-4 w-4 text-purple-500 mt-0.5 mr-2 flex-shrink-0" />
+              <div>
+                <span className="text-sm font-medium text-gray-700">Module POS</span>
+                <p className="text-xs text-gray-500">Point de vente & inventaire</p>
+              </div>
+            </li>
+            <li className="flex items-start">
+              <ShoppingCart className="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+              <div>
+                <span className="text-sm font-medium text-gray-700">Module E-commerce</span>
+                <p className="text-xs text-gray-500">Boutique en ligne intégrée</p>
+              </div>
+            </li>
+          </ul>
+          
+          <div className="mt-2 p-2 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg">
+            <p className="text-xs text-center text-gray-600">
+              <span className="font-medium">Accès gratuit</span> durant la phase BETA
+            </p>
+          </div>
+        </div>
 
         <Button
           className="w-full"
