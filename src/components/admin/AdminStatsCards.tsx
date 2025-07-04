@@ -70,13 +70,11 @@ const AdminStatsCards: React.FC<AdminStatsCardsProps> = ({ stats }) => {
               </div>
             </div>
             
-            <div>
-              <h3 className="text-2xl font-bold text-foreground mb-1">
-                {card.value}
-              </h3>
-              <p className="text-sm text-muted-foreground mb-1">{card.title}</p>
-              <p className="text-xs text-muted-foreground/70">{card.description}</p>
-            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-1">
+              {card.value}
+            </h3>
+            <p className="text-sm text-muted-foreground mb-1">{card.title}</p>
+            <p className="text-xs text-muted-foreground/70">{card.description}</p>
           </CardContent>
         </Card>
       ))}
