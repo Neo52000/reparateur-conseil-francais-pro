@@ -10,6 +10,7 @@ import UnifiedScrapingTab from './collection-methods/UnifiedScrapingTab';
 import ScrapingProgressViewer from './ScrapingProgressViewer';
 import ResultsPreviewTable from './ResultsPreviewTable';
 import RedirectionCountdown from './RedirectionCountdown';
+import EnhancementPanel from './EnhancementPanel';
 
 interface BusinessCategory {
   id: string;
@@ -39,6 +40,7 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
   
   const {
     results,
+    setResults,
     integrating,
     showRedirection,
     generateSerperQuery,
@@ -178,10 +180,16 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
         currentStep="scraping"
       />
 
+      {/* Panel d'améliorations IA */}
+      <EnhancementPanel
+        results={results}
+        onResultsUpdated={setResults}
+      />
+
       {/* Prévisualisation et validation des résultats */}
       <ResultsPreviewTable
         results={results}
-        onResultsChange={(newResults) => {}} // Géré par le hook maintenant
+        onResultsChange={setResults}
         onIntegrateToDatabase={handleIntegration}
         isIntegrating={integrating}
       />

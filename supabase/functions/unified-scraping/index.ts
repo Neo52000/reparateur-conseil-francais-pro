@@ -329,56 +329,80 @@ async function integrateToDatabase(supabase: any, results: any[], categoryId: st
   console.log(`💾 Intégration de ${results.length} résultats...`);
   
   let insertedCount = 0;
-  const batchSize = 10; // Réduire la taille des lots
+  const batchSize = 5; // Réduire encore plus la taille des lots
 
   for (let i = 0; i < results.length; i += batchSize) {
     const batch = results.slice(i, i + batchSize);
     
     try {
-      const processedBatch = batch.map(result => ({
-        name: result.name || 'Sans nom',
-        address: result.address || '',
-        city: result.city || '',
-        postal_code: result.postal_code || '',
-        phone: result.phone || null,
-        email: result.email || null,
-        website: result.website || null,
-        description: result.description || null,
-        lat: result.lat || null,
-        lng: result.lng || null,
-        business_category_id: categoryId,
-        unique_id: generateUniqueId(result.name || 'unknown'),
-        source: result.source || 'unified',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        is_verified: false,
-        data_quality_score: result.quality_score || 50
-      }));
+      const processedBatch = batch.map((result, index) => {
+        // Normaliser les données pour assurer la cohérence
+        const normalized = {
+          name: cleanText(result.name || result.title || 'Sans nom'),
+          address: cleanText(result.address || ''),
+          city: cleanText(result.city || ''),
+          postal_code: result.postal_code || '00000',
+          phone: cleanPhone(result.phone || ''),
+          email: cleanEmail(result.email || ''),
+          website: cleanWebsite(result.website || result.link || ''),
+          description: cleanText(result.description || result.snippet || ''),
+          lat: result.lat || null,
+          lng: result.lng || null,
+          business_category_id: categoryId,
+          unique_id: generateUniqueId(result.name || result.title || `unknown_${Date.now()}_${index}`),
+          source: result.source || 'unified',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_verified: false,
+          data_quality_score: result.quality_score || calculateQualityScore(result),
+          // Champs optionnels enrichis par IA
+          services: result.services ? JSON.stringify(result.services) : null,
+          specialties: result.specialties ? JSON.stringify(result.specialties) : null,
+          deepseek_confidence: result.confidence || null
+        };
 
-      console.log(`🔍 Tentative d'insertion lot ${i + 1}:`, processedBatch.slice(0, 2)); // Log sample
+        console.log(`📋 Normalisation résultat ${i + index + 1}:`, {
+          original: result.name || result.title,
+          normalized: normalized.name,
+          quality: normalized.data_quality_score
+        });
+
+        return normalized;
+      });
+
+      console.log(`🔍 Tentative d'insertion lot ${Math.floor(i/batchSize) + 1}/${Math.ceil(results.length/batchSize)}`);
 
       const { data, error } = await supabase
         .from('repairers')
         .insert(processedBatch)
-        .select('id');
+        .select('id, name');
 
       if (error) {
-        console.error(`❌ Erreur insertion lot ${i + 1}:`, error);
-        console.error('Détails:', JSON.stringify(error, null, 2));
+        console.error(`❌ Erreur insertion lot ${Math.floor(i/batchSize) + 1}:`, error);
+        console.error('Code erreur:', error.code);
+        console.error('Message:', error.message);
+        console.error('Hint:', error.hint);
+        
+        // Log des données problématiques
+        console.error('Données problématiques:', JSON.stringify(processedBatch, null, 2));
         continue;
       }
 
       insertedCount += data?.length || 0;
-      console.log(`✅ Lot ${i + 1}: ${data?.length || 0} éléments insérés avec succès`);
+      console.log(`✅ Lot ${Math.floor(i/batchSize) + 1}: ${data?.length || 0} éléments insérés`);
+      if (data?.length > 0) {
+        console.log('IDs insérés:', data.map(d => `${d.id}: ${d.name}`));
+      }
 
     } catch (error) {
-      console.error(`💥 Erreur traitement lot ${i + 1}:`, error);
+      console.error(`💥 Erreur traitement lot ${Math.floor(i/batchSize) + 1}:`, error);
     }
 
-    await new Promise(resolve => setTimeout(resolve, 200));
+    // Pause plus longue entre les lots
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
 
-  console.log(`🎉 Total inséré: ${insertedCount} réparateurs`);
+  console.log(`🎉 Total inséré: ${insertedCount}/${results.length} réparateurs`);
   return insertedCount;
 }
 
