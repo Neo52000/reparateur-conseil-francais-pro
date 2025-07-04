@@ -32,6 +32,7 @@ const ScrapingDebugPanel: React.FC<ScrapingDebugPanelProps> = ({
           address: 'Test Address',
           city: 'Test City',
           postal_code: '00000',
+          description: 'Test description pour debug',
           source: 'debug_test'
         })
         .select('id');
@@ -51,6 +52,12 @@ const ScrapingDebugPanel: React.FC<ScrapingDebugPanelProps> = ({
         .from('business_categories')
         .select('id, name, is_active')
         .eq('is_active', true);
+
+      // Test de la structure de la table repairers
+      const { data: tableStructure, error: structureError } = await supabase
+        .from('repairers')
+        .select('name, address, description')
+        .limit(1);
 
       // Test de l'edge function
       const { data: edgeFunctionTest, error: edgeFunctionError } = await supabase.functions.invoke('unified-scraping', {
@@ -72,6 +79,11 @@ const ScrapingDebugPanel: React.FC<ScrapingDebugPanelProps> = ({
             available: categories || [],
             error: categoriesError?.message
           }
+        },
+        tableStructure: {
+          success: !structureError,
+          error: structureError?.message,
+          hasDescription: tableStructure && tableStructure.length > 0
         },
         edgeFunction: {
           success: !edgeFunctionError,
@@ -124,8 +136,9 @@ const ScrapingDebugPanel: React.FC<ScrapingDebugPanelProps> = ({
 
           {debugInfo && (
             <Tabs defaultValue="database" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="database">Base de données</TabsTrigger>
+                <TabsTrigger value="structure">Structure</TabsTrigger>
                 <TabsTrigger value="function">Edge Function</TabsTrigger>
                 <TabsTrigger value="results">Résultats</TabsTrigger>
               </TabsList>
@@ -174,6 +187,35 @@ const ScrapingDebugPanel: React.FC<ScrapingDebugPanelProps> = ({
                       </div>
                     </div>
                   )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="structure" className="space-y-4">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Database className="h-4 w-4" />
+                    <span className="font-medium">Structure table repairers</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {getStatusIcon(debugInfo.tableStructure?.success)}
+                    <Badge variant={debugInfo.tableStructure?.success ? 'default' : 'destructive'}>
+                      {debugInfo.tableStructure?.success ? 'OK' : 'ERREUR'}
+                    </Badge>
+                  </div>
+                </div>
+
+                {debugInfo.tableStructure?.error && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-700">
+                      <strong>Erreur structure:</strong> {debugInfo.tableStructure.error}
+                    </p>
+                  </div>
+                )}
+
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-700">
+                    <strong>Colonne description présente:</strong> {debugInfo.tableStructure?.hasDescription ? '✅ Oui' : '❌ Non'}
+                  </p>
                 </div>
               </TabsContent>
 

@@ -3192,6 +3192,7 @@ export type Database = {
           deepseek_classification: Json | null
           deepseek_confidence: number | null
           department: string | null
+          description: string | null
           email: string | null
           enhanced_at: string | null
           enhancement_status: string | null
@@ -3237,6 +3238,7 @@ export type Database = {
           deepseek_classification?: Json | null
           deepseek_confidence?: number | null
           department?: string | null
+          description?: string | null
           email?: string | null
           enhanced_at?: string | null
           enhancement_status?: string | null
@@ -3282,6 +3284,7 @@ export type Database = {
           deepseek_classification?: Json | null
           deepseek_confidence?: number | null
           department?: string | null
+          description?: string | null
           email?: string | null
           enhanced_at?: string | null
           enhancement_status?: string | null
