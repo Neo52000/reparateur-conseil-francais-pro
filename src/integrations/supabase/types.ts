@@ -4545,6 +4545,14 @@ export type Database = {
         }
         Returns: number
       }
+      generate_order_number: {
+        Args: { repairer_id: string }
+        Returns: string
+      }
+      generate_transaction_number: {
+        Args: { repairer_id: string }
+        Returns: string
+      }
       generate_unique_id: {
         Args: { prefix?: string }
         Returns: string
