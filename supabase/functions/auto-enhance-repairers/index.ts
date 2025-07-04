@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { AIService } from '../_shared/ai-service.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,8 +10,6 @@ const corsHeaders = {
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
-const mistralApiKey = Deno.env.get('MISTRAL_API_KEY');
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -129,8 +128,16 @@ async function processRepairer(repairer: RepairerRecord, enhancementType: string
     repairer_id: repairer.id,
     success: true,
     enhancements: [] as string[],
-    errors: [] as string[]
+    errors: [] as string[],
+    fallback_logs: [] as string[]
   };
+
+  // Initialiser le service IA avec toutes les clés disponibles
+  const aiService = new AIService({
+    deepseekApiKey: Deno.env.get('DEEPSEEK_API_KEY'),
+    mistralApiKey: Deno.env.get('MISTRAL_API_KEY'),
+    openaiApiKey: Deno.env.get('OPENAI_API_KEY')
+  });
 
   try {
     // 1. Générer ID unique si manquant
@@ -143,70 +150,89 @@ async function processRepairer(repairer: RepairerRecord, enhancementType: string
       result.enhancements.push('unique_id_generated');
     }
 
-    // 2. Classification DeepSeek
-    if (deepseekApiKey && (enhancementType === 'all' || enhancementType === 'deepseek')) {
+    // 2. Classification IA avec fallback intelligent
+    if (enhancementType === 'all' || enhancementType === 'deepseek' || enhancementType === 'classification') {
       try {
-        const classification = await classifyWithDeepSeek(repairer);
-        if (classification.success) {
-          await supabase
-            .from('repairers')
-            .update({
-              deepseek_classification: classification.data,
-              deepseek_confidence: classification.confidence
-            })
-            .eq('id', repairer.id);
+        console.log(`🔄 [Auto-Enhance] Classification IA pour ${repairer.name}...`);
+        const classification = await aiService.classifyRepairer(repairer);
+        
+        await supabase
+          .from('repairers')
+          .update({
+            deepseek_classification: classification.data,
+            deepseek_confidence: classification.confidence
+          })
+          .eq('id', repairer.id);
 
-          // Enregistrer l'historique
-          await supabase.from('ai_enhancements').insert({
-            repairer_id: repairer.id,
-            enhancement_type: 'deepseek_classification',
-            ai_model: 'deepseek-chat',
-            input_data: { name: repairer.name, address: repairer.address, description: repairer.description },
-            output_data: classification.data,
-            confidence_score: classification.confidence,
-            processing_time_ms: Date.now() - startTime,
-            success: true
-          });
+        // Enregistrer l'historique avec le modèle utilisé
+        await supabase.from('ai_enhancements').insert({
+          repairer_id: repairer.id,
+          enhancement_type: 'ai_classification',
+          ai_model: classification.model_used,
+          input_data: { name: repairer.name, address: repairer.address, description: repairer.description },
+          output_data: classification.data,
+          confidence_score: classification.confidence,
+          processing_time_ms: Date.now() - startTime,
+          success: classification.success,
+          error_message: classification.error || null
+        });
 
-          result.enhancements.push('deepseek_classification');
+        result.enhancements.push(`ai_classification_${classification.model_used}`);
+        
+        if (classification.error) {
+          result.errors.push(`classification: ${classification.error}`);
         }
+        
       } catch (error) {
-        console.error('Erreur DeepSeek:', error);
-        result.errors.push(`deepseek: ${error.message}`);
+        console.error('❌ [Auto-Enhance] Erreur classification:', error);
+        result.errors.push(`classification: ${error.message}`);
       }
     }
 
-    // 3. Amélioration Mistral
-    if (mistralApiKey && (enhancementType === 'all' || enhancementType === 'mistral')) {
+    // 3. Amélioration description avec fallback intelligent
+    if (enhancementType === 'all' || enhancementType === 'mistral' || enhancementType === 'enhancement') {
       try {
-        const enhancement = await enhanceWithMistral(repairer);
-        if (enhancement.success) {
-          await supabase
-            .from('repairers')
-            .update({
-              description: enhancement.enhanced_description || repairer.description,
-              mistral_enhanced: true,
-              mistral_enhancement_data: enhancement.data
-            })
-            .eq('id', repairer.id);
+        console.log(`🔄 [Auto-Enhance] Amélioration description pour ${repairer.name}...`);
+        const enhancement = await aiService.enhanceDescription(repairer);
+        
+        await supabase
+          .from('repairers')
+          .update({
+            description: enhancement.enhanced_description || repairer.description,
+            mistral_enhanced: true,
+            mistral_enhancement_data: enhancement.data
+          })
+          .eq('id', repairer.id);
 
-          // Enregistrer l'historique
-          await supabase.from('ai_enhancements').insert({
-            repairer_id: repairer.id,
-            enhancement_type: 'mistral_enhancement',
-            ai_model: 'mistral-large',
-            input_data: { description: repairer.description },
-            output_data: enhancement.data,
-            processing_time_ms: Date.now() - startTime,
-            success: true
-          });
+        // Enregistrer l'historique avec le modèle utilisé
+        await supabase.from('ai_enhancements').insert({
+          repairer_id: repairer.id,
+          enhancement_type: 'description_enhancement',
+          ai_model: enhancement.model_used,
+          input_data: { description: repairer.description },
+          output_data: enhancement.data,
+          processing_time_ms: Date.now() - startTime,
+          success: enhancement.success,
+          error_message: enhancement.error || null
+        });
 
-          result.enhancements.push('mistral_enhancement');
+        result.enhancements.push(`description_enhancement_${enhancement.model_used}`);
+        
+        if (enhancement.error) {
+          result.errors.push(`enhancement: ${enhancement.error}`);
         }
+        
       } catch (error) {
-        console.error('Erreur Mistral:', error);
-        result.errors.push(`mistral: ${error.message}`);
+        console.error('❌ [Auto-Enhance] Erreur amélioration:', error);
+        result.errors.push(`enhancement: ${error.message}`);
       }
+    }
+
+    // Collecter les logs de fallback
+    const fallbackLogs = aiService.getFallbackLogs();
+    if (fallbackLogs.length > 0) {
+      result.fallback_logs = fallbackLogs;
+      console.log(`🔄 [Auto-Enhance] Fallbacks utilisés pour ${repairer.name}:`, fallbackLogs);
     }
 
     // 4. Géocodage Nominatim
@@ -262,109 +288,8 @@ async function generateUniqueId(): Promise<string> {
   return `REP_${random}_${timestamp}`;
 }
 
-async function classifyWithDeepSeek(repairer: RepairerRecord) {
-  const prompt = `Analyse ce commerce pour déterminer s'il s'agit d'un réparateur de téléphones/smartphones:
-
-Nom: ${repairer.name}
-Adresse: ${repairer.address}
-Description: ${repairer.description || 'Non renseignée'}
-
-Réponds en JSON avec:
-{
-  "is_repairer": boolean,
-  "confidence": number (0-1),
-  "specialties": string[],
-  "services": string[],
-  "reasoning": string
-}`;
-
-  const response = await fetch('https://api.deepseek.com/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${deepseekApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'deepseek-chat',
-      messages: [
-        { role: 'system', content: 'Tu es un expert en classification de commerces. Réponds uniquement en JSON valide.' },
-        { role: 'user', content: prompt }
-      ],
-      temperature: 0.1,
-      max_tokens: 500
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`DeepSeek API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const content = data.choices[0].message.content;
-  
-  try {
-    const parsed = JSON.parse(content);
-    return {
-      success: true,
-      data: parsed,
-      confidence: parsed.confidence || 0
-    };
-  } catch (error) {
-    throw new Error('Erreur parsing réponse DeepSeek');
-  }
-}
-
-async function enhanceWithMistral(repairer: RepairerRecord) {
-  const prompt = `Améliore la description de ce réparateur de téléphones en français:
-
-Nom: ${repairer.name}
-Description actuelle: ${repairer.description || 'Aucune description'}
-
-Crée une description professionnelle, attrayante et SEO-optimisée d'environ 100-150 mots.
-Mentionne les services de réparation de smartphones, tablettes, etc.
-
-Réponds en JSON:
-{
-  "enhanced_description": string,
-  "keywords": string[],
-  "services_suggested": string[]
-}`;
-
-  const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${mistralApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'mistral-large-latest',
-      messages: [
-        { role: 'system', content: 'Tu es un expert en rédaction commerciale pour les réparateurs de téléphones. Réponds uniquement en JSON valide.' },
-        { role: 'user', content: prompt }
-      ],
-      temperature: 0.7,
-      max_tokens: 400
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Mistral API error: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const content = data.choices[0].message.content;
-  
-  try {
-    const parsed = JSON.parse(content);
-    return {
-      success: true,
-      data: parsed,
-      enhanced_description: parsed.enhanced_description
-    };
-  } catch (error) {
-    throw new Error('Erreur parsing réponse Mistral');
-  }
-}
+// Les fonctions classifyWithDeepSeek et enhanceWithMistral sont maintenant remplacées 
+// par le service AIService qui gère automatiquement les fallbacks
 
 async function geocodeWithNominatim(address: string) {
   await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limiting

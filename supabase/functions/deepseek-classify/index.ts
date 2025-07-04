@@ -1,6 +1,7 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { AIService } from '../_shared/ai-service.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,70 +15,92 @@ serve(async (req) => {
 
   try {
     const { repairersData, prompt } = await req.json();
-    const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY');
-
-    if (!deepseekApiKey) {
-      throw new Error('DeepSeek API key not configured');
-    }
-
-    console.log(`🤖 Classification DeepSeek de ${repairersData.length} réparateurs`);
-
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${deepseekApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          {
-            role: 'system',
-            content: 'Tu es un expert en classification de données d\'entreprises. Tu réponds UNIQUEMENT avec du JSON valide.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.1,
-        max_tokens: 4000
-      }),
+    
+    // Initialiser le service IA avec les clés disponibles
+    const aiService = new AIService({
+      deepseekApiKey: Deno.env.get('DEEPSEEK_API_KEY'),
+      openaiApiKey: Deno.env.get('OPENAI_API_KEY')
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Erreur DeepSeek API:', errorText);
-      throw new Error(`DeepSeek API error: ${response.status}`);
+    console.log(`🤖 [DeepSeek-Classify] Classification de ${repairersData.length} réparateurs`);
+
+    const results = [];
+    let successCount = 0;
+    let errorCount = 0;
+
+    // Traiter chaque réparateur individuellement avec fallback
+    for (const repairer of repairersData) {
+      try {
+        const classificationResult = await aiService.classifyRepairer(repairer);
+        
+        if (classificationResult.success) {
+          results.push({
+            ...repairer,
+            classification: classificationResult.data,
+            confidence: classificationResult.confidence,
+            model_used: classificationResult.model_used
+          });
+          successCount++;
+        } else {
+          // Même en cas d'échec partiel, on garde le réparateur avec classification basique
+          results.push({
+            ...repairer,
+            classification: classificationResult.data,
+            confidence: classificationResult.confidence,
+            model_used: classificationResult.model_used,
+            fallback_used: true,
+            error: classificationResult.error
+          });
+          errorCount++;
+        }
+        
+      } catch (error) {
+        console.error(`❌ [DeepSeek-Classify] Erreur pour ${repairer.name}:`, error);
+        
+        // Classification d'urgence basique
+        results.push({
+          ...repairer,
+          classification: {
+            is_repairer: true,
+            confidence: 0.1,
+            specialties: [],
+            services: ['Réparation mobile'],
+            reasoning: 'Classification d\'urgence - toutes les APIs ont échoué'
+          },
+          confidence: 0.1,
+          model_used: 'emergency_fallback',
+          error: error.message
+        });
+        errorCount++;
+      }
     }
 
-    const data = await response.json();
-    const content = data.choices[0]?.message?.content;
-
-    if (!content) {
-      throw new Error('Pas de réponse de DeepSeek');
+    // Logs de fallback
+    const fallbackLogs = aiService.getFallbackLogs();
+    if (fallbackLogs.length > 0) {
+      console.warn('🔄 [DeepSeek-Classify] Fallbacks utilisés:', fallbackLogs);
     }
 
-    let classifiedData;
-    try {
-      classifiedData = JSON.parse(content);
-    } catch (parseError) {
-      console.error('Erreur parsing JSON DeepSeek:', parseError);
-      console.log('Contenu reçu:', content);
-      throw new Error('Réponse DeepSeek invalide');
-    }
+    console.log(`✅ [DeepSeek-Classify] Terminé: ${successCount} succès, ${errorCount} avec fallback/erreur`);
 
-    console.log(`✅ Classification DeepSeek terminée: ${classifiedData.length} résultats`);
-
-    return new Response(JSON.stringify({ classifiedData }), {
+    return new Response(JSON.stringify({ 
+      classifiedData: results,
+      stats: {
+        total: repairersData.length,
+        success: successCount,
+        with_fallback: errorCount,
+        fallback_logs: fallbackLogs
+      }
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Erreur fonction DeepSeek classify:', error);
+    console.error('❌ [DeepSeek-Classify] Erreur critique:', error);
     return new Response(JSON.stringify({ 
       error: error.message,
-      classifiedData: []
+      classifiedData: [],
+      critical_failure: true
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

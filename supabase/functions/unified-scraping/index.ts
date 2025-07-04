@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
+import { AddressExtractor } from '../_shared/address-extractor.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -31,6 +32,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    // Initialiser l'extracteur d'adresses
+    const addressExtractor = new AddressExtractor();
 
     const options: UnifiedScrapingOptions = await req.json();
     console.log('📋 Options reçues:', options);
@@ -68,8 +72,8 @@ serve(async (req) => {
       });
     }
 
-    // Phase 2: Traitement et nettoyage
-    const processedResults = await processWithPipelines(allResults);
+    // Phase 2: Traitement et nettoyage avec extraction d'adresses améliorée
+    const processedResults = await processWithPipelines(allResults, addressExtractor);
     stats.totalProcessed = processedResults.length;
 
     // Phase 3: Intégration en base (seulement si pas en mode preview)
@@ -152,15 +156,23 @@ async function collectFromSerper(supabase: any, options: UnifiedScrapingOptions,
 
   if (error) throw new Error(`Serper error: ${error.message}`);
 
-  return (data.results || []).map((result: any) => ({
-    name: result.title || '',
-    address: extractAddressFromSnippet(result.snippet || ''),
-    city: options.location,
-    postal_code: '00000',
-    website: result.link,
-    description: result.snippet,
-    source: 'serper'
-  }));
+  return (data.results || []).map((result: any) => {
+    // Utiliser l'extracteur d'adresses amélioré
+    const addressExtractor = new AddressExtractor();
+    const addressResult = addressExtractor.getBestAddress(result);
+    
+    return {
+      name: result.title || '',
+      address: addressResult.address || options.location,
+      city: options.location,
+      postal_code: '00000',
+      website: result.link,
+      description: result.snippet,
+      source: 'serper',
+      address_confidence: addressResult.confidence,
+      address_extraction_source: addressResult.source
+    };
+  });
 }
 
 async function collectFromMultiAI(supabase: any, options: UnifiedScrapingOptions, maxResults: number) {
@@ -183,31 +195,43 @@ async function collectFromGoogleMaps(options: UnifiedScrapingOptions, maxResults
   return [];
 }
 
-function extractAddressFromSnippet(snippet: string): string {
-  const addressPatterns = [
-    /(\d+[\w\s,.-]+(?:\d{5})?[^.!?]*)/,
-    /([A-Z][a-z\s]+(?:\d+[^.!?]*)?)/
-  ];
+// L'ancienne fonction extractAddressFromSnippet est remplacée par AddressExtractor
+// qui offre une extraction beaucoup plus robuste et multi-sources
 
-  for (const pattern of addressPatterns) {
-    const match = snippet.match(pattern);
-    if (match) {
-      return match[1].trim().substring(0, 100);
-    }
-  }
-  return '';
-}
-
-async function processWithPipelines(items: any[]) {
-  console.log('🔄 Application des pipelines de traitement...');
+async function processWithPipelines(items: any[], addressExtractor: AddressExtractor) {
+  console.log('🔄 Application des pipelines de traitement avec extraction d\'adresses améliorée...');
   
   const processed: any[] = [];
   const seenFingerprints = new Set<string>();
+  let addressExtractionStats = {
+    improved: 0,
+    failed: 0,
+    already_good: 0
+  };
 
   for (const item of items) {
     try {
-      // Pipeline 1: Nettoyage
+      // Pipeline 1: Nettoyage de base
       const cleaned = cleanItem(item);
+      
+      // Pipeline 1.5: Amélioration de l'extraction d'adresses
+      if (!cleaned.address || cleaned.address.length < 10) {
+        console.log(`🔍 [Address] Tentative amélioration adresse pour: ${cleaned.name}`);
+        const addressResult = addressExtractor.getBestAddress(cleaned);
+        
+        if (addressResult.confidence > 0.4 && addressResult.address.length > 5) {
+          console.log(`✅ [Address] Adresse améliorée: "${addressResult.address}" (conf: ${addressResult.confidence})`);
+          cleaned.address = addressResult.address;
+          cleaned.address_confidence = addressResult.confidence;
+          cleaned.address_extraction_source = addressResult.source;
+          addressExtractionStats.improved++;
+        } else {
+          console.log(`❌ [Address] Échec amélioration adresse pour: ${cleaned.name}`);
+          addressExtractionStats.failed++;
+        }
+      } else {
+        addressExtractionStats.already_good++;
+      }
       
       // Pipeline 2: Filtrage des doublons
       const fingerprint = generateFingerprint(cleaned);
@@ -216,17 +240,18 @@ async function processWithPipelines(items: any[]) {
       }
       seenFingerprints.add(fingerprint);
       
-      // Pipeline 3: Enrichissement
+      // Pipeline 3: Enrichissement (géocodage, etc.)
       const enriched = await enrichItem(cleaned);
       
       processed.push(enriched);
       
     } catch (error) {
-      console.warn('Erreur traitement item:', error);
+      console.warn('❌ [Pipeline] Erreur traitement item:', error);
     }
   }
 
-  console.log(`✨ ${processed.length} éléments traités`);
+  console.log(`✅ [Pipeline] ${processed.length} éléments traités`);
+  console.log(`📊 [Address] Stats extraction: ${addressExtractionStats.improved} améliorées, ${addressExtractionStats.already_good} déjà bonnes, ${addressExtractionStats.failed} échecs`);
   return processed;
 }
 
