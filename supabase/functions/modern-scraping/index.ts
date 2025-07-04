@@ -204,7 +204,7 @@ Critères pour isRepairer=true:
 
       console.log(`🌐 URL de scraping: ${searchUrl}`);
 
-      const response = await fetch('https://api.firecrawl.dev/v0/scrape', {
+      const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.firecrawlApiKey}`,
@@ -214,7 +214,8 @@ Critères pour isRepairer=true:
           url: searchUrl,
           formats: ['markdown', 'html'],
           onlyMainContent: true,
-          waitFor: 3000
+          waitFor: 3000,
+          timeout: 30000
         })
       });
 
@@ -228,10 +229,17 @@ Critères pour isRepairer=true:
       console.log(`✅ Données reçues de Firecrawl:`, data.success);
       
       if (!data.success) {
+        console.error(`❌ Firecrawl non réussi:`, data);
         throw new Error(`Firecrawl error: ${data.error || 'Unknown error'}`);
       }
 
-      return this.parseScrapedData(data.data?.markdown || '', data.data?.html || '', source, maxResults);
+      // Firecrawl v1 retourne les données directement dans data
+      const markdown = data.markdown || '';
+      const html = data.html || '';
+      
+      console.log(`📄 Contenu reçu: ${markdown.length} chars markdown, ${html.length} chars html`);
+      
+      return this.parseScrapedData(markdown, html, source, maxResults);
 
     } catch (error) {
       console.error('❌ Erreur scraping Firecrawl:', error);

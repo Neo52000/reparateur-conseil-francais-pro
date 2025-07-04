@@ -50,21 +50,28 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
     onLoadingChange(true);
     try {
       const query = generateSerperQuery();
+      console.log('🔍 Démarrage recherche Serper avec:', { query, location });
+      
       const { data, error } = await supabase.functions.invoke('serper-search', {
         body: {
           query,
-          searchType: 'search',
+          type: 'search',
           location: location || 'France',
           num: 20
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erreur Serper API:', error);
+        throw error;
+      }
       
-      setResults(data.organic || []);
+      console.log('✅ Réponse Serper reçue:', data);
+      const results = data.results || [];
+      setResults(results);
       toast({
         title: "Recherche Serper réussie",
-        description: `${data.organic?.length || 0} résultats trouvés`
+        description: `${results.length} résultats trouvés`
       });
     } catch (error: any) {
       console.error('Erreur Serper:', error);
