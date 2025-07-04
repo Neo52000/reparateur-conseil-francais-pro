@@ -105,14 +105,26 @@ export const useDataCollection = () => {
   const handleUnifiedScraping = async (category: BusinessCategory, location: string) => {
     try {
       const searchTerm = category.search_keywords[0] || category.name;
-      console.log('🚀 Démarrage Unified Scraping avec:', { searchTerm, location });
+      console.log('🚀 [DEBUG] Démarrage Unified Scraping avec:', { 
+        searchTerm, 
+        location, 
+        categoryId: category.id,
+        categoryName: category.name,
+        keywords: category.search_keywords 
+      });
       
+      // Vérification préalable de la catégorie
+      if (!category.id) {
+        throw new Error('Catégorie invalide : ID manquant');
+      }
+      
+      console.log('📡 [DEBUG] Appel edge function unified-scraping...');
       const { data, error } = await supabase.functions.invoke('unified-scraping', {
         body: {
           searchTerm: searchTerm,
           location: location || 'France',
-          sources: ['google_maps', 'serper', 'multi_ai'],
-          maxResults: 50,
+          sources: ['serper', 'multi_ai'], // Simplifier pour le debug
+          maxResults: 20, // Réduire pour debug
           enableAI: true,
           enableGeocoding: true,
           categoryId: category.id,
@@ -120,27 +132,49 @@ export const useDataCollection = () => {
         }
       });
 
+      console.log('📥 [DEBUG] Réponse edge function:', { data, error });
+
       if (error) {
-        console.error('❌ Erreur Unified Scraping:', error);
-        throw error;
+        console.error('❌ [DEBUG] Erreur détaillée Unified Scraping:', {
+          error,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw new Error(`Erreur scraping: ${error.message || 'Erreur inconnue'}`);
       }
       
-      console.log('✅ Unified Scraping terminé:', data);
+      if (!data) {
+        throw new Error('Aucune donnée retournée par l\'edge function');
+      }
+      
+      console.log('✅ [DEBUG] Unified Scraping terminé:', {
+        success: data.success,
+        stats: data.stats,
+        resultsCount: data.results?.length || 0
+      });
+      
       const stats = data.stats || {};
-      setResults(data.results || []);
+      const results = data.results || [];
+      setResults(results);
       
       toast({
         title: "Collecte réussie",
-        description: `${stats.totalFound || 0} résultats trouvés et ${stats.totalProcessed || 0} traités. Vérifiez et sélectionnez les résultats à intégrer.`
+        description: `${stats.totalFound || 0} résultats trouvés et ${stats.totalProcessed || 0} traités. ${results.length} résultats disponibles pour intégration.`
       });
       
-      // Ne pas rediriger automatiquement en mode preview
-      return data.results || [];
+      return results;
     } catch (error: any) {
-      console.error('Erreur Unified Scraping:', error);
+      console.error('💥 [DEBUG] Erreur complète Unified Scraping:', {
+        error,
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       toast({
         title: "Erreur Scraping Unifié",
-        description: error.message,
+        description: `Détail: ${error.message}. Consultez la console pour plus d'infos.`,
         variant: "destructive"
       });
       throw error;
@@ -159,8 +193,24 @@ export const useDataCollection = () => {
 
     setIntegrating(true);
     try {
-      console.log('💾 Intégration de', selectedResults.length, 'résultats sélectionnés');
+      console.log('💾 [DEBUG] Début intégration:', {
+        selectedCount: selectedResults.length,
+        categoryId: category.id,
+        categoryName: category.name,
+        location,
+        sampleResults: selectedResults.slice(0, 2).map(r => ({ name: r.name || r.title, source: r.source }))
+      });
       
+      // Vérifications préalables
+      if (!category.id) {
+        throw new Error('Catégorie invalide : ID manquant');
+      }
+      
+      if (selectedResults.some(r => !r.name && !r.title)) {
+        console.warn('[DEBUG] Certains résultats n\'ont pas de nom:', selectedResults.filter(r => !r.name && !r.title));
+      }
+      
+      console.log('📡 [DEBUG] Appel intégration vers edge function...');
       const { data, error } = await supabase.functions.invoke('unified-scraping', {
         body: {
           searchTerm: category.search_keywords[0] || category.name,
@@ -170,31 +220,62 @@ export const useDataCollection = () => {
           enableAI: false,
           enableGeocoding: false,
           categoryId: category.id,
-          previewMode: false,
+          previewMode: false, // MODE INTÉGRATION - pas de preview
           providedResults: selectedResults // Passer les résultats sélectionnés
         }
       });
 
+      console.log('📥 [DEBUG] Réponse intégration:', { data, error });
+
       if (error) {
-        console.error('❌ Erreur intégration:', error);
-        throw error;
+        console.error('❌ [DEBUG] Erreur détaillée intégration:', {
+          error,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw new Error(`Erreur intégration: ${error.message || 'Erreur inconnue'}`);
+      }
+      
+      if (!data) {
+        throw new Error('Aucune donnée retournée lors de l\'intégration');
       }
       
       const stats = data.stats || {};
-      
-      toast({
-        title: "Intégration réussie",
-        description: `${stats.totalInserted || 0} réparateurs ajoutés en base de données`
+      console.log('✅ [DEBUG] Intégration terminée:', {
+        success: data.success,
+        stats,
+        totalInserted: stats.totalInserted,
+        totalProcessed: stats.totalProcessed
       });
       
-      // Afficher le composant de redirection après intégration
-      setShowRedirection(true);
+      if (stats.totalInserted === 0) {
+        toast({
+          title: "Aucune insertion",
+          description: `${stats.totalProcessed || 0} résultats traités mais 0 inséré. Vérifiez les logs pour plus de détails.`,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Intégration réussie",
+          description: `${stats.totalInserted} réparateurs ajoutés en base de données sur ${selectedResults.length} sélectionnés`
+        });
+        
+        // Afficher le composant de redirection après intégration réussie
+        setShowRedirection(true);
+      }
       
     } catch (error: any) {
-      console.error('Erreur intégration:', error);
+      console.error('💥 [DEBUG] Erreur complète intégration:', {
+        error,
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
       toast({
         title: "Erreur d'intégration",
-        description: error.message,
+        description: `Détail: ${error.message}. Consultez la console pour plus d'infos.`,
         variant: "destructive"
       });
     } finally {

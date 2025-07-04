@@ -11,6 +11,7 @@ import ScrapingProgressViewer from './ScrapingProgressViewer';
 import ResultsPreviewTable from './ResultsPreviewTable';
 import RedirectionCountdown from './RedirectionCountdown';
 import EnhancementPanel from './EnhancementPanel';
+import ScrapingDebugPanel from './ScrapingDebugPanel';
 
 interface BusinessCategory {
   id: string;
@@ -191,6 +192,12 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
         results={results}
         onResultsChange={setResults}
         onIntegrateToDatabase={handleIntegration}
+        isIntegrating={integrating}
+      />
+
+      {/* Panneau de debug */}
+      <ScrapingDebugPanel 
+        results={results}
         isIntegrating={integrating}
       />
     </div>
