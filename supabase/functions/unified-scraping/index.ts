@@ -356,8 +356,8 @@ async function integrateToDatabase(supabase: any, results: any[], categoryId: st
           is_verified: false,
           data_quality_score: result.quality_score || calculateQualityScore(result),
           // Champs optionnels enrichis par IA
-          services: result.services ? JSON.stringify(result.services) : null,
-          specialties: result.specialties ? JSON.stringify(result.specialties) : null,
+          services: result.services || null,
+          specialties: result.specialties || null,
           deepseek_confidence: result.confidence || null
         };
 
