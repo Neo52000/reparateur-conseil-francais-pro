@@ -111,35 +111,38 @@ const PlanCard: React.FC<PlanCardProps> = ({
           ))}
         </ul>
 
-        {/* Section modules BETA - disponible pour tous les plans */}
+        {/* Section modules additionnels */}
         <div className="border-t pt-4 mt-4">
           <div className="flex items-center gap-2 mb-3">
-            <span className="bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-              BETA
-            </span>
-            <span className="text-sm font-medium text-gray-700">Modules inclus</span>
+            <span className="text-sm font-medium text-gray-700">Modules additionnels</span>
           </div>
           
-          <ul className="space-y-2">
-            <li className="flex items-start">
-              <CreditCard className="h-4 w-4 text-purple-500 mt-0.5 mr-2 flex-shrink-0" />
-              <div>
-                <span className="text-sm font-medium text-gray-700">Module POS</span>
-                <p className="text-xs text-gray-500">Point de vente & inventaire</p>
+          <ul className="space-y-3">
+            <li className="flex items-center justify-between">
+              <div className="flex items-start">
+                <CreditCard className="h-4 w-4 text-purple-500 mt-0.5 mr-2 flex-shrink-0" />
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Module POS</span>
+                  <p className="text-xs text-gray-500">Point de vente & inventaire</p>
+                </div>
               </div>
+              <span className="text-sm font-semibold text-purple-600">+49,90€</span>
             </li>
-            <li className="flex items-start">
-              <ShoppingCart className="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
-              <div>
-                <span className="text-sm font-medium text-gray-700">Module E-commerce</span>
-                <p className="text-xs text-gray-500">Boutique en ligne intégrée</p>
+            <li className="flex items-center justify-between">
+              <div className="flex items-start">
+                <ShoppingCart className="h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0" />
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Module E-commerce</span>
+                  <p className="text-xs text-gray-500">Boutique en ligne intégrée</p>
+                </div>
               </div>
+              <span className="text-sm font-semibold text-blue-600">+89,90€</span>
             </li>
           </ul>
           
-          <div className="mt-2 p-2 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg">
+          <div className="mt-3 p-2 bg-gray-50 rounded-lg">
             <p className="text-xs text-center text-gray-600">
-              <span className="font-medium">Accès gratuit</span> durant la phase BETA
+              Tarifs mensuels - facturation séparée
             </p>
           </div>
         </div>

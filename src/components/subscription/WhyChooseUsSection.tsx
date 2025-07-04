@@ -55,32 +55,33 @@ const WhyChooseUsSection: React.FC = () => {
             </Card>)}
         </div>
 
-        {/* Section modules beta */}
+        {/* Section modules additionnels */}
         <div className="mt-16">
           <div className="text-center mb-12">
             <h3 className="text-2xl font-bold text-gray-900 mb-4">
-              🚀 Nouveaux modules en version BETA
+              📱 Modules spécialisés disponibles
             </h3>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Découvrez nos dernières innovations pour digitaliser complètement votre activité
+              Étendez vos capacités avec nos modules complémentaires pour une gestion complète
             </p>
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-100 to-blue-100 px-4 py-2 rounded-full mt-4">
-              <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded-full font-semibold">BETA</span>
-              <span className="text-sm font-medium">En cours de développement - sortie mi-2026</span>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Module POS */}
             <Card className="border-2 border-purple-200 shadow-lg hover:shadow-xl transition-all hover:border-purple-300">
               <CardContent className="p-8">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="p-3 bg-purple-100 rounded-lg">
-                    <CreditCard className="h-8 w-8 text-purple-600" />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-purple-100 rounded-lg">
+                      <CreditCard className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-bold text-gray-900">Module POS - Point de Vente</h4>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xl font-bold text-gray-900">Module POS - Point de Vente</h4>
-                    <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded-full">BETA</span>
+                  <div className="text-right">
+                    <span className="text-2xl font-bold text-purple-600">49,90€</span>
+                    <p className="text-sm text-gray-500">/mois</p>
                   </div>
                 </div>
                 
@@ -114,6 +115,9 @@ const WhyChooseUsSection: React.FC = () => {
                   <p className="text-sm text-purple-700 font-medium">
                     💡 Parfait pour les ateliers qui souhaitent moderniser leur caisse et optimiser leurs ventes
                   </p>
+                  <p className="text-xs text-purple-600 mt-2">
+                    Facturation séparée - Compatible avec tous les plans
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -121,13 +125,18 @@ const WhyChooseUsSection: React.FC = () => {
             {/* Module E-commerce */}
             <Card className="border-2 border-blue-200 shadow-lg hover:shadow-xl transition-all hover:border-blue-300">
               <CardContent className="p-8">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <ShoppingCart className="h-8 w-8 text-blue-600" />
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      <ShoppingCart className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-bold text-gray-900">Module E-commerce</h4>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-xl font-bold text-gray-900">Module E-commerce</h4>
-                    <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">BETA</span>
+                  <div className="text-right">
+                    <span className="text-2xl font-bold text-blue-600">89,90€</span>
+                    <p className="text-sm text-gray-500">/mois</p>
                   </div>
                 </div>
                 
@@ -160,6 +169,9 @@ const WhyChooseUsSection: React.FC = () => {
                 <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                   <p className="text-sm text-blue-700 font-medium">
                     🛒 Idéal pour étendre votre activité au-delà de l'atelier et toucher plus de clients
+                  </p>
+                  <p className="text-xs text-blue-600 mt-2">
+                    Facturation séparée - Compatible avec tous les plans
                   </p>
                 </div>
               </CardContent>
