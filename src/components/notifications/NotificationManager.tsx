@@ -66,11 +66,11 @@ export const NotificationManager: React.FC = () => {
         .single();
 
       if (data && !error) {
-        setSettings(data.settings);
+        setSettings(typeof data.settings === 'object' ? data.settings : settings);
         setPermissions(prev => ({
           ...prev,
-          email: data.email_enabled,
-          sms: data.sms_enabled
+          email: data.email_enabled || false,
+          sms: data.sms_enabled || false
         }));
       }
     } catch (error) {

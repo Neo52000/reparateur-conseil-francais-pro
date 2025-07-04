@@ -172,10 +172,10 @@ export class ModuleLoader {
     
     console.log('📦 Chargement du module POS...');
     // Charger les composants POS de manière asynchrone
-    const { POSInterface } = await import('@/components/pos/POSInterface');
+    const POSModule = await import('@/components/pos/POSInterface');
     this.loadedModules.add('pos');
     console.log('✅ Module POS chargé');
-    return { POSInterface };
+    return POSModule;
   }
   
   static async loadEcommerceModule() {
@@ -183,10 +183,10 @@ export class ModuleLoader {
     
     console.log('📦 Chargement du module E-commerce...');
     // Charger les composants E-commerce de manière asynchrone
-    const { EcommerceInterface } = await import('@/components/ecommerce/EcommerceInterface');
+    const EcommerceModule = await import('@/components/ecommerce/EcommerceInterface');
     this.loadedModules.add('ecommerce');
     console.log('✅ Module E-commerce chargé');
-    return { EcommerceInterface };
+    return EcommerceModule;
   }
 }
 
