@@ -11,9 +11,10 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ShoppingCart, Store, Package, Settings, RefreshCw, TrendingUp, Globe, Send, FileText, History, Palette, Eye, Plus, Users } from 'lucide-react';
+import { ShoppingCart, Store, Package, Settings, RefreshCw, TrendingUp, Globe, Send, FileText, History, Palette, Eye, Plus, Users, Maximize2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EcommercePreview from './preview/EcommercePreview';
+import InteractiveEcommercePreview from './preview/InteractiveEcommercePreview';
 
 interface EcommerceStats {
   totalOrders: number;
@@ -61,6 +62,7 @@ const AdminEcommerceManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [previewMode, setPreviewMode] = useState(false);
+  const [fullscreenPreview, setFullscreenPreview] = useState(false);
   const [showSelectiveDeployment, setShowSelectiveDeployment] = useState(false);
   const [showTemplateSelection, setShowTemplateSelection] = useState(false);
   const [showCreateTemplate, setShowCreateTemplate] = useState(false);
