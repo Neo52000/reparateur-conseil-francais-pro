@@ -42,6 +42,7 @@ import OrdersManager from './OrdersManager';
 import InventoryManager from './InventoryManager';
 import SyncManager from './SyncManager';
 import AdvancedAnalytics from './AdvancedAnalytics';
+import InteractiveEcommercePreview from '../preview/InteractiveEcommercePreview';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -81,6 +82,7 @@ const EcommerceDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [moduleModalOpen, setModuleModalOpen] = useState(false);
   const [selectedStore, setSelectedStore] = useState<{ id: string; name: string } | null>(null);
+  const [isEcommerceFullscreen, setIsEcommerceFullscreen] = useState(false);
   const { toast } = useToast();
 
   // Données de démonstration pour les graphiques
@@ -333,8 +335,9 @@ const EcommerceDashboard: React.FC = () => {
 
         {/* Tableaux de bord et analytics */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+            <TabsTrigger value="boutique">Boutique</TabsTrigger>
             <TabsTrigger value="orders">Commandes</TabsTrigger>
             <TabsTrigger value="stores">Boutiques</TabsTrigger>
             <TabsTrigger value="inventory">Inventaire</TabsTrigger>
@@ -434,6 +437,19 @@ const EcommerceDashboard: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="boutique">
+            <InteractiveEcommercePreview
+              settings={{
+                store_template: { theme: 'modern', colors: { primary: '#3b82f6', secondary: '#64748b' } },
+                default_shipping: { free_threshold: 50, standard_rate: 5.99 },
+                payment_gateways: { stripe: true, paypal: true },
+                tax_settings: { include_tax: true, display_tax: true }
+              }}
+              isFullscreen={isEcommerceFullscreen}
+              onToggleFullscreen={() => setIsEcommerceFullscreen(!isEcommerceFullscreen)}
+            />
           </TabsContent>
 
           <TabsContent value="orders">

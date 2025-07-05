@@ -46,6 +46,7 @@ import BackupRestore from './BackupRestore';
 import SystemHealth from './SystemHealth';
 import APIManager from './APIManager';
 import AuditTrail from './AuditTrail';
+import InteractivePOSPreview from '../preview/InteractivePOSPreview';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -82,6 +83,7 @@ const POSDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [moduleModalOpen, setModuleModalOpen] = useState(false);
   const [selectedRepairer, setSelectedRepairer] = useState<{ id: string; name: string } | null>(null);
+  const [isPOSFullscreen, setIsPOSFullscreen] = useState(false);
   const { toast } = useToast();
 
   // Données de démonstration pour les graphiques
@@ -307,8 +309,9 @@ const POSDashboard: React.FC = () => {
 
         {/* Tableaux de bord et analytics */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+            <TabsTrigger value="interface">Interface POS</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="inventory">Inventaire</TabsTrigger>
             <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
@@ -397,6 +400,19 @@ const POSDashboard: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="interface">
+            <InteractivePOSPreview
+              settings={{
+                default_currency: { currency: 'EUR', symbol: '€' },
+                payment_methods: { cash: true, card: true, mobile: true },
+                receipt_template: { header: 'RepairHub POS', footer: 'Merci de votre visite', logo: true },
+                tax_rates: [{ name: 'TVA Standard', rate: 20, default: true }]
+              }}
+              isFullscreen={isPOSFullscreen}
+              onToggleFullscreen={() => setIsPOSFullscreen(!isPOSFullscreen)}
+            />
           </TabsContent>
 
           <TabsContent value="transactions">
