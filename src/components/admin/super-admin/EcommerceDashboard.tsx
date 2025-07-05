@@ -333,16 +333,13 @@ const EcommerceDashboard: React.FC = () => {
 
         {/* Tableaux de bord et analytics */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
             <TabsTrigger value="orders">Commandes</TabsTrigger>
-            <TabsTrigger value="inventory">Inventaire</TabsTrigger>
             <TabsTrigger value="stores">Boutiques</TabsTrigger>
-            <TabsTrigger value="templates">Templates</TabsTrigger>
+            <TabsTrigger value="inventory">Inventaire</TabsTrigger>
             <TabsTrigger value="sync">Synchronisation</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="advanced">Analytics+</TabsTrigger>
-            <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+            <TabsTrigger value="system">Système</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -466,176 +463,187 @@ const EcommerceDashboard: React.FC = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="templates">
-            <TemplateManager />
-          </TabsContent>
-
           <TabsContent value="sync">
             <SyncManager />
           </TabsContent>
 
-          <TabsContent value="advanced">
-            <AdvancedAnalytics />
-          </TabsContent>
+          <TabsContent value="system">
+            <Tabs defaultValue="analytics" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                <TabsTrigger value="advanced">Analytics+</TabsTrigger>
+                <TabsTrigger value="templates">Templates</TabsTrigger>
+                <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="analytics">
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Commandes vs Visiteurs</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={salesData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line 
-                          type="monotone" 
-                          dataKey="orders" 
-                          stroke="hsl(var(--admin-green))" 
-                          name="Commandes"
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="visitors" 
-                          stroke="hsl(var(--admin-blue))" 
-                          name="Visiteurs"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
+              <TabsContent value="analytics">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Commandes vs Visiteurs</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <LineChart data={salesData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="month" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Line 
+                              type="monotone" 
+                              dataKey="orders" 
+                              stroke="hsl(var(--admin-green))" 
+                              name="Commandes"
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="visitors" 
+                              stroke="hsl(var(--admin-blue))" 
+                              name="Visiteurs"
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Top produits vendus</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {[
-                        { name: 'Écran iPhone 14', sales: 234, revenue: '12,450€' },
-                        { name: 'Batterie Samsung Galaxy', sales: 189, revenue: '8,967€' },
-                        { name: 'Vitre tactile iPad', sales: 156, revenue: '7,890€' },
-                        { name: 'Connecteur de charge', sales: 123, revenue: '4,567€' },
-                        { name: 'Haut-parleur iPhone', sales: 98, revenue: '3,245€' },
-                      ].map((product, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Top produits vendus</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {[
+                            { name: 'Écran iPhone 14', sales: 234, revenue: '12,450€' },
+                            { name: 'Batterie Samsung Galaxy', sales: 189, revenue: '8,967€' },
+                            { name: 'Vitre tactile iPad', sales: 156, revenue: '7,890€' },
+                            { name: 'Connecteur de charge', sales: 123, revenue: '4,567€' },
+                            { name: 'Haut-parleur iPhone', sales: 98, revenue: '3,245€' },
+                          ].map((product, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                              <div>
+                                <p className="font-medium">{product.name}</p>
+                                <p className="text-sm text-muted-foreground">{product.sales} ventes</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-medium text-admin-green">{product.revenue}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Analyse des conversions</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={salesData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="month" />
+                          <YAxis />
+                          <Tooltip />
+                          <Bar dataKey="orders" fill="hsl(var(--admin-purple))" name="Commandes" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="advanced">
+                <AdvancedAnalytics />
+              </TabsContent>
+
+              <TabsContent value="templates">
+                <TemplateManager />
+              </TabsContent>
+
+              <TabsContent value="monitoring">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-8 w-8 text-admin-green" />
                           <div>
-                            <p className="font-medium">{product.name}</p>
-                            <p className="text-sm text-muted-foreground">{product.sales} ventes</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-medium text-admin-green">{product.revenue}</p>
+                            <p className="text-sm text-muted-foreground">Boutiques en ligne</p>
+                            <p className="font-medium">23/23 actives</p>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Analyse des conversions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={salesData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="orders" fill="hsl(var(--admin-purple))" name="Commandes" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="monitoring">
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="h-8 w-8 text-admin-green" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Boutiques en ligne</p>
-                        <p className="font-medium">23/23 actives</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="h-8 w-8 text-admin-green" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Paiements</p>
-                        <p className="font-medium">Tous opérationnels</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3">
-                      <AlertCircle className="h-8 w-8 text-admin-yellow" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">SSL/Sécurité</p>
-                        <p className="font-medium">1 à renouveler</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="h-8 w-8 text-admin-green" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Performance</p>
-                        <p className="font-medium">Excellente</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Activité temps réel</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {[
-                      { time: '14:35', message: 'Nouvelle commande - TechStore Pro (234€)', type: 'success' },
-                      { time: '14:33', message: 'Paiement validé - Mobile Parts Shop', type: 'success' },
-                      { time: '14:31', message: 'Boutique déployée - Repair Components', type: 'info' },
-                      { time: '14:28', message: 'Certificat SSL renouvelé automatiquement', type: 'success' },
-                      { time: '14:25', message: 'Alerte: Trafic élevé détecté sur techstore.fr', type: 'warning' },
-                    ].map((log, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                        <div className={`w-2 h-2 rounded-full ${
-                          log.type === 'success' ? 'bg-admin-green' :
-                          log.type === 'warning' ? 'bg-admin-yellow' :
-                          'bg-admin-blue'
-                        }`} />
-                        <span className="text-sm text-muted-foreground">{log.time}</span>
-                        <span className="text-sm flex-1">{log.message}</span>
-                      </div>
-                    ))}
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-8 w-8 text-admin-green" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Paiements</p>
+                            <p className="font-medium">Tous opérationnels</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                          <AlertCircle className="h-8 w-8 text-admin-yellow" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">SSL/Sécurité</p>
+                            <p className="font-medium">1 à renouveler</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-8 w-8 text-admin-green" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Performance</p>
+                            <p className="font-medium">Excellente</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Activité temps réel</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {[
+                          { time: '14:35', message: 'Nouvelle commande - TechStore Pro (234€)', type: 'success' },
+                          { time: '14:33', message: 'Paiement validé - Mobile Parts Shop', type: 'success' },
+                          { time: '14:31', message: 'Boutique déployée - Repair Components', type: 'info' },
+                          { time: '14:28', message: 'Certificat SSL renouvelé automatiquement', type: 'success' },
+                          { time: '14:25', message: 'Alerte: Trafic élevé détecté sur techstore.fr', type: 'warning' },
+                        ].map((log, index) => (
+                          <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                            <div className={`w-2 h-2 rounded-full ${
+                              log.type === 'success' ? 'bg-admin-green' :
+                              log.type === 'warning' ? 'bg-admin-yellow' :
+                              'bg-admin-blue'
+                            }`} />
+                            <span className="text-sm text-muted-foreground">{log.time}</span>
+                            <span className="text-sm flex-1">{log.message}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </div>
