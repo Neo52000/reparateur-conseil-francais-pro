@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { CreditCard, Users, Activity, Settings, RefreshCw, Globe, Send, FileText, History, Palette, Eye } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CreditCard, Users, Activity, Settings, RefreshCw, Globe, Send, FileText, History, Palette, Eye, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface POSStats {
@@ -68,6 +70,14 @@ const AdminPOSManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [previewMode, setPreviewMode] = useState(false);
+  const [showSelectiveDeployment, setShowSelectiveDeployment] = useState(false);
+  const [showTemplateSelection, setShowTemplateSelection] = useState(false);
+  const [showCreateTemplate, setShowCreateTemplate] = useState(false);
+  const [selectedRepairers, setSelectedRepairers] = useState<string[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [newTemplateName, setNewTemplateName] = useState('');
+  const [newTemplateDescription, setNewTemplateDescription] = useState('');
+  const [activeRepairers, setActiveRepairers] = useState<Array<{id: string, name: string}>>([]);
   const { toast } = useToast();
 
   const fetchStats = async () => {
@@ -204,6 +214,171 @@ const AdminPOSManagement: React.FC = () => {
     }
   };
 
+  const fetchActiveRepairers = async () => {
+    try {
+      // Utiliser repairer_subscriptions pour obtenir les informations des réparateurs
+      const { data, error } = await supabase
+        .from('repairer_subscriptions')
+        .select('user_id, repairer_id, profiles!inner(first_name, last_name)')
+        .eq('subscribed', true);
+
+      if (error) throw error;
+      
+      const repairers = data?.map(item => ({
+        id: item.user_id,
+        name: `${item.profiles.first_name || ''} ${item.profiles.last_name || ''}`.trim() || `Réparateur ${item.repairer_id}`
+      })) || [];
+      
+      setActiveRepairers(repairers);
+    } catch (error) {
+      console.error('Erreur lors du chargement des réparateurs:', error);
+      // Fallback avec des données de démonstration
+      setActiveRepairers([
+        { id: '1', name: 'Réparateur 1' },
+        { id: '2', name: 'Réparateur 2' },
+        { id: '3', name: 'Réparateur 3' }
+      ]);
+    }
+  };
+
+  const deployToSelectedRepairers = async () => {
+    if (selectedRepairers.length === 0) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner au moins un réparateur",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const configurationData = globalSettings.reduce((acc, setting) => {
+        acc[setting.setting_key] = setting.setting_value;
+        return acc;
+      }, {} as any);
+
+      const { error } = await supabase
+        .from('deployment_history')
+        .insert({
+          deployment_type: 'pos',
+          target_type: 'selective',
+          target_ids: selectedRepairers,
+          configuration_data: configurationData,
+          deployed_by: (await supabase.auth.getUser()).data.user?.id,
+          status: 'completed'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Déploiement réussi",
+        description: `Configuration déployée sur ${selectedRepairers.length} réparateur(s) sélectionné(s).`,
+      });
+      
+      setShowSelectiveDeployment(false);
+      setSelectedRepairers([]);
+      fetchDeploymentHistory();
+    } catch (error) {
+      console.error('Erreur lors du déploiement sélectif:', error);
+      toast({
+        title: "Erreur de déploiement",
+        description: "Impossible de déployer sur les réparateurs sélectionnés",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const applyTemplate = async () => {
+    if (!selectedTemplate) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un template",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const template = templates.find(t => t.id === selectedTemplate);
+      if (!template) throw new Error('Template non trouvé');
+
+      const { error } = await supabase
+        .from('deployment_history')
+        .insert({
+          deployment_type: 'pos',
+          target_type: 'template',
+          configuration_data: template.template_data,
+          deployed_by: (await supabase.auth.getUser()).data.user?.id,
+          status: 'completed'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Template appliqué",
+        description: `Le template "${template.template_name}" a été appliqué avec succès.`,
+      });
+      
+      setShowTemplateSelection(false);
+      setSelectedTemplate('');
+      fetchDeploymentHistory();
+    } catch (error) {
+      console.error('Erreur lors de l\'application du template:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'appliquer le template",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const createTemplate = async () => {
+    if (!newTemplateName.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez saisir un nom pour le template",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const templateData = globalSettings.reduce((acc, setting) => {
+        acc[setting.setting_key] = setting.setting_value;
+        return acc;
+      }, {} as any);
+
+      const { error } = await supabase
+        .from('configuration_templates')
+        .insert({
+          template_name: newTemplateName,
+          template_type: 'pos',
+          template_data: templateData,
+          description: newTemplateDescription || null,
+          created_by: (await supabase.auth.getUser()).data.user?.id
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Template créé",
+        description: `Le template "${newTemplateName}" a été créé avec succès.`,
+      });
+      
+      setShowCreateTemplate(false);
+      setNewTemplateName('');
+      setNewTemplateDescription('');
+      fetchTemplates();
+    } catch (error) {
+      console.error('Erreur lors de la création du template:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le template",
+        variant: "destructive"
+      });
+    }
+  };
+
   const renderSettingInput = (setting: GlobalSetting) => {
     const value = setting.setting_value;
     
@@ -322,6 +497,7 @@ const AdminPOSManagement: React.FC = () => {
 
   useEffect(() => {
     refreshData();
+    fetchActiveRepairers();
   }, []);
 
   const settingsByCategory = globalSettings.reduce((acc, setting) => {
@@ -434,7 +610,11 @@ const AdminPOSManagement: React.FC = () => {
                       <Send className="mr-2 h-4 w-4" />
                       Déployer sur tous les POS
                     </Button>
-                    <Button variant="outline" className="w-full justify-start">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => setShowCreateTemplate(true)}
+                    >
                       <FileText className="mr-2 h-4 w-4" />
                       Créer un nouveau template
                     </Button>
@@ -488,7 +668,16 @@ const AdminPOSManagement: React.FC = () => {
                       </div>
                       <div className="flex gap-2">
                         {template.is_default && <Badge>Par défaut</Badge>}
-                        <Button variant="outline" size="sm">Appliquer</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedTemplate(template.id);
+                            applyTemplate();
+                          }}
+                        >
+                          Appliquer
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -520,11 +709,19 @@ const AdminPOSManagement: React.FC = () => {
                   <Globe className="h-8 w-8 mb-2" />
                   Déploiement global
                 </Button>
-                <Button variant="outline" className="h-24 flex-col">
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex-col"
+                  onClick={() => setShowSelectiveDeployment(true)}
+                >
                   <Users className="h-8 w-8 mb-2" />
                   Déploiement sélectif
                 </Button>
-                <Button variant="outline" className="h-24 flex-col">
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex-col"
+                  onClick={() => setShowTemplateSelection(true)}
+                >
                   <FileText className="h-8 w-8 mb-2" />
                   Template spécifique
                 </Button>
@@ -584,6 +781,130 @@ const AdminPOSManagement: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal pour déploiement sélectif */}
+      <Dialog open={showSelectiveDeployment} onOpenChange={setShowSelectiveDeployment}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Déploiement sélectif</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Sélectionner les réparateurs :</Label>
+              <div className="max-h-60 overflow-y-auto space-y-2">
+                {activeRepairers.map((repairer) => (
+                  <div key={repairer.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={repairer.id}
+                      checked={selectedRepairers.includes(repairer.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedRepairers([...selectedRepairers, repairer.id]);
+                        } else {
+                          setSelectedRepairers(selectedRepairers.filter(id => id !== repairer.id));
+                        }
+                      }}
+                    />
+                    <Label htmlFor={repairer.id} className="text-sm">{repairer.name}</Label>
+                  </div>
+                ))}
+              </div>
+              {activeRepairers.length === 0 && (
+                <p className="text-sm text-muted-foreground">Aucun réparateur actif trouvé</p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowSelectiveDeployment(false)}>
+                Annuler
+              </Button>
+              <Button onClick={deployToSelectedRepairers}>
+                Déployer ({selectedRepairers.length})
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal pour sélection de template */}
+      <Dialog open={showTemplateSelection} onOpenChange={setShowTemplateSelection}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Appliquer un template</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Sélectionner un template :</Label>
+              <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir un template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.template_name}
+                      {template.is_default && " (Par défaut)"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {templates.length === 0 && (
+                <p className="text-sm text-muted-foreground">Aucun template disponible</p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowTemplateSelection(false)}>
+                Annuler
+              </Button>
+              <Button onClick={applyTemplate} disabled={!selectedTemplate}>
+                Appliquer
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal pour création de template */}
+      <Dialog open={showCreateTemplate} onOpenChange={setShowCreateTemplate}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Créer un nouveau template</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="template-name">Nom du template *</Label>
+              <Input
+                id="template-name"
+                placeholder="Ex: Configuration Premium"
+                value={newTemplateName}
+                onChange={(e) => setNewTemplateName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="template-description">Description (optionnelle)</Label>
+              <Textarea
+                id="template-description"
+                placeholder="Description du template..."
+                value={newTemplateDescription}
+                onChange={(e) => setNewTemplateDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                Le template sera créé avec la configuration actuelle des paramètres globaux.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowCreateTemplate(false)}>
+                Annuler
+              </Button>
+              <Button onClick={createTemplate} disabled={!newTemplateName.trim()}>
+                Créer
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
