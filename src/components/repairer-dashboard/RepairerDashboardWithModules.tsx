@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
 import RepairerDashboard from './RepairerDashboard';
-import POSInterface from '@/components/pos/POSInterface';
-import EcommerceInterface from '@/components/ecommerce/EcommerceInterface';
+import AdvancedPOSInterface from '@/components/pos/AdvancedPOSInterface';
+import AdvancedEcommerceInterface from '@/components/ecommerce/AdvancedEcommerceInterface';
 import ModuleSwitcher from '@/components/modules/ModuleSwitcher';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -88,11 +88,11 @@ const RepairerDashboardWithModules: React.FC = () => {
         {currentView === 'dashboard' && <RepairerDashboard />}
         
         {currentView === 'pos' && hasPosAccess && (
-          <POSInterface />
+          <AdvancedPOSInterface />
         )}
 
         {currentView === 'ecommerce' && hasEcommerceAccess && (
-          <EcommerceInterface onBackToDashboard={() => setCurrentView('dashboard')} />
+          <AdvancedEcommerceInterface onBackToDashboard={() => setCurrentView('dashboard')} />
         )}
 
         {/* Fallback si accès non autorisé */}
