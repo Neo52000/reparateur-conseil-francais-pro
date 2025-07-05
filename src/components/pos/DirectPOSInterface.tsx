@@ -15,6 +15,9 @@ import RepairerDashboard from '@/components/repairer-dashboard/RepairerDashboard
 import POSKeyboardShortcuts from './POSKeyboardShortcuts';
 import NF525ComplianceIndicator from './NF525ComplianceIndicator';
 import POSPerformanceOptimizer from './POSPerformanceOptimizer';
+import ProductGrid from './ProductGrid';
+import CheckoutPanel from './CheckoutPanel';
+import SearchAndFilters from './SearchAndFilters';
 import { 
   CreditCard, 
   Package, 
@@ -79,6 +82,7 @@ const DirectPOSInterface: React.FC = () => {
   const [activeTab, setActiveTab] = useState('sale');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [inventory, setInventory] = useState<POSItem[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [sessionStats, setSessionStats] = useState({
@@ -421,10 +425,16 @@ const DirectPOSInterface: React.FC = () => {
   };
 
   // Filtrer l'inventaire
-  const filteredInventory = inventory.filter(item =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredInventory = inventory.filter(item => {
+    const matchesSearch = !searchTerm || 
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.sku.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = selectedCategory === 'all' || 
+      item.category.toLowerCase() === selectedCategory.toLowerCase();
+    
+    return matchesSearch && matchesCategory;
+  });
 
   const handleAddProduct = (barcode?: string) => {
     if (barcode) {
@@ -565,173 +575,33 @@ const DirectPOSInterface: React.FC = () => {
             <TabsContent value="sale" className="h-full">
               <div className="grid grid-cols-3 gap-6 h-full">
                 {/* Catalogue produits */}
-                <div className="col-span-2 space-y-4">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input
-                        placeholder="Rechercher un produit... (F3)"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 focus:ring-2 focus:ring-primary"
-                      />
-                    </div>
-                    <Select>
-                      <SelectTrigger className="w-48">
-                        <SelectValue placeholder="Toutes catégories" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        <SelectItem value="all">Toutes catégories</SelectItem>
-                        <SelectItem value="ecrans">Écrans</SelectItem>
-                        <SelectItem value="batteries">Batteries</SelectItem>
-                        <SelectItem value="accessoires">Accessoires</SelectItem>
-                        <SelectItem value="services">Services</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button variant="outline" onClick={() => handleAddProduct()}>
-                      <Search className="w-4 h-4 mr-2" />
-                      Scanner (F4)
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-3 overflow-y-auto h-[calc(100vh-250px)]">
-                    {filteredInventory.map((item) => (
-                      <Card 
-                        key={item.id} 
-                        className="cursor-pointer hover:shadow-lg hover:scale-105 transition-all duration-200 border-2 hover:border-primary/20"
-                        onClick={() => addToCart(item)}
-                      >
-                        <CardContent className="p-3">
-                          <div className="text-center">
-                            <div className="w-full h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded mb-2 flex items-center justify-center">
-                              <Package className="w-6 h-6 text-slate-400" />
-                            </div>
-                            <h3 className="font-medium text-xs mb-1 line-clamp-2 leading-tight">{item.name}</h3>
-                            <p className="text-xs text-slate-500 mb-2 font-mono">{item.sku}</p>
-                            <div className="flex justify-between items-center">
-                              <span className="font-bold text-primary text-sm">{item.price.toFixed(2)}€</span>
-                              <Badge variant={item.stock > 5 ? "default" : item.stock > 0 ? "secondary" : "destructive"} className="text-xs">
-                                {item.stock}
-                              </Badge>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                <div className="col-span-2 space-y-6">
+                  <SearchAndFilters
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    selectedCategory={selectedCategory}
+                    onCategoryChange={setSelectedCategory}
+                    onScanProduct={() => handleAddProduct()}
+                    totalProducts={inventory.length}
+                    filteredCount={filteredInventory.length}
+                  />
+                  
+                  <ProductGrid 
+                    items={filteredInventory}
+                    onAddToCart={addToCart}
+                  />
                 </div>
 
                 {/* Panier et paiement */}
-                <div className="space-y-4">
-                  <Card className="h-[calc(100vh-350px)]">
-                    <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        <span>Panier ({cart.length})</span>
-                        {cart.length > 0 && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={() => setCart([])}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2 overflow-y-auto">
-                      {cart.length === 0 ? (
-                        <div className="text-center text-slate-500 py-8">
-                          <ShoppingCart className="w-12 h-12 mx-auto mb-4 text-slate-300" />
-                          <p>Panier vide</p>
-                          <p className="text-sm">Cliquez sur un produit pour l'ajouter</p>
-                        </div>
-                      ) : (
-                        cart.map((item) => (
-                          <div key={item.id} className="flex items-center justify-between p-2 border rounded">
-                            <div className="flex-1">
-                              <h4 className="font-medium text-sm">{item.name}</h4>
-                              <p className="text-xs text-slate-500">{item.price.toFixed(2)}€</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                className="w-6 h-6 p-0"
-                              >
-                                <Minus className="w-3 h-3" />
-                              </Button>
-                              <span className="w-8 text-center">{item.quantity}</span>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                className="w-6 h-6 p-0"
-                              >
-                                <Plus className="w-3 h-3" />
-                              </Button>
-                            </div>
-                            <div className="text-right ml-2">
-                              <p className="font-bold text-sm">{item.total.toFixed(2)}€</p>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Zone de paiement */}
-                  {cart.length > 0 && (
-                    <Card>
-                      <CardContent className="p-4 space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span>Sous-total:</span>
-                            <span>{cartTotal.toFixed(2)}€</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>TVA (20%):</span>
-                            <span>{(cartTotal * 0.2).toFixed(2)}€</span>
-                          </div>
-                          <div className="flex justify-between font-bold text-lg border-t pt-2">
-                            <span>Total:</span>
-                            <span>{(cartTotal * 1.2).toFixed(2)}€</span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button
-                            onClick={() => processTransaction('cash')}
-                            disabled={loading || !currentSession}
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3"
-                            size="lg"
-                          >
-                            <Euro className="w-4 h-4 mr-2" />
-                            Espèces (F1)
-                          </Button>
-                          <Button
-                            onClick={() => processTransaction('card')}
-                            disabled={loading || !currentSession}
-                            variant="outline"
-                            className="font-semibold py-3 border-2 hover:bg-primary hover:text-primary-foreground"
-                            size="lg"
-                          >
-                            <CreditCard className="w-4 h-4 mr-2" />
-                            Carte (F2)
-                          </Button>
-                        </div>
-
-                        {!currentSession && (
-                          <p className="text-sm text-amber-600 text-center">
-                            <AlertCircle className="w-4 h-4 inline mr-1" />
-                            Ouvrez une session pour effectuer des ventes
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
+                <CheckoutPanel
+                  cart={cart}
+                  onUpdateQuantity={updateQuantity}
+                  onRemoveFromCart={removeFromCart}
+                  onClearCart={() => setCart([])}
+                  onProcessPayment={processTransaction}
+                  loading={loading}
+                  currentSession={!!currentSession}
+                />
               </div>
             </TabsContent>
 
