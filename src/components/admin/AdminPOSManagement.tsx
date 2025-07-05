@@ -11,9 +11,11 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CreditCard, Users, Activity, Settings, RefreshCw, Globe, Send, FileText, History, Palette, Eye, Plus } from 'lucide-react';
+import { CreditCard, Users, Activity, Settings, RefreshCw, Globe, Send, FileText, History, Palette, Eye, Plus, Maximize2, Calculator, Receipt, Banknote, Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import POSPreview from './preview/POSPreview';
+import InteractivePOSPreview from './preview/InteractivePOSPreview';
+import PaymentMethodsModal from './modals/PaymentMethodsModal';
+import TaxManagementModal from './modals/TaxManagementModal';
 
 interface POSStats {
   totalTransactions: number;
@@ -79,6 +81,9 @@ const AdminPOSManagement: React.FC = () => {
   const [newTemplateName, setNewTemplateName] = useState('');
   const [newTemplateDescription, setNewTemplateDescription] = useState('');
   const [activeRepairers, setActiveRepairers] = useState<Array<{id: string, name: string}>>([]);
+  const [fullscreenPreview, setFullscreenPreview] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showTaxModal, setShowTaxModal] = useState(false);
   const { toast } = useToast();
 
   const fetchStats = async () => {
@@ -623,53 +628,216 @@ const AdminPOSManagement: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="global-settings" className="space-y-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-semibold">Paramètres globaux POS</h3>
-              <p className="text-sm text-muted-foreground">
-                {previewMode ? "Aperçu de l'interface POS avec les paramètres actuels" : "Configuration des paramètres globaux du système POS"}
-              </p>
+          <Tabs defaultValue="overview" className="space-y-4">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold">Paramètres globaux POS</h3>
+                <p className="text-sm text-muted-foreground">
+                  {previewMode ? "Aperçu de l'interface POS avec les paramètres actuels" : "Configuration des paramètres globaux du système POS"}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setPreviewMode(!previewMode)}
+                  className="flex items-center gap-2"
+                >
+                  <Eye className="h-4 w-4" />
+                  {previewMode ? 'Retour à l\'édition' : 'Aperçu'}
+                </Button>
+                {previewMode && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setFullscreenPreview(!fullscreenPreview)}
+                    className="flex items-center gap-2"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                    Plein écran
+                  </Button>
+                )}
+              </div>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setPreviewMode(!previewMode)}
-              className="flex items-center gap-2"
-            >
-              <Eye className="h-4 w-4" />
-              {previewMode ? 'Retour à l\'édition' : 'Aperçu'}
-            </Button>
-          </div>
-          
-          {previewMode ? (
-            <POSPreview 
-              settings={globalSettings.reduce((acc, setting) => {
-                acc[setting.setting_key] = setting.setting_value;
-                return acc;
-              }, {} as Record<string, any>)} 
-            />
-          ) : (
-            Object.entries(settingsByCategory).map(([category, settings]) => (
-              <Card key={category}>
-                <CardHeader>
-                  <CardTitle className="capitalize flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    {category}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {settings.map((setting) => (
-                    <div key={setting.id} className="p-4 border rounded-lg">
-                      <div className="mb-4">
-                        <h4 className="font-medium">{setting.setting_key.replace(/_/g, ' ').toUpperCase()}</h4>
-                        <p className="text-sm text-muted-foreground">{setting.description}</p>
-                      </div>
-                      {renderSettingInput(setting)}
-                    </div>
+
+            {previewMode ? (
+              <InteractivePOSPreview 
+                settings={globalSettings.reduce((acc, setting) => {
+                  acc[setting.setting_key] = setting.setting_value;
+                  return acc;
+                }, {} as Record<string, any>)}
+                isFullscreen={fullscreenPreview}
+                onToggleFullscreen={() => setFullscreenPreview(!fullscreenPreview)}
+              />
+            ) : (
+              <>
+                <TabsList className="grid w-full grid-cols-5">
+                  <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+                  <TabsTrigger value="payments">Paiements</TabsTrigger>
+                  <TabsTrigger value="tax">TVA</TabsTrigger>
+                  <TabsTrigger value="receipts">Reçus</TabsTrigger>
+                  <TabsTrigger value="advanced">Avancé</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="overview" className="space-y-4">
+                  {Object.entries(settingsByCategory).map(([category, settings]) => (
+                    <Card key={category}>
+                      <CardHeader>
+                        <CardTitle className="capitalize flex items-center gap-2">
+                          <Settings className="h-5 w-5" />
+                          {category}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {settings.map((setting) => (
+                          <div key={setting.id} className="p-4 border rounded-lg">
+                            <div className="mb-4">
+                              <h4 className="font-medium">{setting.setting_key.replace(/_/g, ' ').toUpperCase()}</h4>
+                              <p className="text-sm text-muted-foreground">{setting.description}</p>
+                            </div>
+                            {renderSettingInput(setting)}
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
                   ))}
-                </CardContent>
-              </Card>
-            ))
-          )}
+                </TabsContent>
+
+                <TabsContent value="payments" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <CreditCard className="h-5 w-5" />
+                        Configuration des moyens de paiement
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">Moyens de paiement</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Gérer les méthodes de paiement acceptées et leurs configurations
+                          </p>
+                        </div>
+                        <Button onClick={() => setShowPaymentModal(true)}>
+                          <Settings className="w-4 h-4 mr-2" />
+                          Configurer
+                        </Button>
+                      </div>
+                      
+                      {/* Résumé des moyens de paiement actuels */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {Object.entries(globalSettings.find(s => s.setting_key === 'payment_methods')?.setting_value || {}).map(([method, enabled]) => (
+                          <Card key={method}>
+                            <CardContent className="p-4 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {method === 'cash' && <Banknote className="w-4 h-4" />}
+                                {method === 'card' && <CreditCard className="w-4 h-4" />}
+                                {method === 'mobile' && <Smartphone className="w-4 h-4" />}
+                                <span className="capitalize">{method}</span>
+                              </div>
+                              <Badge variant={enabled ? "default" : "secondary"}>
+                                {enabled ? "Activé" : "Désactivé"}
+                              </Badge>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="tax" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Calculator className="h-5 w-5" />
+                        Gestion de la TVA
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">Configuration de la TVA</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Gérer les taux de TVA, catégories et calculs automatiques
+                          </p>
+                        </div>
+                        <Button onClick={() => setShowTaxModal(true)}>
+                          <Calculator className="w-4 h-4 mr-2" />
+                          Configurer
+                        </Button>
+                      </div>
+                      
+                      {/* Résumé TVA actuel */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <p className="text-2xl font-bold text-primary">
+                              {globalSettings.find(s => s.setting_key === 'tax_rate')?.setting_value?.rate || 20}%
+                            </p>
+                            <p className="text-sm text-muted-foreground">Taux principal</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <p className="text-2xl font-bold text-green-600">1</p>
+                            <p className="text-sm text-muted-foreground">Taux configurés</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <p className="text-2xl font-bold text-blue-600">2</p>
+                            <p className="text-sm text-muted-foreground">Catégories</p>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4 text-center">
+                            <p className="text-2xl font-bold text-orange-600">Auto</p>
+                            <p className="text-sm text-muted-foreground">Calcul</p>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="receipts" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Receipt className="h-5 w-5" />
+                        Configuration des reçus
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {renderSettingInput(globalSettings.find(s => s.setting_key === 'receipt_template'))}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="advanced" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Settings className="h-5 w-5" />
+                        Paramètres avancés
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {globalSettings.filter(s => ['sync_frequency', 'default_currency'].includes(s.setting_key)).map((setting) => (
+                        <div key={setting.id} className="p-4 border rounded-lg">
+                          <div className="mb-4">
+                            <h4 className="font-medium">{setting.setting_key.replace(/_/g, ' ').toUpperCase()}</h4>
+                            <p className="text-sm text-muted-foreground">{setting.description}</p>
+                          </div>
+                          {renderSettingInput(setting)}
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </>
+            )}
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-6">
@@ -928,6 +1096,22 @@ const AdminPOSManagement: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de gestion des moyens de paiement */}
+      <PaymentMethodsModal
+        open={showPaymentModal}
+        onOpenChange={setShowPaymentModal}
+        currentMethods={globalSettings.find(s => s.setting_key === 'payment_methods')?.setting_value || {}}
+        onSave={(methods) => updateGlobalSetting('payment_methods', methods)}
+      />
+
+      {/* Modal de gestion de la TVA */}
+      <TaxManagementModal
+        open={showTaxModal}
+        onOpenChange={setShowTaxModal}
+        currentTaxRate={globalSettings.find(s => s.setting_key === 'tax_rate')?.setting_value || {}}
+        onSave={(taxConfig) => updateGlobalSetting('tax_rates', taxConfig)}
+      />
     </div>
   );
 };

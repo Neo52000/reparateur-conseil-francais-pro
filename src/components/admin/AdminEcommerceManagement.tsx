@@ -694,22 +694,36 @@ const AdminEcommerceManagement: React.FC = () => {
                 {previewMode ? "Aperçu de la boutique avec les paramètres actuels" : "Configuration des paramètres globaux du système e-commerce"}
               </p>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setPreviewMode(!previewMode)}
-              className="flex items-center gap-2"
-            >
-              <Eye className="h-4 w-4" />
-              {previewMode ? 'Retour à l\'édition' : 'Aperçu'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setPreviewMode(!previewMode)}
+                className="flex items-center gap-2"
+              >
+                <Eye className="h-4 w-4" />
+                {previewMode ? 'Retour à l\'édition' : 'Aperçu'}
+              </Button>
+              {previewMode && (
+                <Button
+                  variant="outline"
+                  onClick={() => setFullscreenPreview(!fullscreenPreview)}
+                  className="flex items-center gap-2"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                  Plein écran
+                </Button>
+              )}
+            </div>
           </div>
           
           {previewMode ? (
-            <EcommercePreview 
+            <InteractiveEcommercePreview 
               settings={globalSettings.reduce((acc, setting) => {
                 acc[setting.setting_key] = setting.setting_value;
                 return acc;
-              }, {} as Record<string, any>)} 
+              }, {} as Record<string, any>)}
+              isFullscreen={fullscreenPreview}
+              onToggleFullscreen={() => setFullscreenPreview(!fullscreenPreview)}
             />
           ) : (
             Object.entries(settingsByCategory).map(([category, settings]) => (
