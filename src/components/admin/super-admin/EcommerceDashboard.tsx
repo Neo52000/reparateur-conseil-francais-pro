@@ -443,20 +443,22 @@ const EcommerceDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="stores">
-            <AdvancedTable
-              title="Gestion des boutiques E-commerce"
-              data={stores}
-              columns={storeColumns}
-              actions={storeActions}
-              searchPlaceholder="Rechercher une boutique..."
-              isLoading={isLoading}
-              onExport={() => {
-                toast({
-                  title: "Export en cours",
-                  description: "Les données des boutiques sont en cours d'export",
-                });
-              }}
-            />
+            <div className="space-y-6">
+              <AdvancedTable
+                title="Gestion des boutiques E-commerce"
+                data={stores}
+                columns={storeColumns}
+                actions={storeActions}
+                searchPlaceholder="Rechercher une boutique..."
+                isLoading={isLoading}
+                onExport={() => {
+                  toast({
+                    title: "Export en cours",
+                    description: "Les données des boutiques sont en cours d'export",
+                  });
+                }}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="analytics">

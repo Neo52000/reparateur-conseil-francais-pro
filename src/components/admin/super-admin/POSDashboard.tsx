@@ -396,20 +396,22 @@ const POSDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="repairers">
-            <AdvancedTable
-              title="Gestion des réparateurs POS"
-              data={repairers}
-              columns={repairerColumns}
-              actions={repairerActions}
-              searchPlaceholder="Rechercher un réparateur..."
-              isLoading={isLoading}
-              onExport={() => {
-                toast({
-                  title: "Export en cours",
-                  description: "Les données des réparateurs sont en cours d'export",
-                });
-              }}
-            />
+            <div className="space-y-6">
+              <AdvancedTable
+                title="Gestion des réparateurs POS"
+                data={repairers}
+                columns={repairerColumns}
+                actions={repairerActions}
+                searchPlaceholder="Rechercher un réparateur..."
+                isLoading={isLoading}
+                onExport={() => {
+                  toast({
+                    title: "Export en cours",
+                    description: "Les données des réparateurs sont en cours d'export",
+                  });
+                }}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="analytics">

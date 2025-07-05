@@ -67,10 +67,10 @@ const SuperAdminLayout: React.FC<SuperAdminLayoutProps> = ({
               
               {/* Actions */}
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => console.log('Notifications')}>
                   <Bell className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => console.log('Paramètres')}>
                   <Settings className="h-4 w-4" />
                 </Button>
                 {onRefresh && (
