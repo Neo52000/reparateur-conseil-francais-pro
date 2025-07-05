@@ -40,6 +40,8 @@ import ModuleManagementModal from './ModuleManagementModal';
 import TemplateManager from './TemplateManager';
 import OrdersManager from './OrdersManager';
 import InventoryManager from './InventoryManager';
+import SyncManager from './SyncManager';
+import AdvancedAnalytics from './AdvancedAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -331,13 +333,15 @@ const EcommerceDashboard: React.FC = () => {
 
         {/* Tableaux de bord et analytics */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
             <TabsTrigger value="orders">Commandes</TabsTrigger>
             <TabsTrigger value="inventory">Inventaire</TabsTrigger>
             <TabsTrigger value="stores">Boutiques</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
+            <TabsTrigger value="sync">Synchronisation</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="advanced">Analytics+</TabsTrigger>
             <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           </TabsList>
 
@@ -464,6 +468,14 @@ const EcommerceDashboard: React.FC = () => {
 
           <TabsContent value="templates">
             <TemplateManager />
+          </TabsContent>
+
+          <TabsContent value="sync">
+            <SyncManager />
+          </TabsContent>
+
+          <TabsContent value="advanced">
+            <AdvancedAnalytics />
           </TabsContent>
 
           <TabsContent value="analytics">

@@ -3,19 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { 
+  Layout, 
   Plus, 
   Edit3, 
   Trash2, 
-  Eye, 
-  Copy, 
-  Star,
-  Package,
-  Smartphone,
-  Wrench
+  Eye,
+  Copy,
+  Search,
+  Download,
+  Upload
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -23,10 +23,12 @@ import { useToast } from '@/hooks/use-toast';
 interface Template {
   id: string;
   name: string;
-  description: string;
-  preview_image_url: string;
-  template_data: any;
+  description: string | null;
   category: string;
+  template_type: string;
+  template_data: any;
+  preview_image: string | null;
+  is_active: boolean;
   is_premium: boolean;
   usage_count: number;
   created_at: string;
@@ -35,39 +37,41 @@ interface Template {
 
 const TemplateManager: React.FC = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    category: 'general',
-    is_premium: false,
-    template_data: '{}'
+    category: '',
+    template_type: '',
+    template_data: '{}',
+    is_premium: false
   });
   const { toast } = useToast();
-
-  const categories = [
-    { value: 'general', label: 'Général', icon: Package },
-    { value: 'parts', label: 'Pièces détachées', icon: Wrench },
-    { value: 'electronics', label: 'Électronique', icon: Smartphone },
-    { value: 'services', label: 'Services', icon: Star }
-  ];
 
   useEffect(() => {
     fetchTemplates();
   }, []);
 
+  useEffect(() => {
+    filterTemplates();
+  }, [templates, searchTerm, categoryFilter, typeFilter]);
+
   const fetchTemplates = async () => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from('ecommerce_templates')
+        .from('ecommerce_templates' as any)
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('usage_count', { ascending: false });
 
       if (error) throw error;
-      setTemplates(data || []);
+      setTemplates((data as unknown as Template[]) || []);
     } catch (error) {
       console.error('Erreur lors du chargement des templates:', error);
       toast({
@@ -80,6 +84,28 @@ const TemplateManager: React.FC = () => {
     }
   };
 
+  const filterTemplates = () => {
+    let filtered = templates;
+
+    if (searchTerm) {
+      filtered = filtered.filter(template =>
+        template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        template.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        template.category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(template => template.category === categoryFilter);
+    }
+
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(template => template.template_type === typeFilter);
+    }
+
+    setFilteredTemplates(filtered);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -88,16 +114,18 @@ const TemplateManager: React.FC = () => {
 
       const templateData = {
         name: formData.name,
-        description: formData.description,
+        description: formData.description || null,
         category: formData.category,
+        template_type: formData.template_type,
+        template_data: JSON.parse(formData.template_data),
         is_premium: formData.is_premium,
-        template_data: JSON.parse(formData.template_data || '{}')
+        is_active: true,
+        usage_count: 0
       };
 
       if (editingTemplate) {
-        // Mise à jour
         const { error } = await supabase
-          .from('ecommerce_templates')
+          .from('ecommerce_templates' as any)
           .update(templateData)
           .eq('id', editingTemplate.id);
 
@@ -108,9 +136,8 @@ const TemplateManager: React.FC = () => {
           description: "Le template a été mis à jour avec succès",
         });
       } else {
-        // Création
         const { error } = await supabase
-          .from('ecommerce_templates')
+          .from('ecommerce_templates' as any)
           .insert([templateData]);
 
         if (error) throw error;
@@ -123,25 +150,29 @@ const TemplateManager: React.FC = () => {
 
       setIsCreateModalOpen(false);
       setEditingTemplate(null);
-      setFormData({
-        name: '',
-        description: '',
-        category: 'general',
-        is_premium: false,
-        template_data: '{}'
-      });
-      
+      resetForm();
       await fetchTemplates();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de la sauvegarde:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de sauvegarder le template",
+        description: error.message || "Impossible de sauvegarder le template",
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      category: '',
+      template_type: '',
+      template_data: '{}',
+      is_premium: false
+    });
   };
 
   const handleEdit = (template: Template) => {
@@ -150,8 +181,9 @@ const TemplateManager: React.FC = () => {
       name: template.name,
       description: template.description || '',
       category: template.category,
-      is_premium: template.is_premium,
-      template_data: JSON.stringify(template.template_data, null, 2)
+      template_type: template.template_type,
+      template_data: JSON.stringify(template.template_data, null, 2),
+      is_premium: template.is_premium
     });
     setIsCreateModalOpen(true);
   };
@@ -161,7 +193,7 @@ const TemplateManager: React.FC = () => {
 
     try {
       const { error } = await supabase
-        .from('ecommerce_templates')
+        .from('ecommerce_templates' as any)
         .delete()
         .eq('id', templateId);
 
@@ -186,13 +218,16 @@ const TemplateManager: React.FC = () => {
   const handleDuplicate = async (template: Template) => {
     try {
       const { error } = await supabase
-        .from('ecommerce_templates')
+        .from('ecommerce_templates' as any)
         .insert([{
           name: `${template.name} (Copie)`,
           description: template.description,
           category: template.category,
-          is_premium: false,
-          template_data: template.template_data
+          template_type: template.template_type,
+          template_data: template.template_data,
+          is_premium: template.is_premium,
+          is_active: true,
+          usage_count: 0
         }]);
 
       if (error) throw error;
@@ -213,189 +248,254 @@ const TemplateManager: React.FC = () => {
     }
   };
 
-  const getCategoryIcon = (category: string) => {
-    const cat = categories.find(c => c.value === category);
-    const IconComponent = cat?.icon || Package;
-    return <IconComponent className="h-4 w-4" />;
-  };
+  const categories = [...new Set(templates.map(t => t.category))];
+  const types = [...new Set(templates.map(t => t.template_type))];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Gestion des Templates E-commerce</h2>
-          <p className="text-muted-foreground">Créer et gérer les templates de boutiques</p>
+          <h2 className="text-2xl font-bold">Gestion des Templates</h2>
+          <p className="text-muted-foreground">Templates E-commerce et POS</p>
         </div>
         
-        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => {
-              setEditingTemplate(null);
-              setFormData({
-                name: '',
-                description: '',
-                category: 'general',
-                is_premium: false,
-                template_data: '{}'
-              });
-            }}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nouveau Template
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline">
+            <Upload className="h-4 w-4 mr-2" />
+            Importer
+          </Button>
           
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {editingTemplate ? 'Modifier le template' : 'Créer un nouveau template'}
-              </DialogTitle>
-            </DialogHeader>
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Exporter
+          </Button>
+          
+          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => {
+                setEditingTemplate(null);
+                resetForm();
+              }}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nouveau Template
+              </Button>
+            </DialogTrigger>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingTemplate ? 'Modifier le template' : 'Créer un nouveau template'}
+                </DialogTitle>
+              </DialogHeader>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Nom</label>
+                    <Input
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      placeholder="Nom du template"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Catégorie</label>
+                    <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une catégorie" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ecommerce">E-commerce</SelectItem>
+                        <SelectItem value="pos">POS</SelectItem>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="landing">Landing Page</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Type</label>
+                    <Select value={formData.template_type} onValueChange={(value) => setFormData({...formData, template_type: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Type de template" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="theme">Thème</SelectItem>
+                        <SelectItem value="component">Composant</SelectItem>
+                        <SelectItem value="layout">Layout</SelectItem>
+                        <SelectItem value="widget">Widget</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 pt-6">
+                    <input
+                      type="checkbox"
+                      id="premium"
+                      checked={formData.is_premium}
+                      onChange={(e) => setFormData({...formData, is_premium: e.target.checked})}
+                    />
+                    <label htmlFor="premium" className="text-sm font-medium">Template Premium</label>
+                  </div>
+                </div>
+                
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Nom du template</label>       
-                  <Input
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Nom du template"
-                    required
+                  <label className="text-sm font-medium">Description</label>
+                  <Textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    placeholder="Description du template"
+                    rows={3}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Catégorie</label>
-                  <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          <div className="flex items-center gap-2">
-                            {getCategoryIcon(category.value)}
-                            {category.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <label className="text-sm font-medium">Données Template (JSON)</label>
+                  <Textarea
+                    value={formData.template_data}
+                    onChange={(e) => setFormData({...formData, template_data: e.target.value})}
+                    placeholder='{"colors": {"primary": "#007bff"}, "layout": "modern"}'
+                    rows={6}
+                    className="font-mono text-sm"
+                  />
                 </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Description</label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Description du template"
-                  rows={3}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Configuration JSON</label>
-                <Textarea
-                  value={formData.template_data}
-                  onChange={(e) => setFormData({ ...formData, template_data: e.target.value })}
-                  placeholder="Configuration JSON du template"
-                  rows={6}
-                  className="font-mono text-sm"
-                />
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="premium"
-                  checked={formData.is_premium}
-                  onChange={(e) => setFormData({ ...formData, is_premium: e.target.checked })}
-                />
-                <label htmlFor="premium" className="text-sm">Template premium</label>
-              </div>
-              
-              <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
-                  Annuler
-                </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {editingTemplate ? 'Mettre à jour' : 'Créer'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+                
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                    Annuler
+                  </Button>
+                  <Button type="submit" disabled={isLoading}>
+                    {editingTemplate ? 'Mettre à jour' : 'Créer'}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
-      {isLoading && templates.length === 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <div className="animate-pulse space-y-4">
-                  <div className="h-4 bg-muted rounded w-3/4"></div>
-                  <div className="h-3 bg-muted rounded w-full"></div>
-                  <div className="h-3 bg-muted rounded w-2/3"></div>
+      {/* Filtres */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex gap-4 items-center">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher un template..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Catégorie" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les catégories</SelectItem>
+                {categories.map(category => (
+                  <SelectItem key={category} value={category}>{category}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les types</SelectItem>
+                {types.map(type => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Grille des templates */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {filteredTemplates.map((template) => (
+          <Card key={template.id} className="overflow-hidden">
+            <div className="aspect-video bg-gradient-to-br from-admin-blue-light to-admin-purple-light flex items-center justify-center">
+              {template.preview_image ? (
+                <img src={template.preview_image} alt={template.name} className="w-full h-full object-cover" />
+              ) : (
+                <Layout className="h-12 w-12 text-muted-foreground" />
+              )}
+            </div>
+            
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-2">
+                <h3 className="font-semibold text-sm truncate flex-1">{template.name}</h3>
+                <div className="flex gap-1 ml-2">
+                  {template.is_premium && (
+                    <Badge variant="secondary" className="text-xs">Premium</Badge>
+                  )}
+                  <Badge variant="outline" className="text-xs capitalize">{template.category}</Badge>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {templates.map((template) => (
-            <Card key={template.id} className="admin-card-hover">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    {getCategoryIcon(template.category)}
-                    <CardTitle className="text-lg">{template.name}</CardTitle>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {template.is_premium && (
-                      <Badge variant="secondary">
-                        <Star className="h-3 w-3 mr-1" />
-                        Premium
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
+              </div>
               
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {template.description || 'Aucune description'}
+              {template.description && (
+                <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                  {template.description}
                 </p>
+              )}
+              
+              <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                <span>{template.usage_count} utilisations</span>
+                <span className="capitalize">{template.template_type}</span>
+              </div>
+              
+              <div className="flex gap-1">
+                <Button size="sm" variant="outline" className="flex-1" onClick={() => handleEdit(template)}>
+                  <Edit3 className="h-3 w-3" />
+                </Button>
                 
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>Utilisé {template.usage_count} fois</span>
-                  <span>
-                    {categories.find(c => c.value === template.category)?.label}
-                  </span>
-                </div>
+                <Button size="sm" variant="outline" onClick={() => handleDuplicate(template)}>
+                  <Copy className="h-3 w-3" />
+                </Button>
                 
-                <div className="flex items-center gap-2">
-                  <Button size="sm" variant="outline" onClick={() => handleEdit(template)}>
-                    <Edit3 className="h-3 w-3" />
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => handleDuplicate(template)}>
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <Eye className="h-3 w-3" />
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="destructive" 
-                    onClick={() => handleDelete(template.id)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                <Button size="sm" variant="outline">
+                  <Eye className="h-3 w-3" />
+                </Button>
+                
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleDelete(template.id)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredTemplates.length === 0 && !isLoading && (
+        <Card>
+          <CardContent className="p-8 text-center">
+            <Layout className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">Aucun template trouvé</h3>
+            <p className="text-muted-foreground mb-4">
+              {searchTerm || categoryFilter !== 'all' || typeFilter !== 'all' 
+                ? "Aucun template ne correspond à vos critères de recherche."
+                : "Commencez par créer votre premier template."}
+            </p>
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Créer un template
+            </Button>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
