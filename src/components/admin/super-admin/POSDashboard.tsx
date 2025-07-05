@@ -442,6 +442,22 @@ const POSDashboard: React.FC = () => {
             <UserManagement />
           </TabsContent>
 
+          <TabsContent value="backup">
+            <BackupRestore />
+          </TabsContent>
+
+          <TabsContent value="health">
+            <SystemHealth />
+          </TabsContent>
+
+          <TabsContent value="api">
+            <APIManager />
+          </TabsContent>
+
+          <TabsContent value="audit">
+            <AuditTrail />
+          </TabsContent>
+
           <TabsContent value="analytics">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
