@@ -17,6 +17,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRepairersData } from '@/hooks/useRepairersData';
 import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdvertisingDashboard';
 import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement';
+import AdminPOSManagement from '@/components/admin/AdminPOSManagement';
+import AdminEcommerceManagement from '@/components/admin/AdminEcommerceManagement';
 
 const AdminPage = () => {
   const { user, profile, isAdmin, loading } = useAuth();
@@ -64,6 +66,8 @@ const AdminPage = () => {
       case 'scraping': return 'Scraping';
       case 'blog': return 'Blog';
       case 'chatbot': return 'Chatbot IA';
+      case 'pos-admin': return 'POS Admin';
+      case 'ecommerce-admin': return 'E-commerce Admin';
       default: return 'Dashboard';
     }
   };
@@ -79,6 +83,8 @@ const AdminPage = () => {
       case 'scraping': return 'Outils de collecte de données';
       case 'blog': return 'Gestion du contenu éditorial';
       case 'chatbot': return 'Administration et configuration de l\'assistant intelligent';
+      case 'pos-admin': return 'Administration des systèmes POS';
+      case 'ecommerce-admin': return 'Administration des boutiques e-commerce';
       default: return 'Administration de RepairHub';
     }
   };
@@ -132,6 +138,14 @@ const AdminPage = () => {
 
     if (activeTab === 'chatbot') {
       return <ChatbotManagement />;
+    }
+
+    if (activeTab === 'pos-admin') {
+      return <AdminPOSManagement />;
+    }
+
+    if (activeTab === 'ecommerce-admin') {
+      return <AdminEcommerceManagement />;
     }
 
     // Default dashboard

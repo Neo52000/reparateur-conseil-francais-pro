@@ -12,7 +12,8 @@ import {
   PenTool, 
   Bot,
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  ShoppingCart
 } from 'lucide-react';
 
 const AdminSidebar: React.FC = () => {
@@ -29,6 +30,8 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=scraping', icon: Database, label: 'Scraping', tab: 'scraping' },
     { path: '/admin?tab=blog', icon: PenTool, label: 'Blog', tab: 'blog' },
     { path: '/admin?tab=chatbot', icon: Bot, label: 'Chatbot IA', tab: 'chatbot' },
+    { path: '/admin?tab=pos-admin', icon: CreditCard, label: 'POS Admin', tab: 'pos-admin' },
+    { path: '/admin?tab=ecommerce-admin', icon: ShoppingCart, label: 'E-commerce Admin', tab: 'ecommerce-admin' },
     { path: '/admin/audit', icon: ShieldCheck, label: 'Logs d\'audit', tab: 'audit' },
     { path: '/admin/audit/dashboard', icon: FileText, label: 'Dashboard d\'audit', tab: 'audit-dashboard' }
   ];
