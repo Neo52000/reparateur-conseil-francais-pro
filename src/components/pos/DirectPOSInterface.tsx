@@ -20,6 +20,10 @@ import CheckoutPanel from './CheckoutPanel';
 import SearchAndFilters from './SearchAndFilters';
 import KeyboardShortcutsOverlay from './KeyboardShortcutsOverlay';
 import AnimatedTransactions from './AnimatedTransactions';
+import AuditTrail from './AuditTrail';
+import CustomerManagement from './CustomerManagement';
+import AdvancedReporting from './AdvancedReporting';
+import SecurityControls from './SecurityControls';
 import { usePOSSounds } from './SoundManager';
 import { 
   CreditCard, 
@@ -584,7 +588,7 @@ const DirectPOSInterface: React.FC = () => {
         {/* Interface principale */}
         <div className="flex-1 p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-            <TabsList className="grid w-full grid-cols-7 mb-6 bg-white shadow-sm">
+            <TabsList className="grid w-full grid-cols-9 mb-6 bg-white shadow-sm">
               <TabsTrigger value="sale" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <ShoppingCart className="w-4 h-4" />
                 <span className="hidden sm:inline">Caisse</span>
@@ -604,6 +608,14 @@ const DirectPOSInterface: React.FC = () => {
               <TabsTrigger value="reports" className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden sm:inline">Rapports</span>
+              </TabsTrigger>
+              <TabsTrigger value="audit" className="flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                <span className="hidden sm:inline">Audit</span>
+              </TabsTrigger>
+              <TabsTrigger value="security" className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Sécurité</span>
               </TabsTrigger>
               <TabsTrigger value="performance" className="flex items-center gap-2">
                 <Activity className="w-4 h-4" />
@@ -697,30 +709,22 @@ const DirectPOSInterface: React.FC = () => {
 
             {/* Onglet Clients */}
             <TabsContent value="customers" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Gestion clientèle</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-slate-500 text-center py-8">
-                    Fonctionnalité de gestion clientèle disponible prochainement
-                  </p>
-                </CardContent>
-              </Card>
+              <CustomerManagement onSelectCustomer={(customer) => console.log('Cliente sélectionné:', customer)} />
             </TabsContent>
 
             {/* Onglet Rapports */}
             <TabsContent value="reports" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Rapports et analytics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-slate-500 text-center py-8">
-                    Rapports de vente et analytics disponibles prochainement
-                  </p>
-                </CardContent>
-              </Card>
+              <AdvancedReporting sessionId={currentSession || undefined} repairerId={user?.id} />
+            </TabsContent>
+
+            {/* Onglet Audit */}
+            <TabsContent value="audit" className="space-y-4">
+              <AuditTrail sessionId={currentSession || undefined} repairerId={user?.id} />
+            </TabsContent>
+
+            {/* Onglet Sécurité */}
+            <TabsContent value="security" className="space-y-4">
+              <SecurityControls repairerId={user?.id} />
             </TabsContent>
 
             {/* Onglet Performance */}
