@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import RepairerDashboard from '@/components/RepairerDashboard';
+import RepairerDashboardWithModules from '@/components/repairer-dashboard/RepairerDashboardWithModules';
 
 const RepairerSpace = () => {
   const { user, loading, canAccessRepairer, profile } = useAuth();
@@ -71,7 +71,7 @@ const RepairerSpace = () => {
   }
 
   console.log('RepairerSpace - Rendering dashboard');
-  return <RepairerDashboard />;
+  return <RepairerDashboardWithModules />;
 };
 
 export default RepairerSpace;
