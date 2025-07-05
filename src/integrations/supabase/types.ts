@@ -1624,6 +1624,42 @@ export type Database = {
         }
         Relationships: []
       }
+      configuration_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_default: boolean
+          template_data: Json
+          template_name: string
+          template_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          template_data?: Json
+          template_name: string
+          template_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          template_data?: Json
+          template_name?: string
+          template_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       data_quality_metrics: {
         Row: {
           accuracy_score: number | null
@@ -1667,6 +1703,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      deployment_history: {
+        Row: {
+          completed_at: string | null
+          configuration_data: Json
+          deployed_at: string
+          deployed_by: string | null
+          deployment_type: string
+          error_message: string | null
+          id: string
+          rollback_data: Json | null
+          status: string
+          target_ids: string[] | null
+          target_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          configuration_data: Json
+          deployed_at?: string
+          deployed_by?: string | null
+          deployment_type: string
+          error_message?: string | null
+          id?: string
+          rollback_data?: Json | null
+          status?: string
+          target_ids?: string[] | null
+          target_type: string
+        }
+        Update: {
+          completed_at?: string | null
+          configuration_data?: Json
+          deployed_at?: string
+          deployed_by?: string | null
+          deployment_type?: string
+          error_message?: string | null
+          id?: string
+          rollback_data?: Json | null
+          status?: string
+          target_ids?: string[] | null
+          target_type?: string
+        }
+        Relationships: []
       }
       device_models: {
         Row: {
@@ -2215,6 +2293,78 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      global_ecommerce_settings: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      global_pos_settings: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       invoice_items: {
         Row: {
