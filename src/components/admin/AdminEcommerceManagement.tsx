@@ -582,10 +582,6 @@ const AdminEcommerceManagement: React.FC = () => {
           <p className="text-muted-foreground">Configuration et déploiement centralisés des boutiques en ligne</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setPreviewMode(!previewMode)}>
-            <Eye className="mr-2 h-4 w-4" />
-            {previewMode ? 'Édition' : 'Aperçu'}
-          </Button>
           <Button onClick={refreshData} disabled={loading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Actualiser
@@ -691,6 +687,23 @@ const AdminEcommerceManagement: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="global-settings" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold">Paramètres globaux E-commerce</h3>
+              <p className="text-sm text-muted-foreground">
+                {previewMode ? "Aperçu de la boutique avec les paramètres actuels" : "Configuration des paramètres globaux du système e-commerce"}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setPreviewMode(!previewMode)}
+              className="flex items-center gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              {previewMode ? 'Retour à l\'édition' : 'Aperçu'}
+            </Button>
+          </div>
+          
           {previewMode ? (
             <EcommercePreview 
               settings={globalSettings.reduce((acc, setting) => {
