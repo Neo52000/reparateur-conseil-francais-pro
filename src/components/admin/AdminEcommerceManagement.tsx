@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import React from 'react';
+import EcommerceDashboard from './super-admin/EcommerceDashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -50,30 +50,7 @@ interface DeploymentHistory {
 }
 
 const AdminEcommerceManagement: React.FC = () => {
-  const [stats, setStats] = useState<EcommerceStats>({
-    totalOrders: 0,
-    totalRevenue: 0,
-    activeStores: 0,
-    totalProducts: 0
-  });
-  const [globalSettings, setGlobalSettings] = useState<GlobalSetting[]>([]);
-  const [templates, setTemplates] = useState<ConfigTemplate[]>([]);
-  const [deploymentHistory, setDeploymentHistory] = useState<DeploymentHistory[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [previewMode, setPreviewMode] = useState(false);
-  const [fullscreenPreview, setFullscreenPreview] = useState(false);
-  const [showSelectiveDeployment, setShowSelectiveDeployment] = useState(false);
-  const [showTemplateSelection, setShowTemplateSelection] = useState(false);
-  const [showCreateTemplate, setShowCreateTemplate] = useState(false);
-  const [selectedStores, setSelectedStores] = useState<string[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
-  const [newTemplateName, setNewTemplateName] = useState('');
-  const [newTemplateDescription, setNewTemplateDescription] = useState('');
-  const [activeStores, setActiveStores] = useState<Array<{id: string, name: string}>>([]);
-  const { toast } = useToast();
-
-  const fetchStats = async () => {
+  return <EcommerceDashboard />;
     try {
       const { data: activeStoresData } = await supabase
         .from('module_subscriptions')
