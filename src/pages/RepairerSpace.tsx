@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import RepairerDashboardWithModules from '@/components/repairer-dashboard/RepairerDashboardWithModules';
+import DirectPOSInterface from '@/components/pos/DirectPOSInterface';
 
 const RepairerSpace = () => {
   const { user, loading, canAccessRepairer, profile } = useAuth();
@@ -70,8 +70,8 @@ const RepairerSpace = () => {
     return null;
   }
 
-  console.log('RepairerSpace - Rendering dashboard');
-  return <RepairerDashboardWithModules />;
+  console.log('RepairerSpace - Rendering direct POS interface');
+  return <DirectPOSInterface />;
 };
 
 export default RepairerSpace;
