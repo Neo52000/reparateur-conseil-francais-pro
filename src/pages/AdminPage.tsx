@@ -21,10 +21,17 @@ import AdminPOSManagement from '@/components/admin/AdminPOSManagement';
 import AdminEcommerceManagement from '@/components/admin/AdminEcommerceManagement';
 
 const AdminPage = () => {
+  console.log('🔄 AdminPage - Starting render');
+  
   const { user, profile, isAdmin, loading } = useAuth();
+  console.log('🔄 AdminPage - After useAuth');
+  
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'dashboard';
+  console.log('🔄 AdminPage - After searchParams, activeTab:', activeTab);
+  
   const { subscriptions, repairers, loading: dataLoading, stats, fetchData } = useRepairersData();
+  console.log('🔄 AdminPage - After useRepairersData');
 
   console.log('🔍 AdminPage - Auth state:', {
     hasUser: !!user,
