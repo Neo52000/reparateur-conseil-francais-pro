@@ -9,8 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { ShoppingCart, Store, Package, Settings, RefreshCw, TrendingUp, Globe, Send, FileText, History, Palette, Eye } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ShoppingCart, Store, Package, Settings, RefreshCw, TrendingUp, Globe, Send, FileText, History, Palette, Eye, Plus, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import EcommercePreview from './preview/EcommercePreview';
 
 interface EcommerceStats {
   totalOrders: number;
@@ -58,6 +61,14 @@ const AdminEcommerceManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [previewMode, setPreviewMode] = useState(false);
+  const [showSelectiveDeployment, setShowSelectiveDeployment] = useState(false);
+  const [showTemplateSelection, setShowTemplateSelection] = useState(false);
+  const [showCreateTemplate, setShowCreateTemplate] = useState(false);
+  const [selectedStores, setSelectedStores] = useState<string[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [newTemplateName, setNewTemplateName] = useState('');
+  const [newTemplateDescription, setNewTemplateDescription] = useState('');
+  const [activeStores, setActiveStores] = useState<Array<{id: string, name: string}>>([]);
   const { toast } = useToast();
 
   const fetchStats = async () => {
@@ -189,6 +200,169 @@ const AdminEcommerceManagement: React.FC = () => {
       toast({
         title: "Erreur de déploiement",
         description: "Impossible de déployer la configuration",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const fetchActiveStores = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('repairer_subscriptions')
+        .select('user_id, repairer_id, profiles!inner(first_name, last_name)')
+        .eq('subscribed', true);
+
+      if (error) throw error;
+      
+      const stores = data?.map(item => ({
+        id: item.user_id,
+        name: `${item.profiles.first_name || ''} ${item.profiles.last_name || ''}`.trim() || `Boutique ${item.repairer_id}`
+      })) || [];
+      
+      setActiveStores(stores);
+    } catch (error) {
+      console.error('Erreur lors du chargement des boutiques:', error);
+      setActiveStores([
+        { id: '1', name: 'Boutique 1' },
+        { id: '2', name: 'Boutique 2' },
+        { id: '3', name: 'Boutique 3' }
+      ]);
+    }
+  };
+
+  const deployToSelectedStores = async () => {
+    if (selectedStores.length === 0) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner au moins une boutique",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const configurationData = globalSettings.reduce((acc, setting) => {
+        acc[setting.setting_key] = setting.setting_value;
+        return acc;
+      }, {} as any);
+
+      const { error } = await supabase
+        .from('deployment_history')
+        .insert({
+          deployment_type: 'ecommerce',
+          target_type: 'selective',
+          target_ids: selectedStores,
+          configuration_data: configurationData,
+          deployed_by: (await supabase.auth.getUser()).data.user?.id,
+          status: 'completed'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Déploiement réussi",
+        description: `Configuration déployée sur ${selectedStores.length} boutique(s) sélectionnée(s).`,
+      });
+      
+      setShowSelectiveDeployment(false);
+      setSelectedStores([]);
+      fetchDeploymentHistory();
+    } catch (error) {
+      console.error('Erreur lors du déploiement sélectif:', error);
+      toast({
+        title: "Erreur de déploiement",
+        description: "Impossible de déployer sur les boutiques sélectionnées",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const applyTemplate = async () => {
+    if (!selectedTemplate) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un template",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const template = templates.find(t => t.id === selectedTemplate);
+      if (!template) throw new Error('Template non trouvé');
+
+      const { error } = await supabase
+        .from('deployment_history')
+        .insert({
+          deployment_type: 'ecommerce',
+          target_type: 'template',
+          configuration_data: template.template_data,
+          deployed_by: (await supabase.auth.getUser()).data.user?.id,
+          status: 'completed'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Template appliqué",
+        description: `Le template "${template.template_name}" a été appliqué avec succès.`,
+      });
+      
+      setShowTemplateSelection(false);
+      setSelectedTemplate('');
+      fetchDeploymentHistory();
+    } catch (error) {
+      console.error('Erreur lors de l\'application du template:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'appliquer le template",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const createTemplate = async () => {
+    if (!newTemplateName.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez saisir un nom pour le template",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const templateData = globalSettings.reduce((acc, setting) => {
+        acc[setting.setting_key] = setting.setting_value;
+        return acc;
+      }, {} as any);
+
+      const { error } = await supabase
+        .from('configuration_templates')
+        .insert({
+          template_name: newTemplateName,
+          template_type: 'ecommerce',
+          template_data: templateData,
+          description: newTemplateDescription || null,
+          created_by: (await supabase.auth.getUser()).data.user?.id
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Template créé",
+        description: `Le template "${newTemplateName}" a été créé avec succès.`,
+      });
+      
+      setShowCreateTemplate(false);
+      setNewTemplateName('');
+      setNewTemplateDescription('');
+      fetchTemplates();
+    } catch (error) {
+      console.error('Erreur lors de la création du template:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le template",
         variant: "destructive"
       });
     }
@@ -388,6 +562,7 @@ const AdminEcommerceManagement: React.FC = () => {
 
   useEffect(() => {
     refreshData();
+    fetchActiveStores();
   }, []);
 
   const settingsByCategory = globalSettings.reduce((acc, setting) => {
@@ -500,7 +675,11 @@ const AdminEcommerceManagement: React.FC = () => {
                       <Send className="mr-2 h-4 w-4" />
                       Déployer sur toutes les boutiques
                     </Button>
-                    <Button variant="outline" className="w-full justify-start">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => setShowCreateTemplate(true)}
+                    >
                       <FileText className="mr-2 h-4 w-4" />
                       Créer un nouveau template
                     </Button>
@@ -512,27 +691,36 @@ const AdminEcommerceManagement: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="global-settings" className="space-y-6">
-          {Object.entries(settingsByCategory).map(([category, settings]) => (
-            <Card key={category}>
-              <CardHeader>
-                <CardTitle className="capitalize flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  {category}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {settings.map((setting) => (
-                  <div key={setting.id} className="p-4 border rounded-lg">
-                    <div className="mb-4">
-                      <h4 className="font-medium">{setting.setting_key.replace(/_/g, ' ').toUpperCase()}</h4>
-                      <p className="text-sm text-muted-foreground">{setting.description}</p>
+          {previewMode ? (
+            <EcommercePreview 
+              settings={globalSettings.reduce((acc, setting) => {
+                acc[setting.setting_key] = setting.setting_value;
+                return acc;
+              }, {} as Record<string, any>)} 
+            />
+          ) : (
+            Object.entries(settingsByCategory).map(([category, settings]) => (
+              <Card key={category}>
+                <CardHeader>
+                  <CardTitle className="capitalize flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    {category}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {settings.map((setting) => (
+                    <div key={setting.id} className="p-4 border rounded-lg">
+                      <div className="mb-4">
+                        <h4 className="font-medium">{setting.setting_key.replace(/_/g, ' ').toUpperCase()}</h4>
+                        <p className="text-sm text-muted-foreground">{setting.description}</p>
+                      </div>
+                      {renderSettingInput(setting)}
                     </div>
-                    {!previewMode && renderSettingInput(setting)}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
+                  ))}
+                </CardContent>
+              </Card>
+            ))
+          )}
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-6">
@@ -554,7 +742,16 @@ const AdminEcommerceManagement: React.FC = () => {
                       </div>
                       <div className="flex gap-2">
                         {template.is_default && <Badge>Par défaut</Badge>}
-                        <Button variant="outline" size="sm">Appliquer</Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedTemplate(template.id);
+                            applyTemplate();
+                          }}
+                        >
+                          Appliquer
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -586,11 +783,19 @@ const AdminEcommerceManagement: React.FC = () => {
                   <Globe className="h-8 w-8 mb-2" />
                   Déploiement global
                 </Button>
-                <Button variant="outline" className="h-24 flex-col">
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex-col"
+                  onClick={() => setShowSelectiveDeployment(true)}
+                >
                   <Store className="h-8 w-8 mb-2" />
                   Déploiement sélectif
                 </Button>
-                <Button variant="outline" className="h-24 flex-col">
+                <Button 
+                  variant="outline" 
+                  className="h-24 flex-col"
+                  onClick={() => setShowTemplateSelection(true)}
+                >
                   <FileText className="h-8 w-8 mb-2" />
                   Template spécifique
                 </Button>
@@ -650,6 +855,130 @@ const AdminEcommerceManagement: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Modal pour déploiement sélectif */}
+      <Dialog open={showSelectiveDeployment} onOpenChange={setShowSelectiveDeployment}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Déploiement sélectif</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Sélectionner les boutiques :</Label>
+              <div className="max-h-60 overflow-y-auto space-y-2">
+                {activeStores.map((store) => (
+                  <div key={store.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={store.id}
+                      checked={selectedStores.includes(store.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedStores([...selectedStores, store.id]);
+                        } else {
+                          setSelectedStores(selectedStores.filter(id => id !== store.id));
+                        }
+                      }}
+                    />
+                    <Label htmlFor={store.id} className="text-sm">{store.name}</Label>
+                  </div>
+                ))}
+              </div>
+              {activeStores.length === 0 && (
+                <p className="text-sm text-muted-foreground">Aucune boutique active trouvée</p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowSelectiveDeployment(false)}>
+                Annuler
+              </Button>
+              <Button onClick={deployToSelectedStores}>
+                Déployer ({selectedStores.length})
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal pour sélection de template */}
+      <Dialog open={showTemplateSelection} onOpenChange={setShowTemplateSelection}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Appliquer un template</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Sélectionner un template :</Label>
+              <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choisir un template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.template_name}
+                      {template.is_default && " (Par défaut)"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {templates.length === 0 && (
+                <p className="text-sm text-muted-foreground">Aucun template disponible</p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowTemplateSelection(false)}>
+                Annuler
+              </Button>
+              <Button onClick={applyTemplate} disabled={!selectedTemplate}>
+                Appliquer
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal pour création de template */}
+      <Dialog open={showCreateTemplate} onOpenChange={setShowCreateTemplate}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Créer un nouveau template</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="template-name">Nom du template *</Label>
+              <Input
+                id="template-name"
+                placeholder="Ex: Configuration Premium"
+                value={newTemplateName}
+                onChange={(e) => setNewTemplateName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="template-description">Description (optionnelle)</Label>
+              <Textarea
+                id="template-description"
+                placeholder="Description du template..."
+                value={newTemplateDescription}
+                onChange={(e) => setNewTemplateDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                Le template sera créé avec la configuration actuelle des paramètres globaux.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowCreateTemplate(false)}>
+                Annuler
+              </Button>
+              <Button onClick={createTemplate} disabled={!newTemplateName.trim()}>
+                Créer
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

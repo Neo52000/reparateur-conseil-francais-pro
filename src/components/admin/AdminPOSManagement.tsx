@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Checkbox } from '@/components/ui/checkbox';
 import { CreditCard, Users, Activity, Settings, RefreshCw, Globe, Send, FileText, History, Palette, Eye, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import POSPreview from './preview/POSPreview';
 
 interface POSStats {
   totalTransactions: number;
@@ -626,27 +627,36 @@ const AdminPOSManagement: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="global-settings" className="space-y-6">
-          {Object.entries(settingsByCategory).map(([category, settings]) => (
-            <Card key={category}>
-              <CardHeader>
-                <CardTitle className="capitalize flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  {category}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {settings.map((setting) => (
-                  <div key={setting.id} className="p-4 border rounded-lg">
-                    <div className="mb-4">
-                      <h4 className="font-medium">{setting.setting_key.replace(/_/g, ' ').toUpperCase()}</h4>
-                      <p className="text-sm text-muted-foreground">{setting.description}</p>
+          {previewMode ? (
+            <POSPreview 
+              settings={globalSettings.reduce((acc, setting) => {
+                acc[setting.setting_key] = setting.setting_value;
+                return acc;
+              }, {} as Record<string, any>)} 
+            />
+          ) : (
+            Object.entries(settingsByCategory).map(([category, settings]) => (
+              <Card key={category}>
+                <CardHeader>
+                  <CardTitle className="capitalize flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    {category}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {settings.map((setting) => (
+                    <div key={setting.id} className="p-4 border rounded-lg">
+                      <div className="mb-4">
+                        <h4 className="font-medium">{setting.setting_key.replace(/_/g, ' ').toUpperCase()}</h4>
+                        <p className="text-sm text-muted-foreground">{setting.description}</p>
+                      </div>
+                      {renderSettingInput(setting)}
                     </div>
-                    {!previewMode && renderSettingInput(setting)}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
+                  ))}
+                </CardContent>
+              </Card>
+            ))
+          )}
         </TabsContent>
 
         <TabsContent value="templates" className="space-y-6">
