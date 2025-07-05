@@ -83,7 +83,7 @@ const InventoryManager: React.FC = () => {
         .order('name');
 
       if (error) throw error;
-      setItems(data || []);
+      setItems((data as unknown as InventoryItem[]) || []);
     } catch (error) {
       console.error('Erreur lors du chargement de l\'inventaire:', error);
       toast({
@@ -153,7 +153,7 @@ const InventoryManager: React.FC = () => {
 
       if (editingItem) {
         const { error } = await supabase
-          .from('inventory_items')
+          .from('inventory_items' as any)
           .update(itemData)
           .eq('id', editingItem.id);
 
@@ -165,7 +165,7 @@ const InventoryManager: React.FC = () => {
         });
       } else {
         const { error } = await supabase
-          .from('inventory_items')
+          .from('inventory_items' as any)
           .insert([itemData]);
 
         if (error) throw error;
@@ -233,7 +233,7 @@ const InventoryManager: React.FC = () => {
 
     try {
       const { error } = await supabase
-        .from('inventory_items')
+        .from('inventory_items' as any)
         .delete()
         .eq('id', itemId);
 
