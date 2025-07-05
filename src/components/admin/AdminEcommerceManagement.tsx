@@ -174,8 +174,10 @@ const AdminEcommerceManagement: React.FC = () => {
 
   const deployGlobalConfiguration = async () => {
     try {
-      const configurationData = globalSettings.reduce((acc, setting) => {
-        acc[setting.setting_key] = setting.setting_value;
+      const configurationData = (globalSettings || []).reduce((acc, setting) => {
+        if (setting && setting.setting_key && setting.setting_value !== undefined) {
+          acc[setting.setting_key] = setting.setting_value;
+        }
         return acc;
       }, {} as any);
 
@@ -243,8 +245,10 @@ const AdminEcommerceManagement: React.FC = () => {
     }
 
     try {
-      const configurationData = globalSettings.reduce((acc, setting) => {
-        acc[setting.setting_key] = setting.setting_value;
+      const configurationData = (globalSettings || []).reduce((acc, setting) => {
+        if (setting && setting.setting_key && setting.setting_value !== undefined) {
+          acc[setting.setting_key] = setting.setting_value;
+        }
         return acc;
       }, {} as any);
 
@@ -334,8 +338,10 @@ const AdminEcommerceManagement: React.FC = () => {
     }
 
     try {
-      const templateData = globalSettings.reduce((acc, setting) => {
-        acc[setting.setting_key] = setting.setting_value;
+      const templateData = (globalSettings || []).reduce((acc, setting) => {
+        if (setting && setting.setting_key && setting.setting_value !== undefined) {
+          acc[setting.setting_key] = setting.setting_value;
+        }
         return acc;
       }, {} as any);
 
@@ -371,6 +377,7 @@ const AdminEcommerceManagement: React.FC = () => {
   };
 
   const renderSettingInput = (setting: GlobalSetting) => {
+    if (!setting || !setting.setting_value) return null;
     const value = setting.setting_value;
     
     switch (setting.setting_key) {

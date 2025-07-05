@@ -187,8 +187,10 @@ const AdminPOSManagement: React.FC = () => {
 
   const deployGlobalConfiguration = async () => {
     try {
-      const configurationData = globalSettings.reduce((acc, setting) => {
-        acc[setting.setting_key] = setting.setting_value;
+      const configurationData = (globalSettings || []).reduce((acc, setting) => {
+        if (setting && setting.setting_key && setting.setting_value !== undefined) {
+          acc[setting.setting_key] = setting.setting_value;
+        }
         return acc;
       }, {} as any);
 
@@ -258,8 +260,10 @@ const AdminPOSManagement: React.FC = () => {
     }
 
     try {
-      const configurationData = globalSettings.reduce((acc, setting) => {
-        acc[setting.setting_key] = setting.setting_value;
+      const configurationData = (globalSettings || []).reduce((acc, setting) => {
+        if (setting && setting.setting_key && setting.setting_value !== undefined) {
+          acc[setting.setting_key] = setting.setting_value;
+        }
         return acc;
       }, {} as any);
 
@@ -305,7 +309,7 @@ const AdminPOSManagement: React.FC = () => {
     }
 
     try {
-      const template = templates.find(t => t.id === selectedTemplate);
+      const template = (templates || []).find(t => t?.id === selectedTemplate);
       if (!template) throw new Error('Template non trouvé');
 
       const { error } = await supabase
@@ -349,8 +353,10 @@ const AdminPOSManagement: React.FC = () => {
     }
 
     try {
-      const templateData = globalSettings.reduce((acc, setting) => {
-        acc[setting.setting_key] = setting.setting_value;
+      const templateData = (globalSettings || []).reduce((acc, setting) => {
+        if (setting && setting.setting_key && setting.setting_value !== undefined) {
+          acc[setting.setting_key] = setting.setting_value;
+        }
         return acc;
       }, {} as any);
 
@@ -386,6 +392,7 @@ const AdminPOSManagement: React.FC = () => {
   };
 
   const renderSettingInput = (setting: GlobalSetting) => {
+    if (!setting || !setting.setting_value) return null;
     const value = setting.setting_value;
     
     switch (setting.setting_key) {
@@ -660,8 +667,10 @@ const AdminPOSManagement: React.FC = () => {
 
             {previewMode ? (
               <InteractivePOSPreview 
-                settings={globalSettings.reduce((acc, setting) => {
-                  acc[setting.setting_key] = setting.setting_value;
+                settings={(globalSettings || []).reduce((acc, setting) => {
+                  if (setting && setting.setting_key && setting.setting_value !== undefined) {
+                    acc[setting.setting_key] = setting.setting_value;
+                  }
                   return acc;
                 }, {} as Record<string, any>)}
                 isFullscreen={fullscreenPreview}
@@ -772,7 +781,7 @@ const AdminPOSManagement: React.FC = () => {
                         <Card>
                           <CardContent className="p-4 text-center">
                             <p className="text-2xl font-bold text-primary">
-                              {globalSettings.find(s => s.setting_key === 'tax_rate')?.setting_value?.rate || 20}%
+                              {(globalSettings || []).find(s => s?.setting_key === 'tax_rate')?.setting_value?.rate || 20}%
                             </p>
                             <p className="text-sm text-muted-foreground">Taux principal</p>
                           </CardContent>
@@ -809,7 +818,7 @@ const AdminPOSManagement: React.FC = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {renderSettingInput(globalSettings.find(s => s.setting_key === 'receipt_template'))}
+                      {renderSettingInput((globalSettings || []).find(s => s?.setting_key === 'receipt_template'))}
                     </CardContent>
                   </Card>
                 </TabsContent>
