@@ -307,17 +307,13 @@ const POSDashboard: React.FC = () => {
 
         {/* Tableaux de bord et analytics */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="inventory">Inventaire</TabsTrigger>
             <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
             <TabsTrigger value="sync">Synchronisation</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="advanced">Analytics+</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="users">Utilisateurs</TabsTrigger>
-            <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+            <TabsTrigger value="system">Système</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -434,163 +430,108 @@ const POSDashboard: React.FC = () => {
             <SyncManager />
           </TabsContent>
 
-          <TabsContent value="advanced">
-            <AdvancedAnalytics />
-          </TabsContent>
+          <TabsContent value="system">
+            <Tabs defaultValue="monitoring" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+                <TabsTrigger value="backup">Sauvegarde</TabsTrigger>
+                <TabsTrigger value="health">Santé</TabsTrigger>
+                <TabsTrigger value="api">API</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="notifications">
-            <NotificationManager />
-          </TabsContent>
-
-          <TabsContent value="users">
-            <UserManagement />
-          </TabsContent>
-
-          <TabsContent value="backup">
-            <BackupRestore />
-          </TabsContent>
-
-          <TabsContent value="health">
-            <SystemHealth />
-          </TabsContent>
-
-          <TabsContent value="api">
-            <APIManager />
-          </TabsContent>
-
-          <TabsContent value="audit">
-            <AuditTrail />
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Transactions par mois</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={revenueData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="transactions" fill="hsl(var(--admin-blue))" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Performance comparative</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={revenueData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="revenue" 
-                        stroke="hsl(var(--admin-green))" 
-                        name="Revenus"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="transactions" 
-                        stroke="hsl(var(--admin-blue))" 
-                        name="Transactions"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="monitoring">
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="h-8 w-8 text-admin-green" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">API POS</p>
-                        <p className="font-medium">Opérationnel</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="h-8 w-8 text-admin-green" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Base de données</p>
-                        <p className="font-medium">Saine</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3">
-                      <AlertCircle className="h-8 w-8 text-admin-yellow" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Synchronisation</p>
-                        <p className="font-medium">Attention</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-3">
-                      <Activity className="h-8 w-8 text-admin-blue" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Charge système</p>
-                        <p className="font-medium">Normal</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Activité temps réel</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {[
-                      { time: '14:32', message: 'Transaction POS validée - TechRepairer Pro', type: 'success' },
-                      { time: '14:30', message: 'Nouveau réparateur connecté - Mobile Fix Expert', type: 'info' },
-                      { time: '14:28', message: 'Synchronisation terminée - 47 POS', type: 'success' },
-                      { time: '14:25', message: 'Alerte: Délai de synchronisation dépassé', type: 'warning' },
-                      { time: '14:22', message: 'Mise à jour système appliquée', type: 'success' },
-                    ].map((log, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                        <div className={`w-2 h-2 rounded-full ${
-                          log.type === 'success' ? 'bg-admin-green' :
-                          log.type === 'warning' ? 'bg-admin-yellow' :
-                          'bg-admin-blue'
-                        }`} />
-                        <span className="text-sm text-muted-foreground">{log.time}</span>
-                        <span className="text-sm flex-1">{log.message}</span>
-                      </div>
-                    ))}
+              <TabsContent value="monitoring">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-8 w-8 text-admin-green" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">API POS</p>
+                            <p className="font-medium">Opérationnel</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="h-8 w-8 text-admin-green" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Base de données</p>
+                            <p className="font-medium">Saine</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                          <AlertCircle className="h-8 w-8 text-admin-yellow" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Synchronisation</p>
+                            <p className="font-medium">Attention</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                          <Activity className="h-8 w-8 text-admin-blue" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Charge système</p>
+                            <p className="font-medium">Normal</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Activité temps réel</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {[
+                          { time: '14:32', message: 'Transaction POS validée - TechRepairer Pro', type: 'success' },
+                          { time: '14:30', message: 'Nouveau réparateur connecté - Mobile Fix Expert', type: 'info' },
+                          { time: '14:28', message: 'Synchronisation terminée - 47 POS', type: 'success' },
+                          { time: '14:25', message: 'Alerte: Délai de synchronisation dépassé', type: 'warning' },
+                          { time: '14:22', message: 'Mise à jour système appliquée', type: 'success' },
+                        ].map((log, index) => (
+                          <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                            <div className={`w-2 h-2 rounded-full ${
+                              log.type === 'success' ? 'bg-admin-green' :
+                              log.type === 'warning' ? 'bg-admin-yellow' :
+                              'bg-admin-blue'
+                            }`} />
+                            <span className="text-sm text-muted-foreground">{log.time}</span>
+                            <span className="text-sm flex-1">{log.message}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="backup">
+                <BackupRestore />
+              </TabsContent>
+
+              <TabsContent value="health">
+                <SystemHealth />
+              </TabsContent>
+
+              <TabsContent value="api">
+                <APIManager />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </div>
