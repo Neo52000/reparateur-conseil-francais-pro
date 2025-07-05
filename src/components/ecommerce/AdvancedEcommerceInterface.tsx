@@ -63,6 +63,13 @@ const AdvancedEcommerceInterface: React.FC<EcommerceInterfaceProps> = ({
     
     setLoading(true);
     try {
+      // Afficher un indicateur de synchronisation
+      toast({
+        title: "Synchronisation",
+        description: "Mise à jour des données de la boutique...",
+        duration: 2000
+      });
+
       // Charger les stats depuis les différentes tables
       const [productsResult, ordersResult, customersResult] = await Promise.all([
         supabase

@@ -111,13 +111,19 @@ const AdvancedPOSInterface: React.FC = () => {
       // En mode démo, utiliser des données simulées
       if (user?.email === 'demo@demo.fr') {
         setInventory([
-          { id: '1', name: 'Écran iPhone 13', sku: 'SCR-IP13', price: 149.90, stock: 12, category: 'Écrans' },
-          { id: '2', name: 'Batterie Samsung S21', sku: 'BAT-SS21', price: 89.90, stock: 8, category: 'Batteries' },
-          { id: '3', name: 'Vitre Protection', sku: 'VIT-PROT', price: 25.00, stock: 25, category: 'Accessoires' },
-          { id: '4', name: 'Diagnostic Complet', sku: 'DIAG-001', price: 35.00, stock: 999, category: 'Services' },
-          { id: '5', name: 'Coque iPhone 13', sku: 'COQ-IP13', price: 15.90, stock: 15, category: 'Accessoires' },
-          { id: '6', name: 'Câble USB-C', sku: 'CAB-USBC', price: 12.50, stock: 20, category: 'Accessoires' }
+          { id: '1', name: 'Écran iPhone 13', sku: 'SCR-IP13-001', price: 149.90, stock: 12, category: 'Écrans' },
+          { id: '2', name: 'Batterie Samsung S21', sku: 'BAT-SS21-001', price: 89.90, stock: 8, category: 'Batteries' },
+          { id: '3', name: 'Vitre Protection', sku: 'VIT-PROT-001', price: 25.00, stock: 25, category: 'Accessoires' },
+          { id: '4', name: 'Diagnostic Complet', sku: 'DIAG-COMP-001', price: 35.00, stock: 999, category: 'Services' },
+          { id: '5', name: 'Coque iPhone 13', sku: 'COQ-IP13-001', price: 15.90, stock: 15, category: 'Accessoires' },
+          { id: '6', name: 'Câble USB-C', sku: 'CAB-USBC-001', price: 12.50, stock: 20, category: 'Accessoires' }
         ]);
+        
+        toast({
+          title: "Inventaire synchronisé",
+          description: "6 produits disponibles dans l'inventaire POS",
+          duration: 2000
+        });
       }
     }
   };
@@ -371,17 +377,34 @@ const AdvancedPOSInterface: React.FC = () => {
       await loadTransactions();
       
       toast({
-        title: "Transaction réussie",
-        description: `${transactionNumber} • ${(cartTotal * 1.2).toFixed(2)}€`
+        title: "Transaction validée ✓",
+        description: `${transactionNumber} • ${(cartTotal * 1.2).toFixed(2)}€ • Stocks mis à jour`,
+        duration: 3000
       });
       
     } catch (error) {
       console.error('Erreur transaction:', error);
-      toast({
-        title: "Erreur transaction",
-        description: "Impossible de finaliser la transaction",
-        variant: "destructive"
-      });
+      // Mode démo - simulation réussie
+      if (user?.email === 'demo@demo.fr') {
+        const demoTxNumber = `TXN-DEMO-${Date.now().toString().slice(-6)}`;
+        setSessionStats(prev => ({
+          ...prev,
+          totalAmount: prev.totalAmount + (cartTotal * 1.2),
+          transactionCount: prev.transactionCount + 1
+        }));
+        setCart([]);
+        toast({
+          title: "Transaction démo validée ✓",
+          description: `${demoTxNumber} • ${(cartTotal * 1.2).toFixed(2)}€ • Mode démonstration`,
+          duration: 3000
+        });
+      } else {
+        toast({
+          title: "Erreur transaction",
+          description: "Impossible de finaliser la transaction",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }

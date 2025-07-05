@@ -4,6 +4,7 @@ import RepairerDashboard from './RepairerDashboard';
 import AdvancedPOSInterface from '@/components/pos/AdvancedPOSInterface';
 import AdvancedEcommerceInterface from '@/components/ecommerce/AdvancedEcommerceInterface';
 import ModuleSwitcher from '@/components/modules/ModuleSwitcher';
+import SyncIndicator from '@/components/common/SyncIndicator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -74,10 +75,13 @@ const RepairerDashboardWithModules: React.FC = () => {
             )}
             
             {currentView === 'dashboard' && (
-              <ModuleSwitcher 
-                currentView={currentView}
-                onViewChange={handleViewChange}
-              />
+              <div className="space-y-4">
+                <ModuleSwitcher 
+                  currentView={currentView}
+                  onViewChange={handleViewChange}
+                />
+                <SyncIndicator module="dashboard" showDetails={true} />
+              </div>
             )}
           </div>
         </div>
