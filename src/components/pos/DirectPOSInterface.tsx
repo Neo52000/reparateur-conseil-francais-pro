@@ -18,6 +18,9 @@ import POSPerformanceOptimizer from './POSPerformanceOptimizer';
 import ProductGrid from './ProductGrid';
 import CheckoutPanel from './CheckoutPanel';
 import SearchAndFilters from './SearchAndFilters';
+import KeyboardShortcutsOverlay from './KeyboardShortcutsOverlay';
+import AnimatedTransactions from './AnimatedTransactions';
+import { usePOSSounds } from './SoundManager';
 import { 
   CreditCard, 
   Package, 
@@ -92,9 +95,12 @@ const DirectPOSInterface: React.FC = () => {
     sessionNumber: ''
   });
   const [loading, setLoading] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [lastTransaction, setLastTransaction] = useState<Transaction | null>(null);
   
   const { user } = useAuth();
   const { toast } = useToast();
+  const sounds = usePOSSounds();
 
   // Charger l'inventaire POS
   const loadInventory = async () => {
@@ -208,6 +214,8 @@ const DirectPOSInterface: React.FC = () => {
   const startSession = async () => {
     if (!user?.id) return;
     
+    sounds.playSessionOpen(); // Son d'ouverture
+    
     try {
       const sessionNumber = `S${Date.now().toString().slice(-6)}`;
       const { data, error } = await supabase
@@ -294,6 +302,7 @@ const DirectPOSInterface: React.FC = () => {
 
   // Ajouter un produit au panier
   const addToCart = (item: POSItem) => {
+    sounds.playAddToCart(); // Son d'ajout
     setCart(prevCart => {
       const existingItem = prevCart.find(cartItem => cartItem.id === item.id);
       if (existingItem) {
@@ -376,6 +385,23 @@ const DirectPOSInterface: React.FC = () => {
         .insert(transactionItems);
       
       if (itemsError) throw itemsError;
+
+      // Son de succès
+      sounds.playPaymentSuccess();
+      
+      // Créer objet transaction pour animation
+      const newTransaction = {
+        id: transaction.id,
+        transaction_number: transactionNumber,
+        total_amount: cartTotal * 1.2,
+        payment_method: paymentMethod,
+        payment_status: 'completed',
+        transaction_date: new Date().toISOString(),
+        customer_name: undefined,
+        items: transactionItems
+      };
+      
+      setLastTransaction(newTransaction);
       
       // Mettre à jour les stats de session
       setSessionStats(prev => ({
@@ -398,9 +424,14 @@ const DirectPOSInterface: React.FC = () => {
       
     } catch (error) {
       console.error('Erreur transaction:', error);
+      sounds.playError(); // Son d'erreur
+      
       // Mode démo - simulation réussie
       if (user?.email === 'demo@demo.fr') {
         const demoTxNumber = `TXN-DEMO-${Date.now().toString().slice(-6)}`;
+        
+        sounds.playPaymentSuccess();
+        
         setSessionStats(prev => ({
           ...prev,
           totalAmount: prev.totalAmount + (cartTotal * 1.2),
@@ -518,6 +549,19 @@ const DirectPOSInterface: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Bouton raccourcis clavier */}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowShortcuts(true)}
+                className="flex items-center gap-2"
+              >
+                <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                  ?
+                </kbd>
+                Raccourcis
+              </Button>
 
               {/* Actions session */}
               {!currentSession ? (
@@ -644,48 +688,11 @@ const DirectPOSInterface: React.FC = () => {
 
             {/* Onglet Transactions */}
             <TabsContent value="transactions" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Historique des transactions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>N° Transaction</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Montant</TableHead>
-                        <TableHead>Paiement</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Statut</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {transactions.map((tx) => (
-                        <TableRow key={tx.id}>
-                          <TableCell className="font-medium">{tx.transaction_number}</TableCell>
-                          <TableCell>{tx.customer_name || 'Client anonyme'}</TableCell>
-                          <TableCell>{tx.total_amount.toFixed(2)}€</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {tx.payment_method === 'cash' ? 'Espèces' : 'Carte'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {new Date(tx.transaction_date).toLocaleDateString('fr-FR')}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="default" className="bg-emerald-600">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Validée
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+              <AnimatedTransactions
+                transactions={transactions}
+                newTransaction={lastTransaction}
+                sessionStats={sessionStats}
+              />
             </TabsContent>
 
             {/* Onglet Clients */}
@@ -728,6 +735,12 @@ const DirectPOSInterface: React.FC = () => {
           </Tabs>
         </div>
       </div>
+
+      {/* Overlay raccourcis clavier */}
+      <KeyboardShortcutsOverlay
+        isVisible={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
+      />
     </div>
   );
 };
