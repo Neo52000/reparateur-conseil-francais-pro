@@ -12,6 +12,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import SyncIndicator from '@/components/common/SyncIndicator';
 import RepairerDashboard from '@/components/repairer-dashboard/RepairerDashboard';
+import POSKeyboardShortcuts from './POSKeyboardShortcuts';
+import NF525ComplianceIndicator from './NF525ComplianceIndicator';
+import POSPerformanceOptimizer from './POSPerformanceOptimizer';
 import { 
   CreditCard, 
   Package, 
@@ -35,7 +38,10 @@ import {
   Trash2,
   Search,
   Monitor,
-  Home
+  Home,
+  Zap,
+  Shield,
+  Activity
 } from 'lucide-react';
 
 interface POSItem {
@@ -420,10 +426,38 @@ const DirectPOSInterface: React.FC = () => {
     item.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleAddProduct = (barcode?: string) => {
+    if (barcode) {
+      const item = inventory.find(i => i.sku === barcode);
+      if (item) {
+        addToCart(item);
+        toast({
+          title: "Produit ajouté",
+          description: `${item.name} ajouté au panier`,
+          duration: 1000
+        });
+      }
+    } else {
+      // Ouvrir modal scanner ou recherche
+      const searchInput = document.querySelector('input[placeholder*="Rechercher"]') as HTMLInputElement;
+      searchInput?.focus();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Raccourcis clavier */}
+      <POSKeyboardShortcuts
+        onOpenSession={startSession}
+        onCloseSession={endSession}
+        onProcessPayment={(method) => processTransaction(method)}
+        onClearCart={() => setCart([])}
+        onAddProduct={handleAddProduct}
+        disabled={!user?.id}
+      />
+      
       {/* Header POS principal */}
-      <div className="bg-white border-b shadow-sm">
+      <div className="bg-white border-b shadow-lg">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -432,7 +466,10 @@ const DirectPOSInterface: React.FC = () => {
                   <CreditCard className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-slate-900">Point de Vente NF-525</h1>
+                  <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    Point de Vente NF-525
+                    <Shield className="w-5 h-5 text-emerald-600" />
+                  </h1>
                   <p className="text-sm text-slate-500">Interface de caisse certifiée • {user?.email}</p>
                 </div>
               </div>
@@ -451,6 +488,9 @@ const DirectPOSInterface: React.FC = () => {
             </div>
             
             <div className="flex items-center gap-4">
+              {/* Conformité NF-525 */}
+              <NF525ComplianceIndicator />
+              
               {/* Synchronisation */}
               <SyncIndicator module="pos" showDetails={false} />
               
@@ -490,30 +530,34 @@ const DirectPOSInterface: React.FC = () => {
         {/* Interface principale */}
         <div className="flex-1 p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-            <TabsList className="grid w-full grid-cols-6 mb-6">
-              <TabsTrigger value="sale" className="flex items-center gap-2">
+            <TabsList className="grid w-full grid-cols-7 mb-6 bg-white shadow-sm">
+              <TabsTrigger value="sale" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <ShoppingCart className="w-4 h-4" />
-                Caisse
+                <span className="hidden sm:inline">Caisse</span>
               </TabsTrigger>
               <TabsTrigger value="inventory" className="flex items-center gap-2">
                 <Package className="w-4 h-4" />
-                Stock
+                <span className="hidden sm:inline">Stock</span>
               </TabsTrigger>
               <TabsTrigger value="transactions" className="flex items-center gap-2">
                 <Receipt className="w-4 h-4" />
-                Transactions
+                <span className="hidden sm:inline">Transactions</span>
               </TabsTrigger>
               <TabsTrigger value="customers" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
-                Clients
+                <span className="hidden sm:inline">Clients</span>
               </TabsTrigger>
               <TabsTrigger value="reports" className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
-                Rapports
+                <span className="hidden sm:inline">Rapports</span>
+              </TabsTrigger>
+              <TabsTrigger value="performance" className="flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                <span className="hidden sm:inline">Performance</span>
               </TabsTrigger>
               <TabsTrigger value="dashboard" className="flex items-center gap-2">
                 <Monitor className="w-4 h-4" />
-                Dashboard
+                <span className="hidden sm:inline">Dashboard</span>
               </TabsTrigger>
             </TabsList>
 
@@ -526,17 +570,17 @@ const DirectPOSInterface: React.FC = () => {
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                       <Input
-                        placeholder="Rechercher un produit..."
+                        placeholder="Rechercher un produit... (F3)"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 focus:ring-2 focus:ring-primary"
                       />
                     </div>
                     <Select>
                       <SelectTrigger className="w-48">
                         <SelectValue placeholder="Toutes catégories" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white">
                         <SelectItem value="all">Toutes catégories</SelectItem>
                         <SelectItem value="ecrans">Écrans</SelectItem>
                         <SelectItem value="batteries">Batteries</SelectItem>
@@ -544,25 +588,29 @@ const DirectPOSInterface: React.FC = () => {
                         <SelectItem value="services">Services</SelectItem>
                       </SelectContent>
                     </Select>
+                    <Button variant="outline" onClick={() => handleAddProduct()}>
+                      <Search className="w-4 h-4 mr-2" />
+                      Scanner (F4)
+                    </Button>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 overflow-y-auto h-[calc(100vh-250px)]">
+                  <div className="grid grid-cols-4 gap-3 overflow-y-auto h-[calc(100vh-250px)]">
                     {filteredInventory.map((item) => (
                       <Card 
                         key={item.id} 
-                        className="cursor-pointer hover:shadow-md transition-shadow"
+                        className="cursor-pointer hover:shadow-lg hover:scale-105 transition-all duration-200 border-2 hover:border-primary/20"
                         onClick={() => addToCart(item)}
                       >
-                        <CardContent className="p-4">
+                        <CardContent className="p-3">
                           <div className="text-center">
-                            <div className="w-full h-20 bg-slate-100 rounded mb-2 flex items-center justify-center">
-                              <Package className="w-8 h-8 text-slate-400" />
+                            <div className="w-full h-16 bg-gradient-to-br from-slate-100 to-slate-200 rounded mb-2 flex items-center justify-center">
+                              <Package className="w-6 h-6 text-slate-400" />
                             </div>
-                            <h3 className="font-medium text-sm mb-1 line-clamp-2">{item.name}</h3>
-                            <p className="text-xs text-slate-500 mb-2">{item.sku}</p>
+                            <h3 className="font-medium text-xs mb-1 line-clamp-2 leading-tight">{item.name}</h3>
+                            <p className="text-xs text-slate-500 mb-2 font-mono">{item.sku}</p>
                             <div className="flex justify-between items-center">
-                              <span className="font-bold text-primary">{item.price.toFixed(2)}€</span>
-                              <Badge variant={item.stock > 5 ? "default" : "destructive"} className="text-xs">
+                              <span className="font-bold text-primary text-sm">{item.price.toFixed(2)}€</span>
+                              <Badge variant={item.stock > 5 ? "default" : item.stock > 0 ? "secondary" : "destructive"} className="text-xs">
                                 {item.stock}
                               </Badge>
                             </div>
@@ -656,18 +704,21 @@ const DirectPOSInterface: React.FC = () => {
                           <Button
                             onClick={() => processTransaction('cash')}
                             disabled={loading || !currentSession}
-                            className="bg-emerald-600 hover:bg-emerald-700"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3"
+                            size="lg"
                           >
                             <Euro className="w-4 h-4 mr-2" />
-                            Espèces
+                            Espèces (F1)
                           </Button>
                           <Button
                             onClick={() => processTransaction('card')}
                             disabled={loading || !currentSession}
                             variant="outline"
+                            className="font-semibold py-3 border-2 hover:bg-primary hover:text-primary-foreground"
+                            size="lg"
                           >
                             <CreditCard className="w-4 h-4 mr-2" />
-                            Carte
+                            Carte (F2)
                           </Button>
                         </div>
 
@@ -793,6 +844,11 @@ const DirectPOSInterface: React.FC = () => {
                   </p>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Onglet Performance */}
+            <TabsContent value="performance" className="space-y-4">
+              <POSPerformanceOptimizer />
             </TabsContent>
 
             {/* Onglet Dashboard */}
