@@ -40,6 +40,8 @@ import TransactionsManager from './TransactionsManager';
 import InventoryManager from './InventoryManager';
 import SyncManager from './SyncManager';
 import AdvancedAnalytics from './AdvancedAnalytics';
+import NotificationManager from './NotificationManager';
+import UserManagement from './UserManagement';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -301,7 +303,7 @@ const POSDashboard: React.FC = () => {
 
         {/* Tableaux de bord et analytics */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="inventory">Inventaire</TabsTrigger>
@@ -309,6 +311,8 @@ const POSDashboard: React.FC = () => {
             <TabsTrigger value="sync">Synchronisation</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="advanced">Analytics+</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="users">Utilisateurs</TabsTrigger>
             <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           </TabsList>
 
@@ -428,6 +432,14 @@ const POSDashboard: React.FC = () => {
 
           <TabsContent value="advanced">
             <AdvancedAnalytics />
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <NotificationManager />
+          </TabsContent>
+
+          <TabsContent value="users">
+            <UserManagement />
           </TabsContent>
 
           <TabsContent value="analytics">
