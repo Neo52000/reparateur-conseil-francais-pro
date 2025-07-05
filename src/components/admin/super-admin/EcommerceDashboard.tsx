@@ -38,6 +38,8 @@ import MetricsCard from './MetricsCard';
 import AdvancedTable, { TableColumn, TableAction } from './AdvancedTable';
 import ModuleManagementModal from './ModuleManagementModal';
 import TemplateManager from './TemplateManager';
+import OrdersManager from './OrdersManager';
+import InventoryManager from './InventoryManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -329,8 +331,10 @@ const EcommerceDashboard: React.FC = () => {
 
         {/* Tableaux de bord et analytics */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+            <TabsTrigger value="orders">Commandes</TabsTrigger>
+            <TabsTrigger value="inventory">Inventaire</TabsTrigger>
             <TabsTrigger value="stores">Boutiques</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -429,6 +433,14 @@ const EcommerceDashboard: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="orders">
+            <OrdersManager />
+          </TabsContent>
+
+          <TabsContent value="inventory">
+            <InventoryManager />
           </TabsContent>
 
           <TabsContent value="stores">

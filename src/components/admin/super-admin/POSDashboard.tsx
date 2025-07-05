@@ -36,6 +36,8 @@ import SuperAdminLayout from './SuperAdminLayout';
 import MetricsCard from './MetricsCard';
 import AdvancedTable, { TableColumn, TableAction } from './AdvancedTable';
 import ModuleManagementModal from './ModuleManagementModal';
+import TransactionsManager from './TransactionsManager';
+import InventoryManager from './InventoryManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -297,8 +299,10 @@ const POSDashboard: React.FC = () => {
 
         {/* Tableaux de bord et analytics */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+            <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="inventory">Inventaire</TabsTrigger>
             <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
@@ -385,6 +389,14 @@ const POSDashboard: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="transactions">
+            <TransactionsManager />
+          </TabsContent>
+
+          <TabsContent value="inventory">
+            <InventoryManager />
           </TabsContent>
 
           <TabsContent value="repairers">
