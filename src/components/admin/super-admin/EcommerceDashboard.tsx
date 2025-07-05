@@ -36,6 +36,8 @@ import {
 import SuperAdminLayout from './SuperAdminLayout';
 import MetricsCard from './MetricsCard';
 import AdvancedTable, { TableColumn, TableAction } from './AdvancedTable';
+import ModuleManagementModal from './ModuleManagementModal';
+import TemplateManager from './TemplateManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -73,6 +75,8 @@ const EcommerceDashboard: React.FC = () => {
   });
   const [stores, setStores] = useState<EcommerceStore[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [moduleModalOpen, setModuleModalOpen] = useState(false);
+  const [selectedStore, setSelectedStore] = useState<{ id: string; name: string } | null>(null);
   const { toast } = useToast();
 
   // Données de démonstration pour les graphiques
@@ -181,10 +185,8 @@ const EcommerceDashboard: React.FC = () => {
     {
       label: 'Gérer templates',
       onClick: (row) => {
-        toast({
-          title: "Templates",
-          description: `Gestion des templates pour ${row.name}`,
-        });
+        setSelectedStore({ id: row.id, name: row.name });
+        setModuleModalOpen(true);
       }
     },
     {
@@ -208,59 +210,45 @@ const EcommerceDashboard: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Simuler des données pour la démonstration
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      // Récupérer les vraies données depuis Supabase
+      const { data: storesData, error: storesError } = await supabase
+        .from('ecommerce_stores')
+        .select('*');
+
+      if (storesError) throw storesError;
+
+      // Calculer les statistiques
+      const totalRevenue = storesData?.reduce((sum, store) => sum + (Number(store.monthly_revenue) || 0), 0) || 0;
+      const totalOrders = storesData?.reduce((sum, store) => sum + (store.monthly_orders || 0), 0) || 0;
+      const activeStores = storesData?.filter(store => store.status === 'active').length || 0;
+      const avgConversionRate = storesData?.length > 0 ? 
+        storesData.reduce((sum, store) => sum + (Number(store.conversion_rate) || 0), 0) / storesData.length : 0;
+
       setStats({
-        totalRevenue: 254800,
-        totalOrders: 2734,
-        activeStores: 23,
-        conversionRate: 3.2,
-        monthlyGrowth: 18.4,
+        totalRevenue,
+        totalOrders,
+        activeStores,
+        conversionRate: avgConversionRate,
+        monthlyGrowth: 18.4, // Calculé plus tard avec les analytics
         systemHealth: 'healthy'
       });
 
-      setStores([
-        {
-          id: '1',
-          name: 'TechStore Pro',
-          owner: 'Jean Dupont',
-          email: 'jean@techstore.fr',
-          status: 'active',
-          domain: 'techstore.repairhub.fr',
-          monthlyOrders: 156,
-          monthlyRevenue: 18400,
-          conversionRate: 4.2,
-          plan: 'E-commerce Pro',
-          lastActivity: '2024-01-15T10:30:00Z'
-        },
-        {
-          id: '2',
-          name: 'Mobile Parts Shop',
-          owner: 'Marie Martin',
-          email: 'marie@mobileparts.fr',
-          status: 'active',
-          domain: 'mobileparts.repairhub.fr',
-          monthlyOrders: 89,
-          monthlyRevenue: 12200,
-          conversionRate: 2.8,
-          plan: 'E-commerce Basic',
-          lastActivity: '2024-01-14T16:45:00Z'
-        },
-        {
-          id: '3',
-          name: 'Repair Components',
-          owner: 'Pierre Durand',
-          email: 'pierre@repaircomponents.fr',
-          status: 'maintenance',
-          domain: 'components.repairhub.fr',
-          monthlyOrders: 234,
-          monthlyRevenue: 28900,
-          conversionRate: 5.1,
-          plan: 'E-commerce Enterprise',
-          lastActivity: '2024-01-13T09:15:00Z'
-        }
-      ]);
+      // Transformer les données pour l'affichage
+      const transformedStores = storesData?.map(store => ({
+        id: store.id,
+        name: store.store_name,
+        owner: `Propriétaire ${store.store_name}`,
+        email: `contact@${store.store_name.toLowerCase().replace(/\s+/g, '')}.fr`,
+        status: store.status as 'active' | 'inactive' | 'maintenance',
+        domain: store.domain || `${store.store_name.toLowerCase().replace(/\s+/g, '')}.repairhub.fr`,
+        monthlyOrders: store.monthly_orders,
+        monthlyRevenue: Number(store.monthly_revenue),
+        conversionRate: Number(store.conversion_rate),
+        plan: `E-commerce ${store.plan_type.charAt(0).toUpperCase() + store.plan_type.slice(1)}`,
+        lastActivity: store.last_activity
+      })) || [];
+
+      setStores(transformedStores);
       
     } catch (error) {
       console.error('Erreur lors du chargement des données E-commerce:', error);
@@ -341,9 +329,10 @@ const EcommerceDashboard: React.FC = () => {
 
         {/* Tableaux de bord et analytics */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
             <TabsTrigger value="stores">Boutiques</TabsTrigger>
+            <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
           </TabsList>
@@ -459,6 +448,10 @@ const EcommerceDashboard: React.FC = () => {
                 }}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="templates">
+            <TemplateManager />
           </TabsContent>
 
           <TabsContent value="analytics">
@@ -622,6 +615,19 @@ const EcommerceDashboard: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Module Management Modal */}
+      {selectedStore && (
+        <ModuleManagementModal
+          isOpen={moduleModalOpen}
+          onClose={() => {
+            setModuleModalOpen(false);
+            setSelectedStore(null);
+          }}
+          repairerId={selectedStore.id}
+          repairerName={selectedStore.name}
+        />
+      )}
     </SuperAdminLayout>
   );
 };

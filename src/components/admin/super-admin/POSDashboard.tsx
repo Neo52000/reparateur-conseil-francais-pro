@@ -35,6 +35,7 @@ import {
 import SuperAdminLayout from './SuperAdminLayout';
 import MetricsCard from './MetricsCard';
 import AdvancedTable, { TableColumn, TableAction } from './AdvancedTable';
+import ModuleManagementModal from './ModuleManagementModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -69,6 +70,8 @@ const POSDashboard: React.FC = () => {
   });
   const [repairers, setRepairers] = useState<POSRepairer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [moduleModalOpen, setModuleModalOpen] = useState(false);
+  const [selectedRepairer, setSelectedRepairer] = useState<{ id: string; name: string } | null>(null);
   const { toast } = useToast();
 
   // Données de démonstration pour les graphiques
@@ -154,10 +157,8 @@ const POSDashboard: React.FC = () => {
     {
       label: 'Gérer modules',
       onClick: (row) => {
-        toast({
-          title: "Gestion des modules",
-          description: `Gestion des modules pour ${row.name}`,
-        });
+        setSelectedRepairer({ id: row.id, name: row.name });
+        setModuleModalOpen(true);
       }
     },
     {
@@ -181,50 +182,41 @@ const POSDashboard: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Simuler des données pour la démonstration
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      // Récupérer les vraies données depuis Supabase
+      const { data: posData, error: posError } = await supabase
+        .from('pos_systems')
+        .select('*');
+
+      if (posError) throw posError;
+
+      // Calculer les statistiques
+      const totalRevenue = posData?.reduce((sum, pos) => sum + (Number(pos.monthly_revenue) || 0), 0) || 0;
+      const totalTransactions = posData?.reduce((sum, pos) => sum + (pos.total_transactions || 0), 0) || 0;
+      const activeRepairers = posData?.filter(pos => pos.status === 'active').length || 0;
+      const averageTicket = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
+
       setStats({
-        totalRevenue: 124500,
-        totalTransactions: 1289,
-        activeRepairers: 47,
-        averageTicket: 96.50,
-        monthlyGrowth: 12.5,
+        totalRevenue,
+        totalTransactions,
+        activeRepairers,
+        averageTicket,
+        monthlyGrowth: 12.5, // Calculé plus tard avec les analytics
         systemHealth: 'healthy'
       });
 
-      setRepairers([
-        {
-          id: '1',
-          name: 'TechRepairer Pro',
-          email: 'contact@techrepairer.fr',
-          status: 'active',
-          lastActivity: '2024-01-15T10:30:00Z',
-          totalTransactions: 234,
-          monthlyRevenue: 12450,
-          plan: 'POS Pro'
-        },
-        {
-          id: '2',
-          name: 'Mobile Fix Expert',
-          email: 'info@mobilefix.fr',
-          status: 'active',
-          lastActivity: '2024-01-14T16:45:00Z',
-          totalTransactions: 187,
-          monthlyRevenue: 8900,
-          plan: 'POS Basic'
-        },
-        {
-          id: '3',
-          name: 'Quick Repair Solutions',
-          email: 'contact@quickrepair.fr',
-          status: 'trial',
-          lastActivity: '2024-01-13T09:15:00Z',
-          totalTransactions: 56,
-          monthlyRevenue: 2100,
-          plan: 'POS Enterprise'
-        }
-      ]);
+      // Transformer les données pour l'affichage
+      const transformedRepairers = posData?.map(pos => ({
+        id: pos.id,
+        name: pos.system_name,
+        email: `contact@${pos.system_name.toLowerCase().replace(/\s+/g, '')}.fr`,
+        status: pos.status as 'active' | 'inactive' | 'trial',
+        lastActivity: pos.last_activity,
+        totalTransactions: pos.total_transactions,
+        monthlyRevenue: Number(pos.monthly_revenue),
+        plan: `POS ${pos.plan_type.charAt(0).toUpperCase() + pos.plan_type.slice(1)}`
+      })) || [];
+
+      setRepairers(transformedRepairers);
       
     } catch (error) {
       console.error('Erreur lors du chargement des données POS:', error);
@@ -546,6 +538,19 @@ const POSDashboard: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Module Management Modal */}
+      {selectedRepairer && (
+        <ModuleManagementModal
+          isOpen={moduleModalOpen}
+          onClose={() => {
+            setModuleModalOpen(false);
+            setSelectedRepairer(null);
+          }}
+          repairerId={selectedRepairer.id}
+          repairerName={selectedRepairer.name}
+        />
+      )}
     </SuperAdminLayout>
   );
 };

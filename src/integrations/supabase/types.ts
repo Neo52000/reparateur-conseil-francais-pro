@@ -214,6 +214,36 @@ export type Database = {
           },
         ]
       }
+      admin_analytics: {
+        Row: {
+          date: string
+          id: string
+          metric_data: Json
+          metric_type: string
+          repairer_id: string | null
+          timestamp: string
+          value: number | null
+        }
+        Insert: {
+          date?: string
+          id?: string
+          metric_data?: Json
+          metric_type: string
+          repairer_id?: string | null
+          timestamp?: string
+          value?: number | null
+        }
+        Update: {
+          date?: string
+          id?: string
+          metric_data?: Json
+          metric_type?: string
+          repairer_id?: string | null
+          timestamp?: string
+          value?: number | null
+        }
+        Relationships: []
+      }
       admin_audit_logs: {
         Row: {
           action_details: Json | null
@@ -2187,6 +2217,96 @@ export type Database = {
         }
         Relationships: []
       }
+      ecommerce_stores: {
+        Row: {
+          conversion_rate: number | null
+          created_at: string
+          domain: string | null
+          id: string
+          last_activity: string | null
+          monthly_orders: number | null
+          monthly_revenue: number | null
+          plan_type: string
+          repairer_id: string
+          status: string
+          store_name: string
+          store_settings: Json | null
+          template_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          conversion_rate?: number | null
+          created_at?: string
+          domain?: string | null
+          id?: string
+          last_activity?: string | null
+          monthly_orders?: number | null
+          monthly_revenue?: number | null
+          plan_type?: string
+          repairer_id: string
+          status?: string
+          store_name: string
+          store_settings?: Json | null
+          template_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          conversion_rate?: number | null
+          created_at?: string
+          domain?: string | null
+          id?: string
+          last_activity?: string | null
+          monthly_orders?: number | null
+          monthly_revenue?: number | null
+          plan_type?: string
+          repairer_id?: string
+          status?: string
+          store_name?: string
+          store_settings?: Json | null
+          template_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ecommerce_templates: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_premium: boolean | null
+          name: string
+          preview_image_url: string | null
+          template_data: Json
+          updated_at: string
+          usage_count: number | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name: string
+          preview_image_url?: string | null
+          template_data?: Json
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_premium?: boolean | null
+          name?: string
+          preview_image_url?: string | null
+          template_data?: Json
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       feature_flags_by_plan: {
         Row: {
           enabled: boolean
@@ -3098,6 +3218,48 @@ export type Database = {
           status?: string
           total_amount?: number
           total_transactions?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pos_systems: {
+        Row: {
+          created_at: string
+          id: string
+          last_activity: string | null
+          monthly_revenue: number | null
+          plan_type: string
+          repairer_id: string
+          settings: Json | null
+          status: string
+          system_name: string
+          total_transactions: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_activity?: string | null
+          monthly_revenue?: number | null
+          plan_type?: string
+          repairer_id: string
+          settings?: Json | null
+          status?: string
+          system_name: string
+          total_transactions?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_activity?: string | null
+          monthly_revenue?: number | null
+          plan_type?: string
+          repairer_id?: string
+          settings?: Json | null
+          status?: string
+          system_name?: string
+          total_transactions?: number | null
           updated_at?: string
         }
         Relationships: []
