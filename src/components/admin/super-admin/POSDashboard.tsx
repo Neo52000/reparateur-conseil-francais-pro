@@ -42,6 +42,10 @@ import SyncManager from './SyncManager';
 import AdvancedAnalytics from './AdvancedAnalytics';
 import NotificationManager from './NotificationManager';
 import UserManagement from './UserManagement';
+import BackupRestore from './BackupRestore';
+import SystemHealth from './SystemHealth';
+import APIManager from './APIManager';
+import AuditTrail from './AuditTrail';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
