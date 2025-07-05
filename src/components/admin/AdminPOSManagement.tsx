@@ -725,7 +725,7 @@ const AdminPOSManagement: React.FC = () => {
                       
                       {/* Résumé des moyens de paiement actuels */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {Object.entries(globalSettings.find(s => s.setting_key === 'payment_methods')?.setting_value || {}).map(([method, enabled]) => (
+                        {Object.entries((globalSettings || []).find(s => s?.setting_key === 'payment_methods')?.setting_value || {}).map(([method, enabled]) => (
                           <Card key={method}>
                             <CardContent className="p-4 flex items-center justify-between">
                               <div className="flex items-center gap-2">

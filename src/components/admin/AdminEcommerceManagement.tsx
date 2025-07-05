@@ -720,8 +720,10 @@ const AdminEcommerceManagement: React.FC = () => {
           
           {previewMode ? (
             <InteractiveEcommercePreview 
-              settings={globalSettings.reduce((acc, setting) => {
-                acc[setting.setting_key] = setting.setting_value;
+              settings={(globalSettings || []).reduce((acc, setting) => {
+                if (setting && setting.setting_key && setting.setting_value !== undefined) {
+                  acc[setting.setting_key] = setting.setting_value;
+                }
                 return acc;
               }, {} as Record<string, any>)}
               isFullscreen={fullscreenPreview}
