@@ -14,7 +14,8 @@ import {
   FileText,
   TrendingUp,
   Flag,
-  Shield
+  Shield,
+  Zap
 } from 'lucide-react';
 import RepairerList from './admin/RepairerList';
 import ScrapingDashboard from './admin/ScrapingDashboard';
@@ -22,6 +23,7 @@ import BlogAdmin from './blog/admin/BlogAdmin';
 import FeatureFlagAdmin from './admin/FeatureFlagAdmin';
 import AuditLogAdmin from './admin/AuditLogAdmin';
 import AdvancedAdvertisingDashboard from './advertising/AdvancedAdvertisingDashboard';
+import PerformanceManagement from './admin/PerformanceManagement';
 
 interface StatCardProps {
   title: string;
@@ -92,6 +94,7 @@ const AdminDashboard = () => {
     { id: 'advertising', label: 'Publicités', icon: Target },
     { id: 'blog', label: 'Blog', icon: FileText },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+    { id: 'performance', label: 'Performance', icon: Zap },
     { id: 'flags', label: 'Feature Flags', icon: Flag },
     { id: 'audit', label: 'Audit', icon: Shield }
   ];
@@ -112,7 +115,7 @@ const AdminDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-8">
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-9">
             {tabs.map((tab) => (
               <TabsTrigger key={tab.id} value={tab.id} className="col-span-1">
                 <div className="flex flex-col items-center space-y-1">
@@ -156,6 +159,11 @@ const AdminDashboard = () => {
           <TabsContent value="analytics">
             <h2 className="text-2xl font-bold mb-4">Analytics</h2>
             <div>Contenu des analytics</div>
+          </TabsContent>
+
+          <TabsContent value="performance">
+            <h2 className="text-2xl font-bold mb-4">Optimisation de Performance</h2>
+            <PerformanceManagement />
           </TabsContent>
 
           <TabsContent value="flags">

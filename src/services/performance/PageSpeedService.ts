@@ -22,8 +22,8 @@ export class PageSpeedService {
 
   async analyzeUrl(url: string): Promise<PageSpeedResult> {
     try {
-      // Appel via edge function pour sécuriser l'API key
-      const response = await fetch('/api/pagespeed-analysis', {
+      // Appel via edge function Supabase
+      const response = await fetch('/functions/v1/pagespeed-analysis', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
