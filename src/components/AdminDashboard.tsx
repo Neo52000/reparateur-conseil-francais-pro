@@ -119,16 +119,18 @@ const AdminDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-10">
-            {tabs.map((tab) => (
-              <TabsTrigger key={tab.id} value={tab.id} className="col-span-1">
-                <div className="flex flex-col items-center space-y-1">
-                  {React.createElement(tab.icon, { className: "h-5 w-5" })}
-                  <span>{tab.label}</span>
-                </div>
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="overflow-x-auto">
+            <TabsList className="flex w-max min-w-full">
+              {tabs.map((tab) => (
+                <TabsTrigger key={tab.id} value={tab.id} className="flex-shrink-0 min-w-[120px]">
+                  <div className="flex flex-col items-center space-y-1">
+                    {React.createElement(tab.icon, { className: "h-4 w-4" })}
+                    <span className="text-xs whitespace-nowrap">{tab.label}</span>
+                  </div>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
 
           <TabsContent value="dashboard">
             <h2 className="text-2xl font-bold mb-4">Tableau de bord</h2>
