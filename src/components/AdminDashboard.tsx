@@ -19,7 +19,12 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Star
+  Star,
+  MapPin,
+  Smartphone,
+  BookOpen,
+  Gauge,
+  Monitor
 } from 'lucide-react';
 import RepairerList from './admin/RepairerList';
 import ScrapingDashboard from './admin/ScrapingDashboard';
@@ -30,6 +35,8 @@ import AuditLogAdmin from './admin/AuditLogAdmin';
 import AdvancedAdvertisingDashboard from './advertising/AdvancedAdvertisingDashboard';
 import PerformanceManagement from './admin/PerformanceManagement';
 import SEOMonitoringDashboard from './admin/SEOMonitoringDashboard';
+import LocalSeoManagement from './admin/LocalSeoManagement';
+import EnhancedDocumentationManager from './admin/EnhancedDocumentationManager';
 
 interface StatCardProps {
   title: string;
@@ -101,20 +108,26 @@ const AdminDashboard = () => {
       { id: 'repairers', label: 'Réparateurs', icon: Users, priority: 'high', hasAlert: false },
       { id: 'analytics', label: 'Analytics', icon: TrendingUp, priority: 'medium', hasAlert: false }
     ],
-    marketing: [
-      { id: 'advertising', label: 'Publicités', icon: Target, priority: 'medium', hasAlert: false },
-      { id: 'blog', label: 'Blog', icon: FileText, priority: 'medium', hasAlert: false }
+    seoPerformance: [
+      { id: 'seo', label: 'SEO Monitoring', icon: Search, priority: 'high', hasAlert: true },
+      { id: 'local-seo', label: 'Local SEO', icon: MapPin, priority: 'high', hasAlert: false },
+      { id: 'pagespeed', label: 'PageSpeed Pro', icon: Gauge, priority: 'high', hasAlert: false },
+      { id: 'performance', label: 'Performance', icon: Zap, priority: 'medium', hasAlert: false }
+    ],
+    contentMarketing: [
+      { id: 'blog', label: 'Blog', icon: FileText, priority: 'medium', hasAlert: false },
+      { id: 'repair-generator', label: 'Générateur Mobile', icon: Smartphone, priority: 'medium', hasAlert: false },
+      { id: 'advertising', label: 'Publicités', icon: Target, priority: 'medium', hasAlert: false }
     ],
     technical: [
       { id: 'scraping', label: 'Scraping', icon: Globe, priority: 'medium', hasAlert: false },
-      { id: 'seo', label: 'SEO Monitoring', icon: Search, priority: 'high', hasAlert: true },
-      { id: 'performance', label: 'Performance', icon: Zap, priority: 'medium', hasAlert: false },
-      { id: 'flags', label: 'Feature Flags', icon: Flag, priority: 'low', hasAlert: false },
-      { id: 'audit', label: 'Audit', icon: Shield, priority: 'medium', hasAlert: false }
+      { id: 'audit', label: 'Audit', icon: Shield, priority: 'medium', hasAlert: false },
+      { id: 'documentation', label: 'Documentation', icon: BookOpen, priority: 'medium', hasAlert: false },
+      { id: 'flags', label: 'Feature Flags', icon: Flag, priority: 'low', hasAlert: false }
     ]
   };
 
-  const allTabs = [...tabCategories.core, ...tabCategories.marketing, ...tabCategories.technical];
+  const allTabs = [...tabCategories.core, ...tabCategories.seoPerformance, ...tabCategories.contentMarketing, ...tabCategories.technical];
 
   const scrollTabs = (direction: 'left' | 'right') => {
     const scrollContainer = document.querySelector('.tabs-scroll-container');
@@ -242,11 +255,44 @@ const AdminDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Marketing */}
+                  {/* SEO & Performance */}
                   <div className="flex flex-col gap-1">
-                    <div className="text-xs text-muted-foreground px-2">Marketing</div>
+                    <div className="text-xs text-muted-foreground px-2">SEO & Performance</div>
                     <div className="flex gap-1">
-                      {tabCategories.marketing.map((tab) => (
+                      {tabCategories.seoPerformance.map((tab) => (
+                        <div key={tab.id} className="relative">
+                          <TabsTrigger 
+                            value={tab.id} 
+                            className={`flex-shrink-0 min-w-[120px] ${tab.priority === 'high' ? 'bg-emerald-50 border-emerald-200' : ''}`}
+                          >
+                            <div className="flex flex-col items-center space-y-1">
+                              <div className="flex items-center gap-1">
+                                {React.createElement(tab.icon, { className: "h-4 w-4" })}
+                                {tab.hasAlert && <div className="w-2 h-2 bg-destructive rounded-full" />}
+                              </div>
+                              <span className="text-xs whitespace-nowrap">{tab.label}</span>
+                            </div>
+                          </TabsTrigger>
+                          {favoriteTab !== tab.id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleFavorite(tab.id)}
+                              className="absolute -top-1 -right-1 h-4 w-4 p-0 opacity-0 hover:opacity-100 transition-opacity"
+                            >
+                              <Star className="h-2 w-2" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Content & Marketing */}
+                  <div className="flex flex-col gap-1">
+                    <div className="text-xs text-muted-foreground px-2">Contenu & Marketing</div>
+                    <div className="flex gap-1">
+                      {tabCategories.contentMarketing.map((tab) => (
                         <div key={tab.id} className="relative">
                           <TabsTrigger value={tab.id} className="flex-shrink-0 min-w-[120px]">
                             <div className="flex flex-col items-center space-y-1">
@@ -339,41 +385,56 @@ const AdminDashboard = () => {
             <RepairerList />
           </TabsContent>
 
-          <TabsContent value="scraping">
-            <h2 className="text-2xl font-bold mb-4">Tableau de bord de Scraping</h2>
-            <ScrapingDashboard />
+          {/* Core Tabs */}
+          <TabsContent value="analytics">
+            <h2 className="text-2xl font-bold mb-4">Analytics</h2>
+            <div>Contenu des analytics</div>
           </TabsContent>
 
-          <TabsContent value="advertising">
-            <AdvancedAdvertisingDashboard />
-          </TabsContent>
-
-          <TabsContent value="blog">
-            <h2 className="text-2xl font-bold mb-4">Gestion du Blog</h2>
-            <Tabs defaultValue="management" className="space-y-4">
-              <TabsList>
-                <TabsTrigger value="management">Gestion classique</TabsTrigger>
-                <TabsTrigger value="repair-generator">Générateur Réparation</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="management">
-                <BlogAdmin />
-              </TabsContent>
-              
-              <TabsContent value="repair-generator">
-                <RepairContentGenerator />
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
-
+          {/* SEO & Performance Tabs */}
           <TabsContent value="seo">
             <h2 className="text-2xl font-bold mb-4">Monitoring SEO & Technique</h2>
             <SEOMonitoringDashboard />
           </TabsContent>
 
-          <TabsContent value="analytics">
-            <h2 className="text-2xl font-bold mb-4">Analytics</h2>
-            <div>Contenu des analytics</div>
+          <TabsContent value="local-seo">
+            <h2 className="text-2xl font-bold mb-4">Gestion SEO Local</h2>
+            <LocalSeoManagement />
+          </TabsContent>
+
+          <TabsContent value="pagespeed">
+            <h2 className="text-2xl font-bold mb-4">PageSpeed Pro</h2>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Monitor className="h-8 w-8 text-blue-500" />
+                  <div>
+                    <h3 className="text-lg font-semibold">Analyses PageSpeed Avancées</h3>
+                    <p className="text-muted-foreground">Monitoring des performances en temps réel</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-green-600">87</div>
+                      <div className="text-sm text-muted-foreground">Score Mobile</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-yellow-600">92</div>
+                      <div className="text-sm text-muted-foreground">Score Desktop</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4 text-center">
+                      <div className="text-2xl font-bold text-blue-600">1.2s</div>
+                      <div className="text-sm text-muted-foreground">LCP Moyen</div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="performance">
@@ -381,14 +442,40 @@ const AdminDashboard = () => {
             <PerformanceManagement />
           </TabsContent>
 
-          <TabsContent value="flags">
-            <h2 className="text-2xl font-bold mb-4">Feature Flags</h2>
-            <FeatureFlagAdmin />
+          {/* Content & Marketing Tabs */}
+          <TabsContent value="blog">
+            <h2 className="text-2xl font-bold mb-4">Gestion du Blog</h2>
+            <BlogAdmin />
+          </TabsContent>
+
+          <TabsContent value="repair-generator">
+            <h2 className="text-2xl font-bold mb-4">Générateur de Contenu Mobile</h2>
+            <RepairContentGenerator />
+          </TabsContent>
+
+          <TabsContent value="advertising">
+            <AdvancedAdvertisingDashboard />
+          </TabsContent>
+
+          {/* Technical Tabs */}
+          <TabsContent value="scraping">
+            <h2 className="text-2xl font-bold mb-4">Tableau de bord de Scraping</h2>
+            <ScrapingDashboard />
           </TabsContent>
 
           <TabsContent value="audit">
             <h2 className="text-2xl font-bold mb-4">Audit Logs</h2>
             <AuditLogAdmin />
+          </TabsContent>
+
+          <TabsContent value="documentation">
+            <h2 className="text-2xl font-bold mb-4">Gestion de la Documentation</h2>
+            <EnhancedDocumentationManager />
+          </TabsContent>
+
+          <TabsContent value="flags">
+            <h2 className="text-2xl font-bold mb-4">Feature Flags</h2>
+            <FeatureFlagAdmin />
           </TabsContent>
         </Tabs>
       </div>
