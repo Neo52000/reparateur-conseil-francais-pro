@@ -15,7 +15,8 @@ import {
   TrendingUp,
   Flag,
   Shield,
-  Zap
+  Zap,
+  Search
 } from 'lucide-react';
 import RepairerList from './admin/RepairerList';
 import ScrapingDashboard from './admin/ScrapingDashboard';
@@ -25,6 +26,7 @@ import FeatureFlagAdmin from './admin/FeatureFlagAdmin';
 import AuditLogAdmin from './admin/AuditLogAdmin';
 import AdvancedAdvertisingDashboard from './advertising/AdvancedAdvertisingDashboard';
 import PerformanceManagement from './admin/PerformanceManagement';
+import SEOMonitoringDashboard from './admin/SEOMonitoringDashboard';
 
 interface StatCardProps {
   title: string;
@@ -94,6 +96,7 @@ const AdminDashboard = () => {
     { id: 'scraping', label: 'Scraping', icon: Globe },
     { id: 'advertising', label: 'Publicités', icon: Target },
     { id: 'blog', label: 'Blog', icon: FileText },
+    { id: 'seo', label: 'SEO Monitoring', icon: Search },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
     { id: 'performance', label: 'Performance', icon: Zap },
     { id: 'flags', label: 'Feature Flags', icon: Flag },
@@ -116,7 +119,7 @@ const AdminDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-9">
+          <TabsList className="grid w-full grid-cols-4 md:grid-cols-10">
             {tabs.map((tab) => (
               <TabsTrigger key={tab.id} value={tab.id} className="col-span-1">
                 <div className="flex flex-col items-center space-y-1">
@@ -168,6 +171,11 @@ const AdminDashboard = () => {
                 <RepairContentGenerator />
               </TabsContent>
             </Tabs>
+          </TabsContent>
+
+          <TabsContent value="seo">
+            <h2 className="text-2xl font-bold mb-4">Monitoring SEO & Technique</h2>
+            <SEOMonitoringDashboard />
           </TabsContent>
 
           <TabsContent value="analytics">

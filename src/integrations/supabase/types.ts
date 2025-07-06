@@ -2877,6 +2877,42 @@ export type Database = {
         }
         Relationships: []
       }
+      monitored_urls: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          last_check: string | null
+          priority: number
+          reference_id: string | null
+          updated_at: string
+          url: string
+          url_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_check?: string | null
+          priority?: number
+          reference_id?: string | null
+          updated_at?: string
+          url: string
+          url_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          last_check?: string | null
+          priority?: number
+          reference_id?: string | null
+          updated_at?: string
+          url?: string
+          url_type?: string
+        }
+        Relationships: []
+      }
       newsletter_subscribers: {
         Row: {
           created_at: string
@@ -4695,6 +4731,102 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          details: Json
+          id: string
+          message: string
+          resolved_at: string | null
+          severity: string
+          status: string
+          url: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          details?: Json
+          id?: string
+          message: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          url: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          message?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      seo_monitoring_config: {
+        Row: {
+          alert_webhooks: Json
+          created_at: string
+          google_search_console_token: string | null
+          id: string
+          monitoring_enabled: boolean
+          performance_thresholds: Json
+          sitemap_auto_update: boolean
+          updated_at: string
+        }
+        Insert: {
+          alert_webhooks?: Json
+          created_at?: string
+          google_search_console_token?: string | null
+          id?: string
+          monitoring_enabled?: boolean
+          performance_thresholds?: Json
+          sitemap_auto_update?: boolean
+          updated_at?: string
+        }
+        Update: {
+          alert_webhooks?: Json
+          created_at?: string
+          google_search_console_token?: string | null
+          id?: string
+          monitoring_enabled?: boolean
+          performance_thresholds?: Json
+          sitemap_auto_update?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sitemap_history: {
+        Row: {
+          created_at: string
+          google_submission_status: string | null
+          id: string
+          sitemap_content: string
+          submitted_to_google: boolean
+          urls_count: number
+        }
+        Insert: {
+          created_at?: string
+          google_submission_status?: string | null
+          id?: string
+          sitemap_content: string
+          submitted_to_google?: boolean
+          urls_count: number
+        }
+        Update: {
+          created_at?: string
+          google_submission_status?: string | null
+          id?: string
+          sitemap_content?: string
+          submitted_to_google?: boolean
+          urls_count?: number
+        }
+        Relationships: []
+      }
       spare_parts: {
         Row: {
           category: string | null
@@ -4890,6 +5022,62 @@ export type Database = {
         }
         Relationships: []
       }
+      url_health_checks: {
+        Row: {
+          check_timestamp: string
+          errors: Json
+          h1_count: number | null
+          has_canonical: boolean | null
+          has_noindex: boolean | null
+          http_status: number | null
+          id: string
+          is_indexable: boolean | null
+          meta_description_length: number | null
+          meta_title_length: number | null
+          monitored_url_id: string
+          response_time_ms: number | null
+          warnings: Json
+        }
+        Insert: {
+          check_timestamp?: string
+          errors?: Json
+          h1_count?: number | null
+          has_canonical?: boolean | null
+          has_noindex?: boolean | null
+          http_status?: number | null
+          id?: string
+          is_indexable?: boolean | null
+          meta_description_length?: number | null
+          meta_title_length?: number | null
+          monitored_url_id: string
+          response_time_ms?: number | null
+          warnings?: Json
+        }
+        Update: {
+          check_timestamp?: string
+          errors?: Json
+          h1_count?: number | null
+          has_canonical?: boolean | null
+          has_noindex?: boolean | null
+          http_status?: number | null
+          id?: string
+          is_indexable?: boolean | null
+          meta_description_length?: number | null
+          meta_title_length?: number | null
+          monitored_url_id?: string
+          response_time_ms?: number | null
+          warnings?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "url_health_checks_monitored_url_id_fkey"
+            columns: ["monitored_url_id"]
+            isOneToOne: false
+            referencedRelation: "monitored_urls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_behavior_events: {
         Row: {
           created_at: string
@@ -5050,6 +5238,15 @@ export type Database = {
       }
     }
     Functions: {
+      add_url_to_monitoring: {
+        Args: {
+          url_to_monitor: string
+          url_type_param: string
+          reference_id_param?: string
+          priority_param?: number
+        }
+        Returns: string
+      }
       assign_free_plan_to_repairer: {
         Args: { user_email: string; user_id: string }
         Returns: string
