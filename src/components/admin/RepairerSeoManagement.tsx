@@ -103,20 +103,36 @@ const RepairerSeoManagement: React.FC = () => {
   const generateSeoPage = async (city: string, repairerCount: number) => {
     setGenerating(city);
     try {
-      const content = await localSeoService.generateContent({
+      console.log('🚀 Démarrage génération pour:', city);
+      
+      const createdPage = await localSeoService.generateAndCreatePage({
         city,
         serviceType: 'smartphone',
         repairerCount,
         averageRating: 4.8
       });
 
-      if (content) {
-        toast.success(`Page SEO générée pour ${city}`);
+      if (createdPage) {
+        toast.success(`Page SEO créée avec succès pour ${city}`);
         await loadSeoData(); // Recharger les données
+      } else {
+        throw new Error('La page n\'a pas pu être créée');
       }
     } catch (error) {
-      console.error('Erreur génération page SEO:', error);
-      toast.error(`Erreur lors de la génération pour ${city}`);
+      console.error('❌ Erreur génération page SEO:', error);
+      
+      let errorMessage = 'Erreur lors de la génération';
+      if (error instanceof Error) {
+        if (error.message.includes('Aucune clé API IA configurée')) {
+          errorMessage = 'Aucune clé API IA configurée (MISTRAL_API_KEY ou OPENAI_API_KEY)';
+        } else if (error.message.includes('Format de réponse invalide')) {
+          errorMessage = 'Erreur de format de l\'IA - Veuillez réessayer';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast.error(`${errorMessage} pour ${city}`);
     } finally {
       setGenerating(null);
     }

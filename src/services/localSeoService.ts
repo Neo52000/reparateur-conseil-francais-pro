@@ -231,6 +231,68 @@ class LocalSeoService {
     }
   }
 
+  // Générer et créer une page SEO complète
+  async generateAndCreatePage(params: {
+    city: string;
+    serviceType: string;
+    repairerCount: number;
+    averageRating: number;
+  }): Promise<LocalSeoPage | null> {
+    try {
+      console.log('🔄 Génération contenu SEO pour:', params.city);
+      
+      // Générer le contenu avec l'IA
+      const aiResult = await this.generateContent(params);
+      
+      if (!aiResult || !aiResult.success) {
+        throw new Error(aiResult?.error || 'Échec de la génération IA');
+      }
+
+      const content = aiResult.content;
+      console.log('✅ Contenu généré pour:', params.city);
+
+      // Créer le slug de la ville
+      const citySlug = params.city
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+      // Préparer les données de la page
+      const pageData: LocalSeoPageInsert = {
+        slug: `reparateur-${params.serviceType}-${citySlug}`,
+        city: params.city,
+        city_slug: citySlug,
+        service_type: params.serviceType,
+        title: content.title,
+        meta_description: content.metaDescription,
+        h1_title: content.h1,
+        content_paragraph_1: content.paragraph1,
+        content_paragraph_2: content.paragraph2,
+        cta_text: 'Obtenez votre devis gratuitement',
+        repairer_count: params.repairerCount,
+        average_rating: params.averageRating,
+        generated_by_ai: true,
+        ai_model: aiResult.model,
+        generation_prompt: `Génération automatique pour ${params.city}`,
+        is_published: false
+      };
+
+      // Créer la page dans la base de données
+      const createdPage = await this.createPage(pageData);
+      
+      if (createdPage) {
+        console.log('✅ Page SEO créée avec succès:', createdPage.id);
+      }
+      
+      return createdPage;
+    } catch (error) {
+      console.error('❌ Erreur génération page complète:', error);
+      throw error;
+    }
+  }
+
   // Actualiser le contenu d'une page avec l'IA
   async refreshPageContent(pageId: string): Promise<boolean> {
     try {
