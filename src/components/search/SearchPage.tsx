@@ -10,6 +10,8 @@ import EnhancedRepairersMap from './EnhancedRepairersMap';
 import { useRepairers } from '@/hooks/useRepairers';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useSeoIntegration } from '@/hooks/useSeoIntegration';
+import SeoPageIntegration from '@/components/seo/SeoPageIntegration';
 
 const SearchPage = () => {
   const [viewMode, setViewMode] = useState<'list' | 'map'>('map');
@@ -18,6 +20,12 @@ const SearchPage = () => {
   
   const { userLocation } = useGeolocation();
   const { repairers, loading, error } = useRepairers(searchFilters, userLocation);
+
+  // Intégration SEO pour suggestion automatique  
+  const { hasSeoPage, hasAccess } = useSeoIntegration({
+    city: 'Paris', // Ville par défaut pour démonstration
+    serviceType: 'smartphone'
+  });
 
   // Debug info
   React.useEffect(() => {
@@ -115,6 +123,16 @@ const SearchPage = () => {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Suggestion page SEO */}
+        {hasSeoPage && hasAccess && (
+          <div className="mb-6">
+            <SeoPageIntegration
+              city="Paris"
+              serviceType="smartphone"
+            />
+          </div>
+        )}
+        
         {viewMode === 'map' ? (
           <EnhancedRepairersMap searchFilters={searchFilters} />
         ) : (
