@@ -16,7 +16,10 @@ import {
   Flag,
   Shield,
   Zap,
-  Search
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Star
 } from 'lucide-react';
 import RepairerList from './admin/RepairerList';
 import ScrapingDashboard from './admin/ScrapingDashboard';
@@ -50,6 +53,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>(null);
+  const [favoriteTab, setFavoriteTab] = useState<string | null>(null);
+  const [tabsScrollPosition, setTabsScrollPosition] = useState(0);
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -90,18 +95,43 @@ const AdminDashboard = () => {
     }
   };
 
-  const tabs = [
-    { id: 'dashboard', label: 'Tableau de bord', icon: BarChart3 },
-    { id: 'repairers', label: 'Réparateurs', icon: Users },
-    { id: 'scraping', label: 'Scraping', icon: Globe },
-    { id: 'advertising', label: 'Publicités', icon: Target },
-    { id: 'blog', label: 'Blog', icon: FileText },
-    { id: 'seo', label: 'SEO Monitoring', icon: Search },
-    { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-    { id: 'performance', label: 'Performance', icon: Zap },
-    { id: 'flags', label: 'Feature Flags', icon: Flag },
-    { id: 'audit', label: 'Audit', icon: Shield }
-  ];
+  const tabCategories = {
+    core: [
+      { id: 'dashboard', label: 'Tableau de bord', icon: BarChart3, priority: 'high', hasAlert: false },
+      { id: 'repairers', label: 'Réparateurs', icon: Users, priority: 'high', hasAlert: false },
+      { id: 'analytics', label: 'Analytics', icon: TrendingUp, priority: 'medium', hasAlert: false }
+    ],
+    marketing: [
+      { id: 'advertising', label: 'Publicités', icon: Target, priority: 'medium', hasAlert: false },
+      { id: 'blog', label: 'Blog', icon: FileText, priority: 'medium', hasAlert: false }
+    ],
+    technical: [
+      { id: 'scraping', label: 'Scraping', icon: Globe, priority: 'medium', hasAlert: false },
+      { id: 'seo', label: 'SEO Monitoring', icon: Search, priority: 'high', hasAlert: true },
+      { id: 'performance', label: 'Performance', icon: Zap, priority: 'medium', hasAlert: false },
+      { id: 'flags', label: 'Feature Flags', icon: Flag, priority: 'low', hasAlert: false },
+      { id: 'audit', label: 'Audit', icon: Shield, priority: 'medium', hasAlert: false }
+    ]
+  };
+
+  const allTabs = [...tabCategories.core, ...tabCategories.marketing, ...tabCategories.technical];
+
+  const scrollTabs = (direction: 'left' | 'right') => {
+    const scrollContainer = document.querySelector('.tabs-scroll-container');
+    if (scrollContainer) {
+      const scrollAmount = 200;
+      const newPosition = direction === 'left' 
+        ? Math.max(0, tabsScrollPosition - scrollAmount)
+        : tabsScrollPosition + scrollAmount;
+      
+      scrollContainer.scrollTo({ left: newPosition, behavior: 'smooth' });
+      setTabsScrollPosition(newPosition);
+    }
+  };
+
+  const toggleFavorite = (tabId: string) => {
+    setFavoriteTab(favoriteTab === tabId ? null : tabId);
+  };
 
   if (loading) {
     return <div className="flex justify-center p-8">Chargement...</div>;
@@ -119,17 +149,178 @@ const AdminDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="overflow-x-auto">
-            <TabsList className="flex w-max min-w-full">
-              {tabs.map((tab) => (
-                <TabsTrigger key={tab.id} value={tab.id} className="flex-shrink-0 min-w-[120px]">
-                  <div className="flex flex-col items-center space-y-1">
-                    {React.createElement(tab.icon, { className: "h-4 w-4" })}
-                    <span className="text-xs whitespace-nowrap">{tab.label}</span>
+          {/* Navigation améliorée avec catégories */}
+          <div className="relative">
+            {/* Boutons de navigation */}
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => scrollTabs('left')}
+                className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm shadow-sm hover:bg-background"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => scrollTabs('right')}
+                className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm shadow-sm hover:bg-background"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Conteneur des onglets avec scroll */}
+            <div className="overflow-x-auto tabs-scroll-container mx-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <div className="flex gap-1">
+                {/* Onglet favori en premier si défini */}
+                {favoriteTab && (
+                  <div className="flex-shrink-0">
+                    <div className="text-xs text-muted-foreground mb-1 px-2">Favori</div>
+                    {allTabs.filter(tab => tab.id === favoriteTab).map((tab) => (
+                      <div key={`fav-${tab.id}`} className="relative">
+                        <TabsTrigger 
+                          value={tab.id} 
+                          className="flex-shrink-0 min-w-[120px] border-2 border-primary/20"
+                        >
+                          <div className="flex flex-col items-center space-y-1">
+                            <div className="flex items-center gap-1">
+                              {React.createElement(tab.icon, { className: "h-4 w-4" })}
+                              {tab.hasAlert && <div className="w-2 h-2 bg-destructive rounded-full" />}
+                            </div>
+                            <span className="text-xs whitespace-nowrap">{tab.label}</span>
+                          </div>
+                        </TabsTrigger>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleFavorite(tab.id)}
+                          className="absolute -top-1 -right-1 h-4 w-4 p-0 bg-primary text-primary-foreground hover:bg-primary/80"
+                        >
+                          <Star className="h-2 w-2 fill-current" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+                )}
+
+                <TabsList className="flex w-max bg-transparent p-0 gap-1">
+                  {/* Core - Onglets principaux */}
+                  <div className="flex flex-col gap-1">
+                    <div className="text-xs text-muted-foreground px-2">Principal</div>
+                    <div className="flex gap-1">
+                      {tabCategories.core.map((tab) => (
+                        <div key={tab.id} className="relative">
+                          <TabsTrigger 
+                            value={tab.id} 
+                            className={`flex-shrink-0 min-w-[120px] ${tab.priority === 'high' ? 'bg-primary/5' : ''}`}
+                          >
+                            <div className="flex flex-col items-center space-y-1">
+                              <div className="flex items-center gap-1">
+                                {React.createElement(tab.icon, { className: "h-4 w-4" })}
+                                {tab.hasAlert && <div className="w-2 h-2 bg-destructive rounded-full" />}
+                              </div>
+                              <span className="text-xs whitespace-nowrap">{tab.label}</span>
+                            </div>
+                          </TabsTrigger>
+                          {favoriteTab !== tab.id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleFavorite(tab.id)}
+                              className="absolute -top-1 -right-1 h-4 w-4 p-0 opacity-0 hover:opacity-100 transition-opacity"
+                            >
+                              <Star className="h-2 w-2" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Marketing */}
+                  <div className="flex flex-col gap-1">
+                    <div className="text-xs text-muted-foreground px-2">Marketing</div>
+                    <div className="flex gap-1">
+                      {tabCategories.marketing.map((tab) => (
+                        <div key={tab.id} className="relative">
+                          <TabsTrigger value={tab.id} className="flex-shrink-0 min-w-[120px]">
+                            <div className="flex flex-col items-center space-y-1">
+                              <div className="flex items-center gap-1">
+                                {React.createElement(tab.icon, { className: "h-4 w-4" })}
+                                {tab.hasAlert && <div className="w-2 h-2 bg-destructive rounded-full" />}
+                              </div>
+                              <span className="text-xs whitespace-nowrap">{tab.label}</span>
+                            </div>
+                          </TabsTrigger>
+                          {favoriteTab !== tab.id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleFavorite(tab.id)}
+                              className="absolute -top-1 -right-1 h-4 w-4 p-0 opacity-0 hover:opacity-100 transition-opacity"
+                            >
+                              <Star className="h-2 w-2" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Technique */}
+                  <div className="flex flex-col gap-1">
+                    <div className="text-xs text-muted-foreground px-2">Technique</div>
+                    <div className="flex gap-1">
+                      {tabCategories.technical.map((tab) => (
+                        <div key={tab.id} className="relative">
+                          <TabsTrigger 
+                            value={tab.id} 
+                            className={`flex-shrink-0 min-w-[120px] ${tab.priority === 'high' ? 'bg-primary/5' : ''}`}
+                          >
+                            <div className="flex flex-col items-center space-y-1">
+                              <div className="flex items-center gap-1">
+                                {React.createElement(tab.icon, { className: "h-4 w-4" })}
+                                {tab.hasAlert && <div className="w-2 h-2 bg-destructive rounded-full" />}
+                              </div>
+                              <span className="text-xs whitespace-nowrap">{tab.label}</span>
+                            </div>
+                          </TabsTrigger>
+                          {favoriteTab !== tab.id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleFavorite(tab.id)}
+                              className="absolute -top-1 -right-1 h-4 w-4 p-0 opacity-0 hover:opacity-100 transition-opacity"
+                            >
+                              <Star className="h-2 w-2" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </TabsList>
+              </div>
+            </div>
+
+            {/* Indicateur de scroll */}
+            <div className="flex justify-center mt-2">
+              <div className="flex gap-1">
+                {[...Array(Math.ceil(allTabs.length / 4))].map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-1 rounded-full transition-colors ${
+                      Math.floor(tabsScrollPosition / 200) === index ? 'bg-primary' : 'bg-muted'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
 
           <TabsContent value="dashboard">
