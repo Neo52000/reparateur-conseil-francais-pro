@@ -20,6 +20,7 @@ import {
 import RepairerList from './admin/RepairerList';
 import ScrapingDashboard from './admin/ScrapingDashboard';
 import BlogAdmin from './blog/admin/BlogAdmin';
+import RepairContentGenerator from './blog/admin/RepairContentGenerator';
 import FeatureFlagAdmin from './admin/FeatureFlagAdmin';
 import AuditLogAdmin from './admin/AuditLogAdmin';
 import AdvancedAdvertisingDashboard from './advertising/AdvancedAdvertisingDashboard';
@@ -153,7 +154,20 @@ const AdminDashboard = () => {
 
           <TabsContent value="blog">
             <h2 className="text-2xl font-bold mb-4">Gestion du Blog</h2>
-            <BlogAdmin />
+            <Tabs defaultValue="management" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="management">Gestion classique</TabsTrigger>
+                <TabsTrigger value="repair-generator">Générateur Réparation</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="management">
+                <BlogAdmin />
+              </TabsContent>
+              
+              <TabsContent value="repair-generator">
+                <RepairContentGenerator />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="analytics">
