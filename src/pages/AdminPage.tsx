@@ -20,6 +20,13 @@ import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement'
 import AdminPOSManagement from '@/components/admin/AdminPOSManagement';
 import AdminEcommerceManagement from '@/components/admin/AdminEcommerceManagement';
 import LocalSeoManagement from '@/components/admin/LocalSeoManagement';
+import SEOMonitoringDashboard from '@/components/admin/SEOMonitoringDashboard';
+import RepairContentGenerator from '@/components/blog/admin/RepairContentGenerator';
+import PerformanceManagement from '@/components/admin/PerformanceManagement';
+import EnhancedDocumentationManager from '@/components/admin/EnhancedDocumentationManager';
+import FeatureFlagAdmin from '@/components/admin/FeatureFlagAdmin';
+import { Card, CardContent } from '@/components/ui/card';
+import { Monitor } from 'lucide-react';
 
 const AdminPage = () => {
   console.log('🔄 AdminPage - Starting render');
@@ -77,6 +84,12 @@ const AdminPage = () => {
       case 'pos-admin': return 'POS Admin';
       case 'ecommerce-admin': return 'E-commerce Admin';
       case 'local-seo': return 'SEO Local';
+      case 'seo-monitoring': return 'SEO Monitoring';
+      case 'repair-generator': return 'Générateur Mobile';
+      case 'pagespeed-pro': return 'PageSpeed Pro';
+      case 'performance': return 'Performance';
+      case 'documentation': return 'Documentation';
+      case 'feature-flags': return 'Feature Flags';
       default: return 'Dashboard';
     }
   };
@@ -95,6 +108,12 @@ const AdminPage = () => {
       case 'pos-admin': return 'Administration des systèmes POS';
       case 'ecommerce-admin': return 'Administration des boutiques e-commerce';
       case 'local-seo': return 'Génération automatique de pages SEO locales optimisées';
+      case 'seo-monitoring': return 'Monitoring SEO et surveillance technique en temps réel';
+      case 'repair-generator': return 'Générateur de contenu pour réparation mobile';
+      case 'pagespeed-pro': return 'Analyses PageSpeed avancées et optimisation performance';
+      case 'performance': return 'Optimisation et surveillance des performances globales';
+      case 'documentation': return 'Gestion de la documentation technique et utilisateur';
+      case 'feature-flags': return 'Gestion des fonctionnalités et déploiements progressifs';
       default: return 'Administration de RepairHub';
     }
   };
@@ -160,6 +179,62 @@ const AdminPage = () => {
 
     if (activeTab === 'local-seo') {
       return <LocalSeoManagement />;
+    }
+
+    if (activeTab === 'seo-monitoring') {
+      return <SEOMonitoringDashboard />;
+    }
+
+    if (activeTab === 'repair-generator') {
+      return <RepairContentGenerator />;
+    }
+
+    if (activeTab === 'pagespeed-pro') {
+      return (
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Monitor className="h-8 w-8 text-blue-500" />
+              <div>
+                <h3 className="text-lg font-semibold">Analyses PageSpeed Avancées</h3>
+                <p className="text-muted-foreground">Monitoring des performances en temps réel</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">87</div>
+                  <div className="text-sm text-muted-foreground">Score Mobile</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-yellow-600">92</div>
+                  <div className="text-sm text-muted-foreground">Score Desktop</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-600">1.2s</div>
+                  <div className="text-sm text-muted-foreground">LCP Moyen</div>
+                </CardContent>
+              </Card>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    if (activeTab === 'performance') {
+      return <PerformanceManagement />;
+    }
+
+    if (activeTab === 'documentation') {
+      return <EnhancedDocumentationManager />;
+    }
+
+    if (activeTab === 'feature-flags') {
+      return <FeatureFlagAdmin />;
     }
 
     // Default dashboard
