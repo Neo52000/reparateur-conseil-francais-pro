@@ -27,6 +27,7 @@ import RepairerPlans from '@/pages/RepairerPlans';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import CookiesPolicy from '@/pages/CookiesPolicy';
+import LocalSeoPage from '@/components/LocalSeoPage';
 
 const queryClient = new QueryClient();
 
@@ -68,6 +69,9 @@ function App() {
                 {/* Blog Routes */}
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
+                
+                {/* SEO Local Routes */}
+                <Route path="/reparateur-:service-:city" element={<LocalSeoPage />} />
                 
                 {/* Legal Pages */}
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />

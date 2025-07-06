@@ -63,6 +63,31 @@ export interface LocalSeoPageInsert {
   generation_prompt?: string;
 }
 
+export interface LocalSeoPageUpdate {
+  slug?: string;
+  city?: string;
+  city_slug?: string;
+  service_type?: string;
+  title?: string;
+  meta_description?: string;
+  h1_title?: string;
+  content_paragraph_1?: string;
+  content_paragraph_2?: string;
+  cta_text?: string;
+  map_embed_url?: string;
+  repairer_count?: number;
+  average_rating?: number;
+  sample_testimonials?: any;
+  is_published?: boolean;
+  seo_score?: number;
+  page_views?: number;
+  click_through_rate?: number;
+  generated_by_ai?: boolean;
+  ai_model?: string;
+  generation_prompt?: string;
+  last_updated_content?: string;
+}
+
 export interface SeoMetrics {
   id: string;
   page_id: string;
@@ -148,7 +173,7 @@ class LocalSeoService {
   }
 
   // Mettre à jour une page SEO
-  async updatePage(id: string, updates: Partial<LocalSeoPage>): Promise<boolean> {
+  async updatePage(id: string, updates: LocalSeoPageUpdate): Promise<boolean> {
     try {
       const { error } = await supabase
         .from('local_seo_pages')
