@@ -132,7 +132,7 @@ class PerformanceOptimizerService {
 
       return {
         lcp: webVitals.lcp,
-        fid: webVitals.fid,
+        fid: webVitals.inp,
         cls: webVitals.cls,
         pageSpeedMobile: pageSpeedScores.mobile,
         pageSpeedDesktop: pageSpeedScores.desktop,
@@ -191,7 +191,7 @@ class PerformanceOptimizerService {
     }
 
     if (metrics.fid > 100) {
-      recommendations.push('Réduire le First Input Delay - utiliser des Web Workers');
+      recommendations.push('Réduire l\'Interaction to Next Paint - utiliser des Web Workers');
     }
 
     if (metrics.cls > 0.1) {

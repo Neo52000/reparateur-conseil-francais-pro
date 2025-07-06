@@ -3,11 +3,11 @@
  * Mesure LCP, FID, CLS en temps réel
  */
 
-import { getCLS, getFID, getLCP } from 'web-vitals';
+import { onCLS, onINP, onLCP } from 'web-vitals';
 
 export interface WebVitalsMetrics {
   lcp: number;
-  fid: number;
+  inp: number;
   cls: number;
   timestamp: string;
 }
@@ -15,7 +15,7 @@ export interface WebVitalsMetrics {
 export class WebVitalsTracker {
   private metrics: WebVitalsMetrics = {
     lcp: 0,
-    fid: 0,
+    inp: 0,
     cls: 0,
     timestamp: new Date().toISOString()
   };
@@ -28,20 +28,20 @@ export class WebVitalsTracker {
     this.initializeWebWorker();
 
     // Écouter les Core Web Vitals
-    getLCP((metric) => {
+    onLCP((metric) => {
       this.metrics.lcp = metric.value;
       this.metrics.timestamp = new Date().toISOString();
       this.notifyCallbacks();
       this.optimizeLCP(metric);
     });
 
-    getFID((metric) => {
-      this.metrics.fid = metric.value;
+    onINP((metric) => {
+      this.metrics.inp = metric.value;
       this.metrics.timestamp = new Date().toISOString();
       this.notifyCallbacks();
     });
 
-    getCLS((metric) => {
+    onCLS((metric) => {
       this.metrics.cls = metric.value;
       this.metrics.timestamp = new Date().toISOString();
       this.notifyCallbacks();
