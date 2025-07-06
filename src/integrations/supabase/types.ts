@@ -2608,6 +2608,182 @@ export type Database = {
           },
         ]
       }
+      local_seo_metrics: {
+        Row: {
+          average_position: number | null
+          bounce_rate: number | null
+          clicks: number | null
+          conversions: number | null
+          created_at: string
+          ctr: number | null
+          date: string
+          id: string
+          impressions: number | null
+          page_id: string
+          time_on_page: number | null
+        }
+        Insert: {
+          average_position?: number | null
+          bounce_rate?: number | null
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string
+          ctr?: number | null
+          date?: string
+          id?: string
+          impressions?: number | null
+          page_id: string
+          time_on_page?: number | null
+        }
+        Update: {
+          average_position?: number | null
+          bounce_rate?: number | null
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string
+          ctr?: number | null
+          date?: string
+          id?: string
+          impressions?: number | null
+          page_id?: string
+          time_on_page?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "local_seo_metrics_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "local_seo_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      local_seo_pages: {
+        Row: {
+          ai_model: string | null
+          average_rating: number | null
+          city: string
+          city_slug: string
+          click_through_rate: number | null
+          content_paragraph_1: string
+          content_paragraph_2: string
+          created_at: string
+          cta_text: string
+          generated_by_ai: boolean | null
+          generation_prompt: string | null
+          h1_title: string
+          id: string
+          is_published: boolean
+          last_updated_content: string | null
+          map_embed_url: string | null
+          meta_description: string
+          page_views: number | null
+          repairer_count: number | null
+          sample_testimonials: Json | null
+          seo_score: number | null
+          service_type: string
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ai_model?: string | null
+          average_rating?: number | null
+          city: string
+          city_slug: string
+          click_through_rate?: number | null
+          content_paragraph_1: string
+          content_paragraph_2: string
+          created_at?: string
+          cta_text: string
+          generated_by_ai?: boolean | null
+          generation_prompt?: string | null
+          h1_title: string
+          id?: string
+          is_published?: boolean
+          last_updated_content?: string | null
+          map_embed_url?: string | null
+          meta_description: string
+          page_views?: number | null
+          repairer_count?: number | null
+          sample_testimonials?: Json | null
+          seo_score?: number | null
+          service_type: string
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ai_model?: string | null
+          average_rating?: number | null
+          city?: string
+          city_slug?: string
+          click_through_rate?: number | null
+          content_paragraph_1?: string
+          content_paragraph_2?: string
+          created_at?: string
+          cta_text?: string
+          generated_by_ai?: boolean | null
+          generation_prompt?: string | null
+          h1_title?: string
+          id?: string
+          is_published?: boolean
+          last_updated_content?: string | null
+          map_embed_url?: string | null
+          meta_description?: string
+          page_views?: number | null
+          repairer_count?: number | null
+          sample_testimonials?: Json | null
+          seo_score?: number | null
+          service_type?: string
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      local_seo_templates: {
+        Row: {
+          content_template: string
+          created_at: string
+          cta_text: string
+          h1_template: string
+          id: string
+          is_active: boolean
+          meta_description_template: string
+          name: string
+          service_type: string
+          title_template: string
+          updated_at: string
+        }
+        Insert: {
+          content_template: string
+          created_at?: string
+          cta_text?: string
+          h1_template: string
+          id?: string
+          is_active?: boolean
+          meta_description_template: string
+          name: string
+          service_type: string
+          title_template: string
+          updated_at?: string
+        }
+        Update: {
+          content_template?: string
+          created_at?: string
+          cta_text?: string
+          h1_template?: string
+          id?: string
+          is_active?: boolean
+          meta_description_template?: string
+          name?: string
+          service_type?: string
+          title_template?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       module_data_migrations: {
         Row: {
           completed_at: string | null
@@ -4873,6 +5049,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      has_local_seo_access: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       has_module_access: {
         Args: { user_id: string; module_name: string }
         Returns: boolean
@@ -4892,6 +5072,10 @@ export type Database = {
       increment_share_count: {
         Args: { post_id: string }
         Returns: undefined
+      }
+      refresh_seo_page_content: {
+        Args: { page_id: string }
+        Returns: boolean
       }
       validate_and_use_promo_code: {
         Args: { promo_code_text: string }

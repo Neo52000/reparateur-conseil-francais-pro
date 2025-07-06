@@ -19,6 +19,7 @@ import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdver
 import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement';
 import AdminPOSManagement from '@/components/admin/AdminPOSManagement';
 import AdminEcommerceManagement from '@/components/admin/AdminEcommerceManagement';
+import LocalSeoManagement from '@/components/admin/LocalSeoManagement';
 
 const AdminPage = () => {
   console.log('🔄 AdminPage - Starting render');
@@ -75,6 +76,7 @@ const AdminPage = () => {
       case 'chatbot': return 'Chatbot IA';
       case 'pos-admin': return 'POS Admin';
       case 'ecommerce-admin': return 'E-commerce Admin';
+      case 'local-seo': return 'SEO Local';
       default: return 'Dashboard';
     }
   };
@@ -92,6 +94,7 @@ const AdminPage = () => {
       case 'chatbot': return 'Administration et configuration de l\'assistant intelligent';
       case 'pos-admin': return 'Administration des systèmes POS';
       case 'ecommerce-admin': return 'Administration des boutiques e-commerce';
+      case 'local-seo': return 'Génération automatique de pages SEO locales optimisées';
       default: return 'Administration de RepairHub';
     }
   };
@@ -153,6 +156,10 @@ const AdminPage = () => {
 
     if (activeTab === 'ecommerce-admin') {
       return <AdminEcommerceManagement />;
+    }
+
+    if (activeTab === 'local-seo') {
+      return <LocalSeoManagement />;
     }
 
     // Default dashboard
