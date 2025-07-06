@@ -321,6 +321,18 @@ class LocalSeoService {
     }
   }
 
+  // Générer le sitemap XML
+  async generateSitemap(): Promise<string> {
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-seo-sitemap');
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Erreur génération sitemap:', error);
+      throw error;
+    }
+  }
+
   // Obtenir les statistiques globales
   async getGlobalStats(): Promise<{
     totalPages: number;

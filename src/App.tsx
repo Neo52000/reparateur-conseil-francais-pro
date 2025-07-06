@@ -28,6 +28,7 @@ import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import CookiesPolicy from '@/pages/CookiesPolicy';
 import LocalSeoPage from '@/components/LocalSeoPage';
+import SeoSitemap from '@/components/seo/SeoSitemap';
 
 const queryClient = new QueryClient();
 
@@ -70,9 +71,12 @@ function App() {
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
                 
-                {/* SEO Local Routes */}
-                <Route path="/reparateur-:service-:city" element={<LocalSeoPage />} />
-                
+      {/* SEO Local Routes */}
+      <Route path="/reparateur-:service-:city" element={<LocalSeoPage />} />
+      
+      {/* Sitemap SEO */}
+      <Route path="/sitemap-seo.xml" element={<SeoSitemap />} />
+      
                 {/* Legal Pages */}
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfService />} />

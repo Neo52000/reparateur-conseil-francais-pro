@@ -17,6 +17,7 @@ import {
   Zap
 } from 'lucide-react';
 import { localSeoService, LocalSeoPage as LocalSeoPageType } from '@/services/localSeoService';
+import { generateStructuredData, generateMetaTags } from '@/utils/seoUtils';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
@@ -78,37 +79,40 @@ const LocalSeoPage = () => {
     return `https://www.google.com/maps/embed/v1/search?key=YOUR_API_KEY&q=${query}&zoom=12`;
   };
 
+  const currentUrl = `${window.location.origin}/${page.slug}`;
+  const structuredData = generateStructuredData({ page, url: currentUrl });
+  const metaTags = generateMetaTags(page, currentUrl);
+
   return (
     <>
       <Helmet>
-        <title>{page.title}</title>
-        <meta name="description" content={page.meta_description} />
-        <meta property="og:title" content={page.title} />
-        <meta property="og:description" content={page.meta_description} />
-        <meta property="og:type" content="website" />
-        <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content={page.title} />
-        <meta name="twitter:description" content={page.meta_description} />
+        <title>{metaTags.title}</title>
+        <meta name="description" content={metaTags.description} />
+        <meta name="keywords" content={metaTags.keywords} />
+        <meta name="author" content={metaTags.author} />
+        <meta name="robots" content={metaTags.robots} />
         
-        {/* Schema.org JSON-LD */}
+        {/* Canonical URL */}
+        <link rel="canonical" href={metaTags.canonical} />
+        
+        {/* Open Graph */}
+        <meta property="og:type" content={metaTags.og.type} />
+        <meta property="og:title" content={metaTags.og.title} />
+        <meta property="og:description" content={metaTags.og.description} />
+        <meta property="og:url" content={metaTags.og.url} />
+        <meta property="og:site_name" content={metaTags.og.siteName} />
+        <meta property="og:locale" content={metaTags.og.locale} />
+        <meta property="og:image" content={metaTags.og.image} />
+        
+        {/* Twitter Cards */}
+        <meta name="twitter:card" content={metaTags.twitter.card} />
+        <meta name="twitter:title" content={metaTags.twitter.title} />
+        <meta name="twitter:description" content={metaTags.twitter.description} />
+        <meta name="twitter:image" content={metaTags.twitter.image} />
+        
+        {/* Structured Data */}
         <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "LocalBusiness",
-            "name": `Réparation ${serviceTypeLabels[page.service_type as keyof typeof serviceTypeLabels]} ${page.city}`,
-            "description": page.meta_description,
-            "address": {
-              "@type": "PostalAddress",
-              "addressLocality": page.city,
-              "addressCountry": "FR"
-            },
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": page.average_rating,
-              "reviewCount": page.repairer_count * 5
-            },
-            "url": `${window.location.origin}/${page.slug}`
-          })}
+          {JSON.stringify(structuredData)}
         </script>
       </Helmet>
 

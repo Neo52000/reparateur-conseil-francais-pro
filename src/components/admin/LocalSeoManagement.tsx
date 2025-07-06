@@ -177,6 +177,105 @@ const LocalSeoManagement = () => {
     }
   };
 
+  const handleGenerateAllCities = async () => {
+    if (!confirm(`Générer des pages SEO pour ${suggestedCities.length} villes ? Cette opération peut prendre plusieurs minutes.`)) return;
+    
+    setIsGenerating(true);
+    let successCount = 0;
+    
+    try {
+      for (const city of suggestedCities.slice(0, 20)) { // Limiter à 20 villes max par batch
+        try {
+          await handleGenerateContent(city.city);
+          successCount++;
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Pause entre les requêtes
+        } catch (error) {
+          console.error(`Erreur génération ${city.city}:`, error);
+        }
+      }
+      
+      toast({
+        title: "Génération terminée",
+        description: `${successCount} pages SEO générées avec succès`,
+      });
+      
+      // Actualiser les données
+      await initializeData();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la génération en masse",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateSitemap = async () => {
+    try {
+      const publishedPages = pages.filter(p => p.is_published);
+      const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${publishedPages.map(page => `  <url>
+    <loc>${window.location.origin}/${page.slug}</loc>
+    <lastmod>${new Date(page.updated_at).toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`).join('\n')}
+</urlset>`;
+      
+      const blob = new Blob([sitemap], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'seo-local-sitemap.xml';
+      a.click();
+      
+      toast({
+        title: "Sitemap généré",
+        description: `Sitemap avec ${publishedPages.length} pages SEO téléchargé`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le sitemap",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleOptimizeAllPages = async () => {
+    setIsGenerating(true);
+    let optimizedCount = 0;
+    
+    try {
+      for (const page of pages.filter(p => p.is_published)) {
+        try {
+          await localSeoService.refreshPageContent(page.id);
+          optimizedCount++;
+        } catch (error) {
+          console.error(`Erreur optimisation ${page.city}:`, error);
+        }
+      }
+      
+      toast({
+        title: "Optimisation terminée",
+        description: `${optimizedCount} pages optimisées`,
+      });
+      
+      await initializeData();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de l'optimisation",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const filteredPages = pages.filter(page => 
     page.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
     page.service_type.toLowerCase().includes(searchTerm.toLowerCase())
@@ -449,15 +548,115 @@ const LocalSeoManagement = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="analytics">
+        <TabsContent value="analytics" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Performances par ville */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Top 10 des villes performantes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {pages
+                    .filter(p => p.is_published)
+                    .sort((a, b) => b.page_views - a.page_views)
+                    .slice(0, 10)
+                    .map((page, index) => (
+                      <div key={page.id} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-mono text-muted-foreground">
+                            #{index + 1}
+                          </span>
+                          <span className="font-medium">{page.city}</span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm">
+                          <span>{page.page_views} vues</span>
+                          <span className="text-muted-foreground">{page.click_through_rate}% CTR</span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Performances par service */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  Performances par service
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {Object.entries(
+                    pages.reduce((acc, page) => {
+                      const service = page.service_type;
+                      if (!acc[service]) {
+                        acc[service] = { views: 0, pages: 0, ctr: 0 };
+                      }
+                      acc[service].views += page.page_views;
+                      acc[service].pages += 1;
+                      acc[service].ctr += page.click_through_rate;
+                      return acc;
+                    }, {} as Record<string, {views: number, pages: number, ctr: number}>)
+                  ).map(([service, stats]) => (
+                    <div key={service} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="capitalize">{service}</Badge>
+                        <span className="text-sm text-muted-foreground">({stats.pages} pages)</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm">
+                        <span>{stats.views.toLocaleString()} vues</span>
+                        <span className="text-muted-foreground">
+                          {(stats.ctr / stats.pages).toFixed(1)}% CTR
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Actions rapides */}
           <Card>
             <CardHeader>
-              <CardTitle>Analytics SEO Local</CardTitle>
+              <CardTitle>Actions rapides</CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Analytics détaillées disponibles prochainement...
-              </p>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex flex-col gap-2"
+                  onClick={() => handleGenerateAllCities()}
+                  disabled={isGenerating}
+                >
+                  <Sparkles className="w-6 h-6" />
+                  <span>Générer toutes les villes</span>
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex flex-col gap-2"
+                  onClick={() => handleGenerateSitemap()}
+                >
+                  <Globe className="w-6 h-6" />
+                  <span>Générer sitemap</span>
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  className="h-20 flex flex-col gap-2"
+                  onClick={() => handleOptimizeAllPages()}
+                >
+                  <TrendingUp className="w-6 h-6" />
+                  <span>Optimiser toutes les pages</span>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
