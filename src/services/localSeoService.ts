@@ -42,6 +42,27 @@ export interface LocalSeoTemplate {
   updated_at: string;
 }
 
+export interface LocalSeoPageInsert {
+  slug: string;
+  city: string;
+  city_slug: string;
+  service_type: string;
+  title: string;
+  meta_description: string;
+  h1_title: string;
+  content_paragraph_1: string;
+  content_paragraph_2: string;
+  cta_text: string;
+  map_embed_url?: string;
+  repairer_count?: number;
+  average_rating?: number;
+  sample_testimonials?: any;
+  is_published?: boolean;
+  generated_by_ai?: boolean;
+  ai_model?: string;
+  generation_prompt?: string;
+}
+
 export interface SeoMetrics {
   id: string;
   page_id: string;
@@ -110,7 +131,7 @@ class LocalSeoService {
   }
 
   // Créer une nouvelle page SEO
-  async createPage(pageData: Partial<LocalSeoPage>): Promise<LocalSeoPage | null> {
+  async createPage(pageData: LocalSeoPageInsert): Promise<LocalSeoPage | null> {
     try {
       const { data, error } = await supabase
         .from('local_seo_pages')
@@ -241,12 +262,18 @@ class LocalSeoService {
   // Enregistrer une vue de page
   async trackPageView(pageId: string): Promise<void> {
     try {
+      // Récupérer d'abord la valeur actuelle
+      const { data: currentPage } = await supabase
+        .from('local_seo_pages')
+        .select('page_views')
+        .eq('id', pageId)
+        .single();
+
       // Incrémenter le compteur de vues
+      const newViewCount = (currentPage?.page_views || 0) + 1;
       const { error } = await supabase
         .from('local_seo_pages')
-        .update({ 
-          page_views: supabase.rpc('increment', { value: 1 })
-        })
+        .update({ page_views: newViewCount })
         .eq('id', pageId);
 
       if (error) throw error;
