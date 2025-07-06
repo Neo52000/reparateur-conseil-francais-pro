@@ -29,9 +29,10 @@ interface RepairersTableProps {
   repairers: RepairerData[];
   onViewProfile: (repairerId: string) => void;
   onRefresh: () => void;
+  onSeoOptimize?: () => void;
 }
 
-const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfile, onRefresh }) => {
+const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfile, onRefresh, onSeoOptimize }) => {
   const [loading, setLoading] = useState<string | null>(null);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -72,6 +73,7 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
         <RepairersTableHeader 
           onAddRepairer={() => setAddModalOpen(true)}
           onRefresh={onRefresh}
+          onSeoOptimize={onSeoOptimize}
         />
         <CardContent>
           {selectedIds.length > 0 && (

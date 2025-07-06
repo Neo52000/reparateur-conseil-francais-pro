@@ -5,6 +5,7 @@ import RepairersTable from './RepairersTable';
 import SubscriptionsTable from './SubscriptionsTable';
 import PromoCodesManagement from '../PromoCodesManagement';
 import CategoriesManagement from '../catalog/CategoriesManagement';
+import RepairerSeoManagement from '../admin/RepairerSeoManagement';
 
 interface RepairerData {
   id: string;
@@ -49,12 +50,19 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
   onViewProfile,
   onRefresh
 }) => {
+  const [activeTab, setActiveTab] = React.useState('repairers');
+
+  const handleSeoOptimize = () => {
+    setActiveTab('seo-local');
+  };
+
   return (
-    <Tabs defaultValue="repairers" className="space-y-6">
-      <TabsList className="grid w-full grid-cols-4">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <TabsList className="grid w-full grid-cols-5">
         <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
         <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
         <TabsTrigger value="categories">Catégories</TabsTrigger>
+        <TabsTrigger value="seo-local">SEO Local</TabsTrigger>
         <TabsTrigger value="promocodes">Codes Promo</TabsTrigger>
       </TabsList>
 
@@ -63,6 +71,7 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
           repairers={repairers} 
           onViewProfile={onViewProfile}
           onRefresh={onRefresh}
+          onSeoOptimize={handleSeoOptimize}
         />
       </TabsContent>
 
@@ -75,6 +84,10 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
 
       <TabsContent value="categories">
         <CategoriesManagement />
+      </TabsContent>
+
+      <TabsContent value="seo-local">
+        <RepairerSeoManagement />
       </TabsContent>
 
       <TabsContent value="promocodes">
