@@ -367,8 +367,21 @@ export const useFeatureManagement = () => {
 
   // Synchronisation temps réel
   useEffect(() => {
-    if (!user?.id || demoModeEnabled) return;
+    console.log('🔄 useFeatureManagement - Real-time setup:', { 
+      hasUser: !!user?.id, 
+      userId: user?.id,
+      demoModeEnabled 
+    });
+    
+    if (!user?.id || demoModeEnabled) {
+      console.log('⏸️ useFeatureManagement - Real-time disabled:', { 
+        reason: !user?.id ? 'no_user' : 'demo_mode' 
+      });
+      return;
+    }
 
+    console.log('🎯 useFeatureManagement - Setting up real-time listeners');
+    
     // Écouter les changements sur les tables subscription_plans et module_pricing
     const plansChannel = supabase
       .channel('subscription_plans_changes')
@@ -376,26 +389,32 @@ export const useFeatureManagement = () => {
         event: '*',
         schema: 'public',
         table: 'subscription_plans'
-      }, () => {
+      }, (payload) => {
+        console.log('🔄 Real-time change on subscription_plans:', payload);
         loadPlanConfigs();
       })
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'module_pricing'
-      }, () => {
+      }, (payload) => {
+        console.log('🔄 Real-time change on module_pricing:', payload);
         loadModuleConfigs();
       })
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'plan_features'
-      }, () => {
+      }, (payload) => {
+        console.log('🔄 Real-time change on plan_features:', payload);
         loadPlanFeatureMatrix();
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Real-time subscription status:', status);
+      });
 
     return () => {
+      console.log('🛑 useFeatureManagement - Cleaning up real-time listeners');
       supabase.removeChannel(plansChannel);
     };
   }, [user?.id, demoModeEnabled]);
