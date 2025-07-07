@@ -40,6 +40,7 @@ const RepairerSeoManagement: React.FC = () => {
     averageCTR: 0
   });
   const [generating, setGenerating] = useState<string | null>(null);
+  const [testingConnection, setTestingConnection] = useState(false);
 
   useEffect(() => {
     loadSeoData();
@@ -100,13 +101,59 @@ const RepairerSeoManagement: React.FC = () => {
     }
   };
 
+  const testApiConnection = async () => {
+    setTestingConnection(true);
+    try {
+      console.log('🔄 Test de connexion à l\'API IA...');
+      
+      const testResult = await localSeoService.generateContent({
+        city: 'Paris',
+        serviceType: 'smartphone',
+        repairerCount: 5,
+        averageRating: 4.8
+      });
+      
+      console.log('✅ Test réussi:', testResult);
+      toast.success('Connexion à l\'API IA fonctionnelle !');
+    } catch (error) {
+      console.error('❌ Test échoué:', error);
+      
+      let errorMessage = 'Erreur de connexion à l\'API IA';
+      if (error instanceof Error) {
+        if (error.message.includes('Aucune clé API IA configurée')) {
+          errorMessage = 'Aucune clé API IA configurée (MISTRAL_API_KEY ou OPENAI_API_KEY)';
+        } else if (error.message.includes('401') || error.message.includes('unauthorized')) {
+          errorMessage = 'Clé API IA invalide ou expirée';
+        } else if (error.message.includes('429')) {
+          errorMessage = 'Limite de requêtes dépassée - Réessayez plus tard';
+        } else if (error.message.includes('fetch')) {
+          errorMessage = 'Problème de connexion réseau';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      toast.error(`Test échoué: ${errorMessage}`);
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
   const generateSeoPage = async (city: string, repairerCount: number) => {
     setGenerating(city);
     try {
+      // Validation des données d'entrée
+      if (!city || city.trim().length === 0) {
+        throw new Error('Le nom de la ville est requis');
+      }
+      if (repairerCount < 1) {
+        throw new Error('Au moins un réparateur doit être présent dans la ville');
+      }
+      
       console.log('🚀 Démarrage génération pour:', city);
       
       const createdPage = await localSeoService.generateAndCreatePage({
-        city,
+        city: city.trim(),
         serviceType: 'smartphone',
         repairerCount,
         averageRating: 4.8
@@ -127,6 +174,12 @@ const RepairerSeoManagement: React.FC = () => {
           errorMessage = 'Aucune clé API IA configurée (MISTRAL_API_KEY ou OPENAI_API_KEY)';
         } else if (error.message.includes('Format de réponse invalide')) {
           errorMessage = 'Erreur de format de l\'IA - Veuillez réessayer';
+        } else if (error.message.includes('401') || error.message.includes('unauthorized')) {
+          errorMessage = 'Clé API IA invalide ou expirée';
+        } else if (error.message.includes('429')) {
+          errorMessage = 'Limite de requêtes dépassée - Réessayez plus tard';
+        } else if (error.message.includes('fetch')) {
+          errorMessage = 'Problème de connexion réseau - Vérifiez votre connexion';
         } else {
           errorMessage = error.message;
         }
@@ -231,10 +284,25 @@ const RepairerSeoManagement: React.FC = () => {
                 Gérez les pages SEO locales pour chaque ville avec des réparateurs
               </p>
             </div>
-            <Button onClick={loadSeoData} variant="outline" size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Actualiser
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={testApiConnection} 
+                variant="outline" 
+                size="sm"
+                disabled={testingConnection}
+              >
+                {testingConnection ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="h-4 w-4 mr-2" />
+                )}
+                Test API IA
+              </Button>
+              <Button onClick={loadSeoData} variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Actualiser
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

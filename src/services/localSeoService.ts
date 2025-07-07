@@ -219,14 +219,44 @@ class LocalSeoService {
     regenerate?: boolean;
   }): Promise<any> {
     try {
+      console.log('🔄 Appel à la fonction edge generate-local-seo-content avec params:', params);
+      
       const { data, error } = await supabase.functions.invoke('generate-local-seo-content', {
         body: params
       });
 
-      if (error) throw error;
+      console.log('📤 Réponse de la fonction edge:', { data, error });
+
+      if (error) {
+        console.error('❌ Erreur de la fonction edge:', error);
+        throw new Error(`Erreur fonction edge: ${error.message || JSON.stringify(error)}`);
+      }
+
+      if (!data) {
+        throw new Error('Aucune donnée retournée par la fonction edge');
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Échec de la génération IA');
+      }
+
       return data;
     } catch (error) {
-      console.error('Erreur génération contenu IA:', error);
+      console.error('❌ Erreur génération contenu IA:', error);
+      
+      // Améliorer les messages d'erreur
+      if (error instanceof Error) {
+        if (error.message.includes('fetch')) {
+          throw new Error('Erreur de connexion à l\'API IA - Vérifiez votre connexion internet');
+        }
+        if (error.message.includes('401') || error.message.includes('unauthorized')) {
+          throw new Error('Aucune clé API IA configurée (MISTRAL_API_KEY ou OPENAI_API_KEY)');
+        }
+        if (error.message.includes('429')) {
+          throw new Error('Limite de requêtes dépassée - Veuillez réessayer dans quelques minutes');
+        }
+      }
+      
       throw error;
     }
   }
