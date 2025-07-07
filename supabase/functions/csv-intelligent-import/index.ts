@@ -30,12 +30,46 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    const body = await req.json();
+    
+    // Mode 1: Import rapide avec données fournies
+    if (body.providedData) {
+      console.log('🚀 Mode import rapide avec données pré-formatées');
+      
+      const { providedData, categoryId, enableAI = true, enableGeocoding = true } = body;
+      
+      const transformedData = await transformProvidedData(
+        providedData, 
+        { enableAI, enableGeocoding, categoryId }
+      );
+      
+      const insertedCount = await insertToDatabase(supabase, transformedData, categoryId);
+      
+      return new Response(JSON.stringify({
+        success: true,
+        imported: insertedCount,
+        processed: providedData.length,
+        geocoded: transformedData.filter(d => d.lat && d.lng).length,
+        aiEnhanced: transformedData.filter(d => d.ai_enhanced).length,
+        stats: {
+          provided: providedData.length,
+          transformed: transformedData.length,
+          inserted: insertedCount
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Mode 2: Import classique avec fichier CSV
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const mappingsStr = formData.get('mappings') as string;
     const categoryId = formData.get('categoryId') as string;
     const enableAI = formData.get('enableAI') === 'true';
     const enableGeocoding = formData.get('enableGeocoding') === 'true';
+    const separator = formData.get('separator') as string || 'auto';
+    const encoding = formData.get('encoding') as string || 'utf-8';
 
     if (!file || !mappingsStr) {
       throw new Error('Fichier CSV et mappings requis');
@@ -44,9 +78,12 @@ serve(async (req) => {
     const mappings: ColumnMapping[] = JSON.parse(mappingsStr);
     console.log('🗺️ Mappings reçus:', mappings);
 
-    // Lire et parser le CSV
-    const csvText = await file.text();
-    const csvRows = parseCSV(csvText);
+    // Lire et parser le CSV avec détection intelligente
+    const arrayBuffer = await file.arrayBuffer();
+    const decoder = new TextDecoder(encoding);
+    const csvText = decoder.decode(arrayBuffer);
+    
+    const csvRows = parseCSVIntelligent(csvText, separator);
     console.log(`📊 ${csvRows.length} lignes CSV trouvées`);
 
     // Transformation intelligente des données
@@ -86,15 +123,40 @@ serve(async (req) => {
   }
 });
 
-function parseCSV(csvText: string): CSVRow[] {
+// Fonction de détection intelligente des séparateurs
+function detectSeparator(text: string): string {
+  const firstLine = text.split('\n')[0];
+  const separators = ['\t', ';', ','];
+  
+  let bestSeparator = ',';
+  let maxColumns = 0;
+  
+  for (const sep of separators) {
+    const columns = firstLine.split(sep).length;
+    if (columns > maxColumns) {
+      maxColumns = columns;
+      bestSeparator = sep;
+    }
+  }
+  
+  return bestSeparator;
+}
+
+function parseCSVIntelligent(csvText: string, separatorHint?: string): CSVRow[] {
   const lines = csvText.split('\n').filter(line => line.trim());
   if (lines.length < 2) return [];
 
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+  // Détecter le séparateur si pas spécifié ou en mode auto
+  const separator = (separatorHint === 'auto' || !separatorHint) ? 
+    detectSeparator(csvText) : separatorHint;
+  
+  console.log('🔍 Séparateur détecté/utilisé:', separator);
+
+  const headers = lines[0].split(separator).map(h => h.trim().replace(/['"]/g, ''));
   const rows: CSVRow[] = [];
 
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+    const values = lines[i].split(separator).map(v => v.trim().replace(/['"]/g, ''));
     const row: CSVRow = {};
     
     headers.forEach((header, index) => {
@@ -105,6 +167,57 @@ function parseCSV(csvText: string): CSVRow[] {
   }
 
   return rows;
+}
+
+function parseCSV(csvText: string): CSVRow[] {
+  return parseCSVIntelligent(csvText);
+}
+
+// Nouvelle fonction pour traiter les données fournies directement
+async function transformProvidedData(
+  providedData: any[],
+  options: { enableAI: boolean; enableGeocoding: boolean; categoryId: string }
+): Promise<any[]> {
+  console.log('🔄 Transformation des données fournies...');
+  
+  const transformed: any[] = [];
+  
+  for (const item of providedData) {
+    let dbRow: any = {
+      ...item,
+      business_category_id: options.categoryId,
+      source: 'quick_import',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_verified: true,
+      rating: 4.5,
+      review_count: 0
+    };
+
+    // Amélioration IA si activée
+    if (options.enableAI) {
+      dbRow = await enhanceWithAI(dbRow);
+    }
+
+    // Géocodage si activé et pas de coordonnées
+    if (options.enableGeocoding && (!dbRow.lat || !dbRow.lng)) {
+      const geoData = await geocodeAddress(dbRow);
+      if (geoData.lat && geoData.lng) {
+        dbRow.lat = geoData.lat;
+        dbRow.lng = geoData.lng;
+        dbRow.geocoded = true;
+      }
+    }
+
+    // Génération d'un ID unique et calcul qualité
+    dbRow.unique_id = generateUniqueId(dbRow.name);
+    dbRow.data_quality_score = calculateQualityScore(dbRow);
+    
+    transformed.push(dbRow);
+  }
+
+  console.log(`✨ ${transformed.length} données transformées avec succès`);
+  return transformed;
 }
 
 async function transformDataIntelligently(
@@ -127,7 +240,20 @@ async function transformDataIntelligently(
     // Mapper les colonnes selon la configuration
     for (const mapping of mappings) {
       if (mapping.csvColumn && csvRow[mapping.csvColumn]) {
-        dbRow[mapping.dbColumn] = cleanValue(csvRow[mapping.csvColumn], mapping.dbColumn);
+        const value = csvRow[mapping.csvColumn];
+        
+        // Gestion des transformations spéciales
+        if (mapping.transform === 'split_postal_city' && value) {
+          const postalMatch = value.match(/^(\d{5})\s*(.+)$/);
+          if (postalMatch) {
+            dbRow.postal_code = postalMatch[1];
+            dbRow.city = postalMatch[2].trim();
+          } else {
+            dbRow[mapping.dbColumn] = cleanValue(value, mapping.dbColumn);
+          }
+        } else {
+          dbRow[mapping.dbColumn] = cleanValue(value, mapping.dbColumn);
+        }
       }
     }
 
