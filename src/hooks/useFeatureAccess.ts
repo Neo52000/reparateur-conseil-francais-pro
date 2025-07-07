@@ -40,30 +40,20 @@ export const useFeatureAccess = () => {
 
         // Récupérer les fonctionnalités disponibles pour ce plan
         const { data: features, error: featuresError } = await supabase
-          .from('plan_features')
-          .select(`
-            feature_key,
-            enabled,
-            feature_limit,
-            available_features (
-              feature_key,
-              feature_name,
-              category
-            )
-          `)
-          .eq('plan_name', planName)
-          .eq('enabled', true);
+          .from('feature_flags_by_plan')
+          .select('feature_key, enabled')
+          .eq('plan_name', planName);
 
         if (featuresError) {
           console.error('Error loading plan features:', featuresError);
         } else {
-          const featuresMap = features.reduce((acc, feature) => {
+          const featuresMap = features?.reduce((acc, feature) => {
             acc[feature.feature_key] = {
               enabled: feature.enabled,
-              limit: feature.feature_limit
+              limit: undefined // feature_flags_by_plan doesn't have limits
             };
             return acc;
-          }, {} as Record<string, { enabled: boolean; limit?: number }>);
+          }, {} as Record<string, { enabled: boolean; limit?: number }>) || {};
 
           setPlanFeatures(featuresMap);
         }
