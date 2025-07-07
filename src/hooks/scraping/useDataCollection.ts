@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorHandler, withErrorHandling } from '@/utils/errorHandling';
-import { useApiWithFallback } from './useApiWithFallback';
+import { apiManager } from '@/services/scraping/ApiManager';
 
 interface BusinessCategory {
   id: string;
@@ -15,7 +15,6 @@ interface BusinessCategory {
 export const useDataCollection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { callApiWithFallback } = useApiWithFallback();
   const [results, setResults] = useState<any[]>([]);
   const [integrating, setIntegrating] = useState(false);
   const [showRedirection, setShowRedirection] = useState(false);
@@ -98,76 +97,56 @@ export const useDataCollection = () => {
   const handleUnifiedScraping = async (category: BusinessCategory, location: string) => {
     try {
       const searchTerm = category.search_keywords[0] || category.name;
-      console.log('🚀 [DEBUG] Démarrage Unified Scraping avec:', { 
-        searchTerm, 
-        location, 
-        categoryId: category.id,
-        categoryName: category.name,
-        keywords: category.search_keywords 
-      });
+      console.log('🚀 [FALLBACK] Démarrage avec système de fallback');
       
-      // Vérification préalable de la catégorie
-      if (!category.id) {
-        throw new Error('Catégorie invalide : ID manquant');
-      }
-      
-      console.log('📡 [DEBUG] Appel edge function unified-scraping...');
-      const { data, error } = await supabase.functions.invoke('unified-scraping', {
-        body: {
+      const result = await apiManager.callWithFallback(async (apiId: string) => {
+        const requestBody = {
           searchTerm: searchTerm,
           location: location || 'France',
-          sources: ['serper', 'multi_ai'], // Simplifier pour le debug
-          maxResults: 20, // Réduire pour debug
+          sources: apiId === 'unified-scraping' ? ['serper', 'multi_ai'] : [],
+          maxResults: 20,
           enableAI: true,
           enableGeocoding: true,
           categoryId: category.id,
-          previewMode: true // Mode preview pour afficher les résultats avant intégration
-        }
-      });
-
-      console.log('📥 [DEBUG] Réponse edge function:', { data, error });
-
-      if (error) {
-        console.error('❌ [DEBUG] Erreur détaillée Unified Scraping:', {
-          error,
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
+          previewMode: true
+        };
+        
+        const { data, error } = await supabase.functions.invoke(apiId, {
+          body: requestBody
         });
-        throw new Error(`Erreur scraping: ${error.message || 'Erreur inconnue'}`);
-      }
-      
-      if (!data) {
-        throw new Error('Aucune donnée retournée par l\'edge function');
-      }
-      
-      console.log('✅ [DEBUG] Unified Scraping terminé:', {
-        success: data.success,
-        stats: data.stats,
-        resultsCount: data.results?.length || 0
+        
+        if (error) throw error;
+        return data;
       });
-      
+
+      if (!result.success) {
+        throw new Error(result.error || 'Toutes les APIs ont échoué');
+      }
+
+      const data = result.data;
       const stats = data.stats || {};
       const results = data.results || [];
       setResults(results);
       
+      if (result.apiUsed !== 'unified-scraping') {
+        toast({
+          title: "Fallback utilisé",
+          description: `Basculement automatique vers ${result.apiUsed}`,
+          variant: "default"
+        });
+      }
+      
       toast({
         title: "Collecte réussie",
-        description: `${stats.totalFound || 0} résultats trouvés et ${stats.totalProcessed || 0} traités. ${results.length} résultats disponibles pour intégration.`
+        description: `${stats.totalFound || 0} résultats trouvés avec ${result.apiUsed}`
       });
       
       return results;
     } catch (error: any) {
-      console.error('💥 [DEBUG] Erreur complète Unified Scraping:', {
-        error,
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
+      console.error('💥 Erreur scraping avec fallback:', error);
       toast({
-        title: "Erreur Scraping Unifié",
-        description: `Détail: ${error.message}. Consultez la console pour plus d'infos.`,
+        title: "Erreur Scraping",
+        description: error.message,
         variant: "destructive"
       });
       throw error;
