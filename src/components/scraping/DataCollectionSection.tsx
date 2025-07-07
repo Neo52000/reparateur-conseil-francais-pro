@@ -7,6 +7,7 @@ import { useDataCollection } from '@/hooks/scraping/useDataCollection';
 import MultiAICollectionTab from './collection-methods/MultiAICollectionTab';
 import SerperCollectionTab from './collection-methods/SerperCollectionTab';
 import UnifiedScrapingTab from './collection-methods/UnifiedScrapingTab';
+import ApifyCollectionTab from './collection-methods/ApifyCollectionTab';
 import ScrapingProgressViewer from './ScrapingProgressViewer';
 import ResultsPreviewTable from './ResultsPreviewTable';
 import RedirectionCountdown from './RedirectionCountdown';
@@ -130,10 +131,14 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
 
       {/* Méthodes de collecte */}
       <Tabs value={activeCollectionTab} onValueChange={setActiveCollectionTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="unified" className="flex items-center space-x-2">
             <Globe className="h-4 w-4" />
             <span>Scraping Unifié</span>
+          </TabsTrigger>
+          <TabsTrigger value="apify" className="flex items-center space-x-2">
+            <Brain className="h-4 w-4" />
+            <span>Apify Premium</span>
           </TabsTrigger>
           <TabsTrigger value="multi-ai" className="flex items-center space-x-2">
             <Brain className="h-4 w-4" />
@@ -150,6 +155,14 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
             category={category}
             isLoading={isLoading}
             onStartScraping={handleUnified}
+          />
+        </TabsContent>
+
+        <TabsContent value="apify" className="space-y-4">
+          <ApifyCollectionTab
+            category={category}
+            isLoading={isLoading}
+            onLoadingChange={onLoadingChange}
           />
         </TabsContent>
 
