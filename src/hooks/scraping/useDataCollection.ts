@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorHandler, withErrorHandling } from '@/utils/errorHandling';
+import { useApiWithFallback } from './useApiWithFallback';
 
 interface BusinessCategory {
   id: string;
@@ -14,6 +15,7 @@ interface BusinessCategory {
 export const useDataCollection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { callApiWithFallback } = useApiWithFallback();
   const [results, setResults] = useState<any[]>([]);
   const [integrating, setIntegrating] = useState(false);
   const [showRedirection, setShowRedirection] = useState(false);
