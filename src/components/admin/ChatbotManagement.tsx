@@ -141,6 +141,23 @@ const ChatbotManagement = () => {
     }
   };
 
+  const deleteTrainingData = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('chatbot_training_data')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Données d\'entraînement supprimées');
+      loadData();
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
   const updateConfig = async (key: string, value: any) => {
     try {
       await supabase
@@ -428,7 +445,11 @@ const ChatbotManagement = () => {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => deleteTrainingData(item.id)}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
