@@ -6,6 +6,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { useAuth } from '@/hooks/useAuth';
 import { subscriptionService } from '@/services/subscriptionService';
 import { useToast } from '@/hooks/use-toast';
+import { useFeatureManagement } from '@/hooks/useFeatureManagement';
 
 // Nouveaux composants
 import HeroSection from '@/components/subscription/HeroSection';
@@ -49,7 +50,6 @@ const SubscriptionPlans = ({
   userEmail, 
   showBackButton = false 
 }: SubscriptionPlansProps) => {
-  const [plans, setPlans] = useState<Plan[]>([]);
   const [isYearly, setIsYearly] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<string>('free');
@@ -57,68 +57,36 @@ const SubscriptionPlans = ({
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  // Utiliser le hook avec synchronisation temps réel
+  const { planConfigs, planFeatureMatrix, loading: featureLoading } = useFeatureManagement();
 
   const effectiveUserEmail = userEmail || user?.email || 'demo@example.com';
 
+  // Convertir les planConfigs en format Plan
+  const plans: Plan[] = planConfigs.map((config) => {
+    const planFeatures = planFeatureMatrix.filter(
+      item => item.planAccess[config.planName] === true
+    );
+    
+    return {
+      id: config.planName,
+      name: config.planName,
+      price_monthly: config.planPriceMonthly,
+      price_yearly: config.planPriceYearly,
+      features: Object.keys(config.features).filter(key => config.features[key]),
+      enabledFeatures: planFeatures.map(pf => ({
+        feature_key: pf.feature.featureKey,
+        feature_name: pf.feature.featureName,
+        category: pf.feature.category,
+        description: pf.feature.description
+      }))
+    };
+  });
+
   useEffect(() => {
-    fetchPlans();
     fetchCurrentSubscription();
   }, []);
-
-  const fetchPlans = async () => {
-    try {
-      // Récupérer les plans
-      const { data: plansData, error: plansError } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .order('price_monthly', { ascending: true });
-
-      if (plansError) throw plansError;
-
-      // Récupérer les fonctionnalités par plan
-      const { data: planFeaturesData, error: featuresError } = await supabase
-        .from('plan_features')
-        .select(`
-          plan_name,
-          feature_key,
-          enabled,
-          available_features (
-            feature_key,
-            feature_name,
-            category,
-            description
-          )
-        `)
-        .eq('enabled', true);
-
-      if (featuresError) throw featuresError;
-
-      // Grouper les fonctionnalités par plan
-      const featuresByPlan = planFeaturesData.reduce((acc, pf) => {
-        if (!acc[pf.plan_name]) acc[pf.plan_name] = [];
-        acc[pf.plan_name].push({
-          feature_key: pf.feature_key,
-          feature_name: pf.available_features.feature_name,
-          category: pf.available_features.category,
-          description: pf.available_features.description
-        });
-        return acc;
-      }, {} as Record<string, any[]>);
-
-      const convertedPlans: Plan[] = plansData.map((plan: SubscriptionPlan) => ({
-        id: plan.id,
-        name: plan.name,
-        price_monthly: plan.price_monthly,
-        price_yearly: plan.price_yearly,
-        features: Array.isArray(plan.features) ? plan.features as string[] : [],
-        enabledFeatures: featuresByPlan[plan.name] || []
-      }));
-      
-      setPlans(convertedPlans);
-    } catch (error) {
-      console.error('Error fetching plans:', error);
-    }
-  };
 
   const fetchCurrentSubscription = async () => {
     const result = await subscriptionService.getUserSubscription(effectiveUserEmail);
@@ -218,13 +186,13 @@ const SubscriptionPlans = ({
             onToggle={setIsYearly}
           />
 
-          <PlansGrid
-            plans={plans}
-            isYearly={isYearly}
-            currentPlan={currentPlan}
-            loading={loading}
-            onSubscribe={handleSubscribe}
-          />
+           <PlansGrid
+             plans={plans}
+             isYearly={isYearly}
+             currentPlan={currentPlan}
+             loading={loading || featureLoading}
+             onSubscribe={handleSubscribe}
+           />
 
           <PlansFooter />
         </div>
