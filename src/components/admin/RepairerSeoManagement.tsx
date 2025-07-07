@@ -41,6 +41,7 @@ const RepairerSeoManagement: React.FC = () => {
   });
   const [generating, setGenerating] = useState<string | null>(null);
   const [testingConnection, setTestingConnection] = useState(false);
+  const [fixingEncoding, setFixingEncoding] = useState(false);
 
   useEffect(() => {
     loadSeoData();
@@ -213,6 +214,61 @@ const RepairerSeoManagement: React.FC = () => {
     }
   };
 
+  const fixEncodingIssues = async () => {
+    setFixingEncoding(true);
+    try {
+      console.log('🔧 Correction des problèmes d\'encodage...');
+      
+      const { data: repairers } = await supabase
+        .from('repairers')
+        .select('id, name, city, address');
+
+      let fixedCount = 0;
+      
+      if (repairers) {
+        for (const repairer of repairers) {
+          // Check for encoding issues (diamond characters)
+          const hasEncodingIssue = 
+            (repairer.name && repairer.name.includes('�')) ||
+            (repairer.city && repairer.city.includes('�')) ||
+            (repairer.address && repairer.address.includes('�'));
+          
+          if (hasEncodingIssue) {
+            console.log('🔧 Correction pour:', repairer.name);
+            
+            // Apply basic encoding fixes (replace � with common French characters)
+            const fixedName = repairer.name?.replace(/�/g, 'é') || repairer.name;
+            const fixedCity = repairer.city?.replace(/�/g, 'é') || repairer.city;
+            const fixedAddress = repairer.address?.replace(/�/g, 'é') || repairer.address;
+            
+            await supabase
+              .from('repairers')
+              .update({
+                name: fixedName,
+                city: fixedCity,
+                address: fixedAddress
+              })
+              .eq('id', repairer.id);
+            
+            fixedCount++;
+          }
+        }
+      }
+      
+      if (fixedCount > 0) {
+        toast.success(`${fixedCount} réparateur(s) corrigé(s)`);
+        await loadSeoData();
+      } else {
+        toast.success('Aucun problème d\'encodage détecté');
+      }
+    } catch (error) {
+      console.error('Erreur correction encodage:', error);
+      toast.error('Erreur lors de la correction des caractères');
+    } finally {
+      setFixingEncoding(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -290,13 +346,28 @@ const RepairerSeoManagement: React.FC = () => {
                 variant="outline" 
                 size="sm"
                 disabled={testingConnection}
+                className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 hover:from-green-100 hover:to-emerald-100"
               >
                 {testingConnection ? (
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
-                  <Zap className="h-4 w-4 mr-2" />
+                  <Zap className="h-4 w-4 mr-2 text-green-600" />
                 )}
-                Test API IA
+                <span className="text-green-700">Test API IA</span>
+              </Button>
+              <Button
+                onClick={fixEncodingIssues}
+                variant="outline"
+                size="sm"
+                disabled={fixingEncoding}
+                className="bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200 hover:from-orange-100 hover:to-amber-100"
+              >
+                {fixingEncoding ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 mr-2 text-orange-600" />
+                )}
+                <span className="text-orange-700">Corriger Encodage</span>
               </Button>
               <Button onClick={loadSeoData} variant="outline" size="sm">
                 <RefreshCw className="h-4 w-4 mr-2" />
