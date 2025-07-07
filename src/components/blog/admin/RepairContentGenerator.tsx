@@ -133,8 +133,46 @@ const RepairContentGenerator: React.FC = () => {
     }
   };
 
-  const initializeTemplates = () => {
-    const defaultTemplates: RepairTemplate[] = [
+  const initializeTemplates = async () => {
+    try {
+      // Charger les templates depuis la base de données
+      const { data: dbTemplates, error } = await supabase
+        .from('repair_content_templates')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('Erreur chargement templates DB:', error);
+        // Fallback sur les templates par défaut
+        setTemplates(getDefaultTemplates());
+        return;
+      }
+
+      // Convertir les templates DB au format attendu
+      const convertedTemplates: RepairTemplate[] = (dbTemplates || []).map(template => ({
+        id: template.id,
+        name: template.name,
+        description: `Template ${template.category} pour ${template.device_type || 'tout appareil'}`,
+        prompt: template.content_template,
+        targetAudience: 'both' as const,
+        category: template.category,
+        variables: Object.keys(template.variables || {})
+      }));
+
+      // Ajouter les templates par défaut si la DB est vide
+      if (convertedTemplates.length === 0) {
+        setTemplates(getDefaultTemplates());
+      } else {
+        setTemplates([...convertedTemplates, ...getDefaultTemplates()]);
+      }
+    } catch (error) {
+      console.error('Erreur initialisation templates:', error);
+      setTemplates(getDefaultTemplates());
+    }
+  };
+
+  const getDefaultTemplates = (): RepairTemplate[] => {
+    return [
       {
         id: 'guide-local',
         name: 'Guide Réparation Local',
@@ -169,8 +207,6 @@ const RepairContentGenerator: React.FC = () => {
         variables: ['city', 'deviceType', 'repairerCount', 'averagePrice']
       }
     ];
-
-    setTemplates(defaultTemplates);
   };
 
   const generateContent = async () => {

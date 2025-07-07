@@ -237,7 +237,9 @@ class LocalSeoService {
       }
 
       if (!data.success) {
-        throw new Error(data.error || 'Échec de la génération IA');
+        const errorMsg = data.error || 'Échec de la génération IA';
+        const errorDetails = data.details ? ` - ${data.details}` : '';
+        throw new Error(`${errorMsg}${errorDetails}`);
       }
 
       return data;

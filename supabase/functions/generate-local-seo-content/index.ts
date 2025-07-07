@@ -162,10 +162,30 @@ FORMAT ATTENDU:
     });
 
   } catch (error) {
-    console.error('Erreur génération SEO:', error);
+    console.error('❌ Erreur génération SEO:', error);
+    
+    let errorMessage = 'Erreur de génération de contenu';
+    let errorDetails = error.message;
+    
+    if (error.message.includes('fetch')) {
+      errorMessage = 'Erreur de connexion à l\'API IA';
+      errorDetails = 'Vérifiez votre connexion internet et les clés API configurées';
+    } else if (error.message.includes('401') || error.message.includes('unauthorized')) {
+      errorMessage = 'Clés API IA non configurées ou invalides';
+      errorDetails = 'Configurez MISTRAL_API_KEY ou OPENAI_API_KEY dans les secrets Supabase';
+    } else if (error.message.includes('429')) {
+      errorMessage = 'Limite de requêtes dépassée';
+      errorDetails = 'Trop de requêtes, réessayez dans quelques minutes';
+    } else if (error.message.includes('JSON')) {
+      errorMessage = 'Format de réponse IA invalide';
+      errorDetails = 'L\'IA n\'a pas retourné un format JSON valide, réessayez';
+    }
+    
     return new Response(JSON.stringify({ 
       success: false, 
-      error: error.message 
+      error: errorMessage,
+      details: errorDetails,
+      timestamp: new Date().toISOString()
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

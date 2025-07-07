@@ -3951,6 +3951,48 @@ export type Database = {
         }
         Relationships: []
       }
+      repair_content_templates: {
+        Row: {
+          category: string
+          content_template: string
+          created_at: string | null
+          created_by: string | null
+          device_type: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          repair_type: string | null
+          updated_at: string | null
+          variables: Json | null
+        }
+        Insert: {
+          category?: string
+          content_template: string
+          created_at?: string | null
+          created_by?: string | null
+          device_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          repair_type?: string | null
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Update: {
+          category?: string
+          content_template?: string
+          created_at?: string | null
+          created_by?: string | null
+          device_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          repair_type?: string | null
+          updated_at?: string | null
+          variables?: Json | null
+        }
+        Relationships: []
+      }
       repair_prices: {
         Row: {
           created_at: string
@@ -5256,6 +5298,13 @@ export type Database = {
           repairer_record: Database["public"]["Tables"]["repairers"]["Row"]
         }
         Returns: number
+      }
+      fix_encoding_issues: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          fixed_count: number
+          details: Json
+        }[]
       }
       generate_order_number: {
         Args: { repairer_id: string }

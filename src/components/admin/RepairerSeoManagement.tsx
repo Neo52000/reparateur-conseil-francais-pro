@@ -217,46 +217,19 @@ const RepairerSeoManagement: React.FC = () => {
   const fixEncodingIssues = async () => {
     setFixingEncoding(true);
     try {
-      console.log('🔧 Correction des problèmes d\'encodage...');
+      console.log('🔧 Correction des problèmes d\'encodage avec la fonction DB...');
       
-      const { data: repairers } = await supabase
-        .from('repairers')
-        .select('id, name, city, address');
-
-      let fixedCount = 0;
+      // Utiliser la fonction de base de données pour corriger l'encodage
+      const { data, error } = await supabase.rpc('fix_encoding_issues');
       
-      if (repairers) {
-        for (const repairer of repairers) {
-          // Check for encoding issues (diamond characters)
-          const hasEncodingIssue = 
-            (repairer.name && repairer.name.includes('�')) ||
-            (repairer.city && repairer.city.includes('�')) ||
-            (repairer.address && repairer.address.includes('�'));
-          
-          if (hasEncodingIssue) {
-            console.log('🔧 Correction pour:', repairer.name);
-            
-            // Apply basic encoding fixes (replace � with common French characters)
-            const fixedName = repairer.name?.replace(/�/g, 'é') || repairer.name;
-            const fixedCity = repairer.city?.replace(/�/g, 'é') || repairer.city;
-            const fixedAddress = repairer.address?.replace(/�/g, 'é') || repairer.address;
-            
-            await supabase
-              .from('repairers')
-              .update({
-                name: fixedName,
-                city: fixedCity,
-                address: fixedAddress
-              })
-              .eq('id', repairer.id);
-            
-            fixedCount++;
-          }
-        }
+      if (error) {
+        throw error;
       }
       
-      if (fixedCount > 0) {
-        toast.success(`${fixedCount} réparateur(s) corrigé(s)`);
+      const result = data[0];
+      if (result.fixed_count > 0) {
+        toast.success(`${result.fixed_count} réparateur(s) corrigé(s) pour l'encodage`);
+        console.log('🔧 Détails des corrections:', result.details);
         await loadSeoData();
       } else {
         toast.success('Aucun problème d\'encodage détecté');
