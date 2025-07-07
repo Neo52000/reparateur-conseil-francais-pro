@@ -11,175 +11,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const { prompt, ai_model = 'perplexity' } = await req.json();
-
-    if (!prompt) {
-      console.error('❌ Prompt requis');
-      return new Response(JSON.stringify({ 
-        error: 'Prompt requis',
-        success: false 
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log(`🔍 Fetching mobile news with ${ai_model}...`);
-
-    // Vérifier la disponibilité des clés API
-    const availableAPIs = {
-      perplexity: !!perplexityApiKey,
-      openai: !!openAIApiKey,
-      mistral: !!mistralApiKey
-    };
-
-    console.log('🔑 Available APIs:', availableAPIs);
-
-    // Si l'IA demandée n'est pas disponible, proposer une alternative
-    if (!availableAPIs[ai_model as keyof typeof availableAPIs]) {
-      const fallbackAI = Object.entries(availableAPIs).find(([_, available]) => available)?.[0];
-      if (!fallbackAI) {
-        return new Response(JSON.stringify({ 
-          error: 'Aucune clé API configurée. Veuillez configurer au moins une clé API (Perplexity, OpenAI ou Mistral) dans les secrets Supabase.',
-          success: false 
-        }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      console.log(`⚠️ ${ai_model} not available, falling back to ${fallbackAI}`);
-    }
-
-    let rawContent = '';
-    let usedModel = ai_model;
-    
-    // Essayer avec l'IA demandée, puis fallback sur les autres
-    try {
-      if (ai_model === 'perplexity' && perplexityApiKey) {
-        rawContent = await fetchWithPerplexity(prompt);
-      } else if (ai_model === 'openai' && openAIApiKey) {
-        rawContent = await fetchWithOpenAI(prompt);
-      } else if (ai_model === 'mistral' && mistralApiKey) {
-        rawContent = await fetchWithMistral(prompt);
-      } else {
-        // Fallback sur la première IA disponible
-        if (perplexityApiKey) {
-          rawContent = await fetchWithPerplexity(prompt);
-          usedModel = 'perplexity';
-        } else if (openAIApiKey) {
-          rawContent = await fetchWithOpenAI(prompt);
-          usedModel = 'openai';
-        } else if (mistralApiKey) {
-          rawContent = await fetchWithMistral(prompt);
-          usedModel = 'mistral';
-        } else {
-          throw new Error('Aucune clé API configurée');
-        }
-      }
-    } catch (apiError) {
-      console.error(`❌ Error with ${ai_model}:`, apiError);
-      
-      // Essayer avec une autre IA en cas d'échec
-      const alternatives = Object.entries(availableAPIs)
-        .filter(([key, available]) => key !== ai_model && available)
-        .map(([key]) => key);
-
-      if (alternatives.length > 0) {
-        console.log(`🔄 Trying fallback with ${alternatives[0]}...`);
-        try {
-          if (alternatives[0] === 'perplexity') {
-            rawContent = await fetchWithPerplexity(prompt);
-            usedModel = 'perplexity';
-          } else if (alternatives[0] === 'openai') {
-            rawContent = await fetchWithOpenAI(prompt);
-            usedModel = 'openai';
-          } else if (alternatives[0] === 'mistral') {
-            rawContent = await fetchWithMistral(prompt);
-            usedModel = 'mistral';
-          }
-        } catch (fallbackError) {
-          console.error(`❌ Fallback also failed:`, fallbackError);
-          throw apiError; // Throw original error
-        }
-      } else {
-        throw apiError;
-      }
-    }
-
-    console.log('📄 Raw AI response:', rawContent);
-
-    // Essayer de parser le JSON depuis la réponse
-    let newsData = { news: [] };
-    try {
-      // Chercher le JSON dans la réponse
-      const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        newsData = JSON.parse(jsonMatch[0]);
-      } else {
-        // Si pas de JSON trouvé, créer une structure basique
-        newsData = {
-          news: [{
-            title: "Actualités mobiles récupérées",
-            summary: rawContent,
-            date: new Date().toLocaleDateString('fr-FR'),
-            source: usedModel.charAt(0).toUpperCase() + usedModel.slice(1) + ' AI'
-          }]
-        };
-      }
-    } catch (parseError) {
-      console.error('❌ JSON parsing error:', parseError);
-      // En cas d'erreur de parsing, utiliser le contenu brut
-      newsData = {
-        news: [{
-          title: "Actualités mobiles du jour",
-          summary: rawContent,
-          date: new Date().toLocaleDateString('fr-FR'),
-          source: usedModel.charAt(0).toUpperCase() + usedModel.slice(1) + ' AI'
-        }]
-      };
-    }
-
-    console.log('✅ News fetched successfully:', newsData.news.length, 'items');
-
-    return new Response(JSON.stringify({ 
-      success: true,
-      news: newsData.news,
-      ai_model: usedModel,
-      message: `${newsData.news.length} actualités récupérées avec succès via ${usedModel}`
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
-  } catch (error) {
-    console.error('❌ Error in fetch-mobile-news function:', error);
-    
-    // Messages d'erreur plus spécifiques
-    let errorMessage = error.message || 'Erreur interne du serveur';
-    if (error.message?.includes('429')) {
-      errorMessage = 'Quota API dépassé. Essayez avec une autre IA ou attendez quelques minutes.';
-    } else if (error.message?.includes('401')) {
-      errorMessage = 'Clé API invalide ou non configurée. Vérifiez la configuration dans les secrets Supabase.';
-    } else if (error.message?.includes('insufficient_quota')) {
-      errorMessage = 'Quota API dépassé. Vérifiez votre plan ou essayez avec une autre IA.';
-    }
-    
-    return new Response(JSON.stringify({ 
-      error: errorMessage,
-      success: false 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
-
+// AI Functions
 async function fetchWithPerplexity(prompt: string): Promise<string> {
   if (!perplexityApiKey) {
     throw new Error('Clé API Perplexity non configurée');
@@ -350,3 +182,193 @@ async function fetchWithMistral(prompt: string): Promise<string> {
   const data = await response.json();
   return data.choices[0].message.content;
 }
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { prompt, ai_model = 'perplexity' } = await req.json();
+
+    if (!prompt) {
+      console.error('❌ Prompt requis');
+      return new Response(JSON.stringify({ 
+        error: 'Prompt requis',
+        success: false 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`🔍 Fetching mobile news with ${ai_model}...`);
+
+    // Vérifier la disponibilité des clés API
+    const availableAPIs = {
+      perplexity: !!perplexityApiKey,
+      openai: !!openAIApiKey,
+      mistral: !!mistralApiKey
+    };
+
+    console.log('🔑 Available APIs:', availableAPIs);
+
+    // Si l'IA demandée n'est pas disponible, proposer une alternative
+    if (!availableAPIs[ai_model as keyof typeof availableAPIs]) {
+      const fallbackAI = Object.entries(availableAPIs).find(([_, available]) => available)?.[0];
+      if (!fallbackAI) {
+        return new Response(JSON.stringify({ 
+          error: 'Aucune clé API configurée. Veuillez configurer au moins une clé API (Perplexity, OpenAI ou Mistral) dans les secrets Supabase.',
+          success: false 
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      console.log(`⚠️ ${ai_model} not available, falling back to ${fallbackAI}`);
+    }
+
+    let rawContent = '';
+    let usedModel = ai_model;
+    
+    // Essayer avec l'IA demandée, puis fallback sur les autres
+    try {
+      if (ai_model === 'perplexity' && perplexityApiKey) {
+        rawContent = await fetchWithPerplexity(prompt);
+      } else if (ai_model === 'openai' && openAIApiKey) {
+        rawContent = await fetchWithOpenAI(prompt);
+      } else if (ai_model === 'mistral' && mistralApiKey) {
+        rawContent = await fetchWithMistral(prompt);
+      } else {
+        // Fallback sur la première IA disponible
+        if (perplexityApiKey) {
+          rawContent = await fetchWithPerplexity(prompt);
+          usedModel = 'perplexity';
+        } else if (openAIApiKey) {
+          rawContent = await fetchWithOpenAI(prompt);
+          usedModel = 'openai';
+        } else if (mistralApiKey) {
+          rawContent = await fetchWithMistral(prompt);
+          usedModel = 'mistral';
+        } else {
+          throw new Error('Aucune clé API configurée');
+        }
+      }
+    } catch (apiError) {
+      console.error(`❌ Error with ${ai_model}:`, apiError);
+      
+      // Essayer avec une autre IA en cas d'échec
+      const alternatives = Object.entries(availableAPIs)
+        .filter(([key, available]) => key !== ai_model && available)
+        .map(([key]) => key);
+
+      if (alternatives.length > 0) {
+        console.log(`🔄 Trying fallback with ${alternatives[0]}...`);
+        try {
+          if (alternatives[0] === 'perplexity') {
+            rawContent = await fetchWithPerplexity(prompt);
+            usedModel = 'perplexity';
+          } else if (alternatives[0] === 'openai') {
+            rawContent = await fetchWithOpenAI(prompt);
+            usedModel = 'openai';
+          } else if (alternatives[0] === 'mistral') {
+            rawContent = await fetchWithMistral(prompt);
+            usedModel = 'mistral';
+          }
+        } catch (fallbackError) {
+          console.error(`❌ Fallback also failed:`, fallbackError);
+          throw apiError; // Throw original error
+        }
+      } else {
+        throw apiError;
+      }
+    }
+
+    console.log('📄 Raw AI response:', rawContent);
+
+    // Essayer de parser le JSON depuis la réponse
+    let newsData = { news: [] };
+    try {
+      // Essayer d'abord de parser directement le JSON
+      newsData = JSON.parse(rawContent);
+      
+      // Vérifier que la structure est correcte
+      if (!newsData.news || !Array.isArray(newsData.news)) {
+        throw new Error('Invalid news structure');
+      }
+    } catch (parseError) {
+      console.log('❌ Direct JSON parsing failed, trying to extract JSON:', parseError);
+      
+      try {
+        // Chercher le JSON dans la réponse
+        const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          newsData = JSON.parse(jsonMatch[0]);
+          
+          // Vérifier que la structure est correcte
+          if (!newsData.news || !Array.isArray(newsData.news)) {
+            throw new Error('Invalid news structure');
+          }
+        } else {
+          throw new Error('No JSON found in response');
+        }
+      } catch (secondParseError) {
+        console.error('❌ JSON parsing completely failed:', secondParseError);
+        // En cas d'erreur de parsing, utiliser le contenu brut
+        newsData = {
+          news: [{
+            title: "Actualités mobiles récupérées",
+            summary: rawContent.substring(0, 1000) + (rawContent.length > 1000 ? '...' : ''),
+            date: new Date().toLocaleDateString('fr-FR'),
+            source: usedModel.charAt(0).toUpperCase() + usedModel.slice(1) + ' AI'
+          }]
+        };
+      }
+    }
+
+    // S'assurer qu'on a au moins une actualité
+    if (!newsData.news || newsData.news.length === 0) {
+      newsData = {
+        news: [{
+          title: "Actualités mobiles du jour",
+          summary: "Aucune actualité spécifique récupérée, veuillez réessayer plus tard.",
+          date: new Date().toLocaleDateString('fr-FR'),
+          source: usedModel.charAt(0).toUpperCase() + usedModel.slice(1) + ' AI'
+        }]
+      };
+    }
+
+    console.log('✅ News fetched successfully:', newsData.news.length, 'items');
+
+    return new Response(JSON.stringify({ 
+      success: true,
+      news: newsData.news,
+      ai_model: usedModel,
+      message: `${newsData.news.length} actualités récupérées avec succès via ${usedModel}`
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    console.error('❌ Error in fetch-mobile-news function:', error);
+    
+    // Messages d'erreur plus spécifiques
+    let errorMessage = error.message || 'Erreur interne du serveur';
+    if (error.message?.includes('429')) {
+      errorMessage = 'Quota API dépassé. Essayez avec une autre IA ou attendez quelques minutes.';
+    } else if (error.message?.includes('401')) {
+      errorMessage = 'Clé API invalide ou non configurée. Vérifiez la configuration dans les secrets Supabase.';
+    } else if (error.message?.includes('insufficient_quota')) {
+      errorMessage = 'Quota API dépassé. Vérifiez votre plan ou essayez avec une autre IA.';
+    }
+    
+    return new Response(JSON.stringify({ 
+      error: errorMessage,
+      success: false 
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});

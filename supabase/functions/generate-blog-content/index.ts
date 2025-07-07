@@ -16,6 +16,188 @@ const corsHeaders = {
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// Utility functions
+function getCurrentSeason(): string {
+  const month = new Date().getMonth() + 1;
+  if (month >= 3 && month <= 5) return 'printemps';
+  if (month >= 6 && month <= 8) return 'été';
+  if (month >= 9 && month <= 11) return 'automne';
+  return 'hiver';
+}
+
+function parseGeneratedContent(rawContent: string) {
+  const titleMatch = rawContent.match(/TITRE:\s*(.+)/);
+  const excerptMatch = rawContent.match(/EXTRAIT:\s*(.+?)(?=\nCONTENU:)/s);
+  const contentMatch = rawContent.match(/CONTENU:\s*([\s\S]+)/);
+
+  return {
+    title: titleMatch ? titleMatch[1].trim() : 'Article généré par IA',
+    excerpt: excerptMatch ? excerptMatch[1].trim() : '',
+    content: contentMatch ? contentMatch[1].trim() : rawContent
+  };
+}
+
+// AI Generation functions
+async function generateWithPerplexity(prompt: string): Promise<string> {
+  if (!perplexityApiKey) {
+    throw new Error('Clé API Perplexity non configurée');
+  }
+
+  const response = await fetch('https://api.perplexity.ai/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${perplexityApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'llama-3.1-sonar-small-128k-online',
+      messages: [
+        {
+          role: 'system',
+          content: `Tu es un expert rédacteur pour un blog de réparation de smartphones. 
+          Génère un article de blog professionnel en français avec des informations actualisées et précises.
+          Structure ton article ainsi :
+          1. Un titre accrocheur
+          2. Un extrait de 2-3 phrases
+          3. Un contenu détaillé et informatif (800-1200 mots)
+          
+          Format de réponse :
+          TITRE: [titre ici]
+          EXTRAIT: [extrait ici]
+          CONTENU: [contenu ici]`
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.2,
+      top_p: 0.9,
+      max_tokens: 2000,
+      return_images: false,
+      return_related_questions: false,
+      search_recency_filter: 'month',
+      frequency_penalty: 1,
+      presence_penalty: 0
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ Perplexity API error:', response.status, errorText);
+    throw new Error(`Perplexity API error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
+async function generateWithMistral(prompt: string): Promise<string> {
+  if (!mistralApiKey) {
+    throw new Error('Clé API Mistral non configurée');
+  }
+
+  const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${mistralApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'mistral-small-latest',
+      messages: [
+        {
+          role: 'system',
+          content: `Tu es un expert rédacteur pour un blog de réparation de smartphones. 
+          Génère un article de blog professionnel en français avec :
+          1. Un titre accrocheur
+          2. Un extrait de 2-3 phrases
+          3. Un contenu détaillé et informatif (800-1200 mots)
+          
+          Format de réponse :
+          TITRE: [titre ici]
+          EXTRAIT: [extrait ici]
+          CONTENU: [contenu ici]`
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ Mistral API error:', response.status, errorText);
+    throw new Error(`Mistral API error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
+async function generateWithOpenAI(prompt: string): Promise<string> {
+  if (!openAIApiKey) {
+    throw new Error('Clé API OpenAI non configurée');
+  }
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openAIApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: `Tu es un expert rédacteur pour un blog de réparation de smartphones. 
+          Génère un article de blog professionnel en français avec :
+          1. Un titre accrocheur
+          2. Un extrait de 2-3 phrases
+          3. Un contenu détaillé et informatif (800-1200 mots)
+          
+          Format de réponse :
+          TITRE: [titre ici]
+          EXTRAIT: [extrait ici]
+          CONTENU: [contenu ici]`
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ OpenAI API error:', response.status, errorText);
+    
+    // Parser l'erreur pour avoir plus de détails
+    let errorDetail = `OpenAI API error: ${response.status}`;
+    try {
+      const errorData = JSON.parse(errorText);
+      if (errorData.error?.message) {
+        errorDetail = errorData.error.message;
+      }
+    } catch (e) {
+      // Garder le message par défaut
+    }
+    
+    throw new Error(errorDetail);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -56,6 +238,17 @@ serve(async (req) => {
         console.error('❌ Template error:', templateError);
         return new Response(JSON.stringify({ 
           error: `Impossible de récupérer le template: ${templateError.message}`,
+          success: false 
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!template.prompt_template) {
+        console.error('❌ Template has no prompt_template');
+        return new Response(JSON.stringify({ 
+          error: `Le template sélectionné n'a pas de contenu de prompt`,
           success: false 
         }), {
           status: 400,
@@ -108,213 +301,33 @@ serve(async (req) => {
     }
 
     // Générer le contenu selon le modèle choisi avec fallback
-    let generatedContent = '';
-    let title = '';
-    let excerpt = '';
     let usedModel = finalModel;
 
-    // Fonction pour parser le contenu généré
-    function parseGeneratedContent(rawContent: string) {
-      const titleMatch = rawContent.match(/TITRE:\s*(.+)/);
-      const excerptMatch = rawContent.match(/EXTRAIT:\s*(.+?)(?=\nCONTENU:)/s);
-      const contentMatch = rawContent.match(/CONTENU:\s*([\s\S]+)/);
-
-      title = titleMatch ? titleMatch[1].trim() : 'Article généré par IA';
-      excerpt = excerptMatch ? excerptMatch[1].trim() : '';
-      generatedContent = contentMatch ? contentMatch[1].trim() : rawContent;
-    }
-
-    // Fonctions de génération par IA
-    async function generateWithPerplexity(prompt: string): Promise<string> {
-      if (!perplexityApiKey) {
-        throw new Error('Clé API Perplexity non configurée');
-      }
-
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${perplexityApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'llama-3.1-sonar-small-128k-online',
-          messages: [
-            {
-              role: 'system',
-              content: `Tu es un expert rédacteur pour un blog de réparation de smartphones. 
-              Génère un article de blog professionnel en français avec des informations actualisées et précises.
-              Structure ton article ainsi :
-              1. Un titre accrocheur
-              2. Un extrait de 2-3 phrases
-              3. Un contenu détaillé et informatif (800-1200 mots)
-              
-              Format de réponse :
-              TITRE: [titre ici]
-              EXTRAIT: [extrait ici]
-              CONTENU: [contenu ici]`
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.2,
-          top_p: 0.9,
-          max_tokens: 2000,
-          return_images: false,
-          return_related_questions: false,
-          search_recency_filter: 'month',
-          frequency_penalty: 1,
-          presence_penalty: 0
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Perplexity API error:', response.status, errorText);
-        throw new Error(`Perplexity API error: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      return data.choices[0].message.content;
-    }
-
-    async function generateWithMistral(prompt: string): Promise<string> {
-      if (!mistralApiKey) {
-        throw new Error('Clé API Mistral non configurée');
-      }
-
-      const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${mistralApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'mistral-small-latest',
-          messages: [
-            {
-              role: 'system',
-              content: `Tu es un expert rédacteur pour un blog de réparation de smartphones. 
-              Génère un article de blog professionnel en français avec :
-              1. Un titre accrocheur
-              2. Un extrait de 2-3 phrases
-              3. Un contenu détaillé et informatif (800-1200 mots)
-              
-              Format de réponse :
-              TITRE: [titre ici]
-              EXTRAIT: [extrait ici]
-              CONTENU: [contenu ici]`
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 2000
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Mistral API error:', response.status, errorText);
-        throw new Error(`Mistral API error: ${response.status} - ${errorText}`);
-      }
-
-      const data = await response.json();
-      return data.choices[0].message.content;
-    }
-
-    async function generateWithOpenAI(prompt: string): Promise<string> {
-      if (!openAIApiKey) {
-        throw new Error('Clé API OpenAI non configurée');
-      }
-
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `Tu es un expert rédacteur pour un blog de réparation de smartphones. 
-              Génère un article de blog professionnel en français avec :
-              1. Un titre accrocheur
-              2. Un extrait de 2-3 phrases
-              3. Un contenu détaillé et informatif (800-1200 mots)
-              
-              Format de réponse :
-              TITRE: [titre ici]
-              EXTRAIT: [extrait ici]
-              CONTENU: [contenu ici]`
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 2000
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ OpenAI API error:', response.status, errorText);
-        
-        // Parser l'erreur pour avoir plus de détails
-        let errorDetail = `OpenAI API error: ${response.status}`;
-        try {
-          const errorData = JSON.parse(errorText);
-          if (errorData.error?.message) {
-            errorDetail = errorData.error.message;
-          }
-        } catch (e) {
-          // Garder le message par défaut
-        }
-        
-        throw new Error(errorDetail);
-      }
-
-      const data = await response.json();
-      return data.choices[0].message.content;
-    }
-
     // Essayer avec l'IA demandée, puis fallback sur les autres
+    let result = '';
     try {
       if (finalModel === 'perplexity' && perplexityApiKey) {
         console.log('🔄 Attempting Perplexity generation...');
-        const result = await generateWithPerplexity(finalPrompt);
-        parseGeneratedContent(result);
+        result = await generateWithPerplexity(finalPrompt);
       } else if (finalModel === 'mistral' && mistralApiKey) {
         console.log('🔄 Attempting Mistral generation...');
-        const result = await generateWithMistral(finalPrompt);
-        parseGeneratedContent(result);
+        result = await generateWithMistral(finalPrompt);
       } else if (finalModel === 'openai' && openAIApiKey) {
         console.log('🔄 Attempting OpenAI generation...');
-        const result = await generateWithOpenAI(finalPrompt);
-        parseGeneratedContent(result);
+        result = await generateWithOpenAI(finalPrompt);
       } else {
         // Fallback sur la première IA disponible
         if (perplexityApiKey) {
           console.log('🔄 Falling back to Perplexity...');
-          const result = await generateWithPerplexity(finalPrompt);
-          parseGeneratedContent(result);
+          result = await generateWithPerplexity(finalPrompt);
           usedModel = 'perplexity';
         } else if (mistralApiKey) {
           console.log('🔄 Falling back to Mistral...');
-          const result = await generateWithMistral(finalPrompt);
-          parseGeneratedContent(result);
+          result = await generateWithMistral(finalPrompt);
           usedModel = 'mistral';
         } else if (openAIApiKey) {
           console.log('🔄 Falling back to OpenAI...');
-          const result = await generateWithOpenAI(finalPrompt);
-          parseGeneratedContent(result);
+          result = await generateWithOpenAI(finalPrompt);
           usedModel = 'openai';
         } else {
           throw new Error('Aucune clé API disponible pour la génération');
@@ -332,16 +345,13 @@ serve(async (req) => {
         console.log(`🔄 Trying fallback with ${alternatives[0]}...`);
         try {
           if (alternatives[0] === 'perplexity') {
-            const result = await generateWithPerplexity(finalPrompt);
-            parseGeneratedContent(result);
+            result = await generateWithPerplexity(finalPrompt);
             usedModel = 'perplexity';
           } else if (alternatives[0] === 'mistral') {
-            const result = await generateWithMistral(finalPrompt);
-            parseGeneratedContent(result);
+            result = await generateWithMistral(finalPrompt);
             usedModel = 'mistral';
           } else if (alternatives[0] === 'openai') {
-            const result = await generateWithOpenAI(finalPrompt);
-            parseGeneratedContent(result);
+            result = await generateWithOpenAI(finalPrompt);
             usedModel = 'openai';
           }
         } catch (fallbackError) {
@@ -352,6 +362,10 @@ serve(async (req) => {
         throw new Error(`Génération échouée avec ${finalModel}. ${apiError.message}`);
       }
     }
+
+    // Parser le contenu généré
+    const parsedContent = parseGeneratedContent(result);
+    const { title, excerpt, content: generatedContent } = parsedContent;
 
 
     // Générer un slug à partir du titre
@@ -423,11 +437,3 @@ serve(async (req) => {
     });
   }
 });
-
-function getCurrentSeason(): string {
-  const month = new Date().getMonth() + 1;
-  if (month >= 3 && month <= 5) return 'printemps';
-  if (month >= 6 && month <= 8) return 'été';
-  if (month >= 9 && month <= 11) return 'automne';
-  return 'hiver';
-}
