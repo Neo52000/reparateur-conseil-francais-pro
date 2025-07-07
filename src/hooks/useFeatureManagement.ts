@@ -23,7 +23,8 @@ export interface PlanFeature {
 
 export interface PlanConfiguration {
   planName: 'Gratuit' | 'Basique' | 'Premium' | 'Enterprise';
-  planPrice: number;
+  planPriceMonthly: number;
+  planPriceYearly: number;
   planDescription: string;
   features: Record<string, boolean>;
   limits: Record<string, number>;
@@ -167,7 +168,8 @@ export const useFeatureManagement = () => {
   const mockPlanConfigs: PlanConfiguration[] = [
     {
       planName: 'Gratuit',
-      planPrice: 0,
+      planPriceMonthly: 0,
+      planPriceYearly: 0,
       planDescription: 'Plan de base pour débuter',
       features: {
         'basic-profile': true,
@@ -188,7 +190,8 @@ export const useFeatureManagement = () => {
     },
     {
       planName: 'Basique',
-      planPrice: 29,
+      planPriceMonthly: 29,
+      planPriceYearly: 290,
       planDescription: 'Fonctionnalités essentielles pour les pros',
       features: {
         'basic-profile': true,
@@ -209,7 +212,8 @@ export const useFeatureManagement = () => {
     },
     {
       planName: 'Premium',
-      planPrice: 59,
+      planPriceMonthly: 59,
+      planPriceYearly: 590,
       planDescription: 'Toutes les fonctionnalités avancées',
       features: {
         'basic-profile': true,
@@ -232,7 +236,8 @@ export const useFeatureManagement = () => {
     },
     {
       planName: 'Enterprise',
-      planPrice: 149,
+      planPriceMonthly: 149,
+      planPriceYearly: 1490,
       planDescription: 'Solution complète pour les entreprises',
       features: {
         'basic-profile': true,
@@ -490,6 +495,34 @@ export const useFeatureManagement = () => {
     }), { totalSubscribers: 0, totalRevenue: 0 });
   };
 
+  const updatePlanPricing = async (planName: string, monthlyPrice: number, yearlyPrice: number) => {
+    try {
+      setPlanConfigs(prev => 
+        prev.map(plan => 
+          plan.planName === planName 
+            ? { 
+                ...plan, 
+                planPriceMonthly: monthlyPrice,
+                planPriceYearly: yearlyPrice
+              }
+            : plan
+        )
+      );
+
+      toast({
+        title: 'Tarifs mis à jour',
+        description: `Les tarifs du plan ${planName} ont été sauvegardés.`
+      });
+    } catch (error) {
+      console.error('Error updating plan pricing:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de modifier les tarifs',
+        variant: 'destructive'
+      });
+    }
+  };
+
   return {
     loading,
     usageStats,
@@ -500,6 +533,7 @@ export const useFeatureManagement = () => {
     updateModuleConfiguration,
     toggleModuleStatus,
     togglePlanFeature,
+    updatePlanPricing,
     getModuleStats,
     getTotalStats,
     getPlanStats

@@ -34,11 +34,15 @@ const AdminFeaturesManager: React.FC = () => {
     updateModuleConfiguration, 
     toggleModuleStatus,
     togglePlanFeature,
+    updatePlanPricing,
     getTotalStats,
     getPlanStats
   } = useFeatureManagement();
 
   const [activeModule, setActiveModule] = useState<string | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [editingPrices, setEditingPrices] = useState<Record<string, boolean>>({});
+  const [tempPrices, setTempPrices] = useState<Record<string, { monthly: number, yearly: number }>>({});
 
   if (loading) {
     return (
@@ -216,18 +220,110 @@ const AdminFeaturesManager: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="plans" className="space-y-4">
+          {/* Toggle mensuel/annuel */}
+          <div className="flex justify-center mb-6">
+            <div className="flex items-center gap-2 p-1 bg-muted rounded-lg">
+              <Button 
+                variant={billingCycle === 'monthly' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setBillingCycle('monthly')}
+              >
+                Mensuel
+              </Button>
+              <Button 
+                variant={billingCycle === 'yearly' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setBillingCycle('yearly')}
+              >
+                Annuel
+              </Button>
+            </div>
+          </div>
+
           {/* Header des plans tarifaires */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-            {planConfigs.map((plan) => (
-              <Card key={plan.planName}>
-                <CardContent className="p-4 text-center">
-                  <h3 className="font-bold text-lg">{plan.planName}</h3>
-                  <p className="text-2xl font-bold text-primary">{plan.planPrice}€/mois</p>
-                  <p className="text-sm text-muted-foreground mb-2">{plan.subscribers} abonnés</p>
-                  <Badge variant="outline">{plan.revenue}€ revenus</Badge>
-                </CardContent>
-              </Card>
-            ))}
+            {planConfigs.map((plan) => {
+              const currentPrice = billingCycle === 'monthly' ? plan.planPriceMonthly : plan.planPriceYearly;
+              const isEditing = editingPrices[plan.planName];
+              
+              return (
+                <Card key={plan.planName}>
+                  <CardContent className="p-4 text-center">
+                    <h3 className="font-bold text-lg mb-2">{plan.planName}</h3>
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <input
+                          type="number"
+                          value={tempPrices[plan.planName]?.monthly || plan.planPriceMonthly}
+                          onChange={(e) => setTempPrices(prev => ({
+                            ...prev,
+                            [plan.planName]: {
+                              ...prev[plan.planName],
+                              monthly: parseFloat(e.target.value) || 0
+                            }
+                          }))}
+                          className="w-full p-2 border rounded text-center"
+                          placeholder="Prix mensuel"
+                        />
+                        <input
+                          type="number"
+                          value={tempPrices[plan.planName]?.yearly || plan.planPriceYearly}
+                          onChange={(e) => setTempPrices(prev => ({
+                            ...prev,
+                            [plan.planName]: {
+                              ...prev[plan.planName],
+                              yearly: parseFloat(e.target.value) || 0
+                            }
+                          }))}
+                          className="w-full p-2 border rounded text-center"
+                          placeholder="Prix annuel"
+                        />
+                        <div className="flex gap-1">
+                          <Button size="sm" onClick={() => {
+                            const prices = tempPrices[plan.planName];
+                            if (prices) {
+                              updatePlanPricing(plan.planName, prices.monthly, prices.yearly);
+                            }
+                            setEditingPrices(prev => ({ ...prev, [plan.planName]: false }));
+                          }}>
+                            Sauver
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => {
+                            setEditingPrices(prev => ({ ...prev, [plan.planName]: false }));
+                            setTempPrices(prev => ({ ...prev, [plan.planName]: undefined }));
+                          }}>
+                            Annuler
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-2xl font-bold text-primary">{currentPrice}€/{billingCycle === 'monthly' ? 'mois' : 'an'}</p>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="mt-2"
+                          onClick={() => {
+                            setEditingPrices(prev => ({ ...prev, [plan.planName]: true }));
+                            setTempPrices(prev => ({
+                              ...prev,
+                              [plan.planName]: {
+                                monthly: plan.planPriceMonthly,
+                                yearly: plan.planPriceYearly
+                              }
+                            }));
+                          }}
+                        >
+                          Modifier tarifs
+                        </Button>
+                      </>
+                    )}
+                    <p className="text-sm text-muted-foreground mt-2">{plan.subscribers} abonnés</p>
+                    <Badge variant="outline">{plan.revenue}€ revenus</Badge>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Matrice Plan × Fonctionnalité */}
