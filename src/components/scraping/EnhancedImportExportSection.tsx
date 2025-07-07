@@ -20,6 +20,8 @@ import {
   MapPin,
   Settings
 } from 'lucide-react';
+import CSVPreviewStep from './CSVPreviewStep';
+import CSVMappingStep from './CSVMappingStep';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -45,7 +47,7 @@ interface ColumnMapping {
   dbColumn: string;
   required: boolean;
   detected: boolean;
-  transform?: string; // "split_postal_city" | "extract_postal" | "extract_city"
+  transform?: string;
 }
 
 interface ImportStats {
@@ -64,137 +66,14 @@ const EnhancedImportExportSection: React.FC<EnhancedImportExportSectionProps> = 
 }) => {
   const { toast } = useToast();
   const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [csvData, setCsvData] = useState<any>(null);
   const [mappings, setMappings] = useState<ColumnMapping[]>([]);
-  const [preview, setPreview] = useState<any[]>([]);
-  const [importStep, setImportStep] = useState<'upload' | 'mapping' | 'import' | 'results'>('upload');
+  const [importStep, setImportStep] = useState<'upload' | 'preview' | 'mapping' | 'import' | 'results'>('upload');
   const [importStats, setImportStats] = useState<ImportStats | null>(null);
-  const [separator, setSeparator] = useState<'auto' | ',' | ';' | '\t'>('auto');
   const [encoding, setEncoding] = useState<'utf-8' | 'iso-8859-1'>('utf-8');
   const [enableAI, setEnableAI] = useState(true);
   const [enableGeocoding, setEnableGeocoding] = useState(true);
   const [exportCategory, setExportCategory] = useState<'current' | 'all'>('current');
-
-  // Colonnes de la base de données avec détection améliorée
-  const dbColumns = [
-    { 
-      key: 'name', 
-      label: 'Nom', 
-      required: true,
-      patterns: ['nom', 'name', 'titre', 'title', 'entreprise', 'company', 'enseigne']
-    },
-    { 
-      key: 'address', 
-      label: 'Adresse', 
-      required: true,
-      patterns: ['adresse', 'address', 'rue', 'street', 'addr']
-    },
-    { 
-      key: 'phone', 
-      label: 'Téléphone', 
-      required: false,
-      patterns: ['tel', 'phone', 'telephone', 'mobile', 'gsm']
-    },
-    { 
-      key: 'email', 
-      label: 'Email', 
-      required: false,
-      patterns: ['email', 'mail', 'e-mail', 'courriel']
-    },
-    { 
-      key: 'website', 
-      label: 'Site web', 
-      required: false,
-      patterns: ['site', 'url', 'website', 'web', 'www']
-    },
-    { 
-      key: 'description', 
-      label: 'Description', 
-      required: false,
-      patterns: ['description', 'desc', 'activite', 'services', 'presentation']
-    },
-    { 
-      key: 'postal_code', 
-      label: 'Code postal', 
-      required: false,
-      patterns: ['postal', 'cp', 'code_postal', 'zip']
-    },
-    { 
-      key: 'city', 
-      label: 'Ville', 
-      required: false,
-      patterns: ['ville', 'city', 'commune', 'localite']
-    },
-    { 
-      key: 'postal_city', 
-      label: 'Code postal + Ville', 
-      required: false,
-      patterns: ['postal_city', 'cp_ville', 'code_ville'],
-      transform: 'split_postal_city'
-    }
-  ];
-
-  // Fonction de détection intelligente des séparateurs
-  const detectSeparator = (text: string): string => {
-    const firstLine = text.split('\n')[0];
-    const separators = ['\t', ';', ','];
-    
-    let bestSeparator = ',';
-    let maxColumns = 0;
-    
-    for (const sep of separators) {
-      const columns = firstLine.split(sep).length;
-      if (columns > maxColumns) {
-        maxColumns = columns;
-        bestSeparator = sep;
-      }
-    }
-    
-    return bestSeparator;
-  };
-
-  // Fonction de parsing CSV intelligent
-  const parseCSVIntelligent = (text: string, detectedSeparator?: string): { headers: string[], rows: any[] } => {
-    const lines = text.split('\n').filter(line => line.trim());
-    if (lines.length < 2) return { headers: [], rows: [] };
-
-    const sep = detectedSeparator || detectSeparator(text);
-    
-    // Extraire les en-têtes
-    const headers = lines[0].split(sep).map(h => h.trim().replace(/['"]/g, ''));
-    
-    // Parser les lignes de données
-    const rows = lines.slice(1).map(line => {
-      const values = line.split(sep).map(v => v.trim().replace(/['"]/g, ''));
-      const obj: any = {};
-      headers.forEach((header, index) => {
-        obj[header] = values[index] || '';
-      });
-      return obj;
-    });
-
-    return { headers, rows };
-  };
-
-  // Fonction de mapping automatique améliorée
-  const createAutoMappings = (headers: string[]): ColumnMapping[] => {
-    return dbColumns.map(dbCol => {
-      const detectedHeader = headers.find(header => {
-        const headerLower = header.toLowerCase();
-        return dbCol.patterns?.some(pattern => 
-          headerLower.includes(pattern) || pattern.includes(headerLower)
-        );
-      });
-
-      return {
-        csvColumn: detectedHeader || '',
-        dbColumn: dbCol.key,
-        required: dbCol.required,
-        detected: !!detectedHeader,
-        transform: dbCol.transform
-      };
-    });
-  };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -210,124 +89,11 @@ const EnhancedImportExportSection: React.FC<EnhancedImportExportSectionProps> = 
     }
 
     setCsvFile(file);
-    
-    try {
-      // Lire le fichier avec l'encodage sélectionné
-      const arrayBuffer = await file.arrayBuffer();
-      const decoder = new TextDecoder(encoding);
-      const text = decoder.decode(arrayBuffer);
-      
-      // Parser intelligemment
-      const { headers, rows } = parseCSVIntelligent(text);
-      
-      if (headers.length === 0) {
-        toast({
-          title: "Erreur de parsing",
-          description: "Impossible de détecter les colonnes du fichier CSV",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      setCsvHeaders(headers);
-      
-      // Créer les mappings automatiques
-      const autoMappings = createAutoMappings(headers);
-      setMappings(autoMappings);
-      
-      // Aperçu des données (5 premières lignes)
-      setPreview(rows.slice(0, 5));
-      setImportStep('mapping');
-
-      toast({
-        title: "Fichier analysé",
-        description: `${headers.length} colonnes et ${rows.length} lignes détectées`
-      });
-
-    } catch (error) {
-      console.error('Erreur parsing CSV:', error);
-      toast({
-        title: "Erreur de lecture",
-        description: "Impossible de lire le fichier. Vérifiez l'encodage.",
-        variant: "destructive"
-      });
-    }
+    setImportStep('preview');
   };
 
-  const handleQuickImport = async () => {
-    // Import rapide des données de test fournies par l'utilisateur
-    const testData = `RC Informatique	6 place des Halles	03000 Moulins
-Phones Parts	5 rue Faubourg St Pierre	03100 Montluçon
-L'Atelier Du Smartphone Vichy	8 rue Burnol	03200 Vichy
-L'Atelier Du Smartphone Montluçon	36 boulevard Courtais	03100 Montluçon
-Repar'Mobile Montluçon	3 avenue de la République	03100 Montluçon
-Ok Computer 03	13 rue Lamartine	03400 Yzeure
-HK Téléphonie	8 place Mar Foch	03500 Saint-Pourçain-sur-Sioule
-Welcom Vichy	3 rue Hôtel des Postes	03200 Vichy
-Atelier Réparation Téléphone ART	11 rue 29 Juillet	03300 Cusset
-Welcom Montluçon Centre Nord	Ccial Carrefour quai Ledru Rollin	03100 Montluçon
-Shop in Shop PSM Welcom Domérat	Ccal Auchan Terre 65 av. des Martyrs	03410 Domérat`;
-
-    onLoadingChange(true);
-    setImportStep('import');
-
-    try {
-      const lines = testData.split('\n');
-      const processedData = lines.map(line => {
-        const [name, address, postalCity] = line.split('\t');
-        const postalMatch = postalCity.match(/^(\d{5})\s+(.+)$/);
-        
-        return {
-          name: name.trim(),
-          address: address.trim(),
-          postal_code: postalMatch ? postalMatch[1] : '',
-          city: postalMatch ? postalMatch[2] : postalCity,
-          source: 'quick_import',
-          business_category_id: selectedCategory.id
-        };
-      });
-
-      // Utiliser l'edge function pour l'import avec IA et géocodage
-      const { data, error } = await supabase.functions.invoke('csv-intelligent-import', {
-        body: {
-          providedData: processedData,
-          categoryId: selectedCategory.id,
-          enableAI,
-          enableGeocoding
-        }
-      });
-
-      if (error) throw error;
-
-      setImportStats({
-        processed: processedData.length,
-        imported: data.imported || 0,
-        geocoded: data.geocoded || 0,
-        aiEnhanced: data.aiEnhanced || 0,
-        errors: data.errors || []
-      });
-
-      setImportStep('results');
-
-      toast({
-        title: "Import rapide réussi",
-        description: `${data.imported || 0} réparateurs importés avec améliorations`
-      });
-
-    } catch (error: any) {
-      console.error('Erreur import rapide:', error);
-      toast({
-        title: "Erreur d'import",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      onLoadingChange(false);
-    }
-  };
-
-  const executeImport = async () => {
-    if (!csvFile) return;
+  const executeImport = async (finalMappings: ColumnMapping[], options: { enableAI: boolean; enableGeocoding: boolean }) => {
+    if (!csvFile || !csvData) return;
 
     onLoadingChange(true);
     setImportStep('import');
@@ -335,12 +101,12 @@ Shop in Shop PSM Welcom Domérat	Ccal Auchan Terre 65 av. des Martyrs	03410 Dom�
     try {
       const formData = new FormData();
       formData.append('file', csvFile);
-      formData.append('mappings', JSON.stringify(mappings.filter(m => m.csvColumn)));
+      formData.append('mappings', JSON.stringify(finalMappings));
       formData.append('categoryId', selectedCategory.id);
-      formData.append('enableAI', enableAI.toString());
-      formData.append('enableGeocoding', enableGeocoding.toString());
-      formData.append('separator', separator);
-      formData.append('encoding', encoding);
+      formData.append('enableAI', options.enableAI.toString());
+      formData.append('enableGeocoding', options.enableGeocoding.toString());
+      formData.append('separator', csvData.separator);
+      formData.append('encoding', csvData.encoding);
 
       const { data, error } = await supabase.functions.invoke('csv-intelligent-import', {
         body: formData
@@ -357,6 +123,11 @@ Shop in Shop PSM Welcom Domérat	Ccal Auchan Terre 65 av. des Martyrs	03410 Dom�
       });
 
       setImportStep('results');
+
+      toast({
+        title: "Import réussi",
+        description: `${data.imported || 0} réparateurs importés avec succès`
+      });
 
     } catch (error: any) {
       console.error('Erreur import:', error);
@@ -440,9 +211,8 @@ Shop in Shop PSM Welcom Domérat	Ccal Auchan Terre 65 av. des Martyrs	03410 Dom�
 
   const resetImport = () => {
     setCsvFile(null);
-    setCsvHeaders([]);
+    setCsvData(null);
     setMappings([]);
-    setPreview([]);
     setImportStats(null);
     setImportStep('upload');
   };
@@ -460,206 +230,85 @@ Shop in Shop PSM Welcom Domérat	Ccal Auchan Terre 65 av. des Martyrs	03410 Dom�
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Upload className="h-5 w-5 mr-2 text-admin-blue" />
-                Import CSV Intelligent
+                Import CSV avec Aperçu
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {importStep === 'upload' && (
                 <>
-                  {/* Import rapide des données de test */}
-                  <div className="p-4 bg-admin-blue-light/10 border border-admin-blue-light rounded-lg">
-                    <h4 className="font-semibold mb-2 flex items-center">
-                      <Sparkles className="h-4 w-4 mr-2 text-admin-blue" />
-                      Import rapide - Données de test
-                    </h4>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Importez directement les 11 réparateurs de l'Allier fournis avec géocodage et amélioration IA
-                    </p>
-                    <Button 
-                      onClick={handleQuickImport}
-                      disabled={isLoading}
-                      className="bg-admin-blue hover:bg-admin-blue/90"
-                    >
-                      <Database className="h-4 w-4 mr-2" />
-                      Import rapide (11 réparateurs)
-                    </Button>
-                  </div>
-
-                  {/* Upload de fichier */}
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="separator">Séparateur</Label>
-                        <Select value={separator} onValueChange={(value: any) => setSeparator(value)}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="auto">Détection automatique</SelectItem>
-                            <SelectItem value=",">Virgule (,)</SelectItem>
-                            <SelectItem value=";">Point-virgule (;)</SelectItem>
-                            <SelectItem value="\t">Tabulation</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label htmlFor="encoding">Encodage</Label>
-                        <Select value={encoding} onValueChange={(value: any) => setEncoding(value)}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="utf-8">UTF-8</SelectItem>
-                            <SelectItem value="iso-8859-1">ISO-8859-1 (Latin1)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div>
+                      <Label htmlFor="encoding">Encodage du fichier</Label>
+                      <Select value={encoding} onValueChange={(value: any) => setEncoding(value)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="utf-8">UTF-8 (Recommandé)</SelectItem>
+                          <SelectItem value="iso-8859-1">ISO-8859-1 (Windows)</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="enable-ai"
-                          checked={enableAI}
-                          onCheckedChange={(checked) => setEnableAI(checked === true)}
-                        />
-                        <Label htmlFor="enable-ai" className="flex items-center">
-                          <Sparkles className="h-4 w-4 mr-1" />
-                          Amélioration IA
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="enable-geocoding"
-                          checked={enableGeocoding}
-                          onCheckedChange={(checked) => setEnableGeocoding(checked === true)}
-                        />
-                        <Label htmlFor="enable-geocoding" className="flex items-center">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          Géocodage
-                        </Label>
-                      </div>
-                    </div>
-
-                    <div className="p-4 border-2 border-dashed border-muted-foreground/25 rounded-lg text-center">
-                      <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                      <Label htmlFor="csv-upload" className="cursor-pointer">
-                        <span className="text-sm font-medium">Cliquez pour sélectionner un fichier CSV</span>
-                        <Input
-                          id="csv-upload"
-                          type="file"
-                          accept=".csv"
-                          onChange={handleFileUpload}
-                          className="hidden"
-                        />
-                      </Label>
+                    <div>
+                      <Label htmlFor="csv-file">Fichier CSV</Label>
+                      <Input
+                        id="csv-file"
+                        type="file"
+                        accept=".csv"
+                        onChange={handleFileUpload}
+                        className="mt-1"
+                      />
                       <p className="text-xs text-muted-foreground mt-1">
-                        Supports: CSV avec séparateurs variés, encodages UTF-8/Latin1
+                        Formats supportés: .csv avec séparateurs variés (détection automatique)
                       </p>
                     </div>
-                  </div>
 
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>Formats supportés:</strong> Nom, Adresse, Code postal + Ville (même colonne), 
-                      Téléphone, Email, Site web. Détection automatique des colonnes.
-                    </AlertDescription>
-                  </Alert>
+                    <Alert>
+                      <FileText className="h-4 w-4" />
+                      <AlertDescription>
+                        <strong>Nouveau:</strong> Aperçu du fichier avant mapping des colonnes ! 
+                        Le système détecte automatiquement les séparateurs et vous permet de les ajuster.
+                      </AlertDescription>
+                    </Alert>
+                  </div>
                 </>
               )}
 
-              {importStep === 'mapping' && (
-                <>
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-semibold">Configuration du mapping</h4>
-                    <Badge variant="outline">{csvHeaders.length} colonnes détectées</Badge>
-                  </div>
+              {importStep === 'preview' && csvFile && (
+                <CSVPreviewStep
+                  file={csvFile}
+                  encoding={encoding}
+                  onNext={(data) => {
+                    setCsvData(data);
+                    setImportStep('mapping');
+                  }}
+                  onBack={() => setImportStep('upload')}
+                />
+              )}
 
-                  <div className="space-y-3">
-                    {mappings.map((mapping) => (
-                      <div key={mapping.dbColumn} className="flex items-center space-x-3 p-3 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <Label className="font-medium">{mapping.dbColumn}</Label>
-                            {mapping.required && <Badge variant="destructive" className="text-xs">Obligatoire</Badge>}
-                            {mapping.detected && <CheckCircle className="h-4 w-4 text-admin-green" />}
-                            {mapping.transform && <Badge variant="outline" className="text-xs">Transform</Badge>}
-                          </div>
-                        </div>
-                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                        <div className="flex-1">
-                          <Select
-                            value={mapping.csvColumn}
-                            onValueChange={(value) => {
-                              setMappings(prev => prev.map(m => 
-                                m.dbColumn === mapping.dbColumn 
-                                  ? { ...m, csvColumn: value, detected: !!value }
-                                  : m
-                              ));
-                            }}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionner une colonne" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="">Aucune colonne</SelectItem>
-                              {csvHeaders.map(header => (
-                                <SelectItem key={header} value={header}>{header}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              {importStep === 'mapping' && csvData && (
+                <CSVMappingStep
+                  csvData={csvData}
+                  selectedCategory={selectedCategory}
+                  onNext={(mappings, options) => {
+                    setMappings(mappings);
+                    setEnableAI(options.enableAI);
+                    setEnableGeocoding(options.enableGeocoding);
+                    executeImport(mappings, options);
+                  }}
+                  onBack={() => setImportStep('preview')}
+                />
+              )}
 
-                  {preview.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold mb-2">Aperçu des données</h4>
-                      <div className="border rounded-lg overflow-hidden">
-                        <div className="overflow-x-auto max-h-48">
-                          <table className="w-full text-xs">
-                            <thead className="bg-muted">
-                              <tr>
-                                {csvHeaders.map(header => (
-                                  <th key={header} className="p-2 text-left font-medium">
-                                    {header}
-                                  </th>
-                                ))}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {preview.map((row, index) => (
-                                <tr key={index} className="border-t">
-                                  {csvHeaders.map(header => (
-                                    <td key={header} className="p-2 truncate max-w-32">
-                                      {row[header]}
-                                    </td>
-                                  ))}
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex space-x-2">
-                    <Button onClick={resetImport} variant="outline">
-                      Retour
-                    </Button>
-                    <Button 
-                      onClick={executeImport}
-                      disabled={isLoading}
-                      className="bg-admin-blue hover:bg-admin-blue/90"
-                    >
-                      <Database className="h-4 w-4 mr-2" />
-                      Lancer l'import
-                    </Button>
-                  </div>
-                </>
+              {importStep === 'mapping' && !csvData && (
+                <div className="text-center p-8">
+                  <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Retournez à l'étape précédente pour charger un fichier.</p>
+                  <Button onClick={() => setImportStep('upload')} variant="outline" className="mt-4">
+                    Retour à l'upload
+                  </Button>
+                </div>
               )}
 
               {importStep === 'import' && (
@@ -674,22 +323,22 @@ Shop in Shop PSM Welcom Domérat	Ccal Auchan Terre 65 av. des Martyrs	03410 Dom�
 
               {importStep === 'results' && importStats && (
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-admin-green">Import terminé avec succès</h4>
+                  <h4 className="font-semibold text-green-600">Import terminé avec succès</h4>
                   
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-3 bg-admin-blue-light/10 rounded-lg text-center">
+                    <div className="p-3 bg-blue-50 rounded-lg text-center">
                       <div className="text-2xl font-bold text-admin-blue">{importStats.processed}</div>
                       <div className="text-xs text-muted-foreground">Traités</div>
                     </div>
-                    <div className="p-3 bg-admin-green-light/10 rounded-lg text-center">
-                      <div className="text-2xl font-bold text-admin-green">{importStats.imported}</div>
+                    <div className="p-3 bg-green-50 rounded-lg text-center">
+                      <div className="text-2xl font-bold text-green-600">{importStats.imported}</div>
                       <div className="text-xs text-muted-foreground">Importés</div>
                     </div>
-                    <div className="p-3 bg-orange-100 rounded-lg text-center">
+                    <div className="p-3 bg-orange-50 rounded-lg text-center">
                       <div className="text-2xl font-bold text-orange-600">{importStats.geocoded}</div>
                       <div className="text-xs text-muted-foreground">Géocodés</div>
                     </div>
-                    <div className="p-3 bg-purple-100 rounded-lg text-center">
+                    <div className="p-3 bg-purple-50 rounded-lg text-center">
                       <div className="text-2xl font-bold text-purple-600">{importStats.aiEnhanced}</div>
                       <div className="text-xs text-muted-foreground">IA améliorés</div>
                     </div>
@@ -725,7 +374,7 @@ Shop in Shop PSM Welcom Domérat	Ccal Auchan Terre 65 av. des Martyrs	03410 Dom�
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Download className="h-5 w-5 mr-2 text-admin-green" />
+                <Download className="h-5 w-5 mr-2 text-green-600" />
                 Export des Données
               </CardTitle>
             </CardHeader>
@@ -755,7 +404,7 @@ Shop in Shop PSM Welcom Domérat	Ccal Auchan Terre 65 av. des Martyrs	03410 Dom�
                 <Button 
                   onClick={exportData}
                   variant="outline"
-                  className="border-admin-green text-admin-green hover:bg-admin-green-light"
+                  className="border-green-600 text-green-600 hover:bg-green-50"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Exporter CSV
