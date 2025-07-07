@@ -14,6 +14,28 @@ export interface FeatureUsageStats {
   lastUpdate: string;
 }
 
+export interface PlanFeature {
+  featureKey: string;
+  featureName: string;
+  category: string;
+  description: string;
+}
+
+export interface PlanConfiguration {
+  planName: 'Gratuit' | 'Basique' | 'Premium' | 'Enterprise';
+  planPrice: number;
+  planDescription: string;
+  features: Record<string, boolean>;
+  limits: Record<string, number>;
+  subscribers: number;
+  revenue: number;
+}
+
+export interface PlanFeatureMatrix {
+  feature: PlanFeature;
+  planAccess: Record<string, boolean>;
+}
+
 export interface ModuleConfiguration {
   id: string;
   moduleName: string;
@@ -31,6 +53,9 @@ export const useFeatureManagement = () => {
   const [loading, setLoading] = useState(true);
   const [usageStats, setUsageStats] = useState<FeatureUsageStats[]>([]);
   const [moduleConfigs, setModuleConfigs] = useState<ModuleConfiguration[]>([]);
+  const [planConfigs, setPlanConfigs] = useState<PlanConfiguration[]>([]);
+  const [planFeatures, setPlanFeatures] = useState<PlanFeature[]>([]);
+  const [planFeatureMatrix, setPlanFeatureMatrix] = useState<PlanFeatureMatrix[]>([]);
 
   // Données mockées pour la démonstration
   const mockUsageStats: FeatureUsageStats[] = [
@@ -139,6 +164,182 @@ export const useFeatureManagement = () => {
     }
   ];
 
+  const mockPlanConfigs: PlanConfiguration[] = [
+    {
+      planName: 'Gratuit',
+      planPrice: 0,
+      planDescription: 'Plan de base pour débuter',
+      features: {
+        'basic-profile': true,
+        'basic-search': true,
+        'email-support': true,
+        'pos-basic': false,
+        'ecommerce': false,
+        'blog-advanced': false,
+        'analytics': false
+      },
+      limits: {
+        'max-repairs': 10,
+        'max-photos': 5,
+        'storage-mb': 100
+      },
+      subscribers: 125,
+      revenue: 0
+    },
+    {
+      planName: 'Basique',
+      planPrice: 29,
+      planDescription: 'Fonctionnalités essentielles pour les pros',
+      features: {
+        'basic-profile': true,
+        'basic-search': true,
+        'email-support': true,
+        'pos-basic': true,
+        'ecommerce': false,
+        'blog-advanced': false,
+        'analytics': true
+      },
+      limits: {
+        'max-repairs': 50,
+        'max-photos': 20,
+        'storage-mb': 500
+      },
+      subscribers: 67,
+      revenue: 1943
+    },
+    {
+      planName: 'Premium',
+      planPrice: 59,
+      planDescription: 'Toutes les fonctionnalités avancées',
+      features: {
+        'basic-profile': true,
+        'basic-search': true,
+        'email-support': true,
+        'pos-basic': true,
+        'pos-advanced': true,
+        'ecommerce': true,
+        'blog-advanced': true,
+        'analytics': true,
+        'priority-support': true
+      },
+      limits: {
+        'max-repairs': 200,
+        'max-photos': 100,
+        'storage-mb': 2000
+      },
+      subscribers: 43,
+      revenue: 2537
+    },
+    {
+      planName: 'Enterprise',
+      planPrice: 149,
+      planDescription: 'Solution complète pour les entreprises',
+      features: {
+        'basic-profile': true,
+        'basic-search': true,
+        'email-support': true,
+        'pos-basic': true,
+        'pos-advanced': true,
+        'pos-enterprise': true,
+        'ecommerce': true,
+        'ecommerce-advanced': true,
+        'blog-advanced': true,
+        'analytics': true,
+        'priority-support': true,
+        'api-access': true,
+        'white-label': true
+      },
+      limits: {
+        'max-repairs': -1, // Illimité
+        'max-photos': -1,
+        'storage-mb': -1
+      },
+      subscribers: 18,
+      revenue: 2682
+    }
+  ];
+
+  const mockPlanFeatures: PlanFeature[] = [
+    {
+      featureKey: 'basic-profile',
+      featureName: 'Profil de base',
+      category: 'Profil',
+      description: 'Création et gestion du profil réparateur'
+    },
+    {
+      featureKey: 'basic-search',
+      featureName: 'Recherche de base',
+      category: 'Recherche',
+      description: 'Apparition dans les résultats de recherche'
+    },
+    {
+      featureKey: 'email-support',
+      featureName: 'Support email',
+      category: 'Support',
+      description: 'Assistance par email'
+    },
+    {
+      featureKey: 'pos-basic',
+      featureName: 'POS basique',
+      category: 'POS',
+      description: 'Système de caisse basique'
+    },
+    {
+      featureKey: 'pos-advanced',
+      featureName: 'POS avancé',
+      category: 'POS',
+      description: 'Fonctionnalités POS avancées'
+    },
+    {
+      featureKey: 'pos-enterprise',
+      featureName: 'POS entreprise',
+      category: 'POS',
+      description: 'Suite POS complète avec multi-boutiques'
+    },
+    {
+      featureKey: 'ecommerce',
+      featureName: 'E-commerce basique',
+      category: 'E-commerce',
+      description: 'Boutique en ligne basique'
+    },
+    {
+      featureKey: 'ecommerce-advanced',
+      featureName: 'E-commerce avancé',
+      category: 'E-commerce',
+      description: 'Fonctionnalités e-commerce avancées'
+    },
+    {
+      featureKey: 'blog-advanced',
+      featureName: 'Blog & Content',
+      category: 'Marketing',
+      description: 'Système de blog avec génération IA'
+    },
+    {
+      featureKey: 'analytics',
+      featureName: 'Analytics',
+      category: 'Analytics',
+      description: 'Statistiques et analyses avancées'
+    },
+    {
+      featureKey: 'priority-support',
+      featureName: 'Support prioritaire',
+      category: 'Support',
+      description: 'Support prioritaire avec chat'
+    },
+    {
+      featureKey: 'api-access',
+      featureName: 'Accès API',
+      category: 'Développement',
+      description: 'Accès aux APIs pour intégrations'
+    },
+    {
+      featureKey: 'white-label',
+      featureName: 'Marque blanche',
+      category: 'Branding',
+      description: 'Solution en marque blanche'
+    }
+  ];
+
   // Simuler le chargement des données
   useEffect(() => {
     const loadData = async () => {
@@ -148,6 +349,18 @@ export const useFeatureManagement = () => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         setUsageStats(mockUsageStats);
         setModuleConfigs(mockModuleConfigs);
+        setPlanConfigs(mockPlanConfigs);
+        setPlanFeatures(mockPlanFeatures);
+        
+        // Build plan-feature matrix
+        const matrix = mockPlanFeatures.map(feature => ({
+          feature,
+          planAccess: mockPlanConfigs.reduce((acc, plan) => ({
+            ...acc,
+            [plan.planName]: plan.features[feature.featureKey] || false
+          }), {} as Record<string, boolean>)
+        }));
+        setPlanFeatureMatrix(matrix);
       } catch (error) {
         console.error('Error loading feature management data:', error);
         toast({
@@ -227,13 +440,68 @@ export const useFeatureManagement = () => {
     }), { totalUsers: 0, activeUsers: 0, monthlyUsage: 0, revenueImpact: 0 });
   };
 
+  const togglePlanFeature = async (planName: string, featureKey: string) => {
+    try {
+      setPlanConfigs(prev => 
+        prev.map(plan => 
+          plan.planName === planName 
+            ? { 
+                ...plan, 
+                features: {
+                  ...plan.features,
+                  [featureKey]: !plan.features[featureKey]
+                }
+              }
+            : plan
+        )
+      );
+
+      // Update matrix
+      setPlanFeatureMatrix(prev =>
+        prev.map(item => ({
+          ...item,
+          planAccess: {
+            ...item.planAccess,
+            [planName]: item.feature.featureKey === featureKey 
+              ? !item.planAccess[planName] 
+              : item.planAccess[planName]
+          }
+        }))
+      );
+
+      toast({
+        title: 'Configuration mise à jour',
+        description: `Fonctionnalité ${featureKey} mise à jour pour le plan ${planName}.`
+      });
+    } catch (error) {
+      console.error('Error toggling plan feature:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de modifier la fonctionnalité',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const getPlanStats = () => {
+    return planConfigs.reduce((acc, plan) => ({
+      totalSubscribers: acc.totalSubscribers + plan.subscribers,
+      totalRevenue: acc.totalRevenue + plan.revenue
+    }), { totalSubscribers: 0, totalRevenue: 0 });
+  };
+
   return {
     loading,
     usageStats,
     moduleConfigs,
+    planConfigs,
+    planFeatures,
+    planFeatureMatrix,
     updateModuleConfiguration,
     toggleModuleStatus,
+    togglePlanFeature,
     getModuleStats,
-    getTotalStats
+    getTotalStats,
+    getPlanStats
   };
 };

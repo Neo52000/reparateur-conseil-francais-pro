@@ -28,9 +28,14 @@ const AdminFeaturesManager: React.FC = () => {
     loading, 
     usageStats, 
     moduleConfigs, 
+    planConfigs,
+    planFeatures,
+    planFeatureMatrix,
     updateModuleConfiguration, 
-    toggleModuleStatus, 
-    getTotalStats 
+    toggleModuleStatus,
+    togglePlanFeature,
+    getTotalStats,
+    getPlanStats
   } = useFeatureManagement();
 
   const [activeModule, setActiveModule] = useState<string | null>(null);
@@ -130,8 +135,9 @@ const AdminFeaturesManager: React.FC = () => {
 
       {/* Interface principale avec onglets */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+          <TabsTrigger value="plans">Plans & Fonctionnalités</TabsTrigger>
           <TabsTrigger value="modules">Modules</TabsTrigger>
           <TabsTrigger value="usage">Utilisation</TabsTrigger>
           <TabsTrigger value="config">Configuration</TabsTrigger>
@@ -207,6 +213,66 @@ const AdminFeaturesManager: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="plans" className="space-y-4">
+          {/* Header des plans tarifaires */}
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            {planConfigs.map((plan) => (
+              <Card key={plan.planName}>
+                <CardContent className="p-4 text-center">
+                  <h3 className="font-bold text-lg">{plan.planName}</h3>
+                  <p className="text-2xl font-bold text-primary">{plan.planPrice}€/mois</p>
+                  <p className="text-sm text-muted-foreground mb-2">{plan.subscribers} abonnés</p>
+                  <Badge variant="outline">{plan.revenue}€ revenus</Badge>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Matrice Plan × Fonctionnalité */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Matrice Plans & Fonctionnalités</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-3 font-medium">Fonctionnalité</th>
+                      {planConfigs.map((plan) => (
+                        <th key={plan.planName} className="text-center p-3 font-medium min-w-[120px]">
+                          {plan.planName}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {planFeatureMatrix.map((item) => (
+                      <tr key={item.feature.featureKey} className="border-b hover:bg-muted/50">
+                        <td className="p-3">
+                          <div>
+                            <p className="font-medium">{item.feature.featureName}</p>
+                            <p className="text-sm text-muted-foreground">{item.feature.description}</p>
+                            <Badge variant="outline" className="mt-1">{item.feature.category}</Badge>
+                          </div>
+                        </td>
+                        {planConfigs.map((plan) => (
+                          <td key={plan.planName} className="p-3 text-center">
+                            <Switch
+                              checked={item.planAccess[plan.planName] || false}
+                              onCheckedChange={() => togglePlanFeature(plan.planName, item.feature.featureKey)}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="modules" className="space-y-4">
