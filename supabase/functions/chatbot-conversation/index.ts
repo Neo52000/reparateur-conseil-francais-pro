@@ -7,6 +7,8 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 )
 
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY')
+
 interface ChatMessage {
   content: string;
   sender_type: 'user' | 'bot';
@@ -53,7 +55,7 @@ Deno.serve(async (req) => {
 
       return new Response(JSON.stringify({ 
         conversation_id: conversation.id,
-        message: 'Bonjour ! Je suis votre assistant de réparation. Comment puis-je vous aider aujourd\'hui ?'
+        message: 'Bonjour ! Je suis votre assistant de réparation intelligent. Comment puis-je vous aider aujourd\'hui ?'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -63,17 +65,19 @@ Deno.serve(async (req) => {
       const { conversation_id, content } = message;
 
       // Sauvegarder le message utilisateur
-      await supabase
+      const { data: userMessage } = await supabase
         .from('chatbot_messages')
         .insert({
           conversation_id,
           sender_type: 'user',
           content,
           message_type: 'text'
-        });
+        })
+        .select()
+        .single();
 
-      // Analyser le message avec l'IA
-      const aiResponse = await analyzeMessageAndRespond(content, conversation_id);
+      // Analyser le message avec l'IA intelligente
+      const aiResponse = await analyzeMessageWithAdvancedAI(content, conversation_id);
 
       // Sauvegarder la réponse du bot
       await supabase
@@ -87,6 +91,22 @@ Deno.serve(async (req) => {
           metadata: aiResponse.metadata
         });
 
+      // Apprentissage automatique - sauvegarder le pattern si la confiance est élevée
+      if (aiResponse.confidence > 0.8) {
+        await supabase
+          .from('chatbot_learning_patterns')
+          .upsert({
+            input_pattern: content.toLowerCase(),
+            successful_response: aiResponse.content,
+            category: aiResponse.metadata?.category || 'general',
+            confidence_score: aiResponse.confidence,
+            usage_count: 1
+          }, {
+            onConflict: 'input_pattern',
+            ignoreDuplicates: false
+          });
+      }
+
       // Incrémenter les métriques
       await supabase.rpc('increment_chatbot_metric', { 
         metric_name: 'messages_processed' 
@@ -96,7 +116,8 @@ Deno.serve(async (req) => {
         response: aiResponse.content,
         confidence: aiResponse.confidence,
         suggestions: aiResponse.suggestions,
-        actions: aiResponse.actions
+        actions: aiResponse.actions,
+        message_id: userMessage?.id
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -116,6 +137,32 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === 'submit_feedback') {
+      const { conversation_id, message_id, feedback_type, rating, comment } = await req.json();
+      
+      await supabase
+        .from('chatbot_response_feedback')
+        .insert({
+          conversation_id,
+          message_id,
+          user_id,
+          feedback_type,
+          rating,
+          comment
+        });
+
+      // Incrémenter les métriques de satisfaction
+      if (feedback_type === 'positive' || rating >= 4) {
+        await supabase.rpc('increment_chatbot_metric', { 
+          metric_name: 'user_satisfaction' 
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
   } catch (error) {
     console.error('Chatbot error:', error);
     return new Response(JSON.stringify({ 
@@ -127,7 +174,112 @@ Deno.serve(async (req) => {
   }
 });
 
-async function analyzeMessageAndRespond(content: string, conversationId: string) {
+async function analyzeMessageWithAdvancedAI(content: string, conversationId: string) {
+  try {
+    // D'abord essayer avec OpenAI si disponible
+    if (openAIApiKey) {
+      return await analyzeWithOpenAI(content, conversationId);
+    }
+    
+    // Fallback vers l'analyse basique
+    return await analyzeMessageBasic(content, conversationId);
+  } catch (error) {
+    console.error('Erreur IA avancée, fallback vers analyse basique:', error);
+    return await analyzeMessageBasic(content, conversationId);
+  }
+}
+
+async function analyzeWithOpenAI(content: string, conversationId: string) {
+  // Récupérer l'historique de conversation pour le contexte
+  const { data: messages } = await supabase
+    .from('chatbot_messages')
+    .select('*')
+    .eq('conversation_id', conversationId)
+    .order('created_at', { ascending: true })
+    .limit(10);
+
+  // Récupérer les patterns d'apprentissage
+  const { data: patterns } = await supabase
+    .from('chatbot_learning_patterns')
+    .select('*')
+    .order('confidence_score', { ascending: false })
+    .limit(5);
+
+  // Construire le contexte pour OpenAI
+  const conversationHistory = messages?.map(m => 
+    `${m.sender_type === 'user' ? 'Utilisateur' : 'Assistant'}: ${m.content}`
+  ).join('\n') || '';
+
+  const prompt = `Tu es un assistant IA spécialisé dans la réparation de smartphones et téléphones. Tu aides les clients à diagnostiquer leurs problèmes, obtenir des devis et trouver des réparateurs.
+
+Contexte de la conversation:
+${conversationHistory}
+
+Patterns d'apprentissage récents:
+${patterns?.map(p => `Entrée: "${p.input_pattern}" -> Réponse réussie: "${p.successful_response}"`).join('\n') || 'Aucun pattern disponible'}
+
+Message utilisateur: "${content}"
+
+Réponds de manière utile et précise. Si tu identifies un problème technique, propose des solutions ou recommande un diagnostic. Si l'utilisateur cherche un réparateur, suggère d'utiliser notre carte interactive. Sois concis mais informatif.
+
+Réponds UNIQUEMENT avec un JSON valide contenant:
+{
+  "content": "ta réponse",
+  "confidence": 0.95,
+  "category": "diagnostic|pricing|booking|general",
+  "suggestions": ["suggestion1", "suggestion2"],
+  "actions": [{"type": "button", "label": "Voir les réparateurs", "action": "show_map"}]
+}`;
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openAIApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: prompt },
+        { role: 'user', content: content }
+      ],
+      temperature: 0.7,
+      max_tokens: 500
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenAI API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const aiResponse = data.choices[0].message.content;
+  
+  try {
+    const parsedResponse = JSON.parse(aiResponse);
+    return {
+      content: parsedResponse.content,
+      confidence: parsedResponse.confidence || 0.8,
+      suggestions: parsedResponse.suggestions || [],
+      actions: parsedResponse.actions || [],
+      metadata: {
+        category: parsedResponse.category || 'general',
+        ai_model: 'gpt-4o-mini'
+      }
+    };
+  } catch (parseError) {
+    // Si le parsing JSON échoue, utiliser la réponse directement
+    return {
+      content: aiResponse,
+      confidence: 0.7,
+      suggestions: [],
+      actions: [],
+      metadata: { category: 'general', ai_model: 'gpt-4o-mini', parse_error: true }
+    };
+  }
+}
+
+async function analyzeMessageBasic(content: string, conversationId: string) {
   // Récupérer la configuration du chatbot
   const { data: config } = await supabase
     .from('chatbot_configuration')
@@ -144,7 +296,7 @@ async function analyzeMessageAndRespond(content: string, conversationId: string)
     .select('*')
     .eq('is_active', true);
 
-  // Analyse simple par mots-clés (peut être remplacée par OpenAI)
+  // Analyse simple par mots-clés améliorée
   const bestMatch = findBestMatch(content.toLowerCase(), trainingData || []);
   
   if (bestMatch && bestMatch.confidence > (configMap.confidence_threshold || 0.7)) {
@@ -162,21 +314,26 @@ async function analyzeMessageAndRespond(content: string, conversationId: string)
       actions,
       metadata: {
         intent: bestMatch.intent,
-        category: bestMatch.category
+        category: bestMatch.category,
+        ai_model: 'basic_nlp'
       }
     };
   } else {
-    // Réponse générique si la confiance est faible
+    // Réponse générique améliorée
     return {
       content: "Je ne suis pas sûr de comprendre exactement votre problème. Pouvez-vous me donner plus de détails ou choisir parmi ces options ?",
       confidence: 0.3,
       suggestions: [
-        "Problème d'écran",
+        "Problème d'écran cassé",
         "Problème de batterie", 
+        "Téléphone qui ne s'allume plus",
         "Parler à un conseiller"
       ],
-      actions: [],
-      metadata: { intent: 'clarification' }
+      actions: [
+        { type: 'button', label: 'Diagnostic rapide', action: 'start_diagnostic' },
+        { type: 'button', label: 'Voir les réparateurs', action: 'show_map' }
+      ],
+      metadata: { intent: 'clarification', category: 'general', ai_model: 'basic_nlp' }
     };
   }
 }
@@ -188,14 +345,22 @@ function findBestMatch(userInput: string, trainingData: TrainingData[]) {
   for (const data of trainingData) {
     const keywords = data.training_text.toLowerCase().split(' ');
     let score = 0;
+    let totalWords = keywords.length;
     
+    // Analyse des mots-clés avec pondération
     for (const keyword of keywords) {
       if (userInput.includes(keyword)) {
-        score += 1;
+        // Les mots plus longs ont plus de poids
+        score += keyword.length > 4 ? 2 : 1;
       }
     }
     
-    const confidence = score / keywords.length;
+    // Bonus pour correspondance exacte de phrases
+    if (userInput.includes(data.training_text.toLowerCase())) {
+      score += 5;
+    }
+    
+    const confidence = Math.min(score / (totalWords + 2), 1.0);
     
     if (confidence > bestScore) {
       bestScore = confidence;
@@ -212,23 +377,27 @@ function findBestMatch(userInput: string, trainingData: TrainingData[]) {
 function generateSuggestions(category: string): string[] {
   const suggestionMap: Record<string, string[]> = {
     'diagnostic': [
-      "Mon écran est cassé",
-      "Ma batterie ne tient plus",
-      "Mon téléphone ne s'allume plus"
+      "Mon écran est fissuré",
+      "Ma batterie se décharge vite",
+      "Mon téléphone surchauffe",
+      "Je n'ai plus de son"
     ],
     'pricing': [
       "Combien coûte une réparation d'écran ?",
-      "Tarifs pour iPhone",
-      "Prix réparation Samsung"
+      "Tarifs pour iPhone 14",
+      "Prix réparation Samsung Galaxy",
+      "Coût changement batterie"
     ],
     'booking': [
       "Trouver un réparateur près de moi",
-      "Prendre rendez-vous",
-      "Réparation à domicile"
+      "Prendre rendez-vous rapidement",
+      "Réparation à domicile disponible ?",
+      "Réparateur ouvert le dimanche"
     ],
     'general': [
       "Comment ça marche ?",
       "Quels appareils réparez-vous ?",
+      "Garantie des réparations",
       "Parler à un conseiller"
     ]
   };
@@ -239,16 +408,19 @@ function generateSuggestions(category: string): string[] {
 function generateActions(category: string) {
   const actionMap: Record<string, any[]> = {
     'diagnostic': [
-      { type: 'form', label: 'Diagnostic rapide', action: 'start_diagnostic' }
+      { type: 'form', label: 'Diagnostic automatique', action: 'start_diagnostic' }
     ],
     'booking': [
-      { type: 'button', label: 'Voir les réparateurs', action: 'show_map' },
-      { type: 'button', label: 'Prendre RDV', action: 'book_appointment' }
+      { type: 'button', label: 'Voir la carte', action: 'show_map' },
+      { type: 'button', label: 'Réserver', action: 'book_appointment' }
     ],
     'pricing': [
-      { type: 'button', label: 'Calculateur de prix', action: 'price_calculator' }
+      { type: 'button', label: 'Calculateur de prix', action: 'price_calculator' },
+      { type: 'button', label: 'Devis gratuit', action: 'request_quote' }
     ]
   };
 
-  return actionMap[category] || [];
+  return actionMap[category] || [
+    { type: 'button', label: 'Voir les réparateurs', action: 'show_map' }
+  ];
 }

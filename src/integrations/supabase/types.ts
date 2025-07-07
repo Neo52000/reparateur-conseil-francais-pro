@@ -1448,6 +1448,122 @@ export type Database = {
           },
         ]
       }
+      chatbot_improvement_suggestions: {
+        Row: {
+          admin_reviewed: boolean | null
+          ai_confidence: number | null
+          conversation_id: string | null
+          created_at: string | null
+          id: string
+          implemented: boolean | null
+          original_message: string
+          reviewed_at: string | null
+          suggested_response: string
+          suggestion_type: string
+        }
+        Insert: {
+          admin_reviewed?: boolean | null
+          ai_confidence?: number | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          implemented?: boolean | null
+          original_message: string
+          reviewed_at?: string | null
+          suggested_response: string
+          suggestion_type: string
+        }
+        Update: {
+          admin_reviewed?: boolean | null
+          ai_confidence?: number | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          implemented?: boolean | null
+          original_message?: string
+          reviewed_at?: string | null
+          suggested_response?: string
+          suggestion_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_improvement_suggestions_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_learning_history: {
+        Row: {
+          applied_by: string | null
+          change_type: string
+          created_at: string | null
+          id: string
+          new_data: Json | null
+          original_data: Json | null
+          performance_impact: number | null
+        }
+        Insert: {
+          applied_by?: string | null
+          change_type: string
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          original_data?: Json | null
+          performance_impact?: number | null
+        }
+        Update: {
+          applied_by?: string | null
+          change_type?: string
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          original_data?: Json | null
+          performance_impact?: number | null
+        }
+        Relationships: []
+      }
+      chatbot_learning_patterns: {
+        Row: {
+          category: string
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          input_pattern: string
+          last_used: string | null
+          success_rate: number | null
+          successful_response: string
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          category: string
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          input_pattern: string
+          last_used?: string | null
+          success_rate?: number | null
+          successful_response: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          input_pattern?: string
+          last_used?: string | null
+          success_rate?: number | null
+          successful_response?: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       chatbot_messages: {
         Row: {
           confidence_score: number | null
@@ -1485,6 +1601,54 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "chatbot_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chatbot_response_feedback: {
+        Row: {
+          comment: string | null
+          conversation_id: string | null
+          created_at: string | null
+          feedback_type: string
+          id: string
+          message_id: string | null
+          rating: number | null
+          user_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          feedback_type: string
+          id?: string
+          message_id?: string | null
+          rating?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          feedback_type?: string
+          id?: string
+          message_id?: string | null
+          rating?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_response_feedback_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chatbot_response_feedback_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chatbot_messages"
             referencedColumns: ["id"]
           },
         ]

@@ -186,7 +186,7 @@ const ChatbotManagement = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="analytics">
             <TrendingUp className="h-4 w-4 mr-2" />
             Analytics
@@ -194,6 +194,10 @@ const ChatbotManagement = () => {
           <TabsTrigger value="training">
             <Brain className="h-4 w-4 mr-2" />
             Base de connaissances
+          </TabsTrigger>
+          <TabsTrigger value="learning">
+            <Brain className="h-4 w-4 mr-2" />
+            Apprentissage IA
           </TabsTrigger>
           <TabsTrigger value="config">
             <Settings className="h-4 w-4 mr-2" />
@@ -458,6 +462,166 @@ const ChatbotManagement = () => {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="learning" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Brain className="h-5 w-5 mr-2" />
+                  Patterns d'apprentissage
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">Pattern: "écran cassé fissuré"</p>
+                      <p className="text-sm text-gray-600">Catégorie: Diagnostic</p>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant="default">95% confiance</Badge>
+                      <p className="text-sm text-gray-600">Utilisé 23 fois</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">Pattern: "prix coût réparation"</p>
+                      <p className="text-sm text-gray-600">Catégorie: Tarification</p>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant="default">88% confiance</Badge>
+                      <p className="text-sm text-gray-600">Utilisé 17 fois</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">Pattern: "rendez-vous rdv"</p>
+                      <p className="text-sm text-gray-600">Catégorie: Réservation</p>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant="secondary">72% confiance</Badge>
+                      <p className="text-sm text-gray-600">Utilisé 8 fois</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Settings className="h-5 w-5 mr-2" />
+                  Suggestions d'amélioration
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-3 border border-orange-200 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <Badge variant="outline">Nouvelle réponse suggérée</Badge>
+                      <Button size="sm" variant="outline">Approuver</Button>
+                    </div>
+                    <p className="text-sm"><strong>Question:</strong> "Mon iPhone 13 ne charge plus"</p>
+                    <p className="text-sm mt-2"><strong>Réponse IA:</strong> "Ce problème peut venir du port de charge ou du câble. Je vous conseille de tester avec un autre câble Lightning certifié. Si le problème persiste, il s'agit probablement du connecteur de charge à remplacer (prix moyen: 45-65€)."</p>
+                    <p className="text-xs text-gray-500 mt-2">Confiance IA: 92%</p>
+                  </div>
+                  
+                  <div className="p-3 border border-green-200 rounded-lg">
+                    <div className="flex justify-between items-start mb-2">
+                      <Badge variant="default">Approuvé</Badge>
+                      <Button size="sm" variant="ghost" disabled>Appliqué</Button>
+                    </div>
+                    <p className="text-sm"><strong>Pattern:</strong> "batterie se décharge vite"</p>
+                    <p className="text-sm mt-2"><strong>Amélioration:</strong> Réponse enrichie avec statistiques de durée de vie et conseils d'optimisation.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Modèle IA actuel</CardTitle>
+                <Brain className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">GPT-4O Mini</div>
+                <p className="text-xs text-muted-foreground">+ Fallback Mistral</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Patterns appris</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">47</div>
+                <p className="text-xs text-muted-foreground">+12 ce mois</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Taux d'amélioration</CardTitle>
+                <Brain className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">89%</div>
+                <p className="text-xs text-muted-foreground">Réponses pertinentes</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Configuration de l'apprentissage automatique</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="auto_learning">Apprentissage automatique</Label>
+                  <p className="text-sm text-gray-600">Le chatbot apprend automatiquement des conversations réussies</p>
+                </div>
+                <Switch
+                  id="auto_learning"
+                  checked={config.auto_learning !== false}
+                  onCheckedChange={(checked) => updateConfig('auto_learning', checked)}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="ai_suggestions">Suggestions IA</Label>
+                  <p className="text-sm text-gray-600">L'IA propose automatiquement des améliorations</p>
+                </div>
+                <Switch
+                  id="ai_suggestions"
+                  checked={config.ai_suggestions !== false}
+                  onCheckedChange={(checked) => updateConfig('ai_suggestions', checked)}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="learning_threshold">Seuil d'apprentissage</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={config.learning_threshold || 0.8}
+                  onChange={(e) => updateConfig('learning_threshold', parseFloat(e.target.value))}
+                  className="mt-1"
+                />
+                <p className="text-sm text-gray-600 mt-1">Confiance minimum pour apprendre un nouveau pattern</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
