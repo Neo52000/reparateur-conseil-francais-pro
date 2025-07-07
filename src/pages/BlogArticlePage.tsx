@@ -8,6 +8,7 @@ import { useBlog } from '@/hooks/useBlog';
 import { BlogPost } from '@/types/blog';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import MarkdownRenderer from '@/components/blog/MarkdownRenderer';
 
 const BlogArticlePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -201,10 +202,7 @@ const BlogArticlePage: React.FC = () => {
             )}
 
             {/* Contenu */}
-            <div 
-              className="prose prose-lg max-w-none"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
+            <MarkdownRenderer content={post.content} />
           </div>
         </div>
       </article>

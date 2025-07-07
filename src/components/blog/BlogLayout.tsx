@@ -22,10 +22,17 @@ const BlogLayout: React.FC<BlogLayoutProps> = ({
   backButtonText = "Retour à l'accueil"
 }) => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header avec navigation */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="min-h-screen bg-muted/20">
+      {/* Header avec navigation et image de fond */}
+      <div className="relative bg-background border-b overflow-hidden">
+        {/* Image de fond */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')`
+          }}
+        />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {showBackButton && (
             <Link to={backButtonUrl}>
               <Button variant="ghost" className="mb-4">
@@ -35,8 +42,8 @@ const BlogLayout: React.FC<BlogLayoutProps> = ({
             </Link>
           )}
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">{title}</h1>
-            <p className="text-lg text-gray-600">{subtitle}</p>
+            <h1 className="text-5xl font-bold text-foreground mb-6 tracking-tight">{title}</h1>
+            <p className="text-xl text-muted-foreground leading-relaxed">{subtitle}</p>
           </div>
         </div>
       </div>

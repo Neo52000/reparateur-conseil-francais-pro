@@ -12,6 +12,7 @@ import { BlogPost, BlogCategory } from '@/types/blog';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import BlogPostEditor from './BlogPostEditor';
+import BlogPreviewModal from '../BlogPreviewModal';
 
 interface BlogPostsManagerProps {
   forceShowEditor?: boolean;
@@ -30,6 +31,8 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [showEditor, setShowEditor] = useState(false);
+  const [previewPost, setPreviewPost] = useState<BlogPost | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     if (forceShowEditor) {
@@ -84,39 +87,9 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
       // Si l'article est publié, ouvrir la page publique
       window.open(`/blog/article/${post.slug}`, '_blank');
     } else {
-      // Pour les autres statuts, afficher les informations dans une nouvelle fenêtre
-      const previewWindow = window.open('', '_blank');
-      if (previewWindow) {
-        previewWindow.document.write(`
-          <html>
-            <head>
-              <title>Aperçu - ${post.title}</title>
-              <style>
-                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 2rem; line-height: 1.6; }
-                .header { border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 2rem; }
-                .status { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.875rem; }
-                .draft { background: #f3f4f6; color: #374151; }
-                .pending { background: #fef3c7; color: #92400e; }
-                .scheduled { background: #dbeafe; color: #1e40af; }
-                .archived { background: #f3f4f6; color: #6b7280; }
-                .content { max-width: 800px; }
-                pre { background: #f8f9fa; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
-              </style>
-            </head>
-            <body>
-              <div class="header">
-                <h1>${post.title}</h1>
-                <p><span class="status ${post.status}">${post.status.toUpperCase()}</span></p>
-                ${post.excerpt ? `<p><em>${post.excerpt}</em></p>` : ''}
-              </div>
-              <div class="content">
-                <pre>${post.content}</pre>
-              </div>
-            </body>
-          </html>
-        `);
-        previewWindow.document.close();
-      }
+      // Pour les autres statuts, utiliser le modal de prévisualisation
+      setPreviewPost(post);
+      setShowPreview(true);
     }
   };
 
@@ -283,6 +256,15 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
           </Table>
         </div>
       </CardContent>
+      
+      <BlogPreviewModal
+        post={previewPost}
+        isOpen={showPreview}
+        onClose={() => {
+          setShowPreview(false);
+          setPreviewPost(null);
+        }}
+      />
     </Card>
   );
 };
