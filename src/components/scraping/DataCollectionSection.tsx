@@ -13,6 +13,7 @@ import ResultsPreviewTable from './ResultsPreviewTable';
 import RedirectionCountdown from './RedirectionCountdown';
 import EnhancementPanel from './EnhancementPanel';
 import ScrapingDebugPanel from './ScrapingDebugPanel';
+import EdgeFunctionHealth from '../admin/EdgeFunctionHealth';
 
 interface BusinessCategory {
   id: string;
@@ -69,7 +70,10 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
   const handleSerper = async () => {
     onLoadingChange(true);
     try {
-      await handleSerperSearch(category, location, customQuery);
+      const { data, error } = await handleSerperSearch(category, location, customQuery);
+      if (error) {
+        throw error;
+      }
     } finally {
       onLoadingChange(false);
     }
@@ -193,6 +197,9 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
         isActive={scrapingInProgress}
         currentStep="scraping"
       />
+
+      {/* Monitoring des Edge Functions */}
+      <EdgeFunctionHealth />
 
       {/* Panel d'améliorations IA */}
       <EnhancementPanel

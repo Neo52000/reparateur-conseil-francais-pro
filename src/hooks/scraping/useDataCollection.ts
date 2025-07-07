@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ErrorHandler, withErrorHandling } from '@/utils/errorHandling';
 
 interface BusinessCategory {
   id: string;
@@ -23,45 +24,35 @@ export const useDataCollection = () => {
     return location ? `${baseKeyword} ${location}` : baseKeyword;
   };
 
-  const handleSerperSearch = async (category: BusinessCategory, location: string, customQuery?: string) => {
-    try {
-      const query = generateSerperQuery(category, location, customQuery);
-      console.log('🔍 Démarrage recherche Serper avec:', { query, location });
-      
-      const { data, error } = await supabase.functions.invoke('serper-search', {
-        body: {
-          query,
-          type: 'search',
-          location: location || 'France',
-          num: 20
-        }
-      });
-
-      if (error) {
-        console.error('❌ Erreur Serper API:', error);
-        throw error;
+  const handleSerperSearch = withErrorHandling(async (category: BusinessCategory, location: string, customQuery?: string) => {
+    const query = generateSerperQuery(category, location, customQuery);
+    console.log('🔍 Démarrage recherche Serper avec:', { query, location });
+    
+    const { data, error } = await supabase.functions.invoke('serper-search', {
+      body: {
+        query,
+        type: 'search',
+        location: location || 'France',
+        num: 20
       }
-      
-      console.log('✅ Réponse Serper reçue:', data);
-      const results = data.results || [];
-      setResults(results);
-      
-      toast({
-        title: "Recherche Serper réussie",
-        description: `${results.length} résultats trouvés`
-      });
-      
-      return results;
-    } catch (error: any) {
-      console.error('Erreur Serper:', error);
-      toast({
-        title: "Erreur Serper",
-        description: error.message,
-        variant: "destructive"
-      });
+    });
+
+    if (error) {
+      console.error('❌ Erreur Serper API:', error);
       throw error;
     }
-  };
+    
+    console.log('✅ Réponse Serper reçue:', data);
+    const results = data.results || [];
+    setResults(results);
+    
+    toast({
+      title: "Recherche Serper réussie",
+      description: `${results.length} résultats trouvés`
+    });
+    
+    return results;
+  }, 'SerperSearch');
 
   const handleMultiAIPipeline = async (category: BusinessCategory, location: string) => {
     try {

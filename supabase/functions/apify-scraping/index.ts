@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from '../_shared/cors.ts'
+import { withErrorHandling, EdgeErrorHandler } from '../_shared/error-handler.ts'
 
 const APIFY_API_BASE = 'https://api.apify.com/v2';
 
@@ -12,165 +13,196 @@ interface ApifyInput {
   [key: string]: any;
 }
 
-serve(async (req) => {
+serve(withErrorHandling('apify-scraping', async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const { action, actorId, input, jobId } = await req.json();
-    const apifyToken = Deno.env.get('APIFY_API_TOKEN');
+  const { action, actorId, input, jobId } = await req.json();
+  
+  // Validation des paramètres
+  EdgeErrorHandler.validateRequiredParams({ action }, ['action']);
+  
+  const apifyToken = Deno.env.get('APIFY_API_TOKEN');
+  EdgeErrorHandler.validateApiKey(apifyToken, 'Apify');
 
-    if (!apifyToken) {
-      console.error('❌ Clé API Apify manquante');
-      return new Response(
-        JSON.stringify({ 
-          error: 'Clé API Apify non configurée. Veuillez l\'ajouter dans les secrets Supabase.' 
-        }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
+  EdgeErrorHandler.logInfo(`Action demandée: ${action}`, { actorId, jobId });
 
-    console.log(`🎯 Action Apify: ${action}`);
-
-    switch (action) {
-      case 'start':
-        return await startApifyJob(actorId, input, apifyToken);
-      
-      case 'status':
-        return await getJobStatus(jobId, apifyToken);
-      
-      case 'results':
-        return await getJobResults(jobId, apifyToken);
-      
-      default:
-        return new Response(
-          JSON.stringify({ error: 'Action non supportée' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-    }
-
-  } catch (error: any) {
-    console.error('❌ Erreur Apify:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+  switch (action) {
+    case 'start':
+      EdgeErrorHandler.validateRequiredParams({ actorId, input }, ['actorId', 'input']);
+      return await startApifyJob(actorId, input, apifyToken!);
+    
+    case 'status':
+      EdgeErrorHandler.validateRequiredParams({ jobId }, ['jobId']);
+      return await getJobStatus(jobId, apifyToken!);
+    
+    case 'results':
+      EdgeErrorHandler.validateRequiredParams({ jobId }, ['jobId']);
+      return await getJobResults(jobId, apifyToken!);
+    
+    default:
+      throw new Error(`Action non supportée: ${action}`);
   }
-});
+}));
 
 async function startApifyJob(actorId: string, input: ApifyInput, token: string): Promise<Response> {
-  console.log(`🚀 Démarrage job Apify - Acteur: ${actorId}`);
+  EdgeErrorHandler.logInfo(`Démarrage job Apify - Acteur: ${actorId}`, { input });
   
   // Adapter l'input selon l'acteur
   const adaptedInput = adaptInputForActor(actorId, input);
+  EdgeErrorHandler.logDebug('Input adapté pour l\'acteur', adaptedInput);
   
-  const response = await fetch(`${APIFY_API_BASE}/acts/${actorId}/runs`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(adaptedInput),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+  
+  try {
+    const response = await fetch(`${APIFY_API_BASE}/acts/${actorId}/runs`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(adaptedInput),
+      signal: controller.signal
+    });
 
-  if (!response.ok) {
-    const error = await response.text();
-    console.error('❌ Erreur démarrage job:', error);
-    throw new Error(`Erreur Apify: ${response.status} - ${error}`);
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      EdgeErrorHandler.logWarning(`Erreur API Apify ${response.status}`, errorText);
+      throw new Error(`Erreur Apify API (${response.status}): ${errorText}`);
+    }
+
+    const jobData = await response.json();
+    EdgeErrorHandler.logInfo('Job Apify créé avec succès', { jobId: jobData.id });
+
+    return EdgeErrorHandler.successResponse(
+      { jobId: jobData.id },
+      'Job Apify démarré avec succès'
+    );
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Timeout lors du démarrage du job Apify');
+    }
+    throw error;
   }
-
-  const jobData = await response.json();
-  console.log('✅ Job Apify créé:', jobData.id);
-
-  return new Response(
-    JSON.stringify({ jobId: jobData.id }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
 }
 
 async function getJobStatus(jobId: string, token: string): Promise<Response> {
-  const response = await fetch(`${APIFY_API_BASE}/actor-runs/${jobId}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Erreur statut job: ${response.status} - ${error}`);
-  }
-
-  const jobData = await response.json();
+  EdgeErrorHandler.logDebug(`Récupération statut job: ${jobId}`);
   
-  const result = {
-    id: jobData.id,
-    status: jobData.status,
-    data: [],
-    usage: {
-      computeUnits: jobData.usage?.COMPUTE_UNITS || 0,
-      datasetWrites: jobData.usage?.DATASET_WRITES || 0,
-      proxyUsage: jobData.usage?.PROXY_RESIDENTIAL_TRANSFER_BYTES || 0,
-    },
-    error: jobData.statusMessage
-  };
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+  
+  try {
+    const response = await fetch(`${APIFY_API_BASE}/actor-runs/${jobId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      signal: controller.signal
+    });
 
-  return new Response(
-    JSON.stringify(result),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      EdgeErrorHandler.logWarning(`Erreur statut job ${response.status}`, errorText);
+      throw new Error(`Erreur API statut job (${response.status}): ${errorText}`);
+    }
+
+    const jobData = await response.json();
+    EdgeErrorHandler.logDebug('Statut job récupéré', { 
+      jobId: jobData.id, 
+      status: jobData.status,
+      statusMessage: jobData.statusMessage 
+    });
+    
+    const result = {
+      id: jobData.id,
+      status: jobData.status,
+      data: [],
+      usage: {
+        computeUnits: jobData.usage?.COMPUTE_UNITS || 0,
+        datasetWrites: jobData.usage?.DATASET_WRITES || 0,
+        proxyUsage: jobData.usage?.PROXY_RESIDENTIAL_TRANSFER_BYTES || 0,
+      },
+      error: jobData.statusMessage
+    };
+
+    return EdgeErrorHandler.successResponse(result, 'Statut job récupéré');
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Timeout lors de la récupération du statut job');
+    }
+    throw error;
+  }
 }
 
 async function getJobResults(jobId: string, token: string): Promise<Response> {
-  // Récupérer d'abord les infos du job pour obtenir l'ID du dataset
-  const jobResponse = await fetch(`${APIFY_API_BASE}/actor-runs/${jobId}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
+  EdgeErrorHandler.logDebug(`Récupération résultats job: ${jobId}`);
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout pour les résultats
+  
+  try {
+    // Récupérer d'abord les infos du job pour obtenir l'ID du dataset
+    const jobResponse = await fetch(`${APIFY_API_BASE}/actor-runs/${jobId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      signal: controller.signal
+    });
 
-  if (!jobResponse.ok) {
-    const error = await jobResponse.text();
-    throw new Error(`Erreur récupération job: ${jobResponse.status} - ${error}`);
+    if (!jobResponse.ok) {
+      const errorText = await jobResponse.text();
+      EdgeErrorHandler.logWarning(`Erreur récupération job ${jobResponse.status}`, errorText);
+      throw new Error(`Erreur API récupération job (${jobResponse.status}): ${errorText}`);
+    }
+
+    const jobData = await jobResponse.json();
+    const datasetId = jobData.defaultDatasetId;
+
+    if (!datasetId) {
+      EdgeErrorHandler.logWarning('Pas de dataset pour ce job', { jobId, jobStatus: jobData.status });
+      return EdgeErrorHandler.successResponse({ results: [] }, 'Aucun dataset disponible pour ce job');
+    }
+
+    EdgeErrorHandler.logDebug('Dataset trouvé', { datasetId });
+
+    // Récupérer les résultats du dataset
+    const resultsResponse = await fetch(`${APIFY_API_BASE}/datasets/${datasetId}/items`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      signal: controller.signal
+    });
+
+    if (!resultsResponse.ok) {
+      const errorText = await resultsResponse.text();
+      EdgeErrorHandler.logWarning(`Erreur récupération résultats ${resultsResponse.status}`, errorText);
+      throw new Error(`Erreur API récupération résultats (${resultsResponse.status}): ${errorText}`);
+    }
+
+    const results = await resultsResponse.json();
+    EdgeErrorHandler.logInfo(`Résultats récupérés avec succès`, { 
+      count: results.length,
+      datasetId 
+    });
+
+    clearTimeout(timeoutId);
+    return EdgeErrorHandler.successResponse({ results }, `${results.length} résultats récupérés`);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Timeout lors de la récupération des résultats');
+    }
+    throw error;
   }
-
-  const jobData = await jobResponse.json();
-  const datasetId = jobData.defaultDatasetId;
-
-  if (!datasetId) {
-    console.log('⚠️ Pas de dataset pour ce job');
-    return new Response(
-      JSON.stringify({ results: [] }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  }
-
-  // Récupérer les résultats du dataset
-  const resultsResponse = await fetch(`${APIFY_API_BASE}/datasets/${datasetId}/items`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!resultsResponse.ok) {
-    const error = await resultsResponse.text();
-    throw new Error(`Erreur récupération résultats: ${resultsResponse.status} - ${error}`);
-  }
-
-  const results = await resultsResponse.json();
-  console.log(`✅ Récupéré ${results.length} résultats du dataset`);
-
-  return new Response(
-    JSON.stringify({ results }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
 }
 
 function adaptInputForActor(actorId: string, input: ApifyInput): any {
