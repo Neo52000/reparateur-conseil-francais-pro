@@ -113,74 +113,7 @@ serve(async (req) => {
     let excerpt = '';
     let usedModel = finalModel;
 
-    // Essayer avec l'IA demandée, puis fallback sur les autres
-    try {
-      if (finalModel === 'perplexity' && perplexityApiKey) {
-        console.log('🔄 Attempting Perplexity generation...');
-        const result = await generateWithPerplexity(finalPrompt);
-        parseGeneratedContent(result);
-      } else if (finalModel === 'mistral' && mistralApiKey) {
-        console.log('🔄 Attempting Mistral generation...');
-        const result = await generateWithMistral(finalPrompt);
-        parseGeneratedContent(result);
-      } else if (finalModel === 'openai' && openAIApiKey) {
-        console.log('🔄 Attempting OpenAI generation...');
-        const result = await generateWithOpenAI(finalPrompt);
-        parseGeneratedContent(result);
-      } else {
-        // Fallback sur la première IA disponible
-        if (perplexityApiKey) {
-          console.log('🔄 Falling back to Perplexity...');
-          const result = await generateWithPerplexity(finalPrompt);
-          parseGeneratedContent(result);
-          usedModel = 'perplexity';
-        } else if (mistralApiKey) {
-          console.log('🔄 Falling back to Mistral...');
-          const result = await generateWithMistral(finalPrompt);
-          parseGeneratedContent(result);
-          usedModel = 'mistral';
-        } else if (openAIApiKey) {
-          console.log('🔄 Falling back to OpenAI...');
-          const result = await generateWithOpenAI(finalPrompt);
-          parseGeneratedContent(result);
-          usedModel = 'openai';
-        } else {
-          throw new Error('Aucune clé API disponible pour la génération');
-        }
-      }
-    } catch (apiError) {
-      console.error(`❌ Error with ${finalModel}:`, apiError);
-      
-      // Essayer avec une autre IA en cas d'échec
-      const alternatives = Object.entries(availableAPIs)
-        .filter(([key, available]) => key !== finalModel && available)
-        .map(([key]) => key);
-
-      if (alternatives.length > 0) {
-        console.log(`🔄 Trying fallback with ${alternatives[0]}...`);
-        try {
-          if (alternatives[0] === 'perplexity') {
-            const result = await generateWithPerplexity(finalPrompt);
-            parseGeneratedContent(result);
-            usedModel = 'perplexity';
-          } else if (alternatives[0] === 'mistral') {
-            const result = await generateWithMistral(finalPrompt);
-            parseGeneratedContent(result);
-            usedModel = 'mistral';
-          } else if (alternatives[0] === 'openai') {
-            const result = await generateWithOpenAI(finalPrompt);
-            parseGeneratedContent(result);
-            usedModel = 'openai';
-          }
-        } catch (fallbackError) {
-          console.error(`❌ Fallback also failed:`, fallbackError);
-          throw new Error(`Génération échouée avec ${finalModel} et ${alternatives[0]}. Vérifiez vos clés API.`);
-        }
-      } else {
-        throw new Error(`Génération échouée avec ${finalModel}. ${apiError.message}`);
-      }
-    }
-
+    // Fonction pour parser le contenu généré
     function parseGeneratedContent(rawContent: string) {
       const titleMatch = rawContent.match(/TITRE:\s*(.+)/);
       const excerptMatch = rawContent.match(/EXTRAIT:\s*(.+?)(?=\nCONTENU:)/s);
@@ -191,6 +124,7 @@ serve(async (req) => {
       generatedContent = contentMatch ? contentMatch[1].trim() : rawContent;
     }
 
+    // Fonctions de génération par IA
     async function generateWithPerplexity(prompt: string): Promise<string> {
       if (!perplexityApiKey) {
         throw new Error('Clé API Perplexity non configurée');
@@ -350,6 +284,75 @@ serve(async (req) => {
       const data = await response.json();
       return data.choices[0].message.content;
     }
+
+    // Essayer avec l'IA demandée, puis fallback sur les autres
+    try {
+      if (finalModel === 'perplexity' && perplexityApiKey) {
+        console.log('🔄 Attempting Perplexity generation...');
+        const result = await generateWithPerplexity(finalPrompt);
+        parseGeneratedContent(result);
+      } else if (finalModel === 'mistral' && mistralApiKey) {
+        console.log('🔄 Attempting Mistral generation...');
+        const result = await generateWithMistral(finalPrompt);
+        parseGeneratedContent(result);
+      } else if (finalModel === 'openai' && openAIApiKey) {
+        console.log('🔄 Attempting OpenAI generation...');
+        const result = await generateWithOpenAI(finalPrompt);
+        parseGeneratedContent(result);
+      } else {
+        // Fallback sur la première IA disponible
+        if (perplexityApiKey) {
+          console.log('🔄 Falling back to Perplexity...');
+          const result = await generateWithPerplexity(finalPrompt);
+          parseGeneratedContent(result);
+          usedModel = 'perplexity';
+        } else if (mistralApiKey) {
+          console.log('🔄 Falling back to Mistral...');
+          const result = await generateWithMistral(finalPrompt);
+          parseGeneratedContent(result);
+          usedModel = 'mistral';
+        } else if (openAIApiKey) {
+          console.log('🔄 Falling back to OpenAI...');
+          const result = await generateWithOpenAI(finalPrompt);
+          parseGeneratedContent(result);
+          usedModel = 'openai';
+        } else {
+          throw new Error('Aucune clé API disponible pour la génération');
+        }
+      }
+    } catch (apiError) {
+      console.error(`❌ Error with ${finalModel}:`, apiError);
+      
+      // Essayer avec une autre IA en cas d'échec
+      const alternatives = Object.entries(availableAPIs)
+        .filter(([key, available]) => key !== finalModel && available)
+        .map(([key]) => key);
+
+      if (alternatives.length > 0) {
+        console.log(`🔄 Trying fallback with ${alternatives[0]}...`);
+        try {
+          if (alternatives[0] === 'perplexity') {
+            const result = await generateWithPerplexity(finalPrompt);
+            parseGeneratedContent(result);
+            usedModel = 'perplexity';
+          } else if (alternatives[0] === 'mistral') {
+            const result = await generateWithMistral(finalPrompt);
+            parseGeneratedContent(result);
+            usedModel = 'mistral';
+          } else if (alternatives[0] === 'openai') {
+            const result = await generateWithOpenAI(finalPrompt);
+            parseGeneratedContent(result);
+            usedModel = 'openai';
+          }
+        } catch (fallbackError) {
+          console.error(`❌ Fallback also failed:`, fallbackError);
+          throw new Error(`Génération échouée avec ${finalModel} et ${alternatives[0]}. Vérifiez vos clés API.`);
+        }
+      } else {
+        throw new Error(`Génération échouée avec ${finalModel}. ${apiError.message}`);
+      }
+    }
+
 
     // Générer un slug à partir du titre
     const slug = title
