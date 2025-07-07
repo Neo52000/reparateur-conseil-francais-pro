@@ -117,13 +117,19 @@ const AdvancedReporting: React.FC<AdvancedReportingProps> = ({ sessionId, repair
     setProductPerformance(mockProductPerformance);
   }, [reportPeriod]);
 
-  const getCurrentPeriodData = () => {
-    return salesData.find(data => 
-      reportPeriod === 'today' && data.period === "Aujourd'hui" ||
-      reportPeriod === 'week' && data.period === "Cette semaine" ||
-      reportPeriod === 'month' && data.period === "Ce mois" ||
-      reportPeriod === 'year' && data.period === "Cette année"
-    ) || salesData[0];
+  const getCurrentPeriodData = (): SalesData => {
+    if (!salesData.length) {
+      return { period: 'Aucune donnée', revenue: 0, transactions: 0, averageTicket: 0, growth: 0 };
+    }
+    
+    const found = salesData.find(data => 
+      (reportPeriod === 'today' && data.period === "Aujourd'hui") ||
+      (reportPeriod === 'week' && data.period === "Cette semaine") ||
+      (reportPeriod === 'month' && data.period === "Ce mois") ||
+      (reportPeriod === 'year' && data.period === "Cette année")
+    );
+    
+    return found || salesData[0];
   };
 
   const exportReport = (format: 'pdf' | 'excel' | 'csv') => {
@@ -195,7 +201,7 @@ const AdvancedReporting: React.FC<AdvancedReportingProps> = ({ sessionId, repair
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-2xl font-bold text-emerald-600">
-                  {currentData.revenue.toFixed(2)}€
+                  {currentData?.revenue?.toFixed(2) || '0.00'}€
                 </div>
                 <div className="text-sm text-muted-foreground">Chiffre d'affaires</div>
               </div>
@@ -206,7 +212,7 @@ const AdvancedReporting: React.FC<AdvancedReportingProps> = ({ sessionId, repair
             <div className="flex items-center gap-1 mt-3">
               <TrendingUp className="w-4 h-4 text-emerald-600" />
               <span className="text-sm font-medium text-emerald-600">
-                +{currentData.growth}%
+                +{currentData?.growth || 0}%
               </span>
               <span className="text-sm text-muted-foreground">vs période précédente</span>
             </div>
@@ -219,7 +225,7 @@ const AdvancedReporting: React.FC<AdvancedReportingProps> = ({ sessionId, repair
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-2xl font-bold text-blue-600">
-                  {currentData.transactions}
+                  {currentData?.transactions || 0}
                 </div>
                 <div className="text-sm text-muted-foreground">Transactions</div>
               </div>
@@ -230,7 +236,7 @@ const AdvancedReporting: React.FC<AdvancedReportingProps> = ({ sessionId, repair
             <div className="flex items-center gap-1 mt-3">
               <Activity className="w-4 h-4 text-blue-600" />
               <span className="text-sm text-muted-foreground">
-                {Math.round(currentData.transactions / 7)} par jour (moyenne)
+                {Math.round((currentData?.transactions || 0) / 7)} par jour (moyenne)
               </span>
             </div>
           </CardContent>
@@ -242,7 +248,7 @@ const AdvancedReporting: React.FC<AdvancedReportingProps> = ({ sessionId, repair
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-2xl font-bold text-purple-600">
-                  {currentData.averageTicket.toFixed(2)}€
+                  {currentData?.averageTicket?.toFixed(2) || '0.00'}€
                 </div>
                 <div className="text-sm text-muted-foreground">Panier moyen</div>
               </div>
@@ -276,7 +282,7 @@ const AdvancedReporting: React.FC<AdvancedReportingProps> = ({ sessionId, repair
             <div className="flex items-center gap-1 mt-3">
               <Clock className="w-4 h-4 text-orange-600" />
               <span className="text-sm text-muted-foreground">
-                {Math.round(productPerformance.reduce((sum, p) => sum + p.sold, 0) / currentData.transactions)} par transaction
+                {Math.round(productPerformance.reduce((sum, p) => sum + p.sold, 0) / (currentData?.transactions || 1))} par transaction
               </span>
             </div>
           </CardContent>
