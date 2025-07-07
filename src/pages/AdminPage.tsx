@@ -25,6 +25,7 @@ import RepairContentGenerator from '@/components/blog/admin/RepairContentGenerat
 import PerformanceManagement from '@/components/admin/PerformanceManagement';
 import EnhancedDocumentationManager from '@/components/admin/EnhancedDocumentationManager';
 import FeatureFlagAdmin from '@/components/admin/FeatureFlagAdmin';
+import AdminFeaturesManager from '@/components/admin/AdminFeaturesManager';
 import { Card, CardContent } from '@/components/ui/card';
 import { Monitor } from 'lucide-react';
 
@@ -90,6 +91,7 @@ const AdminPage = () => {
       case 'performance': return 'Performance';
       case 'documentation': return 'Documentation';
       case 'feature-flags': return 'Feature Flags';
+      case 'features-manager': return 'Gestion Fonctionnalités';
       default: return 'Dashboard';
     }
   };
@@ -114,6 +116,7 @@ const AdminPage = () => {
       case 'performance': return 'Optimisation et surveillance des performances globales';
       case 'documentation': return 'Gestion de la documentation technique et utilisateur';
       case 'feature-flags': return 'Gestion des fonctionnalités et déploiements progressifs';
+      case 'features-manager': return 'Gestionnaire centralisé de toutes les fonctionnalités et modules';
       default: return 'Administration de RepairHub';
     }
   };
@@ -235,6 +238,10 @@ const AdminPage = () => {
 
     if (activeTab === 'feature-flags') {
       return <FeatureFlagAdmin />;
+    }
+
+    if (activeTab === 'features-manager') {
+      return <AdminFeaturesManager />;
     }
 
     // Default dashboard

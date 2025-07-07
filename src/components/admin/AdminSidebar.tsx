@@ -20,7 +20,8 @@ import {
   BookOpen,
   Gauge,
   Zap,
-  Flag
+  Flag,
+  Settings
 } from 'lucide-react';
 
 const AdminSidebar: React.FC = () => {
@@ -51,6 +52,7 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=chatbot', icon: Bot, label: 'Chatbot IA', tab: 'chatbot', category: 'Technical' },
     { path: '/admin?tab=documentation', icon: BookOpen, label: 'Documentation', tab: 'documentation', category: 'Technical' },
     { path: '/admin?tab=feature-flags', icon: Flag, label: 'Feature Flags', tab: 'feature-flags', category: 'Technical' },
+    { path: '/admin?tab=features-manager', icon: Settings, label: 'Gestion Fonctionnalités', tab: 'features-manager', category: 'Technical' },
     { path: '/admin?tab=pos-admin', icon: CreditCard, label: 'POS Admin', tab: 'pos-admin', category: 'Technical' },
     { path: '/admin?tab=ecommerce-admin', icon: ShoppingCart, label: 'E-commerce Admin', tab: 'ecommerce-admin', category: 'Technical' },
     { path: '/admin/audit', icon: ShieldCheck, label: 'Logs d\'audit', tab: 'audit', category: 'Technical' },
