@@ -58,314 +58,224 @@ export const useFeatureManagement = () => {
   const [planFeatures, setPlanFeatures] = useState<PlanFeature[]>([]);
   const [planFeatureMatrix, setPlanFeatureMatrix] = useState<PlanFeatureMatrix[]>([]);
 
-  // Données mockées pour la démonstration
-  const mockUsageStats: FeatureUsageStats[] = [
-    {
-      moduleName: 'Système POS',
-      moduleType: 'pos',
-      totalUsers: 15,
-      activeUsers: 12,
-      monthlyUsage: 1250,
-      revenueImpact: 7480,
-      status: 'active',
-      lastUpdate: '2024-01-07T10:30:00Z'
-    },
-    {
-      moduleName: 'E-commerce',
-      moduleType: 'ecommerce',
-      totalUsers: 8,
-      activeUsers: 6,
-      monthlyUsage: 680,
-      revenueImpact: 5340,
-      status: 'active',
-      lastUpdate: '2024-01-06T15:20:00Z'
-    },
-    {
-      moduleName: 'Blog & Content',
-      moduleType: 'blog',
-      totalUsers: 25,
-      activeUsers: 18,
-      monthlyUsage: 320,
-      revenueImpact: 0,
-      status: 'active',
-      lastUpdate: '2024-01-05T09:15:00Z'
-    },
-    {
-      moduleName: 'Gestion Réparations',
-      moduleType: 'repair',
-      totalUsers: 142,
-      activeUsers: 89,
-      monthlyUsage: 2890,
-      revenueImpact: 0,
-      status: 'active',
-      lastUpdate: '2024-01-07T14:45:00Z'
+  // Fonctions pour charger les données depuis la base de données
+  const loadUsageStats = async () => {
+    try {
+      // Statistiques mockées pour le moment - à implémenter avec de vraies données
+      const mockStats: FeatureUsageStats[] = [
+        {
+          moduleName: 'Système POS',
+          moduleType: 'pos',
+          totalUsers: 15,
+          activeUsers: 12,
+          monthlyUsage: 1250,
+          revenueImpact: 7480,
+          status: 'active',
+          lastUpdate: '2024-01-07T10:30:00Z'
+        },
+        {
+          moduleName: 'E-commerce',
+          moduleType: 'ecommerce',
+          totalUsers: 8,
+          activeUsers: 6,
+          monthlyUsage: 680,
+          revenueImpact: 5340,
+          status: 'active',
+          lastUpdate: '2024-01-06T15:20:00Z'
+        }
+      ];
+      setUsageStats(mockStats);
+    } catch (error) {
+      console.error('Error loading usage stats:', error);
     }
-  ];
+  };
 
-  const mockModuleConfigs: ModuleConfiguration[] = [
-    {
-      id: 'pos-system',
-      moduleName: 'Système POS',
-      moduleType: 'pos',
-      isEnabled: true,
-      configuration: {
-        enableInventory: true,
-        enableReporting: true,
-        enablePaymentTerminal: true,
-        maxTransactionsPerDay: 1000
-      },
-      dependencies: ['payment-gateway', 'inventory-system'],
-      version: '2.1.0',
-      documentation: 'Système de point de vente complet avec gestion des stocks et rapports'
-    },
-    {
-      id: 'ecommerce-platform',
-      moduleName: 'Plateforme E-commerce',
-      moduleType: 'ecommerce',
-      isEnabled: true,
-      configuration: {
-        enableStoreBuilder: true,
-        enableOrderManagement: true,
-        enableAnalytics: true,
-        maxProductsPerStore: 500
-      },
-      dependencies: ['payment-system', 'shipping-calculator'],
-      version: '1.8.3',
-      documentation: 'Plateforme e-commerce complète pour les réparateurs'
-    },
-    {
-      id: 'blog-cms',
-      moduleName: 'CMS Blog',
-      moduleType: 'blog',
-      isEnabled: true,
-      configuration: {
-        enableAIGeneration: true,
-        enableScheduling: true,
-        enableComments: true,
-        maxPostsPerMonth: 50
-      },
-      dependencies: ['ai-service', 'seo-tools'],
-      version: '1.5.2',
-      documentation: 'Système de gestion de contenu avec génération IA'
-    },
-    {
-      id: 'repair-management',
-      moduleName: 'Gestion des Réparations',
-      moduleType: 'repair',
-      isEnabled: true,
-      configuration: {
-        enableDeviceIntake: true,
-        enableStatusTracking: true,
-        enableCustomerNotifications: true,
-        maxActiveRepairs: 100
-      },
-      dependencies: ['notification-system'],
-      version: '3.0.1',
-      documentation: 'Système complet de gestion des réparations et suivi client'
+  const loadModuleConfigs = async () => {
+    try {
+      // Configurations mockées pour le moment
+      const mockConfigs: ModuleConfiguration[] = [
+        {
+          id: 'pos-system',
+          moduleName: 'Système POS',
+          moduleType: 'pos',
+          isEnabled: true,
+          configuration: {
+            enableInventory: true,
+            enableReporting: true,
+            enablePaymentTerminal: true,
+            maxTransactionsPerDay: 1000
+          },
+          dependencies: ['payment-gateway', 'inventory-system'],
+          version: '2.1.0',
+          documentation: 'Système de point de vente complet avec gestion des stocks et rapports'
+        },
+        {
+          id: 'ecommerce-platform',
+          moduleName: 'Plateforme E-commerce',
+          moduleType: 'ecommerce',
+          isEnabled: true,
+          configuration: {
+            enableStoreBuilder: true,
+            enableOrderManagement: true,
+            enableAnalytics: true,
+            maxProductsPerStore: 500
+          },
+          dependencies: ['payment-system', 'shipping-calculator'],
+          version: '1.8.3',
+          documentation: 'Plateforme e-commerce complète pour les réparateurs'
+        }
+      ];
+      setModuleConfigs(mockConfigs);
+    } catch (error) {
+      console.error('Error loading module configs:', error);
     }
-  ];
+  };
 
-  const mockPlanConfigs: PlanConfiguration[] = [
-    {
-      planName: 'Gratuit',
-      planPriceMonthly: 0,
-      planPriceYearly: 0,
-      planDescription: 'Plan de base pour débuter',
-      features: {
-        'basic-profile': true,
-        'basic-search': true,
-        'email-support': true,
-        'pos-basic': false,
-        'ecommerce': false,
-        'blog-advanced': false,
-        'analytics': false
-      },
-      limits: {
-        'max-repairs': 10,
-        'max-photos': 5,
-        'storage-mb': 100
-      },
-      subscribers: 125,
-      revenue: 0
-    },
-    {
-      planName: 'Basique',
-      planPriceMonthly: 29,
-      planPriceYearly: 290,
-      planDescription: 'Fonctionnalités essentielles pour les pros',
-      features: {
-        'basic-profile': true,
-        'basic-search': true,
-        'email-support': true,
-        'pos-basic': true,
-        'ecommerce': false,
-        'blog-advanced': false,
-        'analytics': true
-      },
-      limits: {
-        'max-repairs': 50,
-        'max-photos': 20,
-        'storage-mb': 500
-      },
-      subscribers: 67,
-      revenue: 1943
-    },
-    {
-      planName: 'Premium',
-      planPriceMonthly: 59,
-      planPriceYearly: 590,
-      planDescription: 'Toutes les fonctionnalités avancées',
-      features: {
-        'basic-profile': true,
-        'basic-search': true,
-        'email-support': true,
-        'pos-basic': true,
-        'pos-advanced': true,
-        'ecommerce': true,
-        'blog-advanced': true,
-        'analytics': true,
-        'priority-support': true
-      },
-      limits: {
-        'max-repairs': 200,
-        'max-photos': 100,
-        'storage-mb': 2000
-      },
-      subscribers: 43,
-      revenue: 2537
-    },
-    {
-      planName: 'Enterprise',
-      planPriceMonthly: 149,
-      planPriceYearly: 1490,
-      planDescription: 'Solution complète pour les entreprises',
-      features: {
-        'basic-profile': true,
-        'basic-search': true,
-        'email-support': true,
-        'pos-basic': true,
-        'pos-advanced': true,
-        'pos-enterprise': true,
-        'ecommerce': true,
-        'ecommerce-advanced': true,
-        'blog-advanced': true,
-        'analytics': true,
-        'priority-support': true,
-        'api-access': true,
-        'white-label': true
-      },
-      limits: {
-        'max-repairs': -1, // Illimité
-        'max-photos': -1,
-        'storage-mb': -1
-      },
-      subscribers: 18,
-      revenue: 2682
+  const loadPlanConfigs = async () => {
+    try {
+      const { data: plans, error: plansError } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .order('price_monthly', { ascending: true });
+
+      if (plansError) throw plansError;
+
+      const { data: subscriptions, error: subscriptionsError } = await supabase
+        .from('repairer_subscriptions')
+        .select('subscription_tier, user_id');
+
+      if (subscriptionsError) throw subscriptionsError;
+
+      // Calculer les statistiques par plan
+      const planStats = subscriptions.reduce((acc, sub) => {
+        const tier = sub.subscription_tier;
+        if (!acc[tier]) acc[tier] = { count: 0, revenue: 0 };
+        acc[tier].count++;
+        return acc;
+      }, {} as Record<string, { count: number; revenue: number }>);
+
+      const configs: PlanConfiguration[] = plans.map(plan => ({
+        planName: plan.name as 'Gratuit' | 'Basique' | 'Premium' | 'Enterprise',
+        planPriceMonthly: plan.price_monthly,
+        planPriceYearly: plan.price_yearly,
+        planDescription: getPlanDescription(plan.name),
+        features: {},
+        limits: {},
+        subscribers: planStats[plan.name.toLowerCase()]?.count || 0,
+        revenue: (planStats[plan.name.toLowerCase()]?.count || 0) * plan.price_monthly
+      }));
+
+      setPlanConfigs(configs);
+    } catch (error) {
+      console.error('Error loading plan configs:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les configurations des plans',
+        variant: 'destructive'
+      });
     }
-  ];
+  };
 
-  const mockPlanFeatures: PlanFeature[] = [
-    {
-      featureKey: 'basic-profile',
-      featureName: 'Profil de base',
-      category: 'Profil',
-      description: 'Création et gestion du profil réparateur'
-    },
-    {
-      featureKey: 'basic-search',
-      featureName: 'Recherche de base',
-      category: 'Recherche',
-      description: 'Apparition dans les résultats de recherche'
-    },
-    {
-      featureKey: 'email-support',
-      featureName: 'Support email',
-      category: 'Support',
-      description: 'Assistance par email'
-    },
-    {
-      featureKey: 'pos-basic',
-      featureName: 'POS basique',
-      category: 'POS',
-      description: 'Système de caisse basique'
-    },
-    {
-      featureKey: 'pos-advanced',
-      featureName: 'POS avancé',
-      category: 'POS',
-      description: 'Fonctionnalités POS avancées'
-    },
-    {
-      featureKey: 'pos-enterprise',
-      featureName: 'POS entreprise',
-      category: 'POS',
-      description: 'Suite POS complète avec multi-boutiques'
-    },
-    {
-      featureKey: 'ecommerce',
-      featureName: 'E-commerce basique',
-      category: 'E-commerce',
-      description: 'Boutique en ligne basique'
-    },
-    {
-      featureKey: 'ecommerce-advanced',
-      featureName: 'E-commerce avancé',
-      category: 'E-commerce',
-      description: 'Fonctionnalités e-commerce avancées'
-    },
-    {
-      featureKey: 'blog-advanced',
-      featureName: 'Blog & Content',
-      category: 'Marketing',
-      description: 'Système de blog avec génération IA'
-    },
-    {
-      featureKey: 'analytics',
-      featureName: 'Analytics',
-      category: 'Analytics',
-      description: 'Statistiques et analyses avancées'
-    },
-    {
-      featureKey: 'priority-support',
-      featureName: 'Support prioritaire',
-      category: 'Support',
-      description: 'Support prioritaire avec chat'
-    },
-    {
-      featureKey: 'api-access',
-      featureName: 'Accès API',
-      category: 'Développement',
-      description: 'Accès aux APIs pour intégrations'
-    },
-    {
-      featureKey: 'white-label',
-      featureName: 'Marque blanche',
-      category: 'Branding',
-      description: 'Solution en marque blanche'
+  const loadPlanFeatures = async () => {
+    try {
+      const { data: features, error } = await supabase
+        .from('available_features')
+        .select('*')
+        .eq('is_active', true)
+        .order('category', { ascending: true });
+
+      if (error) throw error;
+
+      const planFeatures: PlanFeature[] = features.map(feature => ({
+        featureKey: feature.feature_key,
+        featureName: feature.feature_name,
+        category: feature.category,
+        description: feature.description || ''
+      }));
+
+      setPlanFeatures(planFeatures);
+    } catch (error) {
+      console.error('Error loading plan features:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les fonctionnalités',
+        variant: 'destructive'
+      });
     }
-  ];
+  };
 
-  // Simuler le chargement des données
+  const loadPlanFeatureMatrix = async () => {
+    try {
+      const { data: planFeatures, error } = await supabase
+        .from('plan_features')
+        .select(`
+          plan_name,
+          feature_key,
+          enabled,
+          feature_limit,
+          available_features (
+            feature_key,
+            feature_name,
+            category,
+            description
+          )
+        `);
+
+      if (error) throw error;
+
+      // Grouper par fonctionnalité
+      const featureMap = new Map();
+      
+      planFeatures.forEach(pf => {
+        const featureKey = pf.feature_key;
+        if (!featureMap.has(featureKey)) {
+          featureMap.set(featureKey, {
+            feature: {
+              featureKey: pf.available_features.feature_key,
+              featureName: pf.available_features.feature_name,
+              category: pf.available_features.category,
+              description: pf.available_features.description
+            },
+            planAccess: {}
+          });
+        }
+        featureMap.get(featureKey).planAccess[pf.plan_name] = pf.enabled;
+      });
+
+      const matrix: PlanFeatureMatrix[] = Array.from(featureMap.values());
+      setPlanFeatureMatrix(matrix);
+    } catch (error) {
+      console.error('Error loading plan feature matrix:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger la matrice des fonctionnalités',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const getPlanDescription = (planName: string): string => {
+    switch (planName) {
+      case 'Gratuit': return 'Plan de base pour débuter';
+      case 'Basique': return 'Fonctionnalités essentielles pour les pros';
+      case 'Premium': return 'Toutes les fonctionnalités avancées';
+      case 'Enterprise': return 'Solution complète pour les entreprises';
+      default: return 'Plan personnalisé';
+    }
+  };
+
+  // Charger les données depuis la base de données
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        // Simuler un appel API
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setUsageStats(mockUsageStats);
-        setModuleConfigs(mockModuleConfigs);
-        setPlanConfigs(mockPlanConfigs);
-        setPlanFeatures(mockPlanFeatures);
-        
-        // Build plan-feature matrix
-        const matrix = mockPlanFeatures.map(feature => ({
-          feature,
-          planAccess: mockPlanConfigs.reduce((acc, plan) => ({
-            ...acc,
-            [plan.planName]: plan.features[feature.featureKey] || false
-          }), {} as Record<string, boolean>)
-        }));
-        setPlanFeatureMatrix(matrix);
+        await Promise.all([
+          loadUsageStats(),
+          loadModuleConfigs(),
+          loadPlanConfigs(),
+          loadPlanFeatures(),
+          loadPlanFeatureMatrix()
+        ]);
       } catch (error) {
         console.error('Error loading feature management data:', error);
         toast({
@@ -447,28 +357,31 @@ export const useFeatureManagement = () => {
 
   const togglePlanFeature = async (planName: string, featureKey: string) => {
     try {
-      setPlanConfigs(prev => 
-        prev.map(plan => 
-          plan.planName === planName 
-            ? { 
-                ...plan, 
-                features: {
-                  ...plan.features,
-                  [featureKey]: !plan.features[featureKey]
-                }
-              }
-            : plan
-        )
-      );
+      // Mettre à jour dans la base de données
+      const currentMatrix = planFeatureMatrix.find(item => item.feature.featureKey === featureKey);
+      const currentEnabled = currentMatrix?.planAccess[planName] || false;
+      const newEnabled = !currentEnabled;
 
-      // Update matrix
+      const { error } = await supabase
+        .from('plan_features')
+        .upsert({
+          plan_name: planName,
+          feature_key: featureKey,
+          enabled: newEnabled
+        }, {
+          onConflict: 'plan_name,feature_key'
+        });
+
+      if (error) throw error;
+
+      // Mettre à jour l'état local
       setPlanFeatureMatrix(prev =>
         prev.map(item => ({
           ...item,
           planAccess: {
             ...item.planAccess,
             [planName]: item.feature.featureKey === featureKey 
-              ? !item.planAccess[planName] 
+              ? newEnabled 
               : item.planAccess[planName]
           }
         }))
@@ -476,7 +389,7 @@ export const useFeatureManagement = () => {
 
       toast({
         title: 'Configuration mise à jour',
-        description: `Fonctionnalité ${featureKey} mise à jour pour le plan ${planName}.`
+        description: `Fonctionnalité ${featureKey} ${newEnabled ? 'activée' : 'désactivée'} pour le plan ${planName}.`
       });
     } catch (error) {
       console.error('Error toggling plan feature:', error);
@@ -497,6 +410,18 @@ export const useFeatureManagement = () => {
 
   const updatePlanPricing = async (planName: string, monthlyPrice: number, yearlyPrice: number) => {
     try {
+      // Mettre à jour dans la base de données
+      const { error } = await supabase
+        .from('subscription_plans')
+        .update({ 
+          price_monthly: monthlyPrice,
+          price_yearly: yearlyPrice
+        })
+        .eq('name', planName);
+
+      if (error) throw error;
+
+      // Mettre à jour l'état local
       setPlanConfigs(prev => 
         prev.map(plan => 
           plan.planName === planName 

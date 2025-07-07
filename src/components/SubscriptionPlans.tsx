@@ -30,6 +30,12 @@ interface Plan {
   price_monthly: number;
   price_yearly: number;
   features: string[];
+  enabledFeatures?: {
+    feature_key: string;
+    feature_name: string;
+    category: string;
+    description?: string;
+  }[];
 }
 
 interface SubscriptionPlansProps {
@@ -60,20 +66,57 @@ const SubscriptionPlans = ({
   }, []);
 
   const fetchPlans = async () => {
-    const { data, error } = await supabase
-      .from('subscription_plans')
-      .select('*')
-      .order('price_monthly', { ascending: true });
+    try {
+      // Récupérer les plans
+      const { data: plansData, error: plansError } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .order('price_monthly', { ascending: true });
 
-    if (data && !error) {
-      const convertedPlans: Plan[] = data.map((plan: SubscriptionPlan) => ({
+      if (plansError) throw plansError;
+
+      // Récupérer les fonctionnalités par plan
+      const { data: planFeaturesData, error: featuresError } = await supabase
+        .from('plan_features')
+        .select(`
+          plan_name,
+          feature_key,
+          enabled,
+          available_features (
+            feature_key,
+            feature_name,
+            category,
+            description
+          )
+        `)
+        .eq('enabled', true);
+
+      if (featuresError) throw featuresError;
+
+      // Grouper les fonctionnalités par plan
+      const featuresByPlan = planFeaturesData.reduce((acc, pf) => {
+        if (!acc[pf.plan_name]) acc[pf.plan_name] = [];
+        acc[pf.plan_name].push({
+          feature_key: pf.feature_key,
+          feature_name: pf.available_features.feature_name,
+          category: pf.available_features.category,
+          description: pf.available_features.description
+        });
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      const convertedPlans: Plan[] = plansData.map((plan: SubscriptionPlan) => ({
         id: plan.id,
         name: plan.name,
         price_monthly: plan.price_monthly,
         price_yearly: plan.price_yearly,
-        features: Array.isArray(plan.features) ? plan.features as string[] : []
+        features: Array.isArray(plan.features) ? plan.features as string[] : [],
+        enabledFeatures: featuresByPlan[plan.name] || []
       }));
+      
       setPlans(convertedPlans);
+    } catch (error) {
+      console.error('Error fetching plans:', error);
     }
   };
 

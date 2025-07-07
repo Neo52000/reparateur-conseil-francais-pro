@@ -637,6 +637,39 @@ export type Database = {
           },
         ]
       }
+      available_features: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          feature_key: string
+          feature_name: string
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          feature_key: string
+          feature_name: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          feature_key?: string
+          feature_name?: string
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       blog_categories: {
         Row: {
           created_at: string
@@ -2861,6 +2894,30 @@ export type Database = {
         }
         Relationships: []
       }
+      module_pricing: {
+        Row: {
+          billing_cycle: string
+          id: string
+          module_price: number
+          module_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          billing_cycle: string
+          id?: string
+          module_price: number
+          module_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          billing_cycle?: string
+          id?: string
+          module_price?: number
+          module_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       module_subscriptions: {
         Row: {
           activated_at: string | null
@@ -3429,6 +3486,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      plan_features: {
+        Row: {
+          created_at: string | null
+          enabled: boolean | null
+          feature_key: string
+          feature_limit: number | null
+          id: string
+          plan_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          enabled?: boolean | null
+          feature_key: string
+          feature_limit?: number | null
+          id?: string
+          plan_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          enabled?: boolean | null
+          feature_key?: string
+          feature_limit?: number | null
+          id?: string
+          plan_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_features_feature_key_fkey"
+            columns: ["feature_key"]
+            isOneToOne: false
+            referencedRelation: "available_features"
+            referencedColumns: ["feature_key"]
+          },
+        ]
       }
       pos_inventory_items: {
         Row: {

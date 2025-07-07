@@ -12,6 +12,12 @@ interface Plan {
   price_monthly: number;
   price_yearly: number;
   features: string[];
+  enabledFeatures?: {
+    feature_key: string;
+    feature_name: string;
+    category: string;
+    description?: string;
+  }[];
 }
 
 interface PlanCardProps {
@@ -129,12 +135,28 @@ const PlanCard: React.FC<PlanCardProps> = ({
 
       <CardContent className="space-y-4">
         <ul className="space-y-2">
-          {plan.features.map((feature, index) => (
-            <li key={index} className="flex items-start">
-              <Check className="h-4 w-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
-              <span className="text-sm text-gray-600">{feature}</span>
-            </li>
-          ))}
+          {/* Afficher d'abord les fonctionnalités spécifiques du plan */}
+          {plan.enabledFeatures && plan.enabledFeatures.length > 0 ? (
+            plan.enabledFeatures.map((feature, index) => (
+              <li key={index} className="flex items-start">
+                <Check className="h-4 w-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
+                <div className="flex-1">
+                  <span className="text-sm text-gray-600">{feature.feature_name}</span>
+                  {feature.description && (
+                    <div className="text-xs text-gray-500 mt-0.5">{feature.description}</div>
+                  )}
+                </div>
+              </li>
+            ))
+          ) : (
+            // Fallback sur les anciennes fonctionnalités si pas de nouvelles
+            plan.features.map((feature, index) => (
+              <li key={index} className="flex items-start">
+                <Check className="h-4 w-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
+                <span className="text-sm text-gray-600">{feature}</span>
+              </li>
+            ))
+          )}
         </ul>
 
         {/* Section modules optionnels avec checkboxes */}
