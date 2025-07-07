@@ -60,6 +60,12 @@ export const useFeatureManagement = () => {
   const [planFeatures, setPlanFeatures] = useState<PlanFeature[]>([]);
   const [planFeatureMatrix, setPlanFeatureMatrix] = useState<PlanFeatureMatrix[]>([]);
 
+  console.log('🔄 useFeatureManagement - Hook initialized:', { 
+    hasUser: !!user?.id, 
+    demoModeEnabled,
+    loading 
+  });
+
   // Fonctions pour charger les données depuis la base de données
   const loadUsageStats = async () => {
     try {
@@ -205,6 +211,9 @@ export const useFeatureManagement = () => {
 
   const loadPlanConfigs = async () => {
     try {
+      console.log('💰 Loading plan configs (pricing always public)');
+      
+      // Toujours charger les plans de base depuis la DB
       const { data: plans, error: plansError } = await supabase
         .from('subscription_plans')
         .select('*')
@@ -212,19 +221,29 @@ export const useFeatureManagement = () => {
 
       if (plansError) throw plansError;
 
-      const { data: subscriptions, error: subscriptionsError } = await supabase
-        .from('repairer_subscriptions')
-        .select('subscription_tier, user_id');
+      let planStats = {} as Record<string, { count: number; revenue: number }>;
 
-      if (subscriptionsError) throw subscriptionsError;
+      // Calculer les statistiques seulement si utilisateur connecté et pas en mode démo
+      if (user?.id && !demoModeEnabled) {
+        console.log('📊 Loading plan statistics (private data)');
+        const { data: subscriptions, error: subscriptionsError } = await supabase
+          .from('repairer_subscriptions')
+          .select('subscription_tier, user_id');
 
-      // Calculer les statistiques par plan
-      const planStats = subscriptions.reduce((acc, sub) => {
-        const tier = sub.subscription_tier;
-        if (!acc[tier]) acc[tier] = { count: 0, revenue: 0 };
-        acc[tier].count++;
-        return acc;
-      }, {} as Record<string, { count: number; revenue: number }>);
+        if (subscriptionsError) {
+          console.warn('⚠️ Could not load subscription stats:', subscriptionsError);
+        } else {
+          // Calculer les statistiques par plan
+          planStats = subscriptions.reduce((acc, sub) => {
+            const tier = sub.subscription_tier;
+            if (!acc[tier]) acc[tier] = { count: 0, revenue: 0 };
+            acc[tier].count++;
+            return acc;
+          }, {} as Record<string, { count: number; revenue: number }>);
+        }
+      } else {
+        console.log('👤 Skipping plan statistics (public mode or demo)');
+      }
 
       const configs: PlanConfiguration[] = plans.map(plan => ({
         planName: plan.name as 'Gratuit' | 'Basique' | 'Premium' | 'Enterprise',
@@ -237,9 +256,10 @@ export const useFeatureManagement = () => {
         revenue: (planStats[plan.name.toLowerCase()]?.count || 0) * plan.price_monthly
       }));
 
+      console.log('✅ Plan configs loaded:', configs.map(p => `${p.planName}: ${p.planPriceMonthly}€/mois`));
       setPlanConfigs(configs);
     } catch (error) {
-      console.error('Error loading plan configs:', error);
+      console.error('❌ Error loading plan configs:', error);
       toast({
         title: 'Erreur',
         description: 'Impossible de charger les configurations des plans',
@@ -336,86 +356,154 @@ export const useFeatureManagement = () => {
     }
   };
 
+  // Séparer les données publiques des données privées
+  const loadPublicData = async () => {
+    console.log('📊 useFeatureManagement - Loading public data (pricing & features)');
+    try {
+      await Promise.all([
+        loadPlanConfigs(),
+        loadPlanFeatures(),
+        loadPlanFeatureMatrix()
+      ]);
+      console.log('✅ useFeatureManagement - Public data loaded successfully');
+    } catch (error) {
+      console.error('❌ Error loading public data:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les tarifs et fonctionnalités',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const loadPrivateData = async () => {
+    console.log('🔐 useFeatureManagement - Loading private data (stats & configs)');
+    try {
+      await Promise.all([
+        loadUsageStats(),
+        loadModuleConfigs()
+      ]);
+      console.log('✅ useFeatureManagement - Private data loaded successfully');
+    } catch (error) {
+      console.error('❌ Error loading private data:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les statistiques et configurations',
+        variant: 'destructive'
+      });
+    }
+  };
+
   // Charger les données depuis la base de données
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
+      console.log('🚀 useFeatureManagement - Starting data load:', { 
+        hasUser: !!user?.id, 
+        demoModeEnabled 
+      });
+      
       try {
-        await Promise.all([
-          loadUsageStats(),
-          loadModuleConfigs(),
-          loadPlanConfigs(),
-          loadPlanFeatures(),
-          loadPlanFeatureMatrix()
-        ]);
+        // Toujours charger les données publiques (tarifs et fonctionnalités)
+        await loadPublicData();
+        
+        // Charger les données privées seulement si utilisateur connecté
+        if (user?.id) {
+          console.log('👤 User authenticated, loading private data');
+          await loadPrivateData();
+        } else {
+          console.log('👤 No user, skipping private data');
+        }
       } catch (error) {
-        console.error('Error loading feature management data:', error);
-        toast({
-          title: 'Erreur',
-          description: 'Impossible de charger les données des fonctionnalités',
-          variant: 'destructive'
-        });
+        console.error('❌ Error in main data loading:', error);
       } finally {
         setLoading(false);
+        console.log('🏁 useFeatureManagement - Data loading completed');
       }
     };
 
-    if (user?.id) {
-      loadData();
-    }
-  }, [user?.id, toast, demoModeEnabled]);
+    loadData();
+  }, [user?.id, demoModeEnabled]);
 
-  // Synchronisation temps réel
+  // Synchronisation temps réel - Séparée en données publiques et privées
   useEffect(() => {
-    console.log('🔄 useFeatureManagement - Real-time setup:', { 
-      hasUser: !!user?.id, 
-      userId: user?.id,
-      demoModeEnabled 
-    });
+    console.log('🔄 useFeatureManagement - Setting up PUBLIC real-time sync (pricing)');
     
-    if (!user?.id || demoModeEnabled) {
-      console.log('⏸️ useFeatureManagement - Real-time disabled:', { 
-        reason: !user?.id ? 'no_user' : 'demo_mode' 
-      });
-      return;
-    }
-
-    console.log('🎯 useFeatureManagement - Setting up real-time listeners');
-    
-    // Écouter les changements sur les tables subscription_plans et module_pricing
-    const plansChannel = supabase
-      .channel('subscription_plans_changes')
+    // Toujours synchroniser les données publiques (tarifs et fonctionnalités)
+    const publicChannel = supabase
+      .channel('public_data_changes')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'subscription_plans'
       }, (payload) => {
-        console.log('🔄 Real-time change on subscription_plans:', payload);
+        console.log('💰 Real-time change on subscription_plans (public):', payload);
         loadPlanConfigs();
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'module_pricing'
-      }, (payload) => {
-        console.log('🔄 Real-time change on module_pricing:', payload);
-        loadModuleConfigs();
       })
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'plan_features'
       }, (payload) => {
-        console.log('🔄 Real-time change on plan_features:', payload);
+        console.log('🎯 Real-time change on plan_features (public):', payload);
         loadPlanFeatureMatrix();
       })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'available_features'
+      }, (payload) => {
+        console.log('⚡ Real-time change on available_features (public):', payload);
+        loadPlanFeatures();
+      })
       .subscribe((status) => {
-        console.log('📡 Real-time subscription status:', status);
+        console.log('📡 Public real-time subscription status:', status);
       });
 
     return () => {
-      console.log('🛑 useFeatureManagement - Cleaning up real-time listeners');
-      supabase.removeChannel(plansChannel);
+      console.log('🛑 useFeatureManagement - Cleaning up public real-time listeners');
+      supabase.removeChannel(publicChannel);
+    };
+  }, []); // Pas de dépendance pour toujours activer
+
+  // Synchronisation temps réel pour les données privées (admin seulement)
+  useEffect(() => {
+    if (!user?.id || demoModeEnabled) {
+      console.log('⏸️ useFeatureManagement - Private real-time disabled:', { 
+        reason: !user?.id ? 'no_user' : 'demo_mode' 
+      });
+      return;
+    }
+
+    console.log('🔐 useFeatureManagement - Setting up PRIVATE real-time sync (stats & configs)');
+    
+    // Synchroniser les données privées seulement pour les utilisateurs connectés
+    const privateChannel = supabase
+      .channel('private_data_changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'module_pricing'
+      }, (payload) => {
+        console.log('🔧 Real-time change on module_pricing (private):', payload);
+        loadModuleConfigs();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'repairer_subscriptions'
+      }, (payload) => {
+        console.log('📊 Real-time change on repairer_subscriptions (private):', payload);
+        loadUsageStats();
+        loadPlanConfigs(); // Recalculer les stats des plans
+      })
+      .subscribe((status) => {
+        console.log('🔐 Private real-time subscription status:', status);
+      });
+
+    return () => {
+      console.log('🛑 useFeatureManagement - Cleaning up private real-time listeners');
+      supabase.removeChannel(privateChannel);
     };
   }, [user?.id, demoModeEnabled]);
 
