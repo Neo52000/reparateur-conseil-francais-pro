@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Save, Mail, Bell, Globe, Shield, FileText, Download, RotateCcw } from 'lucide-react';
 import { useDocumentationManager } from '@/hooks/useDocumentationManager';
 import { useBlogSettings } from '@/hooks/useBlogSettings';
+import ApiKeysStatus from './ApiKeysStatus';
 
 const BlogSettings: React.FC = () => {
   const { generateAllPDFs, generating, autoUpdateEnabled, changes } = useDocumentationManager();
@@ -325,9 +326,9 @@ const BlogSettings: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="perplexity">Perplexity</SelectItem>
                   <SelectItem value="mistral">Mistral</SelectItem>
                   <SelectItem value="openai">OpenAI GPT-4</SelectItem>
-                  <SelectItem value="claude">Claude</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -350,6 +351,9 @@ const BlogSettings: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+        
+        {/* Statut des clés API */}
+        <ApiKeysStatus />
       </div>
     </div>
   );
