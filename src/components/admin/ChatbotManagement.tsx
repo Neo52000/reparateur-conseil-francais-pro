@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { MessageSquare, TrendingUp, Brain, Settings, Plus, Edit, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -40,6 +41,8 @@ const ChatbotManagement = () => {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [config, setConfig] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingData, setEditingData] = useState<TrainingData | null>(null);
 
   useEffect(() => {
     loadData();
@@ -111,22 +114,30 @@ const ChatbotManagement = () => {
         metadata: {}
       };
 
-      if (data.id) {
-        await supabase
+      // Vérifier si c'est un update (id existe et n'est pas vide) ou un insert
+      if (data.id && data.id.trim() !== '') {
+        const { error } = await supabase
           .from('chatbot_training_data')
           .update(trainingDataToSave)
           .eq('id', data.id);
+        
+        if (error) throw error;
         toast.success('Données d\'entraînement mises à jour');
       } else {
-        await supabase
+        const { error } = await supabase
           .from('chatbot_training_data')
           .insert(trainingDataToSave);
+        
+        if (error) throw error;
         toast.success('Nouvelles données d\'entraînement ajoutées');
       }
+      
+      setShowAddModal(false);
+      setEditingData(null);
       loadData();
     } catch (error) {
       console.error('Erreur sauvegarde:', error);
-      toast.error('Erreur lors de la sauvegarde');
+      toast.error(`Erreur lors de la sauvegarde: ${error.message || 'Erreur inconnue'}`);
     }
   };
 
@@ -269,21 +280,114 @@ const ChatbotManagement = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Base de connaissances</CardTitle>
-                <Button onClick={() => {
-                  const newData: TrainingData = {
-                    id: '',
-                    intent: 'Nouveau intent',
-                    training_text: 'mots-clés séparés par des espaces',
-                    response_template: 'Réponse du chatbot',
-                    category: 'general',
-                    confidence_threshold: 0.8,
-                    is_active: true
-                  };
-                  saveTrainingData(newData);
-                }}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter
-                </Button>
+                <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                      setEditingData({
+                        id: '',
+                        intent: '',
+                        training_text: '',
+                        response_template: '',
+                        category: 'general',
+                        confidence_threshold: 0.8,
+                        is_active: true
+                      });
+                      setShowAddModal(true);
+                    }}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingData?.id && editingData.id.trim() !== '' ? 'Modifier' : 'Ajouter'} une donnée d'entraînement
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="intent" className="text-right">Intent</Label>
+                        <Input
+                          id="intent"
+                          value={editingData?.intent || ''}
+                          onChange={(e) => setEditingData(prev => prev ? {...prev, intent: e.target.value} : null)}
+                          className="col-span-3"
+                          placeholder="Ex: demande_prix"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="category" className="text-right">Catégorie</Label>
+                        <Select
+                          value={editingData?.category || 'general'}
+                          onValueChange={(value) => setEditingData(prev => prev ? {...prev, category: value} : null)}
+                        >
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="general">Général</SelectItem>
+                            <SelectItem value="diagnostic">Diagnostic</SelectItem>
+                            <SelectItem value="pricing">Tarification</SelectItem>
+                            <SelectItem value="booking">Réservation</SelectItem>
+                            <SelectItem value="support">Support</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="training_text" className="text-right">Mots-clés</Label>
+                        <Textarea
+                          id="training_text"
+                          value={editingData?.training_text || ''}
+                          onChange={(e) => setEditingData(prev => prev ? {...prev, training_text: e.target.value} : null)}
+                          className="col-span-3"
+                          placeholder="prix coût tarif combien réparation smartphone"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="response_template" className="text-right">Réponse</Label>
+                        <Textarea
+                          id="response_template"
+                          value={editingData?.response_template || ''}
+                          onChange={(e) => setEditingData(prev => prev ? {...prev, response_template: e.target.value} : null)}
+                          className="col-span-3"
+                          placeholder="Le prix d'une réparation dépend du type de panne..."
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="confidence_threshold" className="text-right">Seuil confiance</Label>
+                        <Input
+                          id="confidence_threshold"
+                          type="number"
+                          min="0"
+                          max="1"
+                          step="0.1"
+                          value={editingData?.confidence_threshold || 0.8}
+                          onChange={(e) => setEditingData(prev => prev ? {...prev, confidence_threshold: parseFloat(e.target.value)} : null)}
+                          className="col-span-3"
+                        />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="is_active" className="text-right">Actif</Label>
+                        <Switch
+                          id="is_active"
+                          checked={editingData?.is_active || false}
+                          onCheckedChange={(checked) => setEditingData(prev => prev ? {...prev, is_active: checked} : null)}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button variant="outline" onClick={() => setShowAddModal(false)}>
+                        Annuler
+                      </Button>
+                      <Button 
+                        onClick={() => editingData && saveTrainingData(editingData)}
+                        disabled={!editingData?.intent || !editingData?.training_text || !editingData?.response_template}
+                      >
+                        {editingData?.id && editingData.id.trim() !== '' ? 'Mettre à jour' : 'Ajouter'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardHeader>
             <CardContent>
@@ -314,7 +418,14 @@ const ChatbotManagement = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => {
+                              setEditingData(item);
+                              setShowAddModal(true);
+                            }}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="sm">
