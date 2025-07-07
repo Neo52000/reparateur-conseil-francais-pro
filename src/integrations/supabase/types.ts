@@ -5322,6 +5322,26 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_service_performance: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          service_type: string
+          total_pages: number
+          avg_views: number
+          avg_ctr: number
+          avg_seo_score: number
+        }[]
+      }
+      get_top_performing_cities: {
+        Args: { limit_count?: number }
+        Returns: {
+          city: string
+          total_views: number
+          avg_ctr: number
+          total_conversions: number
+          performance_score: number
+        }[]
+      }
       has_local_seo_access: {
         Args: { user_id: string }
         Returns: boolean
