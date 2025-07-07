@@ -1,11 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders } from '../_shared/cors.ts';
+import { withErrorHandling, EdgeErrorHandler } from '../_shared/error-handler.ts';
 
 interface PipelineResult {
   name: string;
@@ -412,85 +409,71 @@ Améliore et complète au format JSON:
   }
 }
 
-serve(async (req) => {
+serve(withErrorHandling('multi-ai-pipeline', async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const { searchTerm, location, testMode } = await req.json();
+  const { searchTerm, location, testMode } = await req.json();
+  
+  EdgeErrorHandler.validateRequiredParams({ searchTerm, location }, ['searchTerm', 'location']);
+  EdgeErrorHandler.logInfo(`🚀 Multi-AI Pipeline: ${searchTerm} à ${location}`);
 
-    console.log(`🚀 Multi-AI Pipeline: ${searchTerm} à ${location}`);
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const pipeline = new MultiAIPipeline(supabaseUrl, supabaseKey);
+  const results = await pipeline.runPipeline(searchTerm, location);
 
-    const pipeline = new MultiAIPipeline(supabaseUrl, supabaseKey);
-    const results = await pipeline.runPipeline(searchTerm, location);
+  // Sauvegarde en base si pas en mode test
+  if (!testMode && results.length > 0) {
+    EdgeErrorHandler.logInfo('💾 Sauvegarde en base de données');
+    
+    for (const result of results) {
+      try {
+        const { error } = await pipeline.supabase
+          .from('repairers')
+          .upsert({
+            name: result.name,
+            address: result.address,
+            city: result.city,
+            postal_code: result.postal_code,
+            phone: result.phone,
+            email: result.email,
+            website: result.website,
+            description: result.description,
+            lat: result.lat,
+            lng: result.lng,
+            deepseek_confidence: result.confidence_score,
+            scraped_at: new Date().toISOString(),
+            source: 'multi_ai_pipeline'
+          }, {
+            onConflict: 'name,postal_code'
+          });
 
-    // Sauvegarde en base si pas en mode test
-    if (!testMode && results.length > 0) {
-      console.log('💾 Sauvegarde en base de données');
-      
-      for (const result of results) {
-        try {
-          const { error } = await pipeline.supabase
-            .from('repairers')
-            .upsert({
-              name: result.name,
-              address: result.address,
-              city: result.city,
-              postal_code: result.postal_code,
-              phone: result.phone,
-              email: result.email,
-              website: result.website,
-              description: result.description,
-              lat: result.lat,
-              lng: result.lng,
-              deepseek_confidence: result.confidence_score,
-              scraped_at: new Date().toISOString(),
-              source: 'multi_ai_pipeline'
-            }, {
-              onConflict: 'name,postal_code'
-            });
-
-          if (error) {
-            console.error('Erreur sauvegarde:', error);
-          }
-        } catch (error) {
-          console.error('Erreur sauvegarde individuelle:', error);
+        if (error) {
+          EdgeErrorHandler.logWarning('Erreur sauvegarde:', error);
         }
+      } catch (error) {
+        EdgeErrorHandler.logWarning('Erreur sauvegarde individuelle:', error);
       }
     }
-
-    return new Response(JSON.stringify({
-      success: true,
-      results: results,
-      metadata: {
-        pipeline_steps: ['serper', 'deepseek', 'mistral', 'perplexity', 'geocoding'],
-        total_results: results.length,
-        test_mode: testMode || false,
-        ai_apis_used: {
-          serper: !!Deno.env.get('SERPER_API_KEY'),
-          deepseek: !!Deno.env.get('DEEPSEEK_API_KEY'),
-          mistral: !!Deno.env.get('MISTRAL_API_KEY'),
-          perplexity: !!Deno.env.get('PERPLEXITY_API_KEY')
-        }
-      }
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
-  } catch (error: any) {
-    console.error('❌ Erreur Pipeline Multi-IA:', error);
-    
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message,
-      details: error.stack
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
   }
-});
+
+  return EdgeErrorHandler.successResponse({
+    success: true,
+    results: results,
+    metadata: {
+      pipeline_steps: ['serper', 'deepseek', 'mistral', 'perplexity', 'geocoding'],
+      total_results: results.length,
+      test_mode: testMode || false,
+      ai_apis_used: {
+        serper: !!Deno.env.get('SERPER_API_KEY'),
+        deepseek: !!Deno.env.get('DEEPSEEK_API_KEY'),
+        mistral: !!Deno.env.get('MISTRAL_API_KEY'),
+        perplexity: !!Deno.env.get('PERPLEXITY_API_KEY')
+      }
+    }
+  }, 'Pipeline Multi-IA terminé avec succès');
+}));

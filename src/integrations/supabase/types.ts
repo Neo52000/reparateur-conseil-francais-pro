@@ -5371,9 +5371,21 @@ export type Database = {
         Args: { post_id: string }
         Returns: undefined
       }
+      normalize_text: {
+        Args: { input_text: string }
+        Returns: string
+      }
       refresh_seo_page_content: {
         Args: { page_id: string }
         Returns: boolean
+      }
+      unaccent: {
+        Args: { "": string }
+        Returns: string
+      }
+      unaccent_init: {
+        Args: { "": unknown }
+        Returns: unknown
       }
       validate_and_use_promo_code: {
         Args: { promo_code_text: string }

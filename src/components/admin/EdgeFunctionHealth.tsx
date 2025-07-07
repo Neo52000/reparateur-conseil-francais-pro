@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { ErrorHandler, withErrorHandling } from '@/utils/errorHandling';
+import { logger } from '@/utils/logger';
 
 interface EdgeFunctionStatus {
   name: string;
@@ -57,58 +57,56 @@ const EdgeFunctionHealth: React.FC = () => {
     }
   ];
 
-  const checkFunctionHealth = withErrorHandling(async (func: typeof edgeFunctions[0]) => {
+  const checkFunctionHealth = async (func: typeof edgeFunctions[0]): Promise<EdgeFunctionStatus> => {
     const startTime = Date.now();
     
-    const { data, error } = await supabase.functions.invoke(func.name, {
-      body: func.testPayload
-    });
-    
-    const responseTime = Date.now() - startTime;
-    
-    if (error) {
+    try {
+      const { data, error } = await supabase.functions.invoke(func.name, {
+        body: func.testPayload
+      });
+      
+      const responseTime = Date.now() - startTime;
+      
+      if (error) {
+        logger.error(`Edge function ${func.name} error:`, error);
+        return {
+          name: func.name,
+          displayName: func.displayName,
+          description: func.description,
+          status: responseTime > 10000 ? 'timeout' : 'error',
+          lastChecked: new Date().toLocaleString('fr-FR'),
+          responseTime,
+          error: error.message || 'Erreur inconnue'
+        };
+      }
+      
       return {
         name: func.name,
         displayName: func.displayName,
         description: func.description,
-        status: responseTime > 10000 ? 'timeout' : 'error',
+        status: 'healthy',
         lastChecked: new Date().toLocaleString('fr-FR'),
-        responseTime,
-        error: error.message || 'Erreur inconnue'
-      } as EdgeFunctionStatus;
+        responseTime
+      };
+    } catch (error) {
+      logger.error(`Edge function ${func.name} exception:`, error);
+      return {
+        name: func.name,
+        displayName: func.displayName,
+        description: func.description,
+        status: 'error',
+        lastChecked: new Date().toLocaleString('fr-FR'),
+        error: error instanceof Error ? error.message : 'Erreur inconnue'
+      };
     }
-    
-    return {
-      name: func.name,
-      displayName: func.displayName,
-      description: func.description,
-      status: 'healthy',
-      lastChecked: new Date().toLocaleString('fr-FR'),
-      responseTime
-    } as EdgeFunctionStatus;
-  }, 'EdgeFunctionHealth');
+  };
 
   const checkAllFunctions = async () => {
     setChecking(true);
     
     try {
       const results = await Promise.all(
-        edgeFunctions.map(async (func) => {
-          const { data, error } = await checkFunctionHealth(func);
-          
-          if (error) {
-            return {
-              name: func.name,
-              displayName: func.displayName,
-              description: func.description,
-              status: 'error',
-              lastChecked: new Date().toLocaleString('fr-FR'),
-              error: ErrorHandler.getDisplayMessage(error)
-            } as EdgeFunctionStatus;
-          }
-          
-          return data!;
-        })
+        edgeFunctions.map(func => checkFunctionHealth(func))
       );
       
       setFunctions(results);
@@ -121,10 +119,10 @@ const EdgeFunctionHealth: React.FC = () => {
       });
       
     } catch (error) {
-      const appError = ErrorHandler.handle(error, 'EdgeFunctionHealth.checkAll');
+      logger.error('EdgeFunctionHealth.checkAll error:', error);
       toast({
         title: "Erreur de vérification",
-        description: ErrorHandler.getDisplayMessage(appError),
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
         variant: "destructive"
       });
     } finally {

@@ -2,11 +2,8 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
 import { AddressExtractor } from '../_shared/address-extractor.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders } from '../_shared/cors.ts';
+import { withErrorHandling, EdgeErrorHandler } from '../_shared/error-handler.ts';
 
 interface UnifiedScrapingOptions {
   searchTerm: string;
@@ -20,92 +17,80 @@ interface UnifiedScrapingOptions {
   providedResults?: any[];
 }
 
-serve(async (req) => {
+serve(withErrorHandling('unified-scraping', async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    console.log('🚀 Unified Scraping Service - Début');
-    
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+  EdgeErrorHandler.logInfo('🚀 Unified Scraping Service - Début');
+  
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  );
 
-    // Initialiser l'extracteur d'adresses
-    const addressExtractor = new AddressExtractor();
+  // Initialiser l'extracteur d'adresses
+  const addressExtractor = new AddressExtractor();
 
-    const options: UnifiedScrapingOptions = await req.json();
-    console.log('📋 Options reçues:', options);
+  const options: UnifiedScrapingOptions = await req.json();
+  EdgeErrorHandler.logInfo('📋 Options reçues:', options);
 
-    const startTime = Date.now();
-    const stats = {
-      totalFound: 0,
-      totalProcessed: 0,
-      totalInserted: 0,
-      sourceBreakdown: {} as Record<string, number>,
-      processingTime: 0,
-      errors: [] as string[]
-    };
+  // Validation des paramètres
+  EdgeErrorHandler.validateRequiredParams(options, ['searchTerm', 'location']);
 
-    let allResults: any[] = [];
-    
-    // Phase 1: Collecte depuis toutes les sources OU utilisation des résultats fournis
-    if (options.providedResults && options.providedResults.length > 0) {
-      console.log('📦 Utilisation des résultats fournis:', options.providedResults.length);
-      allResults = options.providedResults;
-      stats.totalFound = allResults.length;
-    } else {
-      allResults = await collectFromAllSources(supabase, options, stats);
-      stats.totalFound = allResults.length;
-    }
+  const startTime = Date.now();
+  const stats = {
+    totalFound: 0,
+    totalProcessed: 0,
+    totalInserted: 0,
+    sourceBreakdown: {} as Record<string, number>,
+    processingTime: 0,
+    errors: [] as string[]
+  };
 
-    if (allResults.length === 0) {
-      console.warn('⚠️ Aucun résultat trouvé');
-      return new Response(JSON.stringify({
-        success: true,
-        stats,
-        results: []
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+  let allResults: any[] = [];
+  
+  // Phase 1: Collecte depuis toutes les sources OU utilisation des résultats fournis
+  if (options.providedResults && options.providedResults.length > 0) {
+    EdgeErrorHandler.logInfo('📦 Utilisation des résultats fournis:', options.providedResults.length);
+    allResults = options.providedResults;
+    stats.totalFound = allResults.length;
+  } else {
+    allResults = await collectFromAllSources(supabase, options, stats);
+    stats.totalFound = allResults.length;
+  }
 
-    // Phase 2: Traitement et nettoyage avec extraction d'adresses améliorée
-    const processedResults = await processWithPipelines(allResults, addressExtractor);
-    stats.totalProcessed = processedResults.length;
-
-    // Phase 3: Intégration en base (seulement si pas en mode preview)
-    if (!options.previewMode && options.categoryId && processedResults.length > 0) {
-      const insertedCount = await integrateToDatabase(supabase, processedResults, options.categoryId);
-      stats.totalInserted = insertedCount;
-    } else if (options.previewMode) {
-      console.log('🔍 Mode preview - Pas d\'intégration en base');
-    }
-
-    stats.processingTime = Date.now() - startTime;
-    console.log('✅ Unified Scraping terminé:', stats);
-
-    return new Response(JSON.stringify({
+  if (allResults.length === 0) {
+    EdgeErrorHandler.logWarning('⚠️ Aucun résultat trouvé');
+    return EdgeErrorHandler.successResponse({
       success: true,
       stats,
-      results: processedResults.slice(0, 50) // Retourner un échantillon pour la preview
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-
-  } catch (error) {
-    console.error('❌ Erreur Unified Scraping:', error);
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+      results: []
+    }, 'Aucun résultat trouvé');
   }
-});
+
+  // Phase 2: Traitement et nettoyage avec extraction d'adresses améliorée
+  const processedResults = await processWithPipelines(allResults, addressExtractor);
+  stats.totalProcessed = processedResults.length;
+
+  // Phase 3: Intégration en base (seulement si pas en mode preview)
+  if (!options.previewMode && options.categoryId && processedResults.length > 0) {
+    const insertedCount = await integrateToDatabase(supabase, processedResults, options.categoryId);
+    stats.totalInserted = insertedCount;
+  } else if (options.previewMode) {
+    EdgeErrorHandler.logInfo('🔍 Mode preview - Pas d\'intégration en base');
+  }
+
+  stats.processingTime = Date.now() - startTime;
+  EdgeErrorHandler.logInfo('✅ Unified Scraping terminé:', stats);
+
+  return EdgeErrorHandler.successResponse({
+    success: true,
+    stats,
+    results: processedResults.slice(0, 50) // Retourner un échantillon pour la preview
+  }, 'Unified scraping terminé avec succès');
+}));
 
 async function collectFromAllSources(supabase: any, options: UnifiedScrapingOptions, stats: any) {
   const allResults: any[] = [];
@@ -113,7 +98,7 @@ async function collectFromAllSources(supabase: any, options: UnifiedScrapingOpti
 
   for (const source of options.sources) {
     try {
-      console.log(`📡 Collecte depuis: ${source}`);
+      EdgeErrorHandler.logInfo(`📡 Collecte depuis: ${source}`);
       let sourceResults: any[] = [];
 
       switch (source) {
@@ -130,10 +115,10 @@ async function collectFromAllSources(supabase: any, options: UnifiedScrapingOpti
 
       stats.sourceBreakdown[source] = sourceResults.length;
       allResults.push(...sourceResults);
-      console.log(`✅ ${source}: ${sourceResults.length} résultats`);
+      EdgeErrorHandler.logInfo(`✅ ${source}: ${sourceResults.length} résultats`);
 
     } catch (error) {
-      console.error(`❌ Erreur source ${source}:`, error);
+      EdgeErrorHandler.logWarning(`❌ Erreur source ${source}:`, error);
       stats.errors.push(`${source}: ${error.message}`);
       stats.sourceBreakdown[source] = 0;
     }
