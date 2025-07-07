@@ -26,14 +26,42 @@ function getCurrentSeason(): string {
 }
 
 function parseGeneratedContent(rawContent: string) {
-  const titleMatch = rawContent.match(/TITRE:\s*(.+)/);
-  const excerptMatch = rawContent.match(/EXTRAIT:\s*(.+?)(?=\nCONTENU:)/s);
-  const contentMatch = rawContent.match(/CONTENU:\s*([\s\S]+)/);
+  console.log('🔍 Parsing content, length:', rawContent.length);
+  
+  // Flexible parsing - try structured format first
+  const titleMatch = rawContent.match(/TITRE:\s*(.+)/i);
+  const excerptMatch = rawContent.match(/EXTRAIT:\s*(.+?)(?=\n(?:CONTENU:|$))/si);
+  const contentMatch = rawContent.match(/CONTENU:\s*([\s\S]+)/i);
 
+  if (titleMatch && contentMatch) {
+    console.log('✅ Structured format detected');
+    return {
+      title: titleMatch[1].trim(),
+      excerpt: excerptMatch ? excerptMatch[1].trim() : '',
+      content: contentMatch[1].trim()
+    };
+  }
+
+  // Fallback: try to extract title from first line and use rest as content
+  const lines = rawContent.split('\n').filter(line => line.trim());
+  if (lines.length > 0) {
+    console.log('⚠️ Using fallback parsing');
+    const title = lines[0].replace(/^#+\s*/, '').trim() || 'Article généré par IA';
+    const content = lines.slice(1).join('\n').trim() || rawContent;
+    
+    return {
+      title: title.substring(0, 100), // Limit title length
+      excerpt: content.substring(0, 200).trim() + '...',
+      content: content
+    };
+  }
+
+  // Last resort: use raw content
+  console.log('⚠️ Using raw content as fallback');
   return {
-    title: titleMatch ? titleMatch[1].trim() : 'Article généré par IA',
-    excerpt: excerptMatch ? excerptMatch[1].trim() : '',
-    content: contentMatch ? contentMatch[1].trim() : rawContent
+    title: 'Article généré par IA',
+    excerpt: rawContent.substring(0, 200).trim() + '...',
+    content: rawContent
   };
 }
 

@@ -11,6 +11,76 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper function to parse news from AI response
+function parseNewsResponse(rawContent: string, aiModel: string) {
+  console.log('🔍 Parsing news response, length:', rawContent.length);
+  
+  // Try to parse as JSON first
+  try {
+    const parsed = JSON.parse(rawContent);
+    if (parsed.news && Array.isArray(parsed.news)) {
+      console.log('✅ Direct JSON parsing successful');
+      return { news: parsed.news };
+    }
+  } catch (e) {
+    console.log('⚠️ Direct JSON parsing failed, trying extraction...');
+  }
+
+  // Try to extract JSON from response
+  const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (parsed.news && Array.isArray(parsed.news)) {
+        console.log('✅ JSON extraction successful');
+        return { news: parsed.news };
+      }
+    } catch (e) {
+      console.log('⚠️ JSON extraction failed');
+    }
+  }
+
+  // Fallback: create news from raw content
+  console.log('⚠️ Using fallback parsing for raw content');
+  const lines = rawContent.split('\n').filter(line => line.trim());
+  const news = [];
+  
+  // Try to extract news items from lines
+  let currentNews = null;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.includes('titre') || trimmed.includes('Title') || trimmed.match(/^\d+\./)) {
+      if (currentNews) {
+        news.push(currentNews);
+      }
+      currentNews = {
+        title: trimmed.replace(/^\d+\.?\s*/, '').replace(/titre:?\s*/i, ''),
+        summary: '',
+        date: new Date().toLocaleDateString('fr-FR'),
+        source: aiModel.charAt(0).toUpperCase() + aiModel.slice(1) + ' AI'
+      };
+    } else if (currentNews && trimmed) {
+      currentNews.summary += (currentNews.summary ? ' ' : '') + trimmed;
+    }
+  }
+  
+  if (currentNews) {
+    news.push(currentNews);
+  }
+
+  // If no structured news found, create one item from content
+  if (news.length === 0) {
+    news.push({
+      title: "Actualités mobiles récupérées",
+      summary: rawContent.substring(0, 500) + (rawContent.length > 500 ? '...' : ''),
+      date: new Date().toLocaleDateString('fr-FR'),
+      source: aiModel.charAt(0).toUpperCase() + aiModel.slice(1) + ' AI'
+    });
+  }
+
+  return { news };
+}
+
 // AI Functions
 async function fetchWithPerplexity(prompt: string): Promise<string> {
   if (!perplexityApiKey) {
@@ -285,61 +355,12 @@ serve(async (req) => {
       }
     }
 
-    console.log('📄 Raw AI response:', rawContent);
+    console.log('📄 Raw AI response:', rawContent.substring(0, 200) + '...');
 
-    // Essayer de parser le JSON depuis la réponse
-    let newsData = { news: [] };
-    try {
-      // Essayer d'abord de parser directement le JSON
-      newsData = JSON.parse(rawContent);
-      
-      // Vérifier que la structure est correcte
-      if (!newsData.news || !Array.isArray(newsData.news)) {
-        throw new Error('Invalid news structure');
-      }
-    } catch (parseError) {
-      console.log('❌ Direct JSON parsing failed, trying to extract JSON:', parseError);
-      
-      try {
-        // Chercher le JSON dans la réponse
-        const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          newsData = JSON.parse(jsonMatch[0]);
-          
-          // Vérifier que la structure est correcte
-          if (!newsData.news || !Array.isArray(newsData.news)) {
-            throw new Error('Invalid news structure');
-          }
-        } else {
-          throw new Error('No JSON found in response');
-        }
-      } catch (secondParseError) {
-        console.error('❌ JSON parsing completely failed:', secondParseError);
-        // En cas d'erreur de parsing, utiliser le contenu brut
-        newsData = {
-          news: [{
-            title: "Actualités mobiles récupérées",
-            summary: rawContent.substring(0, 1000) + (rawContent.length > 1000 ? '...' : ''),
-            date: new Date().toLocaleDateString('fr-FR'),
-            source: usedModel.charAt(0).toUpperCase() + usedModel.slice(1) + ' AI'
-          }]
-        };
-      }
-    }
+    // Parse the news response using the flexible parser
+    const newsData = parseNewsResponse(rawContent, usedModel);
 
-    // S'assurer qu'on a au moins une actualité
-    if (!newsData.news || newsData.news.length === 0) {
-      newsData = {
-        news: [{
-          title: "Actualités mobiles du jour",
-          summary: "Aucune actualité spécifique récupérée, veuillez réessayer plus tard.",
-          date: new Date().toLocaleDateString('fr-FR'),
-          source: usedModel.charAt(0).toUpperCase() + usedModel.slice(1) + ' AI'
-        }]
-      };
-    }
-
-    console.log('✅ News fetched successfully:', newsData.news.length, 'items');
+    console.log('✅ News parsed successfully:', newsData.news.length, 'items');
 
     return new Response(JSON.stringify({ 
       success: true,
