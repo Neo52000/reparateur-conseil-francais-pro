@@ -269,7 +269,18 @@ const ChatbotManagement = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Base de connaissances</CardTitle>
-                <Button onClick={() => {/* Ouvrir modal d'ajout */}}>
+                <Button onClick={() => {
+                  const newData: TrainingData = {
+                    id: '',
+                    intent: 'Nouveau intent',
+                    training_text: 'mots-clés séparés par des espaces',
+                    response_template: 'Réponse du chatbot',
+                    category: 'general',
+                    confidence_threshold: 0.8,
+                    is_active: true
+                  };
+                  saveTrainingData(newData);
+                }}>
                   <Plus className="h-4 w-4 mr-2" />
                   Ajouter
                 </Button>
@@ -336,6 +347,7 @@ const ChatbotManagement = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="mistral">Mistral AI</SelectItem>
                       <SelectItem value="gpt-4o-mini">GPT-4O Mini</SelectItem>
                       <SelectItem value="gpt-4">GPT-4</SelectItem>
                       <SelectItem value="claude-3">Claude 3</SelectItem>
