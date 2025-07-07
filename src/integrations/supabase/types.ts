@@ -1781,6 +1781,36 @@ export type Database = {
         }
         Relationships: []
       }
+      device_conditions: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       device_models: {
         Row: {
           battery_capacity: number | null
@@ -3245,6 +3275,72 @@ export type Database = {
           },
         ]
       }
+      parts_suppliers: {
+        Row: {
+          address: Json | null
+          contact_person: string | null
+          created_at: string
+          delivery_time_days: number | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          is_preferred: boolean | null
+          minimum_order: number | null
+          name: string
+          payment_terms: string | null
+          phone: string | null
+          rating: number | null
+          repairer_id: string
+          shipping_cost: number | null
+          specialties: string[] | null
+          supported_brands: string[] | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: Json | null
+          contact_person?: string | null
+          created_at?: string
+          delivery_time_days?: number | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_preferred?: boolean | null
+          minimum_order?: number | null
+          name: string
+          payment_terms?: string | null
+          phone?: string | null
+          rating?: number | null
+          repairer_id: string
+          shipping_cost?: number | null
+          specialties?: string[] | null
+          supported_brands?: string[] | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: Json | null
+          contact_person?: string | null
+          created_at?: string
+          delivery_time_days?: number | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_preferred?: boolean | null
+          minimum_order?: number | null
+          name?: string
+          payment_terms?: string | null
+          phone?: string | null
+          rating?: number | null
+          repairer_id?: string
+          shipping_cost?: number | null
+          specialties?: string[] | null
+          supported_brands?: string[] | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -3998,6 +4094,272 @@ export type Database = {
         }
         Relationships: []
       }
+      repair_devices: {
+        Row: {
+          accessories: Json | null
+          actual_completion: string | null
+          brand_id: string | null
+          created_at: string
+          current_condition_id: string | null
+          custom_device_info: string | null
+          customer_email: string | null
+          customer_name: string
+          customer_notes: string | null
+          customer_phone: string | null
+          device_model_id: string | null
+          device_type_id: string | null
+          estimated_completion: string | null
+          estimated_cost: number | null
+          estimated_duration_hours: number | null
+          id: string
+          imei_serial: string | null
+          initial_condition_id: string | null
+          initial_diagnosis: string | null
+          intake_date: string
+          photos: Json | null
+          repairer_id: string
+          updated_at: string
+        }
+        Insert: {
+          accessories?: Json | null
+          actual_completion?: string | null
+          brand_id?: string | null
+          created_at?: string
+          current_condition_id?: string | null
+          custom_device_info?: string | null
+          customer_email?: string | null
+          customer_name: string
+          customer_notes?: string | null
+          customer_phone?: string | null
+          device_model_id?: string | null
+          device_type_id?: string | null
+          estimated_completion?: string | null
+          estimated_cost?: number | null
+          estimated_duration_hours?: number | null
+          id?: string
+          imei_serial?: string | null
+          initial_condition_id?: string | null
+          initial_diagnosis?: string | null
+          intake_date?: string
+          photos?: Json | null
+          repairer_id: string
+          updated_at?: string
+        }
+        Update: {
+          accessories?: Json | null
+          actual_completion?: string | null
+          brand_id?: string | null
+          created_at?: string
+          current_condition_id?: string | null
+          custom_device_info?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          customer_notes?: string | null
+          customer_phone?: string | null
+          device_model_id?: string | null
+          device_type_id?: string | null
+          estimated_completion?: string | null
+          estimated_cost?: number | null
+          estimated_duration_hours?: number | null
+          id?: string
+          imei_serial?: string | null
+          initial_condition_id?: string | null
+          initial_diagnosis?: string | null
+          intake_date?: string
+          photos?: Json | null
+          repairer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_devices_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_devices_current_condition_id_fkey"
+            columns: ["current_condition_id"]
+            isOneToOne: false
+            referencedRelation: "device_conditions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_devices_device_model_id_fkey"
+            columns: ["device_model_id"]
+            isOneToOne: false
+            referencedRelation: "device_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_devices_device_type_id_fkey"
+            columns: ["device_type_id"]
+            isOneToOne: false
+            referencedRelation: "device_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_devices_initial_condition_id_fkey"
+            columns: ["initial_condition_id"]
+            isOneToOne: false
+            referencedRelation: "device_conditions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repair_orders: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          customer_signature_data: string | null
+          customer_signature_date: string | null
+          device_id: string
+          final_amount: number | null
+          id: string
+          internal_notes: string | null
+          order_number: string
+          priority: number | null
+          quote_accepted_at: string | null
+          quote_amount: number | null
+          quote_expires_at: string | null
+          repairer_id: string
+          started_at: string | null
+          status: string
+          technician_id: string | null
+          technician_notes: string | null
+          time_spent_minutes: number | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          customer_signature_data?: string | null
+          customer_signature_date?: string | null
+          device_id: string
+          final_amount?: number | null
+          id?: string
+          internal_notes?: string | null
+          order_number: string
+          priority?: number | null
+          quote_accepted_at?: string | null
+          quote_amount?: number | null
+          quote_expires_at?: string | null
+          repairer_id: string
+          started_at?: string | null
+          status?: string
+          technician_id?: string | null
+          technician_notes?: string | null
+          time_spent_minutes?: number | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          customer_signature_data?: string | null
+          customer_signature_date?: string | null
+          device_id?: string
+          final_amount?: number | null
+          id?: string
+          internal_notes?: string | null
+          order_number?: string
+          priority?: number | null
+          quote_accepted_at?: string | null
+          quote_amount?: number | null
+          quote_expires_at?: string | null
+          repairer_id?: string
+          started_at?: string | null
+          status?: string
+          technician_id?: string | null
+          technician_notes?: string | null
+          time_spent_minutes?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_orders_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "repair_devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repair_parts_used: {
+        Row: {
+          created_at: string
+          id: string
+          installed_at: string | null
+          inventory_item_id: string | null
+          ordered_at: string | null
+          part_name: string
+          part_sku: string | null
+          quantity: number
+          received_at: string | null
+          repair_order_id: string
+          serial_numbers: string[] | null
+          status: string
+          supplier_info: string | null
+          total_cost: number
+          unit_cost: number
+          warranty_months: number | null
+          warranty_start_date: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          installed_at?: string | null
+          inventory_item_id?: string | null
+          ordered_at?: string | null
+          part_name: string
+          part_sku?: string | null
+          quantity?: number
+          received_at?: string | null
+          repair_order_id: string
+          serial_numbers?: string[] | null
+          status?: string
+          supplier_info?: string | null
+          total_cost: number
+          unit_cost: number
+          warranty_months?: number | null
+          warranty_start_date?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          installed_at?: string | null
+          inventory_item_id?: string | null
+          ordered_at?: string | null
+          part_name?: string
+          part_sku?: string | null
+          quantity?: number
+          received_at?: string | null
+          repair_order_id?: string
+          serial_numbers?: string[] | null
+          status?: string
+          supplier_info?: string | null
+          total_cost?: number
+          unit_cost?: number
+          warranty_months?: number | null
+          warranty_start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_parts_used_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "pos_inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_parts_used_repair_order_id_fkey"
+            columns: ["repair_order_id"]
+            isOneToOne: false
+            referencedRelation: "repair_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       repair_prices: {
         Row: {
           created_at: string
@@ -4048,6 +4410,68 @@ export type Database = {
             columns: ["repair_type_id"]
             isOneToOne: false
             referencedRelation: "repair_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repair_steps: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          photos: Json | null
+          repair_order_id: string
+          started_at: string | null
+          status: string
+          step_description: string | null
+          step_name: string
+          step_order: number
+          test_results: Json | null
+          time_spent_minutes: number | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photos?: Json | null
+          repair_order_id: string
+          started_at?: string | null
+          status?: string
+          step_description?: string | null
+          step_name: string
+          step_order: number
+          test_results?: Json | null
+          time_spent_minutes?: number | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photos?: Json | null
+          repair_order_id?: string
+          started_at?: string | null
+          status?: string
+          step_description?: string | null
+          step_name?: string
+          step_order?: number
+          test_results?: Json | null
+          time_spent_minutes?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_steps_repair_order_id_fkey"
+            columns: ["repair_order_id"]
+            isOneToOne: false
+            referencedRelation: "repair_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -4130,6 +4554,68 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "repair_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repair_warranties: {
+        Row: {
+          claims_count: number | null
+          coverage_description: string | null
+          covered_parts: string[] | null
+          created_at: string
+          duration_months: number
+          end_date: string
+          id: string
+          last_claim_date: string | null
+          repair_order_id: string
+          repairer_id: string
+          start_date: string
+          status: string
+          terms_conditions: string | null
+          updated_at: string
+          warranty_type: string
+        }
+        Insert: {
+          claims_count?: number | null
+          coverage_description?: string | null
+          covered_parts?: string[] | null
+          created_at?: string
+          duration_months: number
+          end_date: string
+          id?: string
+          last_claim_date?: string | null
+          repair_order_id: string
+          repairer_id: string
+          start_date?: string
+          status?: string
+          terms_conditions?: string | null
+          updated_at?: string
+          warranty_type: string
+        }
+        Update: {
+          claims_count?: number | null
+          coverage_description?: string | null
+          covered_parts?: string[] | null
+          created_at?: string
+          duration_months?: number
+          end_date?: string
+          id?: string
+          last_claim_date?: string | null
+          repair_order_id?: string
+          repairer_id?: string
+          start_date?: string
+          status?: string
+          terms_conditions?: string | null
+          updated_at?: string
+          warranty_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_warranties_repair_order_id_fkey"
+            columns: ["repair_order_id"]
+            isOneToOne: false
+            referencedRelation: "repair_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -5045,6 +5531,94 @@ export type Database = {
         }
         Relationships: []
       }
+      technical_knowledge_base: {
+        Row: {
+          attachments: Json | null
+          brand_id: string | null
+          content: string | null
+          content_type: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          device_model_id: string | null
+          device_type_id: string | null
+          difficulty_level: number | null
+          estimated_time_minutes: number | null
+          id: string
+          is_public: boolean | null
+          is_verified: boolean | null
+          last_viewed_at: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          view_count: number | null
+        }
+        Insert: {
+          attachments?: Json | null
+          brand_id?: string | null
+          content?: string | null
+          content_type: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          device_model_id?: string | null
+          device_type_id?: string | null
+          difficulty_level?: number | null
+          estimated_time_minutes?: number | null
+          id?: string
+          is_public?: boolean | null
+          is_verified?: boolean | null
+          last_viewed_at?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Update: {
+          attachments?: Json | null
+          brand_id?: string | null
+          content?: string | null
+          content_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          device_model_id?: string | null
+          device_type_id?: string | null
+          difficulty_level?: number | null
+          estimated_time_minutes?: number | null
+          id?: string
+          is_public?: boolean | null
+          is_verified?: boolean | null
+          last_viewed_at?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technical_knowledge_base_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "technical_knowledge_base_device_model_id_fkey"
+            columns: ["device_model_id"]
+            isOneToOne: false
+            referencedRelation: "device_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "technical_knowledge_base_device_type_id_fkey"
+            columns: ["device_type_id"]
+            isOneToOne: false
+            referencedRelation: "device_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       time_slots: {
         Row: {
           end_time: string
@@ -5312,6 +5886,10 @@ export type Database = {
         }[]
       }
       generate_order_number: {
+        Args: { repairer_id: string }
+        Returns: string
+      }
+      generate_repair_order_number: {
         Args: { repairer_id: string }
         Returns: string
       }
