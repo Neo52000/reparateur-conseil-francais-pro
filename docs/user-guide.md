@@ -1,233 +1,177 @@
-# Guide utilisateur - RepairConnect
+# Guide Utilisateur - RepairConnect
 
-## 👋 Bienvenue sur RepairConnect
+## Bienvenue sur RepairConnect !
 
-RepairConnect est votre plateforme de référence pour trouver et contacter des réparateurs d'appareils électroniques de confiance près de chez vous.
+RepairConnect est votre plateforme de référence pour trouver des réparateurs de smartphones qualifiés près de chez vous. Ce guide vous accompagne pas à pas pour tirer le meilleur parti de notre service.
 
-## 🚀 Démarrage rapide
+## Table des matières
 
-### 1. Accéder à la plateforme
-- Rendez-vous sur [repairconnect.fr](/)
-- Aucune inscription requise pour rechercher des réparateurs
-- Inscription recommandée pour sauvegarder vos favoris et gérer vos demandes
+1. [Premiers pas](#premiers-pas)
+2. [Rechercher un réparateur](#rechercher-un-réparateur)
+3. [Demander un devis](#demander-un-devis)
+4. [Prendre rendez-vous](#prendre-rendez-vous)
+5. [Gérer vos réparations](#gérer-vos-réparations)
+6. [Pour les réparateurs](#pour-les-réparateurs)
+7. [FAQ](#faq)
 
-### 2. Rechercher un réparateur
-1. **Localisation** : Autorisez la géolocalisation ou saisissez votre ville
-2. **Filtres** : Sélectionnez votre appareil (marque, modèle) et type de panne
-3. **Résultats** : Consultez la liste ou la carte des réparateurs disponibles
+## Premiers pas
 
-## 👤 Guide Client
+### Création de compte
+1. Cliquez sur **"S'inscrire"** en haut à droite
+2. Choisissez votre type de compte :
+   - **Particulier** : Pour faire réparer vos appareils
+   - **Réparateur** : Pour proposer vos services
+3. Remplissez vos informations et validez par email
+4. Complétez votre profil selon vos besoins
 
-### Recherche de réparateurs
+### Navigation
+- **Accueil** : Recherche rapide et réparateurs populaires
+- **Carte** : Vue géographique des réparateurs
+- **Mon compte** : Gestion de vos informations et historique
+- **Blog** : Conseils et actualités de la réparation
 
-#### Filtres disponibles
-- **Type d'appareil** : Smartphone, tablette, ordinateur, montre connectée
-- **Marque** : Apple, Samsung, Huawei, etc.
-- **Modèle** : Sélection automatique selon la marque
-- **Type de panne** : Écran cassé, problème batterie, oxydation, etc.
-- **Rayon de recherche** : 5, 10, 25, 50 km
-- **Services** : Réparation express, à domicile, récupération/livraison
+## Rechercher un réparateur
 
-#### Informations réparateurs
-- **Coordonnées** : Adresse, téléphone, site web
-- **Horaires** : Créneaux d'ouverture et disponibilités
-- **Spécialités** : Types de réparations, certifications
-- **Tarifs** : Grille de prix par type d'intervention
-- **Avis clients** : Notes et commentaires détaillés
+### Recherche géographique
+1. **Saisie d'adresse** : Entrez votre ville ou code postal
+2. **Géolocalisation** : Activez la localisation automatique
+3. **Rayon de recherche** : Ajustez la distance (5-50 km)
 
-### Demander un devis
+### Filtres avancés
+- **Type de réparation** : Écran, batterie, caméra, etc.
+- **Marque d'appareil** : iPhone, Samsung, Huawei, etc.
+- **Tarifs** : Fourchettes de prix
+- **Disponibilité** : Aujourd'hui, cette semaine, etc.
+- **Services** : Réparation express, garantie, etc.
 
-#### Processus étape par étape
-1. **Sélection réparateur** : Cliquez sur "Demander un devis"
-2. **Description panne** : Décrivez le problème en détail
-3. **Photos** : Ajoutez des photos de l'appareil (optionnel)
-4. **Coordonnées** : Renseignez vos informations de contact
-5. **Envoi** : Votre demande est transmise au réparateur
+### Résultats de recherche
+Chaque réparateur affiche :
+- **Note moyenne** et nombre d'avis
+- **Tarifs indicatifs** par type de réparation
+- **Distance** depuis votre position
+- **Horaires d'ouverture**
+- **Services proposés**
 
-#### Informations à fournir
-- **Marque et modèle** exact de l'appareil
-- **Description détaillée** de la panne
-- **Circonstances** : Comment le problème est survenu
-- **Urgence** : Délai souhaité pour la réparation
-- **Budget approximatif** (optionnel)
+## Demander un devis
 
-### Prendre rendez-vous
+### Diagnostic assisté par IA
+1. Sélectionnez votre **appareil** (marque et modèle)
+2. Décrivez le **problème** rencontré
+3. Ajoutez des **photos** si possible
+4. Notre IA analyse et suggère des réparations probables
 
-#### Réservation en ligne
-1. **Calendrier** : Visualisez les créneaux disponibles
-2. **Sélection** : Choisissez date et heure
-3. **Confirmation** : Recevez un email de confirmation
-4. **Rappel** : Notification 24h avant le RDV
+### Formulaire de devis
+- **Informations personnelles** : Nom, téléphone, email
+- **Détails du problème** : Description précise
+- **Préférences** : Délai souhaité, budget maximum
+- **Réparateurs ciblés** : Jusqu'à 5 professionnels
 
-#### Préparer votre visite
-- **Sauvegarde** : Effectuez une sauvegarde de vos données
-- **Mot de passe** : Notez votre code de déverrouillage
-- **Accessoires** : Apportez chargeur et écouteurs si nécessaire
-- **Garantie** : Munissez-vous de la facture d'achat
+### Réception des réponses
+- **Notifications** en temps réel
+- **Comparaison** des offres reçues
+- **Historique** dans votre espace client
 
-### Suivi de réparation
+## Prendre rendez-vous
 
-#### États possibles
-- **Reçu** : Appareil pris en charge par le réparateur
-- **Diagnostic** : Analyse en cours de la panne
-- **Devis envoyé** : Proposition de réparation et prix
-- **En réparation** : Intervention en cours
-- **Terminé** : Réparation finalisée, prêt à récupérer
+### Sélection du réparateur
+1. Comparez les **devis reçus**
+2. Consultez les **avis clients**
+3. Vérifiez les **certifications**
+4. Choisissez votre réparateur préféré
 
-#### Communication
-- **Messagerie** : Échangez directement avec le réparateur
-- **Notifications** : Recevez des mises à jour par email/SMS
-- **Photos** : Le réparateur peut vous envoyer des photos
+### Planification
+1. Consultez les **créneaux disponibles**
+2. Sélectionnez **date et heure**
+3. Confirmez les **détails** de la réparation
+4. Recevez la **confirmation** par email/SMS
 
-### Laisser un avis
+### Avant le rendez-vous
+- **Sauvegardez** vos données importantes
+- **Notez** votre code de déverrouillage
+- **Préparez** les accessoires (chargeur, coque)
+- **Imprimez** ou notez votre confirmation
 
-#### Critères d'évaluation
-- **Note globale** : De 1 à 5 étoiles
-- **Qualité** : Satisfaction de la réparation
-- **Prix** : Rapport qualité/prix
-- **Délais** : Respect des délais annoncés
-- **Accueil** : Qualité du service client
+## Gérer vos réparations
 
-#### Conseils pour un avis utile
-- **Détaillez** votre expérience
-- **Mentionnez** le type de réparation
-- **Soyez objectif** et constructif
-- **Précisez** les points forts et points d'amélioration
+### Suivi en temps réel
+- **Statut** : Reçu → Diagnostic → Réparation → Prêt
+- **Notifications** à chaque étape
+- **Photos** avant/après réparation
+- **Temps estimé** de récupération
 
-## 🔧 Guide Réparateur
+### Après réparation
+1. **Vérification** du bon fonctionnement
+2. **Paiement** (espèces, carte, virement)
+3. **Réception** de la facture
+4. **Garantie** : Conditions et durée
 
-### Créer votre profil
+### Évaluation
+- **Notez** votre expérience (1-5 étoiles)
+- **Commentaire** détaillé
+- **Recommandation** à d'autres utilisateurs
 
-#### Informations essentielles
-- **Identité** : Nom commercial, SIRET
-- **Coordonnées** : Adresse complète, téléphone, email
-- **Horaires** : Planning d'ouverture détaillé
-- **Spécialités** : Types d'appareils et réparations
-- **Certifications** : QualiRepar, formations, assurances
+## Pour les réparateurs
 
-#### Optimiser votre visibilité
-- **Photos** : Atelier, équipements, réparations réalisées
-- **Description** : Présentation de votre expertise
-- **Services** : Détaillez vos prestations spécifiques
-- **Zone d'intervention** : Délimitez votre zone de chalandise
+### Inscription professionnelle
+1. **Vérification** des documents (SIRET, assurance)
+2. **Validation** des certifications
+3. **Configuration** du profil et tarifs
+4. **Formation** à l'utilisation de la plateforme
 
-### Gérer les demandes
+### Gestion quotidienne
+- **Tableau de bord** : Devis, RDV, analytics
+- **Agenda** : Planning et disponibilités
+- **Facturation** : Génération automatique
+- **Stock** : Gestion des pièces détachées
 
-#### Réception de devis
-- **Notification** : Email/SMS instantané
-- **Délai de réponse** : 24h maximum recommandé
-- **Évaluation** : Analysez la faisabilité
-- **Proposition** : Envoyez votre devis détaillé
+### Outils avancés
+- **Module POS** : Caisse enregistreuse (€49.90/mois)
+- **E-commerce** : Boutique en ligne (€89/mois)
+- **Analytics** : Statistiques détaillées
+- **SEO local** : Visibilité dans votre ville
 
-#### Calendrier de rendez-vous
-- **Disponibilités** : Tenez votre planning à jour
-- **Confirmation** : Validez les RDV rapidement
-- **Préparation** : Préparez les pièces nécessaires
-- **Rappel client** : Contactez la veille si nécessaire
+## FAQ
 
-### Tarification
+### Questions générales
 
-#### Grille de prix
-- **Diagnostic** : Forfait fixe (souvent gratuit si réparation)
-- **Main d'œuvre** : Tarif horaire ou forfait par intervention
-- **Pièces** : Prix public ou avec marge
-- **Déplacement** : Coût kilométrique si service à domicile
+**Q : RepairConnect est-il gratuit ?**
+R : L'utilisation pour les particuliers est entièrement gratuite. Les réparateurs ont accès à des plans payants avec fonctionnalités avancées.
 
-#### Conseils tarifaires
-- **Transparence** : Affichez clairement vos prix
-- **Compétitivité** : Étudiez la concurrence locale
-- **Valeur ajoutée** : Justifiez vos tarifs par votre expertise
-- **Flexibilité** : Proposez plusieurs options
+**Q : Les réparateurs sont-ils vérifiés ?**
+R : Oui, nous vérifions systématiquement les documents légaux, assurances et certifications de chaque réparateur.
 
-### Plans d'abonnement
+**Q : Que faire en cas de problème après réparation ?**
+R : Contactez directement le réparateur dans un premier temps. En cas de litige, notre équipe support peut intervenir.
 
-| Fonctionnalité | Gratuit | Basic (29€/mois) | Premium (79€/mois) | Enterprise (149€/mois) |
-|----------------|---------|------------------|-------------------|----------------------|
-| Profil basique | ✅ | ✅ | ✅ | ✅ |
-| Photos | 3 | Illimitées | Illimitées | Illimitées |
-| Devis/mois | 10 | 50 | Illimités | Illimités |
-| Visibilité prioritaire | ❌ | ❌ | ✅ | ✅ |
-| Analytics | ❌ | Basiques | Avancées | Complètes |
-| Support | Email | Email | Prioritaire | Dédié |
-| Multi-ateliers | ❌ | ❌ | ❌ | ✅ |
+### Technique
 
-## 🎯 Conseils et bonnes pratiques
+**Q : Quels types d'appareils puis-je faire réparer ?**
+R : Smartphones, tablettes, montres connectées, ordinateurs portables et consoles de jeu selon les spécialités des réparateurs.
 
-### Pour les clients
+**Q : Comment sont calculés les tarifs ?**
+R : Chaque réparateur fixe ses propres tarifs. Notre plateforme affiche les prix moyens du marché pour comparaison.
 
-#### Bien décrire votre panne
-- **Symptômes précis** : "L'écran reste noir" plutôt que "ça marche pas"
-- **Chronologie** : Quand et comment le problème est apparu
-- **Tentatives** : Ce que vous avez déjà essayé
-- **Photos** : Montrez les dégâts visibles
+**Q : La géolocalisation est-elle obligatoire ?**
+R : Non, vous pouvez effectuer une recherche manuelle par ville ou code postal.
 
-#### Comparer les offres
-- **Prix** : Mais attention aux prestations incluses
-- **Délais** : Selon votre urgence
-- **Proximité** : Facilité d'accès
-- **Avis** : Expérience d'autres clients
+### Sécurité et confidentialité
 
-### Pour les réparateurs
+**Q : Mes données sont-elles protégées ?**
+R : Oui, nous respectons le RGPD et chiffrons toutes les données sensibles. Consultez notre politique de confidentialité.
 
-#### Soigner votre première impression
-- **Réactivité** : Répondez rapidement aux demandes
-- **Professionnalisme** : Soignez votre communication
-- **Transparence** : Soyez clair sur vos tarifs et délais
-- **Suivi** : Tenez le client informé de l'avancement
-
-#### Fidéliser vos clients
-- **Qualité** : Travail soigné et durable
-- **Garantie** : Assumez votre travail
-- **Conseil** : Prodiguez des conseils d'entretien
-- **Service** : Dépassez les attentes
-
-## ❓ FAQ
-
-### Questions fréquentes clients
-
-**Q: L'utilisation de RepairConnect est-elle gratuite ?**  
-R: Oui, la recherche et la prise de contact avec les réparateurs est entièrement gratuite.
-
-**Q: Puis-je annuler un rendez-vous ?**  
-R: Oui, contactez directement le réparateur. Respectez les conditions d'annulation.
-
-**Q: Que faire si je ne suis pas satisfait de la réparation ?**  
-R: Contactez d'abord le réparateur. En cas de litige, notre équipe peut intervenir.
-
-**Q: Mes données sont-elles sécurisées ?**  
-R: Oui, nous respectons le RGPD et ne partageons vos données qu'avec les réparateurs contactés.
-
-### Questions fréquentes réparateurs
-
-**Q: Comment rejoindre RepairConnect ?**  
-R: Inscription gratuite en ligne avec vérification de votre SIRET.
-
-**Q: Quand suis-je facturé ?**  
-R: Les plans payants sont facturés mensuellement, résiliation possible à tout moment.
-
-**Q: Puis-je modifier mes tarifs ?**  
-R: Oui, à tout moment depuis votre espace professionnel.
-
-**Q: Comment améliorer ma visibilité ?**  
-R: Complétez votre profil, collectez des avis positifs, passez en plan Premium.
-
-## 📞 Support et contact
-
-### Aide en ligne
-- **FAQ** : Réponses aux questions courantes
-- **Tutoriels vidéo** : Guides pas à pas
-- **Blog** : Conseils et actualités réparation
-
-### Contact direct
-- **Email** : support@repairconnect.fr
-- **Téléphone** : 01 XX XX XX XX (Lu-Ve 9h-18h)
-- **Chat en ligne** : Disponible sur la plateforme
-
-### Réseaux sociaux
-- **Facebook** : @RepairConnect
-- **Instagram** : @repair_connect
-- **LinkedIn** : RepairConnect
+**Q : Puis-je supprimer mon compte ?**
+R : Absolument, vous pouvez supprimer votre compte à tout moment depuis les paramètres.
 
 ---
 
-*Guide mis à jour le : ${new Date().toLocaleDateString('fr-FR')}*
+## Support et contact
+
+**Email** : support@repairconnect.fr  
+**Téléphone** : 01 23 45 67 89  
+**Chat** : Disponible 9h-18h du lundi au vendredi  
+**FAQ complète** : https://repairconnect.fr/faq
+
+---
+
+**Version** : 2.0  
+**Dernière mise à jour** : 7 janvier 2025

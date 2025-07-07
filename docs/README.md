@@ -1,150 +1,277 @@
-# RepairConnect - Documentation
+# RepairConnect - Documentation Technique
 
-## 🏗️ Architecture et Technologies
+## Vue d'ensemble
 
-RepairConnect est une plateforme de mise en relation entre clients et réparateurs d'appareils électroniques, développée avec des technologies modernes.
+RepairConnect est une plateforme SaaS full-stack développée avec React/TypeScript et Supabase, conçue pour mettre en relation particuliers et réparateurs de smartphones en France.
 
-### Technologies utilisées
+## Architecture
 
-- **Frontend**: React 18 + TypeScript + Vite
-- **UI**: Tailwind CSS + Shadcn/ui
-- **Backend**: Supabase (Base de données, Auth, Storage, Edge Functions)
-- **Cartes**: Leaflet + OpenStreetMap
-- **État global**: Zustand
-- **Requêtes**: TanStack Query (React Query)
+### Stack technologique
+- **Frontend** : React 18, TypeScript, Tailwind CSS, Shadcn/ui
+- **Backend** : Supabase (PostgreSQL, Auth, Storage, Edge Functions)
+- **Build** : Vite, ESLint, PostCSS
+- **Deployment** : Vercel (frontend), Supabase (backend)
 
-## 📁 Structure du projet
-
+### Structure du projet
 ```
 src/
 ├── components/          # Composants React réutilisables
-│   ├── ui/             # Composants de base (Shadcn/ui)
-│   ├── admin/          # Composants administrateur
-│   ├── scraping/       # Outils de scraping
+│   ├── ui/             # Composants de base (shadcn/ui)
+│   ├── admin/          # Interface administration
+│   ├── auth/           # Authentification
+│   ├── map/            # Cartographie
 │   └── ...
-├── hooks/              # Hooks React personnalisés
+├── hooks/              # Hooks personnalisés
 ├── pages/              # Pages principales
-├── services/           # Services et logique métier
-├── stores/             # État global (Zustand)
+├── services/           # Logique métier et APIs
 ├── types/              # Types TypeScript
-└── utils/              # Utilitaires
+├── utils/              # Utilitaires
+└── integrations/       # Intégrations externes (Supabase)
 
 supabase/
 ├── functions/          # Edge Functions
-└── migrations/         # Migrations base de données
+├── migrations/         # Migrations de base de données
+└── config.toml         # Configuration Supabase
 ```
 
-## 🚀 Installation et développement
+## Configuration et installation
 
 ### Prérequis
 - Node.js 18+
 - npm ou yarn
 - Compte Supabase
+- Git
 
-### Installation
+### Installation locale
 ```bash
-# Cloner le projet
-git clone [URL_DU_REPO]
+# Cloner le repository
+git clone https://github.com/votre-org/repairconnect.git
 cd repairconnect
 
 # Installer les dépendances
 npm install
 
-# Démarrer le serveur de développement
+# Configuration des variables d'environnement
+cp .env.example .env.local
+# Remplir les variables Supabase
+
+# Lancer en développement
 npm run dev
 ```
 
-### Configuration Supabase
-1. Créer un projet Supabase
-2. Configurer les variables d'environnement
-3. Appliquer les migrations : `supabase db push`
-4. Déployer les Edge Functions : `supabase functions deploy`
+### Variables d'environnement
+```env
+VITE_SUPABASE_URL=votre_url_supabase
+VITE_SUPABASE_ANON_KEY=votre_clé_anonyme
+```
 
-## 🏃‍♂️ Guide de démarrage rapide
+## Base de données
 
-1. **Page d'accueil** : `/` - Point d'entrée principal
-2. **Recherche** : `/search` - Recherche de réparateurs
-3. **Espaces utilisateur** :
-   - `/client` - Espace client
-   - `/repairer` - Espace réparateur
-   - `/admin` - Interface d'administration
+### Schéma principal
+- `profiles` : Profils utilisateurs étendus
+- `repairers` : Données des réparateurs
+- `repairer_profiles` : Profils détaillés des réparateurs
+- `quotes` : Demandes de devis
+- `appointments` : Rendez-vous planifiés
+- `repairer_subscriptions` : Abonnements des réparateurs
 
-## 📋 Fonctionnalités principales
+### Migrations
+```bash
+# Appliquer les migrations
+supabase db push
 
-### Pour les clients
-- Recherche géolocalisée de réparateurs
-- Comparaison de prix et services
-- Système de rendez-vous et devis
-- Avis et notations
+# Générer les types TypeScript
+supabase gen types typescript --local > src/integrations/supabase/types.ts
+```
 
-### Pour les réparateurs
-- Profil et catalogue de services
-- Gestion des rendez-vous
-- Statistiques et analytics
-- Système d'abonnements (Gratuit, Basic, Premium, Enterprise)
+### RLS (Row Level Security)
+Toutes les tables sensibles utilisent RLS pour sécuriser l'accès aux données :
+- Utilisateurs : Accès à leurs propres données uniquement
+- Réparateurs : Accès à leurs profils et devis
+- Admins : Accès complet pour modération
 
-### Pour les administrateurs
-- Gestion des utilisateurs et réparateurs
-- Modération des avis
-- Analytics avancées
-- Système de scraping automatisé
+## Authentification
 
-## 🔧 Configuration
+### Supabase Auth
+- **Inscription/Connexion** : Email + mot de passe
+- **Rôles** : `user`, `repairer`, `admin`
+- **Profils étendus** : Table `profiles` liée à `auth.users`
 
-### Mode démo
-Le système inclut un mode démo pour les tests et démonstrations. Il est contrôlé par le feature flag `demo_mode_enabled` dans la table `feature_flags_by_plan`.
+### Gestion des rôles
+```typescript
+// Hook personnalisé pour vérifier les permissions
+const { user, role } = useAuth();
+const isAdmin = role === 'admin';
+const isRepairer = role === 'repairer';
+```
+
+## Fonctionnalités clés
+
+### Géolocalisation et cartographie
+- **OpenStreetMap** avec Leaflet
+- **Géocodage** automatique via Nominatim
+- **Recherche par proximité** avec calcul de distance
+
+### Système de devis
+1. Formulaire client avec diagnostic IA
+2. Notification aux réparateurs ciblés
+3. Comparaison des offres reçues
+4. Conversion en rendez-vous
+
+### IA et automatisation
+- **Mistral/DeepSeek** : Classification et amélioration des données
+- **Scraping automatisé** : Enrichissement de la base réparateurs
+- **Diagnostic IA** : Aide au pré-diagnostic des pannes
+
+### Modules premium
+- **POS System** : Caisse enregistreuse intégrée
+- **E-commerce** : Boutique en ligne pour réparateurs
+- **Analytics** : Tableaux de bord avancés
+
+## Edge Functions
+
+### Functions principales
+```typescript
+// Exemple : Génération de devis automatique
+supabase/functions/
+├── ai-price-suggestion/    # Suggestions tarifaires IA
+├── create-repairer-user/   # Création compte réparateur
+├── scrape-repairers/       # Scraping données externes
+└── send-notification/      # Notifications email/SMS
+```
+
+### Déploiement
+```bash
+# Déployer toutes les functions
+supabase functions deploy
+
+# Déployer une function spécifique
+supabase functions deploy function-name
+```
+
+## APIs externes
+
+### Services intégrés
+- **Firecrawl** : Scraping web intelligent
+- **Serper** : Recherche Google avancée
+- **Mistral AI** : Classification et génération de contenu
+- **Stripe** : Paiements et abonnements
+
+### Configuration des secrets
+```bash
+# Ajouter des secrets Supabase
+supabase secrets set MISTRAL_API_KEY=your_key
+supabase secrets set STRIPE_KEY=your_stripe_key
+```
+
+## Performance et optimisation
+
+### Optimisations frontend
+- **Code splitting** : Chargement lazy des composants
+- **Image optimization** : WebP avec fallbacks
+- **Caching** : React Query pour les appels API
+- **Bundle analysis** : Webpack Bundle Analyzer
+
+### Optimisations backend
+- **Indexes** : Sur les colonnes fréquemment interrogées
+- **Pagination** : Limitation des résultats
+- **Edge caching** : Cache des données statiques
+- **Connection pooling** : Gestion optimisée des connexions DB
+
+## Tests
+
+### Framework de test
+```bash
+# Tests unitaires
+npm run test
+
+# Tests d'intégration
+npm run test:integration
+
+# Coverage
+npm run test:coverage
+```
+
+### Structure des tests
+```
+src/
+├── __tests__/
+│   ├── components/
+│   ├── hooks/
+│   └── utils/
+└── components/
+    └── Component/__tests__/
+```
+
+## Déploiement
+
+### Production
+```bash
+# Build pour production
+npm run build
+
+# Preview du build
+npm run preview
+
+# Deploy sur Vercel
+vercel --prod
+```
+
+### Variables de production
+- URL de production Supabase
+- Clés API des services externes
+- Configuration CORS appropriée
+
+## Monitoring et debugging
+
+### Outils de monitoring
+- **Supabase Dashboard** : Métriques base de données
+- **Vercel Analytics** : Performance frontend
+- **Sentry** : Tracking des erreurs (optionnel)
 
 ### Logging
-Utilise le système de logging centralisé (`src/utils/logger.ts`) qui ne log qu'en mode développement.
+```typescript
+// Logging structuré avec niveaux
+import { logger } from '@/utils/logger';
 
-## 📚 Guides détaillés
-
-- [Guide d'installation](./installation.md)
-- [Guide utilisateur](./user-guide.md)
-- [Guide développeur](./developer-guide.md)
-- [API Reference](./api-reference.md)
-- [PRD (Product Requirements Document)](./PRD.md)
-
-## 🐛 Debugging
-
-### Outils disponibles
-- Console logs (mode dev uniquement)
-- React DevTools
-- Supabase Dashboard pour la base de données
-- Network requests monitoring
-
-### Problèmes courants
-1. **Erreur de hook invalide** : Vérifier que les hooks sont bien utilisés dans des composants React
-2. **Problèmes d'authentification** : Vérifier les tokens Supabase
-3. **Données manquantes** : Vérifier le mode démo et les permissions RLS
-
-## 🔐 Sécurité
-
-- Row Level Security (RLS) sur toutes les tables Supabase
-- Authentification JWT via Supabase Auth
-- Validation des données côté client et serveur
-- Audit logs pour les actions administrateur
-
-## 🚢 Déploiement
-
-### Environnements
-- **Développement** : Local avec Supabase local
-- **Staging** : Supabase hosted + Vercel/Netlify
-- **Production** : Supabase hosted + CDN
-
-### Variables d'environnement requises
-```
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_anon_key
+logger.info('User action', { userId, action });
+logger.error('API call failed', { error, endpoint });
 ```
 
-## 📞 Support
+## Conformité et sécurité
 
-Pour toute question ou problème :
-1. Consulter la documentation
-2. Vérifier les issues GitHub
-3. Contacter l'équipe de développement
+### RGPD
+- Consentement explicite pour les cookies
+- Export/suppression des données utilisateur
+- Pseudonymisation des données sensibles
+- Audit trail des actions admin
+
+### Sécurité
+- **CSP** : Content Security Policy configurée
+- **HTTPS** : Obligatoire en production
+- **Rate limiting** : Protection contre les abus
+- **Input validation** : Sanitization des entrées utilisateur
+
+## Contribution
+
+### Standards de code
+- **ESLint** : Configuration TypeScript stricte
+- **Prettier** : Formatage automatique
+- **Husky** : Git hooks pour la qualité
+- **Conventional Commits** : Messages de commit standardisés
+
+### Workflow Git
+1. Feature branch depuis `develop`
+2. Pull Request avec review obligatoire
+3. Tests automatisés sur CI
+4. Merge après validation
 
 ---
 
-*Documentation mise à jour le : ${new Date().toLocaleDateString('fr-FR')}*
+**Contacts techniques** :
+- Tech Lead : technique@repairconnect.fr
+- DevOps : ops@repairconnect.fr
+- Architecture : architecture@repairconnect.fr
+
+**Version** : 2.1  
+**Dernière mise à jour** : 7 janvier 2025

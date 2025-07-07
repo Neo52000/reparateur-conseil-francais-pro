@@ -1,224 +1,144 @@
-# PRD - RepairConnect
-## Product Requirements Document
+# Product Requirements Document (PRD) - RepairConnect
 
-### 📋 Vue d'ensemble
+## Vue d'ensemble du produit
 
-**Nom du produit** : RepairConnect  
-**Version** : 1.0  
-**Date** : ${new Date().toLocaleDateString('fr-FR')}  
-**Équipe produit** : [À compléter]
+RepairConnect est une plateforme SaaS innovante qui met en relation les particuliers avec des réparateurs de smartphones qualifiés. Notre mission est de démocratiser l'accès à la réparation mobile en France en proposant une solution transparente, fiable et accessible.
 
-### 🎯 Vision et mission
+## Vision
 
-**Vision** : Devenir la plateforme de référence en France pour la réparation d'appareils électroniques, en facilitant la mise en relation entre particuliers et professionnels qualifiés.
+Devenir la référence française pour la réparation de smartphones, en créant un écosystème de confiance entre particuliers et professionnels de la réparation.
 
-**Mission** : Faciliter l'accès à la réparation d'appareils électroniques en France en connectant les clients avec des réparateurs de confiance, tout en promouvant l'économie circulaire et la durabilité.
+## Objectifs clés
 
-### 🎭 Personas utilisateur
+### Objectifs utilisateurs
+- **Transparence** : Affichage clair des tarifs et disponibilités
+- **Proximité** : Géolocalisation et recherche par département
+- **Qualité** : Système de notation et certification des réparateurs
+- **Simplicité** : Processus de demande de devis en 3 clics
 
-#### 1. Client particulier
-- **Profil** : 25-55 ans, urbain ou péri-urbain
-- **Besoins** : Réparer rapidement et efficacement son smartphone/tablette cassé
-- **Pain points** : Difficulté à trouver un réparateur de confiance, prix non transparents, qualité incertaine
-- **Motivations** : Économiser vs racheter neuf, préserver l'environnement
+### Objectifs business
+- **Acquisition** : 10 000 réparateurs inscrits d'ici fin 2024
+- **Engagement** : 50 000 devis traités par mois
+- **Monétisation** : Modèle freemium avec abonnements premium
+- **Expansion** : Couverture de tous les départements français
 
-#### 2. Réparateur indépendant
-- **Profil** : Artisan spécialisé, micro-entrepreneur
-- **Besoins** : Acquérir de nouveaux clients, gérer son planning, se différencier
-- **Pain points** : Visibilité limitée, concurrence des grandes enseignes
-- **Motivations** : Développer son activité, valoriser son expertise
+## Fonctionnalités principales
 
-#### 3. Administrateur plateforme
-- **Profil** : Équipe interne
-- **Besoins** : Superviser la plateforme, analyser les performances, modérer
-- **Responsabilités** : Qualité du service, croissance, conformité
+### Pour les particuliers (clients)
+1. **Recherche géolocalisée** de réparateurs
+2. **Demande de devis** instantanée avec diagnostic IA
+3. **Comparaison des offres** et des tarifs
+4. **Prise de rendez-vous** en ligne
+5. **Suivi des réparations** en temps réel
+6. **Système d'avis** et de notation
 
-### 🚀 Objectifs produit
+### Pour les réparateurs
+1. **Profil professionnel** avec certifications
+2. **Gestion des devis** et tarifications
+3. **Agenda** et planification des RDV
+4. **Facturation** et suivi financier
+5. **Analytics** et statistiques de performance
+6. **Formation** et support technique
 
-#### Objectifs business
-1. **Acquisition** : 10 000 utilisateurs actifs en 6 mois
-2. **Rétention** : 70% de taux de satisfaction client
-3. **Monétisation** : 500 réparateurs abonnés (plans payants)
-4. **Croissance** : Extension à 5 régions principales
+### Administration
+1. **Validation** des réparateurs
+2. **Modération** des avis clients
+3. **Analytics** globales de la plateforme
+4. **Gestion des abonnements** et facturation
+5. **Support client** intégré
 
-#### Objectifs utilisateur
-1. **Efficacité** : Réduire le temps de recherche de réparateur à < 5 minutes
-2. **Confiance** : 90% de réparations réussites via la plateforme
-3. **Transparence** : Prix et délais clairs avant intervention
+## Architecture technique
 
-### 🎯 Fonctionnalités core (MVP)
+### Stack technologique
+- **Frontend** : React 18, TypeScript, Tailwind CSS
+- **Backend** : Supabase (PostgreSQL, Auth, Real-time)
+- **IA** : Mistral, DeepSeek pour diagnostic et amélioration
+- **Cartographie** : OpenStreetMap, Leaflet
+- **Scraping** : Firecrawl, Apify pour enrichissement données
 
-#### 1. Recherche et découverte
-- **Géolocalisation** : Recherche par proximité (rayon configurable)
-- **Filtres avancés** : Par marque, modèle, type de panne, prix, disponibilité
-- **Comparateur** : Prix, délais, avis clients côte à côte
-- **Cartographie** : Vue carte interactive avec réparateurs
+### Modules complémentaires
+- **POS** : Système de caisse pour réparateurs (€49.90/mois)
+- **E-commerce** : Boutique en ligne (€89/mois)
+- **Blog** : Content management avec IA
+- **SEO local** : Pages automatisées par ville
 
-#### 2. Profils réparateurs
-- **Informations essentielles** : Coordonnées, horaires, spécialités
-- **Portfolio** : Photos de réparations, certifications
-- **Tarification** : Grille de prix par type d'intervention
-- **Disponibilités** : Créneaux libres en temps réel
+## Conformité et sécurité
 
-#### 3. Système de rendez-vous et devis
-- **Prise de RDV** : Calendrier en ligne avec confirmation
-- **Demande de devis** : Formulaire détaillé avec photos
-- **Suivi** : États de la réparation (reçu, diagnostic, en cours, terminé)
-- **Communication** : Messagerie intégrée client/réparateur
+### RGPD
+- Consentement explicite pour les données personnelles
+- Droit à l'oubli et portabilité des données
+- Chiffrement des données sensibles
+- Audit trail complet des actions admin
 
-#### 4. Système d'avis et confiance
-- **Notations** : Étoiles + commentaires détaillés
-- **Critères** : Qualité, prix, délais, accueil
-- **Modération** : Validation des avis par l'équipe
-- **Badges** : Certifications qualité (ex: QualiRepar)
+### Accessibilité
+- Conformité WCAG 2.1 AA
+- Navigation au clavier
+- Support des lecteurs d'écran
+- Contrastes respectés
 
-### 🎯 Fonctionnalités avancées (Post-MVP)
+### Facturation
+- Conformité française (TVA, mentions légales)
+- Factures électroniques
+- Système de promo codes
+- Gestion des remboursements
 
-#### 1. Intelligence artificielle
-- **Pré-diagnostic** : Chatbot pour identifier la panne
-- **Recommandations** : Suggestions personnalisées
-- **Prédictions** : Estimation durée de vie, risques de panne
+## Modèle économique
 
-#### 2. Services premium
-- **Réparation à domicile** : Service de déplacement
-- **Récupération/livraison** : Logistique complète
-- **Garantie étendue** : Couverture post-réparation
+### Plans d'abonnement réparateurs
+- **Gratuit** : Profil de base, 5 devis/mois
+- **Standard** (€29/mois) : Devis illimités, priorité modérée
+- **Premium** (€59/mois) : Analytics avancées, SEO local
+- **Enterprise** (€99/mois) : Modules POS/E-commerce, support prioritaire
 
-#### 3. Écosystème partenaires
-- **Assurances** : Intégration avec assureurs
-- **Constructeurs** : Pièces détachées officielles
-- **Recyclage** : Partenariat centres de recyclage
+### Commissions
+- 3% sur les transactions payées via la plateforme
+- Frais fixes sur les abonnements modules
 
-### 💰 Modèle économique
+## Roadmap
 
-#### Plans d'abonnement réparateurs
+### Q1 2024 ✅
+- Plateforme de base fonctionnelle
+- Système de scraping automatisé
+- 1000 premiers réparateurs
+- Conformité RGPD
 
-| Plan | Prix/mois | Fonctionnalités clés |
-|------|-----------|---------------------|
-| **Gratuit** | 0€ | Profil basique, 3 photos, 10 devis/mois |
-| **Basic** | 29€ | Profil complet, photos illimitées, 50 devis/mois |
-| **Premium** | 79€ | Visibilité prioritaire, analytics, devis illimités |
-| **Enterprise** | 149€ | Multi-ateliers, API, support dédié |
+### Q2 2024 ✅
+- Module POS intégré
+- Système de devis/RDV
+- SEO local automatisé
+- 5000 réparateurs
 
-#### Sources de revenus
-1. **Abonnements** (70%) : Plans payants réparateurs
-2. **Commissions** (20%) : % sur transactions via plateforme
-3. **Services premium** (10%) : Fonctionnalités avancées
+### Q3 2024 (En cours)
+- Module E-commerce
+- IA de diagnostic avancée
+- App mobile responsive
+- 10 000 réparateurs
 
-### 🏆 Avantages concurrentiels
+### Q4 2024 (Prévu)
+- Marketplace de pièces détachées
+- Programme de fidélité
+- API publique pour partenaires
+- Expansion européenne
 
-#### 1. Spécialisation technique
-- **Focus micro-soudure** : Réparations avancées (cartes mères, etc.)
-- **Diagnostic IA** : Pré-qualification automatique des pannes
-- **Base de données** : Catalogue exhaustif marques/modèles
+## KPIs de succès
 
-#### 2. Approche écologique
-- **Score carbone** : Impact environnemental des réparations
-- **Pièces reconditionnées** : Alternative aux pièces neuves
-- **Sensibilisation** : Blog et contenu éducatif
+### Acquisition
+- Nombre de réparateurs inscrits : **10 000** (objectif 2024)
+- Taux de conversion inscription → profil validé : **>75%**
+- Nombre de particuliers actifs : **100 000** (objectif 2024)
 
-#### 3. Qualité et confiance
-- **Vérification** : Contrôle SIRET, assurances, certifications
-- **Garantie qualité** : Engagement sur les réparations
-- **Transparence** : Prix et délais affichés clairement
+### Engagement
+- Devis traités par mois : **50 000** (objectif fin 2024)
+- Taux de conversion devis → RDV : **>25%**
+- NPS (Net Promoter Score) : **>60**
 
-### 📊 KPIs et métriques
-
-#### Acquisition
-- Nouveaux utilisateurs/mois
-- Coût d'acquisition client (CAC)
-- Canaux d'acquisition performance
-
-#### Engagement
-- Taux de conversion recherche → contact
-- Nombre moyen de recherches/session
-- Temps passé sur la plateforme
-
-#### Rétention
-- Taux de retour clients
-- NPS (Net Promoter Score)
-- Taux de réabonnement réparateurs
-
-#### Business
-- Revenue per user (ARPU)
-- Lifetime value (LTV)
-- Churn rate par segment
-
-### 🗺️ Roadmap
-
-#### Q1 2024 - MVP
-- [x] Système d'authentification
-- [x] Recherche géolocalisée
-- [x] Profils réparateurs basiques
-- [x] Système de devis
-
-#### Q2 2024 - Confiance
-- [ ] Système d'avis complet
-- [ ] Paiement sécurisé
-- [ ] Messagerie intégrée
-- [ ] Application mobile
-
-#### Q3 2024 - Intelligence
-- [ ] Chatbot IA pré-diagnostic
-- [ ] Recommandations personnalisées
-- [ ] Analytics avancées
-- [ ] API publique
-
-#### Q4 2024 - Expansion
-- [ ] Nouveaux types d'appareils
-- [ ] Partenariats assureurs
-- [ ] Service B2B entreprises
-- [ ] Expansion géographique
-
-### 🔄 Processus et méthodologie
-
-#### Développement
-- **Agile/Scrum** : Sprints de 2 semaines
-- **User stories** : Centrées utilisateur
-- **Tests** : TDD + tests utilisateur réguliers
-
-#### Lancement de fonctionnalités
-1. **Research** : Interviews utilisateur, analyse concurrence
-2. **Design** : Wireframes, prototypes, tests utilisabilité
-3. **Development** : MVP, tests, déploiement graduel
-4. **Mesure** : Analytics, feedback, itération
-
-### 🎨 Principes design
-
-#### UX
-- **Simplicité** : Interface claire et intuitive
-- **Rapidité** : Minimum de clics pour atteindre l'objectif
-- **Mobile-first** : Optimisé pour smartphones
-
-#### Brand
-- **Confiance** : Couleurs professionnelles, témoignages
-- **Expertise** : Contenu technique, certifications
-- **Modernité** : Design contemporain, technologies récentes
-
-### ⚠️ Risques et mitigation
-
-#### Risques techniques
-- **Performance** : Optimisation base de données, CDN
-- **Sécurité** : Chiffrement, audits réguliers
-- **Scalabilité** : Architecture cloud-native
-
-#### Risques business
-- **Adoption** : Programme d'onboarding, incentives
-- **Concurrence** : Veille concurrentielle, innovation
-- **Réglementation** : Veille juridique, conformité RGPD
-
-### 📞 Équipe et rôles
-
-#### Core team
-- **Product Manager** : Vision produit, roadmap
-- **Lead Developer** : Architecture, développement
-- **UX/UI Designer** : Expérience utilisateur
-- **Growth** : Acquisition, marketing
-
-#### Partenaires
-- **Réparateurs pilotes** : Feedback, co-création
-- **Advisors** : Expertise secteur, mentorat
+### Monétisation
+- MRR (Monthly Recurring Revenue) : **€500 000** (objectif 2024)
+- Taux de churn mensuel : **<5%**
+- LTV/CAC ratio : **>3:1**
 
 ---
 
-*Ce PRD est un document vivant, mis à jour régulièrement selon l'évolution du produit et du marché.*
+**Version** : 2.1  
+**Dernière mise à jour** : 7 janvier 2025  
+**Auteur** : Équipe Produit RepairConnect

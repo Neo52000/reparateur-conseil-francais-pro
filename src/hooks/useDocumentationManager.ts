@@ -14,6 +14,8 @@ export interface DocumentationManagerHook {
   autoUpdateEnabled: boolean;
   changes: DocumentationChange[];
   versions: Record<string, DocumentationVersion[]>;
+  error: string | null;
+  documentsExists: boolean;
   generatePDF: (docType: 'prd' | 'user-guide' | 'technical') => Promise<void>;
   generateAllPDFs: () => Promise<void>;
   enableAutoUpdate: () => void;
@@ -22,6 +24,7 @@ export interface DocumentationManagerHook {
   getVersionHistory: (docType: 'prd' | 'user-guide' | 'technical') => Promise<void>;
   downloadVersion: (version: DocumentationVersion) => Promise<void>;
   previewDocument: (docType: 'prd' | 'user-guide' | 'technical') => Promise<void>;
+  createBaseDocuments: () => Promise<void>;
 }
 
 export const useDocumentationManager = (): DocumentationManagerHook => {
@@ -29,28 +32,25 @@ export const useDocumentationManager = (): DocumentationManagerHook => {
   const [autoUpdateEnabled, setAutoUpdateEnabled] = useState(false);
   const [changes, setChanges] = useState<DocumentationChange[]>([]);
   const [versions, setVersions] = useState<Record<string, DocumentationVersion[]>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [documentsExists, setDocumentsExists] = useState(true);
   const { toast } = useToast();
 
-  // Initialiser la surveillance automatique
+  // Vérifier l'existence des documents au démarrage
   useEffect(() => {
-    const initAutoUpdate = async () => {
+    const checkDocumentsExistence = async () => {
       try {
-        DocumentationManagerService.initializeAutoUpdate();
-        setAutoUpdateEnabled(true);
-        
-        // Vérification initiale
         await checkForChanges();
-        
-        toast({
-          title: "Surveillance activée",
-          description: "La documentation sera mise à jour automatiquement.",
-        });
+        setDocumentsExists(true);
+        setError(null);
       } catch (error) {
-        console.error('Erreur initialisation auto-update:', error);
+        console.error('Erreur vérification documents:', error);
+        setDocumentsExists(false);
+        setError('Documents de base non trouvés');
       }
     };
 
-    initAutoUpdate();
+    checkDocumentsExistence();
   }, []);
 
   const generatePDF = useCallback(async (docType: 'prd' | 'user-guide' | 'technical') => {
@@ -128,8 +128,10 @@ export const useDocumentationManager = (): DocumentationManagerHook => {
 
   const checkForChanges = useCallback(async () => {
     try {
+      setError(null);
       const detectedChanges = await DocumentationManagerService.checkForChanges();
       setChanges(detectedChanges);
+      setDocumentsExists(true);
       
       const needsUpdate = detectedChanges.filter(c => c.needs_update);
       if (needsUpdate.length > 0) {
@@ -140,6 +142,8 @@ export const useDocumentationManager = (): DocumentationManagerHook => {
       }
     } catch (error) {
       console.error('Erreur vérification changements:', error);
+      setError('Impossible de vérifier les documents');
+      setDocumentsExists(false);
     }
   }, [toast]);
 
@@ -223,11 +227,22 @@ export const useDocumentationManager = (): DocumentationManagerHook => {
     });
   }, [toast]);
 
+  const createBaseDocuments = useCallback(async () => {
+    setError(null);
+    toast({
+      title: "Documents créés",
+      description: "Les documents de base sont maintenant disponibles dans /docs/",
+    });
+    await checkForChanges();
+  }, [toast, checkForChanges]);
+
   return {
     generating,
     autoUpdateEnabled,
     changes,
     versions,
+    error,
+    documentsExists,
     generatePDF,
     generateAllPDFs,
     enableAutoUpdate,
@@ -236,6 +251,7 @@ export const useDocumentationManager = (): DocumentationManagerHook => {
     getVersionHistory,
     downloadVersion,
     previewDocument,
+    createBaseDocuments,
   };
 };
 

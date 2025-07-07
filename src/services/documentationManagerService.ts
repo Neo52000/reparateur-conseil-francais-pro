@@ -111,14 +111,16 @@ export class DocumentationManagerService {
    */
   static async getVersionHistory(docType: 'prd' | 'user-guide' | 'technical'): Promise<DocumentationVersion[]> {
     try {
-      // Utiliser un typage plus flexible pour éviter les erreurs TypeScript
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('documentation_versions')
         .select('*')
         .eq('doc_type', docType)
         .order('generated_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur Supabase récupération historique:', error);
+        return [];
+      }
       return (data || []) as DocumentationVersion[];
     } catch (error) {
       console.error('Erreur récupération historique:', error);
@@ -136,7 +138,7 @@ export class DocumentationManagerService {
     contentHash: string
   ): Promise<void> {
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('documentation_versions')
         .insert({
           doc_type: docType,
@@ -147,27 +149,38 @@ export class DocumentationManagerService {
           download_count: 0
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur Supabase sauvegarde version:', error);
+      }
     } catch (error) {
       console.error('Erreur sauvegarde version:', error);
     }
   }
 
   /**
-   * Récupère le contenu d'un document
+   * Récupère le contenu d'un document avec gestion d'erreurs améliorée
    */
   private static async fetchDocumentContent(docType: 'prd' | 'user-guide' | 'technical'): Promise<string> {
     const docPaths = {
       'prd': '/docs/PRD.md',
-      'user-guide': '/docs/user-guide.md',
+      'user-guide': '/docs/user-guide.md', 
       'technical': '/docs/README.md'
     };
 
-    const response = await fetch(docPaths[docType]);
-    if (!response.ok) {
-      throw new Error(`Impossible de charger ${docPaths[docType]}`);
+    try {
+      const response = await fetch(docPaths[docType]);
+      if (!response.ok) {
+        throw new Error(`Document ${docType} non accessible (${response.status})`);
+      }
+      const content = await response.text();
+      if (!content.trim()) {
+        throw new Error(`Document ${docType} vide`);
+      }
+      return content;
+    } catch (error) {
+      console.error(`Erreur chargement ${docType}:`, error);
+      throw new Error(`Document ${docType} indisponible`);
     }
-    return await response.text();
   }
 
   /**
@@ -215,7 +228,7 @@ export class DocumentationManagerService {
     
     for (const docType of docTypes) {
       try {
-        const { data: versions } = await (supabase as any)
+        const { data: versions } = await supabase
           .from('documentation_versions')
           .select('id')
           .eq('doc_type', docType)
@@ -224,7 +237,7 @@ export class DocumentationManagerService {
 
         if (versions && versions.length > 0) {
           const idsToDelete = versions.map((v: any) => v.id);
-          await (supabase as any)
+          await supabase
             .from('documentation_versions')
             .delete()
             .in('id', idsToDelete);

@@ -14,7 +14,10 @@ const DocumentationStatusWidget: React.FC = () => {
     generateAllPDFs,
     generating,
     enableAutoUpdate,
-    disableAutoUpdate
+    disableAutoUpdate,
+    error,
+    documentsExists,
+    createBaseDocuments
   } = useDocumentationManager();
   
   const [lastCheck, setLastCheck] = useState<Date>(new Date());
