@@ -265,23 +265,56 @@ export const useDataCollection = () => {
       return;
     }
 
-    const csv = [
-      ['Titre', 'URL', 'Description', 'Position'].join(','),
-      ...results.map(r => [
-        `"${r.title || r.name || ''}"`,
-        `"${r.link || r.website || ''}"`,
-        `"${r.snippet || r.description || ''}"`,
-        r.position || ''
-      ].join(','))
-    ].join('\n');
+    try {
+      // Dynamically import Papa Parse
+      import('papaparse').then((Papa) => {
+        // Préparer les données pour l'export
+        const exportData = results.map(r => ({
+          Titre: r.title || r.name || '',
+          URL: r.link || r.website || '',
+          Description: r.snippet || r.description || '',
+          Position: r.position || '',
+          Source: r.source || '',
+          Ville: r.city || '',
+          Adresse: r.address || '',
+          Téléphone: r.phone || ''
+        }));
 
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `resultats-${categoryName.toLowerCase()}-${Date.now()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+        // Générer le CSV avec Papa Parse
+        const csv = Papa.default.unparse(exportData);
+        
+        // Créer et télécharger le fichier
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `resultats-${categoryName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.csv`;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        toast({
+          title: "Export réussi",
+          description: `${results.length} résultats exportés en CSV`
+        });
+      }).catch((error) => {
+        console.error('Erreur lors de l\'import de Papa Parse:', error);
+        toast({
+          title: "Erreur d'export",
+          description: "Impossible d'exporter les données",
+          variant: "destructive"
+        });
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'export CSV:', error);
+      toast({
+        title: "Erreur d'export", 
+        description: "Une erreur est survenue lors de l'export",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleRedirectToRepairers = () => {
