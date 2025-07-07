@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useDemoMode } from '@/hooks/useDemoMode';
 
 export interface FeatureUsageStats {
   moduleName: string;
@@ -51,6 +52,7 @@ export interface ModuleConfiguration {
 export const useFeatureManagement = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { demoModeEnabled } = useDemoMode();
   const [loading, setLoading] = useState(true);
   const [usageStats, setUsageStats] = useState<FeatureUsageStats[]>([]);
   const [moduleConfigs, setModuleConfigs] = useState<ModuleConfiguration[]>([]);
@@ -61,30 +63,64 @@ export const useFeatureManagement = () => {
   // Fonctions pour charger les données depuis la base de données
   const loadUsageStats = async () => {
     try {
-      // Statistiques mockées pour le moment - à implémenter avec de vraies données
-      const mockStats: FeatureUsageStats[] = [
-        {
+      if (demoModeEnabled) {
+        // Données mockées en mode démo
+        const mockStats: FeatureUsageStats[] = [
+          {
+            moduleName: 'Système POS',
+            moduleType: 'pos',
+            totalUsers: 15,
+            activeUsers: 12,
+            monthlyUsage: 1250,
+            revenueImpact: 7480,
+            status: 'active',
+            lastUpdate: '2024-01-07T10:30:00Z'
+          },
+          {
+            moduleName: 'E-commerce',
+            moduleType: 'ecommerce',
+            totalUsers: 8,
+            activeUsers: 6,
+            monthlyUsage: 680,
+            revenueImpact: 5340,
+            status: 'active',
+            lastUpdate: '2024-01-06T15:20:00Z'
+          }
+        ];
+        setUsageStats(mockStats);
+      } else {
+        // Vraies données depuis la base
+        const { data: subscriptions, error } = await supabase
+          .from('repairer_subscriptions')
+          .select('subscription_tier');
+
+        if (error) throw error;
+
+        // Pour l'instant, créer des statistiques simples basées sur les abonnements
+        const posStats = {
           moduleName: 'Système POS',
-          moduleType: 'pos',
-          totalUsers: 15,
-          activeUsers: 12,
-          monthlyUsage: 1250,
-          revenueImpact: 7480,
-          status: 'active',
-          lastUpdate: '2024-01-07T10:30:00Z'
-        },
-        {
+          moduleType: 'pos' as const,
+          totalUsers: subscriptions.filter(s => ['premium', 'enterprise'].includes(s.subscription_tier)).length,
+          activeUsers: subscriptions.filter(s => s.subscription_tier === 'enterprise').length,
+          monthlyUsage: 0,
+          revenueImpact: 0,
+          status: 'active' as const,
+          lastUpdate: new Date().toISOString()
+        };
+
+        const ecommerceStats = {
           moduleName: 'E-commerce',
-          moduleType: 'ecommerce',
-          totalUsers: 8,
-          activeUsers: 6,
-          monthlyUsage: 680,
-          revenueImpact: 5340,
-          status: 'active',
-          lastUpdate: '2024-01-06T15:20:00Z'
-        }
-      ];
-      setUsageStats(mockStats);
+          moduleType: 'ecommerce' as const,
+          totalUsers: subscriptions.filter(s => s.subscription_tier === 'enterprise').length,
+          activeUsers: subscriptions.filter(s => s.subscription_tier === 'enterprise').length,
+          monthlyUsage: 0,
+          revenueImpact: 0,
+          status: 'active' as const,
+          lastUpdate: new Date().toISOString()
+        };
+
+        setUsageStats([posStats, ecommerceStats]);
+      }
     } catch (error) {
       console.error('Error loading usage stats:', error);
     }
@@ -92,40 +128,76 @@ export const useFeatureManagement = () => {
 
   const loadModuleConfigs = async () => {
     try {
-      // Configurations mockées pour le moment
-      const mockConfigs: ModuleConfiguration[] = [
-        {
-          id: 'pos-system',
-          moduleName: 'Système POS',
-          moduleType: 'pos',
+      if (demoModeEnabled) {
+        // Configurations mockées en mode démo
+        const mockConfigs: ModuleConfiguration[] = [
+          {
+            id: 'pos-system',
+            moduleName: 'Système POS',
+            moduleType: 'pos',
+            isEnabled: true,
+            configuration: {
+              enableInventory: true,
+              enableReporting: true,
+              enablePaymentTerminal: true,
+              maxTransactionsPerDay: 1000
+            },
+            dependencies: ['payment-gateway', 'inventory-system'],
+            version: '2.1.0',
+            documentation: 'Système de point de vente complet avec gestion des stocks et rapports'
+          },
+          {
+            id: 'ecommerce-platform',
+            moduleName: 'Plateforme E-commerce',
+            moduleType: 'ecommerce',
+            isEnabled: true,
+            configuration: {
+              enableStoreBuilder: true,
+              enableOrderManagement: true,
+              enableAnalytics: true,
+              maxProductsPerStore: 500
+            },
+            dependencies: ['payment-system', 'shipping-calculator'],
+            version: '1.8.3',
+            documentation: 'Plateforme e-commerce complète pour les réparateurs'
+          }
+        ];
+        setModuleConfigs(mockConfigs);
+      } else {
+        // Vraies configurations depuis la base
+        const { data: pricing, error } = await supabase
+          .from('module_pricing')
+          .select('*');
+
+        if (error) throw error;
+
+        const realConfigs: ModuleConfiguration[] = pricing.map(module => ({
+          id: `${module.module_type}-system`,
+          moduleName: module.module_type === 'pos' ? 'Système POS' : 'Plateforme E-commerce',
+          moduleType: module.module_type,
           isEnabled: true,
-          configuration: {
+          configuration: module.module_type === 'pos' ? {
             enableInventory: true,
             enableReporting: true,
             enablePaymentTerminal: true,
             maxTransactionsPerDay: 1000
-          },
-          dependencies: ['payment-gateway', 'inventory-system'],
-          version: '2.1.0',
-          documentation: 'Système de point de vente complet avec gestion des stocks et rapports'
-        },
-        {
-          id: 'ecommerce-platform',
-          moduleName: 'Plateforme E-commerce',
-          moduleType: 'ecommerce',
-          isEnabled: true,
-          configuration: {
+          } : {
             enableStoreBuilder: true,
             enableOrderManagement: true,
             enableAnalytics: true,
             maxProductsPerStore: 500
           },
-          dependencies: ['payment-system', 'shipping-calculator'],
-          version: '1.8.3',
-          documentation: 'Plateforme e-commerce complète pour les réparateurs'
-        }
-      ];
-      setModuleConfigs(mockConfigs);
+          dependencies: module.module_type === 'pos' 
+            ? ['payment-gateway', 'inventory-system']
+            : ['payment-system', 'shipping-calculator'],
+          version: module.module_type === 'pos' ? '2.1.0' : '1.8.3',
+          documentation: module.module_type === 'pos'
+            ? 'Système de point de vente complet avec gestion des stocks et rapports'
+            : 'Plateforme e-commerce complète pour les réparateurs'
+        }));
+
+        setModuleConfigs(realConfigs);
+      }
     } catch (error) {
       console.error('Error loading module configs:', error);
     }
@@ -291,7 +363,42 @@ export const useFeatureManagement = () => {
     if (user?.id) {
       loadData();
     }
-  }, [user?.id, toast]);
+  }, [user?.id, toast, demoModeEnabled]);
+
+  // Synchronisation temps réel
+  useEffect(() => {
+    if (!user?.id || demoModeEnabled) return;
+
+    // Écouter les changements sur les tables subscription_plans et module_pricing
+    const plansChannel = supabase
+      .channel('subscription_plans_changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'subscription_plans'
+      }, () => {
+        loadPlanConfigs();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'module_pricing'
+      }, () => {
+        loadModuleConfigs();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'plan_features'
+      }, () => {
+        loadPlanFeatureMatrix();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(plansChannel);
+    };
+  }, [user?.id, demoModeEnabled]);
 
   const updateModuleConfiguration = async (moduleId: string, newConfig: Partial<ModuleConfiguration>) => {
     try {

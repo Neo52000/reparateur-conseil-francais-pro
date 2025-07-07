@@ -31,7 +31,7 @@ export const useDemoMode = () => {
         
         // Pour les admins, vérifier le feature flag
         const { data: flags, error } = await supabase
-          .from('feature_flags_by_plan')
+          .from('plan_features')
           .select('enabled')
           .eq('feature_key', 'demo_mode_enabled')
           .eq('plan_name', 'Enterprise')
@@ -69,7 +69,7 @@ export const useDemoMode = () => {
       logger.debug('Basculement du mode démo:', { from: demoModeEnabled, to: newState });
       
       const { error } = await supabase
-        .from('feature_flags_by_plan')
+        .from('plan_features')
         .update({ enabled: newState })
         .eq('feature_key', 'demo_mode_enabled')
         .eq('plan_name', 'Enterprise');

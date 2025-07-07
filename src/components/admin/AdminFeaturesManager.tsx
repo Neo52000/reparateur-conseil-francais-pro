@@ -22,6 +22,7 @@ import {
   Clock
 } from 'lucide-react';
 import { useFeatureManagement } from '@/hooks/useFeatureManagement';
+import FeatureSyncDebugPanel from '@/components/admin/FeatureSyncDebugPanel';
 
 const AdminFeaturesManager: React.FC = () => {
   const { 
@@ -479,6 +480,9 @@ const AdminFeaturesManager: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="config" className="space-y-4">
+          {/* Panneau de debug en premier */}
+          <FeatureSyncDebugPanel />
+          
           <Card>
             <CardHeader>
               <CardTitle>Configuration globale</CardTitle>
