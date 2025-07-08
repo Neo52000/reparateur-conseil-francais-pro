@@ -42,7 +42,7 @@ import OrdersManager from './OrdersManager';
 import InventoryManager from './InventoryManager';
 import SyncManager from './SyncManager';
 import AdvancedAnalytics from './AdvancedAnalytics';
-import InteractiveEcommercePreview from '../preview/InteractiveEcommercePreview';
+import WayfairStyleEcommerce from '../../ecommerce/modern/WayfairStyleEcommerce';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -440,16 +440,7 @@ const EcommerceDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="boutique">
-            <InteractiveEcommercePreview
-              settings={{
-                store_template: { theme: 'modern', colors: { primary: '#3b82f6', secondary: '#64748b' } },
-                default_shipping: { free_threshold: 50, standard_rate: 5.99 },
-                payment_gateways: { stripe: true, paypal: true },
-                tax_settings: { include_tax: true, display_tax: true }
-              }}
-              isFullscreen={isEcommerceFullscreen}
-              onToggleFullscreen={() => setIsEcommerceFullscreen(!isEcommerceFullscreen)}
-            />
+            <WayfairStyleEcommerce />
           </TabsContent>
 
           <TabsContent value="orders">
