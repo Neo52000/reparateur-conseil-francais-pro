@@ -36,7 +36,15 @@ const RecentlyViewed: React.FC<RecentlyViewedProps> = ({ onProductClick }) => {
       price: 129.99,
       images: ['/api/placeholder/150/150'],
       rating: 4.8,
-      brand: 'Premium Parts'
+      reviewCount: 127,
+      description: 'Écran OLED de remplacement haute qualité',
+      category: 'ecrans',
+      brand: 'Premium Parts',
+      isOnSale: true,
+      isFreeShipping: true,
+      stock: 15,
+      sku: 'IPH13P-OLED-001',
+      tags: ['garantie-6mois']
     },
     {
       id: '2',
@@ -44,7 +52,15 @@ const RecentlyViewed: React.FC<RecentlyViewedProps> = ({ onProductClick }) => {
       price: 45.99,
       images: ['/api/placeholder/150/150'],
       rating: 4.6,
-      brand: 'Samsung'
+      reviewCount: 89,
+      description: 'Batterie lithium-ion de remplacement',
+      category: 'batteries',
+      brand: 'Samsung',
+      isOnSale: false,
+      isFreeShipping: false,
+      stock: 23,
+      sku: 'SGS22U-BAT-001',
+      tags: ['garantie-12mois']
     },
     {
       id: '3',
@@ -52,7 +68,15 @@ const RecentlyViewed: React.FC<RecentlyViewedProps> = ({ onProductClick }) => {
       price: 19.99,
       images: ['/api/placeholder/150/150'],
       rating: 4.7,
-      brand: 'SafeCase'
+      reviewCount: 65,
+      description: 'Coque de protection résistante',
+      category: 'accessoires',
+      brand: 'SafeCase',
+      isOnSale: false,
+      isFreeShipping: true,
+      stock: 42,
+      sku: 'IPH14-CASE-001',
+      tags: ['protection']
     }
   ];
 
