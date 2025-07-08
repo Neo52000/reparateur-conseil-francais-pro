@@ -14,6 +14,7 @@ import AdvancedAnalytics from "./analytics/AdvancedAnalytics";
 import InventoryManagement from "./inventory/InventoryManagement";
 import NotificationCenter from "./notifications/NotificationCenter";
 import LoyaltyProgram from "./loyalty/LoyaltyProgram";
+import { StoreFront } from "../ecommerce/StoreFront";
 
 interface Order {
   id: string;
@@ -71,12 +72,13 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 }) => {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-10">
+      <TabsList className="grid w-full grid-cols-11">
         <TabsTrigger value="overview">Aperçu</TabsTrigger>
         <TabsTrigger value="orders">Commandes</TabsTrigger>
         <TabsTrigger value="calendar">Planning</TabsTrigger>
         <TabsTrigger value="inventory">Stock</TabsTrigger>
         <TabsTrigger value="pricing">Tarifs</TabsTrigger>
+        <TabsTrigger value="boutique">Boutique</TabsTrigger>
         <TabsTrigger value="analytics">Analytics</TabsTrigger>
         <TabsTrigger value="notifications">Notifications</TabsTrigger>
         <TabsTrigger value="loyalty">Fidélité</TabsTrigger>
@@ -125,6 +127,10 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 
       <TabsContent value="pricing">
         <PricingTabSection />
+      </TabsContent>
+
+      <TabsContent value="boutique">
+        <StoreFront />
       </TabsContent>
 
       <TabsContent value="analytics">
