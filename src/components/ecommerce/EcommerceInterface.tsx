@@ -20,6 +20,9 @@ import { CustomersManagement } from './CustomersManagement';
 import { StoreSettings } from './StoreSettings';
 import EcommerceAnalytics from './EcommerceAnalytics';
 import { StoreFront } from './StoreFront';
+import InventoryManagement from './InventoryManagement';
+import UserPreferences from './UserPreferences';
+import NotificationCenter from './NotificationCenter';
 
 interface EcommerceInterfaceProps {
   onBackToDashboard?: () => void;
@@ -99,7 +102,7 @@ const EcommerceInterface: React.FC<EcommerceInterfaceProps> = ({
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 lg:w-fit">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 lg:w-fit">
             <TabsTrigger value="storefront" className="flex items-center gap-2">
               <Store className="w-4 h-4" />
               <span className="hidden sm:inline">Vitrine</span>
@@ -116,13 +119,21 @@ const EcommerceInterface: React.FC<EcommerceInterfaceProps> = ({
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Clients</span>
             </TabsTrigger>
+            <TabsTrigger value="inventory" className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              <span className="hidden sm:inline">Stock</span>
+            </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
+            <TabsTrigger value="preferences" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Paramètres</span>
+              <span className="hidden sm:inline">Préférences</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Notifications</span>
             </TabsTrigger>
           </TabsList>
 
@@ -142,8 +153,20 @@ const EcommerceInterface: React.FC<EcommerceInterfaceProps> = ({
             <CustomersManagement />
           </TabsContent>
 
+          <TabsContent value="inventory" className="space-y-6">
+            <InventoryManagement />
+          </TabsContent>
+
           <TabsContent value="analytics" className="space-y-6">
             <EcommerceAnalytics />
+          </TabsContent>
+
+          <TabsContent value="preferences" className="space-y-6">
+            <UserPreferences />
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-6">
+            <NotificationCenter />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
