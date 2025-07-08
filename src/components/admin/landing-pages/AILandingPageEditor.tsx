@@ -191,11 +191,20 @@ const AILandingPageEditor: React.FC<AILandingPageEditorProps> = ({
       if (error) throw error;
 
       return data.content;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating AI content:', error);
+      
+      // Parse error message to provide more specific feedback
+      let errorMessage = "Impossible de générer le contenu automatiquement";
+      if (error?.message?.includes("quota") || (error && JSON.stringify(error).includes("quota"))) {
+        errorMessage = "Quota OpenAI dépassé. Veuillez vérifier votre plan et facturation OpenAI.";
+      } else if (error?.message?.includes("API key") || (error && JSON.stringify(error).includes("API key"))) {
+        errorMessage = "Clé API OpenAI invalide ou manquante.";
+      }
+      
       toast({
         title: "Erreur IA",
-        description: "Impossible de générer le contenu automatiquement",
+        description: errorMessage,
         variant: "destructive"
       });
       return null;
