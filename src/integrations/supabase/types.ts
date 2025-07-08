@@ -2161,6 +2161,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ecommerce_analytics: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          metric_date: string
+          metric_type: string
+          repairer_id: string
+          value: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_date?: string
+          metric_type: string
+          repairer_id: string
+          value?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_date?: string
+          metric_type?: string
+          repairer_id?: string
+          value?: number | null
+        }
+        Relationships: []
+      }
       ecommerce_customers: {
         Row: {
           created_at: string
@@ -2717,6 +2747,53 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      inventory_items: {
+        Row: {
+          created_at: string
+          current_stock: number
+          id: string
+          last_restocked: string | null
+          location: string | null
+          maximum_stock: number | null
+          minimum_stock: number | null
+          product_id: string | null
+          repairer_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_stock?: number
+          id?: string
+          last_restocked?: string | null
+          location?: string | null
+          maximum_stock?: number | null
+          minimum_stock?: number | null
+          product_id?: string | null
+          repairer_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_stock?: number
+          id?: string
+          last_restocked?: string | null
+          location?: string | null
+          maximum_stock?: number | null
+          minimum_stock?: number | null
+          product_id?: string | null
+          repairer_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "ecommerce_products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoice_items: {
         Row: {
@@ -5162,6 +5239,45 @@ export type Database = {
         }
         Relationships: []
       }
+      repairer_stripe_config: {
+        Row: {
+          auto_transfer: boolean | null
+          commission_rate: number | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          repairer_id: string
+          stripe_account_id: string | null
+          stripe_publishable_key: string | null
+          stripe_secret_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          auto_transfer?: boolean | null
+          commission_rate?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          repairer_id: string
+          stripe_account_id?: string | null
+          stripe_publishable_key?: string | null
+          stripe_secret_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auto_transfer?: boolean | null
+          commission_rate?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          repairer_id?: string
+          stripe_account_id?: string | null
+          stripe_publishable_key?: string | null
+          stripe_secret_key?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       repairer_subscriptions: {
         Row: {
           billing_cycle: string | null
@@ -5592,6 +5708,44 @@ export type Database = {
         }
         Relationships: []
       }
+      shopping_cart: {
+        Row: {
+          added_at: string | null
+          id: string
+          product_id: string | null
+          quantity: number
+          session_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          added_at?: string | null
+          id?: string
+          product_id?: string | null
+          quantity?: number
+          session_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          added_at?: string | null
+          id?: string
+          product_id?: string | null
+          quantity?: number
+          session_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_cart_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "ecommerce_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sitemap_history: {
         Row: {
           created_at: string
@@ -5669,6 +5823,47 @@ export type Database = {
           warranty_days?: number | null
         }
         Relationships: []
+      }
+      stock_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          inventory_item_id: string | null
+          movement_type: string
+          quantity: number
+          reason: string | null
+          reference_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inventory_item_id?: string | null
+          movement_type: string
+          quantity: number
+          reason?: string | null
+          reference_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          inventory_item_id?: string | null
+          movement_type?: string
+          quantity?: number
+          reason?: string | null
+          reference_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_plans: {
         Row: {
@@ -6024,6 +6219,45 @@ export type Database = {
           target_id?: string | null
           target_type?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          display_settings: Json | null
+          favorite_products: string[] | null
+          id: string
+          notification_settings: Json | null
+          preferred_brands: string[] | null
+          preferred_categories: string[] | null
+          recently_viewed: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_settings?: Json | null
+          favorite_products?: string[] | null
+          id?: string
+          notification_settings?: Json | null
+          preferred_brands?: string[] | null
+          preferred_categories?: string[] | null
+          recently_viewed?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_settings?: Json | null
+          favorite_products?: string[] | null
+          id?: string
+          notification_settings?: Json | null
+          preferred_brands?: string[] | null
+          preferred_categories?: string[] | null
+          recently_viewed?: string[] | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

@@ -18,7 +18,7 @@ import { ProductsManagement } from './ProductsManagement';
 import { OrdersManagement } from './OrdersManagement';
 import { CustomersManagement } from './CustomersManagement';
 import { StoreSettings } from './StoreSettings';
-import { EcommerceAnalytics } from './EcommerceAnalytics';
+import EcommerceAnalytics from './EcommerceAnalytics';
 import { StoreFront } from './StoreFront';
 
 interface EcommerceInterfaceProps {
