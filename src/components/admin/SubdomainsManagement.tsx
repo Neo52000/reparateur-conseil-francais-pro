@@ -8,21 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Globe, 
-  Plus, 
-  Pencil, 
-  Trash2, 
-  ExternalLink, 
-  CheckCircle, 
-  XCircle, 
-  AlertCircle,
-  RefreshCw,
-  Eye
-} from 'lucide-react';
+import { Globe, Plus, Pencil, Trash2, ExternalLink, CheckCircle, XCircle, AlertCircle, RefreshCw, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
 interface Subdomain {
   id: string;
   subdomain: string;
@@ -37,20 +25,17 @@ interface Subdomain {
   subscription_tier?: string;
   landing_page_name?: string;
 }
-
 interface Repairer {
   id: string;
   name: string;
   subscription_tier: string;
   subscribed: boolean;
 }
-
 interface LandingPage {
   id: string;
   name: string;
   is_active: boolean;
 }
-
 const SubdomainsManagement: React.FC = () => {
   const [subdomains, setSubdomains] = useState<Subdomain[]>([]);
   const [repairers, setRepairers] = useState<Repairer[]>([]);
@@ -63,52 +48,44 @@ const SubdomainsManagement: React.FC = () => {
     landing_page_id: '',
     custom_domain: ''
   });
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     fetchSubdomains();
     fetchRepairers();
     fetchLandingPages();
   }, []);
-
   const fetchSubdomains = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('subdomains')
-        .select('*')
-        .order('created_at', { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from('subdomains').select('*').order('created_at', {
+        ascending: false
+      });
       if (error) throw error;
-      
+
       // Enrichir avec les données des réparateurs et landing pages
-      const enrichedData = await Promise.all(
-        (data || []).map(async (subdomain) => {
-          const { data: repairerData } = await supabase
-            .from('repairer_subscriptions')
-            .select('email, subscription_tier')
-            .eq('repairer_id', subdomain.repairer_id)
-            .single();
-          
-          let landingPageName = '';
-          if (subdomain.landing_page_id) {
-            const { data: landingPageData } = await supabase
-              .from('landing_pages')
-              .select('name')
-              .eq('id', subdomain.landing_page_id)
-              .single();
-            landingPageName = landingPageData?.name || '';
-          }
-          
-          return {
-            ...subdomain,
-            repairer_name: repairerData?.email || 'Inconnu',
-            subscription_tier: repairerData?.subscription_tier || 'free',
-            landing_page_name: landingPageName
-          };
-        })
-      );
-      
+      const enrichedData = await Promise.all((data || []).map(async subdomain => {
+        const {
+          data: repairerData
+        } = await supabase.from('repairer_subscriptions').select('email, subscription_tier').eq('repairer_id', subdomain.repairer_id).single();
+        let landingPageName = '';
+        if (subdomain.landing_page_id) {
+          const {
+            data: landingPageData
+          } = await supabase.from('landing_pages').select('name').eq('id', subdomain.landing_page_id).single();
+          landingPageName = landingPageData?.name || '';
+        }
+        return {
+          ...subdomain,
+          repairer_name: repairerData?.email || 'Inconnu',
+          subscription_tier: repairerData?.subscription_tier || 'free',
+          landing_page_name: landingPageName
+        };
+      }));
       setSubdomains(enrichedData);
     } catch (error) {
       console.error('Error fetching subdomains:', error);
@@ -121,45 +98,37 @@ const SubdomainsManagement: React.FC = () => {
       setLoading(false);
     }
   };
-
   const fetchRepairers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('repairer_subscriptions')
-        .select('repairer_id, email, subscription_tier, subscribed')
-        .eq('subscribed', true)
-        .in('subscription_tier', ['basic', 'pro', 'premium', 'enterprise']);
-
+      const {
+        data,
+        error
+      } = await supabase.from('repairer_subscriptions').select('repairer_id, email, subscription_tier, subscribed').eq('subscribed', true).in('subscription_tier', ['basic', 'pro', 'premium', 'enterprise']);
       if (error) throw error;
-      
       const formattedRepairers = data?.map(item => ({
         id: item.repairer_id,
-        name: item.email, // Utiliser l'email en attendant d'avoir les noms
+        name: item.email,
+        // Utiliser l'email en attendant d'avoir les noms
         subscription_tier: item.subscription_tier,
         subscribed: item.subscribed
       })) || [];
-      
       setRepairers(formattedRepairers);
     } catch (error) {
       console.error('Error fetching repairers:', error);
     }
   };
-
   const fetchLandingPages = async () => {
     try {
-      const { data, error } = await supabase
-        .from('landing_pages')
-        .select('id, name, is_active')
-        .eq('is_active', true)
-        .order('name');
-
+      const {
+        data,
+        error
+      } = await supabase.from('landing_pages').select('id, name, is_active').eq('is_active', true).order('name');
       if (error) throw error;
       setLandingPages(data || []);
     } catch (error) {
       console.error('Error fetching landing pages:', error);
     }
   };
-
   const createSubdomain = async () => {
     if (!newSubdomain.subdomain || !newSubdomain.repairer_id) {
       toast({
@@ -169,26 +138,27 @@ const SubdomainsManagement: React.FC = () => {
       });
       return;
     }
-
     try {
-      const { error } = await supabase
-        .from('subdomains')
-        .insert({
-          subdomain: newSubdomain.subdomain.toLowerCase(),
-          repairer_id: newSubdomain.repairer_id,
-          landing_page_id: newSubdomain.landing_page_id === 'none' ? null : newSubdomain.landing_page_id || null,
-          custom_domain: newSubdomain.custom_domain || null
-        });
-
+      const {
+        error
+      } = await supabase.from('subdomains').insert({
+        subdomain: newSubdomain.subdomain.toLowerCase(),
+        repairer_id: newSubdomain.repairer_id,
+        landing_page_id: newSubdomain.landing_page_id === 'none' ? null : newSubdomain.landing_page_id || null,
+        custom_domain: newSubdomain.custom_domain || null
+      });
       if (error) throw error;
-
       toast({
         title: "Sous-domaine créé",
         description: `${newSubdomain.subdomain}.votre-domaine.com a été créé avec succès`
       });
-
       setIsCreateModalOpen(false);
-      setNewSubdomain({ subdomain: '', repairer_id: '', landing_page_id: '', custom_domain: '' });
+      setNewSubdomain({
+        subdomain: '',
+        repairer_id: '',
+        landing_page_id: '',
+        custom_domain: ''
+      });
       fetchSubdomains();
     } catch (error: any) {
       console.error('Error creating subdomain:', error);
@@ -199,21 +169,18 @@ const SubdomainsManagement: React.FC = () => {
       });
     }
   };
-
   const toggleSubdomainStatus = async (id: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from('subdomains')
-        .update({ is_active: !currentStatus })
-        .eq('id', id);
-
+      const {
+        error
+      } = await supabase.from('subdomains').update({
+        is_active: !currentStatus
+      }).eq('id', id);
       if (error) throw error;
-
       toast({
         title: "Statut mis à jour",
         description: `Le sous-domaine a été ${!currentStatus ? 'activé' : 'désactivé'}`
       });
-
       fetchSubdomains();
     } catch (error) {
       console.error('Error updating subdomain:', error);
@@ -224,23 +191,17 @@ const SubdomainsManagement: React.FC = () => {
       });
     }
   };
-
   const deleteSubdomain = async (id: string) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce sous-domaine ?')) return;
-
     try {
-      const { error } = await supabase
-        .from('subdomains')
-        .delete()
-        .eq('id', id);
-
+      const {
+        error
+      } = await supabase.from('subdomains').delete().eq('id', id);
       if (error) throw error;
-
       toast({
         title: "Sous-domaine supprimé",
         description: "Le sous-domaine a été supprimé avec succès"
       });
-
       fetchSubdomains();
     } catch (error) {
       console.error('Error deleting subdomain:', error);
@@ -251,7 +212,6 @@ const SubdomainsManagement: React.FC = () => {
       });
     }
   };
-
   const getStatusBadge = (subdomain: Subdomain) => {
     if (!subdomain.is_active) {
       return <Badge variant="secondary">Inactif</Badge>;
@@ -264,7 +224,6 @@ const SubdomainsManagement: React.FC = () => {
     }
     return <Badge variant="default" className="bg-green-600">Actif</Badge>;
   };
-
   const getTierBadge = (tier: string) => {
     const variants = {
       'basic': 'bg-blue-100 text-blue-800',
@@ -274,9 +233,7 @@ const SubdomainsManagement: React.FC = () => {
     };
     return variants[tier as keyof typeof variants] || 'bg-gray-100 text-gray-800';
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Header avec actions */}
       <div className="flex items-center justify-between">
         <div>
@@ -305,60 +262,55 @@ const SubdomainsManagement: React.FC = () => {
                 <div>
                   <Label htmlFor="subdomain">Sous-domaine</Label>
                   <div className="flex items-center mt-1">
-                    <Input
-                      id="subdomain"
-                      value={newSubdomain.subdomain}
-                      onChange={(e) => setNewSubdomain({...newSubdomain, subdomain: e.target.value})}
-                      placeholder="mon-garage"
-                      className="rounded-r-none"
-                    />
-                    <span className="border border-l-0 bg-muted px-3 py-2 text-sm rounded-r-md">
-                      .votre-domaine.com
-                    </span>
+                    <Input id="subdomain" value={newSubdomain.subdomain} onChange={e => setNewSubdomain({
+                    ...newSubdomain,
+                    subdomain: e.target.value
+                  })} placeholder="mon-garage" className="rounded-r-none" />
+                    <span className="border border-l-0 bg-muted px-3 py-2 text-sm rounded-r-md">.topreparateurs.fr</span>
                   </div>
                 </div>
                 
                 <div>
                   <Label htmlFor="repairer">Réparateur</Label>
-                  <Select value={newSubdomain.repairer_id} onValueChange={(value) => setNewSubdomain({...newSubdomain, repairer_id: value})}>
+                  <Select value={newSubdomain.repairer_id} onValueChange={value => setNewSubdomain({
+                  ...newSubdomain,
+                  repairer_id: value
+                })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner un réparateur" />
                     </SelectTrigger>
                     <SelectContent>
-                      {repairers.map((repairer) => (
-                        <SelectItem key={repairer.id} value={repairer.id}>
+                      {repairers.map(repairer => <SelectItem key={repairer.id} value={repairer.id}>
                           {repairer.name} ({repairer.subscription_tier})
-                        </SelectItem>
-                      ))}
+                        </SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 
                   <div>
                     <Label htmlFor="landing_page">Landing Page (optionnel)</Label>
-                    <Select value={newSubdomain.landing_page_id} onValueChange={(value) => setNewSubdomain({...newSubdomain, landing_page_id: value})}>
+                    <Select value={newSubdomain.landing_page_id} onValueChange={value => setNewSubdomain({
+                  ...newSubdomain,
+                  landing_page_id: value
+                })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner une landing page" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="none">Aucune (page par défaut)</SelectItem>
-                        {landingPages.map((page) => (
-                          <SelectItem key={page.id} value={page.id}>
+                        {landingPages.map(page => <SelectItem key={page.id} value={page.id}>
                             {page.name}
-                          </SelectItem>
-                        ))}
+                          </SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div>
                     <Label htmlFor="custom_domain">Domaine personnalisé (optionnel)</Label>
-                    <Input
-                      id="custom_domain"
-                      value={newSubdomain.custom_domain}
-                      onChange={(e) => setNewSubdomain({...newSubdomain, custom_domain: e.target.value})}
-                      placeholder="www.mon-garage.com"
-                    />
+                    <Input id="custom_domain" value={newSubdomain.custom_domain} onChange={e => setNewSubdomain({
+                  ...newSubdomain,
+                  custom_domain: e.target.value
+                })} placeholder="www.mon-garage.com" />
                   </div>
                 
                 <Separator />
@@ -454,24 +406,18 @@ const SubdomainsManagement: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
-                  <TableRow>
+              {loading ? <TableRow>
                     <TableCell colSpan={8} className="text-center py-8">
                       <div className="flex items-center justify-center">
                         <RefreshCw className="h-4 w-4 animate-spin mr-2" />
                         Chargement...
                       </div>
                     </TableCell>
-                  </TableRow>
-                ) : subdomains.length === 0 ? (
-                <TableRow>
+                  </TableRow> : subdomains.length === 0 ? <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Aucun sous-domaine trouvé
                   </TableCell>
-                </TableRow>
-              ) : (
-                subdomains.map((subdomain) => (
-                  <TableRow key={subdomain.id}>
+                </TableRow> : subdomains.map(subdomain => <TableRow key={subdomain.id}>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <Globe className="h-4 w-4 text-muted-foreground" />
@@ -480,13 +426,9 @@ const SubdomainsManagement: React.FC = () => {
                     </TableCell>
                     <TableCell>{subdomain.repairer_name}</TableCell>
                     <TableCell>
-                      {subdomain.landing_page_name ? (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                      {subdomain.landing_page_name ? <Badge variant="outline" className="bg-blue-50 text-blue-700">
                           {subdomain.landing_page_name}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">Page par défaut</span>
-                      )}
+                        </Badge> : <span className="text-muted-foreground text-sm">Page par défaut</span>}
                     </TableCell>
                     <TableCell>
                       <Badge className={getTierBadge(subdomain.subscription_tier || '')}>
@@ -495,59 +437,32 @@ const SubdomainsManagement: React.FC = () => {
                     </TableCell>
                     <TableCell>{getStatusBadge(subdomain)}</TableCell>
                     <TableCell>
-                      {subdomain.custom_domain ? (
-                        <div className="flex items-center gap-1">
+                      {subdomain.custom_domain ? <div className="flex items-center gap-1">
                           <ExternalLink className="h-3 w-3" />
                           {subdomain.custom_domain}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
+                        </div> : <span className="text-muted-foreground">-</span>}
                     </TableCell>
                     <TableCell>
                       {new Date(subdomain.created_at).toLocaleDateString('fr-FR')}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.open(`https://${subdomain.subdomain}.votre-domaine.com`, '_blank')}
-                          title="Voir le site"
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => window.open(`https://${subdomain.subdomain}.votre-domaine.com`, '_blank')} title="Voir le site">
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleSubdomainStatus(subdomain.id, subdomain.is_active)}
-                          title={subdomain.is_active ? "Désactiver" : "Activer"}
-                        >
-                          {subdomain.is_active ? (
-                            <XCircle className="h-4 w-4 text-red-600" />
-                          ) : (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          )}
+                        <Button variant="ghost" size="sm" onClick={() => toggleSubdomainStatus(subdomain.id, subdomain.is_active)} title={subdomain.is_active ? "Désactiver" : "Activer"}>
+                          {subdomain.is_active ? <XCircle className="h-4 w-4 text-red-600" /> : <CheckCircle className="h-4 w-4 text-green-600" />}
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteSubdomain(subdomain.id)}
-                          title="Supprimer"
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => deleteSubdomain(subdomain.id)} title="Supprimer">
                           <Trash2 className="h-4 w-4 text-red-600" />
                         </Button>
                       </div>
                     </TableCell>
-                  </TableRow>
-                ))
-              )}
+                  </TableRow>)}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default SubdomainsManagement;
