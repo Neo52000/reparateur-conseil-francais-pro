@@ -49,38 +49,6 @@ const LandingPageTemplates: React.FC<LandingPageTemplatesProps> = ({ templates, 
 
   const predefinedTemplates = [
     {
-      name: "Garage Automobile",
-      description: "Template optimisé pour les garages et ateliers de réparation automobile",
-      icon: Car,
-      template_config: {
-        hero: {
-          title: "Votre Garage de Confiance",
-          subtitle: "Réparation et entretien automobile par des professionnels certifiés",
-          background_image: "/api/placeholder/1200/600?text=Garage+Auto",
-          cta_text: "Prendre RDV",
-          cta_url: "#contact"
-        },
-        about: {
-          title: "Notre Expertise Automobile",
-          description: "Avec plus de 20 ans d'expérience, notre équipe de mécaniciens qualifiés assure l'entretien et la réparation de tous types de véhicules.",
-          image: "/api/placeholder/400/300?text=Mechanic"
-        },
-        services: {
-          title: "Nos Services",
-          items: [
-            { name: "Révision complète", description: "Contrôle technique et vidange", price: "À partir de 120€" },
-            { name: "Réparation moteur", description: "Diagnostic et réparation", price: "Sur devis" },
-            { name: "Climatisation", description: "Recharge et entretien", price: "À partir de 80€" }
-          ]
-        },
-        style: {
-          primary_color: "#dc2626",
-          secondary_color: "#374151",
-          font_family: "Roboto"
-        }
-      }
-    },
-    {
       name: "Réparation Smartphone",
       description: "Template spécialisé pour les réparateurs de téléphones et tablettes",
       icon: Smartphone,

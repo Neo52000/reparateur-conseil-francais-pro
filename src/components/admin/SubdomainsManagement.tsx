@@ -150,7 +150,7 @@ const SubdomainsManagement: React.FC = () => {
       if (error) throw error;
       toast({
         title: "Sous-domaine créé",
-        description: `${newSubdomain.subdomain}.votre-domaine.com a été créé avec succès`
+        description: `${newSubdomain.subdomain}.topreparateurs.fr a été créé avec succès`
       });
       setIsCreateModalOpen(false);
       setNewSubdomain({
@@ -421,7 +421,7 @@ const SubdomainsManagement: React.FC = () => {
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <Globe className="h-4 w-4 text-muted-foreground" />
-                        {subdomain.subdomain}.votre-domaine.com
+                        {subdomain.subdomain}.topreparateurs.fr
                       </div>
                     </TableCell>
                     <TableCell>{subdomain.repairer_name}</TableCell>
@@ -447,9 +447,16 @@ const SubdomainsManagement: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => window.open(`https://${subdomain.subdomain}.votre-domaine.com`, '_blank')} title="Voir le site">
-                          <Eye className="h-4 w-4" />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Modifier"
+                        >
+                          <Pencil className="h-4 w-4" />
                         </Button>
+                         <Button variant="ghost" size="sm" onClick={() => window.open(`https://${subdomain.subdomain}.topreparateurs.fr`, '_blank')} title="Voir le site">
+                           <Eye className="h-4 w-4" />
+                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => toggleSubdomainStatus(subdomain.id, subdomain.is_active)} title={subdomain.is_active ? "Désactiver" : "Activer"}>
                           {subdomain.is_active ? <XCircle className="h-4 w-4 text-red-600" /> : <CheckCircle className="h-4 w-4 text-green-600" />}
                         </Button>
