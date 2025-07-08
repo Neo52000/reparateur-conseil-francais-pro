@@ -18,6 +18,7 @@ import { useRepairersData } from '@/hooks/useRepairersData';
 import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdvertisingDashboard';
 import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement';
 import SubdomainsManagement from '@/components/admin/SubdomainsManagement';
+import LandingPagesManagement from '@/components/admin/landing-pages/LandingPagesManagement';
 import AdminPOSManagement from '@/components/admin/AdminPOSManagement';
 import AdminEcommerceManagement from '@/components/admin/AdminEcommerceManagement';
 import LocalSeoManagement from '@/components/admin/LocalSeoManagement';
@@ -77,6 +78,7 @@ const AdminPage = () => {
       case 'dashboard': return 'Dashboard';
       case 'subscriptions': return 'Abonnements';
       case 'subdomains': return 'Sous-domaines';
+      case 'landing-pages': return 'Landing Pages';
       case 'repairers': return 'Réparateurs';
       case 'interest': return 'Demandes d\'intérêt';
       case 'promocodes': return 'Codes promo';
@@ -103,6 +105,7 @@ const AdminPage = () => {
       case 'dashboard': return 'Vue d\'ensemble de la plateforme RepairHub';
       case 'subscriptions': return 'Gestion des abonnements réparateurs';
       case 'subdomains': return 'Configuration des sous-domaines et landing pages';
+      case 'landing-pages': return 'Création et gestion des landing pages personnalisées';
       case 'repairers': return 'Liste et gestion des réparateurs';
       case 'interest': return 'Demandes d\'intérêt clients';
       case 'promocodes': return 'Codes de réduction et promotions';
@@ -149,6 +152,10 @@ const AdminPage = () => {
 
     if (activeTab === 'subdomains') {
       return <SubdomainsManagement />;
+    }
+
+    if (activeTab === 'landing-pages') {
+      return <LandingPagesManagement />;
     }
 
     if (activeTab === 'repairers') {

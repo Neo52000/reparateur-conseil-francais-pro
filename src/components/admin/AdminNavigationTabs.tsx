@@ -2,7 +2,7 @@
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export type TabType = 'subscriptions' | 'repairers' | 'promo-codes' | 'scraping' | 'client-interests' | 'audit-demo' | 'subdomains';
+export type TabType = 'subscriptions' | 'repairers' | 'promo-codes' | 'scraping' | 'client-interests' | 'audit-demo' | 'subdomains' | 'landing-pages';
 
 interface AdminNavigationTabsProps {
   activeTab: TabType;
@@ -12,10 +12,11 @@ interface AdminNavigationTabsProps {
 const AdminNavigationTabs: React.FC<AdminNavigationTabsProps> = ({ activeTab, onTabChange }) => {
   return (
     <Tabs value={activeTab} onValueChange={(value) => onTabChange(value as TabType)}>
-      <TabsList className="grid w-full grid-cols-7">
+      <TabsList className="grid w-full grid-cols-8">
         <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
         <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
         <TabsTrigger value="subdomains">Sous-domaines</TabsTrigger>
+        <TabsTrigger value="landing-pages">Landing Pages</TabsTrigger>
         <TabsTrigger value="promo-codes">Codes Promo</TabsTrigger>
         <TabsTrigger value="scraping">Scraping</TabsTrigger>
         <TabsTrigger value="client-interests">Demandes</TabsTrigger>
