@@ -23,10 +23,12 @@ import {
 } from 'lucide-react';
 import WayfairHeader from './WayfairHeader';
 import WayfairSidebar from './WayfairSidebar';
-import WayfairProductCard from './WayfairProductCard';
 import WayfairProductGrid from './WayfairProductGrid';
 import WayfairQuickView from './WayfairQuickView';
 import WayfairBreadcrumbs from './WayfairBreadcrumbs';
+import ProductComparator from './ProductComparator';
+import RecentlyViewed from './RecentlyViewed';
+import AIRecommendations from './AIRecommendations';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -75,6 +77,8 @@ const WayfairStyleEcommerce: React.FC = () => {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(24);
+  const [compareProducts, setCompareProducts] = useState<Product[]>([]);
+  const [viewedProducts, setViewedProducts] = useState<Product[]>([]);
   const { toast } = useToast();
 
   // Mock data - remplacer par des vraies données Supabase
@@ -331,9 +335,26 @@ const WayfairStyleEcommerce: React.FC = () => {
                 </Button>
               </div>
             )}
+
+            {/* Recently Viewed */}
+            <RecentlyViewed onProductClick={(product) => setQuickViewProduct(product)} />
+
+            {/* AI Recommendations */}
+            <AIRecommendations 
+              currentProduct={quickViewProduct || undefined}
+              viewedProducts={viewedProducts}
+              onQuickView={setQuickViewProduct}
+            />
           </div>
         </div>
       </div>
+
+      {/* Product Comparator - Sticky Bottom */}
+      <ProductComparator
+        products={compareProducts}
+        onRemoveProduct={(id) => setCompareProducts(prev => prev.filter(p => p.id !== id))}
+        onClearAll={() => setCompareProducts([])}
+      />
 
       {/* Quick View Modal */}
       {quickViewProduct && (
