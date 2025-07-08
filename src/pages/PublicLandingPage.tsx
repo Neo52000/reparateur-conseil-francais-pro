@@ -28,12 +28,23 @@ const PublicLandingPage: React.FC = () => {
       // Récupérer les données du sous-domaine
       const { data: subdomainData, error: subdomainError } = await supabase
         .from('subdomains')
-        .select('*, landing_pages(*)')
+        .select('*')
         .eq('subdomain', subdomain)
         .eq('is_active', true)
         .single();
 
       if (subdomainError) throw subdomainError;
+
+      // Récupérer la landing page associée
+      let landingPageData = null;
+      if (subdomainData.landing_page_id) {
+        const { data } = await supabase
+          .from('landing_pages')
+          .select('*')
+          .eq('id', subdomainData.landing_page_id)
+          .single();
+        landingPageData = data;
+      }
 
       // Récupérer les données du réparateur
       const { data: repairerData } = await supabase
@@ -43,9 +54,9 @@ const PublicLandingPage: React.FC = () => {
         .single();
 
       setPageData({
-        id: subdomainData.landing_pages?.id || 'default',
-        name: subdomainData.landing_pages?.name || 'Page par défaut',
-        config: subdomainData.landing_pages?.config || {},
+        id: landingPageData?.id || 'default',
+        name: landingPageData?.name || 'Page par défaut',
+        config: landingPageData?.config || {},
         repairer_data: repairerData
       });
     } catch (error) {
