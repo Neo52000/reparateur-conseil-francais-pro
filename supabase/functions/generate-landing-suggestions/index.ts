@@ -14,6 +14,20 @@ serve(async (req) => {
   }
 
   try {
+    // Vérifier si la clé API Mistral est disponible
+    if (!mistralApiKey) {
+      console.error('MISTRAL_API_KEY is not configured');
+      return new Response(JSON.stringify({ 
+        suggestions: [
+          "Configurer la clé API Mistral dans les secrets du projet",
+          "Vérifier les paramètres de l'API Mistral AI",
+          "Contacter l'administrateur pour la configuration"
+        ]
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     const { currentConfig, businessType, seoScore } = await req.json();
 
     const prompt = `Analyse cette landing page de ${businessType} et génère des suggestions d'amélioration.

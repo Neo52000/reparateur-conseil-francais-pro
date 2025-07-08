@@ -14,6 +14,16 @@ serve(async (req) => {
   }
 
   try {
+    // Vérifier si la clé API Mistral est disponible
+    if (!mistralApiKey) {
+      console.error('MISTRAL_API_KEY is not configured');
+      return new Response(JSON.stringify({ 
+        error: 'Clé API Mistral manquante. Veuillez configurer MISTRAL_API_KEY dans les secrets.' 
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     const { contentType, context, currentConfig, businessType } = await req.json();
 
     let prompt = '';
