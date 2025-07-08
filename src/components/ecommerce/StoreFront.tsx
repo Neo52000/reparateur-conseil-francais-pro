@@ -312,7 +312,7 @@ export const StoreFront: React.FC = () => {
             </div>
           </div>
           <div className="mt-4 text-center">
-            <Button>
+            <Button onClick={() => window.open(storeUrl, '_blank')}>
               <ExternalLink className="w-4 h-4 mr-2" />
               Voir la boutique complète
             </Button>
