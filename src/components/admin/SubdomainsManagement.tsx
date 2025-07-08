@@ -176,7 +176,7 @@ const SubdomainsManagement: React.FC = () => {
         .insert({
           subdomain: newSubdomain.subdomain.toLowerCase(),
           repairer_id: newSubdomain.repairer_id,
-          landing_page_id: newSubdomain.landing_page_id || null,
+          landing_page_id: newSubdomain.landing_page_id === 'none' ? null : newSubdomain.landing_page_id || null,
           custom_domain: newSubdomain.custom_domain || null
         });
 
@@ -341,7 +341,7 @@ const SubdomainsManagement: React.FC = () => {
                         <SelectValue placeholder="Sélectionner une landing page" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Aucune (page par défaut)</SelectItem>
+                        <SelectItem value="none">Aucune (page par défaut)</SelectItem>
                         {landingPages.map((page) => (
                           <SelectItem key={page.id} value={page.id}>
                             {page.name}
