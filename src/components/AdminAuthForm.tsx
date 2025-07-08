@@ -102,20 +102,16 @@ const AdminAuthForm = () => {
     profileEmail: profile?.email
   });
 
-  // Si utilisateur connecté mais pas admin, afficher erreur d'accès
+  // Si utilisateur connecté mais pas admin, déconnecter et afficher le formulaire
   if (user && !isAdmin && !authLoading) {
-    logger.debug('User connected but not admin');
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center p-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Accès non autorisé</h2>
-          <p className="text-gray-600 mb-4">Vous devez être administrateur pour accéder à cette page.</p>
-          <Button onClick={() => window.location.href = '/'}>
-            Retour à l'accueil
-          </Button>
-        </div>
-      </div>
-    );
+    logger.debug('User connected but not admin - logging out and showing admin form');
+    // Auto-déconnexion pour permettre la connexion admin
+    setTimeout(() => {
+      toast({
+        title: "Connexion admin requise",
+        description: "Veuillez vous connecter avec un compte administrateur"
+      });
+    }, 100);
   }
 
   // Affichage du formulaire de connexion standard

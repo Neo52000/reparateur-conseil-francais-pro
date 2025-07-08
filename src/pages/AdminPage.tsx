@@ -66,7 +66,7 @@ const AdminPage = () => {
   }
 
   // Si pas d'utilisateur connecté ou pas admin, afficher le formulaire de connexion
-  if (!user || !isAdmin || profile?.role !== 'admin') {
+  if (!user || !isAdmin) {
     console.log('🚫 AdminPage: User not admin - showing admin auth form');
     return <AdminAuthForm />;
   }
