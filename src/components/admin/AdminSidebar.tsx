@@ -21,7 +21,9 @@ import {
   Gauge,
   Zap,
   Flag,
-  Settings
+  Settings,
+  Globe,
+  Layout
 } from 'lucide-react';
 
 const AdminSidebar: React.FC = () => {
@@ -44,6 +46,8 @@ const AdminSidebar: React.FC = () => {
     // Content & Marketing
     { path: '/admin?tab=blog', icon: PenTool, label: 'Blog', tab: 'blog', category: 'Content & Marketing' },
     { path: '/admin?tab=repair-generator', icon: Smartphone, label: 'Générateur Mobile', tab: 'repair-generator', category: 'Content & Marketing' },
+    { path: '/admin?tab=subdomains', icon: Globe, label: 'Sous-domaines', tab: 'subdomains', category: 'Content & Marketing' },
+    { path: '/admin?tab=landing-pages', icon: Layout, label: 'Landing Pages', tab: 'landing-pages', category: 'Content & Marketing' },
     { path: '/admin?tab=advertising', icon: Megaphone, label: 'Publicités', tab: 'advertising', category: 'Content & Marketing' },
     { path: '/admin?tab=promocodes', icon: Tag, label: 'Codes promo', tab: 'promocodes', category: 'Content & Marketing' },
     
