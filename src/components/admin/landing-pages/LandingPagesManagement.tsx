@@ -26,6 +26,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import LandingPageEditor from './LandingPageEditor';
+import AILandingPageEditor from './AILandingPageEditor';
 import LandingPageTemplates from './LandingPageTemplates';
 import LandingPagePreview from './LandingPagePreview';
 
@@ -442,7 +443,7 @@ const LandingPagesManagement: React.FC = () => {
                                 setSelectedPage(page);
                                 setIsEditorOpen(true);
                               }}
-                              title="Modifier"
+                              title="Modifier avec IA"
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -507,14 +508,15 @@ const LandingPagesManagement: React.FC = () => {
       {/* Modals */}
       {selectedPage && (
         <>
-          <LandingPageEditor
+          {/* Editor Modal */}
+          <AILandingPageEditor
             page={selectedPage}
             isOpen={isEditorOpen}
             onClose={() => {
               setIsEditorOpen(false);
               setSelectedPage(null);
-              fetchLandingPages();
             }}
+            onSave={fetchLandingPages}
           />
           <LandingPagePreview
             page={selectedPage}

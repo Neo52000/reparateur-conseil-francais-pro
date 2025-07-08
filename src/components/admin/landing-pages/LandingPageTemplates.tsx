@@ -350,7 +350,15 @@ const LandingPageTemplates: React.FC<LandingPageTemplatesProps> = ({ templates, 
                       <Button variant="ghost" size="sm" title="Aperçu">
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" title="Modifier">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => {
+                          // Ouvrir un modal d'édition pour ce template
+                          console.log('Edit template:', template.id);
+                        }}
+                        title="Modifier"
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="sm" title="Dupliquer">
