@@ -14,7 +14,7 @@ import AdvancedAnalytics from "./analytics/AdvancedAnalytics";
 import InventoryManagement from "./inventory/InventoryManagement";
 import NotificationCenter from "./notifications/NotificationCenter";
 import LoyaltyProgram from "./loyalty/LoyaltyProgram";
-import { StoreFront } from "../ecommerce/StoreFront";
+import EcommerceInterface from "../ecommerce/EcommerceInterface";
 
 interface Order {
   id: string;
@@ -78,7 +78,7 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
         <TabsTrigger value="calendar">Planning</TabsTrigger>
         <TabsTrigger value="inventory">Stock</TabsTrigger>
         <TabsTrigger value="pricing">Tarifs</TabsTrigger>
-        <TabsTrigger value="boutique">Boutique</TabsTrigger>
+        <TabsTrigger value="ecommerce">E-commerce</TabsTrigger>
         <TabsTrigger value="analytics">Analytics</TabsTrigger>
         <TabsTrigger value="notifications">Notifications</TabsTrigger>
         <TabsTrigger value="loyalty">Fidélité</TabsTrigger>
@@ -129,8 +129,8 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
         <PricingTabSection />
       </TabsContent>
 
-      <TabsContent value="boutique">
-        <StoreFront />
+      <TabsContent value="ecommerce">
+        <EcommerceInterface />
       </TabsContent>
 
       <TabsContent value="analytics">

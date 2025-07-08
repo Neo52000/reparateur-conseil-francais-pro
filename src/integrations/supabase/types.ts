@@ -2917,6 +2917,72 @@ export type Database = {
           },
         ]
       }
+      landing_page_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          preview_image_url: string | null
+          template_config: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          preview_image_url?: string | null
+          template_config?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          preview_image_url?: string | null
+          template_config?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      landing_pages: {
+        Row: {
+          config: Json
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          template_type: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          template_type?: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          template_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       local_seo_metrics: {
         Row: {
           average_position: number | null
@@ -5865,6 +5931,45 @@ export type Database = {
           },
         ]
       }
+      subdomains: {
+        Row: {
+          created_at: string
+          custom_domain: string | null
+          dns_configured: boolean | null
+          id: string
+          is_active: boolean | null
+          landing_page_id: string | null
+          repairer_id: string
+          ssl_enabled: boolean | null
+          subdomain: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_domain?: string | null
+          dns_configured?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          landing_page_id?: string | null
+          repairer_id: string
+          ssl_enabled?: boolean | null
+          subdomain: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_domain?: string | null
+          dns_configured?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          landing_page_id?: string | null
+          repairer_id?: string
+          ssl_enabled?: boolean | null
+          subdomain?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscription_plans: {
         Row: {
           created_at: string
@@ -6370,6 +6475,10 @@ export type Database = {
           repairer_record: Database["public"]["Tables"]["repairers"]["Row"]
         }
         Returns: number
+      }
+      can_create_subdomain: {
+        Args: { user_id: string }
+        Returns: boolean
       }
       fix_encoding_issues: {
         Args: Record<PropertyKey, never>

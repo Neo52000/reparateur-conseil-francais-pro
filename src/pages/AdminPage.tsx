@@ -17,6 +17,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRepairersData } from '@/hooks/useRepairersData';
 import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdvertisingDashboard';
 import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement';
+import SubdomainsManagement from '@/components/admin/SubdomainsManagement';
 import AdminPOSManagement from '@/components/admin/AdminPOSManagement';
 import AdminEcommerceManagement from '@/components/admin/AdminEcommerceManagement';
 import LocalSeoManagement from '@/components/admin/LocalSeoManagement';
@@ -75,6 +76,7 @@ const AdminPage = () => {
     switch (activeTab) {
       case 'dashboard': return 'Dashboard';
       case 'subscriptions': return 'Abonnements';
+      case 'subdomains': return 'Sous-domaines';
       case 'repairers': return 'Réparateurs';
       case 'interest': return 'Demandes d\'intérêt';
       case 'promocodes': return 'Codes promo';
@@ -100,6 +102,7 @@ const AdminPage = () => {
     switch (activeTab) {
       case 'dashboard': return 'Vue d\'ensemble de la plateforme RepairHub';
       case 'subscriptions': return 'Gestion des abonnements réparateurs';
+      case 'subdomains': return 'Configuration des sous-domaines et landing pages';
       case 'repairers': return 'Liste et gestion des réparateurs';
       case 'interest': return 'Demandes d\'intérêt clients';
       case 'promocodes': return 'Codes de réduction et promotions';
@@ -142,6 +145,10 @@ const AdminPage = () => {
           onRefresh={fetchData}
         />
       );
+    }
+
+    if (activeTab === 'subdomains') {
+      return <SubdomainsManagement />;
     }
 
     if (activeTab === 'repairers') {
