@@ -14,9 +14,12 @@ serve(async (req) => {
   }
 
   try {
+    console.log('🔑 MISTRAL_API_KEY exists:', !!mistralApiKey);
+    console.log('🔑 MISTRAL_API_KEY length:', mistralApiKey ? mistralApiKey.length : 'undefined');
+    
     // Vérifier si la clé API Mistral est disponible
     if (!mistralApiKey) {
-      console.error('MISTRAL_API_KEY is not configured');
+      console.error('❌ MISTRAL_API_KEY is not configured');
       return new Response(JSON.stringify({ 
         suggestions: [
           "Configurer la clé API Mistral dans les secrets du projet",
