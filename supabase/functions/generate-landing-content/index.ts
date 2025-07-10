@@ -90,6 +90,8 @@ serve(async (req) => {
         throw new Error('Type de contenu non supporté');
     }
 
+    console.log('🔄 Appel API Mistral avec model: mistral-large-latest');
+    
     const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -106,30 +108,65 @@ serve(async (req) => {
           { role: 'user', content: prompt }
         ],
         temperature: 0.7,
+        max_tokens: 1000
       }),
     });
 
+    console.log('📡 Statut réponse Mistral:', response.status);
+    
     const data = await response.json();
+    console.log('📤 Réponse Mistral:', JSON.stringify(data, null, 2));
     
     if (!response.ok) {
-      throw new Error(data.message || 'Erreur API Mistral');
+      const errorMessage = data?.error?.message || data?.message || `Erreur HTTP ${response.status}`;
+      console.error('❌ Erreur API Mistral:', errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Structure de réponse Mistral invalide');
     }
 
     let content;
     try {
-      content = JSON.parse(data.choices[0].message.content);
-    } catch {
-      // Si le parsing JSON échoue, retourner une structure par défaut
-      content = { error: 'Format de réponse invalide' };
+      const rawContent = data.choices[0].message.content;
+      console.log('📝 Contenu brut Mistral:', rawContent);
+      content = JSON.parse(rawContent);
+      console.log('✅ Contenu parsé avec succès:', content);
+    } catch (parseError) {
+      console.error('❌ Erreur parsing JSON:', parseError);
+      throw new Error('Format de réponse JSON invalide de Mistral');
     }
 
     return new Response(JSON.stringify({ content }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error) {
-    console.error('Error in generate-landing-content function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+  } catch (error: any) {
+    console.error('❌ Erreur dans generate-landing-content:', error);
+    
+    let errorMessage = 'Erreur de génération de contenu';
+    let statusCode = 500;
+    
+    if (error.message?.includes('401') || error.message?.includes('unauthorized')) {
+      errorMessage = 'Clé API Mistral invalide ou expirée';
+      statusCode = 401;
+    } else if (error.message?.includes('429')) {
+      errorMessage = 'Limite de requêtes Mistral dépassée - Réessayez plus tard';
+      statusCode = 429;
+    } else if (error.message?.includes('fetch')) {
+      errorMessage = 'Erreur de connexion à l\'API Mistral';
+      statusCode = 503;
+    } else if (error.message?.includes('JSON')) {
+      errorMessage = 'Réponse Mistral au format invalide';
+      statusCode = 502;
+    }
+    
+    return new Response(JSON.stringify({ 
+      error: errorMessage,
+      details: error.message,
+      timestamp: new Date().toISOString()
+    }), {
+      status: statusCode,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

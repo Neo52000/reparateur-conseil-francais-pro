@@ -56,6 +56,8 @@ serve(async (req) => {
       ]
     }`;
 
+    console.log('🔄 Appel API Mistral pour suggestions');
+    
     const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -67,32 +69,47 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: 'Tu es un consultant expert en optimisation de landing pages et SEO. Tu donnes des conseils pratiques et mesurables pour améliorer les performances. Réponds uniquement en JSON valide.'
+            content: 'Tu es un consultant expert en optimisation de landing pages et SEO spécialisé dans la réparation. Tu donnes des conseils pratiques et mesurables pour améliorer les performances. Réponds uniquement en JSON valide.'
           },
           { role: 'user', content: prompt }
         ],
         temperature: 0.6,
+        max_tokens: 800
       }),
     });
 
+    console.log('📡 Statut réponse Mistral suggestions:', response.status);
+    
     const data = await response.json();
+    console.log('📤 Réponse Mistral suggestions:', JSON.stringify(data, null, 2));
     
     if (!response.ok) {
-      throw new Error(data.message || 'Erreur API Mistral');
+      const errorMessage = data?.error?.message || data?.message || `Erreur HTTP ${response.status}`;
+      console.error('❌ Erreur API Mistral suggestions:', errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Structure de réponse Mistral invalide pour suggestions');
     }
 
     let suggestions;
     try {
-      suggestions = JSON.parse(data.choices[0].message.content);
-    } catch {
-      // Si le parsing JSON échoue, retourner des suggestions par défaut
+      const rawContent = data.choices[0].message.content;
+      console.log('📝 Contenu brut suggestions:', rawContent);
+      suggestions = JSON.parse(rawContent);
+      console.log('✅ Suggestions parsées:', suggestions);
+    } catch (parseError) {
+      console.error('❌ Erreur parsing suggestions:', parseError);
+      // Fallback avec suggestions statiques
       suggestions = {
         suggestions: [
           "Améliorer le titre principal pour plus d'impact",
           "Ajouter des éléments de réassurance (certifications, garanties)",
           "Optimiser les call-to-action pour plus de visibilité",
           "Inclure des témoignages clients authentiques",
-          "Améliorer la structure SEO avec des mots-clés pertinents"
+          "Améliorer la structure SEO avec des mots-clés pertinents",
+          "⚠️ Erreur parsing IA - Suggestions par défaut"
         ]
       };
     }
@@ -100,14 +117,33 @@ serve(async (req) => {
     return new Response(JSON.stringify(suggestions), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error) {
-    console.error('Error in generate-landing-suggestions function:', error);
-    return new Response(JSON.stringify({ 
-      suggestions: [
-        "Revoir la structure générale de la page",
-        "Optimiser les images et médias",
-        "Améliorer les textes pour plus d'engagement"
-      ]
+  } catch (error: any) {
+    console.error('❌ Erreur dans generate-landing-suggestions:', error);
+    
+    // Suggestions par défaut avec diagnostic d'erreur
+    let defaultSuggestions = [
+      "Optimiser le titre principal (30-60 caractères)",
+      "Améliorer la description meta (120-160 caractères)",
+      "Ajouter des mots-clés pertinents",
+      "Inclure des témoignages clients",
+      "Optimiser les boutons d'appel à l'action",
+      "Améliorer la structure du contenu"
+    ];
+    
+    if (error.message?.includes('401') || error.message?.includes('unauthorized')) {
+      defaultSuggestions.unshift("❌ Clé API Mistral invalide - Vérifiez la configuration dans les secrets");
+    } else if (error.message?.includes('429')) {
+      defaultSuggestions.unshift("⏱️ Limite Mistral atteinte - Réessayez dans quelques minutes");
+    } else if (error.message?.includes('fetch')) {
+      defaultSuggestions.unshift("🔗 Erreur de connexion à Mistral - Vérifiez votre réseau");
+    } else {
+      defaultSuggestions.unshift("⚠️ Erreur génération IA - Suggestions par défaut affichées");
+    }
+    
+    return new Response(JSON.stringify({
+      suggestions: defaultSuggestions,
+      error: error.message,
+      fallback: true
     }), {
       status: 200, // Retourner du contenu par défaut même en cas d'erreur
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

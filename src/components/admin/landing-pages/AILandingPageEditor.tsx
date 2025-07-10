@@ -188,23 +188,44 @@ const AILandingPageEditor: React.FC<AILandingPageEditorProps> = ({
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erreur fonction edge generate-landing-content:', error);
+        throw error;
+      }
 
+      if (!data || !data.content) {
+        throw new Error('Aucun contenu généré par l\'IA');
+      }
+
+      console.log('✅ Contenu IA généré avec succès:', data.content);
       return data.content;
     } catch (error: any) {
-      console.error('Error generating AI content:', error);
+      console.error('❌ Erreur génération contenu IA:', error);
       
-      // Parse error message to provide more specific feedback
+      // Messages d'erreur améliorés et spécifiques
       let errorMessage = "Impossible de générer le contenu automatiquement";
-      if (error?.message?.includes("quota") || (error && JSON.stringify(error).includes("quota"))) {
-        errorMessage = "Quota Mistral AI dépassé. Veuillez vérifier votre plan et facturation Mistral AI.";
-      } else if (error?.message?.includes("API key") || (error && JSON.stringify(error).includes("API key"))) {
-        errorMessage = "Clé API Mistral AI invalide ou manquante.";
+      let errorDescription = "Une erreur s'est produite lors de la génération IA";
+      
+      if (error?.message?.includes("401") || error?.message?.includes("unauthorized")) {
+        errorMessage = "Clé API Mistral manquante ou invalide";
+        errorDescription = "Configurez MISTRAL_API_KEY dans les secrets Supabase";
+      } else if (error?.message?.includes("429")) {
+        errorMessage = "Limite de requêtes Mistral dépassée";
+        errorDescription = "Veuillez réessayer dans quelques minutes";
+      } else if (error?.message?.includes("quota")) {
+        errorMessage = "Quota Mistral AI épuisé";
+        errorDescription = "Vérifiez votre plan et facturation Mistral AI";
+      } else if (error?.message?.includes("fetch") || error?.message?.includes("connexion")) {
+        errorMessage = "Erreur de connexion à l'API";
+        errorDescription = "Vérifiez votre connexion internet";
+      } else if (error?.message?.includes("JSON") || error?.message?.includes("format")) {
+        errorMessage = "Réponse IA invalide";
+        errorDescription = "L'IA n'a pas retourné un format valide, réessayez";
       }
       
       toast({
-        title: "Erreur IA",
-        description: errorMessage,
+        title: errorMessage,
+        description: errorDescription,
         variant: "destructive"
       });
       return null;
@@ -224,11 +245,38 @@ const AILandingPageEditor: React.FC<AILandingPageEditorProps> = ({
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erreur fonction edge generate-landing-suggestions:', error);
+        throw error;
+      }
 
       setAiSuggestions(data.suggestions || []);
-    } catch (error) {
-      console.error('Error generating suggestions:', error);
+      
+      // Afficher un message si c'est un fallback
+      if (data.fallback) {
+        toast({
+          title: "Suggestions par défaut",
+          description: "L'IA n'est pas disponible, suggestions génériques affichées",
+          variant: "default"
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ Erreur génération suggestions:', error);
+      
+      // Suggestions de secours en cas d'erreur complète
+      setAiSuggestions([
+        "❌ Service IA indisponible",
+        "Vérifiez la configuration Mistral API",
+        "Optimisez manuellement le titre principal",
+        "Améliorez la description SEO",
+        "Ajoutez des témoignages clients"
+      ]);
+      
+      toast({
+        title: "Erreur suggestions IA",
+        description: error.message || "Impossible de générer des suggestions",
+        variant: "destructive"
+      });
     } finally {
       setAiLoading(false);
     }
