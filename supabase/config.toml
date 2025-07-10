@@ -6,3 +6,39 @@ verify_jwt = false
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.generate-blog-content]
+verify_jwt = false
+
+[functions.generate-landing-content]
+verify_jwt = false
+
+[functions.generate-landing-suggestions]
+verify_jwt = false
+
+[functions.generate-local-seo-content]
+verify_jwt = false
+
+[functions.enhance-blog-content]
+verify_jwt = false
+
+[functions.generate-blog-image]
+verify_jwt = false
+
+[functions.auto-enhance-repairers]
+verify_jwt = false
+
+[functions.ai-prompt-scraping]
+verify_jwt = false
+
+[functions.generate-report]
+verify_jwt = false
+
+[functions.generate-seo-sitemap]
+verify_jwt = false
+
+[functions.seo-health-monitor]
+verify_jwt = false
+
+[functions.migrate-module-data]
+verify_jwt = false
