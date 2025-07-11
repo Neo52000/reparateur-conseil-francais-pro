@@ -48,3 +48,6 @@ verify_jwt = false
 
 [functions.stop-scraping]
 verify_jwt = false
+
+[functions.csv-intelligent-import]
+verify_jwt = false
