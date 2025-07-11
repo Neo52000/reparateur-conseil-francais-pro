@@ -42,3 +42,9 @@ verify_jwt = false
 
 [functions.migrate-module-data]
 verify_jwt = false
+
+[functions.scrape-repairers]
+verify_jwt = false
+
+[functions.stop-scraping]
+verify_jwt = false
