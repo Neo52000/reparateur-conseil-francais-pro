@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useBlog } from '@/hooks/useBlog';
 import { BlogPost, BlogCategory } from '@/types/blog';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import AIImageGenerator from './AIImageGenerator';
 import BlogPostEditorHeader from './BlogPostEditorHeader';
 import BlogPostEditorMainContentEnhanced from './BlogPostEditorMainContentEnhanced';
@@ -22,6 +23,7 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [showImageGenerator, setShowImageGenerator] = useState(false);
   const [showSlugConflict, setShowSlugConflict] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -154,6 +156,53 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
     }
   };
 
+  const handleAutoGenerateImage = async () => {
+    if (!formData.title.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez saisir un titre d'article avant de générer une image",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    try {
+      // Créer un prompt optimisé basé sur le titre
+      const category = categories.find(c => c.id === formData.category_id);
+      const categoryContext = category ? ` dans le domaine de ${category.name.toLowerCase()}` : '';
+      
+      const optimizedPrompt = `Create a professional blog header image for an article titled "${formData.title}"${categoryContext}. Modern, clean design, technology related, smartphone repair, professional service`;
+
+      const { data, error } = await supabase.functions.invoke('generate-blog-image', {
+        body: {
+          prompt: optimizedPrompt,
+          size: '1792x1024',
+          style: 'realistic'
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.imageUrl) {
+        setFormData(prev => ({ ...prev, featured_image_url: data.imageUrl }));
+        toast({
+          title: "Succès",
+          description: "Image générée automatiquement et ajoutée à l'article !"
+        });
+      }
+    } catch (error) {
+      console.error('Erreur génération auto image:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer l'image automatiquement. Essayez le générateur avancé.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <BlogPostEditorHeader
@@ -179,6 +228,8 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
             featuredImageUrl={formData.featured_image_url}
             onImageUrlChange={(featured_image_url) => setFormData(prev => ({ ...prev, featured_image_url }))}
             onShowImageGenerator={() => setShowImageGenerator(true)}
+            onAutoGenerateImage={handleAutoGenerateImage}
+            articleTitle={formData.title}
           />
         </div>
 

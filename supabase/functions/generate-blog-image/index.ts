@@ -28,25 +28,33 @@ serve(async (req) => {
 
     console.log('Generating image with prompt:', prompt);
 
-    // Enhance prompt based on style
+    // Enhanced prompt for blog headers
     let enhancedPrompt = prompt;
+    
+    // Add blog header specific requirements
+    enhancedPrompt += ', 16:9 aspect ratio, blog header image, professional, high quality';
+    
+    // Enhance prompt based on style
     switch (style) {
       case 'realistic':
-        enhancedPrompt += ', photorealistic, high quality, professional photography';
+        enhancedPrompt += ', photorealistic, professional photography, clean composition';
         break;
       case 'digital-art':
-        enhancedPrompt += ', digital art, vibrant colors, modern design';
+        enhancedPrompt += ', digital art, vibrant colors, modern design, clean aesthetic';
         break;
       case 'illustration':
-        enhancedPrompt += ', illustration style, clean lines, artistic';
+        enhancedPrompt += ', illustration style, clean lines, artistic, vector-like';
         break;
       case 'minimalist':
-        enhancedPrompt += ', minimalist design, clean, simple, modern';
+        enhancedPrompt += ', minimalist design, clean, simple, modern, lots of white space';
         break;
       case 'corporate':
-        enhancedPrompt += ', professional, corporate style, clean, business-like';
+        enhancedPrompt += ', professional, corporate style, clean, business-like, modern';
         break;
     }
+    
+    // Add universal quality improvements
+    enhancedPrompt += ', no text overlay, suitable for blog header, centered composition';
 
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',

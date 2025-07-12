@@ -72,28 +72,37 @@ const BlogWidget: React.FC = () => {
       </CardHeader>
       <CardContent>
         {posts.length === 0 ? (
-          <div className="text-center py-6 text-gray-500">
+          <div className="text-center py-6 text-muted-foreground">
             <BookOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p>Aucun article disponible</p>
           </div>
         ) : (
           <div className="space-y-4">
             {posts.map((post) => (
-              <div key={post.id} className="border-b border-gray-100 last:border-b-0 pb-4 last:pb-0">
-                <div className="flex items-start justify-between gap-3">
+              <div key={post.id} className="border-b border-border last:border-b-0 pb-4 last:pb-0">
+                <div className="flex items-start gap-3">
+                  {post.featured_image_url && (
+                    <div className="w-20 h-12 flex-shrink-0 rounded overflow-hidden mr-3">
+                      <img
+                        src={post.featured_image_url}
+                        alt={post.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <Link to={`/blog/article/${post.slug}`}>
-                      <h4 className="font-medium text-sm hover:text-blue-600 transition-colors line-clamp-2 mb-1">
+                      <h4 className="font-medium text-sm hover:text-primary transition-colors line-clamp-2 mb-1">
                         {post.title}
                       </h4>
                     </Link>
                     {post.excerpt && (
-                      <p className="text-xs text-gray-600 line-clamp-2 mb-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
                         {post.excerpt}
                       </p>
                     )}
                     <div className="flex items-center gap-2">
-                      <div className="flex items-center text-xs text-gray-500">
+                      <div className="flex items-center text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3 mr-1" />
                         {formatDate(post.published_at || post.created_at)}
                       </div>
@@ -104,15 +113,6 @@ const BlogWidget: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  {post.featured_image_url && (
-                    <div className="w-16 h-12 flex-shrink-0">
-                      <img
-                        src={post.featured_image_url}
-                        alt={post.title}
-                        className="w-full h-full object-cover rounded"
-                      />
-                    </div>
-                  )}
                 </div>
               </div>
             ))}

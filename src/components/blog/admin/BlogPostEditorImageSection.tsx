@@ -10,30 +10,44 @@ interface BlogPostEditorImageSectionProps {
   featuredImageUrl: string;
   onImageUrlChange: (url: string) => void;
   onShowImageGenerator: () => void;
+  onAutoGenerateImage: () => void;
+  articleTitle: string;
 }
 
 const BlogPostEditorImageSection: React.FC<BlogPostEditorImageSectionProps> = ({
   featuredImageUrl,
   onImageUrlChange,
-  onShowImageGenerator
+  onShowImageGenerator,
+  onAutoGenerateImage,
+  articleTitle
 }) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Image à la une
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={onShowImageGenerator}
-          >
-            <Wand2 className="h-4 w-4 mr-2" />
-            Générer avec IA
-          </Button>
-        </CardTitle>
+        <CardTitle>Image à la une</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          <div className="flex gap-2 mb-4">
+            <Button 
+              variant="default" 
+              size="sm"
+              onClick={onAutoGenerateImage}
+              disabled={!articleTitle.trim()}
+              className="flex-1"
+            >
+              <Wand2 className="h-4 w-4 mr-2" />
+              Générer depuis le titre
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={onShowImageGenerator}
+            >
+              <Wand2 className="h-4 w-4 mr-2" />
+              Générateur avancé
+            </Button>
+          </div>
           <div>
             <Label htmlFor="featured_image">URL de l'image</Label>
             <Input

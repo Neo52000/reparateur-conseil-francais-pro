@@ -23,9 +23,9 @@ const AIImageGenerator: React.FC<AIImageGeneratorProps> = ({
   articleTitle = '' 
 }) => {
   const { toast } = useToast();
-  const [prompt, setPrompt] = useState(`Create a professional blog image related to: ${articleTitle}`);
+  const [prompt, setPrompt] = useState(articleTitle ? `Create a professional blog header image for: ${articleTitle}` : '');
   const [style, setStyle] = useState('realistic');
-  const [size, setSize] = useState('1024x1024');
+  const [size, setSize] = useState('1792x1024');
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -127,8 +127,8 @@ const AIImageGenerator: React.FC<AIImageGeneratorProps> = ({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="1792x1024">1792x1024 (Blog Header - Recommandé)</SelectItem>
                     <SelectItem value="1024x1024">1024x1024 (Carré)</SelectItem>
-                    <SelectItem value="1792x1024">1792x1024 (Paysage)</SelectItem>
                     <SelectItem value="1024x1792">1024x1792 (Portrait)</SelectItem>
                   </SelectContent>
                 </Select>
