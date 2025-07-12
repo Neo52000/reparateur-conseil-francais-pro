@@ -182,7 +182,12 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
         }
       });
 
-      if (error) throw error;
+      console.log('🖼️ Image generation response:', { data, error });
+
+      if (error) {
+        console.error('🚨 Error details:', error);
+        throw error;
+      }
 
       if (data?.imageUrl) {
         setFormData(prev => ({ ...prev, featured_image_url: data.imageUrl }));
