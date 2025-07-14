@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Wand2, Upload } from 'lucide-react';
-import FileUploadButton from './FileUploadButton';
+import ImageUploadButton from './ImageUploadButton';
 
 interface BlogPostEditorImageSectionProps {
   featuredImageUrl: string;
@@ -61,12 +61,8 @@ const BlogPostEditorImageSection: React.FC<BlogPostEditorImageSectionProps> = ({
 
           <div>
             <Label>Ou importer depuis votre ordinateur</Label>
-            <FileUploadButton
-              onFileContent={(content) => {
-                // Pour les images, on ne peut pas directement utiliser le contenu texte
-                // Il faudrait un système d'upload de fichiers image
-                console.log('Image content loaded, but needs file upload system');
-              }}
+            <ImageUploadButton
+              onImageUrl={onImageUrlChange}
               className="mt-2"
             />
           </div>
