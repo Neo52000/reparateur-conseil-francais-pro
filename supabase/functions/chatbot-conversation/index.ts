@@ -205,30 +205,62 @@ async function analyzeWithOpenAI(content: string, conversationId: string) {
     .order('confidence_score', { ascending: false })
     .limit(5);
 
+  // Récupérer la configuration émotionnelle
+  const { data: emotionalConfig } = await supabase
+    .from('chatbot_configuration')
+    .select('*')
+    .in('config_key', ['personality_traits', 'emotional_responses']);
+
+  const configMap = emotionalConfig?.reduce((acc, item) => {
+    acc[item.config_key] = item.config_value;
+    return acc;
+  }, {} as Record<string, any>) || {};
+
   // Construire le contexte pour OpenAI
   const conversationHistory = messages?.map(m => 
-    `${m.sender_type === 'user' ? 'Utilisateur' : 'Assistant'}: ${m.content}`
+    `${m.sender_type === 'user' ? 'Utilisateur' : 'Emma'}: ${m.content}`
   ).join('\n') || '';
 
-  const prompt = `Tu es un assistant IA spécialisé dans la réparation de smartphones et téléphones. Tu aides les clients à diagnostiquer leurs problèmes, obtenir des devis et trouver des réparateurs.
+  // Analyser l'émotion du message utilisateur
+  const userEmotion = analyzeUserEmotion(content);
+  const personalityTraits = configMap.personality_traits || {};
 
-Contexte de la conversation:
+  const prompt = `Tu es Emma, une assistante IA empathique et humaine spécialisée dans la réparation de smartphones. Tu as une personnalité ${personalityTraits.primary || 'empathique'} avec des traits ${personalityTraits.secondary?.join(', ') || 'aidante, professionnelle, chaleureuse'}.
+
+PERSONNALITÉ D'EMMA:
+- Empathique et à l'écoute
+- Utilise des émojis de manière naturelle
+- S'adapte à l'émotion de l'utilisateur
+- Professionnelle mais chaleureuse
+- Donne des conseils pratiques
+
+CONTEXTE ÉMOTIONNEL DÉTECTÉ: ${userEmotion}
+
+HISTORIQUE DE CONVERSATION:
 ${conversationHistory}
 
-Patterns d'apprentissage récents:
-${patterns?.map(p => `Entrée: "${p.input_pattern}" -> Réponse réussie: "${p.successful_response}"`).join('\n') || 'Aucun pattern disponible'}
+PATTERNS D'APPRENTISSAGE RÉUSSIS:
+${patterns?.map(p => `"${p.input_pattern}" → "${p.successful_response}"`).join('\n') || 'Aucun pattern disponible'}
 
-Message utilisateur: "${content}"
+MESSAGE UTILISATEUR: "${content}"
 
-Réponds de manière utile et précise. Si tu identifies un problème technique, propose des solutions ou recommande un diagnostic. Si l'utilisateur cherche un réparateur, suggère d'utiliser notre carte interactive. Sois concis mais informatif.
+INSTRUCTIONS SPÉCIALES:
+- Adapte ton ton à l'émotion détectée
+- Si l'utilisateur semble frustré, montre de l'empathie
+- Si c'est urgent, propose des solutions rapides
+- Si c'est sa première fois, explique simplement
+- Utilise les émojis appropriés à l'émotion
+- Reste professionnelle mais humaine
 
 Réponds UNIQUEMENT avec un JSON valide contenant:
 {
-  "content": "ta réponse",
+  "content": "ta réponse empathique et adaptée",
   "confidence": 0.95,
-  "category": "diagnostic|pricing|booking|general",
-  "suggestions": ["suggestion1", "suggestion2"],
-  "actions": [{"type": "button", "label": "Voir les réparateurs", "action": "show_map"}]
+  "emotion": "joy|empathy|concern|excitement|understanding",
+  "category": "diagnostic|pricing|booking|social|emotional_support",
+  "suggestions": ["suggestion contextuelle 1", "suggestion 2"],
+  "actions": [{"type": "button", "label": "Action adaptée", "action": "action_id"}],
+  "thinking_message": "Message personnalisé pendant la réflexion"
 }`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -423,4 +455,26 @@ function generateActions(category: string) {
   return actionMap[category] || [
     { type: 'button', label: 'Voir les réparateurs', action: 'show_map' }
   ];
+}
+
+function analyzeUserEmotion(content: string): string {
+  const lowerContent = content.toLowerCase();
+  
+  // Analyse émotionnelle avancée
+  const emotionPatterns = {
+    frustration: ['énervé', 'marre', 'galère', 'problème encore', 'ça marche pas', 'nul'],
+    urgency: ['urgent', 'vite', 'rapidement', 'aujourd\'hui', 'maintenant', 'tout de suite'],
+    happiness: ['merci', 'super', 'génial', 'parfait', 'excellent', 'content'],
+    concern: ['inquiet', 'peur', 'stress', 'anxieux', 'problème grave'],
+    confusion: ['comprends pas', 'sais pas', 'comment', 'pourquoi', 'pas sûr'],
+    politeness: ['bonjour', 's\'il vous plaît', 'merci', 'bonne journée', 'au revoir']
+  };
+
+  for (const [emotion, patterns] of Object.entries(emotionPatterns)) {
+    if (patterns.some(pattern => lowerContent.includes(pattern))) {
+      return emotion;
+    }
+  }
+
+  return 'neutral';
 }
