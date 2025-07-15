@@ -421,39 +421,58 @@ async function analyzeMessageBasic(content: string, conversationId: string) {
   }
 }
 
-function findBestMatch(userInput: string, trainingData: TrainingData[]) {
-  let bestMatch = null;
-  let bestScore = 0;
 
-  for (const data of trainingData) {
-    const keywords = data.training_text.toLowerCase().split(' ');
+function findBestMatch(input: string, trainingData: any[]) {
+  if (!trainingData || trainingData.length === 0) return null;
+  
+  let bestMatch = null;
+  let highestScore = 0;
+  
+  for (const training of trainingData) {
+    const patterns = training.training_text.toLowerCase().split(',').map((p: string) => p.trim());
     let score = 0;
-    let totalWords = keywords.length;
     
-    // Analyse des mots-clés avec pondération
-    for (const keyword of keywords) {
-      if (userInput.includes(keyword)) {
-        // Les mots plus longs ont plus de poids
-        score += keyword.length > 4 ? 2 : 1;
+    // Calculer le score de correspondance
+    for (const pattern of patterns) {
+      if (input.includes(pattern)) {
+        // Score plus élevé pour les correspondances exactes
+        if (input === pattern) {
+          score += 1.0;
+        } else if (input.startsWith(pattern) || input.endsWith(pattern)) {
+          score += 0.8;
+        } else {
+          score += 0.6;
+        }
+      }
+      
+      // Vérifier les mots individuels du pattern
+      const patternWords = pattern.split(' ');
+      const inputWords = input.split(' ');
+      let wordMatches = 0;
+      
+      for (const word of patternWords) {
+        if (word.length > 2 && inputWords.some(iw => iw.includes(word))) {
+          wordMatches++;
+        }
+      }
+      
+      if (wordMatches > 0) {
+        score += (wordMatches / patternWords.length) * 0.5;
       }
     }
     
-    // Bonus pour correspondance exacte de phrases
-    if (userInput.includes(data.training_text.toLowerCase())) {
-      score += 5;
-    }
+    // Normaliser le score
+    const normalizedScore = Math.min(score / patterns.length, 1.0);
     
-    const confidence = Math.min(score / (totalWords + 2), 1.0);
-    
-    if (confidence > bestScore) {
-      bestScore = confidence;
+    if (normalizedScore > highestScore && normalizedScore >= (training.confidence_threshold || 0.7)) {
+      highestScore = normalizedScore;
       bestMatch = {
-        ...data,
-        confidence
+        ...training,
+        confidence: normalizedScore
       };
     }
   }
-
+  
   return bestMatch;
 }
 
