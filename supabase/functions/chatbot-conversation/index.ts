@@ -218,20 +218,20 @@ async function analyzeWithOpenAI(content: string, conversationId: string) {
 
   // Construire le contexte pour OpenAI
   const conversationHistory = messages?.map(m => 
-    `${m.sender_type === 'user' ? 'Utilisateur' : 'Emma'}: ${m.content}`
+    `${m.sender_type === 'user' ? 'Utilisateur' : 'Ben'}: ${m.content}`
   ).join('\n') || '';
 
   // Analyser l'émotion du message utilisateur
   const userEmotion = analyzeUserEmotion(content);
   const personalityTraits = configMap.personality_traits || {};
 
-  const prompt = `Tu es Emma, une assistante IA empathique et humaine spécialisée dans la réparation de smartphones. Tu as une personnalité ${personalityTraits.primary || 'empathique'} avec des traits ${personalityTraits.secondary?.join(', ') || 'aidante, professionnelle, chaleureuse'}.
+  const prompt = `Tu es Ben, un assistant IA empathique et humain spécialisé dans la réparation de smartphones. Tu as une personnalité ${personalityTraits.primary || 'empathique'} avec des traits ${personalityTraits.secondary?.join(', ') || 'aidante, professionnelle, chaleureuse'}.
 
-PERSONNALITÉ D'EMMA:
+PERSONNALITÉ DE BEN:
 - Empathique et à l'écoute
 - Utilise des émojis de manière naturelle
 - S'adapte à l'émotion de l'utilisateur
-- Professionnelle mais chaleureuse
+- Professionnel mais chaleureux
 - Donne des conseils pratiques
 
 CONTEXTE ÉMOTIONNEL DÉTECTÉ: ${userEmotion}
@@ -312,6 +312,57 @@ Réponds UNIQUEMENT avec un JSON valide contenant:
 }
 
 async function analyzeMessageBasic(content: string, conversationId: string) {
+  // Vérifications spéciales pour les salutations et messages simples
+  const userInput = content.toLowerCase().trim();
+  
+  // Détecter les salutations
+  const greetingPatterns = ['bonjour', 'bonsoir', 'salut', 'hello', 'hi', 'coucou', 'bonne journée', 'bonne soirée'];
+  const isGreeting = greetingPatterns.some(pattern => userInput.includes(pattern));
+  
+  if (isGreeting) {
+    const hour = new Date().getHours();
+    let greeting = 'Bonjour';
+    if (hour >= 18) greeting = 'Bonsoir';
+    else if (hour >= 12) greeting = 'Bon après-midi';
+    
+    return {
+      content: `${greeting} ! Je suis Ben, votre assistant de réparation personnalisé. Je suis là pour vous aider avec tous vos problèmes de smartphone ! 😊 \n\nComment puis-je vous aider aujourd'hui ?`,
+      confidence: 0.95,
+      suggestions: [
+        "Mon écran est cassé",
+        "Problème de batterie",
+        "Mon téléphone ne s'allume plus",
+        "Trouver un réparateur près de moi"
+      ],
+      actions: [
+        { type: 'button', label: 'Diagnostic rapide', action: 'start_diagnostic' },
+        { type: 'button', label: 'Voir les réparateurs', action: 'show_map' }
+      ],
+      metadata: { intent: 'greeting', category: 'social', ai_model: 'basic_nlp' }
+    };
+  }
+
+  // Détecter les remerciements
+  const thankingPatterns = ['merci', 'thanks', 'merci beaucoup', 'parfait', 'super', 'génial'];
+  const isThanking = thankingPatterns.some(pattern => userInput.includes(pattern));
+  
+  if (isThanking) {
+    return {
+      content: "Je vous en prie ! C'est un plaisir de vous aider. 😊 \n\nY a-t-il autre chose que je peux faire pour vous ?",
+      confidence: 0.9,
+      suggestions: [
+        "Autre problème",
+        "Prendre rendez-vous",
+        "Tarifs des réparations",
+        "Au revoir"
+      ],
+      actions: [
+        { type: 'button', label: 'Nouveau diagnostic', action: 'start_diagnostic' }
+      ],
+      metadata: { intent: 'thanks', category: 'social', ai_model: 'basic_nlp' }
+    };
+  }
+
   // Récupérer la configuration du chatbot
   const { data: config } = await supabase
     .from('chatbot_configuration')
