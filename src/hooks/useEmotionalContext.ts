@@ -91,7 +91,7 @@ export const useEmotionalContext = () => {
 
   const getThinkingMessage = useCallback((): string => {
     const messages = [
-      "Emma réfléchit...",
+      "Ben réfléchit...",
       "Je cherche la meilleure solution...",
       "Laissez-moi analyser ça...",
       "Je consulte ma base de connaissances...",

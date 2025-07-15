@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
-import EmotionalAvatar from './EmotionalAvatar';
+import BenAvatar from './BenAvatar';
 import TypingIndicator from './TypingIndicator';
 import { useEmotionalContext } from '@/hooks/useEmotionalContext';
 
@@ -100,7 +100,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
       if (error) throw error;
 
       setConversationId(data.conversation_id);
-      const welcomeMessage = getEmotionalResponse(data.message || 'Bonjour ! Je suis Emma, votre assistante de réparation personnelle. Comment puis-je vous aider aujourd\'hui ? 😊');
+      const welcomeMessage = getEmotionalResponse(data.message || 'Bonjour ! Je suis Ben, votre assistant de réparation personnel. Comment puis-je vous aider aujourd\'hui ? 😊');
       setMessages([{
         id: '1',
         content: welcomeMessage,
@@ -216,7 +216,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
             className="rounded-full w-16 h-16 bg-blue-600 hover:bg-blue-700 shadow-lg relative overflow-hidden group"
           >
             <div className="absolute inset-0 flex items-center justify-center transition-transform group-hover:scale-110">
-              <EmotionalAvatar emotion="happy" size="lg" />
+              <BenAvatar emotion="happy" size="lg" />
             </div>
             <motion.div 
               className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"
@@ -246,7 +246,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
           transition={{ duration: 0.3 }}
         >
           <div className="flex items-center space-x-3">
-            <EmotionalAvatar 
+            <BenAvatar 
               emotion={emotionalState.currentEmotion} 
               isTyping={isTyping}
               size="md"
@@ -259,7 +259,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.2 }}
               >
-                Emma - Assistant IA
+                Ben - Assistant IA
               </motion.span>
               <div className="flex items-center space-x-2">
                 <Badge variant="secondary" className="text-xs bg-white/20 text-white border-white/30">
@@ -312,7 +312,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
               >
                 <div className={`flex items-start space-x-2 max-w-[80%] ${message.sender_type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
                   {message.sender_type === 'bot' && (
-                    <EmotionalAvatar 
+                    <BenAvatar 
                       emotion="happy" 
                       isTyping={false}
                       size="sm"
@@ -396,7 +396,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
                 className="flex justify-start"
               >
                 <div className="flex items-start space-x-2">
-                  <EmotionalAvatar 
+                  <BenAvatar 
                     emotion="thinking" 
                     isTyping={true}
                     size="sm"

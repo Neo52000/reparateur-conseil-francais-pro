@@ -8,7 +8,7 @@ interface TypingIndicatorProps {
 
 const TypingIndicator: React.FC<TypingIndicatorProps> = ({ 
   isVisible, 
-  message = "Emma réfléchit..." 
+  message = "Ben réfléchit..." 
 }) => {
   if (!isVisible) return null;
 
