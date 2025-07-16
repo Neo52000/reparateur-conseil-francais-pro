@@ -89,15 +89,52 @@ export const useEmotionalContext = () => {
     }
   }, [analyzeMessageEmotion]);
 
-  const getThinkingMessage = useCallback((): string => {
-    const messages = [
+  const getThinkingMessage = useCallback((context?: { emotion?: string, urgency?: string }): string => {
+    const { emotion, urgency } = context || {};
+    
+    // Messages contextuels selon l'émotion
+    const contextualMessages = {
+      frustrated: [
+        "Je comprends votre frustration, laissez-moi trouver une solution...",
+        "Je vais faire de mon mieux pour résoudre ça...",
+        "Analysons ensemble ce problème..."
+      ],
+      urgent: [
+        "Recherche de solutions rapides...",
+        "Priorité urgence, je cherche...",
+        "Solutions express en cours..."
+      ],
+      worried: [
+        "Je vais vous rassurer, un instant...",
+        "Recherche de solutions fiables...",
+        "Je prépare des options sécurisées..."
+      ],
+      happy: [
+        "Avec plaisir ! Je réfléchis...",
+        "Parfait ! Laissez-moi voir...",
+        "Super ! Je prépare votre réponse..."
+      ]
+    };
+
+    // Messages par défaut avec plus de variété
+    const defaultMessages = [
       "Ben réfléchit...",
       "Je cherche la meilleure solution...",
       "Laissez-moi analyser ça...",
       "Je consulte ma base de connaissances...",
-      "Un instant, je prépare votre réponse..."
+      "Un instant, je prépare votre réponse...",
+      "Recherche en cours...",
+      "Je mobilise mes neurones...",
+      "Petit moment de réflexion..."
     ];
-    return messages[Math.floor(Math.random() * messages.length)];
+
+    // Choisir le message approprié
+    if (emotion && contextualMessages[emotion as keyof typeof contextualMessages]) {
+      const emotionMessages = contextualMessages[emotion as keyof typeof contextualMessages];
+      return emotionMessages[Math.floor(Math.random() * emotionMessages.length)];
+    }
+
+    return defaultMessages[Math.floor(Math.random() * defaultMessages.length)];
   }, []);
 
   const getEmotionalResponse = useCallback((baseResponse: string, context?: any): string => {

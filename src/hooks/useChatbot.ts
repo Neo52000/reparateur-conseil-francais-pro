@@ -84,7 +84,11 @@ export const useChatbot = (): UseChatbotReturn => {
 
       if (error) throw error;
 
-      // Simuler un délai de réflexion
+      // Délai variable selon la confiance et le type de réponse
+      const confidence = data.confidence || 0.7;
+      const baseDelay = confidence > 0.8 ? 800 : confidence > 0.6 ? 1200 : 1800;
+      const randomDelay = baseDelay + Math.random() * 500; // Ajouter de la variabilité
+
       setTimeout(() => {
         setIsTyping(false);
         const botMessage: ChatMessage = {
@@ -97,10 +101,20 @@ export const useChatbot = (): UseChatbotReturn => {
         };
         setMessages(prev => [...prev, botMessage]);
         setIsLoading(false);
-      }, 1500);
+      }, randomDelay);
     } catch (error) {
       console.error('Erreur envoi message:', error);
       setIsTyping(false);
+      
+      // Message d'erreur plus humain
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 2).toString(),
+        content: "Désolé, j'ai eu un petit problème technique 😅 Pouvez-vous répéter votre question ?",
+        sender_type: 'bot',
+        timestamp: new Date(),
+        suggestions: ["Répéter la question", "Parler à un conseiller", "Recommencer"]
+      };
+      setMessages(prev => [...prev, errorMessage]);
       setIsLoading(false);
     }
   };

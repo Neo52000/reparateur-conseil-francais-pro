@@ -203,64 +203,77 @@ async function analyzeWithOpenAI(content: string, conversationId: string) {
     .from('chatbot_learning_patterns')
     .select('*')
     .order('confidence_score', { ascending: false })
-    .limit(5);
+    .limit(10);
 
-  // Récupérer la configuration émotionnelle
+  // Récupérer la configuration émotionnelle et variations
   const { data: emotionalConfig } = await supabase
     .from('chatbot_configuration')
     .select('*')
-    .in('config_key', ['personality_traits', 'emotional_responses']);
+    .in('config_key', ['personality_traits', 'emotional_responses', 'response_variations']);
 
   const configMap = emotionalConfig?.reduce((acc, item) => {
     acc[item.config_key] = item.config_value;
     return acc;
   }, {} as Record<string, any>) || {};
 
-  // Construire le contexte pour OpenAI
-  const conversationHistory = messages?.map(m => 
-    `${m.sender_type === 'user' ? 'Utilisateur' : 'Ben'}: ${m.content}`
+  // Construire le contexte pour OpenAI avec plus de détails
+  const conversationHistory = messages?.map((m, index) => 
+    `${index + 1}. ${m.sender_type === 'user' ? 'Client' : 'Ben'}: ${m.content}`
   ).join('\n') || '';
 
-  // Analyser l'émotion du message utilisateur
+  // Analyser l'émotion et l'urgence
   const userEmotion = analyzeUserEmotion(content);
+  const urgencyLevel = analyzeUrgency(content);
   const personalityTraits = configMap.personality_traits || {};
+  const emotionalResponses = configMap.emotional_responses || {};
 
-  const prompt = `Tu es Ben, un assistant IA empathique et humain spécialisé dans la réparation de smartphones. Tu as une personnalité ${personalityTraits.primary || 'empathique'} avec des traits ${personalityTraits.secondary?.join(', ') || 'aidante, professionnelle, chaleureuse'}.
+  // Enrichir le prompt avec plus de contexte français
+  const prompt = `Tu es Ben, l'assistant IA français expert en réparation smartphone de RepairConnect. Tu es ${personalityTraits.primary || 'empathique'}, ${personalityTraits.secondary?.join(', ') || 'professionnel, chaleureux et patient'}.
 
-PERSONNALITÉ DE BEN:
-- Empathique et à l'écoute
-- Utilise des émojis de manière naturelle
-- S'adapte à l'émotion de l'utilisateur
-- Professionnel mais chaleureux
-- Donne des conseils pratiques
+🎯 PERSONNALITÉ ENRICHIE:
+- Parle français naturel avec expressions courantes
+- Utilise des émojis avec parcimonie mais pertinence
+- Adapte ton registre selon l'urgence et l'émotion
+- Pose des questions de suivi intelligentes
+- Évite les répétitions en variant tes expressions
 
-CONTEXTE ÉMOTIONNEL DÉTECTÉ: ${userEmotion}
+📊 CONTEXTE ACTUEL:
+- Émotion détectée: ${userEmotion}
+- Niveau d'urgence: ${urgencyLevel}
+- Messages précédents: ${messages?.length || 0}
 
-HISTORIQUE DE CONVERSATION:
+📝 HISTORIQUE CONVERSATION:
 ${conversationHistory}
 
-PATTERNS D'APPRENTISSAGE RÉUSSIS:
-${patterns?.map(p => `"${p.input_pattern}" → "${p.successful_response}"`).join('\n') || 'Aucun pattern disponible'}
+🧠 PATTERNS APPRIS:
+${patterns?.map(p => `- "${p.input_pattern}" → succès: ${p.success_rate}%`).join('\n') || 'Base d\'apprentissage vide'}
 
-MESSAGE UTILISATEUR: "${content}"
+💬 MESSAGE UTILISATEUR: "${content}"
 
-INSTRUCTIONS SPÉCIALES:
-- Adapte ton ton à l'émotion détectée
-- Si l'utilisateur semble frustré, montre de l'empathie
-- Si c'est urgent, propose des solutions rapides
-- Si c'est sa première fois, explique simplement
-- Utilise les émojis appropriés à l'émotion
-- Reste professionnelle mais humaine
+🎨 RÉPONSES ÉMOTIONNELLES DISPONIBLES:
+${Object.entries(emotionalResponses).map(([emotion, responses]) => 
+  `${emotion}: ${Array.isArray(responses) ? responses.join(', ') : responses}`
+).join('\n')}
 
-Réponds UNIQUEMENT avec un JSON valide contenant:
+🚀 INSTRUCTIONS AVANCÉES:
+1. Si frustration → empathie immédiate + solution concrète
+2. Si urgence → priorité + créneaux rapides
+3. Si découverte → explication simple + options claires
+4. Si satisfaction → remerciement + opportunité cross-sell
+5. Varie tes formulations pour éviter la robotisation
+6. Intègre des éléments du contexte précédent
+7. Propose 2-3 suggestions contextuelles max
+
+Réponds avec un JSON strictement valide:
 {
-  "content": "ta réponse empathique et adaptée",
-  "confidence": 0.95,
-  "emotion": "joy|empathy|concern|excitement|understanding",
-  "category": "diagnostic|pricing|booking|social|emotional_support",
-  "suggestions": ["suggestion contextuelle 1", "suggestion 2"],
-  "actions": [{"type": "button", "label": "Action adaptée", "action": "action_id"}],
-  "thinking_message": "Message personnalisé pendant la réflexion"
+  "content": "Réponse naturelle, empathique et personnalisée en français",
+  "confidence": 0.85,
+  "emotion": "empathy|joy|concern|excitement|understanding|professional",
+  "category": "diagnostic|pricing|booking|social|emotional_support|information",
+  "suggestions": ["Action 1", "Action 2", "Action 3"],
+  "actions": [{"type": "button", "label": "Label clair", "action": "action_id"}],
+  "thinking_message": "Message durant la réflexion (varié)",
+  "context_memory": {"last_emotion": "${userEmotion}", "urgency": "${urgencyLevel}"}
 }`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -275,8 +288,10 @@ Réponds UNIQUEMENT avec un JSON valide contenant:
         { role: 'system', content: prompt },
         { role: 'user', content: content }
       ],
-      temperature: 0.7,
-      max_tokens: 500
+      temperature: 0.8, // Plus de créativité
+      max_tokens: 600,   // Plus d'espace pour des réponses détaillées
+      presence_penalty: 0.1, // Éviter les répétitions
+      frequency_penalty: 0.2  // Varier le vocabulaire
     }),
   });
 
@@ -296,17 +311,20 @@ Réponds UNIQUEMENT avec un JSON valide contenant:
       actions: parsedResponse.actions || [],
       metadata: {
         category: parsedResponse.category || 'general',
-        ai_model: 'gpt-4o-mini'
+        emotion: parsedResponse.emotion,
+        context_memory: parsedResponse.context_memory,
+        ai_model: 'gpt-4o-mini-enhanced'
       }
     };
   } catch (parseError) {
-    // Si le parsing JSON échoue, utiliser la réponse directement
+    console.error('JSON parsing error:', parseError);
+    // Fallback avec une réponse structurée
     return {
-      content: aiResponse,
+      content: aiResponse.replace(/```json|```/g, '').trim(),
       confidence: 0.7,
-      suggestions: [],
-      actions: [],
-      metadata: { category: 'general', ai_model: 'gpt-4o-mini', parse_error: true }
+      suggestions: ["Reformuler la question", "Parler à un conseiller", "Voir les réparateurs"],
+      actions: [{ type: 'button', label: 'Assistance humaine', action: 'human_support' }],
+      metadata: { category: 'general', ai_model: 'gpt-4o-mini-fallback', parse_error: true }
     };
   }
 }
@@ -422,53 +440,91 @@ async function analyzeMessageBasic(content: string, conversationId: string) {
 }
 
 
+// Fonction d'analyse sémantique améliorée avec synonymes français
 function findBestMatch(input: string, trainingData: any[]) {
   if (!trainingData || trainingData.length === 0) return null;
+  
+  // Normaliser l'input
+  const normalizedInput = normalizeText(input);
   
   let bestMatch = null;
   let highestScore = 0;
   
+  // Dictionnaire de synonymes français pour la réparation mobile
+  const synonyms = {
+    'cassé': ['pété', 'brisé', 'abîmé', 'endommagé', 'fendu', 'fissuré'],
+    'écran': ['vitre', 'display', 'affichage', 'dalle'],
+    'batterie': ['accu', 'pile', 'autonomie'],
+    'téléphone': ['phone', 'mobile', 'portable', 'smartphone', 'tel'],
+    'réparation': ['dépannage', 'remise en état', 'fix'],
+    'problème': ['souci', 'bug', 'panne', 'dysfonctionnement'],
+    'urgent': ['vite', 'rapidement', 'pressé', 'emergency'],
+    'cher': ['coûteux', 'prix élevé', 'tarif'],
+    'rapide': ['quick', 'express', 'immédiat']
+  };
+  
   for (const training of trainingData) {
     const patterns = training.training_text.toLowerCase().split(',').map((p: string) => p.trim());
-    let score = 0;
+    let totalScore = 0;
+    let matchedPatterns = 0;
     
-    // Calculer le score de correspondance
     for (const pattern of patterns) {
-      if (input.includes(pattern)) {
-        // Score plus élevé pour les correspondances exactes
-        if (input === pattern) {
-          score += 1.0;
-        } else if (input.startsWith(pattern) || input.endsWith(pattern)) {
-          score += 0.8;
-        } else {
-          score += 0.6;
+      let patternScore = 0;
+      const normalizedPattern = normalizeText(pattern);
+      
+      // 1. Correspondance exacte (score maximum)
+      if (normalizedInput === normalizedPattern) {
+        patternScore = 1.0;
+      }
+      // 2. Correspondance partielle
+      else if (normalizedInput.includes(normalizedPattern) || normalizedPattern.includes(normalizedInput)) {
+        patternScore = 0.8;
+      }
+      // 3. Analyse par mots avec synonymes
+      else {
+        const inputWords = normalizedInput.split(' ').filter(w => w.length > 2);
+        const patternWords = normalizedPattern.split(' ').filter(w => w.length > 2);
+        let wordMatches = 0;
+        let totalWords = Math.max(inputWords.length, patternWords.length);
+        
+        for (const inputWord of inputWords) {
+          // Correspondance directe
+          if (patternWords.some(pw => pw.includes(inputWord) || inputWord.includes(pw))) {
+            wordMatches += 1.0;
+          }
+          // Correspondance par synonymes
+          else {
+            for (const [baseWord, syns] of Object.entries(synonyms)) {
+              if ((inputWord.includes(baseWord) || syns.some(syn => inputWord.includes(syn))) &&
+                  patternWords.some(pw => pw.includes(baseWord) || syns.some(syn => pw.includes(syn)))) {
+                wordMatches += 0.8;
+                break;
+              }
+            }
+          }
         }
+        
+        patternScore = totalWords > 0 ? (wordMatches / totalWords) : 0;
       }
       
-      // Vérifier les mots individuels du pattern
-      const patternWords = pattern.split(' ');
-      const inputWords = input.split(' ');
-      let wordMatches = 0;
-      
-      for (const word of patternWords) {
-        if (word.length > 2 && inputWords.some(iw => iw.includes(word))) {
-          wordMatches++;
-        }
-      }
-      
-      if (wordMatches > 0) {
-        score += (wordMatches / patternWords.length) * 0.5;
+      if (patternScore > 0) {
+        totalScore += patternScore;
+        matchedPatterns++;
       }
     }
     
-    // Normaliser le score
-    const normalizedScore = Math.min(score / patterns.length, 1.0);
+    // Score final normalisé avec bonus pour les patterns multiples
+    const finalScore = matchedPatterns > 0 ? 
+      (totalScore / patterns.length) * (1 + (matchedPatterns - 1) * 0.1) : 0;
     
-    if (normalizedScore > highestScore && normalizedScore >= (training.confidence_threshold || 0.7)) {
-      highestScore = normalizedScore;
+    // Ajuster le seuil dynamiquement selon la qualité des données
+    const dynamicThreshold = Math.max(0.3, training.confidence_threshold || 0.6);
+    
+    if (finalScore > highestScore && finalScore >= dynamicThreshold) {
+      highestScore = finalScore;
       bestMatch = {
         ...training,
-        confidence: normalizedScore
+        confidence: Math.min(finalScore, 0.95) // Cap à 95% pour laisser place à l'amélioration
       };
     }
   }
@@ -476,28 +532,123 @@ function findBestMatch(input: string, trainingData: any[]) {
   return bestMatch;
 }
 
-function generateSuggestions(category: string): string[] {
+// Fonction de normalisation du texte français
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Supprimer les accents
+    .replace(/[^\w\s]/g, ' ') // Remplacer la ponctuation par des espaces
+    .replace(/\s+/g, ' ') // Normaliser les espaces
+    .trim();
+}
+
+// Analyser l'émotion utilisateur
+function analyzeUserEmotion(message: string): string {
+  const lowerMessage = message.toLowerCase();
+  
+  const emotionPatterns = {
+    'frustrated': ['marre', 'énerve', 'galère', 'nul', 'pourri', 'chiant'],
+    'urgent': ['urgent', 'vite', 'rapidement', 'pressé', 'maintenant'],
+    'worried': ['inquiet', 'peur', 'stress', 'angoisse', 'problème'],
+    'happy': ['content', 'super', 'parfait', 'génial', 'excellent'],
+    'confused': ['comprends pas', 'sais pas', 'comment', 'pourquoi', 'hein'],
+    'polite': ['s\'il vous plaît', 'merci', 'excusez', 'pardon', 'bonjour']
+  };
+  
+  for (const [emotion, patterns] of Object.entries(emotionPatterns)) {
+    if (patterns.some(pattern => lowerMessage.includes(pattern))) {
+      return emotion;
+    }
+  }
+  
+  return 'neutral';
+}
+
+// Analyser le niveau d'urgence
+function analyzeUrgency(message: string): 'low' | 'medium' | 'high' {
+  const lowerMessage = message.toLowerCase();
+  
+  const highUrgency = ['urgent', 'maintenant', 'immédiatement', 'tout de suite', 'vite', 'pressé'];
+  const mediumUrgency = ['rapidement', 'bientôt', 'assez vite', 'dans la journée'];
+  
+  if (highUrgency.some(word => lowerMessage.includes(word))) return 'high';
+  if (mediumUrgency.some(word => lowerMessage.includes(word))) return 'medium';
+  
+  return 'low';
+}
+
+function generateSuggestions(category: string, emotion?: string, urgency?: string): string[] {
+  // Suggestions contextuelles basées sur l'émotion et l'urgence
+  const contextualSuggestions: Record<string, string[]> = {
+    'diagnostic_frustrated': [
+      "Décrivez-moi le problème exact",
+      "Quand c'est-il arrivé ?",
+      "Avez-vous essayé de redémarrer ?"
+    ],
+    'diagnostic_urgent': [
+      "Diagnostic express en 5 min",
+      "Solutions d'urgence",
+      "Réparateur le plus proche"
+    ],
+    'pricing_worried': [
+      "Devis gratuit sans engagement",
+      "Options de paiement facilité",
+      "Comparaison avec la concurrence"
+    ],
+    'booking_urgent': [
+      "Rendez-vous dans l'heure",
+      "Service express disponible",
+      "Réparation à domicile"
+    ]
+  };
+
+  // Clé contextuelle
+  const contextKey = `${category}_${emotion}`;
+  if (contextualSuggestions[contextKey]) {
+    return contextualSuggestions[contextKey];
+  }
+
+  // Suggestions par défaut améliorées
   const suggestionMap: Record<string, string[]> = {
     'diagnostic': [
-      "Mon écran est fissuré",
-      "Ma batterie se décharge vite",
-      "Mon téléphone surchauffe",
-      "Je n'ai plus de son"
+      "Mon écran ne répond plus",
+      "Problème de batterie",
+      "Son/micro défaillant",
+      "Appareil photo flou"
     ],
     'pricing': [
-      "Combien coûte une réparation d'écran ?",
-      "Tarifs pour iPhone 14",
-      "Prix réparation Samsung Galaxy",
-      "Coût changement batterie"
+      "Devis gratuit personnalisé",
+      "Tarifs selon la marque",
+      "Options de garantie",
+      "Paiement en plusieurs fois"
     ],
     'booking': [
-      "Trouver un réparateur près de moi",
-      "Prendre rendez-vous rapidement",
-      "Réparation à domicile disponible ?",
-      "Réparateur ouvert le dimanche"
+      "Réparateur près de moi",
+      "Prise de rendez-vous",
+      "Service à domicile",
+      "Horaires d'ouverture"
+    ],
+    'emotional_support': [
+      "Parler à un conseiller",
+      "Solutions alternatives",
+      "Suivi personnalisé",
+      "Garantie satisfaction"
+    ],
+    'information': [
+      "Comment ça marche ?",
+      "Durée des réparations",
+      "Garanties proposées",
+      "Conseils d'entretien"
+    ],
+    'social': [
+      "Autre question ?",
+      "Laisser un avis",
+      "Parrainage ami",
+      "Newsletter conseils"
     ],
     'general': [
-      "Comment ça marche ?",
+      "Diagnostic de panne",
       "Quels appareils réparez-vous ?",
       "Garantie des réparations",
       "Parler à un conseiller"
