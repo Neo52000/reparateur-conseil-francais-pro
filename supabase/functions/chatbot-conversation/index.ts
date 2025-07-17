@@ -330,6 +330,8 @@ Réponds avec un JSON strictement valide:
 }
 
 async function analyzeMessageBasic(content: string, conversationId: string) {
+  console.log('🔍 analyzeMessageBasic - Input:', content);
+  
   // Vérifications spéciales pour les salutations et messages simples
   const userInput = content.toLowerCase().trim();
   
@@ -338,6 +340,7 @@ async function analyzeMessageBasic(content: string, conversationId: string) {
   const isGreeting = greetingPatterns.some(pattern => userInput.includes(pattern));
   
   if (isGreeting) {
+    console.log('✅ Greeting détecté');
     const hour = new Date().getHours();
     let greeting = 'Bonjour';
     if (hour >= 18) greeting = 'Bonsoir';
@@ -365,6 +368,7 @@ async function analyzeMessageBasic(content: string, conversationId: string) {
   const isThanking = thankingPatterns.some(pattern => userInput.includes(pattern));
   
   if (isThanking) {
+    console.log('✅ Remerciement détecté');
     return {
       content: "Je vous en prie ! C'est un plaisir de vous aider. 😊 \n\nY a-t-il autre chose que je peux faire pour vous ?",
       confidence: 0.9,
@@ -381,60 +385,94 @@ async function analyzeMessageBasic(content: string, conversationId: string) {
     };
   }
 
-  // Récupérer la configuration du chatbot
-  const { data: config } = await supabase
-    .from('chatbot_configuration')
-    .select('config_key, config_value');
-
-  const configMap = config?.reduce((acc, item) => {
-    acc[item.config_key] = item.config_value;
-    return acc;
-  }, {} as Record<string, any>) || {};
-
   // Récupérer les données d'entraînement
-  const { data: trainingData } = await supabase
+  console.log('🔍 Récupération des données d\'entraînement...');
+  const { data: trainingData, error } = await supabase
     .from('chatbot_training_data')
     .select('*')
     .eq('is_active', true);
 
-  // Analyse simple par mots-clés améliorée
+  console.log('📊 Données trouvées:', trainingData?.length || 0);
+  if (error) {
+    console.error('❌ Erreur récupération training data:', error);
+  }
+
+  // Test immédiat avec patterns simples pour "écran cassé"
+  if (userInput.includes('écran') && (userInput.includes('cassé') || userInput.includes('casse') || userInput.includes('pété') || userInput.includes('fissuré'))) {
+    console.log('🎯 Match direct écran cassé détecté !');
+    return {
+      content: "Oh non ! 😟 Je comprends comme c'est frustrant d'avoir un écran cassé. Pas de panique, on va arranger ça ensemble ! Pouvez-vous me dire quel modèle vous avez ?",
+      confidence: 0.95,
+      suggestions: [
+        "iPhone",
+        "Samsung Galaxy", 
+        "Autre modèle",
+        "Je ne sais pas"
+      ],
+      actions: [
+        { type: 'button', label: 'Voir les réparateurs', action: 'show_map' },
+        { type: 'button', label: 'Estimation prix', action: 'get_quote' }
+      ],
+      metadata: { intent: 'screen_broken', category: 'diagnostic', ai_model: 'basic_nlp_direct' }
+    };
+  }
+
+  // Test pour batterie
+  if (userInput.includes('batterie') || userInput.includes('autonomie') || userInput.includes('décharge')) {
+    console.log('🎯 Match direct batterie détecté !');
+    return {
+      content: "Ah, le classique problème de batterie ! 🔋 C'est vraiment agaçant quand on doit recharger sans arrêt. En général, après 2-3 ans, c'est normal que la batterie fatigue. Depuis quand avez-vous remarqué ce problème ?",
+      confidence: 0.9,
+      suggestions: [
+        "Depuis quelques jours",
+        "Ça fait des semaines", 
+        "Mon téléphone a plus de 2 ans",
+        "Estimation du prix"
+      ],
+      actions: [
+        { type: 'button', label: 'Diagnostic batterie', action: 'battery_diagnostic' },
+        { type: 'button', label: 'Voir les réparateurs', action: 'show_map' }
+      ],
+      metadata: { intent: 'battery_problem', category: 'diagnostic', ai_model: 'basic_nlp_direct' }
+    };
+  }
+
+  // Analyse avancée avec les données d'entraînement
   const bestMatch = findBestMatch(content.toLowerCase(), trainingData || []);
+  console.log('🏆 Meilleur match trouvé:', bestMatch);
   
-  if (bestMatch && bestMatch.confidence > (configMap.confidence_threshold || 0.7)) {
-    // Personnaliser la réponse selon le contexte
-    let response = bestMatch.response_template;
-    
-    // Ajouter des suggestions contextuelles
+  if (bestMatch && bestMatch.confidence > 0.3) {
+    console.log('✅ Match trouvé avec confiance:', bestMatch.confidence);
     const suggestions = generateSuggestions(bestMatch.category);
     const actions = generateActions(bestMatch.category);
 
     return {
-      content: response,
+      content: bestMatch.response_template,
       confidence: bestMatch.confidence,
       suggestions,
       actions,
       metadata: {
         intent: bestMatch.intent,
         category: bestMatch.category,
-        ai_model: 'basic_nlp'
+        ai_model: 'basic_nlp_enhanced'
       }
     };
   } else {
-    // Réponse générique améliorée
+    console.log('❌ Aucun match trouvé, réponse générique');
     return {
       content: "Je ne suis pas sûr de comprendre exactement votre problème. Pouvez-vous me donner plus de détails ou choisir parmi ces options ?",
       confidence: 0.3,
       suggestions: [
-        "Problème d'écran cassé",
+        "Mon écran est cassé",
         "Problème de batterie", 
-        "Téléphone qui ne s'allume plus",
+        "Mon téléphone ne s'allume plus",
         "Parler à un conseiller"
       ],
       actions: [
         { type: 'button', label: 'Diagnostic rapide', action: 'start_diagnostic' },
         { type: 'button', label: 'Voir les réparateurs', action: 'show_map' }
       ],
-      metadata: { intent: 'clarification', category: 'general', ai_model: 'basic_nlp' }
+      metadata: { intent: 'clarification', category: 'general', ai_model: 'basic_nlp_fallback' }
     };
   }
 }
