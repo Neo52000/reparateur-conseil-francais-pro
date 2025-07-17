@@ -446,17 +446,18 @@ function findBestMatch(input: string, trainingData: any[]) {
   
   // Normaliser l'input
   const normalizedInput = normalizeText(input);
+  console.log('🔍 Input normalisé:', normalizedInput);
   
   let bestMatch = null;
   let highestScore = 0;
   
   // Dictionnaire de synonymes français pour la réparation mobile
   const synonyms = {
-    'cassé': ['pété', 'brisé', 'abîmé', 'endommagé', 'fendu', 'fissuré'],
-    'écran': ['vitre', 'display', 'affichage', 'dalle'],
-    'batterie': ['accu', 'pile', 'autonomie'],
+    'cassé': ['pété', 'brisé', 'abîmé', 'endommagé', 'fendu', 'fissuré', 'casse'],
+    'écran': ['vitre', 'display', 'affichage', 'dalle', 'screen'],
+    'batterie': ['accu', 'pile', 'autonomie', 'battery'],
     'téléphone': ['phone', 'mobile', 'portable', 'smartphone', 'tel'],
-    'réparation': ['dépannage', 'remise en état', 'fix'],
+    'réparation': ['dépannage', 'remise en état', 'fix', 'réparé'],
     'problème': ['souci', 'bug', 'panne', 'dysfonctionnement'],
     'urgent': ['vite', 'rapidement', 'pressé', 'emergency'],
     'cher': ['coûteux', 'prix élevé', 'tarif'],
@@ -465,39 +466,60 @@ function findBestMatch(input: string, trainingData: any[]) {
   
   for (const training of trainingData) {
     const patterns = training.training_text.toLowerCase().split(',').map((p: string) => p.trim());
-    let totalScore = 0;
-    let matchedPatterns = 0;
+    console.log(`🎯 Test pattern "${training.intent}":`, patterns);
+    
+    let maxPatternScore = 0;
     
     for (const pattern of patterns) {
       let patternScore = 0;
       const normalizedPattern = normalizeText(pattern);
+      console.log(`  - Pattern normalisé: "${normalizedPattern}"`);
       
       // 1. Correspondance exacte (score maximum)
       if (normalizedInput === normalizedPattern) {
         patternScore = 1.0;
+        console.log(`    ✅ Match exact! Score: ${patternScore}`);
       }
-      // 2. Correspondance partielle
-      else if (normalizedInput.includes(normalizedPattern) || normalizedPattern.includes(normalizedInput)) {
+      // 2. Input contient le pattern ou vice versa
+      else if (normalizedInput.includes(normalizedPattern)) {
+        patternScore = 0.9;
+        console.log(`    ✅ Input contient pattern! Score: ${patternScore}`);
+      }
+      else if (normalizedPattern.includes(normalizedInput)) {
         patternScore = 0.8;
+        console.log(`    ✅ Pattern contient input! Score: ${patternScore}`);
       }
-      // 3. Analyse par mots avec synonymes
+      // 3. Analyse par mots-clés
       else {
-        const inputWords = normalizedInput.split(' ').filter(w => w.length > 2);
-        const patternWords = normalizedPattern.split(' ').filter(w => w.length > 2);
+        const inputWords = normalizedInput.split(' ').filter(w => w.length > 1);
+        const patternWords = normalizedPattern.split(' ').filter(w => w.length > 1);
         let wordMatches = 0;
         let totalWords = Math.max(inputWords.length, patternWords.length);
         
+        console.log(`    📝 Mots input: ${inputWords.join(', ')}`);
+        console.log(`    📝 Mots pattern: ${patternWords.join(', ')}`);
+        
         for (const inputWord of inputWords) {
+          let wordFound = false;
+          
           // Correspondance directe
-          if (patternWords.some(pw => pw.includes(inputWord) || inputWord.includes(pw))) {
-            wordMatches += 1.0;
+          for (const patternWord of patternWords) {
+            if (inputWord.includes(patternWord) || patternWord.includes(inputWord)) {
+              wordMatches += 1.0;
+              wordFound = true;
+              console.log(`      ✅ Match direct: "${inputWord}" <-> "${patternWord}"`);
+              break;
+            }
           }
-          // Correspondance par synonymes
-          else {
+          
+           // Correspondance par synonymes si pas trouvé
+          if (!wordFound) {
             for (const [baseWord, syns] of Object.entries(synonyms)) {
               if ((inputWord.includes(baseWord) || syns.some(syn => inputWord.includes(syn))) &&
                   patternWords.some(pw => pw.includes(baseWord) || syns.some(syn => pw.includes(syn)))) {
                 wordMatches += 0.8;
+                wordFound = true;
+                console.log(`      ✅ Match synonyme: "${inputWord}" via "${baseWord}"`);
                 break;
               }
             }
@@ -505,30 +527,29 @@ function findBestMatch(input: string, trainingData: any[]) {
         }
         
         patternScore = totalWords > 0 ? (wordMatches / totalWords) : 0;
+        console.log(`    📊 Score pattern: ${patternScore} (${wordMatches}/${totalWords})`);
       }
       
-      if (patternScore > 0) {
-        totalScore += patternScore;
-        matchedPatterns++;
-      }
+      // Garder le meilleur score pour ce training
+      maxPatternScore = Math.max(maxPatternScore, patternScore);
     }
     
-    // Score final normalisé avec bonus pour les patterns multiples
-    const finalScore = matchedPatterns > 0 ? 
-      (totalScore / patterns.length) * (1 + (matchedPatterns - 1) * 0.1) : 0;
+    console.log(`🏆 Score final pour "${training.intent}": ${maxPatternScore}`);
     
-    // Ajuster le seuil dynamiquement selon la qualité des données
-    const dynamicThreshold = Math.max(0.3, training.confidence_threshold || 0.6);
+    // Appliquer un seuil plus bas pour être plus permissif
+    const threshold = Math.max(0.2, training.confidence_threshold - 0.3);
     
-    if (finalScore > highestScore && finalScore >= dynamicThreshold) {
-      highestScore = finalScore;
+    if (maxPatternScore > highestScore && maxPatternScore >= threshold) {
+      highestScore = maxPatternScore;
       bestMatch = {
         ...training,
-        confidence: Math.min(finalScore, 0.95) // Cap à 95% pour laisser place à l'amélioration
+        confidence: Math.min(maxPatternScore * 1.2, 0.95) // Boost le score et cap à 95%
       };
+      console.log(`🎯 Nouveau meilleur match: "${training.intent}" avec score ${maxPatternScore}`);
     }
   }
   
+  console.log('🎉 Résultat final:', bestMatch ? `${bestMatch.intent} (${bestMatch.confidence})` : 'Aucun match');
   return bestMatch;
 }
 
