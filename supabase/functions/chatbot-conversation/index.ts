@@ -678,24 +678,3 @@ function generateActions(category: string) {
   ];
 }
 
-function analyzeUserEmotion(content: string): string {
-  const lowerContent = content.toLowerCase();
-  
-  // Analyse émotionnelle avancée
-  const emotionPatterns = {
-    frustration: ['énervé', 'marre', 'galère', 'problème encore', 'ça marche pas', 'nul'],
-    urgency: ['urgent', 'vite', 'rapidement', 'aujourd\'hui', 'maintenant', 'tout de suite'],
-    happiness: ['merci', 'super', 'génial', 'parfait', 'excellent', 'content'],
-    concern: ['inquiet', 'peur', 'stress', 'anxieux', 'problème grave'],
-    confusion: ['comprends pas', 'sais pas', 'comment', 'pourquoi', 'pas sûr'],
-    politeness: ['bonjour', 's\'il vous plaît', 'merci', 'bonne journée', 'au revoir']
-  };
-
-  for (const [emotion, patterns] of Object.entries(emotionPatterns)) {
-    if (patterns.some(pattern => lowerContent.includes(pattern))) {
-      return emotion;
-    }
-  }
-
-  return 'neutral';
-}
