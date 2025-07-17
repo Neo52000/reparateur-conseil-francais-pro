@@ -335,12 +335,40 @@ async function analyzeMessageBasic(content: string, conversationId: string) {
   // Vérifications spéciales pour les salutations et messages simples
   const userInput = content.toLowerCase().trim();
   
+  // Vérifier si l'utilisateur a déjà été salué dans cette conversation
+  const { data: existingGreeting } = await supabase
+    .from('chatbot_messages')
+    .select('id')
+    .eq('conversation_id', conversationId)
+    .eq('sender_type', 'bot')
+    .ilike('content', '%bonjour%')
+    .limit(1);
+
   // Détecter les salutations
   const greetingPatterns = ['bonjour', 'bonsoir', 'salut', 'hello', 'hi', 'coucou', 'bonne journée', 'bonne soirée'];
   const isGreeting = greetingPatterns.some(pattern => userInput.includes(pattern));
   
   if (isGreeting) {
     console.log('✅ Greeting détecté');
+    
+    // Si déjà salué, réponse plus courte
+    if (existingGreeting && existingGreeting.length > 0) {
+      return {
+        content: "Je suis toujours là pour vous aider ! 😊 De quoi avez-vous besoin ?",
+        confidence: 0.9,
+        suggestions: [
+          "Mon écran est cassé",
+          "Problème de batterie", 
+          "Trouver un réparateur"
+        ],
+        actions: [
+          { type: 'button', label: 'Diagnostic rapide', action: 'start_diagnostic' }
+        ],
+        metadata: { intent: 'greeting_repeat', category: 'social', ai_model: 'basic_nlp' }
+      };
+    }
+
+    // Première salutation
     const hour = new Date().getHours();
     let greeting = 'Bonjour';
     if (hour >= 18) greeting = 'Bonsoir';
