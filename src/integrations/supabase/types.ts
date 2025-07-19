@@ -3832,6 +3832,144 @@ export type Database = {
           },
         ]
       }
+      pos_analytics_cache: {
+        Row: {
+          calculated_at: string
+          data: Json
+          date_range_end: string
+          date_range_start: string
+          expires_at: string
+          id: string
+          repairer_id: string
+          report_type: string
+        }
+        Insert: {
+          calculated_at?: string
+          data: Json
+          date_range_end: string
+          date_range_start: string
+          expires_at: string
+          id?: string
+          repairer_id: string
+          report_type: string
+        }
+        Update: {
+          calculated_at?: string
+          data?: Json
+          date_range_end?: string
+          date_range_start?: string
+          expires_at?: string
+          id?: string
+          repairer_id?: string
+          report_type?: string
+        }
+        Relationships: []
+      }
+      pos_customers: {
+        Row: {
+          address: Json | null
+          created_at: string
+          customer_number: string
+          email: string | null
+          first_name: string
+          id: string
+          last_name: string
+          last_visit_date: string | null
+          loyalty_points: number | null
+          loyalty_status: string | null
+          marketing_consent: boolean | null
+          phone: string | null
+          preferred_contact: string | null
+          private_notes: string | null
+          repairer_id: string
+          tags: string[] | null
+          total_orders: number | null
+          total_spent: number | null
+          updated_at: string
+        }
+        Insert: {
+          address?: Json | null
+          created_at?: string
+          customer_number: string
+          email?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          last_visit_date?: string | null
+          loyalty_points?: number | null
+          loyalty_status?: string | null
+          marketing_consent?: boolean | null
+          phone?: string | null
+          preferred_contact?: string | null
+          private_notes?: string | null
+          repairer_id: string
+          tags?: string[] | null
+          total_orders?: number | null
+          total_spent?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address?: Json | null
+          created_at?: string
+          customer_number?: string
+          email?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          last_visit_date?: string | null
+          loyalty_points?: number | null
+          loyalty_status?: string | null
+          marketing_consent?: boolean | null
+          phone?: string | null
+          preferred_contact?: string | null
+          private_notes?: string | null
+          repairer_id?: string
+          tags?: string[] | null
+          total_orders?: number | null
+          total_spent?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pos_hardware_config: {
+        Row: {
+          configuration: Json | null
+          connection_type: string
+          created_at: string
+          device_name: string
+          device_type: string
+          id: string
+          is_active: boolean | null
+          last_connected: string | null
+          repairer_id: string
+          updated_at: string
+        }
+        Insert: {
+          configuration?: Json | null
+          connection_type: string
+          created_at?: string
+          device_name: string
+          device_type: string
+          id?: string
+          is_active?: boolean | null
+          last_connected?: string | null
+          repairer_id: string
+          updated_at?: string
+        }
+        Update: {
+          configuration?: Json | null
+          connection_type?: string
+          created_at?: string
+          device_name?: string
+          device_type?: string
+          id?: string
+          is_active?: boolean | null
+          last_connected?: string | null
+          repairer_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pos_inventory_items: {
         Row: {
           brand: string | null
@@ -3910,6 +4048,96 @@ export type Database = {
         }
         Relationships: []
       }
+      pos_offline_operations: {
+        Row: {
+          created_at: string
+          device_id: string | null
+          error_message: string | null
+          id: string
+          last_attempt_at: string | null
+          max_retries: number | null
+          operation_data: Json
+          operation_type: string
+          priority: number | null
+          repairer_id: string
+          retry_count: number | null
+          scheduled_sync_at: string | null
+          session_id: string | null
+          sync_status: string
+          synced_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_id?: string | null
+          error_message?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          max_retries?: number | null
+          operation_data: Json
+          operation_type: string
+          priority?: number | null
+          repairer_id: string
+          retry_count?: number | null
+          scheduled_sync_at?: string | null
+          session_id?: string | null
+          sync_status?: string
+          synced_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_id?: string | null
+          error_message?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          max_retries?: number | null
+          operation_data?: Json
+          operation_type?: string
+          priority?: number | null
+          repairer_id?: string
+          retry_count?: number | null
+          scheduled_sync_at?: string | null
+          session_id?: string | null
+          sync_status?: string
+          synced_at?: string | null
+        }
+        Relationships: []
+      }
+      pos_payment_methods: {
+        Row: {
+          configuration: Json | null
+          created_at: string
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          method_name: string
+          method_type: string
+          repairer_id: string
+          updated_at: string
+        }
+        Insert: {
+          configuration?: Json | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          method_name: string
+          method_type: string
+          repairer_id: string
+          updated_at?: string
+        }
+        Update: {
+          configuration?: Json | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          method_name?: string
+          method_type?: string
+          repairer_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pos_sessions: {
         Row: {
           cash_drawer_end: number | null
@@ -3960,6 +4188,77 @@ export type Database = {
           status?: string
           total_amount?: number
           total_transactions?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pos_staff_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          is_active: boolean | null
+          repairer_id: string
+          role_id: string
+          staff_user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          repairer_id: string
+          role_id: string
+          staff_user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          repairer_id?: string
+          role_id?: string
+          staff_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_staff_assignments_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "pos_staff_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_staff_roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          permissions: Json
+          repairer_id: string
+          role_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          permissions?: Json
+          repairer_id: string
+          role_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          permissions?: Json
+          repairer_id?: string
+          role_name?: string
           updated_at?: string
         }
         Relationships: []
@@ -6491,6 +6790,10 @@ export type Database = {
         Args: { repairer_id: string }
         Returns: string
       }
+      generate_pos_customer_number: {
+        Args: { repairer_id: string }
+        Returns: string
+      }
       generate_repair_order_number: {
         Args: { repairer_id: string }
         Returns: string
@@ -6533,6 +6836,14 @@ export type Database = {
       }
       has_module_access: {
         Args: { user_id: string; module_name: string }
+        Returns: boolean
+      }
+      has_pos_permission: {
+        Args: {
+          staff_user_id: string
+          repairer_id: string
+          permission_name: string
+        }
         Returns: boolean
       }
       increment_chatbot_metric: {
