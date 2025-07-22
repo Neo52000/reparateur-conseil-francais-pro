@@ -34,6 +34,18 @@ export interface CustomerCreateData {
   tags?: string[];
 }
 
+export interface CreatePOSCustomerData {
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+  address?: POSCustomer["address"];
+  preferred_contact?: POSCustomer["preferred_contact"];
+  marketing_consent?: boolean;
+  private_notes?: string;
+  tags?: string[];
+}
+
 export class CustomerService {
   /**
    * Rechercher des clients par nom, email ou téléphone
