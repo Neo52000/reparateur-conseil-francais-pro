@@ -6,6 +6,9 @@ import POSSalesInterface from './ui/POSSalesInterface';
 import POSCustomerManager from './ui/POSCustomerManager';
 import POSTransactionHistory from './ui/POSTransactionHistory';
 import POSSessionManager from './ui/POSSessionManager';
+import POSInventoryManager from './ui/POSInventoryManager';
+import POSReportsAnalytics from './ui/POSReportsAnalytics';
+import POSSettings from './ui/POSSettings';
 import { 
   CreditCard, 
   Package, 
@@ -137,13 +140,14 @@ const POSInterface: React.FC = () => {
         {/* Panel principal POS */}
         <div className="flex-1 p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="session">Session</TabsTrigger>
               <TabsTrigger value="sale">Vente</TabsTrigger>
               <TabsTrigger value="customers">Clients</TabsTrigger>
               <TabsTrigger value="history">Historique</TabsTrigger>
               <TabsTrigger value="inventory">Stock</TabsTrigger>
               <TabsTrigger value="reports">Rapports</TabsTrigger>
+              <TabsTrigger value="settings">Paramètres</TabsTrigger>
             </TabsList>
 
             {/* Onglet Session */}
@@ -169,48 +173,19 @@ const POSInterface: React.FC = () => {
               <POSTransactionHistory repairer_id="mock-repairer-id" />
             </TabsContent>
 
-            {/* Onglet Stock (données synchronisées) */}
+            {/* Onglet Stock */}
             <TabsContent value="inventory" className="mt-6">
-              <div className="space-y-4">
-                {dashboardData.inventory.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <div className="font-medium">{item.name}</div>
-                      <div className="text-sm text-muted-foreground">SKU: {item.sku}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium">{item.price}€</div>
-                      <Badge variant={item.stock > 5 ? 'default' : 'destructive'}>
-                        Stock: {item.stock}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <POSInventoryManager />
             </TabsContent>
 
             {/* Onglet Rapports */}
             <TabsContent value="reports" className="mt-6">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-6 border rounded-lg">
-                  <div className="text-2xl font-bold text-admin-green">
-                    {dashboardData.todayStats.revenue}€
-                  </div>
-                  <div className="text-sm text-muted-foreground">CA du jour</div>
-                </div>
-                <div className="text-center p-6 border rounded-lg">
-                  <div className="text-2xl font-bold text-admin-blue">
-                    {dashboardData.todayStats.repairs}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Réparations</div>
-                </div>
-                <div className="text-center p-6 border rounded-lg">
-                  <div className="text-2xl font-bold text-admin-purple">
-                    {dashboardData.todayStats.newCustomers}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Nouveaux clients</div>
-                </div>
-              </div>
+              <POSReportsAnalytics />
+            </TabsContent>
+
+            {/* Onglet Paramètres */}
+            <TabsContent value="settings" className="mt-6">
+              <POSSettings />
             </TabsContent>
           </Tabs>
         </div>
