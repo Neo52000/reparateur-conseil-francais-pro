@@ -3,10 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 export interface HardwareDevice {
   id: string;
   repairer_id: string;
-  device_type: 'scanner' | 'printer' | 'cash_drawer' | 'display' | 'scale';
+  device_type: string;
   device_name: string;
-  connection_type: 'usb' | 'bluetooth' | 'wifi' | 'serial';
-  configuration: Record<string, any>;
+  connection_type: string;
+  configuration: any;
   is_active: boolean;
   last_connected?: string;
   created_at: string;

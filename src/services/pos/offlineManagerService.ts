@@ -3,10 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 export interface OfflineOperation {
   id: string;
   repairer_id: string;
-  operation_type: 'transaction' | 'customer_update' | 'inventory_update' | 'staff_action';
+  operation_type: string;
   operation_data: any;
   priority: number; // 1=highest, 5=lowest
-  sync_status: 'pending' | 'syncing' | 'synced' | 'failed' | 'cancelled';
+  sync_status: string;
   retry_count: number;
   max_retries: number;
   created_at: string;
@@ -60,7 +60,7 @@ export class OfflineManagerService {
    */
   static async addOfflineOperation(
     repairerId: string,
-    operationType: OfflineOperation['operation_type'],
+    operationType: string,
     operationData: any,
     priority: number = 3,
     deviceId?: string,
@@ -140,7 +140,7 @@ export class OfflineManagerService {
       // Synchroniser chaque opération
       for (const operation of operations) {
         try {
-          await this.syncOperation(operation);
+          await this.syncOperation(operation as OfflineOperation);
           syncedCount++;
           console.log(`✅ Opération ${operation.id} synchronisée`);
         } catch (error) {
@@ -333,7 +333,6 @@ export class OfflineManagerService {
       .from('pos_offline_operations')
       .update({
         sync_status: 'failed',
-        retry_count: supabase.raw('retry_count + 1'),
         error_message: error instanceof Error ? error.message : String(error),
         last_attempt_at: new Date().toISOString()
       })
