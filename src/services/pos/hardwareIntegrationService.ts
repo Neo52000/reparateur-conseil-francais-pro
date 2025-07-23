@@ -148,9 +148,9 @@ export class HardwareIntegrationService {
 
       const devices = await navigator.usb.getDevices();
       return devices.map(device => ({
-        name: device.productName || 'Appareil USB inconnu',
-        vendorId: device.vendorId,
-        productId: device.productId
+        name: (device as any).productName || 'Appareil USB inconnu',
+        vendorId: (device as any).vendorId || 0,
+        productId: (device as any).productId || 0
       }));
     } catch (error) {
       console.error('Erreur détection USB:', error);

@@ -132,7 +132,11 @@ export class StaffManagementService {
         .order('role_name');
 
       if (error) throw error;
-      return data || [];
+      return (data || []).map(role => ({
+        ...role,
+        permissions: Array.isArray(role.permissions) ? role.permissions.filter(p => typeof p === 'string') : 
+                    typeof role.permissions === 'string' ? [role.permissions] : []
+      }));
     } catch (error) {
       console.error('Erreur récupération rôles:', error);
       throw error;
@@ -154,7 +158,10 @@ export class StaffManagementService {
         .single();
 
       if (error) throw error;
-      return data;
+      return {
+        ...data,
+        permissions: Array.isArray(data.permissions) ? data.permissions.filter(p => typeof p === 'string') : []
+      };
     } catch (error) {
       console.error('Erreur création rôle:', error);
       throw error;
@@ -174,7 +181,10 @@ export class StaffManagementService {
         .single();
 
       if (error) throw error;
-      return data;
+      return {
+        ...data,
+        permissions: Array.isArray(data.permissions) ? data.permissions.filter(p => typeof p === 'string') : []
+      };
     } catch (error) {
       console.error('Erreur mise à jour rôle:', error);
       throw error;
@@ -294,7 +304,12 @@ export class StaffManagementService {
       const permissions = new Set<string>();
       data?.forEach(assignment => {
         if (assignment.pos_staff_roles?.permissions) {
-          assignment.pos_staff_roles.permissions.forEach((perm: string) => {
+          const rolePermissions = Array.isArray(assignment.pos_staff_roles.permissions) 
+            ? assignment.pos_staff_roles.permissions 
+            : typeof assignment.pos_staff_roles.permissions === 'string' 
+              ? [assignment.pos_staff_roles.permissions] 
+              : [];
+          rolePermissions.forEach((perm: string) => {
             permissions.add(perm);
           });
         }
