@@ -1,27 +1,19 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Facebook, Linkedin, Twitter, MessageCircle, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
 const Footer = () => {
   const handleWhatsApp = () => {
     const message = encodeURIComponent('Bonjour, je souhaite des informations sur vos services de réparation.');
     window.open(`https://wa.me/33745062162?text=${message}`, '_blank');
   };
-
-  return (
-    <footer className="bg-gray-900 text-white py-8">
+  return <footer className="bg-gray-900 text-white py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo et description */}
           <div>
             <div className="mb-4">
-              <img
-                src="/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png"
-                alt="TopRéparateurs.fr"
-                className="h-16 object-contain brightness-0 invert"
-              />
+              <img src="/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png" alt="TopRéparateurs.fr" className="h-16 object-contain brightness-0 invert" />
             </div>
             <p className="text-gray-300 mb-4">
               Trouvez rapidement un réparateur qualifié près de chez vous. Réparation téléphone, ordinateur, tablette - Devis gratuit et intervention rapide.
@@ -54,10 +46,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center">
                 <MessageCircle className="h-4 w-4 mr-2 text-green-400" />
-                <button 
-                  onClick={handleWhatsApp}
-                  className="text-gray-300 hover:text-green-400 transition-colors"
-                >
+                <button onClick={handleWhatsApp} className="text-gray-300 hover:text-green-400 transition-colors">
                   07 45 06 21 62 (WhatsApp)
                 </button>
               </div>
@@ -103,9 +92,7 @@ const Footer = () => {
         {/* Liens SEO vers les pages de villes */}
         <div className="border-t border-gray-700 mt-8 pt-6">
           <div className="text-center mb-4">
-            <h4 className="text-lg font-semibold text-white mb-4">
-              Réparation smartphone dans les grandes villes
-            </h4>
+            <h4 className="text-lg font-semibold text-white mb-4">Réparation smartphones -tablettes - consoles toutes marques partout en France</h4>
             <div className="flex flex-wrap justify-center gap-2 text-sm">
               <Link to="/reparateur-smartphone-paris" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
                 Paris
@@ -160,8 +147,6 @@ const Footer = () => {
           </p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
