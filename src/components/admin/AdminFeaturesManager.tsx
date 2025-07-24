@@ -416,11 +416,11 @@ const AdminFeaturesManager: React.FC = () => {
                     <p className="text-sm text-muted-foreground mb-3">{config.documentation}</p>
                     
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => setActiveModule(config.id)}>
                         <Eye className="w-4 h-4 mr-1" />
                         Voir détails
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => updateModuleConfiguration(config.id, { ...config.configuration })}>
                         <Settings className="w-4 h-4 mr-1" />
                         Configurer
                       </Button>

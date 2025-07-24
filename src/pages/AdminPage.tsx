@@ -28,6 +28,7 @@ import PerformanceManagement from '@/components/admin/PerformanceManagement';
 import EnhancedDocumentationManager from '@/components/admin/EnhancedDocumentationManager';
 import FeatureFlagAdmin from '@/components/admin/FeatureFlagAdmin';
 import AdminFeaturesManager from '@/components/admin/AdminFeaturesManager';
+import AdminConfigurationPage from '@/components/admin/AdminConfigurationPage';
 import { Card, CardContent } from '@/components/ui/card';
 import { Monitor } from 'lucide-react';
 
@@ -256,6 +257,10 @@ const AdminPage = () => {
 
     if (activeTab === 'features-manager') {
       return <AdminFeaturesManager />;
+    }
+
+    if (activeTab === 'configuration') {
+      return <AdminConfigurationPage />;
     }
 
     // Default dashboard
