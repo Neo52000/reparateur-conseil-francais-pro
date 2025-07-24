@@ -100,6 +100,59 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Liens SEO vers les pages de villes */}
+        <div className="border-t border-gray-700 mt-8 pt-6">
+          <div className="text-center mb-4">
+            <h4 className="text-lg font-semibold text-white mb-4">
+              Réparation smartphone dans les grandes villes
+            </h4>
+            <div className="flex flex-wrap justify-center gap-2 text-sm">
+              <Link to="/reparateur-smartphone-paris" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
+                Paris
+              </Link>
+              <span className="text-gray-500">•</span>
+              <Link to="/reparateur-smartphone-lyon" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
+                Lyon
+              </Link>
+              <span className="text-gray-500">•</span>
+              <Link to="/reparateur-smartphone-marseille" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
+                Marseille
+              </Link>
+              <span className="text-gray-500">•</span>
+              <Link to="/reparateur-smartphone-toulouse" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
+                Toulouse
+              </Link>
+              <span className="text-gray-500">•</span>
+              <Link to="/reparateur-smartphone-nice" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
+                Nice
+              </Link>
+              <span className="text-gray-500">•</span>
+              <Link to="/reparateur-smartphone-nantes" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
+                Nantes
+              </Link>
+              <span className="text-gray-500">•</span>
+              <Link to="/reparateur-smartphone-strasbourg" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
+                Strasbourg
+              </Link>
+              <span className="text-gray-500">•</span>
+              <Link to="/reparateur-smartphone-montpellier" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
+                Montpellier
+              </Link>
+              <span className="text-gray-500">•</span>
+              <Link to="/reparateur-smartphone-bordeaux" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
+                Bordeaux
+              </Link>
+              <span className="text-gray-500">•</span>
+              <Link to="/reparateur-smartphone-lille" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
+                Lille
+              </Link>
+            </div>
+            <p className="text-gray-400 text-xs mt-3">
+              Découvrez nos réparateurs dans toute la France pour une intervention rapide et de qualité
+            </p>
+          </div>
+        </div>
+
         {/* Copyright */}
         <div className="border-t border-gray-700 mt-8 pt-6 text-center">
           <p className="text-gray-400 text-sm">

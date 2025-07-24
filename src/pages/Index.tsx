@@ -4,6 +4,7 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import HeroSectionSimplified from '@/components/sections/HeroSectionSimplified';
 import RepairersCarouselSection from '@/components/sections/RepairersCarouselSection';
+import TrustSection from '@/components/sections/TrustSection';
 import QuickStatsSection from '@/components/sections/QuickStatsSection';
 import BlogSectionHomepage from '@/components/sections/BlogSectionHomepage';
 import QuickSearchModal from '@/components/search/QuickSearchModal';
@@ -148,6 +149,8 @@ const Index = () => {
           onViewProfile={handleViewProfile}
           onCall={handleCall}
         />
+        
+        <TrustSection />
         
         <QuickStatsSection />
         

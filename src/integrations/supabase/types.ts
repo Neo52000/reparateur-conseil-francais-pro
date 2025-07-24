@@ -2750,39 +2750,78 @@ export type Database = {
       }
       inventory_items: {
         Row: {
+          brand: string | null
+          category: string | null
+          cost_price: number | null
           created_at: string
           current_stock: number
+          description: string | null
           id: string
+          is_active: boolean | null
+          is_service: boolean | null
           last_restocked: string | null
           location: string | null
+          max_stock_level: number | null
           maximum_stock: number | null
+          min_stock_level: number
           minimum_stock: number | null
+          model: string | null
+          name: string
           product_id: string | null
           repairer_id: string
+          selling_price: number
+          sku: string
+          stock_quantity: number
           updated_at: string
         }
         Insert: {
+          brand?: string | null
+          category?: string | null
+          cost_price?: number | null
           created_at?: string
           current_stock?: number
+          description?: string | null
           id?: string
+          is_active?: boolean | null
+          is_service?: boolean | null
           last_restocked?: string | null
           location?: string | null
+          max_stock_level?: number | null
           maximum_stock?: number | null
+          min_stock_level?: number
           minimum_stock?: number | null
+          model?: string | null
+          name: string
           product_id?: string | null
           repairer_id: string
+          selling_price: number
+          sku: string
+          stock_quantity?: number
           updated_at?: string
         }
         Update: {
+          brand?: string | null
+          category?: string | null
+          cost_price?: number | null
           created_at?: string
           current_stock?: number
+          description?: string | null
           id?: string
+          is_active?: boolean | null
+          is_service?: boolean | null
           last_restocked?: string | null
           location?: string | null
+          max_stock_level?: number | null
           maximum_stock?: number | null
+          min_stock_level?: number
           minimum_stock?: number | null
+          model?: string | null
+          name?: string
           product_id?: string | null
           repairer_id?: string
+          selling_price?: number
+          sku?: string
+          stock_quantity?: number
           updated_at?: string
         }
         Relationships: [

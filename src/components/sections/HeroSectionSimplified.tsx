@@ -44,11 +44,11 @@ const HeroSectionSimplified: React.FC<HeroSectionSimplifiedProps> = ({
         <div className="relative z-20 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">
           <div className="w-full max-w-4xl text-center">
             <h1 className="text-3xl md:text-5xl font-bold mb-4">
-              Trouvez le meilleur réparateur près de chez vous
+              Trouvez un réparateur de smartphone près de chez vous en 2 clics
             </h1>
             
             <p className="text-lg md:text-xl mb-8 text-white/90 max-w-2xl mx-auto">
-              Comparez les prix, consultez les avis et prenez rendez-vous en quelques clics
+              Les meilleurs réparateurs, les meilleurs délais et les meilleurs avis – Partout en France
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
