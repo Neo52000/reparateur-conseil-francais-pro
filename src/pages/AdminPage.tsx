@@ -26,7 +26,7 @@ import SEOMonitoringDashboard from '@/components/admin/SEOMonitoringDashboard';
 import RepairContentGenerator from '@/components/blog/admin/RepairContentGenerator';
 import PerformanceManagement from '@/components/admin/PerformanceManagement';
 import EnhancedDocumentationManager from '@/components/admin/EnhancedDocumentationManager';
-import FeatureFlagAdmin from '@/components/admin/FeatureFlagAdmin';
+
 import AdminFeaturesManager from '@/components/admin/AdminFeaturesManager';
 import AdminConfigurationPage from '@/components/admin/AdminConfigurationPage';
 import { Card, CardContent } from '@/components/ui/card';
@@ -251,9 +251,6 @@ const AdminPage = () => {
       return <EnhancedDocumentationManager />;
     }
 
-    if (activeTab === 'feature-flags') {
-      return <FeatureFlagAdmin />;
-    }
 
     if (activeTab === 'features-manager') {
       return <AdminFeaturesManager />;

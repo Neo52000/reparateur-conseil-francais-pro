@@ -73,6 +73,7 @@ function App() {
                 
       {/* SEO Local Routes */}
       <Route path="/reparateur-:service-:city" element={<LocalSeoPage />} />
+      <Route path="/:slug" element={<LocalSeoPage />} />
       
       {/* Sitemap SEO */}
       <Route path="/sitemap-seo.xml" element={<SeoSitemap />} />

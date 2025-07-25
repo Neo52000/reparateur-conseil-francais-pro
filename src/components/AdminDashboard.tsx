@@ -30,7 +30,7 @@ import RepairerList from './admin/RepairerList';
 import ScrapingDashboard from './admin/ScrapingDashboard';
 import BlogAdmin from './blog/admin/BlogAdmin';
 import RepairContentGenerator from './blog/admin/RepairContentGenerator';
-import FeatureFlagAdmin from './admin/FeatureFlagAdmin';
+
 import AuditLogAdmin from './admin/AuditLogAdmin';
 import AdvancedAdvertisingDashboard from './advertising/AdvancedAdvertisingDashboard';
 import PerformanceManagement from './admin/PerformanceManagement';
@@ -475,7 +475,9 @@ const AdminDashboard = () => {
 
           <TabsContent value="flags">
             <h2 className="text-2xl font-bold mb-4">Feature Flags</h2>
-            <FeatureFlagAdmin />
+            <div className="text-center p-8 text-muted-foreground">
+              <p>Module Feature Flags déplacé vers la gestion des fonctionnalités</p>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

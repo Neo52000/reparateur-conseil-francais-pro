@@ -515,11 +515,11 @@ const InventoryManager: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes les catégories</SelectItem>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category!}>
-                    {category}
-                  </SelectItem>
-                ))}
+                        {categories.map((category) => (
+                          <SelectItem key={category || 'unknown'} value={category || 'unknown'}>
+                            {category || 'Non catégorisé'}
+                          </SelectItem>
+                        ))}
               </SelectContent>
             </Select>
             

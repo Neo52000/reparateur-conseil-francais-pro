@@ -291,12 +291,17 @@ const RepairContentGenerator: React.FC = () => {
     - Call-to-action "Trouvez un réparateur près de chez vous"
     - Ton ${config.tone} et ${config.wordCount} mots environ`;
 
-    const response = await supabase.functions.invoke('generate-blog-content', {
+    const response = await supabase.functions.invoke('generate-mobile-content', {
       body: {
-        prompt,
+        city: config.city,
+        deviceType: config.deviceType,
+        repairType: config.repairType,
+        template: config.template,
         tone: config.tone,
         wordCount: config.wordCount,
-        includeStructure: true
+        includePricing: config.includePricing,
+        includeTestimonials: config.includeTestimonials,
+        includeEcoData: config.includeEcoData
       }
     });
 

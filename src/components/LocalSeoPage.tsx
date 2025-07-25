@@ -22,8 +22,8 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
 const LocalSeoPage = () => {
-  const { service, city } = useParams<{ service: string, city: string }>();
-  const slug = `reparateur-${service}-${city}`;
+  const { service, city, slug: routeSlug } = useParams<{ service: string, city: string, slug: string }>();
+  const slug = routeSlug || `reparateur-${service}-${city}`;
   const [page, setPage] = useState<LocalSeoPageType | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);

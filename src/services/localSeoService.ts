@@ -221,7 +221,7 @@ class LocalSeoService {
     try {
       console.log('🔄 Appel à la fonction edge generate-local-seo-content avec params:', params);
       
-      const { data, error } = await supabase.functions.invoke('generate-local-seo-content', {
+      const { data, error } = await supabase.functions.invoke('generate-local-seo-content-v2', {
         body: params
       });
 
