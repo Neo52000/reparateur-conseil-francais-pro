@@ -70,14 +70,18 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   // Filtrage et recherche
   const filteredData = useMemo(() => {
     return data.filter(row => {
-      const matchesSearch = searchTerm === '' || 
-        Object.values(row).some(value => 
-          String(value).toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      
-      return matchesSearch;
+      // Recherche globale ou dans une colonne spécifique
+      if (filterColumn && filterColumn !== 'all-fields') {
+        return searchTerm === '' || 
+          String(row[filterColumn]).toLowerCase().includes(searchTerm.toLowerCase());
+      } else {
+        return searchTerm === '' || 
+          Object.values(row).some(value => 
+            String(value).toLowerCase().includes(searchTerm.toLowerCase())
+          );
+      }
     });
-  }, [data, searchTerm]);
+  }, [data, searchTerm, filterColumn]);
 
   // Tri
   const sortedData = useMemo(() => {
@@ -177,7 +181,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
                 <SelectValue placeholder="Filtrer par..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les champs</SelectItem>
+                <SelectItem value="all-fields">Tous les champs</SelectItem>
                 {columns.filter(col => col.filterable).map(column => (
                   <SelectItem key={column.key} value={column.key}>
                     {column.title}

@@ -39,7 +39,7 @@ const BrandModelSection: React.FC<BrandModelSectionProps> = ({
             </SelectTrigger>
             <SelectContent>
               {brands.length === 0 ? (
-                <SelectItem value="" disabled>
+                <SelectItem value="loading" disabled>
                   Chargement des marques...
                 </SelectItem>
               ) : (
@@ -71,11 +71,11 @@ const BrandModelSection: React.FC<BrandModelSectionProps> = ({
             </SelectTrigger>
             <SelectContent>
               {!deviceBrand ? (
-                <SelectItem value="" disabled>
+                <SelectItem value="select-brand" disabled>
                   Sélectionnez d'abord une marque
                 </SelectItem>
               ) : filteredModels.length === 0 ? (
-                <SelectItem value="" disabled>
+                <SelectItem value="no-models" disabled>
                   Aucun modèle disponible pour cette marque
                 </SelectItem>
               ) : (

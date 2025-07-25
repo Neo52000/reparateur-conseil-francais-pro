@@ -108,7 +108,10 @@ const AdminAuditReports: React.FC = () => {
   };
 
   const updateCustomFilter = (key: keyof AdminAuditFilters, value: any) => {
-    setCustomFilters(prev => ({ ...prev, [key]: value }));
+    // Ignore les valeurs par défaut
+    const defaultValues = ['all-types', 'all-resources', 'all-levels', 'all-fields'];
+    const finalValue = defaultValues.includes(value) ? undefined : value;
+    setCustomFilters(prev => ({ ...prev, [key]: finalValue }));
   };
 
   return (
@@ -215,7 +218,7 @@ const AdminAuditReports: React.FC = () => {
                     <SelectValue placeholder="Tous les types" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tous les types</SelectItem>
+                    <SelectItem value="all-types">Tous les types</SelectItem>
                     <SelectItem value="login">Connexion</SelectItem>
                     <SelectItem value="logout">Déconnexion</SelectItem>
                     <SelectItem value="create">Création</SelectItem>
@@ -237,7 +240,7 @@ const AdminAuditReports: React.FC = () => {
                     <SelectValue placeholder="Toutes les ressources" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Toutes les ressources</SelectItem>
+                    <SelectItem value="all-resources">Toutes les ressources</SelectItem>
                     <SelectItem value="subscription">Abonnement</SelectItem>
                     <SelectItem value="repairer">Réparateur</SelectItem>
                     <SelectItem value="promo_code">Code promo</SelectItem>
@@ -257,7 +260,7 @@ const AdminAuditReports: React.FC = () => {
                     <SelectValue placeholder="Tous les niveaux" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tous les niveaux</SelectItem>
+                    <SelectItem value="all-levels">Tous les niveaux</SelectItem>
                     <SelectItem value="info">Info</SelectItem>
                     <SelectItem value="warning">Avertissement</SelectItem>
                     <SelectItem value="critical">Critique</SelectItem>

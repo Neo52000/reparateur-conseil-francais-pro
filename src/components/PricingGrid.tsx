@@ -58,11 +58,11 @@ const PricingGrid = () => {
       );
     }
 
-    if (selectedBrand) {
+    if (selectedBrand && selectedBrand !== 'all-brands') {
       filtered = filtered.filter(item => item.device_brand === selectedBrand);
     }
 
-    if (selectedIssue) {
+    if (selectedIssue && selectedIssue !== 'all-issues') {
       filtered = filtered.filter(item => item.issue_type === selectedIssue);
     }
 
@@ -99,7 +99,7 @@ const PricingGrid = () => {
                 <SelectValue placeholder="Toutes les marques" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Toutes les marques</SelectItem>
+                <SelectItem value="all-brands">Toutes les marques</SelectItem>
                 {brands.map((brand) => (
                   <SelectItem key={brand} value={brand}>{brand}</SelectItem>
                 ))}
@@ -111,7 +111,7 @@ const PricingGrid = () => {
                 <SelectValue placeholder="Tous les problèmes" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les problèmes</SelectItem>
+                <SelectItem value="all-issues">Tous les problèmes</SelectItem>
                 {issues.map((issue) => (
                   <SelectItem key={issue} value={issue}>{issue}</SelectItem>
                 ))}

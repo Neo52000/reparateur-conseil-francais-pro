@@ -218,9 +218,10 @@ const CSVMappingStep: React.FC<CSVMappingStepProps> = ({
 
   // Mettre à jour un mapping
   const updateMapping = (dbColumn: string, csvColumn: string) => {
+    const finalCsvColumn = csvColumn === 'none' ? '' : csvColumn;
     setMappings(prev => prev.map(mapping => 
       mapping.dbColumn === dbColumn 
-        ? { ...mapping, csvColumn, detected: csvColumn !== '' }
+        ? { ...mapping, csvColumn: finalCsvColumn, detected: finalCsvColumn !== '' }
         : mapping
     ));
   };
@@ -347,7 +348,7 @@ const CSVMappingStep: React.FC<CSVMappingStepProps> = ({
                           <SelectValue placeholder="Sélectionner une colonne CSV" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Aucune colonne</SelectItem>
+                          <SelectItem value="none">Aucune colonne</SelectItem>
                           {csvData.headers.map(header => (
                             <SelectItem key={header} value={header}>
                               {header}
