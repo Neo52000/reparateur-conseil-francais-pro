@@ -306,7 +306,8 @@ const RepairContentGenerator: React.FC = () => {
     });
 
     if (response.error) throw response.error;
-    return response.data;
+    // Extract the content from the nested response structure
+    return response.data?.content || response.data;
   };
 
   const enrichContent = async (content: any, localData: any): Promise<GeneratedContent> => {
@@ -806,7 +807,7 @@ ${generatedContent.internalLinks.map(link => `- [${link.title}](${link.url})`).j
                       <strong>URL:</strong> /{generatedContent.slug}<br/>
                       <strong>Méta:</strong> {generatedContent.metaDescription}
                     </div>
-                    <div dangerouslySetInnerHTML={{ __html: generatedContent.content.replace(/\n/g, '<br>') }} />
+                    <div dangerouslySetInnerHTML={{ __html: (typeof generatedContent.content === 'string' ? generatedContent.content : String(generatedContent.content || '')).replace(/\n/g, '<br>') }} />
                   </div>
                 )}
               </CardContent>
