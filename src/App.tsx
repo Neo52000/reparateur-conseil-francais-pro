@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/auth/AuthProvider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { initializeProductionMode, performProductionHealthCheck } from '@/config/productionSetup';
 
 import Index from '@/pages/Index';
 import NewSearchPage from '@/pages/NewSearchPage';
@@ -17,6 +18,7 @@ import AdminAuditMiddleware from '@/components/admin/AdminAuditMiddleware';
 import AdminAuditPage from '@/pages/AdminAuditPage';
 import AdminAuditDashboardPage from '@/pages/AdminAuditDashboardPage';
 import AdminAuditAnalyticsPage from '@/pages/AdminAuditAnalyticsPage';
+import AdminConnectionAnalyticsPage from '@/pages/AdminConnectionAnalyticsPage';
 import BlogPage from '@/pages/BlogPage';
 import BlogArticlePage from '@/pages/BlogArticlePage';
 import ClientAuth from '@/pages/ClientAuth';
@@ -33,6 +35,16 @@ import SeoSitemap from '@/components/seo/SeoSitemap';
 const queryClient = new QueryClient();
 
 function App() {
+  // Initialisation du mode production au démarrage
+  useEffect(() => {
+    const productionSetup = initializeProductionMode();
+    const healthCheck = performProductionHealthCheck();
+    
+    console.log('🚀 Application démarrée en mode:', productionSetup.isProduction ? 'PRODUCTION' : 'DÉVELOPPEMENT');
+    console.log('📊 Données réelles activées:', productionSetup.hasRealData);
+    console.log('🔍 Santé de l\'application:', healthCheck.healthy ? '✅ OK' : '⚠️ Problèmes détectés');
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -66,6 +78,7 @@ function App() {
                 <Route path="/admin/audit" element={<AdminAuditPage />} />
                 <Route path="/admin/audit/dashboard" element={<AdminAuditDashboardPage />} />
                 <Route path="/admin/audit/analytics" element={<AdminAuditAnalyticsPage />} />
+                <Route path="/admin/analytics/connections" element={<AdminConnectionAnalyticsPage />} />
                 
                 {/* Blog Routes */}
                 <Route path="/blog" element={<BlogPage />} />

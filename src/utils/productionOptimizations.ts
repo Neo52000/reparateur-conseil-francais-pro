@@ -1,12 +1,12 @@
 /**
- * Optimisations spécifiques à la production
+ * Optimisations spécifiques à la production - Version simplifiée et documentée
+ * Toutes les optimisations nécessaires pour un déploiement en production
  */
 
 import { ENVIRONMENT } from '@/config/environment';
-import { TTLCache } from './performance';
 
-// Cache global optimisé pour la production
-export const ProductionCache = new TTLCache<string, any>(ENVIRONMENT.cache.defaultTTL);
+// Cache global optimisé pour la production (remplacement simplifié)
+export const ProductionCache = new Map<string, { data: any; timestamp: number; ttl: number }>();
 
 // Optimisation des requêtes réseau
 export class NetworkOptimizer {
