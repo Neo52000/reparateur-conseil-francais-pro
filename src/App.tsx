@@ -1,111 +1,34 @@
-
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/hooks/auth/AuthProvider';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { initializeProductionMode, performProductionHealthCheck } from '@/config/productionSetup';
-
-import Index from '@/pages/Index';
-import NewSearchPage from '@/pages/NewSearchPage';
-import ClientDashboardPage from '@/pages/ClientDashboardPage';
-import RepairerDashboardPage from '@/pages/RepairerDashboardPage';
-import NotFound from '@/pages/NotFound';
-import AdminPage from '@/pages/AdminPage';
-import RepairersManagementPage from '@/pages/RepairersManagementPage';
-import ScrapingControl from '@/components/ScrapingControl';
-import AdminAuditMiddleware from '@/components/admin/AdminAuditMiddleware';
-import AdminAuditPage from '@/pages/AdminAuditPage';
-import AdminAuditDashboardPage from '@/pages/AdminAuditDashboardPage';
-import AdminAuditAnalyticsPage from '@/pages/AdminAuditAnalyticsPage';
-import AdminConnectionAnalyticsPage from '@/pages/AdminConnectionAnalyticsPage';
-import BlogPage from '@/pages/BlogPage';
-import BlogArticlePage from '@/pages/BlogArticlePage';
-import ClientAuth from '@/pages/ClientAuth';
-import RepairerAuth from '@/pages/RepairerAuth';
-import ClientSpace from '@/pages/ClientSpace';
-import RepairerSpace from '@/pages/RepairerSpace';
-import RepairerPlans from '@/pages/RepairerPlans';
-import PrivacyPolicy from '@/pages/PrivacyPolicy';
-import TermsOfService from '@/pages/TermsOfService';
-import CookiesPolicy from '@/pages/CookiesPolicy';
-import LocalSeoPage from '@/components/LocalSeoPage';
-import SeoSitemap from '@/components/seo/SeoSitemap';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from 'react-helmet-async';
+import Index from "./pages/Index";
+import { AdminLayout } from "./components/admin/AdminLayout";
+import AdvertisingAIPage from "./pages/admin/AdvertisingAIPage";
+import AnalyticsPage from "./pages/admin/AnalyticsPage";
 
 const queryClient = new QueryClient();
 
-function App() {
-  // Initialisation du mode production au démarrage
-  useEffect(() => {
-    const productionSetup = initializeProductionMode();
-    const healthCheck = performProductionHealthCheck();
-    
-    console.log('🚀 Application démarrée en mode:', productionSetup.isProduction ? 'PRODUCTION' : 'DÉVELOPPEMENT');
-    console.log('📊 Données réelles activées:', productionSetup.hasRealData);
-    console.log('🔍 Santé de l\'application:', healthCheck.healthy ? '✅ OK' : '⚠️ Problèmes détectés');
-  }, []);
-
-  return (
+const App = () => (
+  <HelmetProvider>
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AdminAuditMiddleware>
-          <div className="min-h-screen bg-background">
-            <Toaster />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/search" element={<NewSearchPage />} />
-                
-                {/* Authentication Routes */}
-                <Route path="/client-auth" element={<ClientAuth />} />
-                <Route path="/repairer-auth" element={<RepairerAuth />} />
-                
-                {/* User Spaces */}
-                <Route path="/client" element={<ClientSpace />} />
-                <Route path="/repairer" element={<RepairerSpace />} />
-                <Route path="/repairer/plans" element={<RepairerPlans />} />
-                
-                {/* Dashboard Routes (for compatibility) */}
-                <Route path="/client-dashboard" element={<ClientDashboardPage />} />
-                <Route path="/repairer-dashboard" element={<RepairerDashboardPage />} />
-                
-                {/* Admin Routes */}
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/admin/repairers" element={<RepairersManagementPage />} />
-                <Route path="/admin/scraping" element={<ScrapingControl />} />
-                
-                {/* Admin Audit Routes */}
-                <Route path="/admin/audit" element={<AdminAuditPage />} />
-                <Route path="/admin/audit/dashboard" element={<AdminAuditDashboardPage />} />
-                <Route path="/admin/audit/analytics" element={<AdminAuditAnalyticsPage />} />
-                <Route path="/admin/analytics/connections" element={<AdminConnectionAnalyticsPage />} />
-                
-                {/* Blog Routes */}
-                <Route path="/blog" element={<BlogPage />} />
-                <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
-                
-      {/* SEO Local Routes avec support des accents */}
-      <Route path="/réparateur-:service-:city" element={<LocalSeoPage />} />
-      <Route path="/reparateur-:service-:city" element={<LocalSeoPage />} />
-      <Route path="/:slug" element={<LocalSeoPage />} />
-      
-      {/* Sitemap SEO */}
-      <Route path="/sitemap-seo.xml" element={<SeoSitemap />} />
-      
-                {/* Legal Pages */}
-                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                <Route path="/terms" element={<TermsOfService />} />
-                <Route path="/cookies" element={<CookiesPolicy />} />
-                
-                {/* Catch-all route for 404 */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </div>
-        </AdminAuditMiddleware>
-      </AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route path="advertising-ai" element={<AdvertisingAIPage />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
     </QueryClientProvider>
-  );
-}
+  </HelmetProvider>
+);
 
 export default App;
