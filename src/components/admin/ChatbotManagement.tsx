@@ -258,42 +258,150 @@ const ChatbotManagement = () => {
             </Card>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Performance par catégorie</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span>Diagnostic</span>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-32 h-2 bg-gray-200 rounded">
-                      <div className="w-3/4 h-2 bg-green-500 rounded"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance par catégorie</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span>Diagnostic</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 h-2 bg-gray-200 rounded">
+                        <div className="w-3/4 h-2 bg-green-500 rounded"></div>
+                      </div>
+                      <span className="text-sm">75%</span>
                     </div>
-                    <span className="text-sm">75%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Tarification</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 h-2 bg-gray-200 rounded">
+                        <div className="w-4/5 h-2 bg-blue-500 rounded"></div>
+                      </div>
+                      <span className="text-sm">80%</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Réservation</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 h-2 bg-gray-200 rounded">
+                        <div className="w-3/5 h-2 bg-yellow-500 rounded"></div>
+                      </div>
+                      <span className="text-sm">60%</span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span>Tarification</span>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-32 h-2 bg-gray-200 rounded">
-                      <div className="w-4/5 h-2 bg-blue-500 rounded"></div>
-                    </div>
-                    <span className="text-sm">80%</span>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Tendances quotidiennes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Conversations aujourd'hui</span>
+                    <span className="font-semibold">{Math.floor((analytics?.conversations_started || 0) / 30)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Messages/heure (moyenne)</span>
+                    <span className="font-semibold">{Math.floor((analytics?.messages_processed || 0) / 30 / 24)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Pic d'activité</span>
+                    <span className="font-semibold">14h-17h</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Temps de réponse moyen</span>
+                    <span className="font-semibold">1.2s</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span>Réservation</span>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-32 h-2 bg-gray-200 rounded">
-                      <div className="w-3/5 h-2 bg-yellow-500 rounded"></div>
-                    </div>
-                    <span className="text-sm">60%</span>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Questions fréquentes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Prix réparation écran</span>
+                    <Badge variant="secondary">32</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Diagnostic gratuit</span>
+                    <Badge variant="secondary">28</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Rendez-vous urgent</span>
+                    <Badge variant="secondary">19</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Garantie réparation</span>
+                    <Badge variant="secondary">15</Badge>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Modèles populaires</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm">iPhone 14</span>
+                    <Badge variant="default">45%</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Samsung Galaxy S23</span>
+                    <Badge variant="default">32%</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">iPhone 13</span>
+                    <Badge variant="default">18%</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Autres</span>
+                    <Badge variant="outline">5%</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Statut du système</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Service IA</span>
+                    <Badge variant="default" className="bg-green-500">En ligne</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Base de données</span>
+                    <Badge variant="default" className="bg-green-500">Opérationnel</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Edge Functions</span>
+                    <Badge variant="default" className="bg-green-500">Actives</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Uptime</span>
+                    <span className="font-semibold text-green-600">99.8%</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="training" className="space-y-6">
@@ -627,6 +735,48 @@ const ChatbotManagement = () => {
         </TabsContent>
 
         <TabsContent value="config" className="space-y-6">
+          {/* État du chatbot */}
+          <Card>
+            <CardHeader>
+              <CardTitle>État du Chatbot</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="chatbot_enabled">Chatbot activé</Label>
+                  <p className="text-sm text-gray-600">Active ou désactive le chatbot pour tous les utilisateurs</p>
+                </div>
+                <Switch
+                  id="chatbot_enabled"
+                  checked={config.chatbot_enabled !== false}
+                  onCheckedChange={(checked) => updateConfig('chatbot_enabled', checked)}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="maintenance_mode">Mode maintenance</Label>
+                  <p className="text-sm text-gray-600">Affiche un message de maintenance aux utilisateurs</p>
+                </div>
+                <Switch
+                  id="maintenance_mode"
+                  checked={config.maintenance_mode === true}
+                  onCheckedChange={(checked) => updateConfig('maintenance_mode', checked)}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="maintenance_message">Message de maintenance</Label>
+                <Textarea
+                  value={config.maintenance_message || 'Le chatbot est temporairement indisponible pour maintenance.'}
+                  onChange={(e) => updateConfig('maintenance_message', e.target.value)}
+                  placeholder="Message affiché pendant la maintenance"
+                  className="mt-1"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
