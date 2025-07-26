@@ -333,6 +333,176 @@ export type Database = {
         }
         Relationships: []
       }
+      advertising_analytics: {
+        Row: {
+          campaign_id: string | null
+          channel: string
+          clicks: number | null
+          conversions: number | null
+          cost: number | null
+          cpc: number | null
+          created_at: string
+          creative_id: string | null
+          ctr: number | null
+          date: string
+          id: string
+          impressions: number | null
+          revenue: number | null
+          roas: number | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          channel: string
+          clicks?: number | null
+          conversions?: number | null
+          cost?: number | null
+          cpc?: number | null
+          created_at?: string
+          creative_id?: string | null
+          ctr?: number | null
+          date?: string
+          id?: string
+          impressions?: number | null
+          revenue?: number | null
+          roas?: number | null
+        }
+        Update: {
+          campaign_id?: string | null
+          channel?: string
+          clicks?: number | null
+          conversions?: number | null
+          cost?: number | null
+          cpc?: number | null
+          created_at?: string
+          creative_id?: string | null
+          ctr?: number | null
+          date?: string
+          id?: string
+          impressions?: number | null
+          revenue?: number | null
+          roas?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertising_analytics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "advertising_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "advertising_analytics_creative_id_fkey"
+            columns: ["creative_id"]
+            isOneToOne: false
+            referencedRelation: "campaign_creatives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advertising_budgets: {
+        Row: {
+          auto_optimization: boolean | null
+          budget_allocated: number
+          budget_spent: number
+          campaign_id: string | null
+          channel: string
+          created_at: string
+          id: string
+          optimization_rules: Json | null
+          updated_at: string
+        }
+        Insert: {
+          auto_optimization?: boolean | null
+          budget_allocated?: number
+          budget_spent?: number
+          campaign_id?: string | null
+          channel: string
+          created_at?: string
+          id?: string
+          optimization_rules?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          auto_optimization?: boolean | null
+          budget_allocated?: number
+          budget_spent?: number
+          campaign_id?: string | null
+          channel?: string
+          created_at?: string
+          id?: string
+          optimization_rules?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advertising_budgets_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "advertising_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advertising_campaigns: {
+        Row: {
+          auto_optimization: boolean | null
+          budget_daily: number
+          budget_spent: number
+          budget_total: number
+          campaign_type: string
+          channels: Json
+          created_at: string
+          creative_style: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          repairer_id: string
+          start_date: string | null
+          status: string
+          targeting_config: Json
+          updated_at: string
+        }
+        Insert: {
+          auto_optimization?: boolean | null
+          budget_daily?: number
+          budget_spent?: number
+          budget_total?: number
+          campaign_type?: string
+          channels?: Json
+          created_at?: string
+          creative_style?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          repairer_id: string
+          start_date?: string | null
+          status?: string
+          targeting_config?: Json
+          updated_at?: string
+        }
+        Update: {
+          auto_optimization?: boolean | null
+          budget_daily?: number
+          budget_spent?: number
+          budget_total?: number
+          campaign_type?: string
+          channels?: Json
+          created_at?: string
+          creative_style?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          repairer_id?: string
+          start_date?: string | null
+          status?: string
+          targeting_config?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_enhancements: {
         Row: {
           ai_model: string
@@ -385,6 +555,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ai_generated_content: {
+        Row: {
+          ai_model: string
+          content_type: string
+          created_at: string
+          generated_content: Json
+          generation_cost: number | null
+          generation_prompt: string
+          id: string
+          quality_score: number | null
+          repairer_id: string
+          source_item_id: string | null
+          style_used: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          ai_model: string
+          content_type: string
+          created_at?: string
+          generated_content?: Json
+          generation_cost?: number | null
+          generation_prompt: string
+          id?: string
+          quality_score?: number | null
+          repairer_id: string
+          source_item_id?: string | null
+          style_used?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          ai_model?: string
+          content_type?: string
+          created_at?: string
+          generated_content?: Json
+          generation_cost?: number | null
+          generation_prompt?: string
+          id?: string
+          quality_score?: number | null
+          repairer_id?: string
+          source_item_id?: string | null
+          style_used?: string | null
+          usage_count?: number | null
+        }
+        Relationships: []
       }
       ai_pre_diagnostic_chats: {
         Row: {
@@ -1232,6 +1447,53 @@ export type Database = {
             columns: ["segment_id"]
             isOneToOne: false
             referencedRelation: "advanced_targeting_segments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_schedules: {
+        Row: {
+          campaign_id: string | null
+          created_at: string
+          frequency: string
+          id: string
+          is_active: boolean
+          last_executed_at: string | null
+          next_execution_at: string | null
+          schedule_config: Json
+          schedule_type: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string
+          frequency: string
+          id?: string
+          is_active?: boolean
+          last_executed_at?: string | null
+          next_execution_at?: string | null
+          schedule_config?: Json
+          schedule_type?: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_executed_at?: string | null
+          next_execution_at?: string | null
+          schedule_config?: Json
+          schedule_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_schedules_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "advertising_campaigns"
             referencedColumns: ["id"]
           },
         ]
@@ -2817,6 +3079,45 @@ export type Database = {
         }
         Relationships: []
       }
+      google_css_config: {
+        Row: {
+          activation_date: string | null
+          created_at: string
+          css_account_id: string | null
+          css_provider: string | null
+          id: string
+          is_active: boolean
+          repairer_id: string
+          savings_percentage: number | null
+          total_savings: number | null
+          updated_at: string
+        }
+        Insert: {
+          activation_date?: string | null
+          created_at?: string
+          css_account_id?: string | null
+          css_provider?: string | null
+          id?: string
+          is_active?: boolean
+          repairer_id: string
+          savings_percentage?: number | null
+          total_savings?: number | null
+          updated_at?: string
+        }
+        Update: {
+          activation_date?: string | null
+          created_at?: string
+          css_account_id?: string | null
+          css_provider?: string | null
+          id?: string
+          is_active?: boolean
+          repairer_id?: string
+          savings_percentage?: number | null
+          total_savings?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inventory_items: {
         Row: {
           brand: string | null
@@ -3970,6 +4271,45 @@ export type Database = {
           id?: string
           repairer_id?: string
           report_type?: string
+        }
+        Relationships: []
+      }
+      pos_catalog_sync: {
+        Row: {
+          catalog_type: string
+          created_at: string
+          id: string
+          item_data: Json
+          item_id: string
+          last_synced_at: string | null
+          repairer_id: string
+          sync_errors: Json | null
+          sync_status: string
+          updated_at: string
+        }
+        Insert: {
+          catalog_type: string
+          created_at?: string
+          id?: string
+          item_data?: Json
+          item_id: string
+          last_synced_at?: string | null
+          repairer_id: string
+          sync_errors?: Json | null
+          sync_status?: string
+          updated_at?: string
+        }
+        Update: {
+          catalog_type?: string
+          created_at?: string
+          id?: string
+          item_data?: Json
+          item_id?: string
+          last_synced_at?: string | null
+          repairer_id?: string
+          sync_errors?: Json | null
+          sync_status?: string
+          updated_at?: string
         }
         Relationships: []
       }
