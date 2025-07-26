@@ -4,10 +4,7 @@ import { Profile } from '@/hooks/auth/types';
 
 export const profileService = {
   async fetchProfile(userId: string): Promise<Profile | null> {
-    console.log('🔍 ProfileService: Fetching profile for user:', userId);
-    
     try {
-      // Augmenter le timeout et ajouter une requête plus robuste
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -15,26 +12,21 @@ export const profileService = {
         .single();
 
       if (error) {
-        console.error('❌ ProfileService: Error fetching profile:', error);
-        // Si l'erreur est "not found", on retourne null au lieu de lancer une erreur
+        // Si l'erreur est "not found", on retourne null
         if (error.code === 'PGRST116') {
-          console.log('ℹ️ ProfileService: Profile not found, will create one');
           return null;
         }
         throw error;
       }
 
-      console.log('✅ ProfileService: Profile fetched successfully:', data);
       return data;
     } catch (error) {
-      console.error('💥 ProfileService: Exception during fetch:', error);
+      console.error('ProfileService fetch error:', error);
       return null;
     }
   },
 
   async createProfile(userId: string, userData: Partial<Profile>): Promise<Profile> {
-    console.log('📝 ProfileService: Creating profile for user:', userId, userData);
-    
     try {
       const profileData = {
         id: userId,
@@ -51,21 +43,17 @@ export const profileService = {
         .single();
 
       if (error) {
-        console.error('❌ ProfileService: Error creating profile:', error);
         throw error;
       }
 
-      console.log('✅ ProfileService: Profile created successfully:', data);
       return data;
     } catch (error) {
-      console.error('💥 ProfileService: Exception during create:', error);
+      console.error('ProfileService create error:', error);
       throw error;
     }
   },
 
   async upsertProfile(userId: string, userData: Partial<Profile>): Promise<Profile> {
-    console.log('🔄 ProfileService: Upserting profile for user:', userId);
-    
     try {
       const profileData = {
         id: userId,
@@ -82,14 +70,12 @@ export const profileService = {
         .single();
 
       if (error) {
-        console.error('❌ ProfileService: Error upserting profile:', error);
         throw error;
       }
 
-      console.log('✅ ProfileService: Profile upserted successfully:', data);
       return data;
     } catch (error) {
-      console.error('💥 ProfileService: Exception during upsert:', error);
+      console.error('ProfileService upsert error:', error);
       throw error;
     }
   }

@@ -1,8 +1,7 @@
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { profileService } from '@/services/profileService';
 import type { Profile } from './auth/types';
 
 interface AuthContextType {
@@ -29,8 +28,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Calcul des permissions de façon optimisée
-  const permissions = React.useMemo(() => {
+  // Fonction pour charger le profil sans dépendance circulaire
+  const fetchProfile = async (userId: string, userMetadata?: any) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        throw error;
+      }
+
+      if (data) {
+        return data;
+      }
+
+      // Créer un profil temporaire si non trouvé
+      return {
+        id: userId,
+        email: userMetadata?.email || '',
+        first_name: userMetadata?.first_name || 'Utilisateur',
+        last_name: userMetadata?.last_name || '',
+        role: userMetadata?.role || 'user'
+      };
+    } catch (error) {
+      console.error('Profile fetch error:', error);
+      return {
+        id: userId,
+        email: userMetadata?.email || '',
+        first_name: userMetadata?.first_name || 'Utilisateur',
+        last_name: userMetadata?.last_name || '',
+        role: 'user'
+      };
+    }
+  };
+
+  // Calcul des permissions optimisé
+  const permissions = useMemo(() => {
     const isAdminEmail = profile?.email === 'admin@repairhub.fr';
     const hasAdminRole = profile?.role === 'admin';
     const isAdmin = isAdminEmail || hasAdminRole;
@@ -43,27 +80,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [user, profile]);
 
-  // Fonction pour charger le profil
-  const loadProfile = useCallback(async (userId: string) => {
-    try {
-      const profileData = await profileService.fetchProfile(userId);
-      setProfile(profileData);
-    } catch (error) {
-      console.error('Error loading profile:', error);
-      // Créer un profil temporaire
-      setProfile({
-        id: userId,
-        email: user?.email || '',
-        first_name: user?.user_metadata?.first_name || 'Utilisateur',
-        last_name: user?.user_metadata?.last_name || '',
-        role: 'user'
-      });
-    }
-  }, [user]);
-
   // Effet pour gérer l'authentification
   useEffect(() => {
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
 
     const handleAuthChange = async (event: any, session: Session | null) => {
       if (!mounted) return;
@@ -71,16 +91,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (session?.user) {
         setUser(session.user);
         setSession(session);
-        await loadProfile(session.user.id);
+        
+        // Différer le chargement du profil pour éviter les boucles
+        setTimeout(async () => {
+          if (mounted) {
+            const profileData = await fetchProfile(session.user.id, session.user.user_metadata);
+            if (mounted) {
+              setProfile(profileData);
+            }
+          }
+        }, 0);
       } else {
         setUser(null);
         setSession(null);
         setProfile(null);
       }
       
-      if (mounted) {
-        setLoading(false);
-      }
+      // Timeout de sécurité pour le loading
+      timeoutId = setTimeout(() => {
+        if (mounted) {
+          setLoading(false);
+        }
+      }, 100);
     };
 
     // Écouter les changements d'état
@@ -95,9 +127,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, [loadProfile]);
+  }, []); // Pas de dépendances pour éviter les boucles
 
   const signIn = useCallback(async (email: string, password: string) => {
     try {
@@ -160,9 +193,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshProfile = useCallback(async () => {
     if (user?.id) {
-      await loadProfile(user.id);
+      const profileData = await fetchProfile(user.id, user.user_metadata);
+      setProfile(profileData);
     }
-  }, [user?.id, loadProfile]);
+  }, [user?.id, user?.user_metadata]);
 
   const value = {
     user,

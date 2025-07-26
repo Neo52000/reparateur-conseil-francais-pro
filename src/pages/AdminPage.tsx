@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -30,100 +30,88 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Monitor } from 'lucide-react';
 
 const AdminPage = () => {
-  console.log('🔄 AdminPage - Starting render');
-  
-  try {
-    const { user, profile, isAdmin, loading } = useAuth();
-    const [searchParams] = useSearchParams();
-    const activeTab = searchParams.get('tab') || 'dashboard';
+  const { user, profile, isAdmin, loading } = useAuth();
+  const [searchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'dashboard';
 
-    console.log('🔍 AdminPage - Auth state:', {
-      hasUser: !!user,
-      userEmail: user?.email,
-      hasProfile: !!profile,
-      profileRole: profile?.role,
-      isAdmin,
-      loading
-    });
-
-    // Si on est en cours de chargement, afficher un loading
-    if (loading) {
-      return (
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Vérification des permissions...</p>
-          </div>
+  // Si on est en cours de chargement, afficher un loading optimisé
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Vérification des autorisations...</p>
         </div>
-      );
+      </div>
+    );
+  }
+
+  // Si pas d'utilisateur ou pas admin, afficher le formulaire de connexion
+  if (!user || !isAdmin) {
+    return <AdminAuthForm />;
+  }
+
+  const getPageTitle = () => {
+    switch (activeTab) {
+      case 'dashboard': return 'Dashboard Administrateur';
+      case 'subscriptions': return 'Gestion Abonnements';
+      case 'subdomains': return 'Sous-domaines';
+      case 'landing-pages': return 'Landing Pages';
+      case 'repairers': return 'Réparateurs';
+      case 'interest': return 'Demandes d\'intérêt';
+      case 'promocodes': return 'Codes Promo';
+      case 'advertising': return 'Publicités';
+      case 'advertising-ai': return 'Publicité IA';
+      case 'analytics': return 'Analytics';
+      case 'scraping': return 'Scraping';
+      case 'blog': return 'Blog & Contenu';
+      case 'chatbot': return 'Chatbot';
+      case 'pos-admin': return 'Administration POS';
+      case 'ecommerce-admin': return 'E-commerce';
+      case 'local-seo': return 'SEO Local';
+      case 'seo-monitoring': return 'Monitoring SEO';
+      case 'repair-generator': return 'Générateur Contenu';
+      case 'pagespeed-pro': return 'PageSpeed Pro';
+      case 'performance': return 'Performance';
+      case 'documentation': return 'Documentation';
+      case 'features-manager': return 'Gestion Fonctionnalités';
+      case 'configuration': return 'Configuration';
+      default: return 'Dashboard';
     }
+  };
 
-    // Si pas d'utilisateur connecté ou pas admin, afficher le formulaire de connexion
-    if (!user || !isAdmin) {
-      console.log('🚫 AdminPage: User not admin - showing admin auth form');
-      return <AdminAuthForm />;
+  const getPageSubtitle = () => {
+    switch (activeTab) {
+      case 'dashboard': return 'Vue d\'ensemble de la plateforme RepairHub';
+      case 'subscriptions': return 'Gestion des abonnements réparateurs';
+      case 'subdomains': return 'Configuration des sous-domaines et landing pages';
+      case 'landing-pages': return 'Création et gestion des landing pages personnalisées';
+      case 'repairers': return 'Liste et gestion des réparateurs';
+      case 'interest': return 'Demandes d\'intérêt clients';
+      case 'promocodes': return 'Codes de réduction et promotions';
+      case 'advertising': return 'Bannières publicitaires';
+      case 'advertising-ai': return 'Campagnes publicitaires intelligentes avec IA';
+      case 'analytics': return 'Analyses détaillées et métriques de performance';
+      case 'scraping': return 'Outils de collecte de données';
+      case 'blog': return 'Gestion du contenu éditorial';
+      case 'chatbot': return 'Administration et configuration de l\'assistant intelligent';
+      case 'pos-admin': return 'Administration des systèmes POS';
+      case 'ecommerce-admin': return 'Administration des boutiques e-commerce';
+      case 'local-seo': return 'Génération automatique de pages SEO locales optimisées';
+      case 'seo-monitoring': return 'Monitoring SEO et surveillance technique en temps réel';
+      case 'repair-generator': return 'Générateur de contenu pour réparation mobile';
+      case 'pagespeed-pro': return 'Analyses PageSpeed avancées et optimisation performance';
+      case 'performance': return 'Optimisation et surveillance des performances globales';
+      case 'documentation': return 'Gestion de la documentation technique et utilisateur';
+      case 'features-manager': return 'Gestionnaire centralisé de toutes les fonctionnalités et modules';
+      case 'configuration': return 'Configuration générale de l\'application';
+      default: return 'Administration de RepairHub';
     }
+  };
 
-    console.log('✅ AdminPage: Admin access granted');
-
-    const getPageTitle = () => {
-      switch (activeTab) {
-        case 'dashboard': return 'Dashboard';
-        case 'subscriptions': return 'Abonnements';
-        case 'subdomains': return 'Sous-domaines';
-        case 'landing-pages': return 'Landing Pages';
-        case 'repairers': return 'Réparateurs';
-        case 'interest': return 'Demandes d\'intérêt';
-        case 'promocodes': return 'Codes promo';
-        case 'advertising': return 'Publicités';
-        case 'advertising-ai': return 'Publicité IA';
-        case 'analytics': return 'Analytics';
-        case 'scraping': return 'Scraping';
-        case 'blog': return 'Blog';
-        case 'chatbot': return 'Chatbot IA';
-        case 'pos-admin': return 'POS Admin';
-        case 'ecommerce-admin': return 'E-commerce Admin';
-        case 'local-seo': return 'SEO Local';
-        case 'seo-monitoring': return 'SEO Monitoring';
-        case 'repair-generator': return 'Générateur Mobile';
-        case 'pagespeed-pro': return 'PageSpeed Pro';
-        case 'performance': return 'Performance';
-        case 'documentation': return 'Documentation';
-        case 'features-manager': return 'Gestion Fonctionnalités';
-        default: return 'Dashboard';
-      }
-    };
-
-    const getPageSubtitle = () => {
-      switch (activeTab) {
-        case 'dashboard': return 'Vue d\'ensemble de la plateforme RepairHub';
-        case 'subscriptions': return 'Gestion des abonnements réparateurs';
-        case 'subdomains': return 'Configuration des sous-domaines et landing pages';
-        case 'landing-pages': return 'Création et gestion des landing pages personnalisées';
-        case 'repairers': return 'Liste et gestion des réparateurs';
-        case 'interest': return 'Demandes d\'intérêt clients';
-        case 'promocodes': return 'Codes de réduction et promotions';
-        case 'advertising': return 'Banières publicitaires';
-        case 'advertising-ai': return 'Campagnes publicitaires intelligentes avec IA';
-        case 'analytics': return 'Analyses détaillées et métriques de performance';
-        case 'scraping': return 'Outils de collecte de données';
-        case 'blog': return 'Gestion du contenu éditorial';
-        case 'chatbot': return 'Administration et configuration de l\'assistant intelligent';
-        case 'pos-admin': return 'Administration des systèmes POS';
-        case 'ecommerce-admin': return 'Administration des boutiques e-commerce';
-        case 'local-seo': return 'Génération automatique de pages SEO locales optimisées';
-        case 'seo-monitoring': return 'Monitoring SEO et surveillance technique en temps réel';
-        case 'repair-generator': return 'Générateur de contenu pour réparation mobile';
-        case 'pagespeed-pro': return 'Analyses PageSpeed avancées et optimisation performance';
-        case 'performance': return 'Optimisation et surveillance des performances globales';
-        case 'documentation': return 'Gestion de la documentation technique et utilisateur';
-        case 'features-manager': return 'Gestionnaire centralisé de toutes les fonctionnalités et modules';
-        default: return 'Administration de RepairHub';
-      }
-    };
-
-    const renderContent = () => {
-      if (activeTab === 'dashboard') {
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
         return (
           <AdminDashboardContent 
             activeTab={activeTab}
@@ -133,77 +121,41 @@ const AdminPage = () => {
             onRefresh={async () => {}}
           />
         );
-      }
-
-      if (activeTab === 'subscriptions') {
+      case 'subscriptions':
         return <SubscriptionsManagement />;
-      }
-
-      if (activeTab === 'subdomains') {
+      case 'subdomains':
         return <SubdomainsManagement />;
-      }
-
-      if (activeTab === 'landing-pages') {
+      case 'landing-pages':
         return <LandingPagesManagement />;
-      }
-
-      if (activeTab === 'repairers') {
+      case 'repairers':
         return <RepairerList />;
-      }
-
-      if (activeTab === 'interest') {
+      case 'interest':
         return <ClientInterestManagement />;
-      }
-
-      if (activeTab === 'promocodes') {
+      case 'promocodes':
         return <PromoCodesManagement />;
-      }
-
-      if (activeTab === 'advertising') {
+      case 'advertising':
         return <AdvancedAdvertisingDashboard />;
-      }
-
-      if (activeTab === 'advertising-ai') {
+      case 'advertising-ai':
         return <AdvertisingAIDashboard />;
-      }
-
-      if (activeTab === 'analytics') {
+      case 'analytics':
         return <RepairersAnalytics />;
-      }
-
-      if (activeTab === 'scraping') {
+      case 'scraping':
         return <EnhancedScrapingHub />;
-      }
-
-      if (activeTab === 'blog') {
+      case 'blog':
         return <BlogManagement />;
-      }
-
-      if (activeTab === 'chatbot') {
+      case 'chatbot':
         return <ChatbotManagement />;
-      }
-
-      if (activeTab === 'pos-admin') {
+      case 'pos-admin':
         return <AdminPOSManagement />;
-      }
-
-      if (activeTab === 'ecommerce-admin') {
+      case 'ecommerce-admin':
         return <AdminEcommerceManagement />;
-      }
-
-      if (activeTab === 'local-seo') {
+      case 'local-seo':
         return <LocalSeoManagement />;
-      }
-
-      if (activeTab === 'seo-monitoring') {
+      case 'seo-monitoring':
         return <SEOMonitoringDashboard />;
-      }
-
-      if (activeTab === 'repair-generator') {
+      case 'repair-generator':
         return <RepairContentGenerator />;
-      }
-
-      if (activeTab === 'pagespeed-pro') {
+      case 'pagespeed-pro':
         return (
           <Card>
             <CardContent className="p-6">
@@ -237,36 +189,28 @@ const AdminPage = () => {
             </CardContent>
           </Card>
         );
-      }
-
-      if (activeTab === 'performance') {
+      case 'performance':
         return <PerformanceManagement />;
-      }
-
-      if (activeTab === 'documentation') {
+      case 'documentation':
         return <EnhancedDocumentationManager />;
-      }
-
-      if (activeTab === 'features-manager') {
+      case 'features-manager':
         return <AdminFeaturesManager />;
-      }
-
-      if (activeTab === 'configuration') {
+      case 'configuration':
         return <AdminConfigurationPage />;
-      }
+      default:
+        return (
+          <AdminDashboardContent 
+            activeTab={activeTab}
+            subscriptions={[]}
+            repairers={[]}
+            onViewProfile={() => {}}
+            onRefresh={async () => {}}
+          />
+        );
+    }
+  };
 
-      // Default dashboard avec données simplifiées
-      return (
-        <AdminDashboardContent 
-          activeTab={activeTab}
-          subscriptions={[]}
-          repairers={[]}
-          onViewProfile={() => {}}
-          onRefresh={async () => {}}
-        />
-      );
-    };
-
+  try {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
