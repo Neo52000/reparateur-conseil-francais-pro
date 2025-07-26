@@ -71,7 +71,8 @@ function App() {
                 <Route path="/blog" element={<BlogPage />} />
                 <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
                 
-      {/* SEO Local Routes */}
+      {/* SEO Local Routes avec support des accents */}
+      <Route path="/réparateur-:service-:city" element={<LocalSeoPage />} />
       <Route path="/reparateur-:service-:city" element={<LocalSeoPage />} />
       <Route path="/:slug" element={<LocalSeoPage />} />
       

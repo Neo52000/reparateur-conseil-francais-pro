@@ -383,6 +383,47 @@ const APIManager: React.FC = () => {
     }
   };
 
+  const handleConfigureIntegration = (integration: Integration) => {
+    toast({
+      title: "Configuration",
+      description: `Configuration de l'intégration ${integration.name}`,
+    });
+    // TODO: Ouvrir une modale de configuration spécifique
+  };
+
+  const handleTestIntegration = async (integration: Integration) => {
+    try {
+      toast({
+        title: "Test en cours",
+        description: `Test de l'intégration ${integration.name}...`,
+      });
+
+      // Simuler un test d'intégration
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const success = Math.random() > 0.3; // 70% de chance de succès
+
+      if (success) {
+        toast({
+          title: "Test réussi",
+          description: `L'intégration ${integration.name} fonctionne correctement`,
+        });
+      } else {
+        toast({
+          title: "Test échoué",
+          description: `L'intégration ${integration.name} rencontre des problèmes`,
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur de test",
+        description: "Impossible de tester l'intégration",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -767,12 +808,20 @@ const APIManager: React.FC = () => {
                     </div>
                     
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleConfigureIntegration(integration)}
+                      >
                         <Settings className="h-3 w-3 mr-1" />
                         Configurer
                       </Button>
                       
-                      <Button size="sm" variant="outline">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleTestIntegration(integration)}
+                      >
                         <Activity className="h-3 w-3 mr-1" />
                         Tester
                       </Button>

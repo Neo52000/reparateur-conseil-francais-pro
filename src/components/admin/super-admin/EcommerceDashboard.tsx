@@ -14,8 +14,11 @@ import {
   MousePointer,
   CheckCircle,
   AlertCircle,
-  XCircle
+  XCircle,
+  Settings,
+  Activity
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import {
   LineChart,
   Line,
@@ -335,12 +338,13 @@ const EcommerceDashboard: React.FC = () => {
 
         {/* Tableaux de bord et analytics */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-8">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
             <TabsTrigger value="boutique">Boutique</TabsTrigger>
             <TabsTrigger value="orders">Commandes</TabsTrigger>
             <TabsTrigger value="stores">Boutiques</TabsTrigger>
             <TabsTrigger value="inventory">Inventaire</TabsTrigger>
+            <TabsTrigger value="integrations">Intégrations</TabsTrigger>
             <TabsTrigger value="sync">Synchronisation</TabsTrigger>
             <TabsTrigger value="system">Système</TabsTrigger>
           </TabsList>
@@ -467,6 +471,225 @@ const EcommerceDashboard: React.FC = () => {
                   });
                 }}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="integrations">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Intégrations E-commerce</CardTitle>
+                  <p className="text-muted-foreground">Connectez vos boutiques aux plateformes e-commerce populaires</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    {/* PrestaShop Integration */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                            <Store className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">PrestaShop</h3>
+                            <p className="text-sm text-muted-foreground">Synchronisation avec PrestaShop API</p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3 mb-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Statut</span>
+                            <Badge variant="outline">Non configuré</Badge>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Dernière sync</span>
+                            <span className="text-sm text-muted-foreground">Jamais</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Boutiques connectées</span>
+                            <span className="text-sm">0</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="flex-1">
+                            <Settings className="h-3 w-3 mr-1" />
+                            Configurer
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Activity className="h-3 w-3 mr-1" />
+                            Tester
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* WooCommerce Integration */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <ShoppingCart className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">WooCommerce</h3>
+                            <p className="text-sm text-muted-foreground">Synchronisation avec WordPress/WooCommerce</p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3 mb-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Statut</span>
+                            <Badge variant="default">Connecté</Badge>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Dernière sync</span>
+                            <span className="text-sm text-muted-foreground">Il y a 15 min</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Boutiques connectées</span>
+                            <span className="text-sm">3</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="flex-1">
+                            <Settings className="h-3 w-3 mr-1" />
+                            Configurer
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Activity className="h-3 w-3 mr-1" />
+                            Tester
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Shopify Integration */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                            <Globe className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">Shopify</h3>
+                            <p className="text-sm text-muted-foreground">Intégration avec Shopify Admin API</p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3 mb-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Statut</span>
+                            <Badge variant="destructive">Erreur</Badge>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Dernière sync</span>
+                            <span className="text-sm text-muted-foreground">Il y a 2h</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Boutiques connectées</span>
+                            <span className="text-sm">1</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="flex-1">
+                            <Settings className="h-3 w-3 mr-1" />
+                            Configurer
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Activity className="h-3 w-3 mr-1" />
+                            Tester
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Magento Integration */}
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+                            <Package className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">Magento</h3>
+                            <p className="text-sm text-muted-foreground">Connecteur pour Magento 2.x</p>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3 mb-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Statut</span>
+                            <Badge variant="outline">Non configuré</Badge>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Dernière sync</span>
+                            <span className="text-sm text-muted-foreground">Jamais</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Boutiques connectées</span>
+                            <span className="text-sm">0</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="flex-1">
+                            <Settings className="h-3 w-3 mr-1" />
+                            Configurer
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Activity className="h-3 w-3 mr-1" />
+                            Tester
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Configuration API */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Configuration API</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">URL API PrestaShop</label>
+                        <Input placeholder="https://monshop.com/api" />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Clé API PrestaShop</label>
+                        <Input type="password" placeholder="Votre clé API" />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">URL WooCommerce</label>
+                        <Input placeholder="https://monshop.com/wp-json/wc/v3" />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Consumer Key WooCommerce</label>
+                        <Input type="password" placeholder="ck_xxxxx" />
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Sauvegarder la configuration
+                      </Button>
+                      <Button variant="outline">
+                        <Activity className="h-4 w-4 mr-2" />
+                        Tester les connexions
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 

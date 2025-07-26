@@ -23,7 +23,7 @@ serve(async (req) => {
     }
 
     // Configuration Mistral AI
-    const mistralApiKey = Deno.env.get('MISTRAL_API_KEY')
+    const mistralApiKey = Deno.env.get('CLE_API_MISTRAL') || Deno.env.get('MISTRAL_API_KEY')
     
     if (!mistralApiKey) {
       console.log('⚠️ Clé Mistral manquante, utilisation du template statique')

@@ -95,7 +95,7 @@ const AdminPage = () => {
       case 'pagespeed-pro': return 'PageSpeed Pro';
       case 'performance': return 'Performance';
       case 'documentation': return 'Documentation';
-      case 'feature-flags': return 'Feature Flags';
+      
       case 'features-manager': return 'Gestion Fonctionnalités';
       default: return 'Dashboard';
     }
@@ -122,7 +122,7 @@ const AdminPage = () => {
       case 'pagespeed-pro': return 'Analyses PageSpeed avancées et optimisation performance';
       case 'performance': return 'Optimisation et surveillance des performances globales';
       case 'documentation': return 'Gestion de la documentation technique et utilisateur';
-      case 'feature-flags': return 'Gestion des fonctionnalités et déploiements progressifs';
+      
       case 'features-manager': return 'Gestionnaire centralisé de toutes les fonctionnalités et modules';
       default: return 'Administration de RepairHub';
     }

@@ -65,7 +65,16 @@ export class NavigationService {
     const cleaned = slug
       .toLowerCase()
       .trim()
-      .replace(/[^a-z0-9\s-_]/g, '') // Garder seulement les caractères alphanumériques, espaces, tirets et underscores
+      // Normaliser les caractères accentués
+      .replace(/[àáâãäå]/g, 'a')
+      .replace(/[èéêë]/g, 'e')
+      .replace(/[ìíîï]/g, 'i')
+      .replace(/[òóôõö]/g, 'o')
+      .replace(/[ùúûü]/g, 'u')
+      .replace(/[ç]/g, 'c')
+      .replace(/[ñ]/g, 'n')
+      // Garder seulement les caractères alphanumériques, espaces, tirets et underscores
+      .replace(/[^a-z0-9\s-_]/g, '') 
       .replace(/\s+/g, '-') // Remplacer les espaces par des tirets
       .replace(/-+/g, '-') // Remplacer les tirets multiples par un seul
       .replace(/^-|-$/g, ''); // Supprimer les tirets en début et fin
@@ -78,6 +87,13 @@ export class NavigationService {
 
     console.log('NavigationService.cleanSlug:', { original: slug, cleaned });
     return cleaned;
+  }
+
+  /**
+   * Normalise une URL avec accents pour la recherche
+   */
+  static normalizeUrlForSearch(url: string): string {
+    return this.cleanSlug(url);
   }
 
   /**

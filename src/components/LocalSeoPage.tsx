@@ -23,7 +23,7 @@ import Footer from '@/components/Footer';
 
 const LocalSeoPage = () => {
   const { service, city, slug: routeSlug } = useParams<{ service: string, city: string, slug: string }>();
-  const slug = routeSlug || `reparateur-${service}-${city}`;
+  const slug = routeSlug || (service && city ? `reparateur-${service}-${city}` : '');
   const [page, setPage] = useState<LocalSeoPageType | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -31,18 +31,46 @@ const LocalSeoPage = () => {
   useEffect(() => {
     if (slug) {
       loadPage(slug);
+    } else {
+      setNotFound(true);
+      setLoading(false);
     }
   }, [slug]);
 
   const loadPage = async (pageSlug: string) => {
     try {
-      const pageData = await localSeoService.getPageBySlug(pageSlug);
+      console.log('🔍 Recherche page SEO avec slug:', pageSlug);
+      
+      // Essayer d'abord avec le slug exact
+      let pageData = await localSeoService.getPageBySlug(pageSlug);
+      
+      // Si pas trouvé, essayer avec les variations d'accents
+      if (!pageData) {
+        // Normaliser le slug pour gérer les accents
+        const normalizedSlug = pageSlug
+          .replace(/é/g, 'e')
+          .replace(/è/g, 'e')
+          .replace(/à/g, 'a')
+          .replace(/ç/g, 'c');
+          
+        console.log('🔍 Tentative avec slug normalisé:', normalizedSlug);
+        pageData = await localSeoService.getPageBySlug(normalizedSlug);
+      }
+      
+      // Si toujours pas trouvé, essayer l'inverse (sans accents vers avec accents)
+      if (!pageData && !pageSlug.includes('é')) {
+        const accentedSlug = pageSlug.replace(/reparateur/g, 'réparateur');
+        console.log('🔍 Tentative avec accents:', accentedSlug);
+        pageData = await localSeoService.getPageBySlug(accentedSlug);
+      }
       
       if (pageData) {
+        console.log('✅ Page SEO trouvée:', pageData.slug);
         setPage(pageData);
         // Enregistrer la vue
         await localSeoService.trackPageView(pageData.id);
       } else {
+        console.log('❌ Aucune page SEO trouvée pour:', pageSlug);
         setNotFound(true);
       }
     } catch (error) {

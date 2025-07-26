@@ -221,12 +221,16 @@ const RepairContentGenerator: React.FC = () => {
       const localData = await fetchLocalData();
       
       // 2. Générer le contenu via IA
+      console.log('📝 Début génération IA...');
       const content = await generateAIContent(localData);
+      console.log('✅ Contenu IA généré:', content);
       
       // 3. Enrichir avec les données locales
       const enrichedContent = await enrichContent(content, localData);
+      console.log('🎯 Contenu enrichi final:', enrichedContent);
       
       setGeneratedContent(enrichedContent);
+      setPreviewMode('preview'); // Basculer automatiquement en mode préview
       toast.success('Contenu généré avec succès');
       
     } catch (error) {
@@ -305,9 +309,23 @@ const RepairContentGenerator: React.FC = () => {
       }
     });
 
-    if (response.error) throw response.error;
-    // Extract the content from the nested response structure
-    return response.data?.content || response.data;
+    if (response.error) {
+      console.error('Erreur edge function:', response.error);
+      throw new Error(response.error.message || 'Erreur génération IA');
+    }
+
+    console.log('🎯 Réponse edge function:', response.data);
+    
+    // Gérer différents formats de réponse
+    if (response.data?.success && response.data?.content) {
+      return response.data.content;
+    } else if (response.data?.content) {
+      return response.data.content;
+    } else if (response.data) {
+      return response.data;
+    }
+    
+    throw new Error('Format de réponse inattendu de l\'API');
   };
 
   const enrichContent = async (content: any, localData: any): Promise<GeneratedContent> => {
