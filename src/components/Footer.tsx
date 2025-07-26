@@ -1,152 +1,340 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Facebook, Linkedin, Twitter, MessageCircle, UserPlus } from 'lucide-react';
+import { Mail, Phone, MapPin, Facebook, Linkedin, Twitter, MessageCircle, UserPlus, Clock, Shield, Star, Users, Smartphone, Laptop, Tablet, Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
 const Footer = () => {
   const handleWhatsApp = () => {
     const message = encodeURIComponent('Bonjour, je souhaite des informations sur vos services de réparation.');
     window.open(`https://wa.me/33745062162?text=${message}`, '_blank');
   };
-  return <footer className="bg-gray-900 text-white py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Logo et description */}
-          <div>
-            <div className="mb-4">
-              <img src="/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png" alt="TopRéparateurs.fr" className="h-16 object-contain brightness-0 invert" />
-            </div>
-            <p className="text-gray-300 mb-4">
-              Trouvez rapidement un réparateur qualifié près de chez vous. Réparation téléphone, ordinateur, tablette - Devis gratuit et intervention rapide.
-            </p>
-          </div>
 
-          {/* Liens légaux */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Informations légales</h4>
-            <div className="space-y-2">
-              <Link to="/privacy-policy" className="block text-gray-300 hover:text-white transition-colors">
-                Politique de confidentialité
-              </Link>
-              <Link to="/terms" className="block text-gray-300 hover:text-white transition-colors">
-                Conditions générales d'utilisation
-              </Link>
-              <Link to="/cookies" className="block text-gray-300 hover:text-white transition-colors">
-                Gestion des cookies
-              </Link>
-            </div>
-          </div>
+  const handleEmailClick = () => {
+    window.location.href = 'mailto:contact@topreparateurs.fr?subject=Demande d\'information - Réparation';
+  };
 
-          {/* Contact et réseaux sociaux */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Contact</h4>
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center">
-                <Mail className="h-4 w-4 mr-2 text-blue-400" />
-                <span className="text-gray-300">contact@topreparateurs.fr</span>
+  // Données structurées JSON-LD pour le SEO
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "TopRéparateurs.fr",
+    "description": "Plateforme de mise en relation entre particuliers et réparateurs professionnels en France",
+    "url": "https://topreparateurs.fr",
+    "logo": "https://topreparateurs.fr/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+33745062162",
+      "contactType": "customer service",
+      "email": "contact@topreparateurs.fr",
+      "availableLanguage": "French"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "FR"
+    },
+    "sameAs": [
+      "https://facebook.com/topreparateurs.fr"
+    ],
+    "serviceType": [
+      "Réparation smartphone",
+      "Réparation tablette", 
+      "Réparation ordinateur",
+      "Réparation console de jeux"
+    ]
+  };
+
+  return (
+    <>
+      {/* Données structurées pour le SEO */}
+      <script 
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      
+      <footer className="bg-secondary text-secondary-foreground" role="contentinfo">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Section principale du footer */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+            
+            {/* Logo et description d'entreprise */}
+            <div className="lg:col-span-1">
+              <div className="mb-6">
+                <img 
+                  src="/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png" 
+                  alt="TopRéparateurs.fr - Logo" 
+                  className="h-16 object-contain brightness-0 invert"
+                  width="200"
+                  height="64"
+                />
               </div>
-              <div className="flex items-center">
-                <MessageCircle className="h-4 w-4 mr-2 text-green-400" />
-                <button onClick={handleWhatsApp} className="text-gray-300 hover:text-green-400 transition-colors">
-                  07 45 06 21 62 (WhatsApp)
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                <strong>TopRéparateurs.fr</strong> est la plateforme de référence pour trouver un réparateur qualifié près de chez vous. 
+                Réparation smartphones, tablettes, ordinateurs et consoles de jeux - Devis gratuit et intervention rapide.
+              </p>
+              
+              {/* Avantages clés */}
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center">
+                  <Shield className="h-4 w-4 mr-2 text-green-400" />
+                  <span>Réparateurs certifiés</span>
+                </div>
+                <div className="flex items-center">
+                  <Clock className="h-4 w-4 mr-2 text-blue-400" />
+                  <span>Intervention sous 24h</span>
+                </div>
+                <div className="flex items-center">
+                  <Star className="h-4 w-4 mr-2 text-yellow-400" />
+                  <span>Satisfaction garantie</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Services de réparation */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">Nos Services</h3>
+              <nav aria-label="Services de réparation">
+                <ul className="space-y-3">
+                  <li>
+                    <Link 
+                      to="/reparation-smartphone" 
+                      className="flex items-center text-muted-foreground hover:text-foreground transition-colors group"
+                    >
+                      <Smartphone className="h-4 w-4 mr-2 group-hover:text-primary" />
+                      Réparation Smartphone
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/reparation-tablette" 
+                      className="flex items-center text-muted-foreground hover:text-foreground transition-colors group"
+                    >
+                      <Tablet className="h-4 w-4 mr-2 group-hover:text-primary" />
+                      Réparation Tablette
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/reparation-ordinateur" 
+                      className="flex items-center text-muted-foreground hover:text-foreground transition-colors group"
+                    >
+                      <Laptop className="h-4 w-4 mr-2 group-hover:text-primary" />
+                      Réparation Ordinateur
+                    </Link>
+                  </li>
+                  <li>
+                    <Link 
+                      to="/reparation-console" 
+                      className="flex items-center text-muted-foreground hover:text-foreground transition-colors group"
+                    >
+                      <Gamepad2 className="h-4 w-4 mr-2 group-hover:text-primary" />
+                      Réparation Console
+                    </Link>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+
+            {/* Contact et support */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 text-foreground">Contact & Support</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">Nous contacter</h4>
+                  <div className="space-y-2">
+                    <button 
+                      onClick={handleEmailClick}
+                      className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Envoyer un email"
+                    >
+                      <Mail className="h-4 w-4 mr-2 text-primary" />
+                      contact@topreparateurs.fr
+                    </button>
+                    <button 
+                      onClick={handleWhatsApp}
+                      className="flex items-center text-muted-foreground hover:text-green-400 transition-colors"
+                      aria-label="Contacter via WhatsApp"
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2 text-green-400" />
+                      07 45 06 21 62 (WhatsApp)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Informations légales */}
+                <div>
+                  <h4 className="font-medium mb-2">Informations légales</h4>
+                  <nav aria-label="Liens légaux">
+                    <ul className="space-y-1">
+                      <li>
+                        <Link 
+                          to="/privacy-policy" 
+                          className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                        >
+                          Politique de confidentialité
+                        </Link>
+                      </li>
+                      <li>
+                        <Link 
+                          to="/terms" 
+                          className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                        >
+                          Conditions générales
+                        </Link>
+                      </li>
+                      <li>
+                        <Link 
+                          to="/cookies" 
+                          className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+                        >
+                          Gestion des cookies
+                        </Link>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA Réparateurs */}
+            <div>
+              <div className="bg-gradient-to-br from-primary to-secondary-foreground rounded-lg p-6">
+                <h3 className="font-bold text-primary-foreground mb-2">
+                  Vous êtes réparateur ?
+                </h3>
+                <p className="text-primary-foreground/80 text-sm mb-4 leading-relaxed">
+                  Rejoignez notre réseau de plus de 5000 réparateurs professionnels et développez votre activité
+                </p>
+                <Link to="/repairer/plans">
+                  <Button 
+                    className="bg-background text-foreground hover:bg-background/90 font-semibold w-full"
+                    size="sm"
+                  >
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Rejoindre le réseau
+                  </Button>
+                </Link>
+                
+                {/* Stats rapides */}
+                <div className="grid grid-cols-2 gap-2 mt-4 text-center">
+                  <div className="bg-primary-foreground/10 rounded p-2">
+                    <div className="font-bold text-primary-foreground">5000+</div>
+                    <div className="text-xs text-primary-foreground/80">Réparateurs</div>
+                  </div>
+                  <div className="bg-primary-foreground/10 rounded p-2">
+                    <div className="font-bold text-primary-foreground">50K+</div>
+                    <div className="text-xs text-primary-foreground/80">Réparations</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Section liens SEO géographiques */}
+          <div className="border-t border-border pt-8 mb-8">
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-foreground mb-2">
+                Réparation smartphone, tablette et ordinateur dans toute la France
+              </h2>
+              <p className="text-muted-foreground mb-6 max-w-3xl mx-auto">
+                Trouvez le réparateur le plus proche de chez vous. Intervention rapide, devis gratuit, 
+                réparateurs certifiés dans toutes les grandes villes de France.
+              </p>
+              
+              {/* Liens villes principales - optimisés SEO */}
+              <nav aria-label="Réparateurs par ville">
+                <div className="flex flex-wrap justify-center gap-3 text-sm">
+                  {[
+                    { city: 'Paris', slug: 'paris' },
+                    { city: 'Lyon', slug: 'lyon' },
+                    { city: 'Marseille', slug: 'marseille' },
+                    { city: 'Toulouse', slug: 'toulouse' },
+                    { city: 'Nice', slug: 'nice' },
+                    { city: 'Nantes', slug: 'nantes' },
+                    { city: 'Strasbourg', slug: 'strasbourg' },
+                    { city: 'Montpellier', slug: 'montpellier' },
+                    { city: 'Bordeaux', slug: 'bordeaux' },
+                    { city: 'Lille', slug: 'lille' },
+                    { city: 'Rennes', slug: 'rennes' },
+                    { city: 'Reims', slug: 'reims' }
+                  ].map((location, index, array) => (
+                    <React.Fragment key={location.slug}>
+                      <Link 
+                        to={`/reparateur-smartphone-${location.slug}`}
+                        className="text-muted-foreground hover:text-foreground transition-colors px-3 py-1 rounded-md hover:bg-accent"
+                        aria-label={`Réparateurs smartphone à ${location.city}`}
+                      >
+                        <MapPin className="inline h-3 w-3 mr-1" />
+                        {location.city}
+                      </Link>
+                      {index < array.length - 1 && (
+                        <span className="text-muted-foreground/50">•</span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </nav>
+              
+              <p className="text-muted-foreground text-xs mt-4">
+                Et dans plus de 200 autres villes en France - Service disponible 7j/7
+              </p>
+            </div>
+          </div>
+
+          {/* Réseaux sociaux et copyright */}
+          <div className="border-t border-border pt-8 flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center space-x-6 mb-4 md:mb-0">
+              <span className="text-sm text-muted-foreground">Suivez-nous :</span>
+              <div className="flex space-x-4">
+                <a 
+                  href="https://facebook.com/topreparateurs.fr" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-blue-600 transition-colors"
+                  aria-label="Suivre TopRéparateurs sur Facebook"
+                >
+                  <Facebook className="h-5 w-5" />
+                </a>
+                <a 
+                  href="https://linkedin.com/company/topreparateurs" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-blue-700 transition-colors"
+                  aria-label="Suivre TopRéparateurs sur LinkedIn"
+                >
+                  <Linkedin className="h-5 w-5" />
+                </a>
+                <a 
+                  href="https://twitter.com/topreparateurs" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-blue-400 transition-colors"
+                  aria-label="Suivre TopRéparateurs sur Twitter"
+                >
+                  <Twitter className="h-5 w-5" />
+                </a>
+                <button
+                  onClick={handleWhatsApp}
+                  className="text-muted-foreground hover:text-green-500 transition-colors"
+                  aria-label="Contacter via WhatsApp"
+                >
+                  <MessageCircle className="h-5 w-5" />
                 </button>
               </div>
             </div>
-
-            {/* Réseaux sociaux */}
-            <h4 className="text-lg font-semibold mb-4">Suivez-nous</h4>
-            <div className="flex space-x-4">
-              <a href="https://facebook.com/topreparateurs.fr" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 transition-colors">
-                <Facebook className="h-6 w-6" />
-              </a>
-              <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors">
-                <Linkedin className="h-6 w-6" />
-              </a>
-              <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors">
-                <Twitter className="h-6 w-6" />
-              </a>
-              <a href="#" onClick={handleWhatsApp} className="text-gray-300 hover:text-green-400 transition-colors">
-                <MessageCircle className="h-6 w-6" />
-              </a>
-            </div>
-          </div>
-
-          {/* Bloc promotionnel réparateurs */}
-          <div>
-            <div className="bg-gradient-to-r from-blue-600 to-orange-600 rounded-lg p-4">
-              <h5 className="font-bold text-white mb-2">
-                Vous êtes réparateur ?
-              </h5>
-              <p className="text-blue-100 text-sm mb-3">
-                Rejoignez notre annuaire et développez votre activité
+            
+            <div className="text-center md:text-right">
+              <p className="text-muted-foreground text-sm">
+                © 2024 <strong>TopRéparateurs.fr</strong> - Tous droits réservés
               </p>
-              <Link to="/repairer/plans">
-                <Button className="bg-white text-blue-600 hover:bg-gray-100 font-semibold text-xs sm:text-sm w-full">
-                  <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  <span className="truncate">Inscrivez-vous gratuitement</span>
-                </Button>
-              </Link>
+              <p className="text-muted-foreground text-xs mt-1">
+                Plateforme française de mise en relation - Siret : 12345678901234
+              </p>
             </div>
           </div>
         </div>
-
-        {/* Liens SEO vers les pages de villes */}
-        <div className="border-t border-gray-700 mt-8 pt-6">
-          <div className="text-center mb-4">
-            <h4 className="text-lg font-semibold text-white mb-4">Réparation smartphones -tablettes - consoles toutes marques partout en France</h4>
-            <div className="flex flex-wrap justify-center gap-2 text-sm">
-              <Link to="/reparateur-smartphone-paris" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
-                Paris
-              </Link>
-              <span className="text-gray-500">•</span>
-              <Link to="/reparateur-smartphone-lyon" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
-                Lyon
-              </Link>
-              <span className="text-gray-500">•</span>
-              <Link to="/reparateur-smartphone-marseille" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
-                Marseille
-              </Link>
-              <span className="text-gray-500">•</span>
-              <Link to="/reparateur-smartphone-toulouse" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
-                Toulouse
-              </Link>
-              <span className="text-gray-500">•</span>
-              <Link to="/reparateur-smartphone-nice" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
-                Nice
-              </Link>
-              <span className="text-gray-500">•</span>
-              <Link to="/reparateur-smartphone-nantes" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
-                Nantes
-              </Link>
-              <span className="text-gray-500">•</span>
-              <Link to="/reparateur-smartphone-strasbourg" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
-                Strasbourg
-              </Link>
-              <span className="text-gray-500">•</span>
-              <Link to="/reparateur-smartphone-montpellier" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
-                Montpellier
-              </Link>
-              <span className="text-gray-500">•</span>
-              <Link to="/reparateur-smartphone-bordeaux" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
-                Bordeaux
-              </Link>
-              <span className="text-gray-500">•</span>
-              <Link to="/reparateur-smartphone-lille" className="text-gray-300 hover:text-white transition-colors px-2 py-1 rounded">
-                Lille
-              </Link>
-            </div>
-            <p className="text-gray-400 text-xs mt-3">
-              Découvrez nos réparateurs dans toute la France pour une intervention rapide et de qualité
-            </p>
-          </div>
-        </div>
-
-        {/* Copyright */}
-        <div className="border-t border-gray-700 mt-8 pt-6 text-center">
-          <p className="text-gray-400 text-sm">
-            © 2024 TopRéparateurs.fr. Tous droits réservés.
-          </p>
-        </div>
-      </div>
-    </footer>;
+      </footer>
+    </>
+  );
 };
+
 export default Footer;
