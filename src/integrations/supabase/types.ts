@@ -1892,6 +1892,48 @@ export type Database = {
         }
         Relationships: []
       }
+      connection_analytics: {
+        Row: {
+          created_at: string
+          device_info: Json | null
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          location_info: Json | null
+          session_duration: number | null
+          session_id: string
+          user_agent: string | null
+          user_id: string | null
+          user_role: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_info?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          location_info?: Json | null
+          session_duration?: number | null
+          session_id: string
+          user_agent?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_info?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          location_info?: Json | null
+          session_duration?: number | null
+          session_id?: string
+          user_agent?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
       data_quality_metrics: {
         Row: {
           accuracy_score: number | null
@@ -6894,7 +6936,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      connection_stats: {
+        Row: {
+          avg_session_duration: number | null
+          date: string | null
+          event_count: number | null
+          event_type: string | null
+          unique_users: number | null
+          user_role: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_url_to_monitoring: {
