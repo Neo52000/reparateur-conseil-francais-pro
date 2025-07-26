@@ -7045,10 +7045,6 @@ export type Database = {
         Args: { "": string }
         Returns: string
       }
-      unaccent_init: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
       validate_and_use_promo_code: {
         Args: { promo_code_text: string }
         Returns: Json
