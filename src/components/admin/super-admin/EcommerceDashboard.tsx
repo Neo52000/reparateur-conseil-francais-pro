@@ -46,6 +46,7 @@ import InventoryManager from './InventoryManager';
 import SyncManager from './SyncManager';
 import AdvancedAnalytics from './AdvancedAnalytics';
 import WayfairStyleEcommerce from '../../ecommerce/modern/WayfairStyleEcommerce';
+import EcommerceIntegrationModal from './EcommerceIntegrationModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -86,7 +87,41 @@ const EcommerceDashboard: React.FC = () => {
   const [moduleModalOpen, setModuleModalOpen] = useState(false);
   const [selectedStore, setSelectedStore] = useState<{ id: string; name: string } | null>(null);
   const [isEcommerceFullscreen, setIsEcommerceFullscreen] = useState(false);
+  const [configModalOpen, setConfigModalOpen] = useState(false);
+  const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Handler pour configurer une intégration
+  const handleConfigureIntegration = (platform: string) => {
+    setSelectedIntegration(platform);
+    setConfigModalOpen(true);
+  };
+
+  // Handler pour tester une intégration
+  const handleTestIntegration = async (platform: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('test-ecommerce-integration', {
+        body: { platform }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Test de connexion",
+        description: `Connexion à ${platform} ${data.success ? 'réussie' : 'échouée'}`,
+        variant: data.success ? "default" : "destructive"
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur de test",
+        description: `Impossible de tester la connexion à ${platform}`,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Données de démonstration pour les graphiques
   const salesData = [
@@ -513,11 +548,20 @@ const EcommerceDashboard: React.FC = () => {
                         </div>
                         
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="flex-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1"
+                            onClick={() => handleConfigureIntegration('prestashop')}
+                          >
                             <Settings className="h-3 w-3 mr-1" />
                             Configurer
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleTestIntegration('prestashop')}
+                          >
                             <Activity className="h-3 w-3 mr-1" />
                             Tester
                           </Button>
@@ -554,11 +598,20 @@ const EcommerceDashboard: React.FC = () => {
                         </div>
                         
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="flex-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1"
+                            onClick={() => handleConfigureIntegration('woocommerce')}
+                          >
                             <Settings className="h-3 w-3 mr-1" />
                             Configurer
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleTestIntegration('woocommerce')}
+                          >
                             <Activity className="h-3 w-3 mr-1" />
                             Tester
                           </Button>
@@ -595,11 +648,20 @@ const EcommerceDashboard: React.FC = () => {
                         </div>
                         
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="flex-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1"
+                            onClick={() => handleConfigureIntegration('shopify')}
+                          >
                             <Settings className="h-3 w-3 mr-1" />
                             Configurer
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleTestIntegration('shopify')}
+                          >
                             <Activity className="h-3 w-3 mr-1" />
                             Tester
                           </Button>
@@ -636,11 +698,20 @@ const EcommerceDashboard: React.FC = () => {
                         </div>
                         
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="flex-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="flex-1"
+                            onClick={() => handleConfigureIntegration('magento')}
+                          >
                             <Settings className="h-3 w-3 mr-1" />
                             Configurer
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleTestIntegration('magento')}
+                          >
                             <Activity className="h-3 w-3 mr-1" />
                             Tester
                           </Button>
@@ -890,6 +961,16 @@ const EcommerceDashboard: React.FC = () => {
           repairerName={selectedStore.name}
         />
       )}
+
+      {/* Integration Configuration Modal */}
+      <EcommerceIntegrationModal
+        isOpen={configModalOpen}
+        onClose={() => {
+          setConfigModalOpen(false);
+          setSelectedIntegration(null);
+        }}
+        platform={selectedIntegration}
+      />
     </SuperAdminLayout>
   );
 };
