@@ -36,6 +36,7 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=subscriptions', icon: CreditCard, label: 'Abonnements', tab: 'subscriptions', category: 'Core' },
     { path: '/admin?tab=repairers', icon: Users, label: 'Réparateurs', tab: 'repairers', category: 'Core' },
     { path: '/admin?tab=interest', icon: Heart, label: 'Demandes d\'intérêt', tab: 'interest', category: 'Core' },
+    { path: '/admin?tab=analytics', icon: Gauge, label: 'Analytics', tab: 'analytics', category: 'Core' },
     
     // SEO & Performance
     { path: '/admin?tab=seo-monitoring', icon: Search, label: 'SEO Monitoring', tab: 'seo-monitoring', category: 'SEO & Performance', hasAlert: true },
@@ -48,7 +49,7 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=repair-generator', icon: Smartphone, label: 'Générateur Mobile', tab: 'repair-generator', category: 'Content & Marketing' },
     { path: '/admin?tab=subdomains', icon: Globe, label: 'Sous-domaines', tab: 'subdomains', category: 'Content & Marketing' },
     { path: '/admin?tab=landing-pages', icon: Layout, label: 'Landing Pages', tab: 'landing-pages', category: 'Content & Marketing' },
-    { path: '/admin?tab=advertising', icon: Megaphone, label: 'Publicités', tab: 'advertising', category: 'Content & Marketing' },
+    { path: '/admin?tab=advertising-ai', icon: Megaphone, label: 'Publicité IA', tab: 'advertising-ai', category: 'Content & Marketing' },
     { path: '/admin?tab=promocodes', icon: Tag, label: 'Codes promo', tab: 'promocodes', category: 'Content & Marketing' },
     
     // Technical

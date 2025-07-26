@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import { AdminLayout } from '@/components/admin/AdminLayout';
+import AdminSidebar from '@/components/admin/AdminSidebar';
 import DashboardOverview from '@/components/admin/DashboardOverview';
 import AdminDashboardContent from '@/components/admin/AdminDashboardContent';
 import AdminDashboardHeader from '@/components/admin/AdminDashboardHeader';
@@ -26,6 +26,8 @@ import SEOMonitoringDashboard from '@/components/admin/SEOMonitoringDashboard';
 import RepairContentGenerator from '@/components/blog/admin/RepairContentGenerator';
 import PerformanceManagement from '@/components/admin/PerformanceManagement';
 import EnhancedDocumentationManager from '@/components/admin/EnhancedDocumentationManager';
+import { AdvertisingAIDashboard } from '@/components/admin/advertising/AdvertisingAIDashboard';
+import { RepairersAnalytics } from '@/components/admin/analytics/RepairersAnalytics';
 
 import AdminFeaturesManager from '@/components/admin/AdminFeaturesManager';
 import AdminConfigurationPage from '@/components/admin/AdminConfigurationPage';
@@ -84,6 +86,8 @@ const AdminPage = () => {
       case 'interest': return 'Demandes d\'intérêt';
       case 'promocodes': return 'Codes promo';
       case 'advertising': return 'Publicités';
+      case 'advertising-ai': return 'Publicité IA';
+      case 'analytics': return 'Analytics';
       case 'scraping': return 'Scraping';
       case 'blog': return 'Blog';
       case 'chatbot': return 'Chatbot IA';
@@ -111,6 +115,8 @@ const AdminPage = () => {
       case 'interest': return 'Demandes d\'intérêt clients';
       case 'promocodes': return 'Codes de réduction et promotions';
       case 'advertising': return 'Banières publicitaires';
+      case 'advertising-ai': return 'Campagnes publicitaires intelligentes avec IA';
+      case 'analytics': return 'Analyses détaillées et métriques de performance';
       case 'scraping': return 'Outils de collecte de données';
       case 'blog': return 'Gestion du contenu éditorial';
       case 'chatbot': return 'Administration et configuration de l\'assistant intelligent';
@@ -173,6 +179,14 @@ const AdminPage = () => {
 
     if (activeTab === 'advertising') {
       return <AdvancedAdvertisingDashboard />;
+    }
+
+    if (activeTab === 'advertising-ai') {
+      return <AdvertisingAIDashboard />;
+    }
+
+    if (activeTab === 'analytics') {
+      return <RepairersAnalytics />;
     }
 
     if (activeTab === 'scraping') {
@@ -275,7 +289,18 @@ const AdminPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <AdminLayout />
+      <div className="flex h-screen bg-background">
+        <AdminSidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-auto p-6">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-foreground">{getPageTitle()}</h1>
+              <p className="text-muted-foreground">{getPageSubtitle()}</p>
+            </div>
+            {renderContent()}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
