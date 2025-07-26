@@ -6910,6 +6910,7 @@ export type Database = {
           subscription_end: string | null
           subscription_tier: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Relationships: []
       }
@@ -7040,10 +7041,6 @@ export type Database = {
       refresh_seo_page_content: {
         Args: { page_id: string }
         Returns: boolean
-      }
-      unaccent: {
-        Args: { "": string }
-        Returns: string
       }
       validate_and_use_promo_code: {
         Args: { promo_code_text: string }
