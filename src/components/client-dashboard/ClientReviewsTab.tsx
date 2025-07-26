@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useDemoMode } from '@/hooks/useDemoMode';
-import { Star, MessageCircle, ThumbsUp, ThumbsDown, Edit, Plus, TestTube } from 'lucide-react';
+import { Star, MessageCircle, ThumbsUp, ThumbsDown, Edit, Plus, TestTube, Image, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -36,6 +36,7 @@ interface ClientReview {
   status: 'pending' | 'approved' | 'rejected' | 'hidden';
   moderation_notes?: string;
   helpful_count: number;
+  photos?: string[]; // URLs des photos
   created_at: string;
   updated_at: string;
   source?: 'demo';
@@ -87,6 +88,7 @@ const ClientReviewsTab = () => {
   const [pros, setPros] = useState('');
   const [cons, setCons] = useState('');
   const [wouldRecommend, setWouldRecommend] = useState<boolean | null>(null);
+  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -246,6 +248,7 @@ const ClientReviewsTab = () => {
     setPros('');
     setCons('');
     setWouldRecommend(null);
+    setUploadedPhotos([]);
     setEditingReview(null);
   };
 
@@ -327,6 +330,7 @@ const ClientReviewsTab = () => {
     setPros(review.pros || '');
     setCons(review.cons || '');
     setWouldRecommend(review.would_recommend);
+    setUploadedPhotos(review.photos || []);
     setIsReviewDialogOpen(true);
   };
 
@@ -565,6 +569,61 @@ const ClientReviewsTab = () => {
                     </div>
                   </div>
 
+                  {/* Section photos */}
+                  <div>
+                    <Label>Photos de la réparation (optionnel)</Label>
+                    <div className="mt-2 space-y-3">
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors">
+                          <Image className="h-4 w-4 text-gray-600" />
+                          <span className="text-sm text-gray-600">Ajouter des photos</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => {
+                              const files = Array.from(e.target.files || []);
+                              files.forEach(file => {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  if (event.target?.result) {
+                                    setUploadedPhotos(prev => [...prev, event.target!.result as string]);
+                                  }
+                                };
+                                reader.readAsDataURL(file);
+                              });
+                            }}
+                          />
+                        </label>
+                        <span className="text-xs text-gray-500">Maximum 5 photos • JPG, PNG • Max 2MB chacune</span>
+                      </div>
+                      
+                      {uploadedPhotos.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2">
+                          {uploadedPhotos.map((photo, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={photo}
+                                alt={`Photo ${index + 1}`}
+                                className="w-full h-20 object-cover rounded-lg border"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setUploadedPhotos(prev => prev.filter((_, i) => i !== index));
+                                }}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="flex justify-end space-x-2">
                     <Button variant="outline" onClick={() => setIsReviewDialogOpen(false)}>
                       Annuler
@@ -658,7 +717,28 @@ const ClientReviewsTab = () => {
                             </div>
                           )}
                         </div>
-                      )}
+                       )}
+
+                       {/* Afficher les photos */}
+                       {review.photos && review.photos.length > 0 && (
+                         <div className="mb-3">
+                           <h5 className="text-sm font-semibold mb-2">Photos de la réparation</h5>
+                           <div className="grid grid-cols-3 gap-2">
+                             {review.photos.map((photo, index) => (
+                               <img
+                                 key={index}
+                                 src={photo}
+                                 alt={`Photo ${index + 1} de la réparation`}
+                                 className="w-full h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+                                 onClick={() => {
+                                   // Ouverture modal photo (à implémenter si nécessaire)
+                                   window.open(photo, '_blank');
+                                 }}
+                               />
+                             ))}
+                           </div>
+                         </div>
+                       )}
 
                       {review.would_recommend !== null && (
                         <div className="flex items-center gap-2 text-sm">

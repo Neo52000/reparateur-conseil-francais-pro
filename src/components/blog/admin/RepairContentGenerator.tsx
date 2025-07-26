@@ -825,7 +825,17 @@ ${generatedContent.internalLinks.map(link => `- [${link.title}](${link.url})`).j
                       <strong>URL:</strong> /{generatedContent.slug}<br/>
                       <strong>Méta:</strong> {generatedContent.metaDescription}
                     </div>
-                    <div dangerouslySetInnerHTML={{ __html: (typeof generatedContent.content === 'string' ? generatedContent.content : String(generatedContent.content || '')).replace(/\n/g, '<br>') }} />
+                    <div 
+                      className="prose prose-lg max-w-none"
+                      style={{ whiteSpace: 'pre-wrap' }}
+                    >
+                      {typeof generatedContent.content === 'string' 
+                        ? generatedContent.content.split('\n').map((line, index) => (
+                            <p key={index} className="mb-4">{line}</p>
+                          ))
+                        : String(generatedContent.content || '')
+                      }
+                    </div>
                   </div>
                 )}
               </CardContent>

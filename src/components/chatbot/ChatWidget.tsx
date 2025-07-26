@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { MessageCircle, X, Send, Mic, MicOff, Minimize2, Maximize2, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { MessageCircle, X, Send, Mic, MicOff, Minimize2, Maximize2, ThumbsUp, ThumbsDown, Power } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +25,7 @@ interface ChatWidgetProps {
 }
 
 const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
+  const [isEnabled, setIsEnabled] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -204,6 +205,28 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
     setIsFullscreen(!isFullscreen);
   };
 
+  
+  if (!isEnabled) {
+    return (
+      <div className="fixed bottom-6 right-6 z-50">
+        <motion.div
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Button
+            onClick={() => setIsEnabled(true)}
+            className="rounded-full w-16 h-16 bg-gray-400 hover:bg-gray-500 shadow-lg relative overflow-hidden group opacity-50"
+            title="Assistant IA désactivé - Cliquer pour activer"
+          >
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Power className="h-6 w-6 text-white" />
+            </div>
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
+
   if (!isOpen) {
     return (
       <div className="fixed bottom-6 right-6 z-50">
@@ -276,6 +299,15 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
             </div>
           </div>
           <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEnabled(false)}
+              className="text-white hover:bg-white/10"
+              title="Désactiver l'assistant IA"
+            >
+              <Power className="h-4 w-4" />
+            </Button>
             <Button
               variant="ghost"
               size="sm"

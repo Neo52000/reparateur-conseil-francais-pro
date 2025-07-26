@@ -115,29 +115,29 @@ export const FEATURES: Feature[] = [
   { key: "real_time_metrics", name: "Métriques en temps réel", category: "Analyse Avancée" },
 
   // Modules POS - Hub Central (€49.90/mois)
-  { key: "pos_system_enabled", name: "Système POS complet", category: "POS" },
-  { key: "pos_cash_register", name: "Caisse enregistreuse NF-525", category: "POS" },
-  { key: "pos_inventory_sync", name: "Synchronisation inventaire temps réel", category: "POS" },
-  { key: "pos_appointments_sync", name: "Synchronisation rendez-vous bidirectionnelle", category: "POS" },
-  { key: "pos_repairs_management", name: "Gestion réparations centralisée", category: "POS" },
-  { key: "pos_customer_database", name: "Base clients unifiée", category: "POS" },
-  { key: "pos_billing_integration", name: "Facturation intégrée NF-525", category: "POS" },
-  { key: "pos_offline_mode", name: "Mode hors ligne avec synchronisation", category: "POS" },
-  { key: "pos_peripheral_support", name: "Support imprimantes et terminaux", category: "POS" },
-  { key: "pos_dashboard_absorption", name: "Absorption fonctionnalités dashboard", category: "POS" },
-  { key: "pos_data_migration", name: "Migration automatique des données", category: "POS" },
+  { key: "pos_system_enabled", name: "Système POS complet", category: "Système POS" },
+  { key: "pos_cash_register", name: "Caisse enregistreuse NF-525", category: "Système POS" },
+  { key: "pos_inventory_sync", name: "Synchronisation inventaire temps réel", category: "Système POS" },
+  { key: "pos_appointments_sync", name: "Synchronisation rendez-vous bidirectionnelle", category: "Système POS" },
+  { key: "pos_repairs_management", name: "Gestion réparations centralisée", category: "Système POS" },
+  { key: "pos_customer_database", name: "Base clients unifiée", category: "Système POS" },
+  { key: "pos_billing_integration", name: "Facturation intégrée NF-525", category: "Système POS" },
+  { key: "pos_offline_mode", name: "Mode hors ligne avec synchronisation", category: "Système POS" },
+  { key: "pos_peripheral_support", name: "Support imprimantes et terminaux", category: "Système POS" },
+  { key: "pos_dashboard_absorption", name: "Absorption fonctionnalités dashboard", category: "Système POS" },
+  { key: "pos_data_migration", name: "Migration automatique des données", category: "Système POS" },
 
   // Modules E-commerce - Boutique en ligne (€89/mois)
-  { key: "ecommerce_storefront", name: "Boutique en ligne personnalisée", category: "E-commerce" },
-  { key: "ecommerce_product_catalog", name: "Catalogue produits synchronisé", category: "E-commerce" },
-  { key: "ecommerce_order_management", name: "Gestion commandes e-commerce", category: "E-commerce" },
-  { key: "ecommerce_payment_integration", name: "Paiements en ligne Stripe", category: "E-commerce" },
-  { key: "ecommerce_seo_tools", name: "Outils SEO et marketing", category: "E-commerce" },
-  { key: "ecommerce_custom_domain", name: "Sous-domaine personnalisé", category: "E-commerce" },
-  { key: "ecommerce_analytics", name: "Analytics e-commerce avancées", category: "E-commerce" },
-  { key: "ecommerce_stock_sync", name: "Synchronisation stock POS/E-commerce", category: "E-commerce" },
-  { key: "ecommerce_customer_accounts", name: "Comptes clients e-commerce", category: "E-commerce" },
-  { key: "ecommerce_mobile_responsive", name: "Design mobile responsive", category: "E-commerce" }
+  { key: "ecommerce_storefront", name: "Boutique en ligne personnalisée", category: "Plateforme E-commerce" },
+  { key: "ecommerce_product_catalog", name: "Catalogue produits synchronisé", category: "Plateforme E-commerce" },
+  { key: "ecommerce_order_management", name: "Gestion commandes e-commerce", category: "Plateforme E-commerce" },
+  { key: "ecommerce_payment_integration", name: "Paiements en ligne Stripe", category: "Plateforme E-commerce" },
+  { key: "ecommerce_seo_tools", name: "Outils SEO et marketing", category: "Plateforme E-commerce" },
+  { key: "ecommerce_custom_domain", name: "Sous-domaine personnalisé", category: "Plateforme E-commerce" },
+  { key: "ecommerce_analytics", name: "Analytics e-commerce avancées", category: "Plateforme E-commerce" },
+  { key: "ecommerce_stock_sync", name: "Synchronisation stock POS/E-commerce", category: "Plateforme E-commerce" },
+  { key: "ecommerce_customer_accounts", name: "Comptes clients e-commerce", category: "Plateforme E-commerce" },
+  { key: "ecommerce_mobile_responsive", name: "Design mobile responsive", category: "Plateforme E-commerce" }
 ];
 
 /**
