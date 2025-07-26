@@ -27,25 +27,27 @@ interface SearchCriteria {
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { pendingAction, clearPendingAction } = usePendingAction();
-  const {
-    isQuoteModalOpen,
-    isAppointmentModalOpen,
-    selectedRepairerId,
-    selectedQuoteId,
-    handleRequestQuote,
-    handleBookAppointment,
-    closeQuoteModal,
-    closeAppointmentModal
-  } = useQuoteAndAppointment();
   
-  const [selectedRepairerForProfile, setSelectedRepairerForProfile] = useState<string | null>(null);
-  const [showQuickSearch, setShowQuickSearch] = useState(false);
-  const [showMapSearch, setShowMapSearch] = useState(false);
-  const [searchFilters, setSearchFilters] = useState<any>(null);
+  try {
+    const { user } = useAuth();
+    const { pendingAction, clearPendingAction } = usePendingAction();
+    const {
+      isQuoteModalOpen,
+      isAppointmentModalOpen,
+      selectedRepairerId,
+      selectedQuoteId,
+      handleRequestQuote,
+      handleBookAppointment,
+      closeQuoteModal,
+      closeAppointmentModal
+    } = useQuoteAndAppointment();
+    
+    const [selectedRepairerForProfile, setSelectedRepairerForProfile] = useState<string | null>(null);
+    const [showQuickSearch, setShowQuickSearch] = useState(false);
+    const [showMapSearch, setShowMapSearch] = useState(false);
+    const [searchFilters, setSearchFilters] = useState<any>(null);
 
-  console.log('🏠 Index page rendering');
+    console.log('🏠 Index page rendering');
 
   // Gérer la restauration des actions après connexion
   useEffect(() => {
@@ -179,6 +181,23 @@ const Index = () => {
       )}
     </div>
   );
+  } catch (error) {
+    console.error('Erreur critique dans Index:', error);
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Erreur de chargement</h1>
+          <p className="text-gray-600 mb-4">Une erreur s'est produite lors du chargement de la page.</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Recharger la page
+          </button>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default Index;
