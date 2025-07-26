@@ -2242,6 +2242,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ecommerce_integrations: {
+        Row: {
+          configuration: Json
+          created_at: string
+          id: string
+          is_active: boolean
+          platform: string
+          updated_at: string
+        }
+        Insert: {
+          configuration?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          platform: string
+          updated_at?: string
+        }
+        Update: {
+          configuration?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          platform?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ecommerce_order_items: {
         Row: {
           created_at: string
