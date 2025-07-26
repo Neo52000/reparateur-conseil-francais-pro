@@ -6894,26 +6894,7 @@ export type Database = {
       }
     }
     Views: {
-      admin_subscription_overview: {
-        Row: {
-          billing_cycle: string | null
-          created_at: string | null
-          email: string | null
-          first_name: string | null
-          id: string | null
-          last_name: string | null
-          plan_name: string | null
-          price_monthly: number | null
-          price_yearly: number | null
-          repairer_id: string | null
-          subscribed: boolean | null
-          subscription_end: string | null
-          subscription_tier: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       add_url_to_monitoring: {
@@ -6973,6 +6954,26 @@ export type Database = {
       generate_unique_id: {
         Args: { prefix?: string }
         Returns: string
+      }
+      get_admin_subscription_overview: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          repairer_id: string
+          email: string
+          user_id: string
+          first_name: string
+          last_name: string
+          subscription_tier: string
+          billing_cycle: string
+          subscribed: boolean
+          created_at: string
+          updated_at: string
+          subscription_end: string
+          plan_name: string
+          price_monthly: number
+          price_yearly: number
+        }[]
       }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
