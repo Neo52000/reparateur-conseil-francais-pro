@@ -127,61 +127,69 @@ export const useScrapingLogs = (autoRefreshEnabled: boolean) => {
     }
   };
 
-  // Vérification plus fréquente du statut
   useEffect(() => {
-    const interval = setInterval(() => {
-      console.log('⏰ Vérification périodique du statut de scraping...');
-      fetchLogs();
-    }, 3000); // Réduit à 3 secondes pour une meilleure réactivité
-
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (channelRef.current) {
-      console.log('🧹 Nettoyage de la subscription existante');
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
-
+    console.log('🔧 Initializing useScrapingLogs...');
+    
+    // Initial fetch
     fetchLogs();
 
-    if (!channelRef.current && autoRefreshEnabled) {
-      console.log('📡 Création de la subscription realtime');
+    // Setup realtime subscription if enabled
+    if (autoRefreshEnabled) {
+      const channelName = `scraping_logs_${Date.now()}_${Math.random()}`;
+      console.log('📡 Creating realtime subscription:', channelName);
       
-      channelRef.current = supabase
-        .channel(`scraping_logs_${Date.now()}`)
+      const channel = supabase
+        .channel(channelName)
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
           table: 'scraping_logs'
         }, (payload) => {
-          console.log('🔄 Changement temps réel détecté:', payload);
+          console.log('🔄 Realtime change detected:', payload);
           fetchLogs();
+        })
+        .subscribe((status: string) => {
+          console.log('📡 Subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Realtime subscription active');
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('❌ Realtime subscription error');
+            toast({
+              title: "Erreur temps réel",
+              description: "La mise à jour automatique ne fonctionne pas.",
+              variant: "destructive"
+            });
+          }
         });
 
-      channelRef.current.subscribe((status: string) => {
-        console.log('📡 Statut subscription:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Subscription realtime active');
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Erreur de subscription realtime');
-          toast({
-            title: "Erreur temps réel",
-            description: "La mise à jour automatique ne fonctionne pas.",
-            variant: "destructive"
-          });
-        }
-      });
-    }
+      channelRef.current = channel;
 
-    return () => {
-      console.log('🧹 Nettoyage de la subscription lors du démontage');
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
+      // Backup polling every 10 seconds
+      const interval = setInterval(() => {
+        console.log('⏰ Backup polling check...');
+        fetchLogs();
+      }, 10000);
+
+      return () => {
+        console.log('🧹 Cleaning up useScrapingLogs');
+        clearInterval(interval);
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
+      };
+    } else {
+      // If realtime disabled, use polling only
+      const interval = setInterval(() => {
+        console.log('⏰ Polling check (realtime disabled)...');
+        fetchLogs();
+      }, 5000);
+
+      return () => {
+        console.log('🧹 Cleaning up polling');
+        clearInterval(interval);
+      };
+    }
   }, [autoRefreshEnabled]);
 
   return {
