@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Navigation from '@/components/Navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 import AdminAuditDashboard from '@/components/admin/AdminAuditDashboard';
 import { useAuth } from '@/hooks/useAuth';
 import AdminAuthForm from '@/components/AdminAuthForm';
@@ -25,16 +25,15 @@ const AdminAuditDashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navigation />
-      
-      <AdminLayout
-        title="Tableau de bord d'audit"
-        subtitle="Vue d'ensemble complète du système d'audit"
-        onRefresh={() => window.location.reload()}
-      >
+      <div className="container mx-auto py-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Tableau de bord d'audit</h1>
+          <p className="text-muted-foreground">Vue d'ensemble complète du système d'audit</p>
+        </div>
         <AdminAuditDashboard />
-      </AdminLayout>
+      </div>
     </div>
   );
 };

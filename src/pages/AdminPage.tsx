@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/AdminLayout';
 import DashboardOverview from '@/components/admin/DashboardOverview';
 import AdminDashboardContent from '@/components/admin/AdminDashboardContent';
 import AdminDashboardHeader from '@/components/admin/AdminDashboardHeader';
@@ -273,13 +273,10 @@ const AdminPage = () => {
   };
 
   return (
-    <AdminLayout
-      title={getPageTitle()}
-      subtitle={getPageSubtitle()}
-      onRefresh={fetchData}
-    >
-      {renderContent()}
-    </AdminLayout>
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <AdminLayout />
+    </div>
   );
 };
 
