@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,56 +12,87 @@ import {
   TrendingUp, 
   TrendingDown,
   Target,
-  Zap
+  Zap,
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
-
-const mockCampaigns = [
-  {
-    id: '1',
-    name: 'Réparation iPhone - Proximité',
-    status: 'active' as const,
-    budget_daily: 45.00,
-    budget_spent: 320.50,
-    impressions: 12500,
-    clicks: 340,
-    conversions: 12,
-    roas: 3.8,
-    channels: ['Google Ads', 'Meta Ads'],
-    created_at: '2024-01-15'
-  },
-  {
-    id: '2',
-    name: 'Samsung Galaxy - Urgence',
-    status: 'paused' as const,
-    budget_daily: 30.00,
-    budget_spent: 180.20,
-    impressions: 8200,
-    clicks: 210,
-    conversions: 8,
-    roas: 2.9,
-    channels: ['Google Ads'],
-    created_at: '2024-01-10'
-  },
-  {
-    id: '3',
-    name: 'Écrans cassés - Premium',
-    status: 'draft' as const,
-    budget_daily: 60.00,
-    budget_spent: 0,
-    impressions: 0,
-    clicks: 0,
-    conversions: 0,
-    roas: 0,
-    channels: ['Google Ads', 'Meta Ads', 'Microsoft Ads'],
-    created_at: '2024-01-20'
-  }
-];
+import { AdvertisingCampaignService } from '@/services/advertising/AdvertisingCampaignService';
+import { NewCampaignDialog } from './NewCampaignDialog';
+import { useToast } from '@/hooks/use-toast';
 
 export const CampaignsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'paused' | 'draft'>('all');
+  const [campaigns, setCampaigns] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const filteredCampaigns = mockCampaigns.filter(campaign => {
+  useEffect(() => {
+    loadCampaigns();
+  }, []);
+
+  const loadCampaigns = async () => {
+    try {
+      setIsLoading(true);
+      const data = await AdvertisingCampaignService.getCampaigns();
+      setCampaigns(data);
+    } catch (error) {
+      console.error('Erreur chargement campagnes:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les campagnes",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCampaignAction = async (campaignId: string, action: 'play' | 'pause' | 'optimize') => {
+    setIsUpdating(campaignId);
+    try {
+      let newStatus = '';
+      switch (action) {
+        case 'play':
+          newStatus = 'active';
+          await AdvertisingCampaignService.updateCampaign(campaignId, { status: 'active' });
+          break;
+        case 'pause':
+          newStatus = 'paused';
+          await AdvertisingCampaignService.updateCampaign(campaignId, { status: 'paused' });
+          break;
+        case 'optimize':
+          // Logique d'optimisation IA
+          toast({
+            title: "Optimisation lancée",
+            description: "L'IA analyse et optimise votre campagne...",
+          });
+          return;
+      }
+
+      // Mettre à jour localement
+      setCampaigns(prev => prev.map((c: any) => 
+        c.id === campaignId ? { ...c, status: newStatus } : c
+      ));
+
+      toast({
+        title: "Succès",
+        description: `Campagne ${action === 'play' ? 'activée' : 'mise en pause'} avec succès`,
+      });
+    } catch (error) {
+      console.error(`Erreur ${action}:`, error);
+      toast({
+        title: "Erreur",
+        description: `Impossible de ${action === 'play' ? 'activer' : 'mettre en pause'} la campagne`,
+        variant: "destructive"
+      });
+    } finally {
+      setIsUpdating(null);
+    }
+  };
+
+  const filteredCampaigns = campaigns.filter((campaign: any) => {
     const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || campaign.status === filterStatus;
     return matchesSearch && matchesStatus;
@@ -90,10 +121,13 @@ export const CampaignsList = () => {
             Créez et gérez vos campagnes publicitaires multi-canaux
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouvelle campagne
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={loadCampaigns} disabled={isLoading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
+          <NewCampaignDialog onCampaignCreated={loadCampaigns} />
+        </div>
       </div>
 
       {/* Filtres et Recherche */}
@@ -130,8 +164,16 @@ export const CampaignsList = () => {
       </Card>
 
       {/* Liste des campagnes */}
-      <div className="grid gap-4">
-        {filteredCampaigns.map((campaign) => (
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+            <p className="text-muted-foreground">Chargement des campagnes...</p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {filteredCampaigns.map((campaign: any) => (
           <Card key={campaign.id} className="hover:shadow-md transition-shadow">
             <CardContent className="pt-6">
               <div className="flex items-start justify-between">
@@ -140,72 +182,104 @@ export const CampaignsList = () => {
                     <div className="p-2 bg-primary/10 rounded-lg">
                       <Target className="h-5 w-5 text-primary" />
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{campaign.name}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        {getStatusBadge(campaign.status)}
-                        <span className="text-sm text-muted-foreground">
-                          {campaign.channels.join(' • ')}
-                        </span>
+                      <div>
+                        <h3 className="font-semibold text-foreground">{campaign.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          {getStatusBadge(campaign.status)}
+                          <span className="text-sm text-muted-foreground">
+                            {Array.isArray(campaign.channels) ? campaign.channels.join(' • ') : 'Multi-plateformes'}
+                          </span>
+                        </div>
                       </div>
-                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Budget/jour</p>
-                      <p className="font-semibold">€{campaign.budget_daily.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Dépensé</p>
-                      <p className="font-semibold">€{campaign.budget_spent.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Impressions</p>
-                      <p className="font-semibold">{campaign.impressions.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Clics</p>
-                      <p className="font-semibold">{campaign.clicks}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">ROAS</p>
-                      <div className="flex items-center gap-1">
-                        <p className="font-semibold">{campaign.roas.toFixed(1)}x</p>
-                        {campaign.roas > 3 ? (
-                          <TrendingUp className="h-3 w-3 text-green-500" />
-                        ) : (
-                          <TrendingDown className="h-3 w-3 text-red-500" />
-                        )}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Budget/jour</p>
+                        <p className="font-semibold">€{campaign.budget_daily.toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Dépensé</p>
+                        <p className="font-semibold">€{campaign.budget_spent.toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Créé le</p>
+                        <p className="font-semibold">
+                          {new Date(campaign.created_at).toLocaleDateString('fr-FR')}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Type</p>
+                        <p className="font-semibold capitalize">{campaign.campaign_type}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Style</p>
+                        <p className="font-semibold capitalize">{campaign.creative_style || 'Standard'}</p>
                       </div>
                     </div>
-                  </div>
                 </div>
 
                 <div className="flex gap-2 ml-4">
                   {campaign.status === 'active' ? (
-                    <Button variant="outline" size="sm">
-                      <Pause className="h-4 w-4" />
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleCampaignAction(campaign.id, 'pause')}
+                      disabled={isUpdating === campaign.id}
+                    >
+                      {isUpdating === campaign.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Pause className="h-4 w-4" />
+                      )}
+                    </Button>
+                  ) : campaign.status === 'paused' ? (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleCampaignAction(campaign.id, 'play')}
+                      disabled={isUpdating === campaign.id}
+                    >
+                      {isUpdating === campaign.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Play className="h-4 w-4" />
+                      )}
                     </Button>
                   ) : (
-                    <Button variant="outline" size="sm">
-                      <Play className="h-4 w-4" />
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleCampaignAction(campaign.id, 'play')}
+                      disabled={isUpdating === campaign.id}
+                    >
+                      {isUpdating === campaign.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Play className="h-4 w-4" />
+                      )}
                     </Button>
                   )}
                   <Button variant="outline" size="sm">
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleCampaignAction(campaign.id, 'optimize')}
+                    title="Optimiser avec IA"
+                  >
                     <Zap className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
+            ))}
+        </div>
+      )}
 
-      {filteredCampaigns.length === 0 && (
+      {!isLoading && filteredCampaigns.length === 0 && (
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
@@ -217,10 +291,15 @@ export const CampaignsList = () => {
                 {searchTerm ? 'Aucune campagne ne correspond à votre recherche.' : 
                  'Vous n\'avez pas encore créé de campagne.'}
               </p>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Créer ma première campagne
-              </Button>
+              <NewCampaignDialog 
+                onCampaignCreated={loadCampaigns}
+                trigger={
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Créer ma première campagne
+                  </Button>
+                }
+              />
             </div>
           </CardContent>
         </Card>
