@@ -6936,17 +6936,7 @@ export type Database = {
       }
     }
     Views: {
-      connection_stats: {
-        Row: {
-          avg_session_duration: number | null
-          date: string | null
-          event_count: number | null
-          event_type: string | null
-          unique_users: number | null
-          user_role: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       add_url_to_monitoring: {
@@ -7025,6 +7015,17 @@ export type Database = {
           plan_name: string
           price_monthly: number
           price_yearly: number
+        }[]
+      }
+      get_connection_stats: {
+        Args: { start_date?: string; end_date?: string }
+        Returns: {
+          date: string
+          event_type: string
+          user_role: string
+          event_count: number
+          unique_users: number
+          avg_session_duration: number
         }[]
       }
       get_current_user_role: {
