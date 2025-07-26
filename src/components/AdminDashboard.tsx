@@ -30,6 +30,7 @@ import RepairerList from './admin/RepairerList';
 import ScrapingDashboard from './admin/ScrapingDashboard';
 import BlogAdmin from './blog/admin/BlogAdmin';
 import RepairContentGenerator from './blog/admin/RepairContentGenerator';
+import { RepairerAnalyticsDashboard } from './admin/analytics/RepairerAnalyticsDashboard';
 
 import AuditLogAdmin from './admin/AuditLogAdmin';
 import AdvancedAdvertisingDashboard from './advertising/AdvancedAdvertisingDashboard';
@@ -387,8 +388,7 @@ const AdminDashboard = () => {
 
           {/* Core Tabs */}
           <TabsContent value="analytics">
-            <h2 className="text-2xl font-bold mb-4">Analytics</h2>
-            <div>Contenu des analytics</div>
+            <RepairerAnalyticsDashboard />
           </TabsContent>
 
           {/* SEO & Performance Tabs */}
