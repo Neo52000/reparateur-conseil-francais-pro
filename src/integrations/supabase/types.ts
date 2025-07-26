@@ -6938,6 +6938,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: boolean
       }
+      cleanup_old_rate_limits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       create_admin_user: {
         Args: { user_email: string; admin_user_id: string }
         Returns: boolean
