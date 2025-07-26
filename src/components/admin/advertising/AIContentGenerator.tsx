@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,8 +16,11 @@ import {
   Type, 
   Video,
   Sparkles,
-  Plus
+  Plus,
+  Loader2
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const contentStyles = [
   { value: 'proximite', label: 'Proximité', description: 'Chaleureux et local' },
@@ -60,15 +63,81 @@ const mockGeneratedContent = [
 export const AIContentGenerator = () => {
   const [activeTab, setActiveTab] = useState('generate');
   const [selectedStyle, setSelectedStyle] = useState('proximite');
+  const [selectedContentType, setSelectedContentType] = useState('ad_title');
   const [generationPrompt, setGenerationPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState<any>(null);
+  const [contentHistory, setContentHistory] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadContentHistory();
+  }, []);
+
+  const loadContentHistory = async () => {
+    setIsLoadingHistory(true);
+    try {
+      const { data, error } = await supabase
+        .from('ai_generated_content')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setContentHistory(data || []);
+    } catch (error) {
+      console.error('Erreur chargement historique:', error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
 
   const handleGenerate = async () => {
+    if (!generationPrompt.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez saisir un contexte pour la génération",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsGenerating(true);
-    // Simulation de génération
-    setTimeout(() => {
+    try {
+      const { error } = await supabase.functions.invoke('generate-ai-content', {
+        body: {
+          content_type: selectedContentType,
+          source_item: {
+            id: 'manual-' + Date.now(),
+            name: generationPrompt.split(' ').slice(0, 3).join(' '),
+            description: generationPrompt
+          },
+          style: selectedStyle,
+          target_audience: 'Clients locaux',
+          additional_context: 'Réparation de smartphone et accessoires'
+        }
+      });
+
+      if (error) throw error;
+
+      // Recharger l'historique pour voir le nouveau contenu
+      await loadContentHistory();
+      
+      toast({
+        title: "Succès",
+        description: "Contenu généré avec succès"
+      });
+    } catch (error) {
+      console.error('Erreur génération:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le contenu",
+        variant: "destructive"
+      });
+    } finally {
       setIsGenerating(false);
-    }, 3000);
+    }
   };
 
   const getContentTypeIcon = (type: string) => {
