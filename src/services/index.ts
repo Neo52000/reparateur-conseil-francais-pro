@@ -32,9 +32,10 @@ export { repairTypesService } from './catalog/repairTypesService';
 export { RepairerCatalogService } from './pricing/repairerCatalogService';
 export { RepairerCustomPricesService } from './pricing/repairerCustomPricesService';
 
-// Services de publicité
-// export { AIInsightsService } from './advertising/AIInsightsService';
-// export { RecommendationEngine } from './advertising/RecommendationEngine';
+// Services de publicité IA
+export { AdvertisingCampaignService } from './advertising/AdvertisingCampaignService';
+export { CatalogSyncService } from './advertising/CatalogSyncService';
+export { BudgetOptimizationService } from './advertising/BudgetOptimizationService';
 
 // Services de blog
 export { ContentCleaner } from './blog/contentCleaner';
