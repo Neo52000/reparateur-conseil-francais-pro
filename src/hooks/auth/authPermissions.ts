@@ -11,17 +11,15 @@ export const useAuthPermissions = (profile: Profile | null) => {
     profileEmail: profile?.email
   });
 
-  // Vérification spécifique pour le compte admin
-  const isAdminEmail = profile?.email === 'reine.elie@gmail.com';
+  // Vérification basée uniquement sur le rôle en base de données
   const hasAdminRole = profile?.role === 'admin';
   
   console.log('🔍 useAuthPermissions - Admin checks:', {
-    isAdminEmail,
     hasAdminRole,
-    profileEmail: profile?.email
+    profileRole: profile?.role
   });
 
-  const isAdmin = isAdminEmail || hasAdminRole;
+  const isAdmin = hasAdminRole;
   const canAccessClient = !!profile && (profile.role === 'user' || profile.role === 'admin');
   const canAccessRepairer = !!profile && (profile.role === 'repairer' || profile.role === 'admin');
   const canAccessAdmin = isAdmin;

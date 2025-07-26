@@ -104,8 +104,7 @@ const createFallbackProfile = (session: Session) => ({
   email: session.user.email!,
   first_name: session.user.user_metadata?.first_name || 'Utilisateur',
   last_name: session.user.user_metadata?.last_name || '',
-  role: session.user.email === 'demo@demo.fr' ? 'repairer' : 
-        session.user.email === 'reine.elie@gmail.com' ? 'admin' : 'user'
+  role: session.user.user_metadata?.role || 'user'
 });
 
 /**

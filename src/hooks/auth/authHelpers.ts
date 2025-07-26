@@ -22,24 +22,13 @@ export const createProfileFromMetadata = async (session: Session): Promise<Profi
 
   console.log('📝 Creating profile from user metadata:', session.user.user_metadata);
   
-  // Pour le compte admin spécifique, on force le rôle admin
-  const isAdminEmail = session.user.email === 'reine.elie@gmail.com';
-  // Pour le compte demo, on force le rôle repairer
-  const isDemoEmail = session.user.email === 'demo@demo.fr';
-  
-  let role = 'user';
-  if (isAdminEmail) {
-    role = 'admin';
-  } else if (isDemoEmail) {
-    role = 'repairer';
-  } else {
-    role = session.user.user_metadata?.role || 'user';
-  }
+  // Utiliser le rôle depuis les métadonnées utilisateur ou 'user' par défaut
+  const role = session.user.user_metadata?.role || 'user';
   
   const userData = {
     email: session.user.email!,
-    first_name: session.user.user_metadata?.first_name || (isAdminEmail ? 'Reine' : (isDemoEmail ? 'Demo' : 'Utilisateur')),
-    last_name: session.user.user_metadata?.last_name || (isAdminEmail ? 'Elie' : (isDemoEmail ? 'Repairer' : '')),
+    first_name: session.user.user_metadata?.first_name || 'Utilisateur',
+    last_name: session.user.user_metadata?.last_name || '',
     role: role
   };
 
@@ -70,32 +59,6 @@ export const fetchOrCreateProfile = async (session: Session): Promise<Profile | 
       }
     } else {
       console.log('✅ Existing profile found:', profileData);
-      
-      // Si c'est le compte admin, s'assurer que le rôle est bien admin
-      if (session.user.email === 'reine.elie@gmail.com' && profileData.role !== 'admin') {
-        console.log('🔧 Fixing admin role for reine.elie@gmail.com');
-        try {
-          profileData = await profileService.upsertProfile(session.user.id, {
-            ...profileData,
-            role: 'admin'
-          });
-        } catch (error) {
-          console.error('❌ Could not fix admin role:', error);
-        }
-      }
-      
-      // Si c'est le compte demo, s'assurer que le rôle est bien repairer
-      if (session.user.email === 'demo@demo.fr' && profileData.role !== 'repairer') {
-        console.log('🔧 Fixing repairer role for demo@demo.fr');
-        try {
-          profileData = await profileService.upsertProfile(session.user.id, {
-            ...profileData,
-            role: 'repairer'
-          });
-        } catch (error) {
-          console.error('❌ Could not fix repairer role:', error);
-        }
-      }
     }
 
     return profileData;
