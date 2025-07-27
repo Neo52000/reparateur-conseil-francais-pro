@@ -881,7 +881,14 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
                       )}
                       
                       <Button 
-                        onClick={addRepairFromCatalog}
+                        onClick={() => {
+                          console.log("=== Button clicked ===");
+                          console.log("Button disabled?", !selectedBrand || !selectedModel || !selectedRepairType);
+                          console.log("selectedBrand:", selectedBrand);
+                          console.log("selectedModel:", selectedModel);
+                          console.log("selectedRepairType:", selectedRepairType);
+                          addRepairFromCatalog();
+                        }}
                         disabled={!selectedBrand || !selectedModel || !selectedRepairType}
                         className="w-full"
                       >
