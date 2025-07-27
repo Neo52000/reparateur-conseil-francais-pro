@@ -9,7 +9,7 @@ interface RepairTicketGeneratorProps {
 export const generateRepairTicket = async (repairOrder: RepairOrder) => {
   try {
     // Générer le QR code de suivi
-    const trackingUrl = `${window.location.origin}/suivi/${repairOrder.id}`;
+    const trackingUrl = `${window.location.origin}/tracking/${repairOrder.id}`;
     const qrCodeDataUrl = await QRCode.toDataURL(trackingUrl, {
       width: 150,
       margin: 1,
@@ -307,7 +307,7 @@ const generateTicketHTML = (repairOrder: RepairOrder, qrCodeDataUrl: string) => 
             <div><strong>Scannez pour suivre votre réparation</strong></div>
             <div class="tracking-info">
               Ou rendez-vous sur:<br>
-              ${window.location.origin}/suivi/${repairOrder.id}
+              ${window.location.origin}/tracking/${repairOrder.id}
             </div>
           </div>
         </div>
