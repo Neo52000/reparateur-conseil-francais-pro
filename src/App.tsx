@@ -7,6 +7,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './hooks/useAuth';
 import Index from "./pages/Index";
 import AdminPage from "./pages/AdminPage";
+import RepairerSettingsPage from "./pages/RepairerSettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin/*" element={<AdminPage />} />
+              <Route path="/settings" element={<RepairerSettingsPage />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

@@ -22,8 +22,11 @@ import {
   Calculator,
   FileText,
   Truck,
-  Shield
+  Shield,
+  Settings
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import BuybackEvaluationDialog from './BuybackEvaluationDialog';
 import DigitalPoliceLogbook from './DigitalPoliceLogbook';
@@ -54,16 +57,44 @@ interface BuybackDevice {
 }
 
 const BuybackManager: React.FC = () => {
+  const { user } = useAuth();
   const [buybackDevices, setBuybackDevices] = useState<BuybackDevice[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<BuybackDevice | null>(null);
   const [isEvaluationDialogOpen, setIsEvaluationDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [hasAccess, setHasAccess] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadBuybackDevices();
-  }, []);
+    if (user?.id) {
+      checkAccess();
+    }
+  }, [user?.id]);
+
+  const checkAccess = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data: apiSettings } = await supabase
+        .from('repairer_api_settings')
+        .select('has_buyback_module, has_police_logbook')
+        .eq('repairer_id', user.id)
+        .maybeSingle();
+
+      const hasModules = apiSettings?.has_buyback_module && apiSettings?.has_police_logbook;
+      setHasAccess(hasModules || false);
+      
+      if (hasModules) {
+        loadBuybackDevices();
+      }
+    } catch (error) {
+      console.error('Error checking access:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadBuybackDevices = () => {
     // Simulation de données
@@ -144,6 +175,53 @@ const BuybackManager: React.FC = () => {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-muted-foreground">Chargement...</div>
+      </div>
+    );
+  }
+
+  if (!hasAccess) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-amber-500" />
+            Module de rachat non activé
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-muted-foreground">
+            Pour utiliser le module de rachat, vous devez d'abord l'activer dans vos paramètres :
+          </p>
+          <ul className="list-disc list-inside space-y-2 text-sm">
+            <li>Activer le module de rachat</li>
+            <li>Activer le livre de police dématérialisé (obligatoire)</li>
+            <li>Configurer vos clés API (Stripe pour les paiements, Resend pour les emails)</li>
+          </ul>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+            <div className="flex items-start gap-3">
+              <Shield className="h-5 w-5 text-amber-600 mt-0.5" />
+              <div className="text-sm text-amber-800">
+                <p className="font-medium">Conformité légale</p>
+                <p>Le rachat d'objets d'occasion nécessite un livre de police dématérialisé conforme à la réglementation française.</p>
+              </div>
+            </div>
+          </div>
+          <Button 
+            onClick={() => window.open('/settings', '_blank')} 
+            className="flex items-center gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            Configurer les paramètres
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Tabs defaultValue="rachats" className="space-y-6">
       <TabsList className="grid w-full grid-cols-2">
@@ -209,7 +287,7 @@ const BuybackManager: React.FC = () => {
       </TabsContent>
 
       <TabsContent value="police-logbook">
-        <DigitalPoliceLogbook repairerId="current-repairer" hasAccess={true} />
+        <DigitalPoliceLogbook repairerId={user?.id || ''} hasAccess={hasAccess} />
       </TabsContent>
 
       <BuybackEvaluationDialog

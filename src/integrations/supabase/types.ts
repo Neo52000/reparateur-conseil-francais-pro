@@ -5796,6 +5796,39 @@ export type Database = {
           },
         ]
       }
+      repairer_api_settings: {
+        Row: {
+          created_at: string
+          has_buyback_module: boolean | null
+          has_police_logbook: boolean | null
+          id: string
+          repairer_id: string
+          resend_api_key: string | null
+          stripe_secret_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          has_buyback_module?: boolean | null
+          has_police_logbook?: boolean | null
+          id?: string
+          repairer_id: string
+          resend_api_key?: string | null
+          stripe_secret_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          has_buyback_module?: boolean | null
+          has_police_logbook?: boolean | null
+          id?: string
+          repairer_id?: string
+          resend_api_key?: string | null
+          stripe_secret_key?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       repairer_availability: {
         Row: {
           created_at: string
