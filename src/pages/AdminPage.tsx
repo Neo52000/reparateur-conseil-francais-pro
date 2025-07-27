@@ -28,6 +28,7 @@ import AdminFeaturesManager from '@/components/admin/AdminFeaturesManager';
 import AdminConfigurationPage from '@/components/admin/AdminConfigurationPage';
 import { Card, CardContent } from '@/components/ui/card';
 import { Monitor } from 'lucide-react';
+import { CheckmateMonitoring } from '@/components/admin/monitoring/CheckmateMonitoring';
 
 const AdminPage = () => {
   const { user, profile, isAdmin, loading } = useAuth();
@@ -64,6 +65,7 @@ const AdminPage = () => {
       case 'advertising-ai': return 'Publicité IA';
       case 'analytics': return 'Analytics';
       case 'scraping': return 'Scraping';
+      case 'monitoring': return 'Monitoring Checkmate';
       case 'blog': return 'Blog & Contenu';
       case 'chatbot': return 'Chatbot';
       case 'pos-admin': return 'Administration POS';
@@ -93,6 +95,7 @@ const AdminPage = () => {
       case 'advertising-ai': return 'Campagnes publicitaires intelligentes avec IA';
       case 'analytics': return 'Analyses détaillées et métriques de performance';
       case 'scraping': return 'Outils de collecte de données';
+      case 'monitoring': return 'Surveillance uptime, performance et métriques business exclusives';
       case 'blog': return 'Gestion du contenu éditorial';
       case 'chatbot': return 'Administration et configuration de l\'assistant intelligent';
       case 'pos-admin': return 'Administration des systèmes POS';
@@ -141,6 +144,8 @@ const AdminPage = () => {
         return <RepairersAnalytics />;
       case 'scraping':
         return <EnhancedScrapingHub />;
+      case 'monitoring':
+        return <CheckmateMonitoring />;
       case 'blog':
         return <BlogManagement />;
       case 'chatbot':

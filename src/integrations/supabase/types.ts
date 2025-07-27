@@ -1328,6 +1328,54 @@ export type Database = {
         }
         Relationships: []
       }
+      business_metrics: {
+        Row: {
+          created_at: string
+          current_value: number | null
+          data_source: string
+          id: string
+          last_checked: string | null
+          metric_name: string
+          metric_type: string
+          repairer_id: string
+          target_value: number | null
+          threshold_critical: number | null
+          threshold_warning: number | null
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_value?: number | null
+          data_source: string
+          id?: string
+          last_checked?: string | null
+          metric_name: string
+          metric_type: string
+          repairer_id: string
+          target_value?: number | null
+          threshold_critical?: number | null
+          threshold_warning?: number | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_value?: number | null
+          data_source?: string
+          id?: string
+          last_checked?: string | null
+          metric_name?: string
+          metric_type?: string
+          repairer_id?: string
+          target_value?: number | null
+          threshold_critical?: number | null
+          threshold_warning?: number | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       campaign_banners: {
         Row: {
           banner_id: string
@@ -3951,6 +3999,100 @@ export type Database = {
         }
         Relationships: []
       }
+      monitor_incidents: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          monitor_id: string
+          notifications_sent: Json | null
+          resolved_at: string | null
+          severity: string
+          started_at: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          monitor_id: string
+          notifications_sent?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          started_at?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          monitor_id?: string
+          notifications_sent?: Json | null
+          resolved_at?: string | null
+          severity?: string
+          started_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monitor_incidents_monitor_id_fkey"
+            columns: ["monitor_id"]
+            isOneToOne: false
+            referencedRelation: "monitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monitor_results: {
+        Row: {
+          checked_at: string
+          error_message: string | null
+          id: string
+          location: string | null
+          metadata: Json | null
+          monitor_id: string
+          response_time_ms: number | null
+          status: string
+          status_code: number | null
+        }
+        Insert: {
+          checked_at?: string
+          error_message?: string | null
+          id?: string
+          location?: string | null
+          metadata?: Json | null
+          monitor_id: string
+          response_time_ms?: number | null
+          status: string
+          status_code?: number | null
+        }
+        Update: {
+          checked_at?: string
+          error_message?: string | null
+          id?: string
+          location?: string | null
+          metadata?: Json | null
+          monitor_id?: string
+          response_time_ms?: number | null
+          status?: string
+          status_code?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monitor_results_monitor_id_fkey"
+            columns: ["monitor_id"]
+            isOneToOne: false
+            referencedRelation: "monitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       monitored_urls: {
         Row: {
           created_at: string
@@ -3984,6 +4126,60 @@ export type Database = {
           updated_at?: string
           url?: string
           url_type?: string
+        }
+        Relationships: []
+      }
+      monitors: {
+        Row: {
+          body: string | null
+          check_interval_minutes: number | null
+          created_at: string
+          expected_status_codes: number[] | null
+          headers: Json | null
+          id: string
+          is_active: boolean | null
+          method: string | null
+          name: string
+          repairer_id: string
+          settings: Json | null
+          timeout_seconds: number | null
+          type: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          body?: string | null
+          check_interval_minutes?: number | null
+          created_at?: string
+          expected_status_codes?: number[] | null
+          headers?: Json | null
+          id?: string
+          is_active?: boolean | null
+          method?: string | null
+          name: string
+          repairer_id: string
+          settings?: Json | null
+          timeout_seconds?: number | null
+          type: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          body?: string | null
+          check_interval_minutes?: number | null
+          created_at?: string
+          expected_status_codes?: number[] | null
+          headers?: Json | null
+          id?: string
+          is_active?: boolean | null
+          method?: string | null
+          name?: string
+          repairer_id?: string
+          settings?: Json | null
+          timeout_seconds?: number | null
+          type?: string
+          updated_at?: string
+          url?: string | null
         }
         Relationships: []
       }
@@ -4059,6 +4255,39 @@ export type Database = {
           status?: string
           subscribed_at?: string
           unsubscribed_at?: string | null
+        }
+        Relationships: []
+      }
+      notification_channels: {
+        Row: {
+          config: Json
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          repairer_id: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          repairer_id: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          repairer_id?: string
+          type?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -7056,6 +7285,51 @@ export type Database = {
           stock_quantity?: number | null
           supplier?: string | null
           warranty_days?: number | null
+        }
+        Relationships: []
+      }
+      status_pages: {
+        Row: {
+          created_at: string
+          custom_domain: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_public: boolean | null
+          monitors_config: Json | null
+          name: string
+          repairer_id: string
+          slug: string
+          theme_config: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_domain?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_public?: boolean | null
+          monitors_config?: Json | null
+          name: string
+          repairer_id: string
+          slug: string
+          theme_config?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_domain?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_public?: boolean | null
+          monitors_config?: Json | null
+          name?: string
+          repairer_id?: string
+          slug?: string
+          theme_config?: Json | null
+          updated_at?: string
         }
         Relationships: []
       }

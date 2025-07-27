@@ -54,6 +54,7 @@ const AdminSidebar: React.FC = () => {
     
     // Technical
     { path: '/admin?tab=scraping', icon: Database, label: 'Scraping', tab: 'scraping', category: 'Technical' },
+    { path: '/admin?tab=monitoring', icon: Gauge, label: 'Monitoring', tab: 'monitoring', category: 'Technical' },
     { path: '/admin?tab=chatbot', icon: Bot, label: 'Chatbot IA', tab: 'chatbot', category: 'Technical' },
     { path: '/admin?tab=documentation', icon: BookOpen, label: 'Documentation', tab: 'documentation', category: 'Technical' },
     
