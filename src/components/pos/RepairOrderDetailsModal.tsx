@@ -214,8 +214,13 @@ const RepairOrderDetailsModal: React.FC<RepairOrderDetailsModalProps> = ({
                         <label className="text-sm font-medium text-muted-foreground">
                           Type d'appareil
                         </label>
-                        <p className="text-base font-medium">
-                          {repairOrder.device?.device_type_id || 'Non renseigné'}
+                        <p className="text-base font-medium flex items-center gap-2">
+                          {repairOrder.device?.device_type?.name || 'Non renseigné'}
+                          {repairOrder.device?.device_type?.description && (
+                            <span className="text-xs text-muted-foreground">
+                              ({repairOrder.device.device_type.description})
+                            </span>
+                          )}
                         </p>
                       </div>
                       
@@ -223,18 +228,43 @@ const RepairOrderDetailsModal: React.FC<RepairOrderDetailsModalProps> = ({
                         <label className="text-sm font-medium text-muted-foreground">
                           Marque
                         </label>
-                        <p className="text-base">
-                          {repairOrder.device?.brand_id || 'Non renseigné'}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          {repairOrder.device?.brand?.logo_url && (
+                            <img 
+                              src={repairOrder.device.brand.logo_url} 
+                              alt={repairOrder.device.brand.name}
+                              className="w-6 h-6 object-contain"
+                            />
+                          )}
+                          <p className="text-base font-medium">
+                            {repairOrder.device?.brand?.name || 'Non renseigné'}
+                          </p>
+                        </div>
                       </div>
                       
                       <div>
                         <label className="text-sm font-medium text-muted-foreground">
                           Modèle
                         </label>
-                        <p className="text-base">
-                          {repairOrder.device?.device_model_id || 'Non renseigné'}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          {repairOrder.device?.device_model?.image_url && (
+                            <img 
+                              src={repairOrder.device.device_model.image_url} 
+                              alt={repairOrder.device.device_model.name}
+                              className="w-8 h-8 object-contain rounded"
+                            />
+                          )}
+                          <div>
+                            <p className="text-base font-medium">
+                              {repairOrder.device?.device_model?.name || 'Non renseigné'}
+                            </p>
+                            {repairOrder.device?.device_model?.release_year && (
+                              <p className="text-xs text-muted-foreground">
+                                Année: {repairOrder.device.device_model.release_year}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                       
                       <div>
@@ -248,6 +278,53 @@ const RepairOrderDetailsModal: React.FC<RepairOrderDetailsModalProps> = ({
                     </div>
                     
                     <div className="space-y-3">
+                      {/* États de l'appareil */}
+                      <div className="grid grid-cols-1 gap-3">
+                        {repairOrder.device?.initial_condition && (
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              État initial
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: repairOrder.device.initial_condition.color }}
+                              />
+                              <span className="font-medium">
+                                {repairOrder.device.initial_condition.name}
+                              </span>
+                              {repairOrder.device.initial_condition.description && (
+                                <span className="text-xs text-muted-foreground">
+                                  - {repairOrder.device.initial_condition.description}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {repairOrder.device?.current_condition && (
+                          <div>
+                            <label className="text-sm font-medium text-muted-foreground">
+                              État actuel
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: repairOrder.device.current_condition.color }}
+                              />
+                              <span className="font-medium">
+                                {repairOrder.device.current_condition.name}
+                              </span>
+                              {repairOrder.device.current_condition.description && (
+                                <span className="text-xs text-muted-foreground">
+                                  - {repairOrder.device.current_condition.description}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
                       {repairOrder.device?.pin_code && (
                         <div>
                           <label className="text-sm font-medium text-muted-foreground">

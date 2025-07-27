@@ -45,6 +45,37 @@ export interface RepairDevice {
   accessories: string[];
   created_at: string;
   updated_at: string;
+  // Relations
+  device_type?: {
+    id: string;
+    name: string;
+    description?: string;
+  };
+  brand?: {
+    id: string;
+    name: string;
+    logo_url?: string;
+  };
+  device_model?: {
+    id: string;
+    name: string;
+    brand_id: string;
+    device_type_id: string;
+    release_year?: number;
+    image_url?: string;
+  };
+  initial_condition?: {
+    id: string;
+    name: string;
+    description?: string;
+    color: string;
+  };
+  current_condition?: {
+    id: string;
+    name: string;
+    description?: string;
+    color: string;
+  };
 }
 
 export interface RepairOrder {
@@ -102,7 +133,29 @@ export const useRepairManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRepairOrders((data || []) as RepairOrder[]);
+      
+      // Enrichir les données avec les relations
+      const enrichedData = await Promise.all((data || []).map(async (order: any) => {
+        if (order.device) {
+          // Récupérer les relations séparément
+          const [deviceType, brand, deviceModel, initialCondition, currentCondition] = await Promise.all([
+            order.device.device_type_id ? supabase.from('device_types').select('id, name, description').eq('id', order.device.device_type_id).single() : null,
+            order.device.brand_id ? supabase.from('brands').select('id, name, logo_url').eq('id', order.device.brand_id).single() : null,
+            order.device.device_model_id ? supabase.from('device_models').select('id, name, brand_id, device_type_id, release_year, image_url').eq('id', order.device.device_model_id).single() : null,
+            order.device.initial_condition_id ? supabase.from('device_conditions').select('id, name, description, color').eq('id', order.device.initial_condition_id).single() : null,
+            order.device.current_condition_id ? supabase.from('device_conditions').select('id, name, description, color').eq('id', order.device.current_condition_id).single() : null,
+          ]);
+
+          order.device.device_type = deviceType?.data || null;
+          order.device.brand = brand?.data || null;
+          order.device.device_model = deviceModel?.data || null;
+          order.device.initial_condition = initialCondition?.data || null;
+          order.device.current_condition = currentCondition?.data || null;
+        }
+        return order;
+      }));
+      
+      setRepairOrders(enrichedData as RepairOrder[]);
     } catch (error) {
       console.error('Error fetching repair orders:', error);
       toast({

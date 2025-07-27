@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   FileText, 
   Download, 
@@ -12,12 +13,16 @@ import {
   Phone, 
   Edit,
   Save,
-  Printer
+  Printer,
+  ShoppingCart,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { RepairOrder } from '@/hooks/useRepairManagement';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from '@/hooks/use-toast';
+import RepairCatalogSelector from './RepairCatalogSelector';
 
 interface QuoteGeneratorProps {
   repairOrder: RepairOrder;
@@ -33,6 +38,17 @@ interface QuoteData {
   warranty_duration: string;
   terms_conditions: string;
   notes: string;
+  repairs: RepairItem[];
+}
+
+interface RepairItem {
+  id: string;
+  name: string;
+  basePrice: number;
+  customPrice?: number;
+  margin?: number;
+  quantity: number;
+  total: number;
 }
 
 const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({ 
@@ -50,7 +66,8 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
     estimated_duration: '24-48h',
     warranty_duration: '3 mois',
     terms_conditions: 'Devis valable 30 jours. Paiement à la réparation. Garantie 3 mois sur la réparation.',
-    notes: ''
+    notes: '',
+    repairs: []
   });
 
   const handleInputChange = (field: keyof QuoteData, value: string | number) => {
@@ -58,10 +75,61 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
     
     // Recalcul automatique du total
     if (field === 'labor_cost' || field === 'parts_cost') {
-      newData.total_cost = newData.labor_cost + newData.parts_cost;
+      const repairsTotal = quoteData.repairs.reduce((sum, repair) => sum + repair.total, 0);
+      newData.total_cost = newData.labor_cost + newData.parts_cost + repairsTotal;
     }
     
     setQuoteData(newData);
+  };
+
+  const addRepairFromCatalog = (repair: { name: string; basePrice: number; customPrice?: number; margin?: number }) => {
+    const newRepair: RepairItem = {
+      id: Date.now().toString(),
+      name: repair.name,
+      basePrice: repair.basePrice,
+      customPrice: repair.customPrice,
+      margin: repair.margin,
+      quantity: 1,
+      total: repair.customPrice || repair.basePrice
+    };
+
+    const newRepairs = [...quoteData.repairs, newRepair];
+    const repairsTotal = newRepairs.reduce((sum, r) => sum + r.total, 0);
+    
+    setQuoteData({
+      ...quoteData,
+      repairs: newRepairs,
+      total_cost: quoteData.labor_cost + quoteData.parts_cost + repairsTotal
+    });
+  };
+
+  const updateRepairQuantity = (repairId: string, quantity: number) => {
+    const updatedRepairs = quoteData.repairs.map(repair => {
+      if (repair.id === repairId) {
+        const price = repair.customPrice || repair.basePrice;
+        return { ...repair, quantity, total: price * quantity };
+      }
+      return repair;
+    });
+
+    const repairsTotal = updatedRepairs.reduce((sum, repair) => sum + repair.total, 0);
+    
+    setQuoteData({
+      ...quoteData,
+      repairs: updatedRepairs,
+      total_cost: quoteData.labor_cost + quoteData.parts_cost + repairsTotal
+    });
+  };
+
+  const removeRepair = (repairId: string) => {
+    const updatedRepairs = quoteData.repairs.filter(repair => repair.id !== repairId);
+    const repairsTotal = updatedRepairs.reduce((sum, repair) => sum + repair.total, 0);
+    
+    setQuoteData({
+      ...quoteData,
+      repairs: updatedRepairs,
+      total_cost: quoteData.labor_cost + quoteData.parts_cost + repairsTotal
+    });
   };
 
   const saveQuote = () => {
@@ -104,9 +172,9 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
           <div>
             <h3 style="color: #374151; font-size: 16px; margin: 0 0 15px 0; font-weight: bold;">APPAREIL</h3>
             <div style="background: #F9FAFB; padding: 20px; border-radius: 8px; border-left: 4px solid #10B981;">
-              <p style="margin: 0 0 8px 0;"><strong>Type:</strong> ${repairOrder.device?.device_type_id || 'Non renseigné'}</p>
-              <p style="margin: 0 0 8px 0;"><strong>Marque:</strong> ${repairOrder.device?.brand_id || 'Non renseigné'}</p>
-              <p style="margin: 0 0 8px 0;"><strong>Modèle:</strong> ${repairOrder.device?.device_model_id || 'Non renseigné'}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Type:</strong> ${repairOrder.device?.device_type?.name || 'Non renseigné'}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Marque:</strong> ${repairOrder.device?.brand?.name || 'Non renseigné'}</p>
+              <p style="margin: 0 0 8px 0;"><strong>Modèle:</strong> ${repairOrder.device?.device_model?.name || 'Non renseigné'}</p>
               <p style="margin: 0;"><strong>IMEI/Série:</strong> ${repairOrder.device?.imei_serial || 'Non renseigné'}</p>
             </div>
           </div>
@@ -128,20 +196,38 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
             <thead>
               <tr style="background: #F3F4F6;">
                 <th style="padding: 15px; text-align: left; font-weight: bold; color: #374151;">Description</th>
-                <th style="padding: 15px; text-align: right; font-weight: bold; color: #374151;">Montant</th>
+                <th style="padding: 15px; text-align: center; font-weight: bold; color: #374151;">Qté</th>
+                <th style="padding: 15px; text-align: right; font-weight: bold; color: #374151;">Prix unitaire</th>
+                <th style="padding: 15px; text-align: right; font-weight: bold; color: #374151;">Total</th>
               </tr>
             </thead>
             <tbody>
-              <tr style="border-bottom: 1px solid #E5E7EB;">
-                <td style="padding: 15px;">Main d'œuvre</td>
-                <td style="padding: 15px; text-align: right;">${quoteData.labor_cost.toFixed(2)} €</td>
-              </tr>
-              <tr style="border-bottom: 1px solid #E5E7EB;">
-                <td style="padding: 15px;">Pièces détachées</td>
-                <td style="padding: 15px; text-align: right;">${quoteData.parts_cost.toFixed(2)} €</td>
-              </tr>
+              ${quoteData.repairs.map(repair => `
+                <tr style="border-bottom: 1px solid #E5E7EB;">
+                  <td style="padding: 15px;">${repair.name}</td>
+                  <td style="padding: 15px; text-align: center;">${repair.quantity}</td>
+                  <td style="padding: 15px; text-align: right;">${(repair.customPrice || repair.basePrice).toFixed(2)} €</td>
+                  <td style="padding: 15px; text-align: right;">${repair.total.toFixed(2)} €</td>
+                </tr>
+              `).join('')}
+              ${quoteData.labor_cost > 0 ? `
+                <tr style="border-bottom: 1px solid #E5E7EB;">
+                  <td style="padding: 15px;">Main d'œuvre</td>
+                  <td style="padding: 15px; text-align: center;">1</td>
+                  <td style="padding: 15px; text-align: right;">${quoteData.labor_cost.toFixed(2)} €</td>
+                  <td style="padding: 15px; text-align: right;">${quoteData.labor_cost.toFixed(2)} €</td>
+                </tr>
+              ` : ''}
+              ${quoteData.parts_cost > 0 ? `
+                <tr style="border-bottom: 1px solid #E5E7EB;">
+                  <td style="padding: 15px;">Pièces détachées</td>
+                  <td style="padding: 15px; text-align: center;">1</td>
+                  <td style="padding: 15px; text-align: right;">${quoteData.parts_cost.toFixed(2)} €</td>
+                  <td style="padding: 15px; text-align: right;">${quoteData.parts_cost.toFixed(2)} €</td>
+                </tr>
+              ` : ''}
               <tr style="background: #F9FAFB; font-weight: bold; font-size: 18px;">
-                <td style="padding: 15px;">TOTAL TTC</td>
+                <td style="padding: 15px;" colspan="3">TOTAL TTC</td>
                 <td style="padding: 15px; text-align: right; color: #3B82F6;">${quoteData.total_cost.toFixed(2)} €</td>
               </tr>
             </tbody>
@@ -342,98 +428,153 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Formulaire d'édition */}
-        {isEditing && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-            <div className="space-y-2">
-              <Label htmlFor="diagnostic">Diagnostic</Label>
-              <Textarea
-                id="diagnostic"
-                value={quoteData.diagnostic}
-                onChange={(e) => handleInputChange('diagnostic', e.target.value)}
-                placeholder="Description du problème et de la réparation"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes complémentaires</Label>
-              <Textarea
-                id="notes"
-                value={quoteData.notes}
-                onChange={(e) => handleInputChange('notes', e.target.value)}
-                placeholder="Notes internes ou commentaires"
-              />
-            </div>
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview">Aperçu</TabsTrigger>
+            <TabsTrigger value="catalog">Catalogue</TabsTrigger>
+            <TabsTrigger value="edit">Édition</TabsTrigger>
+          </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="labor_cost">Main d'œuvre (€)</Label>
-              <Input
-                id="labor_cost"
-                type="number"
-                step="0.01"
-                value={quoteData.labor_cost}
-                onChange={(e) => handleInputChange('labor_cost', parseFloat(e.target.value) || 0)}
-              />
-            </div>
+          <TabsContent value="overview" className="space-y-4">
+            {/* Liste des réparations sélectionnées */}
+            {quoteData.repairs.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="font-medium">Réparations sélectionnées</h4>
+                {quoteData.repairs.map(repair => (
+                  <div key={repair.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <p className="font-medium">{repair.name}</p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>Prix unitaire: {(repair.customPrice || repair.basePrice).toFixed(2)} €</span>
+                        {repair.margin && (
+                          <Badge variant="secondary" className="text-xs">
+                            Marge: {repair.margin}%
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min="1"
+                        value={repair.quantity}
+                        onChange={(e) => updateRepairQuantity(repair.id, parseInt(e.target.value) || 1)}
+                        className="w-16 text-center"
+                      />
+                      <span className="font-medium">{repair.total.toFixed(2)} €</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeRepair(repair.id)}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="parts_cost">Pièces détachées (€)</Label>
-              <Input
-                id="parts_cost"
-                type="number"
-                step="0.01"
-                value={quoteData.parts_cost}
-                onChange={(e) => handleInputChange('parts_cost', parseFloat(e.target.value) || 0)}
-              />
+            {/* Résumé du devis */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">Main d'œuvre</p>
+                <p className="text-2xl font-bold text-blue-600">{quoteData.labor_cost.toFixed(2)} €</p>
+              </div>
+              <div className="bg-orange-50 dark:bg-orange-950/20 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">Pièces détachées</p>
+                <p className="text-2xl font-bold text-orange-600">{quoteData.parts_cost.toFixed(2)} €</p>
+              </div>
+              <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground">Total TTC</p>
+                <p className="text-3xl font-bold text-green-600">{quoteData.total_cost.toFixed(2)} €</p>
+              </div>
             </div>
+          </TabsContent>
 
-            <div className="space-y-2">
-              <Label htmlFor="estimated_duration">Délai estimé</Label>
-              <Input
-                id="estimated_duration"
-                value={quoteData.estimated_duration}
-                onChange={(e) => handleInputChange('estimated_duration', e.target.value)}
-                placeholder="ex: 24-48h"
-              />
+          <TabsContent value="catalog" className="space-y-4">
+            <RepairCatalogSelector onRepairSelect={addRepairFromCatalog} />
+          </TabsContent>
+
+          <TabsContent value="edit" className="space-y-4">
+            {/* Formulaire d'édition */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="space-y-2">
+                <Label htmlFor="diagnostic">Diagnostic</Label>
+                <Textarea
+                  id="diagnostic"
+                  value={quoteData.diagnostic}
+                  onChange={(e) => handleInputChange('diagnostic', e.target.value)}
+                  placeholder="Description du problème et de la réparation"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notes complémentaires</Label>
+                <Textarea
+                  id="notes"
+                  value={quoteData.notes}
+                  onChange={(e) => handleInputChange('notes', e.target.value)}
+                  placeholder="Notes internes ou commentaires"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="labor_cost">Main d'œuvre (€)</Label>
+                <Input
+                  id="labor_cost"
+                  type="number"
+                  step="0.01"
+                  value={quoteData.labor_cost}
+                  onChange={(e) => handleInputChange('labor_cost', parseFloat(e.target.value) || 0)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="parts_cost">Pièces détachées (€)</Label>
+                <Input
+                  id="parts_cost"
+                  type="number"
+                  step="0.01"
+                  value={quoteData.parts_cost}
+                  onChange={(e) => handleInputChange('parts_cost', parseFloat(e.target.value) || 0)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="estimated_duration">Délai estimé</Label>
+                <Input
+                  id="estimated_duration"
+                  value={quoteData.estimated_duration}
+                  onChange={(e) => handleInputChange('estimated_duration', e.target.value)}
+                  placeholder="ex: 24-48h"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="warranty_duration">Durée de garantie</Label>
+                <Input
+                  id="warranty_duration"
+                  value={quoteData.warranty_duration}
+                  onChange={(e) => handleInputChange('warranty_duration', e.target.value)}
+                  placeholder="ex: 3 mois"
+                />
+              </div>
+
+              <div className="md:col-span-2 space-y-2">
+                <Label htmlFor="terms_conditions">Conditions générales</Label>
+                <Textarea
+                  id="terms_conditions"
+                  value={quoteData.terms_conditions}
+                  onChange={(e) => handleInputChange('terms_conditions', e.target.value)}
+                  placeholder="Conditions générales du devis"
+                />
+              </div>
             </div>
+          </TabsContent>
+        </Tabs>
 
-            <div className="space-y-2">
-              <Label htmlFor="warranty_duration">Durée de garantie</Label>
-              <Input
-                id="warranty_duration"
-                value={quoteData.warranty_duration}
-                onChange={(e) => handleInputChange('warranty_duration', e.target.value)}
-                placeholder="ex: 3 mois"
-              />
-            </div>
-
-            <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="terms_conditions">Conditions générales</Label>
-              <Textarea
-                id="terms_conditions"
-                value={quoteData.terms_conditions}
-                onChange={(e) => handleInputChange('terms_conditions', e.target.value)}
-                placeholder="Conditions générales du devis"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Résumé du devis */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
-            <p className="text-sm text-muted-foreground">Main d'œuvre</p>
-            <p className="text-2xl font-bold text-blue-600">{quoteData.labor_cost.toFixed(2)} €</p>
-          </div>
-          <div className="bg-orange-50 dark:bg-orange-950/20 p-4 rounded-lg">
-            <p className="text-sm text-muted-foreground">Pièces détachées</p>
-            <p className="text-2xl font-bold text-orange-600">{quoteData.parts_cost.toFixed(2)} €</p>
-          </div>
-          <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
-            <p className="text-sm text-muted-foreground">Total TTC</p>
-            <p className="text-3xl font-bold text-green-600">{quoteData.total_cost.toFixed(2)} €</p>
-          </div>
-        </div>
 
         {/* Actions */}
         <div className="flex flex-wrap gap-3">
