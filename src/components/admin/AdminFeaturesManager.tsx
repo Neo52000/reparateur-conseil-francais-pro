@@ -23,8 +23,10 @@ import {
 } from 'lucide-react';
 import { useFeatureManagement } from '@/hooks/useFeatureManagement';
 import FeatureSyncDebugPanel from '@/components/admin/FeatureSyncDebugPanel';
+import { useToast } from '@/hooks/use-toast';
 
 const AdminFeaturesManager: React.FC = () => {
+  const { toast } = useToast();
   const { 
     loading, 
     usageStats, 
@@ -416,11 +418,23 @@ const AdminFeaturesManager: React.FC = () => {
                     <p className="text-sm text-muted-foreground mb-3">{config.documentation}</p>
                     
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setActiveModule(config.id)}>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setActiveModule(config.id);
+                        toast({
+                          title: "Détails du module",
+                          description: `Affichage des détails pour ${config.moduleName}`,
+                        });
+                      }}>
                         <Eye className="w-4 h-4 mr-1" />
                         Voir détails
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => updateModuleConfiguration(config.id, { ...config.configuration })}>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        updateModuleConfiguration(config.id, { ...config.configuration });
+                        toast({
+                          title: "Configuration",
+                          description: `Configuration de ${config.moduleName} mise à jour`,
+                        });
+                      }}>
                         <Settings className="w-4 h-4 mr-1" />
                         Configurer
                       </Button>
