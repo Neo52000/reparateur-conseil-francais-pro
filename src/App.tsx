@@ -11,6 +11,7 @@ import RepairerSettingsPage from "./pages/RepairerSettingsPage";
 import RepairTrackingPage from "./pages/RepairTrackingPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
+import RepairerPlans from "./pages/RepairerPlans";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/repairer" element={<RepairerDashboardPage />} />
+              <Route path="/repairer/plans" element={<RepairerPlans />} />
               <Route path="/client" element={<ClientDashboardPage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin/*" element={<AdminPage />} />
