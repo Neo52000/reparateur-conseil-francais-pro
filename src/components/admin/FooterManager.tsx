@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Dialog,
   DialogContent,
@@ -15,8 +16,9 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { useFooterConfig, FooterSection } from '@/hooks/useFooterConfig';
-import { Plus, Edit, Trash2, Sparkles, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, Sparkles, Save, Eye, GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Footer from '@/components/Footer';
 
 export default function FooterManager() {
   const { sections, loading, updateSection, createSection, deleteSection } = useFooterConfig();
@@ -88,12 +90,12 @@ export default function FooterManager() {
         services: {
           title: "Nos Services",
           content: "Découvrez notre gamme complète de services de réparation professionnels, adaptés à tous vos appareils électroniques.",
-          links: [
-            { title: "Réparation Smartphone", url: "/reparation-smartphone" },
-            { title: "Réparation Tablette", url: "/reparation-tablette" },
-            { title: "Réparation Ordinateur", url: "/reparation-ordinateur" },
-            { title: "Réparation Console", url: "/reparation-console" }
-          ]
+                  links: [
+                    { title: "Réparation Smartphone", url: "/services/reparation-smartphone" },
+                    { title: "Réparation Tablette", url: "/services/reparation-tablette" },
+                    { title: "Réparation Ordinateur", url: "/services/reparation-ordinateur" },
+                    { title: "Réparation Console", url: "/services/reparation-console" }
+                  ]
         },
         support: {
           title: "Support Client",
@@ -158,17 +160,46 @@ export default function FooterManager() {
     return <div>Chargement...</div>;
   }
 
+  const moveSection = async (sectionId: string, direction: 'up' | 'down') => {
+    const currentSection = sections.find(s => s.id === sectionId);
+    if (!currentSection) return;
+
+    const otherSection = sections.find(s => 
+      direction === 'up' 
+        ? s.display_order < currentSection.display_order
+        : s.display_order > currentSection.display_order
+    );
+
+    if (otherSection) {
+      await updateSection(currentSection.id, { display_order: otherSection.display_order });
+      await updateSection(otherSection.id, { display_order: currentSection.display_order });
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Gestion du Footer</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nouvelle Section
-            </Button>
-          </DialogTrigger>
+      <Tabs defaultValue="config" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="config" className="flex items-center gap-2">
+            <Edit className="h-4 w-4" />
+            Configuration
+          </TabsTrigger>
+          <TabsTrigger value="preview" className="flex items-center gap-2">
+            <Eye className="h-4 w-4" />
+            Prévisualisation
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="config" className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold">Configuration du Footer</h2>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={resetForm}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nouvelle Section
+                </Button>
+              </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
@@ -296,62 +327,99 @@ export default function FooterManager() {
         </Dialog>
       </div>
 
-      <div className="grid gap-6">
-        {sections.map((section) => (
-          <Card key={section.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    {section.title}
-                    <Badge variant={section.is_active ? "default" : "secondary"}>
-                      {section.is_active ? 'Actif' : 'Inactif'}
-                    </Badge>
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Clé: {section.section_key} • Ordre: {section.display_order}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => openEditDialog(section)}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Modifier
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => deleteSection(section.id)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Supprimer
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                {section.content}
-              </p>
-              {section.links.length > 0 && (
-                <div>
-                  <h4 className="font-medium mb-2">Liens ({section.links.length})</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {section.links.map((link, index) => (
-                      <Badge key={index} variant="outline">
-                        {link.title}
-                      </Badge>
-                    ))}
+          <div className="grid gap-6">
+            {sections
+              .sort((a, b) => a.display_order - b.display_order)
+              .map((section, index) => (
+              <Card key={section.id} className="relative">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => moveSection(section.id, 'up')}
+                          disabled={index === 0}
+                        >
+                          <ArrowUp className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => moveSection(section.id, 'down')}
+                          disabled={index === sections.length - 1}
+                        >
+                          <ArrowDown className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <GripVertical className="h-4 w-4 text-muted-foreground" />
+                          {section.title}
+                          <Badge variant={section.is_active ? "default" : "secondary"}>
+                            {section.is_active ? 'Actif' : 'Inactif'}
+                          </Badge>
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Clé: {section.section_key} • Ordre: {section.display_order}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openEditDialog(section)}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Modifier
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => deleteSection(section.id)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Supprimer
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {section.content}
+                  </p>
+                  {section.links.length > 0 && (
+                    <div>
+                      <h4 className="font-medium mb-2">Liens ({section.links.length})</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {section.links.map((link, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {link.title} → {link.url}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="preview" className="space-y-6">
+          <div className="bg-muted/30 p-6 rounded-lg border-2 border-dashed">
+            <h3 className="text-lg font-semibold mb-4 text-center">Prévisualisation du Footer</h3>
+            <div className="bg-background rounded-lg shadow-lg overflow-hidden">
+              <Footer />
+            </div>
+            <p className="text-sm text-muted-foreground text-center mt-4">
+              Cette prévisualisation montre le footer tel qu'il apparaît sur le site
+            </p>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
