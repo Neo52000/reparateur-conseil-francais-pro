@@ -23,6 +23,10 @@ export const useOptionalModules = () => {
   const loadConfigurations = async () => {
     try {
       setLoading(true);
+      
+      // Toujours commencer avec tous les modules par défaut
+      setModules(OPTIONAL_MODULES);
+      
       const savedConfigs = localStorage.getItem('optionalModulesConfig');
       
       if (savedConfigs) {
