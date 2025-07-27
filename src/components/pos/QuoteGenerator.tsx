@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +25,8 @@ import { useToast } from '@/hooks/use-toast';
 import ProductSelection from '@/components/repairer-dashboard/pricing/ProductSelection';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useRepairerPrices } from '@/hooks/catalog/useRepairerPrices';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface QuoteGeneratorProps {
   repairOrder: RepairOrder;
@@ -49,12 +51,22 @@ interface RepairItem {
   brandName: string;
   modelName: string;
   repairTypeName: string;
-  basePrice: number;
+  basePrice?: number;
   customPrice?: number;
-  manualPrice?: number; // Prix saisi manuellement
+  manualPrice?: number;
   margin?: number;
   quantity: number;
   total: number;
+  isCustom?: boolean; // Indique si c'est une réparation personnalisée
+}
+
+interface RepairerProfileData {
+  business_name?: string;
+  address?: string;
+  postal_code?: string;
+  city?: string;
+  phone?: string;
+  email?: string;
 }
 
 const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({ 
@@ -62,6 +74,7 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
   onQuoteUpdate 
 }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const { brands, deviceModels, repairTypes, loading: catalogLoading } = useCatalog();
   const { basePrices, repairerPrices, loading: pricesLoading } = useRepairerPrices();
   
@@ -70,6 +83,11 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
   const [selectedBrand, setSelectedBrand] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [selectedRepairType, setSelectedRepairType] = useState('');
+  const [repairerProfile, setRepairerProfile] = useState<RepairerProfileData | null>(null);
+  
+  // États pour l'ajout de réparations personnalisées
+  const [customRepairName, setCustomRepairName] = useState('');
+  const [customRepairPrice, setCustomRepairPrice] = useState('');
   
   const [quoteData, setQuoteData] = useState<QuoteData>({
     diagnostic: repairOrder.device?.initial_diagnosis || '',
@@ -82,6 +100,29 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
     notes: '',
     repairs: []
   });
+
+  // Charger le profil du réparateur
+  useEffect(() => {
+    const fetchRepairerProfile = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('repairer_profiles')
+          .select('business_name, address, postal_code, city, phone, email')
+          .eq('user_id', user.id)
+          .single();
+
+        if (data && !error) {
+          setRepairerProfile(data);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement du profil réparateur:', error);
+      }
+    };
+
+    fetchRepairerProfile();
+  }, [user?.id]);
 
   const handleInputChange = (field: keyof QuoteData, value: string | number) => {
     const newData = { ...quoteData, [field]: value };
@@ -142,7 +183,8 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
       customPrice: customPrice?.custom_price_eur,
       margin: margin,
       quantity: 1,
-      total: finalPrice
+      total: finalPrice,
+      isCustom: false
     };
 
     const newRepairs = [...quoteData.repairs, newRepair];
@@ -165,10 +207,61 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
     });
   };
 
+  const addCustomRepair = () => {
+    if (!customRepairName.trim() || !customRepairPrice) {
+      toast({
+        title: "Champs manquants",
+        description: "Veuillez saisir un nom et un prix pour la réparation personnalisée.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const price = parseFloat(customRepairPrice);
+    if (price <= 0) {
+      toast({
+        title: "Prix invalide",
+        description: "Le prix doit être supérieur à 0.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newRepair: RepairItem = {
+      id: Date.now().toString(),
+      name: customRepairName.trim(),
+      brandName: '',
+      modelName: '',
+      repairTypeName: customRepairName.trim(),
+      manualPrice: price,
+      quantity: 1,
+      total: price,
+      isCustom: true
+    };
+
+    const newRepairs = [...quoteData.repairs, newRepair];
+    const repairsTotal = newRepairs.reduce((sum, r) => sum + r.total, 0);
+    
+    setQuoteData({
+      ...quoteData,
+      repairs: newRepairs,
+      total_cost: quoteData.labor_cost + quoteData.parts_cost + repairsTotal
+    });
+
+    // Reset des champs
+    setCustomRepairName('');
+    setCustomRepairPrice('');
+
+    toast({
+      title: "Réparation ajoutée",
+      description: `${newRepair.name} ajouté au devis.`
+    });
+  };
+
   const updateRepairQuantity = (repairId: string, quantity: number) => {
     const updatedRepairs = quoteData.repairs.map(repair => {
       if (repair.id === repairId) {
-        const price = repair.manualPrice || repair.customPrice || repair.basePrice;
+        const price = repair.manualPrice || repair.customPrice || repair.basePrice || 0;
         return { ...repair, quantity, total: price * quantity };
       }
       return repair;
@@ -184,6 +277,15 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
   };
 
   const updateRepairPrice = (repairId: string, newPrice: number) => {
+    if (newPrice < 0) {
+      toast({
+        title: "Prix invalide",
+        description: "Le prix ne peut pas être négatif.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const updatedRepairs = quoteData.repairs.map(repair => {
       if (repair.id === repairId) {
         return { 
@@ -234,11 +336,20 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
     
     return `
       <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; background: white;">
-        <!-- En-tête -->
+        <!-- En-tête avec informations réparateur -->
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 40px; border-bottom: 2px solid #3B82F6; padding-bottom: 20px;">
           <div>
             <h1 style="color: #3B82F6; font-size: 28px; margin: 0; font-weight: bold;">DEVIS DE RÉPARATION</h1>
             <p style="color: #6B7280; margin: 5px 0 0 0; font-size: 14px;">Document officiel</p>
+            ${repairerProfile ? `
+              <div style="margin-top: 15px; font-size: 12px; color: #6B7280;">
+                <div style="font-weight: bold;">${repairerProfile.business_name || 'Réparateur'}</div>
+                ${repairerProfile.address ? `<div>${repairerProfile.address}</div>` : ''}
+                ${repairerProfile.postal_code && repairerProfile.city ? `<div>${repairerProfile.postal_code} ${repairerProfile.city}</div>` : ''}
+                ${repairerProfile.phone ? `<div>Tél: ${repairerProfile.phone}</div>` : ''}
+                ${repairerProfile.email ? `<div>Email: ${repairerProfile.email}</div>` : ''}
+              </div>
+            ` : ''}
           </div>
           <div style="text-align: right;">
             <p style="margin: 0; font-weight: bold; font-size: 16px;">N° ${repairOrder.order_number}</p>
@@ -294,7 +405,7 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
                 <tr style="border-bottom: 1px solid #E5E7EB;">
                   <td style="padding: 15px;">${repair.repairTypeName}<br><small style="color: #6B7280;">${repair.brandName} ${repair.modelName}</small></td>
                   <td style="padding: 15px; text-align: center;">${repair.quantity}</td>
-                  <td style="padding: 15px; text-align: right;">${(repair.manualPrice || repair.customPrice || repair.basePrice).toFixed(2)} €</td>
+                  <td style="padding: 15px; text-align: right;">${(repair.manualPrice || repair.customPrice || repair.basePrice || 0).toFixed(2)} €</td>
                   <td style="padding: 15px; text-align: right;">${repair.total.toFixed(2)} €</td>
                 </tr>
               `).join('')}
@@ -338,12 +449,19 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
           </div>
         </div>
 
-        <!-- Conditions -->
+        <!-- Conditions et mentions légales -->
         <div style="margin-bottom: 40px;">
           <h3 style="color: #374151; font-size: 14px; margin: 0 0 10px 0; font-weight: bold;">CONDITIONS GÉNÉRALES</h3>
-          <p style="font-size: 12px; line-height: 1.5; color: #6B7280; background: #F9FAFB; padding: 15px; border-radius: 6px; margin: 0;">
+          <p style="font-size: 12px; line-height: 1.5; color: #6B7280; background: #F9FAFB; padding: 15px; border-radius: 6px; margin: 0 0 15px 0;">
             ${quoteData.terms_conditions}
           </p>
+          <div style="font-size: 10px; color: #9CA3AF; line-height: 1.4;">
+            <p style="margin: 0 0 5px 0;"><strong>Mentions légales :</strong></p>
+            <p style="margin: 0;">• Devis valable 30 jours à compter de la date d'émission</p>
+            <p style="margin: 0;">• En cas d'acceptation, acompte de 30% à la commande</p>
+            <p style="margin: 0;">• Garantie contractuelle selon conditions générales de vente</p>
+            <p style="margin: 0;">• Médiation de la consommation : www.medicys.fr</p>
+          </div>
         </div>
 
         <!-- Signatures -->
@@ -586,14 +704,14 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
                         <div className="text-sm text-muted-foreground">
                           {repair.brandName} {repair.modelName}
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          Quantité: {repair.quantity} × {(repair.manualPrice || repair.customPrice || repair.basePrice).toFixed(2)} €
-                          {repair.margin && (
-                            <Badge variant="outline" className="ml-2 text-xs">
-                              {repair.margin > 0 ? '+' : ''}{repair.margin}%
-                            </Badge>
-                          )}
-                        </div>
+                         <div className="text-sm text-muted-foreground">
+                           Quantité: {repair.quantity} × {(repair.manualPrice || repair.customPrice || repair.basePrice || 0).toFixed(2)} €
+                           {repair.margin && (
+                             <Badge variant="outline" className="ml-2 text-xs">
+                               {repair.margin > 0 ? '+' : ''}{repair.margin}%
+                             </Badge>
+                           )}
+                         </div>
                       </div>
                       <Button
                         variant="ghost"
@@ -624,19 +742,19 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
                             <Badge variant="outline" className="ml-1 text-xs">Manuel</Badge>
                           )}
                         </Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={repair.manualPrice || repair.customPrice || repair.basePrice}
-                          onChange={(e) => updateRepairPrice(repair.id, parseFloat(e.target.value) || 0)}
-                          className="text-center"
-                        />
-                        {repair.manualPrice && (
-                          <div className="text-xs text-muted-foreground text-center">
-                            Prix original: {(repair.customPrice || repair.basePrice).toFixed(2)} €
-                          </div>
-                        )}
+                         <Input
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           value={repair.manualPrice || repair.customPrice || repair.basePrice || 0}
+                           onChange={(e) => updateRepairPrice(repair.id, parseFloat(e.target.value) || 0)}
+                           className="text-center"
+                         />
+                         {repair.manualPrice && (
+                           <div className="text-xs text-muted-foreground text-center">
+                             Prix original: {(repair.customPrice || repair.basePrice || 0).toFixed(2)} €
+                           </div>
+                         )}
                       </div>
                       
                       <div className="space-y-1">
@@ -747,6 +865,50 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
                       </Button>
                     </>
                   )}
+                </CardContent>
+              </Card>
+
+              {/* Section pour ajouter une réparation personnalisée */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="w-5 h-5" />
+                    Réparation personnalisée
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="customRepairName">Nom de la réparation</Label>
+                      <Input
+                        id="customRepairName"
+                        value={customRepairName}
+                        onChange={(e) => setCustomRepairName(e.target.value)}
+                        placeholder="ex: Réparation écran cassé"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="customRepairPrice">Prix (€)</Label>
+                      <Input
+                        id="customRepairPrice"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={customRepairPrice}
+                        onChange={(e) => setCustomRepairPrice(e.target.value)}
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={addCustomRepair}
+                    disabled={!customRepairName.trim() || !customRepairPrice}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Ajouter la réparation personnalisée
+                  </Button>
                 </CardContent>
               </Card>
             </TabsContent>
