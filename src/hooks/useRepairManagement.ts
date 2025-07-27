@@ -32,6 +32,7 @@ export interface RepairDevice {
   security_notes?: string;
   customer_name: string;
   customer_phone?: string;
+  customer_phone_fixed?: string;
   customer_email?: string;
   customer_notes?: string;
   initial_diagnosis?: string;
@@ -135,13 +136,28 @@ export const useRepairManagement = () => {
     try {
       console.log('Creating repair device with data:', deviceData);
       
-      // First create the device
+      // First create the device - only include fields that exist in the table
       const { data: device, error: deviceError } = await supabase
         .from('repair_devices')
         .insert({
-          ...deviceData,
           repairer_id: user.id,
+          device_type_id: deviceData.device_type_id,
+          brand_id: deviceData.brand_id,
+          device_model_id: deviceData.device_model_id,
+          imei_serial: deviceData.imei_serial,
+          custom_device_info: deviceData.custom_device_info,
+          initial_condition_id: deviceData.initial_condition_id,
+          pin_code: deviceData.pin_code,
+          sim_code: deviceData.sim_code,
+          lock_pattern: deviceData.lock_pattern,
+          security_notes: deviceData.security_notes,
           customer_name: deviceData.customer_name || '',
+          customer_phone: deviceData.customer_phone,
+          customer_email: deviceData.customer_email,
+          customer_notes: deviceData.customer_notes,
+          initial_diagnosis: deviceData.initial_diagnosis,
+          estimated_cost: deviceData.estimated_cost,
+          estimated_duration_hours: deviceData.estimated_duration_hours,
           intake_date: new Date().toISOString(),
           photos: deviceData.photos || [],
           accessories: deviceData.accessories || [],
@@ -153,6 +169,8 @@ export const useRepairManagement = () => {
         console.error('Device creation error:', deviceError);
         throw deviceError;
       }
+
+      console.log('Device created successfully:', device);
 
       // Then create the repair order  
       const { data: order, error: orderError } = await supabase
@@ -168,7 +186,12 @@ export const useRepairManagement = () => {
         .select()
         .single();
 
-      if (orderError) throw orderError;
+      if (orderError) {
+        console.error('Order creation error:', orderError);
+        throw orderError;
+      }
+
+      console.log('Repair order created successfully:', order);
 
       await fetchRepairOrders();
       
