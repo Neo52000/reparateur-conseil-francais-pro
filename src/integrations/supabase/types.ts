@@ -503,6 +503,54 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_campaign_templates: {
+        Row: {
+          ai_model: string | null
+          created_at: string
+          creative_style: string
+          generation_prompt: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          performance_score: number | null
+          repairer_id: string | null
+          template_data: Json
+          template_type: string
+          updated_at: string
+          usage_count: number | null
+        }
+        Insert: {
+          ai_model?: string | null
+          created_at?: string
+          creative_style: string
+          generation_prompt?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          performance_score?: number | null
+          repairer_id?: string | null
+          template_data?: Json
+          template_type: string
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Update: {
+          ai_model?: string | null
+          created_at?: string
+          creative_style?: string
+          generation_prompt?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          performance_score?: number | null
+          repairer_id?: string | null
+          template_data?: Json
+          template_type?: string
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       ai_enhancements: {
         Row: {
           ai_model: string
@@ -844,6 +892,51 @@ export type Database = {
           id?: string
           last_cleanup?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          repairer_id: string | null
+          resource_id: string | null
+          resource_type: string
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          repairer_id?: string | null
+          resource_id?: string | null
+          resource_type: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          repairer_id?: string | null
+          resource_id?: string | null
+          resource_type?: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -3400,6 +3493,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      inventory_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          movement_type: string
+          product_sku: string
+          quantity: number
+          reason: string | null
+          reference_id: string | null
+          reference_type: string | null
+          repairer_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          movement_type: string
+          product_sku: string
+          quantity: number
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          repairer_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          movement_type?: string
+          product_sku?: string
+          quantity?: number
+          reason?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          repairer_id?: string | null
+        }
+        Relationships: []
       }
       invoice_items: {
         Row: {
@@ -7770,6 +7902,54 @@ export type Database = {
           },
         ]
       }
+      store_customizations: {
+        Row: {
+          created_at: string
+          custom_css: string | null
+          domain_config: Json | null
+          font_family: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          primary_color: string | null
+          repairer_id: string | null
+          secondary_color: string | null
+          store_name: string | null
+          theme_settings: Json | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_css?: string | null
+          domain_config?: Json | null
+          font_family?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          primary_color?: string | null
+          repairer_id?: string | null
+          secondary_color?: string | null
+          store_name?: string | null
+          theme_settings?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_css?: string | null
+          domain_config?: Json | null
+          font_family?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          primary_color?: string | null
+          repairer_id?: string | null
+          secondary_color?: string | null
+          store_name?: string | null
+          theme_settings?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subdomains: {
         Row: {
           created_at: string
@@ -8489,6 +8669,48 @@ export type Database = {
           warranty_conditions?: Json | null
           warranty_duration_months?: number
           warranty_type?: string
+        }
+        Relationships: []
+      }
+      zapier_integrations: {
+        Row: {
+          created_at: string
+          error_count: number | null
+          id: string
+          integration_name: string
+          is_active: boolean | null
+          last_triggered_at: string | null
+          repairer_id: string | null
+          success_count: number | null
+          trigger_events: string[] | null
+          updated_at: string
+          webhook_url: string
+        }
+        Insert: {
+          created_at?: string
+          error_count?: number | null
+          id?: string
+          integration_name: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          repairer_id?: string | null
+          success_count?: number | null
+          trigger_events?: string[] | null
+          updated_at?: string
+          webhook_url: string
+        }
+        Update: {
+          created_at?: string
+          error_count?: number | null
+          id?: string
+          integration_name?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          repairer_id?: string | null
+          success_count?: number | null
+          trigger_events?: string[] | null
+          updated_at?: string
+          webhook_url?: string
         }
         Relationships: []
       }
