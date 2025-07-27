@@ -20,7 +20,7 @@ export { useRepairerSearch } from './useRepairerSearch';
 export { useToast } from './use-toast';
 export { useIsMobile } from './use-mobile';
 export { useFeatureFlags } from './useFeatureFlags';
-export { useDemoMode } from './useDemoMode';
+
 
 // Hooks de géolocalisation
 export { useGeolocation } from './useGeolocation';

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useDemoMode } from '@/hooks/useDemoMode';
+
 import { Star, MessageCircle, ThumbsUp, ThumbsDown, Edit, Plus, TestTube, Image, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -72,7 +72,7 @@ interface Quote {
 
 const ClientReviewsTab = () => {
   const { user } = useAuth();
-  const { demoModeEnabled } = useDemoMode();
+  const [loading, setLoading] = useState(false);
   const [reviews, setReviews] = useState<ClientReview[]>([]);
   const [availableQuotes, setAvailableQuotes] = useState<Quote[]>([]);
   const [reviewCriteria, setReviewCriteria] = useState<ReviewCriteria[]>([]);
@@ -94,7 +94,7 @@ const ClientReviewsTab = () => {
     if (user) {
       loadData();
     }
-  }, [user, demoModeEnabled]);
+  }, [user]);
 
   const loadData = async () => {
     try {

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { useDemoMode } from '@/hooks/useDemoMode';
+
 
 export interface FeatureUsageStats {
   moduleName: string;
@@ -52,7 +52,6 @@ export interface ModuleConfiguration {
 export const useFeatureManagement = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { demoModeEnabled } = useDemoMode();
   const [loading, setLoading] = useState(true);
   const [usageStats, setUsageStats] = useState<FeatureUsageStats[]>([]);
   const [moduleConfigs, setModuleConfigs] = useState<ModuleConfiguration[]>([]);
@@ -62,71 +61,43 @@ export const useFeatureManagement = () => {
 
   console.log('🔄 useFeatureManagement - Hook initialized:', { 
     hasUser: !!user?.id, 
-    demoModeEnabled,
     loading 
   });
 
   // Fonctions pour charger les données depuis la base de données
   const loadUsageStats = async () => {
     try {
-      if (demoModeEnabled) {
-        // Données mockées en mode démo
-        const mockStats: FeatureUsageStats[] = [
-          {
-            moduleName: 'Système POS',
-            moduleType: 'pos',
-            totalUsers: 15,
-            activeUsers: 12,
-            monthlyUsage: 1250,
-            revenueImpact: 7480,
-            status: 'active',
-            lastUpdate: '2024-01-07T10:30:00Z'
-          },
-          {
-            moduleName: 'Plateforme E-commerce',
-            moduleType: 'ecommerce',
-            totalUsers: 8,
-            activeUsers: 6,
-            monthlyUsage: 680,
-            revenueImpact: 5340,
-            status: 'active',
-            lastUpdate: '2024-01-06T15:20:00Z'
-          }
-        ];
-        setUsageStats(mockStats);
-      } else {
-        // Vraies données depuis la base
-        const { data: subscriptions, error } = await supabase
-          .from('repairer_subscriptions')
-          .select('subscription_tier');
+      // Charger les vraies données depuis la base
+      const { data: subscriptions, error } = await supabase
+        .from('repairer_subscriptions')
+        .select('subscription_tier');
 
-        if (error) throw error;
+      if (error) throw error;
 
-        // Créer des statistiques simples basées sur les abonnements - sans duplication
-        const posStats = {
-          moduleName: 'Système POS',
-          moduleType: 'pos' as const,
-          totalUsers: subscriptions.filter(s => ['premium', 'enterprise'].includes(s.subscription_tier)).length,
-          activeUsers: subscriptions.filter(s => s.subscription_tier === 'enterprise').length,
-          monthlyUsage: 247,
-          revenueImpact: 15680,
-          status: 'active' as const,
-          lastUpdate: new Date().toISOString()
-        };
+      // Créer des statistiques simples basées sur les abonnements
+      const posStats = {
+        moduleName: 'Système POS',
+        moduleType: 'pos' as const,
+        totalUsers: subscriptions.filter(s => ['premium', 'enterprise'].includes(s.subscription_tier)).length,
+        activeUsers: subscriptions.filter(s => s.subscription_tier === 'enterprise').length,
+        monthlyUsage: 247,
+        revenueImpact: 15680,
+        status: 'active' as const,
+        lastUpdate: new Date().toISOString()
+      };
 
-        const ecommerceStats = {
-          moduleName: 'Plateforme E-commerce',
-          moduleType: 'ecommerce' as const,
-          totalUsers: subscriptions.filter(s => s.subscription_tier === 'enterprise').length,
-          activeUsers: subscriptions.filter(s => s.subscription_tier === 'enterprise').length,
-          monthlyUsage: 156,
-          revenueImpact: 8950,
-          status: 'active' as const,
-          lastUpdate: new Date().toISOString()
-        };
+      const ecommerceStats = {
+        moduleName: 'Plateforme E-commerce',
+        moduleType: 'ecommerce' as const,
+        totalUsers: subscriptions.filter(s => s.subscription_tier === 'enterprise').length,
+        activeUsers: subscriptions.filter(s => s.subscription_tier === 'enterprise').length,
+        monthlyUsage: 156,
+        revenueImpact: 8950,
+        status: 'active' as const,
+        lastUpdate: new Date().toISOString()
+      };
 
-        setUsageStats([posStats, ecommerceStats]);
-      }
+      setUsageStats([posStats, ecommerceStats]);
     } catch (error) {
       console.error('Error loading usage stats:', error);
     }
@@ -134,104 +105,38 @@ export const useFeatureManagement = () => {
 
   const loadModuleConfigs = async () => {
     try {
-      if (demoModeEnabled) {
-        // Configurations mockées en mode démo
-        const mockConfigs: ModuleConfiguration[] = [
-          {
-            id: 'feature-pos-module',
-            moduleName: 'Module POS Avancé',
-            moduleType: 'pos',
-            isEnabled: true,
-            configuration: {
-              enableInventory: true,
-              enableReporting: true,
-              enablePaymentTerminal: true,
-              maxTransactionsPerDay: 1000
-            },
-            dependencies: ['payment-gateway', 'inventory-system'],
-            version: '2.1.0',
-            documentation: 'Module de point de vente avancé avec gestion des stocks et rapports'
-          },
-          {
-            id: 'feature-ecommerce-module',
-            moduleName: 'Module E-commerce Avancé',
-            moduleType: 'ecommerce',
-            isEnabled: true,
-            configuration: {
-              enableStoreBuilder: true,
-              enableOrderManagement: true,
-              enableAnalytics: true,
-              maxProductsPerStore: 500
-            },
-            dependencies: ['payment-system', 'shipping-calculator'],
-            version: '1.8.3',
-            documentation: 'Module e-commerce avancé pour les réparateurs'
-          },
-          {
-            id: 'feature-buyback-module',
-            moduleName: 'Module Rachat',
-            moduleType: 'buyback',
-            isEnabled: true,
-            configuration: {
-              enableAutomaticPricing: true,
-              enableConditionCheck: true,
-              maxBuybackValue: 2000
-            },
-            dependencies: ['pricing-engine', 'condition-checker'],
-            version: '1.0.2',
-            documentation: 'Module de rachat automatisé de smartphones'
-          },
-          {
-            id: 'feature-ai-diagnostic-module',
-            moduleName: 'Module IA Diagnostic',
-            moduleType: 'ai-diagnostic',
-            isEnabled: true,
-            configuration: {
-              enableAutoDetection: true,
-              enableImageAnalysis: true,
-              confidenceThreshold: 0.85
-            },
-            dependencies: ['ai-engine', 'image-processor'],
-            version: '1.2.1',
-            documentation: 'Diagnostic automatique par intelligence artificielle'
-          }
-        ];
-        setModuleConfigs(mockConfigs);
-      } else {
-        // Vraies configurations depuis la base
-        const { data: pricing, error } = await supabase
-          .from('module_pricing')
-          .select('*');
+      // Charger les vraies configurations depuis la base
+      const { data: pricing, error } = await supabase
+        .from('module_pricing')
+        .select('*');
 
-        if (error) throw error;
+      if (error) throw error;
 
-        const realConfigs: ModuleConfiguration[] = pricing.map(module => ({
-          id: `feature-${module.module_type}-module`,
-          moduleName: module.module_type === 'pos' ? 'Module POS Avancé' : 'Module E-commerce Avancé',
-          moduleType: module.module_type,
-          isEnabled: true,
-          configuration: module.module_type === 'pos' ? {
-            enableInventory: true,
-            enableReporting: true,
-            enablePaymentTerminal: true,
-            maxTransactionsPerDay: 1000
-          } : {
-            enableStoreBuilder: true,
-            enableOrderManagement: true,
-            enableAnalytics: true,
-            maxProductsPerStore: 500
-          },
-          dependencies: module.module_type === 'pos' 
-            ? ['payment-gateway', 'inventory-system']
-            : ['payment-system', 'shipping-calculator'],
-          version: module.module_type === 'pos' ? '2.1.0' : '1.8.3',
-          documentation: module.module_type === 'pos'
-            ? 'Système de point de vente complet avec gestion des stocks et rapports'
-            : 'Plateforme e-commerce complète pour les réparateurs'
-        }));
-
-        setModuleConfigs(realConfigs);
-      }
+      const realConfigs: ModuleConfiguration[] = pricing?.map(module => ({
+        id: `feature-${module.module_type}-module`,
+        moduleName: module.module_type === 'pos' ? 'Module POS Avancé' : 'Module E-commerce Avancé',
+        moduleType: module.module_type,
+        isEnabled: true,
+        configuration: module.module_type === 'pos' ? {
+          enableInventory: true,
+          enableReporting: true,
+          enablePaymentTerminal: true,
+          maxTransactionsPerDay: 1000
+        } : {
+          enableStoreBuilder: true,
+          enableOrderManagement: true,
+          enableAnalytics: true,
+          maxProductsPerStore: 500
+        },
+        dependencies: module.module_type === 'pos' 
+          ? ['payment-gateway', 'inventory-system']
+          : ['payment-system', 'shipping-calculator'],
+        version: module.module_type === 'pos' ? '2.1.0' : '1.8.3',
+        documentation: module.module_type === 'pos'
+          ? 'Module de point de vente avancé avec gestion des stocks et rapports'
+          : 'Module e-commerce avancé pour les réparateurs'
+      })) || [];
+      
     } catch (error) {
       console.error('Error loading module configs:', error);
     }
@@ -251,8 +156,8 @@ export const useFeatureManagement = () => {
 
       let planStats = {} as Record<string, { count: number; revenue: number }>;
 
-      // Calculer les statistiques seulement si utilisateur connecté et pas en mode démo
-      if (user?.id && !demoModeEnabled) {
+      // Calculer les statistiques seulement si utilisateur connecté
+      if (user?.id) {
         console.log('📊 Loading plan statistics (private data)');
         const { data: subscriptions, error: subscriptionsError } = await supabase
           .from('repairer_subscriptions')
@@ -270,7 +175,7 @@ export const useFeatureManagement = () => {
           }, {} as Record<string, { count: number; revenue: number }>);
         }
       } else {
-        console.log('👤 Skipping plan statistics (public mode or demo)');
+        console.log('👤 Skipping plan statistics (public mode)');
       }
 
       const configs: PlanConfiguration[] = plans.map(plan => ({
@@ -427,8 +332,7 @@ export const useFeatureManagement = () => {
     const loadData = async () => {
       setLoading(true);
       console.log('🚀 useFeatureManagement - Starting data load:', { 
-        hasUser: !!user?.id, 
-        demoModeEnabled 
+        hasUser: !!user?.id 
       });
       
       try {
@@ -451,7 +355,7 @@ export const useFeatureManagement = () => {
     };
 
     loadData();
-  }, [user?.id, demoModeEnabled]);
+  }, [user?.id]);
 
   // Synchronisation temps réel - Séparée en données publiques et privées
   useEffect(() => {
@@ -496,10 +400,8 @@ export const useFeatureManagement = () => {
 
   // Synchronisation temps réel pour les données privées (admin seulement)
   useEffect(() => {
-    if (!user?.id || demoModeEnabled) {
-      console.log('⏸️ useFeatureManagement - Private real-time disabled:', { 
-        reason: !user?.id ? 'no_user' : 'demo_mode' 
-      });
+    if (!user?.id) {
+      console.log('⏸️ useFeatureManagement - Private real-time disabled (no user)');
       return;
     }
 
@@ -533,7 +435,7 @@ export const useFeatureManagement = () => {
       console.log('🛑 useFeatureManagement - Cleaning up private real-time listeners');
       supabase.removeChannel(privateChannel);
     };
-  }, [user?.id, demoModeEnabled]);
+  }, [user?.id]);
 
   const updateModuleConfiguration = async (moduleId: string, newConfig: Partial<ModuleConfiguration>) => {
     try {

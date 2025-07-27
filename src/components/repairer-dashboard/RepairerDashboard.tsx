@@ -6,8 +6,6 @@ import { useUpgradeModal } from '@/hooks/useUpgradeModal';
 import { supabase } from '@/integrations/supabase/client';
 import UpgradeModal from '@/components/UpgradeModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
-import DemoModeControl from '@/components/DemoModeControl';
-import { useDemoMode } from '@/hooks/useDemoMode';
 import RepairerDashboardHeader from './RepairerDashboardHeader';
 import RepairerDashboardStats from './RepairerDashboardStats';
 import RepairerDashboardPlanCard from './RepairerDashboardPlanCard';
@@ -20,13 +18,12 @@ const RepairerDashboard = () => {
   const navigate = useNavigate();
   
   // Hook pour le mode démo - Simplifié
-  const { demoModeEnabled } = useDemoMode();
+  const [loading, setLoading] = useState(false);
   
   // Hook pour gérer le popup d'upgrade
   const { shouldShowModal, isModalOpen, closeModal } = useUpgradeModal(user?.email || null);
 
-  console.log('🔍 RepairerDashboard - Rendu avec:', { 
-    demoModeEnabled, 
+  console.log('🔍 RepairerDashboard - Mode production actif:', { 
     userId: user?.id,
     userEmail: user?.email,
     isAdmin 
@@ -162,22 +159,14 @@ const RepairerDashboard = () => {
     ]
   };
 
-  // Logique simplifiée : choisir les données selon le mode démo
-  const repairerData = demoModeEnabled ? {
-    ...realData,
-    stats: demoData.stats,
-    orders: [...realData.orders, ...demoData.orders],
-    inventory: [...realData.inventory, ...demoData.inventory],
-    appointments: [...realData.appointments, ...demoData.appointments]
-  } : realData;
+  // Utiliser uniquement les données réelles
+  const repairerData = realData;
 
-  console.log('📊 RepairerDashboard - Données finales utilisées:', {
-    demoModeEnabled,
+  console.log('📊 RepairerDashboard - Données réelles utilisées:', {
     statsRevenue: repairerData.stats.monthlyRevenue,
     ordersCount: repairerData.orders.length,
     inventoryCount: repairerData.inventory.length,
-    appointmentsCount: repairerData.appointments.length,
-    orderTitles: repairerData.orders.map(o => o.client)
+    appointmentsCount: repairerData.appointments.length
   });
 
   useEffect(() => {
@@ -280,15 +269,7 @@ const RepairerDashboard = () => {
 
         <RepairerDashboardHeader 
           onLogout={handleLogout}
-          demoModeEnabled={demoModeEnabled}
         />
-
-        {/* Contrôle du mode démo pour les admins */}
-        {isAdmin && (
-          <div className="mb-6">
-            <DemoModeControl />
-          </div>
-        )}
 
         <RepairerDashboardPlanCard
           currentPlan={currentPlan}
@@ -308,7 +289,6 @@ const RepairerDashboard = () => {
         <RepairerDashboardStats
           stats={repairerData.stats}
           profile={repairerData.profile}
-          demoModeEnabled={demoModeEnabled}
         />
 
         <RepairerDashboardTabs
@@ -319,7 +299,6 @@ const RepairerDashboard = () => {
           inventory={repairerData.inventory}
           profileData={repairerData.profile}
           avgRepairTime={repairerData.stats.avgRepairTime}
-          demoModeEnabled={demoModeEnabled}
         />
       </div>
     </div>

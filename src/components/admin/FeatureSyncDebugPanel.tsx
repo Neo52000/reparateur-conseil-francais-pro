@@ -5,14 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { RefreshCw, Check, AlertTriangle, Clock } from 'lucide-react';
 import { useFeatureManagement } from '@/hooks/useFeatureManagement';
-import { useDemoMode } from '@/hooks/useDemoMode';
+
 import { useToast } from '@/hooks/use-toast';
 
 const FeatureSyncDebugPanel: React.FC = () => {
   const { toast } = useToast();
-  const { demoModeEnabled, toggleDemoMode } = useDemoMode();
+  const [loading, setLoading] = useState(false);
   const { 
-    loading, 
+    loading: featureLoading, 
     planConfigs, 
     planFeatureMatrix, 
     updatePlanPricing 
@@ -96,27 +96,19 @@ const FeatureSyncDebugPanel: React.FC = () => {
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {/* État du mode démo */}
+        {/* État du système */}
         <div>
-          <h4 className="font-semibold mb-2">Mode Démo</h4>
-          <div className="flex items-center gap-4">
-            <Badge variant={demoModeEnabled ? "default" : "secondary"}>
-              {demoModeEnabled ? 'Activé' : 'Désactivé'}
-            </Badge>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={toggleDemoMode}
-            >
-              {demoModeEnabled ? 'Désactiver' : 'Activer'} le mode démo
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            {demoModeEnabled 
-              ? 'Les données mockées sont affichées' 
-              : 'Les vraies données de la base sont utilisées'
-            }
-          </p>
+          <h4 className="font-semibold mb-2">Configuration système</h4>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center text-sm">
+                <span>Mode de production</span>
+                <Badge variant="default">
+                  Activé
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <Separator />
@@ -136,7 +128,7 @@ const FeatureSyncDebugPanel: React.FC = () => {
             <Button
               variant="outline"
               onClick={testPriceUpdate}
-              disabled={loading || demoModeEnabled}
+              disabled={loading}
             >
               Test Modif Prix
             </Button>
@@ -169,13 +161,13 @@ const FeatureSyncDebugPanel: React.FC = () => {
             <div>
               <span className="font-medium">Mode:</span>
               <Badge variant="outline" className="ml-2">
-                {demoModeEnabled ? 'Démo' : 'Production'}
+                Environment: Production
               </Badge>
             </div>
             <div>
               <span className="font-medium">Statut:</span>
               <Badge variant="outline" className="ml-2">
-                {loading ? 'Chargement...' : 'Prêt'}
+                {featureLoading ? 'Chargement...' : 'Prêt'}
               </Badge>
             </div>
           </div>

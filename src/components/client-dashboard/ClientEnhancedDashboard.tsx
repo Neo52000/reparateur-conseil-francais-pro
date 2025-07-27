@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
-import { useDemoMode } from '@/hooks/useDemoMode';
+
 import { 
   Calendar, 
   FileText, 
@@ -29,7 +29,7 @@ import ClientMessagingTab from './ClientMessagingTab';
 
 const ClientEnhancedDashboard = () => {
   const { user, profile } = useAuth();
-  const { demoModeEnabled } = useDemoMode();
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState({
     totalRepairs: 0,
@@ -38,13 +38,13 @@ const ClientEnhancedDashboard = () => {
     avgRating: 0
   });
   const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
       loadDashboardData();
     }
-  }, [user, demoModeEnabled]);
+  }, [user]);
 
   const loadDashboardData = async () => {
     try {
@@ -60,7 +60,7 @@ const ClientEnhancedDashboard = () => {
       const demoStats = ClientDemoDataService.getDemoStats();
       
       // Utiliser les stats de démo si le mode est activé, sinon les vraies stats
-      const finalStats = demoModeEnabled ? demoStats : realStats;
+      const finalStats = realStats;
       setStats(finalStats);
 
       // Charger les rendez-vous
@@ -70,7 +70,7 @@ const ClientEnhancedDashboard = () => {
       const combinedAppointments = ClientDemoDataService.combineWithDemoData(
         realAppointments,
         demoAppointments,
-        demoModeEnabled
+        realStats
       );
       
       setAppointments(combinedAppointments);
@@ -108,8 +108,7 @@ const ClientEnhancedDashboard = () => {
     <div className="container mx-auto p-6 space-y-6">
       <ClientDashboardHeader 
         firstName={profile?.first_name} 
-        demoModeEnabled={demoModeEnabled} 
-      />
+        /> 
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-8 lg:grid-cols-8">
@@ -151,8 +150,7 @@ const ClientEnhancedDashboard = () => {
           <ClientDashboardOverview 
             stats={stats} 
             appointments={appointments} 
-            demoModeEnabled={demoModeEnabled} 
-          />
+            />
         </TabsContent>
 
         <TabsContent value="appointments">

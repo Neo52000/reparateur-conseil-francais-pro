@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import AdminFeatureFlags from "@/components/AdminFeatureFlags";
 import OptionalModulesManager from "@/components/OptionalModulesManager";
-import CreateDemoRepairerButton from "@/components/CreateDemoRepairerButton";
+
 
 export default function AdminFeaturesPage() {
   const navigate = useNavigate();
@@ -23,10 +23,6 @@ export default function AdminFeaturesPage() {
             Retour à l'Admin
           </Button>
           <h1 className="text-3xl font-bold">Configuration des fonctionnalités par plan</h1>
-        </div>
-        
-        <div className="mb-8 flex justify-center">
-          <CreateDemoRepairerButton />
         </div>
         
         <div className="space-y-8">

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, CheckCircle, RefreshCw, ExternalLink } from 'lucide-react';
 import { NavigationService } from '@/services/navigationService';
 import { DataService } from '@/services/dataService';
-import { useDemoMode } from '@/hooks/useDemoMode';
+
 
 interface AuditResult {
   category: string;
@@ -18,7 +18,7 @@ interface AuditResult {
 const SystemAuditPanel: React.FC = () => {
   const [auditResults, setAuditResults] = useState<AuditResult[]>([]);
   const [isAuditing, setIsAuditing] = useState(false);
-  const { demoModeEnabled } = useDemoMode();
+  const [loading, setLoading] = useState(false);
 
   const runSystemAudit = async () => {
     setIsAuditing(true);
@@ -114,7 +114,7 @@ const SystemAuditPanel: React.FC = () => {
 
   useEffect(() => {
     runSystemAudit();
-  }, [demoModeEnabled]);
+  }, []);
 
   const getStatusIcon = (status: AuditResult['status']) => {
     switch (status) {
@@ -144,8 +144,8 @@ const SystemAuditPanel: React.FC = () => {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             Audit Système
-            <Badge variant={demoModeEnabled ? 'default' : 'outline'}>
-              Mode Démo: {demoModeEnabled ? 'ON' : 'OFF'}
+            <Badge variant='default'>
+              Mode Production: ON
             </Badge>
           </CardTitle>
           <Button 

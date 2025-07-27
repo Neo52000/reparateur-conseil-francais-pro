@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,61 +6,50 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TrendingUp, Users, Target, DollarSign, Brain, Zap, AlertTriangle } from 'lucide-react';
 import AIInsightsWidget from './ai-insights/AIInsightsWidget';
 import SmartRecommendations from './ai-insights/SmartRecommendations';
-import { useDemoMode } from '@/hooks/useDemoMode';
-import { useAdvertisingDashboardData } from '@/services/advertising/AdvertisingDemoDataService';
 
 const AdvancedAnalytics: React.FC = () => {
-  // Hook pour le mode démo
-  const { demoModeEnabled } = useDemoMode();
-  const { getAnalyticsData } = useAdvertisingDashboardData();
+  const [loading, setLoading] = useState(false);
 
-  console.log('🔍 AdvancedAnalytics - Mode démo:', demoModeEnabled);
+  console.log('🔍 AdvancedAnalytics - Production mode active');
 
   // Données réelles de base (en production, ces données viendraient de votre API/base de données)
-  const realBaseData = {
-    realTimeData: {
-      totalImpressions: 0,
-      totalClicks: 0,
-      totalConversions: 0,
-      totalRevenue: 0,
-      ctr: 0,
-      conversionRate: 0,
-      costPerClick: 0,
-      roi: 0
-    },
-    segmentPerformance: []
-  };
-
-  // Obtenir les données selon le mode démo
-  const analyticsData = getAnalyticsData(realBaseData);
-  const [realTimeData, setRealTimeData] = useState(analyticsData.realTimeData);
-  const [segmentPerformance] = useState(analyticsData.segmentPerformance);
+  const [realTimeData, setRealTimeData] = useState({
+    totalImpressions: 0,
+    totalClicks: 0,
+    totalConversions: 0,
+    totalRevenue: 0,
+    ctr: 0,
+    conversionRate: 0,
+    costPerClick: 0,
+    roi: 0
+  });
+  
+  const [segmentPerformance] = useState([]);
 
   console.log('📊 AdvancedAnalytics - Données utilisées:', {
-    demoMode: demoModeEnabled,
     revenue: realTimeData.totalRevenue,
     segmentCount: segmentPerformance.length
   });
 
-  // Simuler des mises à jour en temps réel seulement en mode démo
+  // Charger les vraies données depuis l'API
   useEffect(() => {
-    if (!demoModeEnabled) {
-      console.log('📈 Mode production - Pas de simulation temps réel');
-      return;
-    }
-
-    console.log('🎭 Mode démo - Activation simulation temps réel');
-    const interval = setInterval(() => {
+    // Toujours charger les vraies données
+    try {
+      setLoading(true);
+      
+      // Dans un environnement de production, on chargerait les vraies données
+      // Pour l'instant, on utilise les données initiales (vides)
       setRealTimeData(prev => ({
         ...prev,
-        totalImpressions: prev.totalImpressions + Math.floor(Math.random() * 50),
-        totalClicks: prev.totalClicks + Math.floor(Math.random() * 3),
-        totalConversions: prev.totalConversions + (Math.random() > 0.8 ? 1 : 0)
+        // Les vraies données seraient récupérées ici
       }));
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [demoModeEnabled]);
+      
+    } catch (error) {
+      console.error('Error loading real analytics data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -91,20 +79,14 @@ const AdvancedAnalytics: React.FC = () => {
             Analytics Avancées
           </h2>
           <p className="text-gray-600">
-            Analyse {demoModeEnabled ? 'de démonstration' : 'en temps réel'} avec intelligence artificielle
+            Analyse en temps réel avec intelligence artificielle
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {demoModeEnabled ? (
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-              Mode Démonstration
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="animate-pulse">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
-              Temps réel
-            </Badge>
-          )}
+          <Badge variant="outline" className="animate-pulse">
+            <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
+            Temps réel
+          </Badge>
           <Badge variant="secondary">IA Activée</Badge>
         </div>
       </div>
@@ -117,8 +99,8 @@ const AdvancedAnalytics: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Impressions</p>
                 <p className="text-2xl font-bold">{realTimeData.totalImpressions.toLocaleString()}</p>
-                <p className="text-xs text-green-600 flex items-center">
-                  {getTrendIcon('up')} {demoModeEnabled ? '+12%' : '+0%'} vs mois dernier
+                <p className="text-xs text-gray-600 flex items-center">
+                  {getTrendIcon('stable')} Aucune donnée historique
                 </p>
               </div>
               <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -134,8 +116,8 @@ const AdvancedAnalytics: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Clics</p>
                 <p className="text-2xl font-bold">{realTimeData.totalClicks.toLocaleString()}</p>
-                <p className="text-xs text-green-600 flex items-center">
-                  CTR: {realTimeData.ctr}% {getTrendIcon(demoModeEnabled ? 'up' : 'stable')}
+                <p className="text-xs text-gray-600 flex items-center">
+                  CTR: {realTimeData.ctr}% {getTrendIcon('stable')}
                 </p>
               </div>
               <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -151,8 +133,8 @@ const AdvancedAnalytics: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Conversions</p>
                 <p className="text-2xl font-bold">{realTimeData.totalConversions}</p>
-                <p className="text-xs text-green-600 flex items-center">
-                  Taux: {realTimeData.conversionRate}% {getTrendIcon(demoModeEnabled ? 'up' : 'stable')}
+                <p className="text-xs text-gray-600 flex items-center">
+                  Taux: {realTimeData.conversionRate}% {getTrendIcon('stable')}
                 </p>
               </div>
               <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
@@ -168,8 +150,8 @@ const AdvancedAnalytics: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Chiffre d'affaires</p>
                 <p className="text-2xl font-bold">{realTimeData.totalRevenue.toLocaleString()}€</p>
-                <p className="text-xs text-green-600 flex items-center">
-                  ROI: {realTimeData.roi}% {getTrendIcon(demoModeEnabled ? 'up' : 'stable')}
+                <p className="text-xs text-gray-600 flex items-center">
+                  ROI: {realTimeData.roi}% {getTrendIcon('stable')}
                 </p>
               </div>
               <div className="h-8 w-8 bg-yellow-100 rounded-full flex items-center justify-center">
@@ -203,59 +185,15 @@ const AdvancedAnalytics: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>Performance par segment</CardTitle>
-              {demoModeEnabled && (
-                <p className="text-sm text-blue-600">Données de démonstration enrichies</p>
-              )}
             </CardHeader>
             <CardContent>
-              {segmentPerformance.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium mb-2">Aucune donnée de segment disponible</p>
-                  <p className="text-sm">
-                    {demoModeEnabled 
-                      ? 'Activez des campagnes pour voir les performances par segment'
-                      : 'Créez des campagnes et des segments pour voir les analytics détaillées'
-                    }
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {segmentPerformance.map((segment, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{segment.name}</span>
-                          <Badge className={getStatusColor(segment.status)}>
-                            {segment.status}
-                          </Badge>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-6 text-sm">
-                        <div className="text-center">
-                          <p className="font-semibold">CTR: {segment.ctr}%</p>
-                          <p className="text-gray-600">Clics</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="font-semibold">Conv: {segment.conversionRate}%</p>
-                          <p className="text-gray-600">Conversion</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="font-semibold">ROI: {segment.roi}%</p>
-                          <p className="text-gray-600">Retour</p>
-                        </div>
-                        <div className="text-center">
-                          <p className={`font-semibold ${segment.trend === 'up' ? 'text-green-600' : segment.trend === 'down' ? 'text-red-600' : 'text-gray-600'}`}>
-                            {getTrendIcon(segment.trend)} {segment.change}
-                          </p>
-                          <p className="text-gray-600">Évolution</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="text-center py-8 text-gray-500">
+                <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">Aucune donnée de segment disponible</p>
+                <p className="text-sm">
+                  Créez des campagnes et des segments pour voir les analytics détaillées
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -270,9 +208,6 @@ const AdvancedAnalytics: React.FC = () => {
               <CardTitle className="flex items-center gap-2">
                 <Brain className="h-5 w-5 text-purple-600" />
                 Prédictions IA - 7 prochains jours
-                {demoModeEnabled && (
-                  <Badge variant="secondary" className="ml-2">Démonstration</Badge>
-                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -282,15 +217,15 @@ const AdvancedAnalytics: React.FC = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Impressions:</span>
-                      <span className="font-semibold">{demoModeEnabled ? '+15% (143k)' : 'Données insuffisantes'}</span>
+                      <span className="font-semibold">Données insuffisantes</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Conversions:</span>
-                      <span className="font-semibold">{demoModeEnabled ? '+8% (202)' : 'Données insuffisantes'}</span>
+                      <span className="font-semibold">Données insuffisantes</span>
                     </div>
                     <div className="flex justify-between">
                       <span>ROI prévu:</span>
-                      <span className="font-semibold text-green-600">{demoModeEnabled ? '+12% (320%)' : 'À déterminer'}</span>
+                      <span className="font-semibold text-green-600">À déterminer</span>
                     </div>
                   </div>
                 </div>
@@ -298,24 +233,7 @@ const AdvancedAnalytics: React.FC = () => {
                 <div className="p-4 bg-green-50 rounded-lg">
                   <h4 className="font-semibold text-green-900 mb-2">Opportunités détectées</h4>
                   <div className="space-y-2 text-sm">
-                    {demoModeEnabled ? (
-                      <>
-                        <div className="flex items-center gap-2">
-                          <AlertTriangle className="h-4 w-4 text-orange-500" />
-                          <span>Pic de trafic mardi 14h</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 text-green-500" />
-                          <span>Nouveau segment iOS actif</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Zap className="h-4 w-4 text-blue-500" />
-                          <span>Créatifs à renouveler</span>
-                        </div>
-                      </>
-                    ) : (
-                      <p className="text-gray-600">Collecte de données en cours...</p>
-                    )}
+                    <p className="text-gray-600">Collecte de données en cours...</p>
                   </div>
                 </div>
 
@@ -324,15 +242,15 @@ const AdvancedAnalytics: React.FC = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Budget optimal:</span>
-                      <span className="font-semibold">{demoModeEnabled ? '+20% (6k€)' : 'À analyser'}</span>
+                      <span className="font-semibold">À analyser</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Réallocation:</span>
-                      <span className="font-semibold">{demoModeEnabled ? 'Lyon → Paris' : 'En attente'}</span>
+                      <span className="font-semibold">En attente</span>
                     </div>
                     <div className="flex justify-between">
                       <span>ROI attendu:</span>
-                      <span className="font-semibold text-green-600">{demoModeEnabled ? '+35%' : 'TBD'}</span>
+                      <span className="font-semibold text-green-600">TBD</span>
                     </div>
                   </div>
                 </div>

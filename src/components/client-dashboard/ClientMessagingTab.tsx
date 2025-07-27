@@ -8,7 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { MessageCircle, Send, Search, Clock, CheckCircle2, TestTube } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useDemoMode } from '@/hooks/useDemoMode';
+
 import { toast } from 'sonner';
 import { ClientDemoDataService, DemoConversation, DemoMessage } from '@/services/clientDemoDataService';
 
@@ -35,7 +35,7 @@ interface Message {
 
 const ClientMessagingTab = () => {
   const { user } = useAuth();
-  const { demoModeEnabled } = useDemoMode();
+  const [loading, setLoading] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -47,7 +47,7 @@ const ClientMessagingTab = () => {
     if (user) {
       loadConversations();
     }
-  }, [user, demoModeEnabled]);
+  }, [user]);
 
   const loadConversations = async () => {
     try {

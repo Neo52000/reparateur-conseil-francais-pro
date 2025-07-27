@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
-import DemoModeControl from '@/components/DemoModeControl';
+
 
 interface AdminDashboardHeaderProps {
   onRefresh: () => void;
@@ -21,9 +21,6 @@ const AdminDashboardHeader: React.FC<AdminDashboardHeaderProps> = ({ onRefresh }
           Actualiser
         </Button>
       </div>
-
-      {/* Demo Mode Control - Ajouté ici pour qu'il soit visible */}
-      <DemoModeControl />
     </div>
   );
 };
