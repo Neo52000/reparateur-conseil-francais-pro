@@ -118,26 +118,29 @@ const DeviceIntakeModal: React.FC<DeviceIntakeModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      const repairOrder = await createRepairOrder({
+      // Nettoyer les données pour éviter les objets avec _type: "undefined"
+      const cleanData = {
         device_type_id: formData.device_type_id,
-        brand_id: formData.brand_id,
-        device_model_id: formData.device_model_id,
-        imei_serial: formData.imei_serial,
-        custom_device_info: formData.custom_device_info,
-        initial_condition_id: formData.initial_condition_id,
-        pin_code: formData.pin_code,
-        sim_code: formData.sim_code,
-        lock_pattern: formData.lock_pattern,
-        security_notes: formData.security_notes,
-        customer_name: formData.customer_name!,
-        customer_phone: formData.customer_phone,
-        customer_email: formData.customer_email,
-        customer_notes: formData.customer_notes,
-        initial_diagnosis: formData.initial_diagnosis,
-        estimated_cost: formData.estimated_cost,
-        estimated_duration_hours: formData.estimated_duration_hours,
+        brand_id: formData.brand_id || null,
+        device_model_id: formData.device_model_id || null,
+        imei_serial: formData.imei_serial || null,
+        custom_device_info: formData.custom_device_info || null,
+        initial_condition_id: formData.initial_condition_id || null,
+        pin_code: formData.pin_code || null,
+        sim_code: formData.sim_code || null,
+        lock_pattern: formData.lock_pattern || null,
+        security_notes: formData.security_notes || null,
+        customer_name: formData.customer_name,
+        customer_phone: formData.customer_phone || null,
+        customer_email: formData.customer_email || null,
+        customer_notes: formData.customer_notes || null,
+        initial_diagnosis: formData.initial_diagnosis || null,
+        estimated_cost: formData.estimated_cost || null,
+        estimated_duration_hours: formData.estimated_duration_hours || null,
         accessories: formData.accessories || [],
-      });
+      };
+
+      const repairOrder = await createRepairOrder(cleanData);
 
       // Générer et imprimer le bon de prise en charge
       if (repairOrder) {

@@ -7784,7 +7784,7 @@ export type Database = {
         Returns: string
       }
       generate_repair_order_number: {
-        Args: { repairer_id: string }
+        Args: { repairer_uuid: string }
         Returns: string
       }
       generate_transaction_number: {
