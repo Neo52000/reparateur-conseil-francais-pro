@@ -24,6 +24,7 @@ import AuditTrail from './AuditTrail';
 import CustomerManagement from './CustomerManagement';
 import AdvancedReporting from './AdvancedReporting';
 import SecurityControls from './SecurityControls';
+import ArchivedReceiptsTab from './ui/ArchivedReceiptsTab';
 import { usePOSSounds } from './SoundManager';
 import { 
   CreditCard, 
@@ -700,11 +701,22 @@ const DirectPOSInterface: React.FC = () => {
 
             {/* Onglet Transactions */}
             <TabsContent value="transactions" className="space-y-4">
-              <AnimatedTransactions
-                transactions={transactions}
-                newTransaction={lastTransaction}
-                sessionStats={sessionStats}
-              />
+              <Tabs defaultValue="recent" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="recent">Transactions récentes</TabsTrigger>
+                  <TabsTrigger value="archived">Tickets archivés</TabsTrigger>
+                </TabsList>
+                <TabsContent value="recent" className="mt-4">
+                  <AnimatedTransactions
+                    transactions={transactions}
+                    newTransaction={lastTransaction}
+                    sessionStats={sessionStats}
+                  />
+                </TabsContent>
+                <TabsContent value="archived" className="mt-4">
+                  <ArchivedReceiptsTab repairerId={user?.id || "mock-repairer-id"} />
+                </TabsContent>
+              </Tabs>
             </TabsContent>
 
             {/* Onglet Clients */}

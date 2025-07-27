@@ -4258,6 +4258,151 @@ export type Database = {
         }
         Relationships: []
       }
+      nf525_archive_logs: {
+        Row: {
+          action: string
+          archive_id: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          repairer_id: string
+          status: string
+          transaction_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          archive_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          repairer_id: string
+          status: string
+          transaction_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          archive_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          repairer_id?: string
+          status?: string
+          transaction_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nf525_archive_logs_archive_id_fkey"
+            columns: ["archive_id"]
+            isOneToOne: false
+            referencedRelation: "nf525_receipt_archives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nf525_archive_stats: {
+        Row: {
+          archive_size_mb: number
+          archived_receipts: number
+          compliance_score: number
+          created_at: string
+          date: string
+          id: string
+          last_archive_check: string | null
+          repairer_id: string
+          total_receipts: number
+          updated_at: string
+        }
+        Insert: {
+          archive_size_mb?: number
+          archived_receipts?: number
+          compliance_score?: number
+          created_at?: string
+          date?: string
+          id?: string
+          last_archive_check?: string | null
+          repairer_id: string
+          total_receipts?: number
+          updated_at?: string
+        }
+        Update: {
+          archive_size_mb?: number
+          archived_receipts?: number
+          compliance_score?: number
+          created_at?: string
+          date?: string
+          id?: string
+          last_archive_check?: string | null
+          repairer_id?: string
+          total_receipts?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      nf525_receipt_archives: {
+        Row: {
+          archive_format: string
+          compression_used: boolean | null
+          created_at: string
+          expires_at: string
+          file_size_bytes: number | null
+          id: string
+          metadata: Json | null
+          receipt_data: Json
+          receipt_hash: string
+          receipt_html: string
+          repairer_id: string
+          retention_period_years: number
+          transaction_id: string
+          updated_at: string
+        }
+        Insert: {
+          archive_format?: string
+          compression_used?: boolean | null
+          created_at?: string
+          expires_at?: string
+          file_size_bytes?: number | null
+          id?: string
+          metadata?: Json | null
+          receipt_data: Json
+          receipt_hash: string
+          receipt_html: string
+          repairer_id: string
+          retention_period_years?: number
+          transaction_id: string
+          updated_at?: string
+        }
+        Update: {
+          archive_format?: string
+          compression_used?: boolean | null
+          created_at?: string
+          expires_at?: string
+          file_size_bytes?: number | null
+          id?: string
+          metadata?: Json | null
+          receipt_data?: Json
+          receipt_hash?: string
+          receipt_html?: string
+          repairer_id?: string
+          retention_period_years?: number
+          transaction_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nf525_receipt_archives_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "pos_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_channels: {
         Row: {
           config: Json
@@ -5352,6 +5497,9 @@ export type Database = {
       pos_transactions: {
         Row: {
           appointment_id: string | null
+          archive_status: string | null
+          archived_at: string | null
+          archived_receipt_data: Json | null
           created_at: string
           customer_email: string | null
           customer_id: string | null
@@ -5362,9 +5510,11 @@ export type Database = {
           fiscal_receipt_number: string | null
           fiscal_signature: string | null
           id: string
+          nf525_archive_hash: string | null
           payment_details: Json | null
           payment_method: string
           payment_status: string
+          receipt_generation_status: string | null
           repair_order_id: string | null
           repairer_id: string
           session_id: string
@@ -5378,6 +5528,9 @@ export type Database = {
         }
         Insert: {
           appointment_id?: string | null
+          archive_status?: string | null
+          archived_at?: string | null
+          archived_receipt_data?: Json | null
           created_at?: string
           customer_email?: string | null
           customer_id?: string | null
@@ -5388,9 +5541,11 @@ export type Database = {
           fiscal_receipt_number?: string | null
           fiscal_signature?: string | null
           id?: string
+          nf525_archive_hash?: string | null
           payment_details?: Json | null
           payment_method: string
           payment_status?: string
+          receipt_generation_status?: string | null
           repair_order_id?: string | null
           repairer_id: string
           session_id: string
@@ -5404,6 +5559,9 @@ export type Database = {
         }
         Update: {
           appointment_id?: string | null
+          archive_status?: string | null
+          archived_at?: string | null
+          archived_receipt_data?: Json | null
           created_at?: string
           customer_email?: string | null
           customer_id?: string | null
@@ -5414,9 +5572,11 @@ export type Database = {
           fiscal_receipt_number?: string | null
           fiscal_signature?: string | null
           id?: string
+          nf525_archive_hash?: string | null
           payment_details?: Json | null
           payment_method?: string
           payment_status?: string
+          receipt_generation_status?: string | null
           repair_order_id?: string | null
           repairer_id?: string
           session_id?: string
@@ -8025,6 +8185,10 @@ export type Database = {
       }
       assign_free_plan_to_repairer: {
         Args: { user_email: string; user_id: string }
+        Returns: string
+      }
+      auto_archive_receipt: {
+        Args: { transaction_id: string }
         Returns: string
       }
       calculate_data_quality_score: {
