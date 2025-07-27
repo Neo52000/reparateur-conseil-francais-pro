@@ -3025,6 +3025,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           links: Json | null
+          parent_id: string | null
           section_key: string
           title: string
           updated_at: string
@@ -3036,6 +3037,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           links?: Json | null
+          parent_id?: string | null
           section_key: string
           title: string
           updated_at?: string
@@ -3047,11 +3049,20 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           links?: Json | null
+          parent_id?: string | null
           section_key?: string
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "footer_configuration_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "footer_configuration"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       geo_targeting_zones: {
         Row: {

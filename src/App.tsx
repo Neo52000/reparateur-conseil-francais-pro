@@ -55,6 +55,14 @@ const AppWithTracking = () => {
         <Route path="/reparation-tablette" element={<ServiceRepairPage />} />
         <Route path="/reparation-ordinateur" element={<ServiceRepairPage />} />
         <Route path="/reparation-console" element={<ServiceRepairPage />} />
+        <Route path="/reparation-smartphone-:city" element={<ServiceRepairPage />} />
+        <Route path="/aide" element={<div className="container mx-auto py-8"><h1>Centre d'aide</h1><p>Page en construction...</p></div>} />
+        <Route path="/contact" element={<div className="container mx-auto py-8"><h1>Contact</h1><p>Page en construction...</p></div>} />
+        <Route path="/faq" element={<div className="container mx-auto py-8"><h1>FAQ</h1><p>Page en construction...</p></div>} />
+        <Route path="/mentions-legales" element={<div className="container mx-auto py-8"><h1>Mentions légales</h1><p>Page en construction...</p></div>} />
+        <Route path="/politique-confidentialite" element={<div className="container mx-auto py-8"><h1>Politique de confidentialité</h1><p>Page en construction...</p></div>} />
+        <Route path="/cgu" element={<div className="container mx-auto py-8"><h1>Conditions Générales d'Utilisation</h1><p>Page en construction...</p></div>} />
+        <Route path="/cgv" element={<div className="container mx-auto py-8"><h1>Conditions Générales de Vente</h1><p>Page en construction...</p></div>} />
         <Route path="/settings" element={<RepairerSettingsPage />} />
         <Route path="/paramètres" element={<RepairerSettingsPage />} />
         <Route path="/suivi/:orderId" element={<RepairTrackingPage />} />

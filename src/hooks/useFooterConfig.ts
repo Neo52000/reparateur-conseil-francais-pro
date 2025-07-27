@@ -14,6 +14,7 @@ export interface FooterSection {
   }>;
   display_order: number;
   is_active: boolean;
+  parent_id?: string | null;
 }
 
 export const useFooterConfig = () => {
@@ -98,6 +99,34 @@ export const useFooterConfig = () => {
     }
   };
 
+  const reorderSections = async (sourceIndex: number, destinationIndex: number, parentId?: string | null) => {
+    try {
+      const sectionsToReorder = sections
+        .filter(s => s.parent_id === parentId)
+        .sort((a, b) => a.display_order - b.display_order);
+      
+      const [removed] = sectionsToReorder.splice(sourceIndex, 1);
+      sectionsToReorder.splice(destinationIndex, 0, removed);
+      
+      // Mettre à jour les ordres d'affichage
+      for (let i = 0; i < sectionsToReorder.length; i++) {
+        await updateSection(sectionsToReorder[i].id, { display_order: i });
+      }
+      
+      toast({
+        title: "Succès",
+        description: "Sections réorganisées avec succès"
+      });
+    } catch (error) {
+      console.error('Error reordering sections:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de réorganiser les sections",
+        variant: "destructive"
+      });
+    }
+  };
+
   const deleteSection = async (sectionId: string) => {
     try {
       const { error } = await supabase
@@ -132,6 +161,7 @@ export const useFooterConfig = () => {
     updateSection,
     createSection,
     deleteSection,
+    reorderSections,
     refreshConfig: loadFooterConfig
   };
 };

@@ -75,121 +75,160 @@ const Footer = () => {
                 </div>
               </div>
             ) : (
-              // Configuration dynamique depuis la base de données
-              sections.map((section) => (
-                <div key={section.id}>
-                  <h3 className="text-lg font-semibold mb-4 text-white">{section.title}</h3>
-                  
-                  {section.section_key === 'company_info' ? (
-                    <div className="lg:col-span-1">
-                      <div className="mb-6">
-                        <img 
-                          src="/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png" 
-                          alt="TopRéparateurs.fr - Logo" 
-                          className="h-16 object-contain brightness-0 invert"
-                          width="200"
-                          height="64"
-                        />
-                      </div>
-                      <p className="text-gray-300 mb-6 leading-relaxed">
-                        {section.content}
-                      </p>
+              // Configuration dynamique avec support des sous-sections
+              sections
+                .filter(s => !s.parent_id && s.is_active)
+                .sort((a, b) => a.display_order - b.display_order)
+                .map((section) => {
+                  const childSections = sections
+                    .filter(s => s.parent_id === section.id && s.is_active)
+                    .sort((a, b) => a.display_order - b.display_order);
+
+                  return (
+                    <div key={section.id}>
+                      <h3 className="text-lg font-semibold mb-4 text-white">{section.title}</h3>
                       
-                      {/* Avantages clés */}
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center">
-                          <Shield className="h-4 w-4 mr-2 text-green-400" />
-                          <span>Réparateurs certifiés</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-2 text-blue-400" />
-                          <span>Intervention sous 24h</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 mr-2 text-yellow-400" />
-                          <span>Satisfaction garantie</span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : section.section_key === 'services' ? (
-                    <nav aria-label="Services de réparation">
-                      <ul className="space-y-3">
-                        {section.links.map((link, index) => {
-                          const getServiceIcon = (title: string) => {
-                            if (title.includes('Smartphone')) return Smartphone;
-                            if (title.includes('Tablette')) return Tablet;
-                            if (title.includes('Ordinateur')) return Laptop;
-                            if (title.includes('Console')) return Gamepad2;
-                            return Smartphone;
-                          };
-                          const IconComponent = getServiceIcon(link.title);
+                      {section.section_key === 'company_info' ? (
+                        <div className="lg:col-span-1">
+                          <div className="mb-6">
+                            <img 
+                              src="/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png" 
+                              alt="TopRéparateurs.fr - Logo" 
+                              className="h-16 object-contain brightness-0 invert"
+                              width="200"
+                              height="64"
+                            />
+                          </div>
+                          <p className="text-gray-300 mb-6 leading-relaxed">
+                            {section.content}
+                          </p>
                           
-                          return (
-                            <li key={index}>
-                              <Link 
-                                to={link.url} 
-                                className="flex items-center text-gray-300 hover:text-white transition-colors group"
-                              >
-                                <IconComponent className="h-4 w-4 mr-2 group-hover:text-primary" />
-                                {link.title}
-                              </Link>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </nav>
-                  ) : section.section_key === 'repairer_cta' ? (
-                    <div className="bg-gradient-to-br from-blue-600 to-orange-600 rounded-lg p-6">
-                      <h3 className="font-bold text-white mb-2">{section.title}</h3>
-                      <p className="text-blue-100 text-sm mb-4 leading-relaxed">
-                        {section.content}
-                      </p>
-                      {section.links.map((link, index) => (
-                        <Link key={index} to={link.url}>
-                          <Button 
-                            className={link.className || "bg-white text-blue-600 hover:bg-gray-100 font-semibold w-full"}
-                            size="sm"
-                          >
-                            <UserPlus className="h-4 w-4 mr-2" />
-                            {link.title}
-                          </Button>
-                        </Link>
-                      ))}
-                      
-                      {/* Stats rapides */}
-                      <div className="grid grid-cols-2 gap-2 mt-4 text-center">
-                        <div className="bg-white/10 rounded p-2">
-                          <div className="font-bold text-white">5000+</div>
-                          <div className="text-xs text-blue-100">Réparateurs</div>
+                          {/* Avantages clés */}
+                          <div className="space-y-2 text-sm">
+                            <div className="flex items-center">
+                              <Shield className="h-4 w-4 mr-2 text-green-400" />
+                              <span>Réparateurs certifiés</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Clock className="h-4 w-4 mr-2 text-blue-400" />
+                              <span>Intervention sous 24h</span>
+                            </div>
+                            <div className="flex items-center">
+                              <Star className="h-4 w-4 mr-2 text-yellow-400" />
+                              <span>Satisfaction garantie</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="bg-white/10 rounded p-2">
-                          <div className="font-bold text-white">50K+</div>
-                          <div className="text-xs text-blue-100">Réparations</div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    // Sections génériques
-                    <div>
-                      <p className="text-gray-300 mb-4 text-sm">{section.content}</p>
-                      <nav>
-                        <ul className="space-y-2">
+                      ) : section.section_key === 'services' ? (
+                        <nav aria-label="Services de réparation">
+                          <ul className="space-y-3">
+                            {section.links.map((link, index) => {
+                              const getServiceIcon = (title: string) => {
+                                if (title.includes('Smartphone')) return Smartphone;
+                                if (title.includes('Tablette')) return Tablet;
+                                if (title.includes('Ordinateur')) return Laptop;
+                                if (title.includes('Console')) return Gamepad2;
+                                return Smartphone;
+                              };
+                              const IconComponent = getServiceIcon(link.title);
+                              
+                              return (
+                                <li key={index}>
+                                  <Link 
+                                    to={link.url} 
+                                    className="flex items-center text-gray-300 hover:text-white transition-colors group"
+                                  >
+                                    <IconComponent className="h-4 w-4 mr-2 group-hover:text-primary" />
+                                    {link.title}
+                                  </Link>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </nav>
+                      ) : section.section_key === 'repairer_cta' ? (
+                        <div className="bg-gradient-to-br from-blue-600 to-orange-600 rounded-lg p-6">
+                          <h3 className="font-bold text-white mb-2">{section.title}</h3>
+                          <p className="text-blue-100 text-sm mb-4 leading-relaxed">
+                            {section.content}
+                          </p>
                           {section.links.map((link, index) => (
-                            <li key={index}>
-                              <Link 
-                                to={link.url} 
-                                className="text-gray-300 hover:text-white transition-colors text-sm"
+                            <Link key={index} to={link.url}>
+                              <Button 
+                                className={link.className || "bg-white text-blue-600 hover:bg-gray-100 font-semibold w-full"}
+                                size="sm"
                               >
+                                <UserPlus className="h-4 w-4 mr-2" />
                                 {link.title}
-                              </Link>
-                            </li>
+                              </Button>
+                            </Link>
                           ))}
-                        </ul>
-                      </nav>
+                          
+                          {/* Stats rapides */}
+                          <div className="grid grid-cols-2 gap-2 mt-4 text-center">
+                            <div className="bg-white/10 rounded p-2">
+                              <div className="font-bold text-white">5000+</div>
+                              <div className="text-xs text-blue-100">Réparateurs</div>
+                            </div>
+                            <div className="bg-white/10 rounded p-2">
+                              <div className="font-bold text-white">50K+</div>
+                              <div className="text-xs text-blue-100">Réparations</div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        // Sections génériques avec sous-sections
+                        <div>
+                          <p className="text-gray-300 mb-4 text-sm">{section.content}</p>
+                          <nav>
+                            <ul className="space-y-2">
+                              {section.links.map((link, index) => (
+                                <li key={index}>
+                                  <Link 
+                                    to={link.url} 
+                                    className="text-gray-300 hover:text-white transition-colors text-sm"
+                                  >
+                                    {link.title}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </nav>
+                          
+                          {/* Affichage des sous-sections */}
+                          {childSections.length > 0 && (
+                            <div className="mt-6 space-y-4 border-l-2 border-gray-600 pl-4">
+                              {childSections.map((childSection) => (
+                                <div key={childSection.id}>
+                                  <h4 className="text-base font-medium text-white mb-2">{childSection.title}</h4>
+                                  {childSection.content && (
+                                    <p className="text-gray-400 text-sm mb-2">{childSection.content}</p>
+                                  )}
+                                  {childSection.links.length > 0 && (
+                                    <nav>
+                                      <ul className="space-y-1">
+                                        {childSection.links.map((link, index) => (
+                                          <li key={index}>
+                                            <Link 
+                                              to={link.url} 
+                                              className="text-gray-400 hover:text-white transition-colors text-sm"
+                                            >
+                                              {link.title}
+                                            </Link>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </nav>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              ))
+                  );
+                })
             )}
 
             {/* Contact et support - toujours affiché */}

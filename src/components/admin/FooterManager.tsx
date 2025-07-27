@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Dialog,
   DialogContent,
@@ -16,12 +17,14 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { useFooterConfig, FooterSection } from '@/hooks/useFooterConfig';
-import { Plus, Edit, Trash2, Sparkles, Save, Eye, GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Edit, Trash2, Sparkles, Save, Eye, GripVertical, ExternalLink, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Footer from '@/components/Footer';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { NavigationService } from '@/services/navigationService';
 
 export default function FooterManager() {
-  const { sections, loading, updateSection, createSection, deleteSection } = useFooterConfig();
+  const { sections, loading, updateSection, createSection, deleteSection, reorderSections } = useFooterConfig();
   const [editingSection, setEditingSection] = useState<FooterSection | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -33,7 +36,8 @@ export default function FooterManager() {
     content: '',
     links: [] as Array<{ title: string; url: string; className?: string }>,
     display_order: 0,
-    is_active: true
+    is_active: true,
+    parent_id: null as string | null
   });
 
   const resetForm = () => {
@@ -43,7 +47,8 @@ export default function FooterManager() {
       content: '',
       links: [],
       display_order: 0,
-      is_active: true
+      is_active: true,
+      parent_id: null
     });
     setEditingSection(null);
   };
@@ -56,7 +61,8 @@ export default function FooterManager() {
       content: section.content,
       links: section.links,
       display_order: section.display_order,
-      is_active: section.is_active
+      is_active: section.is_active,
+      parent_id: section.parent_id || null
     });
     setIsDialogOpen(true);
   };
@@ -83,27 +89,36 @@ export default function FooterManager() {
 
     setIsGenerating(true);
     try {
-      // Simulation de génération IA - à remplacer par un vrai appel API
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const aiContent = {
         services: {
           title: "Nos Services",
-          content: "Découvrez notre gamme complète de services de réparation professionnels, adaptés à tous vos appareils électroniques.",
-                  links: [
-                    { title: "Réparation Smartphone", url: "/services/reparation-smartphone" },
-                    { title: "Réparation Tablette", url: "/services/reparation-tablette" },
-                    { title: "Réparation Ordinateur", url: "/services/reparation-ordinateur" },
-                    { title: "Réparation Console", url: "/services/reparation-console" }
-                  ]
+          content: "Découvrez notre gamme complète de services de réparation professionnels.",
+          links: [
+            { title: "Réparation Smartphone", url: "/reparation-smartphone" },
+            { title: "Réparation Tablette", url: "/reparation-tablette" },
+            { title: "Réparation Ordinateur", url: "/reparation-ordinateur" },
+            { title: "Réparation Console", url: "/reparation-console" }
+          ]
         },
         support: {
           title: "Support Client",
-          content: "Notre équipe support est disponible pour vous aider et répondre à toutes vos questions.",
+          content: "Notre équipe support est disponible pour vous aider.",
           links: [
             { title: "Centre d'aide", url: "/aide" },
             { title: "Contact", url: "/contact" },
             { title: "FAQ", url: "/faq" }
+          ]
+        },
+        legal: {
+          title: "Informations Légales",
+          content: "Toutes nos mentions légales et politiques.",
+          links: [
+            { title: "Mentions légales", url: "/mentions-legales" },
+            { title: "Politique de confidentialité", url: "/politique-confidentialite" },
+            { title: "CGU", url: "/cgu" },
+            { title: "CGV", url: "/cgv" }
           ]
         }
       };
@@ -156,25 +171,116 @@ export default function FooterManager() {
     }));
   };
 
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+
+    const parentId = result.destination.droppableId === 'root' ? null : result.destination.droppableId;
+    await reorderSections(result.source.index, result.destination.index, parentId);
+  };
+
+  const isLinkValid = (url: string) => {
+    if (!url) return true; // Les liens vides sont OK pendant l'édition
+    return NavigationService.isValidRoute(url) || NavigationService.isValidExternalUrl(url);
+  };
+
+  const getParentSections = () => {
+    return sections.filter(s => !s.parent_id);
+  };
+
+  const getChildSections = (parentId: string) => {
+    return sections.filter(s => s.parent_id === parentId);
+  };
+
+  const renderSectionCard = (section: FooterSection, provided?: any, snapshot?: any) => (
+    <Card 
+      key={section.id} 
+      className={`relative ${snapshot?.isDragging ? 'rotate-2 shadow-xl' : ''}`}
+      ref={provided?.innerRef}
+      {...provided?.draggableProps}
+    >
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div {...provided?.dragHandleProps}>
+              <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+            </div>
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                {section.title}
+                <Badge variant={section.is_active ? "default" : "secondary"}>
+                  {section.is_active ? 'Actif' : 'Inactif'}
+                </Badge>
+                {section.parent_id && (
+                  <Badge variant="outline" className="text-xs">
+                    Sous-section
+                  </Badge>
+                )}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Clé: {section.section_key} • Ordre: {section.display_order}
+                {section.parent_id && (
+                  <span className="ml-2">
+                    • Parent: {sections.find(s => s.id === section.parent_id)?.title}
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => openEditDialog(section)}
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Modifier
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => deleteSection(section.id)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Supprimer
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground mb-4">
+          {section.content}
+        </p>
+        {section.links.length > 0 && (
+          <div>
+            <h4 className="font-medium mb-2 flex items-center gap-2">
+              Liens ({section.links.length})
+              {section.links.some(link => !isLinkValid(link.url)) && (
+                <AlertTriangle className="h-4 w-4 text-warning" />
+              )}
+            </h4>
+            <div className="space-y-1">
+              {section.links.map((link, index) => (
+                <div key={index} className="flex items-center gap-2 text-xs">
+                  <Badge 
+                    variant={isLinkValid(link.url) ? "outline" : "destructive"}
+                    className="flex items-center gap-1"
+                  >
+                    {!isLinkValid(link.url) && <AlertTriangle className="h-3 w-3" />}
+                    {link.title} → {link.url}
+                    <ExternalLink className="h-3 w-3" />
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
   if (loading) {
     return <div>Chargement...</div>;
   }
-
-  const moveSection = async (sectionId: string, direction: 'up' | 'down') => {
-    const currentSection = sections.find(s => s.id === sectionId);
-    if (!currentSection) return;
-
-    const otherSection = sections.find(s => 
-      direction === 'up' 
-        ? s.display_order < currentSection.display_order
-        : s.display_order > currentSection.display_order
-    );
-
-    if (otherSection) {
-      await updateSection(currentSection.id, { display_order: otherSection.display_order });
-      await updateSection(otherSection.id, { display_order: currentSection.display_order });
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -200,223 +306,222 @@ export default function FooterManager() {
                   Nouvelle Section
                 </Button>
               </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingSection ? 'Modifier la section' : 'Créer une nouvelle section'}
-              </DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="section_key">Clé de section</Label>
-                  <Input
-                    id="section_key"
-                    value={formData.section_key}
-                    onChange={(e) => setFormData(prev => ({ ...prev, section_key: e.target.value }))}
-                    placeholder="ex: services, support, legal"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="display_order">Ordre d'affichage</Label>
-                  <Input
-                    id="display_order"
-                    type="number"
-                    value={formData.display_order}
-                    onChange={(e) => setFormData(prev => ({ ...prev, display_order: parseInt(e.target.value) }))}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Label htmlFor="title">Titre</Label>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={generateWithAI}
-                    disabled={isGenerating}
-                  >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    {isGenerating ? 'Génération...' : 'Générer avec IA'}
-                  </Button>
-                </div>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Titre de la section"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="content">Contenu</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                  placeholder="Description de la section"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <Label>Liens</Label>
-                  <Button size="sm" variant="outline" onClick={addLink}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter un lien
-                  </Button>
-                </div>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    {editingSection ? 'Modifier la section' : 'Créer une nouvelle section'}
+                  </DialogTitle>
+                </DialogHeader>
                 
-                <div className="space-y-3">
-                  {formData.links.map((link, index) => (
-                    <div key={index} className="grid grid-cols-12 gap-2 items-center">
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="section_key">Clé de section</Label>
                       <Input
-                        placeholder="Titre"
-                        value={link.title}
-                        onChange={(e) => updateLink(index, 'title', e.target.value)}
-                        className="col-span-4"
+                        id="section_key"
+                        value={formData.section_key}
+                        onChange={(e) => setFormData(prev => ({ ...prev, section_key: e.target.value }))}
+                        placeholder="ex: services, support, legal"
                       />
-                      <Input
-                        placeholder="URL"
-                        value={link.url}
-                        onChange={(e) => updateLink(index, 'url', e.target.value)}
-                        className="col-span-4"
-                      />
-                      <Input
-                        placeholder="Classes CSS"
-                        value={link.className || ''}
-                        onChange={(e) => updateLink(index, 'className', e.target.value)}
-                        className="col-span-3"
-                      />
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => removeLink(index)}
-                        className="col-span-1"
+                    </div>
+                    <div>
+                      <Label htmlFor="parent_id">Section parente (optionnel)</Label>
+                      <Select 
+                        value={formData.parent_id || ""} 
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, parent_id: value || null }))}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner une section parente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Aucune (section principale)</SelectItem>
+                          {getParentSections().map((section) => (
+                            <SelectItem key={section.id} value={section.id}>
+                              {section.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="is_active"
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
-                />
-                <Label htmlFor="is_active">Section active</Label>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Annuler
-              </Button>
-              <Button onClick={handleSave}>
-                <Save className="h-4 w-4 mr-2" />
-                Sauvegarder
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-          <div className="grid gap-6">
-            {sections
-              .sort((a, b) => a.display_order - b.display_order)
-              .map((section, index) => (
-              <Card key={section.id} className="relative">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex flex-col gap-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => moveSection(section.id, 'up')}
-                          disabled={index === 0}
-                        >
-                          <ArrowUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => moveSection(section.id, 'down')}
-                          disabled={index === sections.length - 1}
-                        >
-                          <ArrowDown className="h-3 w-3" />
-                        </Button>
-                      </div>
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <GripVertical className="h-4 w-4 text-muted-foreground" />
-                          {section.title}
-                          <Badge variant={section.is_active ? "default" : "secondary"}>
-                            {section.is_active ? 'Actif' : 'Inactif'}
-                          </Badge>
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Clé: {section.section_key} • Ordre: {section.display_order}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Label htmlFor="title">Titre</Label>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => openEditDialog(section)}
+                        onClick={generateWithAI}
+                        disabled={isGenerating}
                       >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Modifier
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        {isGenerating ? 'Génération...' : 'Générer avec IA'}
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => deleteSection(section.id)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Supprimer
+                    </div>
+                    <Input
+                      id="title"
+                      value={formData.title}
+                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Titre de la section"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="content">Contenu</Label>
+                    <Textarea
+                      id="content"
+                      value={formData.content}
+                      onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                      placeholder="Description de la section"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <Label>Liens</Label>
+                      <Button size="sm" variant="outline" onClick={addLink}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Ajouter un lien
                       </Button>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {formData.links.map((link, index) => (
+                        <div key={index} className="grid grid-cols-12 gap-2 items-center">
+                          <Input
+                            placeholder="Titre"
+                            value={link.title}
+                            onChange={(e) => updateLink(index, 'title', e.target.value)}
+                            className="col-span-4"
+                          />
+                          <div className="col-span-4 relative">
+                            <Input
+                              placeholder="URL"
+                              value={link.url}
+                              onChange={(e) => updateLink(index, 'url', e.target.value)}
+                              className={!isLinkValid(link.url) && link.url ? "border-destructive" : ""}
+                            />
+                            {!isLinkValid(link.url) && link.url && (
+                              <AlertTriangle className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-destructive" />
+                            )}
+                          </div>
+                          <Input
+                            placeholder="Classes CSS"
+                            value={link.className || ''}
+                            onChange={(e) => updateLink(index, 'className', e.target.value)}
+                            className="col-span-3"
+                          />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => removeLink(index)}
+                            className="col-span-1"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {section.content}
-                  </p>
-                  {section.links.length > 0 && (
-                    <div>
-                      <h4 className="font-medium mb-2">Liens ({section.links.length})</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {section.links.map((link, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {link.title} → {link.url}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="is_active"
+                      checked={formData.is_active}
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
+                    />
+                    <Label htmlFor="is_active">Section active</Label>
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Annuler
+                  </Button>
+                  <Button onClick={handleSave}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Sauvegarder
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
+
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="root" type="SECTION">
+              {(provided) => (
+                <div 
+                  {...provided.droppableProps} 
+                  ref={provided.innerRef}
+                  className="space-y-6"
+                >
+                  {getParentSections()
+                    .sort((a, b) => a.display_order - b.display_order)
+                    .map((section, index) => (
+                    <div key={section.id}>
+                      <Draggable draggableId={section.id} index={index}>
+                        {(provided, snapshot) => 
+                          renderSectionCard(section, provided, snapshot)
+                        }
+                      </Draggable>
+                      
+                      {getChildSections(section.id).length > 0 && (
+                        <Droppable droppableId={section.id} type="SUBSECTION">
+                          {(provided) => (
+                            <div 
+                              {...provided.droppableProps} 
+                              ref={provided.innerRef}
+                              className="ml-8 mt-4 space-y-4 border-l-2 border-muted pl-4"
+                            >
+                              {getChildSections(section.id)
+                                .sort((a, b) => a.display_order - b.display_order)
+                                .map((childSection, childIndex) => (
+                                <Draggable 
+                                  key={childSection.id} 
+                                  draggableId={childSection.id} 
+                                  index={childIndex}
+                                >
+                                  {(provided, snapshot) => 
+                                    renderSectionCard(childSection, provided, snapshot)
+                                  }
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      )}
+                    </div>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
         </TabsContent>
 
         <TabsContent value="preview" className="space-y-6">
           <div className="bg-muted/30 p-6 rounded-lg border-2 border-dashed">
-            <h3 className="text-lg font-semibold mb-4 text-center">Prévisualisation du Footer</h3>
+            <h3 className="text-lg font-semibold mb-4 text-center">Prévisualisation en temps réel</h3>
             <div className="bg-background rounded-lg shadow-lg overflow-hidden">
               <Footer />
             </div>
-            <p className="text-sm text-muted-foreground text-center mt-4">
-              Cette prévisualisation montre le footer tel qu'il apparaît sur le site
-            </p>
+            <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+              <p className="text-center">
+                Glissez-déposez les sections dans l'onglet Configuration pour les réorganiser
+              </p>
+              <div className="flex justify-center gap-4">
+                <Badge variant="outline" className="gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  Liens valides
+                </Badge>
+                <Badge variant="destructive" className="gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  Liens cassés
+                </Badge>
+              </div>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
