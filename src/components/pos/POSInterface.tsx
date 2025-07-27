@@ -13,6 +13,8 @@ import StockAlertsManager from './advanced/StockAlertsManager';
 import MobileOptimization from './advanced/MobileOptimization';
 import IntegrationsManager from './advanced/IntegrationsManager';
 import AdvancedBusinessModules from './advanced/AdvancedBusinessModules';
+import RepairTrackingManager from './modules/RepairTrackingManager';
+import BuybackManager from './modules/BuybackManager';
 import { 
   CreditCard, 
   Package, 
@@ -27,7 +29,9 @@ import {
   Shield,
   Smartphone,
   Zap,
-  Brain
+  Brain,
+  Wrench,
+  Euro
 } from 'lucide-react';
 
 /**
@@ -148,13 +152,15 @@ const POSInterface: React.FC = () => {
         {/* Panel principal POS */}
         <div className="flex-1 p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-11 text-xs">
+            <TabsList className="grid w-full grid-cols-13 text-xs">
               <TabsTrigger value="session">Session</TabsTrigger>
               <TabsTrigger value="sale">Vente</TabsTrigger>
               <TabsTrigger value="customers">Clients</TabsTrigger>
               <TabsTrigger value="history">Historique</TabsTrigger>
               <TabsTrigger value="inventory">Stock</TabsTrigger>
               <TabsTrigger value="reports">Rapports</TabsTrigger>
+              <TabsTrigger value="repairs">Réparations</TabsTrigger>
+              <TabsTrigger value="buyback">Rachat</TabsTrigger>
               <TabsTrigger value="alerts">Alertes</TabsTrigger>
               <TabsTrigger value="mobile">Mobile</TabsTrigger>
               <TabsTrigger value="integrations">Intégrations</TabsTrigger>
@@ -193,6 +199,16 @@ const POSInterface: React.FC = () => {
             {/* Onglet Rapports */}
             <TabsContent value="reports" className="mt-6">
               <POSReportsAnalytics />
+            </TabsContent>
+
+            {/* Onglet Réparations */}
+            <TabsContent value="repairs" className="mt-6">
+              <RepairTrackingManager />
+            </TabsContent>
+
+            {/* Onglet Rachat */}
+            <TabsContent value="buyback" className="mt-6">
+              <BuybackManager />
             </TabsContent>
 
             {/* Onglet Alertes Stock */}
