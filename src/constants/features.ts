@@ -137,7 +137,47 @@ export const FEATURES: Feature[] = [
   { key: "ecommerce_analytics", name: "Analytics e-commerce avancées", category: "Plateforme E-commerce" },
   { key: "ecommerce_stock_sync", name: "Synchronisation stock POS/E-commerce", category: "Plateforme E-commerce" },
   { key: "ecommerce_customer_accounts", name: "Comptes clients e-commerce", category: "Plateforme E-commerce" },
-  { key: "ecommerce_mobile_responsive", name: "Design mobile responsive", category: "Plateforme E-commerce" }
+  { key: "ecommerce_mobile_responsive", name: "Design mobile responsive", category: "Plateforme E-commerce" },
+
+  // Module Rachat - Système de rachat d'appareils (€39/mois)
+  { key: "buyback_enabled", name: "Module Rachat activé", category: "Module Rachat" },
+  { key: "buyback_ai_evaluation", name: "Évaluation IA automatique", category: "Module Rachat" },
+  { key: "buyback_price_grid", name: "Grille de prix dynamique", category: "Module Rachat" },
+  { key: "buyback_inventory", name: "Gestion stocks rachetés", category: "Module Rachat" },
+  { key: "buyback_revenue_tracking", name: "Suivi des revenus rachat", category: "Module Rachat" },
+  { key: "buyback_client_interface", name: "Interface client dédiée", category: "Module Rachat" },
+  { key: "buyback_condition_assessment", name: "Évaluation état des appareils", category: "Module Rachat" },
+  { key: "buyback_market_price", name: "Prix marché temps réel", category: "Module Rachat" },
+
+  // IA Diagnostic - Assistant IA Ben (Inclus dans tous les plans)
+  { key: "ai_diagnostic_enabled", name: "Assistant IA Ben activé", category: "IA Diagnostic" },
+  { key: "ai_diagnostic_chatbot", name: "Chatbot Ben personnalisé", category: "IA Diagnostic" },
+  { key: "ai_diagnostic_prediag", name: "Pré-diagnostic automatique", category: "IA Diagnostic" },
+  { key: "ai_diagnostic_knowledge", name: "Base de connaissances technique", category: "IA Diagnostic" },
+  { key: "ai_diagnostic_suggestions", name: "Suggestions de réparation", category: "IA Diagnostic" },
+  { key: "ai_diagnostic_history", name: "Historique des conversations", category: "IA Diagnostic" },
+  { key: "ai_diagnostic_learning", name: "Apprentissage continu", category: "IA Diagnostic" },
+  { key: "ai_diagnostic_multilang", name: "Support multilingue", category: "IA Diagnostic" },
+
+  // Monitoring Business - Surveillance activité (Enterprise uniquement)
+  { key: "monitoring_enabled", name: "Monitoring Business activé", category: "Monitoring Business" },
+  { key: "monitoring_realtime", name: "Dashboard temps réel", category: "Monitoring Business" },
+  { key: "monitoring_alerts", name: "Alertes personnalisées", category: "Monitoring Business" },
+  { key: "monitoring_metrics", name: "Métriques business avancées", category: "Monitoring Business" },
+  { key: "monitoring_predictions", name: "Analyses prédictives", category: "Monitoring Business" },
+  { key: "monitoring_reports", name: "Rapports automatiques", category: "Monitoring Business" },
+  { key: "monitoring_performance", name: "Suivi performance 24/7", category: "Monitoring Business" },
+  { key: "monitoring_notifications", name: "Notifications intelligentes", category: "Monitoring Business" },
+
+  // Publicité IA - Gestion automatisée de la publicité (€79/mois)
+  { key: "advertising_enabled", name: "Publicité IA activée", category: "Publicité IA" },
+  { key: "advertising_campaigns", name: "Campagnes automatisées", category: "Publicité IA" },
+  { key: "advertising_targeting", name: "Ciblage intelligent", category: "Publicité IA" },
+  { key: "advertising_optimization", name: "Optimisation auto des enchères", category: "Publicité IA" },
+  { key: "advertising_analytics", name: "Analytics publicitaires", category: "Publicité IA" },
+  { key: "advertising_keywords", name: "Recherche mots-clés IA", category: "Publicité IA" },
+  { key: "advertising_creative", name: "Création automatique d'annonces", category: "Publicité IA" },
+  { key: "advertising_budget", name: "Gestion budget intelligente", category: "Publicité IA" }
 ];
 
 /**
