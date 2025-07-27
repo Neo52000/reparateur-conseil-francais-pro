@@ -2,6 +2,7 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import OverviewTabSection from "./OverviewTabSection";
+import EnhancedOverviewTab from "./EnhancedOverviewTab";
 import OrdersTabSection from "./OrdersTabSection";
 import CalendarTabSection from "./CalendarTabSection";
 import InventoryTabSection from "./InventoryTabSection";
@@ -15,6 +16,7 @@ import InventoryManagement from "./inventory/InventoryManagement";
 import NotificationCenter from "./notifications/NotificationCenter";
 import LoyaltyProgram from "./loyalty/LoyaltyProgram";
 import EcommerceInterface from "../ecommerce/EcommerceInterface";
+import TeamManagement from "./TeamManagement";
 
 interface Order {
   id: string;
@@ -70,7 +72,7 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 }) => {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-11">
+      <TabsList className="grid w-full grid-cols-12">
         <TabsTrigger value="overview">Aperçu</TabsTrigger>
         <TabsTrigger value="orders">Commandes</TabsTrigger>
         <TabsTrigger value="calendar">Planning</TabsTrigger>
@@ -80,12 +82,13 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
         <TabsTrigger value="analytics">Analytics</TabsTrigger>
         <TabsTrigger value="notifications">Notifications</TabsTrigger>
         <TabsTrigger value="loyalty">Fidélité</TabsTrigger>
+        <TabsTrigger value="team">Équipe</TabsTrigger>
         <TabsTrigger value="billing">Facturation</TabsTrigger>
         <TabsTrigger value="profile">Profil</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview">
-        <OverviewTabSection
+        <EnhancedOverviewTab
           orders={orders}
           appointments={appointments}
         />
@@ -143,6 +146,10 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 
         <TabsContent value="loyalty">
           <LoyaltyProgram />
+        </TabsContent>
+
+        <TabsContent value="team">
+          <TeamManagement />
         </TabsContent>
 
       <TabsContent value="billing">

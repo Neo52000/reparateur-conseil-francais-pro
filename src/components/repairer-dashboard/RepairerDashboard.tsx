@@ -10,6 +10,7 @@ import RepairerDashboardHeader from './RepairerDashboardHeader';
 import RepairerDashboardStats from './RepairerDashboardStats';
 import RepairerDashboardPlanCard from './RepairerDashboardPlanCard';
 import RepairerDashboardTabs from './RepairerDashboardTabs';
+import { useRepairerStats } from '@/hooks/useRepairerStats';
 
 const RepairerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -17,8 +18,8 @@ const RepairerDashboard = () => {
   const { signOut, user, isAdmin } = useAuth();
   const navigate = useNavigate();
   
-  // Hook pour le mode démo - Simplifié
-  const [loading, setLoading] = useState(false);
+  // Hook pour les statistiques réelles
+  const { stats: realStats, loading: statsLoading } = useRepairerStats();
   
   // Hook pour gérer le popup d'upgrade
   const { shouldShowModal, isModalOpen, closeModal } = useUpgradeModal(user?.email || null);
@@ -29,20 +30,15 @@ const RepairerDashboard = () => {
     isAdmin 
   });
 
-  // Données de base RÉELLES (sans aucune donnée de démo)
+  // Données de base RÉELLES avec stats dynamiques
   const realData = {
     profile: {
       name: 'top reparateurs.fr',
-      rating: 4.9,
+      rating: realStats.customerSatisfaction,
       totalRepairs: 156,
       joinDate: '2023-03-15'
     },
-    stats: {
-      monthlyRevenue: 2850,
-      pendingOrders: 3,
-      completedThisMonth: 12,
-      avgRepairTime: 3.2
-    },
+    stats: realStats,
     orders: [
       {
         id: '1',

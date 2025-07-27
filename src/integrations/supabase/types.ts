@@ -6904,6 +6904,84 @@ export type Database = {
         }
         Relationships: []
       }
+      repairer_services: {
+        Row: {
+          base_price: number | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          repairer_id: string
+          service_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          base_price?: number | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          repairer_id: string
+          service_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          base_price?: number | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          repairer_id?: string
+          service_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      repairer_statistics: {
+        Row: {
+          average_repair_time: number | null
+          completed_repairs: number | null
+          created_at: string | null
+          customer_satisfaction: number | null
+          id: string
+          month_year: string
+          pending_orders: number | null
+          repairer_id: string
+          total_revenue: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          average_repair_time?: number | null
+          completed_repairs?: number | null
+          created_at?: string | null
+          customer_satisfaction?: number | null
+          id?: string
+          month_year: string
+          pending_orders?: number | null
+          repairer_id: string
+          total_revenue?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          average_repair_time?: number | null
+          completed_repairs?: number | null
+          created_at?: string | null
+          customer_satisfaction?: number | null
+          id?: string
+          month_year?: string
+          pending_orders?: number | null
+          repairer_id?: string
+          total_revenue?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       repairer_stripe_config: {
         Row: {
           auto_transfer: boolean | null
@@ -7014,6 +7092,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      repairer_team_members: {
+        Row: {
+          created_at: string | null
+          id: string
+          invited_at: string | null
+          invited_by: string | null
+          is_active: boolean | null
+          joined_at: string | null
+          permissions: Json | null
+          repairer_id: string
+          role: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          is_active?: boolean | null
+          joined_at?: string | null
+          permissions?: Json | null
+          repairer_id: string
+          role?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          is_active?: boolean | null
+          joined_at?: string | null
+          permissions?: Json | null
+          repairer_id?: string
+          role?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       repairers: {
         Row: {
@@ -7854,6 +7974,48 @@ export type Database = {
           is_active?: boolean
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      team_invitations: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          permissions: Json | null
+          repairer_id: string
+          role: string
+          status: string | null
+          token: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          invited_by: string
+          permissions?: Json | null
+          repairer_id: string
+          role?: string
+          status?: string | null
+          token: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          permissions?: Json | null
+          repairer_id?: string
+          role?: string
+          status?: string | null
+          token?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
