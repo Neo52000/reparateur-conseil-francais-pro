@@ -153,6 +153,7 @@ export const useRepairManagement = () => {
           security_notes: deviceData.security_notes,
           customer_name: deviceData.customer_name || '',
           customer_phone: deviceData.customer_phone,
+          customer_phone_fixed: deviceData.customer_phone_fixed,
           customer_email: deviceData.customer_email,
           customer_notes: deviceData.customer_notes,
           initial_diagnosis: deviceData.initial_diagnosis,

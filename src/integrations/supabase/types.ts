@@ -5590,6 +5590,7 @@ export type Database = {
           customer_name: string
           customer_notes: string | null
           customer_phone: string | null
+          customer_phone_fixed: string | null
           device_model_id: string | null
           device_type_id: string | null
           estimated_completion: string | null
@@ -5619,6 +5620,7 @@ export type Database = {
           customer_name: string
           customer_notes?: string | null
           customer_phone?: string | null
+          customer_phone_fixed?: string | null
           device_model_id?: string | null
           device_type_id?: string | null
           estimated_completion?: string | null
@@ -5648,6 +5650,7 @@ export type Database = {
           customer_name?: string
           customer_notes?: string | null
           customer_phone?: string | null
+          customer_phone_fixed?: string | null
           device_model_id?: string | null
           device_type_id?: string | null
           estimated_completion?: string | null

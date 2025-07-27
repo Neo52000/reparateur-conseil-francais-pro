@@ -42,6 +42,7 @@ interface DeviceIntakeForm {
   // Customer info
   customer_name: string;
   customer_phone: string;
+  customer_phone_fixed: string;
   customer_email: string;
   customer_notes: string;
   
@@ -132,6 +133,7 @@ const DeviceIntakeModal: React.FC<DeviceIntakeModalProps> = ({
         security_notes: formData.security_notes || null,
         customer_name: formData.customer_name,
         customer_phone: formData.customer_phone || null,
+        customer_phone_fixed: formData.customer_phone_fixed || null,
         customer_email: formData.customer_email || null,
         customer_notes: formData.customer_notes || null,
         initial_diagnosis: formData.initial_diagnosis || null,
@@ -231,6 +233,15 @@ const DeviceIntakeModal: React.FC<DeviceIntakeModalProps> = ({
                       value={formData.customer_phone || ''}
                       onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
                       placeholder="06 12 34 56 78"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="customer_phone_fixed">Téléphone fixe</Label>
+                    <Input
+                      id="customer_phone_fixed"
+                      value={formData.customer_phone_fixed || ''}
+                      onChange={(e) => setFormData({ ...formData, customer_phone_fixed: e.target.value })}
+                      placeholder="01 23 45 67 89"
                     />
                   </div>
                 </div>
