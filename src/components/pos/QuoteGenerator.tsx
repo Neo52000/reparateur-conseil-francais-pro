@@ -22,7 +22,9 @@ import { RepairOrder } from '@/hooks/useRepairManagement';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from '@/hooks/use-toast';
-import RepairCatalogSelector from './RepairCatalogSelector';
+import ProductSelection from '@/components/repairer-dashboard/pricing/ProductSelection';
+import { useCatalog } from '@/hooks/useCatalog';
+import { useRepairerPrices } from '@/hooks/catalog/useRepairerPrices';
 
 interface QuoteGeneratorProps {
   repairOrder: RepairOrder;
@@ -44,6 +46,9 @@ interface QuoteData {
 interface RepairItem {
   id: string;
   name: string;
+  brandName: string;
+  modelName: string;
+  repairTypeName: string;
   basePrice: number;
   customPrice?: number;
   margin?: number;
@@ -56,8 +61,15 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
   onQuoteUpdate 
 }) => {
   const { toast } = useToast();
+  const { brands, deviceModels, repairTypes, loading: catalogLoading } = useCatalog();
+  const { basePrices, repairerPrices, loading: pricesLoading } = useRepairerPrices();
+  
   const [isEditing, setIsEditing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState('');
+  const [selectedModel, setSelectedModel] = useState('');
+  const [selectedRepairType, setSelectedRepairType] = useState('');
+  
   const [quoteData, setQuoteData] = useState<QuoteData>({
     diagnostic: repairOrder.device?.initial_diagnosis || '',
     labor_cost: 0,
@@ -82,15 +94,54 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
     setQuoteData(newData);
   };
 
-  const addRepairFromCatalog = (repair: { name: string; basePrice: number; customPrice?: number; margin?: number }) => {
+  const addRepairFromCatalog = () => {
+    if (!selectedBrand || !selectedModel || !selectedRepairType) {
+      toast({
+        title: "Sélection incomplète",
+        description: "Veuillez sélectionner une marque, un modèle et un type de réparation.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Trouver les données des entités sélectionnées
+    const brand = brands.find(b => b.id === selectedBrand);
+    const model = deviceModels.find(m => m.id === selectedModel);
+    const repairType = repairTypes.find(rt => rt.id === selectedRepairType);
+
+    // Trouver le prix de base
+    const basePrice = basePrices.find(bp => 
+      bp.device_model_id === selectedModel && bp.repair_type_id === selectedRepairType
+    );
+
+    // Trouver le prix personnalisé du réparateur
+    const customPrice = repairerPrices.find(rp => 
+      rp.repair_price_id === basePrice?.id
+    );
+
+    if (!basePrice) {
+      toast({
+        title: "Prix non trouvé",
+        description: "Aucun prix de base trouvé pour cette combinaison.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const finalPrice = customPrice?.custom_price_eur || basePrice.price_eur;
+    const margin = customPrice?.margin_percentage;
+
     const newRepair: RepairItem = {
       id: Date.now().toString(),
-      name: repair.name,
-      basePrice: repair.basePrice,
-      customPrice: repair.customPrice,
-      margin: repair.margin,
+      name: `${brand?.name} ${model?.model_name} - ${repairType?.name}`,
+      brandName: brand?.name || '',
+      modelName: model?.model_name || '',
+      repairTypeName: repairType?.name || '',
+      basePrice: basePrice.price_eur,
+      customPrice: customPrice?.custom_price_eur,
+      margin: margin,
       quantity: 1,
-      total: repair.customPrice || repair.basePrice
+      total: finalPrice
     };
 
     const newRepairs = [...quoteData.repairs, newRepair];
@@ -100,6 +151,16 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
       ...quoteData,
       repairs: newRepairs,
       total_cost: quoteData.labor_cost + quoteData.parts_cost + repairsTotal
+    });
+
+    // Reset des sélections
+    setSelectedBrand('');
+    setSelectedModel('');
+    setSelectedRepairType('');
+
+    toast({
+      title: "Réparation ajoutée",
+      description: `${newRepair.name} ajouté au devis.`
     });
   };
 
@@ -204,7 +265,7 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
             <tbody>
               ${quoteData.repairs.map(repair => `
                 <tr style="border-bottom: 1px solid #E5E7EB;">
-                  <td style="padding: 15px;">${repair.name}</td>
+                  <td style="padding: 15px;">${repair.repairTypeName}<br><small style="color: #6B7280;">${repair.brandName} ${repair.modelName}</small></td>
                   <td style="padding: 15px; text-align: center;">${repair.quantity}</td>
                   <td style="padding: 15px; text-align: right;">${(repair.customPrice || repair.basePrice).toFixed(2)} €</td>
                   <td style="padding: 15px; text-align: right;">${repair.total.toFixed(2)} €</td>
@@ -543,9 +604,88 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
             </div>
           </TabsContent>
 
-          <TabsContent value="catalog" className="space-y-4">
-            <RepairCatalogSelector onRepairSelect={addRepairFromCatalog} />
-          </TabsContent>
+            <TabsContent value="catalog" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ShoppingCart className="w-5 h-5" />
+                    Ajouter une réparation au devis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {catalogLoading || pricesLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <ProductSelection
+                        brands={brands}
+                        deviceModels={deviceModels}
+                        repairTypes={repairTypes}
+                        selectedBrand={selectedBrand}
+                        selectedModel={selectedModel}
+                        selectedRepairType={selectedRepairType}
+                        onBrandChange={setSelectedBrand}
+                        onModelChange={setSelectedModel}
+                        onRepairTypeChange={setSelectedRepairType}
+                      />
+                      
+                      {selectedBrand && selectedModel && selectedRepairType && (
+                        <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium">Aperçu du prix</h4>
+                              <p className="text-sm text-muted-foreground">
+                                {brands.find(b => b.id === selectedBrand)?.name} {' '}
+                                {deviceModels.find(m => m.id === selectedModel)?.model_name} - {' '}
+                                {repairTypes.find(rt => rt.id === selectedRepairType)?.name}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              {(() => {
+                                const basePrice = basePrices.find(bp => 
+                                  bp.device_model_id === selectedModel && bp.repair_type_id === selectedRepairType
+                                );
+                                const customPrice = repairerPrices.find(rp => 
+                                  rp.repair_price_id === basePrice?.id
+                                );
+                                const finalPrice = customPrice?.custom_price_eur || basePrice?.price_eur || 0;
+                                
+                                return (
+                                  <div>
+                                    <div className="font-bold text-lg">{finalPrice.toFixed(2)} €</div>
+                                    {customPrice && (
+                                      <div className="text-xs text-muted-foreground">
+                                        Prix de base: {basePrice?.price_eur.toFixed(2)} €
+                                        {customPrice.margin_percentage && (
+                                          <Badge variant="secondary" className="ml-1">
+                                            {customPrice.margin_percentage > 0 ? '+' : ''}{customPrice.margin_percentage}%
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <Button 
+                        onClick={addRepairFromCatalog}
+                        disabled={!selectedBrand || !selectedModel || !selectedRepairType}
+                        className="w-full"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Ajouter au devis
+                      </Button>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
 
           <TabsContent value="edit" className="space-y-4">
             {/* Formulaire d'édition */}
