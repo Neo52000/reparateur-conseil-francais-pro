@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import AdminPage from "./pages/AdminPage";
 import RepairerSettingsPage from "./pages/RepairerSettingsPage";
 import RepairTrackingPage from "./pages/RepairTrackingPage";
+import RepairerDashboardPage from "./pages/RepairerDashboardPage";
+import ClientDashboardPage from "./pages/ClientDashboardPage";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +24,8 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/repairer" element={<RepairerDashboardPage />} />
+              <Route path="/client" element={<ClientDashboardPage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin/*" element={<AdminPage />} />
               <Route path="/settings" element={<RepairerSettingsPage />} />
