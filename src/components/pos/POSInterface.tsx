@@ -9,6 +9,10 @@ import POSSessionManager from './ui/POSSessionManager';
 import POSInventoryManager from './ui/POSInventoryManager';
 import POSReportsAnalytics from './ui/POSReportsAnalytics';
 import POSSettings from './ui/POSSettings';
+import StockAlertsManager from './advanced/StockAlertsManager';
+import MobileOptimization from './advanced/MobileOptimization';
+import IntegrationsManager from './advanced/IntegrationsManager';
+import AdvancedBusinessModules from './advanced/AdvancedBusinessModules';
 import { 
   CreditCard, 
   Package, 
@@ -19,7 +23,11 @@ import {
   Settings,
   Printer,
   Wifi,
-  WifiOff
+  WifiOff,
+  Shield,
+  Smartphone,
+  Zap,
+  Brain
 } from 'lucide-react';
 
 /**
@@ -140,13 +148,17 @@ const POSInterface: React.FC = () => {
         {/* Panel principal POS */}
         <div className="flex-1 p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-11 text-xs">
               <TabsTrigger value="session">Session</TabsTrigger>
               <TabsTrigger value="sale">Vente</TabsTrigger>
               <TabsTrigger value="customers">Clients</TabsTrigger>
               <TabsTrigger value="history">Historique</TabsTrigger>
               <TabsTrigger value="inventory">Stock</TabsTrigger>
               <TabsTrigger value="reports">Rapports</TabsTrigger>
+              <TabsTrigger value="alerts">Alertes</TabsTrigger>
+              <TabsTrigger value="mobile">Mobile</TabsTrigger>
+              <TabsTrigger value="integrations">Intégrations</TabsTrigger>
+              <TabsTrigger value="business">Business</TabsTrigger>
               <TabsTrigger value="settings">Paramètres</TabsTrigger>
             </TabsList>
 
@@ -181,6 +193,26 @@ const POSInterface: React.FC = () => {
             {/* Onglet Rapports */}
             <TabsContent value="reports" className="mt-6">
               <POSReportsAnalytics />
+            </TabsContent>
+
+            {/* Onglet Alertes Stock */}
+            <TabsContent value="alerts" className="mt-6">
+              <StockAlertsManager />
+            </TabsContent>
+
+            {/* Onglet Mobile */}
+            <TabsContent value="mobile" className="mt-6">
+              <MobileOptimization />
+            </TabsContent>
+
+            {/* Onglet Intégrations */}
+            <TabsContent value="integrations" className="mt-6">
+              <IntegrationsManager />
+            </TabsContent>
+
+            {/* Onglet Business */}
+            <TabsContent value="business" className="mt-6">
+              <AdvancedBusinessModules />
             </TabsContent>
 
             {/* Onglet Paramètres */}
