@@ -20,13 +20,13 @@ const RepairerDashboardHeader: React.FC<RepairerDashboardHeaderProps> = ({
           className="h-16 object-contain"
         />
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Tableau de bord Réparateur</h1>
+          <h1 className="text-3xl font-bold text-electric-blue">Tableau de bord Réparateur</h1>
         </div>
       </div>
       <Button
         onClick={onLogout}
         variant="outline"
-        className="self-end flex items-center gap-2 border-orange-600 text-orange-600 hover:bg-orange-50"
+        className="self-end flex items-center gap-2 border-vibrant-orange text-vibrant-orange hover:bg-vibrant-orange-light"
       >
         <LogOut className="h-5 w-5" />
         <span>Déconnexion</span>

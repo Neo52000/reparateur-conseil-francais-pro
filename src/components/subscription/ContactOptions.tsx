@@ -18,7 +18,7 @@ const ContactOptions: React.FC = () => {
       <div className="space-y-3">
         <Button 
           onClick={handleWhatsApp}
-          className="w-full bg-emerald-600 hover:bg-emerald-700"
+          className="w-full bg-vibrant-orange hover:bg-vibrant-orange-dark text-vibrant-orange-foreground"
           size="lg"
         >
           <MessageCircle className="h-5 w-5 mr-2" />
@@ -27,12 +27,12 @@ const ContactOptions: React.FC = () => {
         </Button>
       </div>
 
-      <div className="bg-blue-50 p-4 rounded-lg">
+      <div className="bg-electric-blue-light p-4 rounded-lg">
         <div className="flex items-center mb-2">
-          <Clock className="h-4 w-4 text-blue-600 mr-2" />
-          <span className="font-medium text-blue-900">Horaires d'ouverture</span>
+          <Clock className="h-4 w-4 text-electric-blue mr-2" />
+          <span className="font-medium text-electric-blue">Horaires d'ouverture</span>
         </div>
-        <div className="text-sm text-blue-800">
+        <div className="text-sm text-electric-blue-dark">
           <p>Lundi - Vendredi : 9h - 18h</p>
           <p>Samedi : 9h - 12h</p>
           <p className="mt-2 font-medium">⚡ Réponse WhatsApp 24h/24</p>

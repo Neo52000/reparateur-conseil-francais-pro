@@ -13,8 +13,8 @@ const AdminDashboardHeader: React.FC<AdminDashboardHeaderProps> = ({ onRefresh }
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Backoffice Administrateur</h1>
-          <p className="text-gray-600">Gestion de la plateforme RepairHub</p>
+          <h1 className="text-3xl font-bold text-electric-blue">Backoffice Administrateur</h1>
+          <p className="text-muted-foreground">Gestion de la plateforme RepairHub</p>
         </div>
         <Button onClick={onRefresh} variant="outline">
           <RefreshCw className="h-4 w-4 mr-2" />

@@ -25,12 +25,24 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					DEFAULT: 'hsl(var(--electric-blue))',
+					foreground: 'hsl(var(--electric-blue-foreground))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
 					foreground: 'hsl(var(--secondary-foreground))'
+				},
+				'electric-blue': {
+					DEFAULT: 'hsl(var(--electric-blue))',
+					foreground: 'hsl(var(--electric-blue-foreground))',
+					light: 'hsl(var(--electric-blue-light))',
+					dark: 'hsl(var(--electric-blue-dark))'
+				},
+				'vibrant-orange': {
+					DEFAULT: 'hsl(var(--vibrant-orange))',
+					foreground: 'hsl(var(--vibrant-orange-foreground))',
+					light: 'hsl(var(--vibrant-orange-light))',
+					dark: 'hsl(var(--vibrant-orange-dark))'
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',

@@ -26,8 +26,8 @@ const RepairersManagementHeader: React.FC<RepairersManagementHeaderProps> = ({ o
               <span>Retour</span>
             </Button>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">Gestion des Réparateurs</h1>
-              <p className="text-sm text-gray-600">
+              <h1 className="text-xl font-semibold text-electric-blue">Gestion des Réparateurs</h1>
+              <p className="text-sm text-muted-foreground">
                 Administration des réparateurs et abonnements
               </p>
             </div>

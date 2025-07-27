@@ -12,23 +12,23 @@ const SubscriptionBadge: React.FC<SubscriptionBadgeProps> = ({ tier, size = 'sm'
     switch (tier) {
       case 'basic':
         return {
-          icon: <Star className={`${size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'} text-blue-600`} />,
-          bgColor: 'bg-blue-100',
-          textColor: 'text-blue-600',
+          icon: <Star className={`${size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'} text-electric-blue`} />,
+          bgColor: 'bg-electric-blue-light',
+          textColor: 'text-electric-blue',
           label: 'Basic'
         };
       case 'premium':
         return {
-          icon: <Crown className={`${size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'} text-purple-600`} />,
-          bgColor: 'bg-purple-100',
-          textColor: 'text-purple-600',
+          icon: <Crown className={`${size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'} text-vibrant-orange`} />,
+          bgColor: 'bg-vibrant-orange-light',
+          textColor: 'text-vibrant-orange',
           label: 'Premium'
         };
       case 'enterprise':
         return {
-          icon: <Zap className={`${size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'} text-yellow-600`} />,
-          bgColor: 'bg-yellow-100',
-          textColor: 'text-yellow-600',
+          icon: <Zap className={`${size === 'sm' ? 'h-3 w-3' : 'h-4 w-4'} text-accent-foreground`} />,
+          bgColor: 'bg-accent',
+          textColor: 'text-accent-foreground',
           label: 'Enterprise'
         };
       default:
