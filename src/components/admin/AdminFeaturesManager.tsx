@@ -329,6 +329,130 @@ const AdminFeaturesManager: React.FC = () => {
             })}
           </div>
 
+          {/* Gestion des tarifs modules optionnels */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="w-5 h-5" />
+                Tarifs des Modules Optionnels
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-6">
+                {/* Module POS */}
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Database className="w-6 h-6 text-purple-600" />
+                    <div>
+                      <h3 className="font-semibold text-lg">Module POS</h3>
+                      <p className="text-sm text-muted-foreground">Point de vente & gestion d'inventaire</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Prix mensuel:</span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          defaultValue="49.90"
+                          className="w-20 p-1 border rounded text-center text-sm"
+                          step="0.10"
+                        />
+                        <span className="text-sm">€/mois</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Prix annuel:</span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          defaultValue="499.00"
+                          className="w-20 p-1 border rounded text-center text-sm"
+                          step="1.00"
+                        />
+                        <span className="text-sm">€/an</span>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Économie annuelle:</span>
+                        <span className="text-green-600 font-medium">99.80€</span>
+                      </div>
+                    </div>
+                    
+                    <Button size="sm" className="w-full">
+                      Mettre à jour les tarifs POS
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Module E-commerce */}
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center gap-3 mb-4">
+                    <ShoppingCart className="w-6 h-6 text-blue-600" />
+                    <div>
+                      <h3 className="font-semibold text-lg">Module E-commerce</h3>
+                      <p className="text-sm text-muted-foreground">Boutique en ligne intégrée</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Prix mensuel:</span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          defaultValue="89.90"
+                          className="w-20 p-1 border rounded text-center text-sm"
+                          step="0.10"
+                        />
+                        <span className="text-sm">€/mois</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Prix annuel:</span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          defaultValue="890.00"
+                          className="w-20 p-1 border rounded text-center text-sm"
+                          step="1.00"
+                        />
+                        <span className="text-sm">€/an</span>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2 border-t">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Économie annuelle:</span>
+                        <span className="text-green-600 font-medium">188.80€</span>
+                      </div>
+                    </div>
+                    
+                    <Button size="sm" className="w-full">
+                      Mettre à jour les tarifs E-commerce
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="w-4 h-4 text-blue-600" />
+                  <span className="font-medium text-blue-900">Information importante</span>
+                </div>
+                <p className="text-sm text-blue-800">
+                  Les modules optionnels sont uniquement disponibles avec les plans Premium et Enterprise. 
+                  Toute modification des tarifs sera appliquée immédiatement pour les nouveaux abonnements.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Matrice Plan × Fonctionnalité */}
           <Card>
             <CardHeader>
