@@ -320,6 +320,11 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
       repairs: updatedRepairs,
       total_cost: quoteData.labor_cost + quoteData.parts_cost + repairsTotal
     });
+
+    toast({
+      title: "Réparation supprimée",
+      description: "La réparation a été retirée du devis."
+    });
   };
 
   const saveQuote = () => {
