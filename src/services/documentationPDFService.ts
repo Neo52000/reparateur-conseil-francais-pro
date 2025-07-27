@@ -38,32 +38,45 @@ export class DocumentationPDFService {
     document.body.appendChild(container);
     
     try {
-      // Générer le canvas
+      // Calculer la hauteur du contenu dynamiquement
+      const contentHeight = container.scrollHeight;
+      const canvasHeight = Math.max(contentHeight, 1123);
+      
+      // Générer le canvas avec dimensions dynamiques
       const canvas = await html2canvas(container, {
         scale: 2,
         useCORS: true,
         backgroundColor: '#ffffff',
-        width: 794, // A4 width at 96 DPI
-        height: 1123, // A4 height at 96 DPI
+        width: 794,
+        height: canvasHeight,
+        scrollX: 0,
+        scrollY: 0,
       });
       
       // Créer le PDF
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png', 1.0);
       
-      // Ajouter l'image au PDF
-      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297); // A4 dimensions
+      // Calculer les dimensions pour le PDF
+      const pdfWidth = 210; // A4 width in mm
+      const pdfHeight = 297; // A4 height in mm
+      const canvasRatio = canvas.height / canvas.width;
+      const scaledHeight = pdfWidth * canvasRatio;
       
-      // Ajouter des pages supplémentaires si nécessaire
-      const pageHeight = canvas.height;
-      const pdfHeight = 297;
-      let remainingHeight = pageHeight;
-      
-      while (remainingHeight > 0) {
-        pdf.addPage();
-        const yOffset = pageHeight - remainingHeight;
-        pdf.addImage(imgData, 'PNG', 0, -yOffset, 210, 297);
-        remainingHeight -= pdfHeight;
+      // Si le contenu tient sur une page
+      if (scaledHeight <= pdfHeight) {
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, scaledHeight);
+      } else {
+        // Diviser en plusieurs pages
+        const pageCount = Math.ceil(scaledHeight / pdfHeight);
+        const pageHeightCanvas = canvas.height / pageCount;
+        
+        for (let i = 0; i < pageCount; i++) {
+          if (i > 0) pdf.addPage();
+          
+          const yOffset = -i * pageHeightCanvas * (pdfHeight / scaledHeight);
+          pdf.addImage(imgData, 'PNG', 0, yOffset, pdfWidth, scaledHeight);
+        }
       }
       
       return pdf.output('blob');
