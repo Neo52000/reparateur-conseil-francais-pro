@@ -8,10 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, Mail, MessageSquare, Smartphone, Settings, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 
 interface NotificationCenterProps {
-  demoModeEnabled: boolean;
+  
 }
 
-const NotificationCenter: React.FC<NotificationCenterProps> = ({ demoModeEnabled }) => {
+const NotificationCenter: React.FC<NotificationCenterProps> = () => {
   const [notifications, setNotifications] = useState([
     {
       id: '1',

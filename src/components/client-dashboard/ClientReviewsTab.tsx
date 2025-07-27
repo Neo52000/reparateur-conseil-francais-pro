@@ -72,11 +72,11 @@ interface Quote {
 
 const ClientReviewsTab = () => {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviews, setReviews] = useState<ClientReview[]>([]);
   const [availableQuotes, setAvailableQuotes] = useState<Quote[]>([]);
   const [reviewCriteria, setReviewCriteria] = useState<ReviewCriteria[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [intentionsLoading, setIntentionsLoading] = useState(true);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [editingReview, setEditingReview] = useState<ClientReview | null>(null);
   
@@ -106,7 +106,7 @@ const ClientReviewsTab = () => {
     } catch (error) {
       console.error('Erreur chargement données:', error);
     } finally {
-      setLoading(false);
+      setIntentionsLoading(false);
     }
   };
 
@@ -127,25 +127,17 @@ const ClientReviewsTab = () => {
         criteria_ratings: (review.criteria_ratings as any) || {}
       }));
 
-      // Obtenir les avis de démo
-      const demoReviews = ClientDemoDataService.getDemoReviews();
+      // Utiliser uniquement les données réelles
+      const finalReviews = realReviews;
+      setReviews(finalReviews);
       
-      // Combiner selon le mode démo
-      const combinedReviews = ClientDemoDataService.combineWithDemoData(
-        realReviews,
-        demoReviews,
-        demoModeEnabled
-      );
-      
-      setReviews(combinedReviews);
-    } catch (error) {
-      console.error('Erreur chargement avis:', error);
-      // En cas d'erreur, utiliser seulement les données démo si le mode est activé
-      if (demoModeEnabled) {
-        setReviews(ClientDemoDataService.getDemoReviews());
-      } else {
+      // Si aucune donnée réelle, laisser vide
+      if (realReviews.length === 0) {
         setReviews([]);
       }
+    } catch (error) {
+      console.error('Erreur chargement avis:', error);
+      setReviews([]);
     }
   };
 
@@ -188,25 +180,12 @@ const ClientReviewsTab = () => {
         issue_description: quote.issue_description
       }));
       
-      // Obtenir les devis de démo
-      const demoQuotes = ClientDemoDataService.getDemoAvailableQuotes();
-      
-      // Combiner selon le mode démo
-      const combinedQuotes = ClientDemoDataService.combineWithDemoData(
-        realQuotes,
-        demoQuotes,
-        demoModeEnabled
-      ) as Quote[];
-      
-      setAvailableQuotes(combinedQuotes);
+      // Utiliser uniquement les données réelles
+      const finalQuotes = realQuotes;
+      setAvailableQuotes(finalQuotes);
     } catch (error) {
       console.error('Erreur chargement devis:', error);
-      // En cas d'erreur, utiliser seulement les données démo si le mode est activé
-      if (demoModeEnabled) {
-        setAvailableQuotes(ClientDemoDataService.getDemoAvailableQuotes());
-      } else {
-        setAvailableQuotes([]);
-      }
+      setAvailableQuotes([]);
     }
   };
 
@@ -371,7 +350,7 @@ const ClientReviewsTab = () => {
 
   const availableQuotesForReview = getAvailableQuotesForReview();
 
-  if (loading) {
+  if (intentionsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -381,18 +360,6 @@ const ClientReviewsTab = () => {
 
   return (
     <div className="space-y-6">
-      {/* Indicateur mode démo */}
-      {demoModeEnabled && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2 text-blue-800">
-              <TestTube className="h-4 w-4" />
-              <span className="text-sm font-medium">Mode démo activé</span>
-              <span className="text-xs">- Les avis affichés incluent des exemples</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Statistiques */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -648,14 +615,7 @@ const ClientReviewsTab = () => {
           {reviews.length === 0 ? (
             <div className="text-center py-8">
               <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              {demoModeEnabled ? (
-                <div>
-                  <p className="text-gray-500">Aucun avis publié</p>
-                  <p className="text-xs text-gray-400 mt-2">Activez le mode démo pour voir des exemples</p>
-                </div>
-              ) : (
-                <p className="text-gray-500">Aucun avis publié</p>
-              )}
+              <p className="text-gray-500">Aucun avis publié</p>
             </div>
           ) : (
             <div className="space-y-4">

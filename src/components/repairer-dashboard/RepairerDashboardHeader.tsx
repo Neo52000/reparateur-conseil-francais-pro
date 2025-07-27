@@ -6,12 +6,10 @@ import { LogOut } from 'lucide-react';
 
 interface RepairerDashboardHeaderProps {
   onLogout: () => void;
-  demoModeEnabled: boolean;
 }
 
 const RepairerDashboardHeader: React.FC<RepairerDashboardHeaderProps> = ({
-  onLogout,
-  demoModeEnabled
+  onLogout
 }) => {
   return (
     <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -23,11 +21,6 @@ const RepairerDashboardHeader: React.FC<RepairerDashboardHeaderProps> = ({
         />
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Tableau de bord Réparateur</h1>
-          {demoModeEnabled && (
-            <Badge variant="secondary" className="mt-1 bg-blue-100 text-blue-800">
-              Mode Démonstration
-            </Badge>
-          )}
         </div>
       </div>
       <Button

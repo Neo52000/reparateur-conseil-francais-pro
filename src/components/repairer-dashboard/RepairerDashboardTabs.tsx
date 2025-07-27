@@ -57,7 +57,6 @@ interface RepairerDashboardTabsProps {
   inventory: InventoryItem[];
   profileData: ProfileData;
   avgRepairTime: number;
-  demoModeEnabled: boolean;
 }
 
 const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
@@ -67,8 +66,7 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
   appointments,
   inventory,
   profileData,
-  avgRepairTime,
-  demoModeEnabled
+  avgRepairTime
 }) => {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
@@ -121,7 +119,6 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
       <TabsContent value="inventory">
         <InventoryManagement 
           inventory={inventory}
-          demoModeEnabled={demoModeEnabled}
         />
       </TabsContent>
 
@@ -136,17 +133,17 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
       <TabsContent value="analytics">
         <div className="space-y-6">
           <AnalyticsTabSection avgRepairTime={avgRepairTime} />
-          <AdvancedAnalytics demoModeEnabled={demoModeEnabled} />
+          <AdvancedAnalytics />
         </div>
       </TabsContent>
 
-      <TabsContent value="notifications">
-        <NotificationCenter demoModeEnabled={demoModeEnabled} />
-      </TabsContent>
+        <TabsContent value="notifications">
+          <NotificationCenter />
+        </TabsContent>
 
-      <TabsContent value="loyalty">
-        <LoyaltyProgram demoModeEnabled={demoModeEnabled} />
-      </TabsContent>
+        <TabsContent value="loyalty">
+          <LoyaltyProgram />
+        </TabsContent>
 
       <TabsContent value="billing">
         <BillingTabSection />

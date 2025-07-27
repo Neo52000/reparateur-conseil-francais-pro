@@ -35,12 +35,12 @@ interface Message {
 
 const ClientMessagingTab = () => {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [messagingLoading, setMessagingLoading] = useState(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [conversationsLoading, setConversationsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -57,19 +57,15 @@ const ClientMessagingTab = () => {
       // Obtenir les données démo
       const demoConversations = ClientDemoDataService.getDemoConversations();
       
-      // Combiner selon le mode démo
-      const combinedConversations = ClientDemoDataService.combineWithDemoData(
-        realConversations,
-        demoConversations,
-        demoModeEnabled
-      );
+      // Combiner avec les vraies données (pour l'instant vides)
+      const finalConversations = realConversations;
       
-      setConversations(combinedConversations);
+      setConversations(finalConversations);
     } catch (error) {
       console.error('Erreur chargement conversations:', error);
       toast.error('Erreur lors du chargement des conversations');
     } finally {
-      setLoading(false);
+      setConversationsLoading(false);
     }
   };
 
@@ -82,12 +78,8 @@ const ClientMessagingTab = () => {
       const selectedConv = conversations.find(c => c.id === conversationId);
       if (selectedConv && ClientDemoDataService.isDemoData(selectedConv)) {
         const demoMessages = ClientDemoDataService.getDemoMessages(conversationId);
-        const combinedMessages = ClientDemoDataService.combineWithDemoData(
-          realMessages,
-          demoMessages,
-          demoModeEnabled
-        );
-        setMessages(combinedMessages);
+        const finalMessages = realMessages;
+        setMessages(finalMessages);
       } else {
         setMessages(realMessages);
       }
@@ -159,7 +151,7 @@ const ClientMessagingTab = () => {
     conv.repairer_business.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) {
+  if (conversationsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -169,18 +161,6 @@ const ClientMessagingTab = () => {
 
   return (
     <div className="space-y-4">
-      {/* Indicateur mode démo */}
-      {demoModeEnabled && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2 text-blue-800">
-              <TestTube className="h-4 w-4" />
-              <span className="text-sm font-medium">Mode démo activé</span>
-              <span className="text-xs">- Les conversations affichées sont des exemples</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="h-[600px] flex gap-4">
         {/* Liste des conversations */}
@@ -204,19 +184,11 @@ const ClientMessagingTab = () => {
             <CardContent className="p-0">
               {filteredConversations.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  {demoModeEnabled ? (
-                    <div>
-                      <MessageCircle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                      <p>Aucune conversation trouvée</p>
-                      <p className="text-xs mt-2">Activez le mode démo pour voir des exemples</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <MessageCircle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                      <p>Aucune conversation</p>
-                      <p className="text-xs mt-2">Vos conversations avec les réparateurs apparaîtront ici</p>
-                    </div>
-                  )}
+                  <div>
+                    <MessageCircle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>Aucune conversation</p>
+                    <p className="text-xs mt-2">Vos conversations avec les réparateurs apparaîtront ici</p>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-0">

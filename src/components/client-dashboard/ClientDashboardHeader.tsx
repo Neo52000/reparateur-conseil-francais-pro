@@ -5,10 +5,9 @@ import { TestTube } from 'lucide-react';
 
 interface ClientDashboardHeaderProps {
   firstName?: string;
-  demoModeEnabled: boolean;
 }
 
-const ClientDashboardHeader = ({ firstName, demoModeEnabled }: ClientDashboardHeaderProps) => {
+const ClientDashboardHeader = ({ firstName }: ClientDashboardHeaderProps) => {
   return (
     <div className="flex items-center justify-between">
       <div>
@@ -20,12 +19,6 @@ const ClientDashboardHeader = ({ firstName, demoModeEnabled }: ClientDashboardHe
         </p>
       </div>
       <div className="flex items-center gap-2">
-        {demoModeEnabled && (
-          <Badge variant="outline" className="flex items-center gap-1">
-            <TestTube className="h-3 w-3" />
-            Mode Démo
-          </Badge>
-        )}
         <Badge variant="secondary" className="text-sm">
           Client Premium
         </Badge>

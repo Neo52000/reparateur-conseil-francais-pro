@@ -6,10 +6,10 @@ import { Progress } from '@/components/ui/progress';
 import { Trophy, Award, Star, Crown, Target, TrendingUp } from 'lucide-react';
 
 interface LoyaltyProgramProps {
-  demoModeEnabled: boolean;
+  
 }
 
-const LoyaltyProgram: React.FC<LoyaltyProgramProps> = ({ demoModeEnabled }) => {
+const LoyaltyProgram: React.FC<LoyaltyProgramProps> = () => {
   const currentLevel = {
     name: 'Expert',
     icon: Trophy,

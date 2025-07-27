@@ -17,13 +17,11 @@ interface ProfileData {
 interface RepairerDashboardStatsProps {
   stats: StatsData;
   profile: ProfileData;
-  demoModeEnabled: boolean;
 }
 
 const RepairerDashboardStats: React.FC<RepairerDashboardStatsProps> = ({
   stats,
-  profile,
-  demoModeEnabled
+  profile
 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
