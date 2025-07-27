@@ -28,15 +28,25 @@ import {
   Brain
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useBusinessModules } from '@/hooks/useBusinessModules';
+import LoyaltyProgramManager from './LoyaltyProgramManager';
 
 const AdvancedBusinessModules: React.FC = () => {
   const { toast } = useToast();
+  const { 
+    loyaltyProgram, 
+    loyaltyCustomers, 
+    loyaltyTransactions, 
+    getLoyaltyStats,
+    loading 
+  } = useBusinessModules();
+  
   const [activeModules, setActiveModules] = useState({
-    loyalty: true,
-    forecasting: true,
+    loyalty: !!loyaltyProgram,
+    forecasting: false,
     advanced_analytics: false,
     business_intelligence: false,
-    automated_marketing: true,
+    automated_marketing: false,
     warranty_management: false,
     subscription_billing: false,
     multi_location: false
@@ -57,11 +67,16 @@ const AdvancedBusinessModules: React.FC = () => {
         'Cartes de fidélité',
         'Promotions ciblées'
       ],
-      metrics: {
-        active_customers: 1247,
-        points_distributed: 125420,
-        redemption_rate: 23.5,
+      metrics: loyaltyProgram ? {
+        active_customers: loyaltyCustomers.length,
+        points_distributed: getLoyaltyStats().totalPointsDistributed,
+        redemption_rate: getLoyaltyStats().redemptionRate,
         revenue_increase: 18.2
+      } : {
+        active_customers: 0,
+        points_distributed: 0,
+        redemption_rate: 0,
+        revenue_increase: 0
       }
     },
     {
@@ -461,6 +476,9 @@ const AdvancedBusinessModules: React.FC = () => {
 
         {categories.map((category) => (
           <TabsContent key={category.id} value={category.id} className="space-y-4">
+            {category.id === 'marketing' && activeModules.loyalty && (
+              <LoyaltyProgramManager />
+            )}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {filteredModules(category.id).map((module) => (
                 <ModuleCard key={module.id} module={module} />

@@ -556,6 +556,48 @@ export type Database = {
           },
         ]
       }
+      ai_forecasting: {
+        Row: {
+          accuracy_score: number | null
+          actual_values: Json | null
+          confidence_score: number | null
+          created_at: string | null
+          forecast_type: string
+          id: string
+          model_version: string | null
+          period_end: string
+          period_start: string
+          predicted_values: Json
+          repairer_id: string
+        }
+        Insert: {
+          accuracy_score?: number | null
+          actual_values?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          forecast_type: string
+          id?: string
+          model_version?: string | null
+          period_end: string
+          period_start: string
+          predicted_values: Json
+          repairer_id: string
+        }
+        Update: {
+          accuracy_score?: number | null
+          actual_values?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          forecast_type?: string
+          id?: string
+          model_version?: string | null
+          period_end?: string
+          period_start?: string
+          predicted_values?: Json
+          repairer_id?: string
+        }
+        Relationships: []
+      }
       ai_generated_content: {
         Row: {
           ai_model: string
@@ -3118,6 +3160,63 @@ export type Database = {
         }
         Relationships: []
       }
+      inter_store_transfers: {
+        Row: {
+          completion_date: string | null
+          created_at: string | null
+          from_location_id: string
+          id: string
+          item_reference: string
+          notes: string | null
+          quantity: number | null
+          status: string | null
+          to_location_id: string
+          transfer_date: string | null
+          transfer_type: string
+        }
+        Insert: {
+          completion_date?: string | null
+          created_at?: string | null
+          from_location_id: string
+          id?: string
+          item_reference: string
+          notes?: string | null
+          quantity?: number | null
+          status?: string | null
+          to_location_id: string
+          transfer_date?: string | null
+          transfer_type: string
+        }
+        Update: {
+          completion_date?: string | null
+          created_at?: string | null
+          from_location_id?: string
+          id?: string
+          item_reference?: string
+          notes?: string | null
+          quantity?: number | null
+          status?: string | null
+          to_location_id?: string
+          transfer_date?: string | null
+          transfer_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inter_store_transfers_from_location_id_fkey"
+            columns: ["from_location_id"]
+            isOneToOne: false
+            referencedRelation: "multi_location_settings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inter_store_transfers_to_location_id_fkey"
+            columns: ["to_location_id"]
+            isOneToOne: false
+            referencedRelation: "multi_location_settings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inventory_items: {
         Row: {
           brand: string | null
@@ -3568,6 +3667,170 @@ export type Database = {
         }
         Relationships: []
       }
+      loyalty_points: {
+        Row: {
+          created_at: string | null
+          customer_email: string
+          customer_id: string
+          customer_name: string | null
+          id: string
+          lifetime_points: number | null
+          repairer_id: string
+          tier_level: string | null
+          total_points: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          customer_email: string
+          customer_id: string
+          customer_name?: string | null
+          id?: string
+          lifetime_points?: number | null
+          repairer_id: string
+          tier_level?: string | null
+          total_points?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          customer_email?: string
+          customer_id?: string
+          customer_name?: string | null
+          id?: string
+          lifetime_points?: number | null
+          repairer_id?: string
+          tier_level?: string | null
+          total_points?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      loyalty_program: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          points_per_euro: number | null
+          program_name: string
+          repairer_id: string
+          updated_at: string | null
+          welcome_bonus: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          points_per_euro?: number | null
+          program_name?: string
+          repairer_id: string
+          updated_at?: string | null
+          welcome_bonus?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          points_per_euro?: number | null
+          program_name?: string
+          repairer_id?: string
+          updated_at?: string | null
+          welcome_bonus?: number | null
+        }
+        Relationships: []
+      }
+      loyalty_transactions: {
+        Row: {
+          created_at: string | null
+          customer_id: string
+          description: string | null
+          id: string
+          order_reference: string | null
+          points_amount: number
+          repairer_id: string
+          transaction_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          customer_id: string
+          description?: string | null
+          id?: string
+          order_reference?: string | null
+          points_amount: number
+          repairer_id: string
+          transaction_type: string
+        }
+        Update: {
+          created_at?: string | null
+          customer_id?: string
+          description?: string | null
+          id?: string
+          order_reference?: string | null
+          points_amount?: number
+          repairer_id?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loyalty_transactions_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "loyalty_points"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_campaigns: {
+        Row: {
+          campaign_name: string
+          campaign_type: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          message_template: string
+          repairer_id: string
+          subject_template: string | null
+          total_clicked: number | null
+          total_opened: number | null
+          total_sent: number | null
+          trigger_conditions: Json | null
+          trigger_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          campaign_name: string
+          campaign_type: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message_template: string
+          repairer_id: string
+          subject_template?: string | null
+          total_clicked?: number | null
+          total_opened?: number | null
+          total_sent?: number | null
+          trigger_conditions?: Json | null
+          trigger_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          campaign_name?: string
+          campaign_type?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message_template?: string
+          repairer_id?: string
+          subject_template?: string | null
+          total_clicked?: number | null
+          total_opened?: number | null
+          total_sent?: number | null
+          trigger_conditions?: Json | null
+          trigger_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       module_data_migrations: {
         Row: {
           completed_at: string | null
@@ -3718,6 +3981,48 @@ export type Database = {
           updated_at?: string
           url?: string
           url_type?: string
+        }
+        Relationships: []
+      }
+      multi_location_settings: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          location_address: string | null
+          location_email: string | null
+          location_name: string
+          location_phone: string | null
+          manager_user_id: string | null
+          parent_repairer_id: string
+          settings: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          location_address?: string | null
+          location_email?: string | null
+          location_name: string
+          location_phone?: string | null
+          manager_user_id?: string | null
+          parent_repairer_id: string
+          settings?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          location_address?: string | null
+          location_email?: string | null
+          location_name?: string
+          location_phone?: string | null
+          manager_user_id?: string | null
+          parent_repairer_id?: string
+          settings?: Json | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -6828,6 +7133,54 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_billing: {
+        Row: {
+          amount: number
+          billing_frequency: string
+          created_at: string | null
+          currency: string | null
+          customer_email: string
+          customer_name: string
+          id: string
+          next_billing_date: string | null
+          repairer_id: string
+          service_type: string
+          status: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          billing_frequency: string
+          created_at?: string | null
+          currency?: string | null
+          customer_email: string
+          customer_name: string
+          id?: string
+          next_billing_date?: string | null
+          repairer_id: string
+          service_type: string
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          billing_frequency?: string
+          created_at?: string | null
+          currency?: string | null
+          customer_email?: string
+          customer_name?: string
+          id?: string
+          next_billing_date?: string | null
+          repairer_id?: string
+          service_type?: string
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       subscription_plans: {
         Row: {
           created_at: string
@@ -7318,6 +7671,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      warranty_management: {
+        Row: {
+          claim_history: Json | null
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          device_info: string
+          end_date: string
+          id: string
+          repair_order_id: string | null
+          repairer_id: string
+          start_date: string
+          status: string | null
+          updated_at: string | null
+          warranty_conditions: Json | null
+          warranty_duration_months: number
+          warranty_type: string
+        }
+        Insert: {
+          claim_history?: Json | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          device_info: string
+          end_date: string
+          id?: string
+          repair_order_id?: string | null
+          repairer_id: string
+          start_date: string
+          status?: string | null
+          updated_at?: string | null
+          warranty_conditions?: Json | null
+          warranty_duration_months: number
+          warranty_type: string
+        }
+        Update: {
+          claim_history?: Json | null
+          created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          device_info?: string
+          end_date?: string
+          id?: string
+          repair_order_id?: string | null
+          repairer_id?: string
+          start_date?: string
+          status?: string | null
+          updated_at?: string | null
+          warranty_conditions?: Json | null
+          warranty_duration_months?: number
+          warranty_type?: string
+        }
+        Relationships: []
       }
     }
     Views: {
