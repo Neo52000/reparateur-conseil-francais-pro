@@ -5,11 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, Star, Clock, Euro, Users, Award } from 'lucide-react';
 
-interface AdvancedAnalyticsProps {
-  demoModeEnabled: boolean;
-}
+interface AdvancedAnalyticsProps {}
 
-const AdvancedAnalytics: React.FC<AdvancedAnalyticsProps> = ({ demoModeEnabled }) => {
+const AdvancedAnalytics: React.FC<AdvancedAnalyticsProps> = () => {
   // Données de démonstration enrichies
   const revenueData = [
     { month: 'Jan', revenue: 2800, repairs: 45 },
@@ -46,18 +44,6 @@ const AdvancedAnalytics: React.FC<AdvancedAnalyticsProps> = ({ demoModeEnabled }
 
   return (
     <div className="space-y-6">
-      {demoModeEnabled && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-              Mode Démonstration
-            </Badge>
-            <span className="text-sm text-blue-700">
-              Analytics avancées avec données enrichies
-            </span>
-          </div>
-        </div>
-      )}
 
       {/* Métriques clés */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

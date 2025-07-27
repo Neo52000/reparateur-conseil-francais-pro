@@ -108,18 +108,6 @@ const NotificationCenter: React.FC<NotificationCenterProps> = () => {
 
   return (
     <div className="space-y-6">
-      {demoModeEnabled && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-              Mode Démonstration
-            </Badge>
-            <span className="text-sm text-blue-700">
-              Centre de notifications avec données d'exemple
-            </span>
-          </div>
-        </div>
-      )}
 
       <Tabs defaultValue="notifications" className="space-y-4">
         <TabsList>

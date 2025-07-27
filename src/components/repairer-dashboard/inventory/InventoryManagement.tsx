@@ -20,12 +20,10 @@ interface InventoryItem {
 
 interface InventoryManagementProps {
   inventory: InventoryItem[];
-  demoModeEnabled: boolean;
 }
 
 const InventoryManagement: React.FC<InventoryManagementProps> = ({ 
-  inventory, 
-  demoModeEnabled 
+  inventory
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -52,18 +50,6 @@ const InventoryManagement: React.FC<InventoryManagementProps> = ({
 
   return (
     <div className="space-y-6">
-      {demoModeEnabled && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-              Mode Démonstration
-            </Badge>
-            <span className="text-sm text-blue-700">
-              Gestion des stocks avec données enrichies
-            </span>
-          </div>
-        </div>
-      )}
 
       {/* Statistiques rapides */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

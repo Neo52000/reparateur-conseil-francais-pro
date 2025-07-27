@@ -32,9 +32,6 @@ const RepairerDashboardStats: React.FC<RepairerDashboardStatsProps> = ({
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">CA mensuel</p>
               <p className="text-2xl font-bold text-gray-900">{stats.monthlyRevenue}€</p>
-              {demoModeEnabled && (
-                <p className="text-xs text-blue-600">Donnée de démo</p>
-              )}
             </div>
           </div>
         </CardContent>
@@ -47,9 +44,6 @@ const RepairerDashboardStats: React.FC<RepairerDashboardStatsProps> = ({
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Commandes en attente</p>
               <p className="text-2xl font-bold text-gray-900">{stats.pendingOrders}</p>
-              {demoModeEnabled && (
-                <p className="text-xs text-blue-600">Donnée de démo</p>
-              )}
             </div>
           </div>
         </CardContent>
@@ -62,9 +56,6 @@ const RepairerDashboardStats: React.FC<RepairerDashboardStatsProps> = ({
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Réparations ce mois</p>
               <p className="text-2xl font-bold text-gray-900">{stats.completedThisMonth}</p>
-              {demoModeEnabled && (
-                <p className="text-xs text-blue-600">Donnée de démo</p>
-              )}
             </div>
           </div>
         </CardContent>

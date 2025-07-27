@@ -117,18 +117,6 @@ const LoyaltyProgram: React.FC<LoyaltyProgramProps> = () => {
 
   return (
     <div className="space-y-6">
-      {demoModeEnabled && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-              Mode Démonstration
-            </Badge>
-            <span className="text-sm text-blue-700">
-              Programme de fidélisation avec données d'exemple
-            </span>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Niveau actuel */}
