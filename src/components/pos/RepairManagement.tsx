@@ -17,10 +17,10 @@ import {
 import { useRepairManagement } from '@/hooks/useRepairManagement';
 import DeviceIntakeModal from './DeviceIntakeModal';
 import RepairQueue from './RepairQueue';
-import RepairOrderDetails from './RepairOrderDetails';
+import RepairOrderDetailsModal from './RepairOrderDetailsModal';
 
 const RepairManagement: React.FC = () => {
-  const { repairOrders, loading, getRepairsByStatus, getRepairStats } = useRepairManagement();
+  const { repairOrders, loading, getRepairsByStatus, getRepairStats, updateRepairStatus } = useRepairManagement();
   const [showIntakeModal, setShowIntakeModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('queue');
@@ -190,9 +190,11 @@ const RepairManagement: React.FC = () => {
       />
 
       {selectedOrderId && (
-        <RepairOrderDetails
-          orderId={selectedOrderId}
+        <RepairOrderDetailsModal
+          repairOrder={repairOrders.find(order => order.id === selectedOrderId) || null}
+          isOpen={!!selectedOrderId}
           onClose={() => setSelectedOrderId(null)}
+          onStatusUpdate={updateRepairStatus}
         />
       )}
     </div>
