@@ -137,6 +137,16 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
   };
 
   const addRepairFromCatalog = () => {
+    console.log("=== Debug addRepairFromCatalog ===");
+    console.log("selectedBrand:", selectedBrand);
+    console.log("selectedModel:", selectedModel);
+    console.log("selectedRepairType:", selectedRepairType);
+    console.log("brands:", brands);
+    console.log("deviceModels:", deviceModels);
+    console.log("repairTypes:", repairTypes);
+    console.log("basePrices:", basePrices);
+    console.log("repairerPrices:", repairerPrices);
+    
     if (!selectedBrand || !selectedModel || !selectedRepairType) {
       toast({
         title: "Sélection incomplète",
@@ -151,27 +161,29 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
     const model = deviceModels.find(m => m.id === selectedModel);
     const repairType = repairTypes.find(rt => rt.id === selectedRepairType);
 
+    console.log("brand found:", brand);
+    console.log("model found:", model);
+    console.log("repairType found:", repairType);
+
     // Trouver le prix de base
     const basePrice = basePrices.find(bp => 
       bp.device_model_id === selectedModel && bp.repair_type_id === selectedRepairType
     );
+
+    console.log("basePrice found:", basePrice);
 
     // Trouver le prix personnalisé du réparateur
     const customPrice = repairerPrices.find(rp => 
       rp.repair_price_id === basePrice?.id
     );
 
-    if (!basePrice) {
-      toast({
-        title: "Prix non trouvé",
-        description: "Aucun prix de base trouvé pour cette combinaison.",
-        variant: "destructive"
-      });
-      return;
-    }
+    console.log("customPrice found:", customPrice);
 
-    const finalPrice = customPrice?.custom_price_eur || basePrice.price_eur;
+    // Permettre l'ajout même sans prix de base (prix manuel)
+    const finalPrice = customPrice?.custom_price_eur || basePrice?.price_eur || 0;
     const margin = customPrice?.margin_percentage;
+
+    console.log("finalPrice:", finalPrice);
 
     const newRepair: RepairItem = {
       id: Date.now().toString(),
@@ -179,7 +191,7 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
       brandName: brand?.name || '',
       modelName: model?.model_name || '',
       repairTypeName: repairType?.name || '',
-      basePrice: basePrice.price_eur,
+      basePrice: basePrice?.price_eur,
       customPrice: customPrice?.custom_price_eur,
       margin: margin,
       quantity: 1,
@@ -187,14 +199,22 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
       isCustom: false
     };
 
+    console.log("newRepair created:", newRepair);
+    console.log("Current quoteData.repairs:", quoteData.repairs);
+
     const newRepairs = [...quoteData.repairs, newRepair];
     const repairsTotal = newRepairs.reduce((sum, r) => sum + r.total, 0);
     
-    setQuoteData({
+    const updatedQuoteData = {
       ...quoteData,
       repairs: newRepairs,
       total_cost: quoteData.labor_cost + quoteData.parts_cost + repairsTotal
-    });
+    };
+
+    console.log("New repairs array:", newRepairs);
+    console.log("Updated quote data:", updatedQuoteData);
+    
+    setQuoteData(updatedQuoteData);
 
     // Reset des sélections
     setSelectedBrand('');
