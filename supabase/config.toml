@@ -54,3 +54,9 @@ verify_jwt = false
 
 [functions.send-quote]
 verify_jwt = false
+
+[functions.generate-ai-creative]
+verify_jwt = false
+
+[functions.trigger-zapier-webhook]
+verify_jwt = true

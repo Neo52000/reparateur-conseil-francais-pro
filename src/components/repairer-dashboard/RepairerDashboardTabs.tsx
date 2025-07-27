@@ -1,6 +1,20 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  BarChart3, 
+  Calendar, 
+  MessageSquare, 
+  Package, 
+  Receipt, 
+  Settings, 
+  Store, 
+  TrendingUp, 
+  Users,
+  Wand2,
+  Palette,
+  Shield,
+  RefreshCw
+} from 'lucide-react';
 import OverviewTabSection from "./OverviewTabSection";
 import EnhancedOverviewTab from "./EnhancedOverviewTab";
 import OrdersTabSection from "./OrdersTabSection";
@@ -12,11 +26,14 @@ import ProfileTabSection from "./ProfileTabSection";
 import PricingTabSection from "./PricingTabSection";
 import DayView from "./calendar/DayView";
 import AdvancedAnalytics from "./analytics/AdvancedAnalytics";
-import InventoryManagement from "./inventory/InventoryManagement";
-import NotificationCenter from "./notifications/NotificationCenter";
-import LoyaltyProgram from "./loyalty/LoyaltyProgram";
-import EcommerceInterface from "../ecommerce/EcommerceInterface";
-import TeamManagement from "./TeamManagement";
+import AdvertisingDashboard from '@/components/advertising/AdvertisingDashboard';
+import StoreCustomizer from '@/components/ecommerce/StoreCustomizer';
+import AuditLogsViewer from '@/components/admin/AuditLogsViewer';
+import InventorySyncManager from '@/components/inventory/InventorySyncManager';
+import ComplianceModule from '@/components/compliance/ComplianceModule';
+import TeamManagement from './TeamManagement';
+import EcommerceInterface from '@/components/ecommerce/EcommerceInterface';
+import ServicesManagement from './ServicesManagement';
 
 interface Order {
   id: string;
@@ -73,18 +90,54 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
       <TabsList className="grid w-full grid-cols-12">
-        <TabsTrigger value="overview">Aperçu</TabsTrigger>
-        <TabsTrigger value="orders">Commandes</TabsTrigger>
-        <TabsTrigger value="calendar">Planning</TabsTrigger>
-        <TabsTrigger value="inventory">Stock</TabsTrigger>
-        <TabsTrigger value="pricing">Tarifs</TabsTrigger>
-        <TabsTrigger value="ecommerce">E-commerce</TabsTrigger>
-        <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        <TabsTrigger value="notifications">Notifications</TabsTrigger>
-        <TabsTrigger value="loyalty">Fidélité</TabsTrigger>
-        <TabsTrigger value="team">Équipe</TabsTrigger>
-        <TabsTrigger value="billing">Facturation</TabsTrigger>
-        <TabsTrigger value="profile">Profil</TabsTrigger>
+        <TabsTrigger value="overview" className="flex items-center gap-2">
+          <TrendingUp className="h-4 w-4" />
+          Aperçu
+        </TabsTrigger>
+        <TabsTrigger value="orders" className="flex items-center gap-2">
+          <Receipt className="h-4 w-4" />
+          Commandes
+        </TabsTrigger>
+        <TabsTrigger value="calendar" className="flex items-center gap-2">
+          <Calendar className="h-4 w-4" />
+          Planning
+        </TabsTrigger>
+        <TabsTrigger value="inventory" className="flex items-center gap-2">
+          <Package className="h-4 w-4" />
+          Stock
+        </TabsTrigger>
+        <TabsTrigger value="services" className="flex items-center gap-2">
+          <Settings className="h-4 w-4" />
+          Services
+        </TabsTrigger>
+        <TabsTrigger value="pricing" className="flex items-center gap-2">
+          <Receipt className="h-4 w-4" />
+          Tarifs
+        </TabsTrigger>
+        <TabsTrigger value="ecommerce" className="flex items-center gap-2">
+          <Store className="h-4 w-4" />
+          E-commerce
+        </TabsTrigger>
+        <TabsTrigger value="analytics" className="flex items-center gap-2">
+          <BarChart3 className="h-4 w-4" />
+          Analytics
+        </TabsTrigger>
+        <TabsTrigger value="team" className="flex items-center gap-2">
+          <Users className="h-4 w-4" />
+          Équipe
+        </TabsTrigger>
+        <TabsTrigger value="advertising" className="flex items-center gap-2">
+          <Wand2 className="h-4 w-4" />
+          Pub IA
+        </TabsTrigger>
+        <TabsTrigger value="store" className="flex items-center gap-2">
+          <Palette className="h-4 w-4" />
+          Boutique
+        </TabsTrigger>
+        <TabsTrigger value="compliance" className="flex items-center gap-2">
+          <Shield className="h-4 w-4" />
+          Conformité
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview">
@@ -120,9 +173,14 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
       </TabsContent>
 
       <TabsContent value="inventory">
-        <InventoryManagement 
-          inventory={inventory}
-        />
+        <div className="space-y-6">
+          <InventoryTabSection inventory={inventory} />
+          <InventorySyncManager />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="services">
+        <ServicesManagement />
       </TabsContent>
 
       <TabsContent value="pricing">
@@ -140,17 +198,24 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
         </div>
       </TabsContent>
 
-        <TabsContent value="notifications">
-          <NotificationCenter />
-        </TabsContent>
+      <TabsContent value="team">
+        <TeamManagement />
+      </TabsContent>
 
-        <TabsContent value="loyalty">
-          <LoyaltyProgram />
-        </TabsContent>
+      <TabsContent value="advertising">
+        <AdvertisingDashboard />
+      </TabsContent>
 
-        <TabsContent value="team">
-          <TeamManagement />
-        </TabsContent>
+      <TabsContent value="store">
+        <StoreCustomizer />
+      </TabsContent>
+
+      <TabsContent value="compliance">
+        <div className="space-y-6">
+          <ComplianceModule />
+          <AuditLogsViewer />
+        </div>
+      </TabsContent>
 
       <TabsContent value="billing">
         <BillingTabSection />
