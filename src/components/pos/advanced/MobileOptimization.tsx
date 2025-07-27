@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Smartphone, Wifi, WifiOff, Download, Sync, Bell, QrCode, Camera } from 'lucide-react';
+import { Smartphone, Wifi, WifiOff, Download, RefreshCw, Bell, QrCode, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const MobileOptimization: React.FC = () => {
@@ -67,7 +67,7 @@ const MobileOptimization: React.FC = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Sync en Attente</CardTitle>
-            <Sync className="h-4 w-4 text-muted-foreground" />
+            <RefreshCw className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{syncPending}</div>
