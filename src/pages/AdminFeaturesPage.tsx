@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import AdminFeatureFlags from "@/components/AdminFeatureFlags";
+import OptionalModulesManager from "@/components/OptionalModulesManager";
 import CreateDemoRepairerButton from "@/components/CreateDemoRepairerButton";
 
 export default function AdminFeaturesPage() {
@@ -28,7 +29,10 @@ export default function AdminFeaturesPage() {
           <CreateDemoRepairerButton />
         </div>
         
-        <AdminFeatureFlags />
+        <div className="space-y-8">
+          <OptionalModulesManager />
+          <AdminFeatureFlags />
+        </div>
       </div>
     </div>
   );

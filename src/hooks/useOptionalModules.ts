@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { OPTIONAL_MODULES, OptionalModule } from '@/types/optionalModules';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -16,41 +15,38 @@ export interface ModuleConfiguration {
 
 export const useOptionalModules = () => {
   const [modules, setModules] = useState<OptionalModule[]>(OPTIONAL_MODULES);
-  const [configurations, setConfigurations] = useState<ModuleConfiguration[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
-  // Charger les configurations depuis la base de données
+  // Charger les configurations depuis localStorage pour le moment
   const loadConfigurations = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('optional_modules_config')
-        .select('*');
-
-      if (error) throw error;
-
-      setConfigurations(data || []);
+      const savedConfigs = localStorage.getItem('optionalModulesConfig');
       
-      // Mettre à jour les modules avec les configurations
-      const updatedModules = OPTIONAL_MODULES.map(module => {
-        const config = data?.find(c => c.module_id === module.id);
-        if (config) {
-          return {
-            ...module,
-            isActive: config.is_active,
-            pricing: {
-              monthly: config.pricing_monthly,
-              yearly: config.pricing_yearly
-            },
-            availableForPlans: config.available_plans || module.availableForPlans
-          };
-        }
-        return module;
-      });
-      
-      setModules(updatedModules);
+      if (savedConfigs) {
+        const configs = JSON.parse(savedConfigs);
+        
+        // Mettre à jour les modules avec les configurations sauvegardées
+        const updatedModules = OPTIONAL_MODULES.map(module => {
+          const config = configs.find((c: any) => c.module_id === module.id);
+          if (config) {
+            return {
+              ...module,
+              isActive: config.is_active,
+              pricing: {
+                monthly: config.pricing_monthly,
+                yearly: config.pricing_yearly
+              },
+              availableForPlans: config.available_plans || module.availableForPlans
+            };
+          }
+          return module;
+        });
+        
+        setModules(updatedModules);
+      }
     } catch (error) {
       console.error('Erreur lors du chargement des configurations:', error);
       toast({
@@ -77,23 +73,13 @@ export const useOptionalModules = () => {
         available_plans: module.availableForPlans
       }));
 
-      // Utiliser upsert pour insérer ou mettre à jour
-      const { error } = await supabase
-        .from('optional_modules_config')
-        .upsert(configsToSave, { 
-          onConflict: 'module_id',
-          ignoreDuplicates: false 
-        });
-
-      if (error) throw error;
+      // Sauvegarder dans localStorage pour le moment
+      localStorage.setItem('optionalModulesConfig', JSON.stringify(configsToSave));
 
       toast({
         title: "Succès",
         description: "Configurations des modules sauvegardées avec succès",
       });
-
-      // Recharger les configurations
-      await loadConfigurations();
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
       toast({
@@ -148,7 +134,6 @@ export const useOptionalModules = () => {
 
   return {
     modules,
-    configurations,
     loading,
     saving,
     toggleModule,

@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Check, Star, Zap, Crown, CreditCard, ShoppingCart, Lock, ArrowUp } from 'lucide-react';
+import { Check, Star, Zap, Crown, CreditCard, ShoppingCart, Lock, ArrowUp, Euro } from 'lucide-react';
 import { useModuleAccess } from '@/hooks/useFeatureAccess';
+import { useOptionalModules } from '@/hooks/useOptionalModules';
 
 interface Plan {
   id: string;
@@ -36,40 +37,60 @@ const PlanCard: React.FC<PlanCardProps> = ({
   loading,
   onSubscribe
 }) => {
+  const { modules, isModuleAvailableForPlan } = useOptionalModules();
   const [selectedModules, setSelectedModules] = useState({
     pos: false,
-    ecommerce: false
+    ecommerce: false,
+    buyback: false,
+    advertising: false
   });
 
-  // Vérifier l'accès aux modules selon le plan sélectionné
+  // Mapper les noms de plans
   const planNameMap = {
     'Gratuit': 'gratuit',
-    'Basique': 'basique', 
+    'Basique': 'basic', 
     'Premium': 'premium',
     'Enterprise': 'enterprise'
   };
   
-  // Simuler l'accès selon le plan en cours d'affichage
-  const posAccessForPlan = ['premium', 'enterprise'].includes(planNameMap[plan.name as keyof typeof planNameMap] || '');
-  const ecommerceAccessForPlan = ['premium', 'enterprise'].includes(planNameMap[plan.name as keyof typeof planNameMap] || '');
-
-  const modulesPricing = {
-    pos: { monthly: 49.90, yearly: 499.00 },
-    ecommerce: { monthly: 89.90, yearly: 890.00 }
+  const planKey = planNameMap[plan.name as keyof typeof planNameMap] || 'gratuit';
+  
+  // Obtenir les modules configurés et leurs prix
+  const getModuleInfo = (moduleId: string) => {
+    const module = modules.find(m => m.id === moduleId);
+    if (!module) return null;
+    
+    return {
+      available: isModuleAvailableForPlan(moduleId, planKey),
+      pricing: module.pricing,
+      name: module.name,
+      description: module.description
+    };
   };
 
   const calculateTotalPrice = () => {
     const basePlan = isYearly ? plan.price_yearly : plan.price_monthly;
-    const posPrice = (posAccessForPlan && selectedModules.pos) ? (isYearly ? modulesPricing.pos.yearly : modulesPricing.pos.monthly) : 0;
-    const ecommercePrice = (ecommerceAccessForPlan && selectedModules.ecommerce) ? (isYearly ? modulesPricing.ecommerce.yearly : modulesPricing.ecommerce.monthly) : 0;
-    return basePlan + posPrice + ecommercePrice;
+    let totalModulesPrice = 0;
+    
+    // Calculer le prix pour chaque module sélectionné
+    Object.entries(selectedModules).forEach(([moduleId, isSelected]) => {
+      if (isSelected) {
+        const moduleInfo = getModuleInfo(moduleId);
+        if (moduleInfo?.available && moduleInfo.pricing) {
+          totalModulesPrice += isYearly ? moduleInfo.pricing.yearly : moduleInfo.pricing.monthly;
+        }
+      }
+    });
+    
+    return basePlan + totalModulesPrice;
   };
 
   const getModulesCount = () => {
-    let count = 0;
-    if (posAccessForPlan && selectedModules.pos) count++;
-    if (ecommerceAccessForPlan && selectedModules.ecommerce) count++;
-    return count;
+    return Object.entries(selectedModules).filter(([moduleId, isSelected]) => {
+      if (!isSelected) return false;
+      const moduleInfo = getModuleInfo(moduleId);
+      return moduleInfo?.available;
+    }).length;
   };
   const getIcon = (planName: string) => {
     switch (planName.toLowerCase()) {
@@ -183,95 +204,86 @@ const PlanCard: React.FC<PlanCardProps> = ({
           </div>
           
           <div className="space-y-3">
-            {/* Module POS - conditionnel selon le plan */}
-            {posAccessForPlan ? (
-              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors">
-                <Checkbox
-                  id={`pos-${plan.id}`}
-                  checked={selectedModules.pos}
-                  onCheckedChange={(checked) => 
-                    setSelectedModules(prev => ({ ...prev, pos: !!checked }))
-                  }
-                  className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
-                />
-                <div className="flex items-center flex-1 min-w-0">
-                  <CreditCard className="h-4 w-4 text-purple-500 mr-2 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <label htmlFor={`pos-${plan.id}`} className="text-sm font-medium text-gray-900 cursor-pointer block">
-                      Module POS
-                    </label>
-                    <p className="text-xs text-gray-600">Point de vente & inventaire</p>
+            {/* Modules configurés dynamiquement */}
+            {modules.filter(module => module.isActive && ['pos', 'ecommerce', 'buyback', 'advertising'].includes(module.id)).map(module => {
+              const moduleInfo = getModuleInfo(module.id);
+              const isAvailable = moduleInfo?.available || false;
+              const moduleKey = module.id as keyof typeof selectedModules;
+              
+              const getModuleIcon = (moduleId: string) => {
+                switch (moduleId) {
+                  case 'pos': return <CreditCard className="h-4 w-4 mr-2 flex-shrink-0" />;
+                  case 'ecommerce': return <ShoppingCart className="h-4 w-4 mr-2 flex-shrink-0" />;
+                  case 'buyback': return <Euro className="h-4 w-4 mr-2 flex-shrink-0" />;
+                  case 'advertising': return <Zap className="h-4 w-4 mr-2 flex-shrink-0" />;
+                  default: return <CreditCard className="h-4 w-4 mr-2 flex-shrink-0" />;
+                }
+              };
+              
+              const getModuleColor = (moduleId: string) => {
+                switch (moduleId) {
+                  case 'pos': return 'purple-600';
+                  case 'ecommerce': return 'blue-600';
+                  case 'buyback': return 'green-600';
+                  case 'advertising': return 'red-600';
+                  default: return 'gray-600';
+                }
+              };
+              
+              return isAvailable ? (
+                <div key={module.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors">
+                  <Checkbox
+                    id={`${module.id}-${plan.id}`}
+                    checked={selectedModules[moduleKey] || false}
+                    onCheckedChange={(checked) => 
+                      setSelectedModules(prev => ({ ...prev, [moduleKey]: !!checked }))
+                    }
+                    className={`data-[state=checked]:bg-${getModuleColor(module.id)} data-[state=checked]:border-${getModuleColor(module.id)}`}
+                  />
+                  <div className="flex items-center flex-1 min-w-0">
+                    <div className={`text-${getModuleColor(module.id)}`}>
+                      {getModuleIcon(module.id)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <label htmlFor={`${module.id}-${plan.id}`} className="text-sm font-medium text-gray-900 cursor-pointer block">
+                        {module.name}
+                      </label>
+                      <p className="text-xs text-gray-600">{module.description.split(' ').slice(0, 4).join(' ')}...</p>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    {module.pricing.monthly === 0 ? (
+                      <span className="text-sm font-semibold text-green-600">Inclus</span>
+                    ) : (
+                      <>
+                        <span className={`text-sm font-semibold text-${getModuleColor(module.id)}`}>
+                          +{isYearly ? module.pricing.yearly.toFixed(2) : module.pricing.monthly.toFixed(2)}€
+                        </span>
+                        <p className="text-xs text-gray-500">{isYearly ? '/an' : '/mois'}</p>
+                      </>
+                    )}
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <span className="text-sm font-semibold text-purple-600">
-                    +{isYearly ? modulesPricing.pos.yearly.toFixed(2) : modulesPricing.pos.monthly.toFixed(2)}€
-                  </span>
-                  <p className="text-xs text-gray-500">{isYearly ? '/an' : '/mois'}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-3 p-3 bg-gray-100 rounded-lg border opacity-60">
-                <Lock className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                <div className="flex items-center flex-1 min-w-0">
-                  <CreditCard className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium text-gray-500 block">
-                      Module POS
-                    </span>
-                    <p className="text-xs text-gray-500">Disponible avec Premium+</p>
+              ) : (
+                <div key={module.id} className="flex items-center space-x-3 p-3 bg-gray-100 rounded-lg border opacity-60">
+                  <Lock className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <div className="flex items-center flex-1 min-w-0">
+                    <div className="text-gray-400">
+                      {getModuleIcon(module.id)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium text-gray-500 block">
+                        {module.name}
+                      </span>
+                      <p className="text-xs text-gray-500">Disponible avec {module.availableForPlans.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(', ')}</p>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <ArrowUp className="h-4 w-4 text-orange-500" />
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <ArrowUp className="h-4 w-4 text-orange-500" />
-                </div>
-              </div>
-            )}
-
-            {/* Module E-commerce - conditionnel selon le plan */}
-            {ecommerceAccessForPlan ? (
-              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border hover:bg-gray-100 transition-colors">
-                <Checkbox
-                  id={`ecommerce-${plan.id}`}
-                  checked={selectedModules.ecommerce}
-                  onCheckedChange={(checked) => 
-                    setSelectedModules(prev => ({ ...prev, ecommerce: !!checked }))
-                  }
-                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                />
-                <div className="flex items-center flex-1 min-w-0">
-                  <ShoppingCart className="h-4 w-4 text-blue-500 mr-2 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <label htmlFor={`ecommerce-${plan.id}`} className="text-sm font-medium text-gray-900 cursor-pointer block">
-                      Module E-commerce
-                    </label>
-                    <p className="text-xs text-gray-600">Boutique en ligne intégrée</p>
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <span className="text-sm font-semibold text-blue-600">
-                    +{isYearly ? modulesPricing.ecommerce.yearly.toFixed(2) : modulesPricing.ecommerce.monthly.toFixed(2)}€
-                  </span>
-                  <p className="text-xs text-gray-500">{isYearly ? '/an' : '/mois'}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-3 p-3 bg-gray-100 rounded-lg border opacity-60">
-                <Lock className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                <div className="flex items-center flex-1 min-w-0">
-                  <ShoppingCart className="h-4 w-4 text-gray-400 mr-2 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium text-gray-500 block">
-                      Module E-commerce
-                    </span>
-                    <p className="text-xs text-gray-500">Disponible avec Premium+</p>
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0">
-                  <ArrowUp className="h-4 w-4 text-orange-500" />
-                </div>
-              </div>
-            )}
+              );
+            })}
           </div>
 
           {/* Récapitulatif du prix */}
@@ -283,8 +295,25 @@ const PlanCard: React.FC<PlanCardProps> = ({
                     Plan {plan.name} + {getModulesCount()} module{getModulesCount() > 1 ? 's' : ''}
                   </p>
                   <div className="text-xs text-gray-600 mt-1 flex flex-wrap gap-2">
-                    {posAccessForPlan && selectedModules.pos && <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full">POS</span>}
-                    {ecommerceAccessForPlan && selectedModules.ecommerce && <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full">E-commerce</span>}
+                    {Object.entries(selectedModules).map(([moduleId, isSelected]) => {
+                      if (!isSelected) return null;
+                      const moduleInfo = getModuleInfo(moduleId);
+                      if (!moduleInfo?.available) return null;
+                      const module = modules.find(m => m.id === moduleId);
+                      if (!module) return null;
+                      
+                      return (
+                        <span key={moduleId} className={`px-2 py-1 rounded-full ${
+                          module.color === 'purple' ? 'bg-purple-100 text-purple-700' :
+                          module.color === 'blue' ? 'bg-blue-100 text-blue-700' :
+                          module.color === 'green' ? 'bg-green-100 text-green-700' :
+                          module.color === 'red' ? 'bg-red-100 text-red-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {module.name}
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="text-right">

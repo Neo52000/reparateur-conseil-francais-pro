@@ -1,84 +1,50 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Wrench, Smartphone, Euro, Brain, Archive, Zap, Shield, TrendingUp, Users, Clock, Star } from "lucide-react";
+import { ArrowLeft, Wrench, Smartphone, Euro, Brain, Archive, Zap, Shield, TrendingUp, Users, Clock, Star, Megaphone, ShoppingCart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import SubscriptionPlans from "@/components/SubscriptionPlans";
+import { useOptionalModules } from "@/hooks/useOptionalModules";
 
 const RepairerPlans = () => {
-  // Derniers modules ajoutés
-  const latestModules = [
-    {
-      name: "POS Avancé",
-      icon: <Smartphone className="w-6 h-6" />,
-      description: "Point de vente complet avec gestion NF-525, archivage automatique et conformité fiscale",
-      features: [
-        "Interface POS tactile",
-        "Archivage automatique NF-525",
-        "Gestion des sessions",
-        "Tickets conformes",
-        "Synchronisation temps réel"
-      ],
-      plans: ["Pro", "Premium", "Enterprise"],
-      newFeatures: ["Archivage NF-525", "Hash d'intégrité", "Audit complet"],
-      price: "49€/mois",
-      color: "blue"
-    },
-    {
-      name: "Module Rachat",
-      icon: <Euro className="w-6 h-6" />,
-      description: "Système de rachat d'appareils avec évaluation IA et gestion complète des stocks",
-      features: [
-        "Évaluation IA automatique",
-        "Grille de prix dynamique",
-        "Gestion des stocks rachetés",
-        "Suivi des revenus",
-        "Interface client dédiée"
-      ],
-      plans: ["Premium", "Enterprise"],
-      newFeatures: ["IA d'évaluation", "Prix dynamiques", "Stats avancées"],
-      price: "39€/mois",
-      color: "green"
-    },
-    {
-      name: "IA Diagnostic",
-      icon: <Brain className="w-6 h-6" />,
-      description: "Assistant IA pour le pré-diagnostic et l'aide à la réparation avec Ben",
-      features: [
-        "Chatbot Ben personnalisé",
-        "Pré-diagnostic automatique",
-        "Base de connaissances",
-        "Suggestions de réparation",
-        "Historique des conversations"
-      ],
-      plans: ["Basic", "Pro", "Premium", "Enterprise"],
-      newFeatures: ["Assistant Ben", "Diagnostic avancé", "Apprentissage continu"],
-      price: "Inclus",
-      color: "purple"
-    },
-    {
-      name: "Monitoring Business",
-      icon: <TrendingUp className="w-6 h-6" />,
-      description: "Surveillance en temps réel de votre activité avec alertes intelligentes",
-      features: [
-        "Dashboard temps réel",
-        "Alertes personnalisées",
-        "Métriques business",
-        "Analyses prédictives",
-        "Rapports automatiques"
-      ],
-      plans: ["Enterprise"],
-      newFeatures: ["Alertes intelligentes", "Prédictions IA", "Monitoring 24/7"],
-      price: "Inclus Enterprise",
-      color: "orange"
+  const { modules, loading } = useOptionalModules();
+
+  // Convertir les modules configurés en format d'affichage
+  const getIconComponent = (iconName: string) => {
+    const iconProps = { className: "w-6 h-6" };
+    switch (iconName) {
+      case 'Smartphone': return <Smartphone {...iconProps} />;
+      case 'ShoppingCart': return <ShoppingCart {...iconProps} />;
+      case 'Euro': return <Euro {...iconProps} />;
+      case 'Brain': return <Brain {...iconProps} />;
+      case 'TrendingUp': return <TrendingUp {...iconProps} />;
+      case 'Megaphone': return <Megaphone {...iconProps} />;
+      default: return <Smartphone {...iconProps} />;
     }
-  ];
+  };
+
+  const getPlanDisplayName = (planKey: string) => {
+    switch (planKey) {
+      case 'basic': return 'Basic';
+      case 'premium': return 'Premium';
+      case 'enterprise': return 'Enterprise';
+      default: return planKey.charAt(0).toUpperCase() + planKey.slice(1);
+    }
+  };
+
+  const formatPrice = (module: any) => {
+    if (module.pricing.monthly === 0) return "Inclus";
+    return `${module.pricing.monthly}€/mois`;
+  };
+
+  // Filtrer uniquement les modules actifs
+  const activeModules = modules.filter(module => module.isActive);
 
   const stats = {
-    totalModules: 12,
-    newThisMonth: 4,
+    totalModules: modules.length,
+    newThisMonth: activeModules.length,
     activeUsers: "2500+",
     satisfaction: "98%"
   };
@@ -142,86 +108,100 @@ const RepairerPlans = () => {
               <p className="text-gray-600 mt-1">Nouvelles fonctionnalités pour booster votre activité</p>
             </div>
             <Badge variant="secondary" className="bg-green-100 text-green-700">
-              {stats.newThisMonth} nouveaux ce mois
+              {stats.newThisMonth} modules actifs
             </Badge>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {latestModules.map((module, index) => (
-              <Card key={index} className="hover:shadow-lg transition-all duration-300 border-l-4" 
-                    style={{ borderLeftColor: 
-                      module.color === 'blue' ? '#3B82F6' :
-                      module.color === 'green' ? '#10B981' :
-                      module.color === 'purple' ? '#8B5CF6' : '#F59E0B'
-                    }}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${
-                        module.color === 'blue' ? 'bg-blue-100 text-blue-600' :
-                        module.color === 'green' ? 'bg-green-100 text-green-600' :
-                        module.color === 'purple' ? 'bg-purple-100 text-purple-600' :
-                        'bg-orange-100 text-orange-600'
-                      }`}>
-                        {module.icon}
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">{module.name}</CardTitle>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className="text-xs">{module.price}</Badge>
-                          <Badge className="bg-red-500 text-white text-xs">NOUVEAU</Badge>
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="text-gray-500">Chargement des modules...</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {activeModules.map((module, index) => (
+                <Card key={module.id} className="hover:shadow-lg transition-all duration-300 border-l-4" 
+                      style={{ borderLeftColor: 
+                        module.color === 'blue' ? '#3B82F6' :
+                        module.color === 'green' ? '#10B981' :
+                        module.color === 'purple' ? '#8B5CF6' :
+                        module.color === 'orange' ? '#F59E0B' :
+                        module.color === 'red' ? '#EF4444' : '#6B7280'
+                      }}>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          module.color === 'blue' ? 'bg-blue-100 text-blue-600' :
+                          module.color === 'green' ? 'bg-green-100 text-green-600' :
+                          module.color === 'purple' ? 'bg-purple-100 text-purple-600' :
+                          module.color === 'orange' ? 'bg-orange-100 text-orange-600' :
+                          module.color === 'red' ? 'bg-red-100 text-red-600' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {getIconComponent(module.icon)}
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{module.name}</CardTitle>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs">{formatPrice(module)}</Badge>
+                            {module.isActive && (
+                              <Badge className="bg-green-500 text-white text-xs">DISPONIBLE</Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <p className="text-gray-600 text-sm mt-2">{module.description}</p>
-                </CardHeader>
-                <CardContent>
-                  {/* Nouvelles fonctionnalités */}
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-sm text-gray-900 mb-2">🎉 Nouveautés :</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {module.newFeatures.map((feature, i) => (
-                        <Badge key={i} variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
-                          {feature}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
+                    <p className="text-gray-600 text-sm mt-2">{module.description}</p>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Nouvelles fonctionnalités */}
+                    {module.newFeatures && module.newFeatures.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="font-semibold text-sm text-gray-900 mb-2">🎉 Nouveautés :</h4>
+                        <div className="flex flex-wrap gap-1">
+                          {module.newFeatures.map((feature, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+                              {feature}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                  {/* Fonctionnalités principales */}
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-sm text-gray-900 mb-2">Fonctionnalités :</h4>
-                    <ul className="space-y-1">
-                      {module.features.slice(0, 3).map((feature, i) => (
-                        <li key={i} className="text-sm text-gray-600 flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                          {feature}
-                        </li>
-                      ))}
-                      {module.features.length > 3 && (
-                        <li className="text-sm text-gray-500">
-                          +{module.features.length - 3} autres fonctionnalités
-                        </li>
-                      )}
-                    </ul>
-                  </div>
-
-                  {/* Plans compatibles */}
-                  <div>
-                    <h4 className="font-semibold text-sm text-gray-900 mb-2">Disponible avec :</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {module.plans.map((plan, i) => (
-                        <Badge key={i} variant="outline" className="text-xs">
-                          {plan}
-                        </Badge>
-                      ))}
+                    {/* Fonctionnalités principales */}
+                    <div className="mb-4">
+                      <h4 className="font-semibold text-sm text-gray-900 mb-2">Fonctionnalités :</h4>
+                      <ul className="space-y-1">
+                        {module.features.slice(0, 3).map((feature, i) => (
+                          <li key={i} className="text-sm text-gray-600 flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                            {feature}
+                          </li>
+                        ))}
+                        {module.features.length > 3 && (
+                          <li className="text-sm text-gray-500">
+                            +{module.features.length - 3} autres fonctionnalités
+                          </li>
+                        )}
+                      </ul>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+
+                    {/* Plans compatibles */}
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-900 mb-2">Disponible avec :</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {module.availableForPlans.map((plan, i) => (
+                          <Badge key={i} variant="outline" className="text-xs">
+                            {getPlanDisplayName(plan)}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Section avantages */}

@@ -4594,6 +4594,39 @@ export type Database = {
         }
         Relationships: []
       }
+      optional_modules_config: {
+        Row: {
+          available_plans: string[]
+          created_at: string
+          id: string
+          is_active: boolean
+          module_id: string
+          pricing_monthly: number
+          pricing_yearly: number
+          updated_at: string
+        }
+        Insert: {
+          available_plans?: string[]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          module_id: string
+          pricing_monthly?: number
+          pricing_yearly?: number
+          updated_at?: string
+        }
+        Update: {
+          available_plans?: string[]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          module_id?: string
+          pricing_monthly?: number
+          pricing_yearly?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pappers_verification_cache: {
         Row: {
           business_status: string | null
