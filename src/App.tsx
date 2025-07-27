@@ -13,6 +13,7 @@ import RepairTrackingPage from "./pages/RepairTrackingPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
 import RepairerPlans from "./pages/RepairerPlans";
+import ServiceRepairPage from "./pages/services/ServiceRepairPage";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,10 @@ const App = () => (
               <Route path="/client" element={<ClientDashboardPage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin/*" element={<AdminPage />} />
+              <Route path="/reparation-smartphone" element={<ServiceRepairPage />} />
+              <Route path="/reparation-tablette" element={<ServiceRepairPage />} />
+              <Route path="/reparation-ordinateur" element={<ServiceRepairPage />} />
+              <Route path="/reparation-console" element={<ServiceRepairPage />} />
               <Route path="/settings" element={<RepairerSettingsPage />} />
               <Route path="/paramètres" element={<RepairerSettingsPage />} />
               <Route path="/suivi/:orderId" element={<RepairTrackingPage />} />
