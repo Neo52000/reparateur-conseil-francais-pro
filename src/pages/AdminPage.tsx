@@ -26,6 +26,7 @@ import { AdvertisingAIDashboard } from '@/components/admin/advertising/Advertisi
 import { RepairersAnalytics } from '@/components/admin/analytics/RepairersAnalytics';
 import AdminFeaturesManager from '@/components/admin/AdminFeaturesManager';
 import AdminConfigurationPage from '@/components/admin/AdminConfigurationPage';
+import ComprehensiveFeaturesManager from '@/components/admin/ComprehensiveFeaturesManager';
 import { Card, CardContent } from '@/components/ui/card';
 import { Monitor } from 'lucide-react';
 import { CheckmateMonitoring } from '@/components/admin/monitoring/CheckmateMonitoring';
@@ -199,7 +200,7 @@ const AdminPage = () => {
       case 'documentation':
         return <EnhancedDocumentationManager />;
       case 'features-manager':
-        return <AdminFeaturesManager />;
+        return <ComprehensiveFeaturesManager />;
       case 'configuration':
         return <AdminConfigurationPage />;
       default:

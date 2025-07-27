@@ -2,6 +2,7 @@
 import React from 'react';
 import AdminStatsCards from './AdminStatsCards';
 import DashboardOverview from './DashboardOverview';
+import VisitorAnalytics from './VisitorAnalytics';
 
 
 interface AdminDashboardContentProps {
@@ -23,12 +24,15 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
   const stats = {
     totalRepairers: repairers.length,
     totalSubscriptions: subscriptions.length,
-    totalInterests: 0, // À ajuster selon les données disponibles
-    totalRevenue: 0 // À ajuster selon les données disponibles
+    totalInterests: 0, // TODO: À connecter avec les vraies données client_interests
+    totalRevenue: 0 // TODO: À connecter avec les vraies données de revenue
   };
 
   return (
     <div className="space-y-8">
+      {/* Analytics visiteurs */}
+      <VisitorAnalytics />
+      
       {/* Main content grid */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 animate-fade-in">
         {/* Dashboard overview */}

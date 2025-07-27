@@ -2,8 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Facebook, Linkedin, Twitter, MessageCircle, UserPlus, Clock, Shield, Star, Users, Smartphone, Laptop, Tablet, Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useFooterConfig } from '@/hooks/useFooterConfig';
 
 const Footer = () => {
+  const { sections, loading } = useFooterConfig();
+  
   const handleWhatsApp = () => {
     const message = encodeURIComponent('Bonjour, je souhaite des informations sur vos services de réparation.');
     window.open(`https://wa.me/33745062162?text=${message}`, '_blank');
@@ -56,177 +59,161 @@ const Footer = () => {
           {/* Section principale du footer */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
             
-            {/* Logo et description d'entreprise */}
-            <div className="lg:col-span-1">
-              <div className="mb-6">
-                <img 
-                  src="/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png" 
-                  alt="TopRéparateurs.fr - Logo" 
-                  className="h-16 object-contain brightness-0 invert"
-                  width="200"
-                  height="64"
-                />
-              </div>
-              <p className="text-gray-300 mb-6 leading-relaxed">
-                <strong>TopRéparateurs.fr</strong> est la plateforme de référence pour trouver un réparateur qualifié près de chez vous. 
-                Réparation smartphones, tablettes, ordinateurs et consoles de jeux - Devis gratuit et intervention rapide.
-              </p>
-              
-              {/* Avantages clés */}
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center">
-                  <Shield className="h-4 w-4 mr-2 text-green-400" />
-                  <span>Réparateurs certifiés</span>
-                </div>
-                <div className="flex items-center">
-                  <Clock className="h-4 w-4 mr-2 text-blue-400" />
-                  <span>Intervention sous 24h</span>
-                </div>
-                <div className="flex items-center">
-                  <Star className="h-4 w-4 mr-2 text-yellow-400" />
-                  <span>Satisfaction garantie</span>
+            {loading ? (
+              // Loading state
+              <div className="lg:col-span-4 animate-pulse">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="space-y-4">
+                      <div className="h-6 bg-gray-700 rounded w-3/4"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-700 rounded"></div>
+                        <div className="h-4 bg-gray-700 rounded w-2/3"></div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
-
-            {/* Services de réparation */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4 text-white">Nos Services</h3>
-              <nav aria-label="Services de réparation">
-                <ul className="space-y-3">
-                  <li>
-                    <Link 
-                      to="/reparation-smartphone" 
-                      className="flex items-center text-gray-300 hover:text-white transition-colors group"
-                    >
-                      <Smartphone className="h-4 w-4 mr-2 group-hover:text-primary" />
-                      Réparation Smartphone
-                    </Link>
-                  </li>
-                  <li>
-                    <Link 
-                      to="/reparation-tablette" 
-                      className="flex items-center text-gray-300 hover:text-white transition-colors group"
-                    >
-                      <Tablet className="h-4 w-4 mr-2 group-hover:text-primary" />
-                      Réparation Tablette
-                    </Link>
-                  </li>
-                  <li>
-                    <Link 
-                      to="/reparation-ordinateur" 
-                      className="flex items-center text-gray-300 hover:text-white transition-colors group"
-                    >
-                      <Laptop className="h-4 w-4 mr-2 group-hover:text-primary" />
-                      Réparation Ordinateur
-                    </Link>
-                  </li>
-                  <li>
-                    <Link 
-                      to="/reparation-console" 
-                      className="flex items-center text-gray-300 hover:text-white transition-colors group"
-                    >
-                      <Gamepad2 className="h-4 w-4 mr-2 group-hover:text-primary" />
-                      Réparation Console
-                    </Link>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-
-            {/* Contact et support */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4 text-white">Contact & Support</h3>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-2">Nous contacter</h4>
-                  <div className="space-y-2">
-                    <button 
-                      onClick={handleEmailClick}
-                      className="flex items-center text-gray-300 hover:text-white transition-colors"
-                      aria-label="Envoyer un email"
-                    >
-                      <Mail className="h-4 w-4 mr-2 text-primary" />
-                      contact@topreparateurs.fr
-                    </button>
-                    <button 
-                      onClick={handleWhatsApp}
-                      className="flex items-center text-gray-300 hover:text-green-400 transition-colors"
-                      aria-label="Contacter via WhatsApp"
-                    >
-                      <MessageCircle className="h-4 w-4 mr-2 text-green-400" />
-                      07 45 06 21 62 (WhatsApp)
-                    </button>
-                  </div>
+            ) : (
+              // Configuration dynamique depuis la base de données
+              sections.map((section) => (
+                <div key={section.id}>
+                  <h3 className="text-lg font-semibold mb-4 text-white">{section.title}</h3>
+                  
+                  {section.section_key === 'company_info' ? (
+                    <div className="lg:col-span-1">
+                      <div className="mb-6">
+                        <img 
+                          src="/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png" 
+                          alt="TopRéparateurs.fr - Logo" 
+                          className="h-16 object-contain brightness-0 invert"
+                          width="200"
+                          height="64"
+                        />
+                      </div>
+                      <p className="text-gray-300 mb-6 leading-relaxed">
+                        {section.content}
+                      </p>
+                      
+                      {/* Avantages clés */}
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center">
+                          <Shield className="h-4 w-4 mr-2 text-green-400" />
+                          <span>Réparateurs certifiés</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 mr-2 text-blue-400" />
+                          <span>Intervention sous 24h</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 mr-2 text-yellow-400" />
+                          <span>Satisfaction garantie</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : section.section_key === 'services' ? (
+                    <nav aria-label="Services de réparation">
+                      <ul className="space-y-3">
+                        {section.links.map((link, index) => {
+                          const getServiceIcon = (title: string) => {
+                            if (title.includes('Smartphone')) return Smartphone;
+                            if (title.includes('Tablette')) return Tablet;
+                            if (title.includes('Ordinateur')) return Laptop;
+                            if (title.includes('Console')) return Gamepad2;
+                            return Smartphone;
+                          };
+                          const IconComponent = getServiceIcon(link.title);
+                          
+                          return (
+                            <li key={index}>
+                              <Link 
+                                to={link.url} 
+                                className="flex items-center text-gray-300 hover:text-white transition-colors group"
+                              >
+                                <IconComponent className="h-4 w-4 mr-2 group-hover:text-primary" />
+                                {link.title}
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </nav>
+                  ) : section.section_key === 'repairer_cta' ? (
+                    <div className="bg-gradient-to-br from-blue-600 to-orange-600 rounded-lg p-6">
+                      <h3 className="font-bold text-white mb-2">{section.title}</h3>
+                      <p className="text-blue-100 text-sm mb-4 leading-relaxed">
+                        {section.content}
+                      </p>
+                      {section.links.map((link, index) => (
+                        <Link key={index} to={link.url}>
+                          <Button 
+                            className={link.className || "bg-white text-blue-600 hover:bg-gray-100 font-semibold w-full"}
+                            size="sm"
+                          >
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            {link.title}
+                          </Button>
+                        </Link>
+                      ))}
+                      
+                      {/* Stats rapides */}
+                      <div className="grid grid-cols-2 gap-2 mt-4 text-center">
+                        <div className="bg-white/10 rounded p-2">
+                          <div className="font-bold text-white">5000+</div>
+                          <div className="text-xs text-blue-100">Réparateurs</div>
+                        </div>
+                        <div className="bg-white/10 rounded p-2">
+                          <div className="font-bold text-white">50K+</div>
+                          <div className="text-xs text-blue-100">Réparations</div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // Sections génériques
+                    <div>
+                      <p className="text-gray-300 mb-4 text-sm">{section.content}</p>
+                      <nav>
+                        <ul className="space-y-2">
+                          {section.links.map((link, index) => (
+                            <li key={index}>
+                              <Link 
+                                to={link.url} 
+                                className="text-gray-300 hover:text-white transition-colors text-sm"
+                              >
+                                {link.title}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </nav>
+                    </div>
+                  )}
                 </div>
+              ))
+            )}
 
-                {/* Informations légales */}
-                <div>
-                  <h4 className="font-medium mb-2">Informations légales</h4>
-                  <nav aria-label="Liens légaux">
-                    <ul className="space-y-1">
-                      <li>
-                        <Link 
-                          to="/privacy-policy" 
-                          className="text-gray-300 hover:text-white transition-colors text-sm"
-                        >
-                          Politique de confidentialité
-                        </Link>
-                      </li>
-                      <li>
-                        <Link 
-                          to="/terms" 
-                          className="text-gray-300 hover:text-white transition-colors text-sm"
-                        >
-                          Conditions générales
-                        </Link>
-                      </li>
-                      <li>
-                        <Link 
-                          to="/cookies" 
-                          className="text-gray-300 hover:text-white transition-colors text-sm"
-                        >
-                          Gestion des cookies
-                        </Link>
-                      </li>
-                    </ul>
-                  </nav>
-                </div>
-              </div>
-            </div>
-
-            {/* CTA Réparateurs */}
-            <div>
-              <div className="bg-gradient-to-br from-blue-600 to-orange-600 rounded-lg p-6">
-                <h3 className="font-bold text-white mb-2">
-                  Vous êtes réparateur ?
-                </h3>
-                <p className="text-blue-100 text-sm mb-4 leading-relaxed">
-                  Rejoignez notre réseau de plus de 5000 réparateurs professionnels et développez votre activité
-                </p>
-                <Link to="/repairer/plans">
-                  <Button 
-                    className="bg-white text-blue-600 hover:bg-gray-100 font-semibold w-full"
-                    size="sm"
+            {/* Contact et support - toujours affiché */}
+            {!loading && !sections.find(s => s.section_key === 'support') && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4 text-white">Contact</h3>
+                <div className="space-y-2">
+                  <button 
+                    onClick={handleEmailClick}
+                    className="flex items-center text-gray-300 hover:text-white transition-colors text-sm"
                   >
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Rejoindre le réseau
-                  </Button>
-                </Link>
-                
-                {/* Stats rapides */}
-                <div className="grid grid-cols-2 gap-2 mt-4 text-center">
-                  <div className="bg-white/10 rounded p-2">
-                    <div className="font-bold text-white">5000+</div>
-                    <div className="text-xs text-blue-100">Réparateurs</div>
-                  </div>
-                  <div className="bg-white/10 rounded p-2">
-                    <div className="font-bold text-white">50K+</div>
-                    <div className="text-xs text-blue-100">Réparations</div>
-                  </div>
+                    <Mail className="h-4 w-4 mr-2 text-primary" />
+                    contact@topreparateurs.fr
+                  </button>
+                  <button 
+                    onClick={handleWhatsApp}
+                    className="flex items-center text-gray-300 hover:text-green-400 transition-colors text-sm"
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2 text-green-400" />
+                    07 45 06 21 62 (WhatsApp)
+                  </button>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Section liens SEO géographiques */}
