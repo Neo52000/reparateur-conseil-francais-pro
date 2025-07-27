@@ -15,9 +15,9 @@ import {
   Package 
 } from 'lucide-react';
 import { useRepairManagement, type DeviceCondition } from '@/hooks/useRepairManagement';
-import { useCatalog } from '@/hooks/useCatalog';
 import { useToast } from '@/hooks/use-toast';
 import { generateRepairTicket } from '@/components/pos/RepairTicketGenerator';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DeviceIntakeModalProps {
   isOpen: boolean;
@@ -59,14 +59,41 @@ const DeviceIntakeModal: React.FC<DeviceIntakeModalProps> = ({
   onClose,
 }) => {
   const { createRepairOrder, deviceConditions } = useRepairManagement();
-  const { deviceTypes, brands, deviceModels } = useCatalog();
   const { toast } = useToast();
+  
+  // Local state for catalog data
+  const [deviceTypes, setDeviceTypes] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
+  const [deviceModels, setDeviceModels] = useState<any[]>([]);
   
   const [formData, setFormData] = useState<Partial<DeviceIntakeForm>>({
     accessories: [],
   });
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load catalog data
+  useEffect(() => {
+    const loadCatalogData = async () => {
+      try {
+        const [typesRes, brandsRes, modelsRes] = await Promise.all([
+          supabase.from('device_types').select('*').order('name'),
+          supabase.from('brands').select('*').order('name'),
+          supabase.from('device_models').select('*').order('model_name')
+        ]);
+
+        if (typesRes.data) setDeviceTypes(typesRes.data);
+        if (brandsRes.data) setBrands(brandsRes.data);
+        if (modelsRes.data) setDeviceModels(modelsRes.data);
+      } catch (error) {
+        console.error('Error loading catalog data:', error);
+      }
+    };
+
+    if (isOpen) {
+      loadCatalogData();
+    }
+  }, [isOpen]);
 
   const resetForm = () => {
     setFormData({ accessories: [] });

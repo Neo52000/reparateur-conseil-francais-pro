@@ -133,6 +133,8 @@ export const useRepairManagement = () => {
     if (!user?.id) return null;
 
     try {
+      console.log('Creating repair device with data:', deviceData);
+      
       // First create the device
       const { data: device, error: deviceError } = await supabase
         .from('repair_devices')
@@ -140,11 +142,17 @@ export const useRepairManagement = () => {
           ...deviceData,
           repairer_id: user.id,
           customer_name: deviceData.customer_name || '',
+          intake_date: new Date().toISOString(),
+          photos: deviceData.photos || [],
+          accessories: deviceData.accessories || [],
         })
         .select()
         .single();
 
-      if (deviceError) throw deviceError;
+      if (deviceError) {
+        console.error('Device creation error:', deviceError);
+        throw deviceError;
+      }
 
       // Then create the repair order  
       const { data: order, error: orderError } = await supabase
