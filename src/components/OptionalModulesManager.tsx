@@ -1,18 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useOptionalModules } from '@/hooks/useOptionalModules';
-import { Euro, Brain, TrendingUp, Megaphone, Smartphone, ShoppingCart } from 'lucide-react';
+import { Euro, Brain, TrendingUp, Megaphone, Smartphone, ShoppingCart, Eye, Settings } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const OptionalModulesManager: React.FC = () => {
+  const { toast } = useToast();
+  const [selectedModule, setSelectedModule] = useState<any>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [editPricing, setEditPricing] = useState<{monthly: number, yearly: number} | null>(null);
+  
   const {
     modules,
     loading,
     saving,
     toggleModule,
+    updateModulePricing,
     saveConfigurations
   } = useOptionalModules();
 
@@ -112,6 +123,32 @@ const OptionalModulesManager: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedModule(module);
+                            setIsDetailDialogOpen(true);
+                          }}
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          Voir détails
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedModule(module);
+                            setEditPricing({
+                              monthly: module.pricing.monthly,
+                              yearly: module.pricing.yearly
+                            });
+                            setIsConfigDialogOpen(true);
+                          }}
+                        >
+                          <Settings className="w-4 h-4 mr-1" />
+                          Configurer
+                        </Button>
                         <Switch
                           checked={module.isActive}
                           onCheckedChange={(checked) => toggleModule(module.id, checked)}
@@ -181,6 +218,131 @@ const OptionalModulesManager: React.FC = () => {
             {saving ? "Enregistrement en cours..." : "Enregistrer les modifications"}
           </Button>
         </div>
+
+        {/* Dialog pour voir les détails */}
+        <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {selectedModule && getIcon(selectedModule.icon)}
+                Détails du module : {selectedModule?.name}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedModule && (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Description</h4>
+                  <p className="text-muted-foreground">{selectedModule.description}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Fonctionnalités principales</h4>
+                  <ul className="space-y-1">
+                    {selectedModule.features.map((feature: string, index: number) => (
+                      <li key={index} className="text-sm text-muted-foreground">• {feature}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Catégorie</h4>
+                  <Badge variant="outline">{selectedModule.category}</Badge>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Tarification</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 bg-muted rounded-lg">
+                      <p className="text-lg font-semibold">{selectedModule.pricing.monthly}€</p>
+                      <p className="text-sm text-muted-foreground">par mois</p>
+                    </div>
+                    <div className="text-center p-3 bg-muted rounded-lg">
+                      <p className="text-lg font-semibold">{selectedModule.pricing.yearly}€</p>
+                      <p className="text-sm text-muted-foreground">par an</p>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Plans compatibles</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedModule.availableForPlans.map((plan: string) => (
+                      <Badge key={plan} variant="secondary">
+                        {plan.charAt(0).toUpperCase() + plan.slice(1)}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog pour configurer le module */}
+        <Dialog open={isConfigDialogOpen} onOpenChange={setIsConfigDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {selectedModule && getIcon(selectedModule.icon)}
+                Configurer : {selectedModule?.name}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedModule && editPricing && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="monthly-price">Prix mensuel (€)</Label>
+                    <Input
+                      id="monthly-price"
+                      type="number"
+                      value={editPricing.monthly}
+                      onChange={(e) => setEditPricing(prev => ({
+                        ...prev!,
+                        monthly: parseFloat(e.target.value) || 0
+                      }))}
+                      step="0.10"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="yearly-price">Prix annuel (€)</Label>
+                    <Input
+                      id="yearly-price"
+                      type="number"
+                      value={editPricing.yearly}
+                      onChange={(e) => setEditPricing(prev => ({
+                        ...prev!,
+                        yearly: parseFloat(e.target.value) || 0
+                      }))}
+                      step="1.00"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsConfigDialogOpen(false);
+                      setEditPricing(null);
+                    }}
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (editPricing) {
+                        updateModulePricing(selectedModule.id, editPricing);
+                        toast({
+                          title: "Tarifs mis à jour",
+                          description: `Les tarifs du module ${selectedModule.name} ont été mis à jour.`,
+                        });
+                        setIsConfigDialogOpen(false);
+                        setEditPricing(null);
+                      }
+                    }}
+                  >
+                    Sauvegarder
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

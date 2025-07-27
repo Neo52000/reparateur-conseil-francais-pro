@@ -138,8 +138,8 @@ export const useFeatureManagement = () => {
         // Configurations mockées en mode démo
         const mockConfigs: ModuleConfiguration[] = [
           {
-            id: 'pos-system',
-            moduleName: 'Système POS',
+            id: 'feature-pos-module',
+            moduleName: 'Module POS Avancé',
             moduleType: 'pos',
             isEnabled: true,
             configuration: {
@@ -150,11 +150,11 @@ export const useFeatureManagement = () => {
             },
             dependencies: ['payment-gateway', 'inventory-system'],
             version: '2.1.0',
-            documentation: 'Système de point de vente complet avec gestion des stocks et rapports'
+            documentation: 'Module de point de vente avancé avec gestion des stocks et rapports'
           },
           {
-            id: 'ecommerce-platform',
-            moduleName: 'Plateforme E-commerce',
+            id: 'feature-ecommerce-module',
+            moduleName: 'Module E-commerce Avancé',
             moduleType: 'ecommerce',
             isEnabled: true,
             configuration: {
@@ -165,7 +165,35 @@ export const useFeatureManagement = () => {
             },
             dependencies: ['payment-system', 'shipping-calculator'],
             version: '1.8.3',
-            documentation: 'Plateforme e-commerce complète pour les réparateurs'
+            documentation: 'Module e-commerce avancé pour les réparateurs'
+          },
+          {
+            id: 'feature-buyback-module',
+            moduleName: 'Module Rachat',
+            moduleType: 'buyback',
+            isEnabled: true,
+            configuration: {
+              enableAutomaticPricing: true,
+              enableConditionCheck: true,
+              maxBuybackValue: 2000
+            },
+            dependencies: ['pricing-engine', 'condition-checker'],
+            version: '1.0.2',
+            documentation: 'Module de rachat automatisé de smartphones'
+          },
+          {
+            id: 'feature-ai-diagnostic-module',
+            moduleName: 'Module IA Diagnostic',
+            moduleType: 'ai-diagnostic',
+            isEnabled: true,
+            configuration: {
+              enableAutoDetection: true,
+              enableImageAnalysis: true,
+              confidenceThreshold: 0.85
+            },
+            dependencies: ['ai-engine', 'image-processor'],
+            version: '1.2.1',
+            documentation: 'Diagnostic automatique par intelligence artificielle'
           }
         ];
         setModuleConfigs(mockConfigs);
@@ -178,8 +206,8 @@ export const useFeatureManagement = () => {
         if (error) throw error;
 
         const realConfigs: ModuleConfiguration[] = pricing.map(module => ({
-          id: `${module.module_type}-system`,
-          moduleName: module.module_type === 'pos' ? 'Système POS' : 'Plateforme E-commerce',
+          id: `feature-${module.module_type}-module`,
+          moduleName: module.module_type === 'pos' ? 'Module POS Avancé' : 'Module E-commerce Avancé',
           moduleType: module.module_type,
           isEnabled: true,
           configuration: module.module_type === 'pos' ? {

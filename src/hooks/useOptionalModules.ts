@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { OPTIONAL_MODULES, OptionalModule } from '@/types/optionalModules';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export interface ModuleConfiguration {
   id: string;
@@ -24,16 +24,22 @@ export const useOptionalModules = () => {
     try {
       setLoading(true);
       
+      console.log('Loading configurations for', OPTIONAL_MODULES.length, 'modules');
+      
       // Toujours commencer avec tous les modules par défaut
-      setModules(OPTIONAL_MODULES);
+      const initialModules = OPTIONAL_MODULES.map(module => ({
+        ...module,
+        isActive: false // Par défaut inactif
+      }));
       
       const savedConfigs = localStorage.getItem('optionalModulesConfig');
       
       if (savedConfigs) {
         const configs = JSON.parse(savedConfigs);
+        console.log('Found saved configs:', configs);
         
         // Mettre à jour les modules avec les configurations sauvegardées
-        const updatedModules = OPTIONAL_MODULES.map(module => {
+        const updatedModules = initialModules.map(module => {
           const config = configs.find((c: any) => c.module_id === module.id);
           if (config) {
             return {
@@ -49,7 +55,11 @@ export const useOptionalModules = () => {
           return module;
         });
         
+        console.log('Updated modules:', updatedModules);
         setModules(updatedModules);
+      } else {
+        console.log('No saved configs, using initial modules');
+        setModules(initialModules);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des configurations:', error);
