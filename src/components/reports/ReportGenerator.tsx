@@ -106,29 +106,28 @@ export const ReportGenerator: React.FC = () => {
 
     try {
       const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
+        scale: 1.5, // Réduit pour tenir sur une page
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
+        width: reportRef.current.scrollWidth,
+        height: reportRef.current.scrollHeight
       });
 
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       
-      const imgWidth = 210;
-      const pageHeight = 295;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
+      const imgWidth = 210; // A4 width
+      const imgHeight = 297; // A4 height
+      const canvasRatio = canvas.height / canvas.width;
+      const scaledHeight = imgWidth * canvasRatio;
       
-      let position = 0;
-      
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+      // Forcer le contenu à tenir sur une seule page
+      if (scaledHeight > imgHeight) {
+        // Réduire la hauteur pour tenir sur une page
+        const finalHeight = imgHeight - 20; // Marge de 20mm
+        pdf.addImage(imgData, 'PNG', 0, 10, imgWidth, finalHeight);
+      } else {
+        pdf.addImage(imgData, 'PNG', 0, 10, imgWidth, scaledHeight);
       }
       
       const fileName = `rapport-${reportType}-${format(new Date(), 'yyyy-MM-dd')}.pdf`;

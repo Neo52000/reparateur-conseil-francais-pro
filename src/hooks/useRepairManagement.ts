@@ -363,6 +363,8 @@ export const useRepairManagement = () => {
         fetchRepairOrders(),
         fetchDeviceConditions(),
       ]).finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
   }, [user?.id]);
 
