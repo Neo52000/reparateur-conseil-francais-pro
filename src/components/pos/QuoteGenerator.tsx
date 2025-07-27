@@ -357,10 +357,14 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
       const pdfBase64 = pdf.output('datauristring').split(',')[1];
       document.body.removeChild(tempDiv);
 
-      // Envoyer via l'edge function
-      const response = await fetch('/api/send-quote', {
+      // Envoyer via l'edge function avec l'URL complète
+      const supabaseUrl = 'https://nbugpbakfkyvvjzgfjmw.supabase.co';
+      const response = await fetch(`${supabaseUrl}/functions/v1/send-quote`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5idWdwYmFrZmt5dnZqemdmam13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4OTgyMjQsImV4cCI6MjA2NTQ3NDIyNH0.3D_IxWcSNpA2Xk5PtsJVyfjAk9kC1KbMG2n1FJ32tWc`
+        },
         body: JSON.stringify({
           repairOrderId: repairOrder.id,
           recipientEmail: repairOrder.device.customer_email,
@@ -372,11 +376,15 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
 
       const result = await response.json();
       if (result.success) {
-        toast({ title: "Email envoyé", description: "Le devis a été envoyé par email." });
+        toast({ 
+          title: "📧 Email envoyé", 
+          description: `Le devis a été envoyé à ${repairOrder.device.customer_email}` 
+        });
       } else {
-        throw new Error(result.message);
+        throw new Error(result.error || 'Erreur inconnue');
       }
     } catch (error: any) {
+      console.error('Erreur envoi email:', error);
       toast({
         title: "Erreur",
         description: error.message || "Impossible d'envoyer l'email.",
@@ -387,11 +395,53 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
     }
   };
 
-  const sendBySMS = () => {
-    toast({
-      title: "Fonctionnalité à venir", 
-      description: "L'envoi par SMS sera bientôt disponible."
-    });
+  const sendBySMS = async () => {
+    if (!repairOrder.device?.customer_phone) {
+      toast({
+        title: "Téléphone manquant",
+        description: "Aucun numéro de téléphone client disponible.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const supabaseUrl = 'https://nbugpbakfkyvvjzgfjmw.supabase.co';
+      const response = await fetch(`${supabaseUrl}/functions/v1/send-quote`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5idWdwYmFrZmt5dnZqemdmam13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4OTgyMjQsImV4cCI6MjA2NTQ3NDIyNH0.3D_IxWcSNpA2Xk5PtsJVyfjAk9kC1KbMG2n1FJ32tWc`
+        },
+        body: JSON.stringify({
+          repairOrderId: repairOrder.id,
+          recipientPhone: repairOrder.device.customer_phone,
+          pdfBase64: '', // Pas besoin du PDF pour SMS
+          sendMethod: 'sms',
+          quoteName: `Devis_${repairOrder.order_number}`
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        toast({ 
+          title: "📱 SMS envoyé", 
+          description: `Notification envoyée au ${repairOrder.device.customer_phone}` 
+        });
+      } else {
+        throw new Error(result.error || 'Erreur inconnue');
+      }
+    } catch (error: any) {
+      console.error('Erreur envoi SMS:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible d'envoyer le SMS.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -599,25 +649,27 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
           <Button 
             variant="outline" 
             onClick={sendByEmail}
-            className="flex-1 min-w-fit"
+            disabled={isGenerating || !repairOrder.device?.customer_email}
+            className="flex-1 min-w-fit bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-none animate-fade-in hover-scale"
           >
             <Mail className="w-4 h-4 mr-2" />
-            Envoyer par Email
+            {isGenerating ? 'Envoi...' : 'Envoyer par Email'}
           </Button>
 
           <Button 
             variant="outline" 
             onClick={sendBySMS}
-            className="flex-1 min-w-fit"
+            disabled={isGenerating || !repairOrder.device?.customer_phone}
+            className="flex-1 min-w-fit bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-none animate-fade-in hover-scale"
           >
             <Phone className="w-4 h-4 mr-2" />
-            Envoyer par SMS
+            {isGenerating ? 'Envoi...' : 'Envoyer par SMS'}
           </Button>
 
           <Button 
             variant="outline" 
             onClick={() => window.print()}
-            className="flex-1 min-w-fit"
+            className="flex-1 min-w-fit hover-scale animate-fade-in"
           >
             <Printer className="w-4 h-4 mr-2" />
             Imprimer

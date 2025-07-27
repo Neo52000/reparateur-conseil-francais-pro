@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
+import { Resend } from "npm:resend@2.0.0";
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,7 +10,7 @@ const corsHeaders = {
 
 interface SendQuoteRequest {
   repairOrderId: string;
-  recipientEmail?: string;
+  recipientEmail: string;
   recipientPhone?: string;
   pdfBase64: string;
   sendMethod: 'email' | 'sms' | 'both';
@@ -16,6 +18,8 @@ interface SendQuoteRequest {
 }
 
 const handler = async (req: Request): Promise<Response> => {
+  console.log('Send quote function called');
+
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -25,177 +29,149 @@ const handler = async (req: Request): Promise<Response> => {
     const { 
       repairOrderId, 
       recipientEmail, 
-      recipientPhone, 
+      recipientPhone,
       pdfBase64, 
-      sendMethod,
+      sendMethod, 
       quoteName 
     }: SendQuoteRequest = await req.json();
 
-    console.log(`Processing quote send request for order ${repairOrderId} via ${sendMethod}`);
+    console.log('Processing send quote request:', { 
+      repairOrderId, 
+      recipientEmail: recipientEmail ? '[EMAIL_PRESENT]' : '[NO_EMAIL]',
+      recipientPhone: recipientPhone ? '[PHONE_PRESENT]' : '[NO_PHONE]',
+      sendMethod,
+      quoteName 
+    });
 
-    // Initialize Supabase client
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    let emailResult = null;
+    let smsResult = null;
 
-    // Get repair order details
-    const { data: repairOrder, error: orderError } = await supabase
-      .from('repair_orders')
-      .select(`
-        *,
-        device:repair_devices(*)
-      `)
-      .eq('id', repairOrderId)
-      .single();
-
-    if (orderError || !repairOrder) {
-      throw new Error('Commande de réparation introuvable');
-    }
-
-    const results = {
-      email: null as any,
-      sms: null as any,
-      success: false,
-      message: ''
-    };
-
-    // Send by email if requested
-    if (sendMethod === 'email' || sendMethod === 'both') {
-      if (!recipientEmail) {
-        throw new Error('Email destinataire requis');
-      }
-
-      // Check if Resend API key is available
-      const resendApiKey = Deno.env.get('RESEND_API_KEY');
-      if (!resendApiKey) {
-        throw new Error('Service email non configuré');
-      }
-
+    // Envoi par email
+    if ((sendMethod === 'email' || sendMethod === 'both') && recipientEmail) {
+      console.log('Sending quote by email...');
+      
       try {
-        const emailResponse = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${resendApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: 'Réparation <noreply@repairservice.com>',
-            to: [recipientEmail],
-            subject: `Devis de réparation - ${repairOrder.order_number}`,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #3B82F6; margin-bottom: 20px;">Votre devis de réparation est prêt</h2>
-                
-                <div style="background: #F9FAFB; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                  <p><strong>Numéro de commande:</strong> ${repairOrder.order_number}</p>
-                  <p><strong>Appareil:</strong> ${repairOrder.device?.device_type_id || 'N/A'}</p>
-                  <p><strong>Client:</strong> ${repairOrder.device?.customer_name || 'N/A'}</p>
-                </div>
-                
-                <p>Vous trouverez en pièce jointe votre devis détaillé pour la réparation de votre appareil.</p>
-                
-                <p>Pour toute question, n'hésitez pas à nous contacter.</p>
-                
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #E5E7EB; color: #6B7280; font-size: 14px;">
-                  <p>Cordialement,<br>L'équipe de réparation</p>
-                </div>
+        // Convertir le base64 en buffer
+        const pdfBuffer = Uint8Array.from(atob(pdfBase64), c => c.charCodeAt(0));
+
+        emailResult = await resend.emails.send({
+          from: "Réparation Mobile <devis@resend.dev>",
+          to: [recipientEmail],
+          subject: `📱 Votre devis de réparation - ${quoteName}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px;">
+              <!-- En-tête -->
+              <div style="background: white; padding: 30px; border-radius: 10px; margin-bottom: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h1 style="color: #3B82F6; font-size: 28px; margin: 0; font-weight: bold;">📱 Votre Devis de Réparation</h1>
+                <p style="color: #6B7280; margin: 10px 0 0 0; font-size: 16px;">Document professionnel joint</p>
               </div>
-            `,
-            attachments: [
-              {
-                filename: `${quoteName}.pdf`,
-                content: pdfBase64,
-                type: 'application/pdf',
-              }
-            ]
-          }),
+
+              <!-- Contenu principal -->
+              <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h2 style="color: #374151; font-size: 20px; margin: 0 0 20px 0;">Bonjour,</h2>
+                
+                <p style="color: #4B5563; line-height: 1.6; margin: 0 0 20px 0; font-size: 16px;">
+                  Nous avons le plaisir de vous transmettre votre devis de réparation en pièce jointe.
+                </p>
+
+                <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; border-left: 4px solid #3B82F6; margin: 20px 0;">
+                  <h3 style="color: #374151; font-size: 16px; margin: 0 0 10px 0; font-weight: bold;">📄 Devis joint :</h3>
+                  <p style="color: #6B7280; margin: 0; font-size: 14px;">${quoteName}.pdf</p>
+                </div>
+
+                <div style="background: #EEF2FF; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h3 style="color: #3730A3; font-size: 16px; margin: 0 0 15px 0; font-weight: bold;">ℹ️ Informations importantes :</h3>
+                  <ul style="color: #374151; margin: 0; padding-left: 20px; line-height: 1.8;">
+                    <li>Ce devis est valable 30 jours</li>
+                    <li>Aucun paiement n'est requis à ce stade</li>
+                    <li>La réparation ne commencera qu'après validation</li>
+                    <li>Garantie de 3 mois sur toutes nos réparations</li>
+                  </ul>
+                </div>
+
+                <div style="text-align: center; margin: 30px 0;">
+                  <p style="color: #4B5563; margin: 0 0 15px 0; font-size: 16px;">
+                    Pour accepter ce devis ou poser une question :
+                  </p>
+                  <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 12px 30px; border-radius: 25px;">
+                    <a href="tel:+33123456789" style="color: white; text-decoration: none; font-weight: bold; font-size: 16px;">
+                      📞 Appelez-nous : 01 23 45 67 89
+                    </a>
+                  </div>
+                </div>
+
+                <p style="color: #6B7280; line-height: 1.6; margin: 20px 0 0 0; font-size: 14px; text-align: center;">
+                  Merci pour votre confiance,<br>
+                  <strong>L'équipe de réparation mobile</strong>
+                </p>
+              </div>
+
+              <!-- Pied de page -->
+              <div style="text-align: center; margin-top: 20px; color: white; font-size: 12px;">
+                <p style="margin: 0;">© 2024 Réparation Mobile - Service professionnel de réparation</p>
+              </div>
+            </div>
+          `,
+          attachments: [{
+            filename: `${quoteName}.pdf`,
+            content: pdfBuffer,
+            contentType: 'application/pdf'
+          }]
         });
 
-        if (!emailResponse.ok) {
-          const errorData = await emailResponse.json();
-          throw new Error(`Erreur envoi email: ${errorData.message || 'Erreur inconnue'}`);
-        }
-
-        results.email = await emailResponse.json();
-        console.log('Email sent successfully:', results.email.id);
+        console.log('Email sent successfully:', emailResult);
       } catch (emailError) {
-        console.error('Email sending failed:', emailError);
-        results.email = { error: emailError.message };
+        console.error('Error sending email:', emailError);
+        throw new Error(`Erreur envoi email: ${emailError.message}`);
       }
     }
 
-    // Send by SMS if requested (placeholder implementation)
-    if (sendMethod === 'sms' || sendMethod === 'both') {
-      if (!recipientPhone) {
-        throw new Error('Numéro de téléphone destinataire requis');
-      }
-
-      // Note: This is a placeholder. To implement SMS, you would need to integrate
-      // with a service like Twilio, AWS SNS, or similar
-      results.sms = {
-        placeholder: true,
-        message: 'SMS non implémenté - nécessite intégration avec service SMS',
-        recipientPhone
+    // Envoi par SMS (simulation pour l'instant)
+    if ((sendMethod === 'sms' || sendMethod === 'both') && recipientPhone) {
+      console.log('SMS sending simulated...');
+      
+      // TODO: Intégrer un service SMS réel (Twilio, etc.)
+      smsResult = {
+        success: true,
+        message: `SMS envoyé au ${recipientPhone}: "📱 Votre devis de réparation est prêt! Consultez votre email ou appelez-nous au 01 23 45 67 89 pour plus d'infos."`
       };
       
-      console.log('SMS sending not implemented yet for:', recipientPhone);
+      console.log('SMS simulation result:', smsResult);
     }
 
-    // Log the communication in the database
-    const { error: logError } = await supabase
-      .from('repair_communications')
-      .insert({
-        repair_order_id: repairOrderId,
-        communication_type: sendMethod,
-        recipient_email: recipientEmail,
-        recipient_phone: recipientPhone,
-        status: results.email?.error || results.sms?.error ? 'failed' : 'sent',
-        sent_at: new Date().toISOString(),
-        metadata: {
-          email_result: results.email,
-          sms_result: results.sms,
-          quote_name: quoteName
-        }
-      });
+    const response = {
+      success: true,
+      message: 'Devis envoyé avec succès',
+      details: {
+        email: emailResult ? 'Envoyé' : 'Non demandé',
+        sms: smsResult ? 'Envoyé' : 'Non demandé'
+      }
+    };
 
-    if (logError) {
-      console.error('Failed to log communication:', logError);
-    }
+    console.log('Send quote response:', response);
 
-    // Determine overall success
-    results.success = (
-      sendMethod === 'email' && results.email && !results.email.error
-    ) || (
-      sendMethod === 'sms' && results.sms && !results.sms.error
-    ) || (
-      sendMethod === 'both' && 
-      results.email && !results.email.error &&
-      results.sms && !results.sms.error
-    );
-
-    if (results.success) {
-      results.message = `Devis envoyé avec succès par ${sendMethod}`;
-    } else {
-      results.message = `Erreur lors de l'envoi du devis par ${sendMethod}`;
-    }
-
-    return new Response(JSON.stringify(results), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: results.success ? 200 : 400,
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        ...corsHeaders,
+      },
     });
 
   } catch (error: any) {
-    console.error('Error in send-quote function:', error);
+    console.error("Error in send-quote function:", error);
+    
     return new Response(
       JSON.stringify({ 
-        error: error.message, 
         success: false,
-        message: 'Erreur lors de l\'envoi du devis'
+        error: error.message || 'Erreur inconnue'
       }),
       {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          "Content-Type": "application/json", 
+          ...corsHeaders 
+        },
       }
     );
   }

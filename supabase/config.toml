@@ -51,3 +51,6 @@ verify_jwt = false
 
 [functions.csv-intelligent-import]
 verify_jwt = false
+
+[functions.send-quote]
+verify_jwt = false
