@@ -30,6 +30,7 @@ import ComprehensiveFeaturesManager from '@/components/admin/ComprehensiveFeatur
 import { Card, CardContent } from '@/components/ui/card';
 import { Monitor } from 'lucide-react';
 import { CheckmateMonitoring } from '@/components/admin/monitoring/CheckmateMonitoring';
+import StaticPagesManager from '@/components/admin/StaticPagesManager';
 
 const AdminPage = () => {
   const { user, profile, isAdmin, loading } = useAuth();
@@ -109,6 +110,7 @@ const AdminPage = () => {
       case 'documentation': return 'Gestion de la documentation technique et utilisateur';
       case 'features-manager': return 'Gestionnaire centralisé de toutes les fonctionnalités et modules';
       case 'configuration': return 'Configuration générale de l\'application';
+      case 'static-pages': return 'Gestion des pages statiques (mentions légales, CGU, etc.)';
       default: return 'Administration de RepairHub';
     }
   };
@@ -203,6 +205,8 @@ const AdminPage = () => {
         return <ComprehensiveFeaturesManager />;
       case 'configuration':
         return <AdminConfigurationPage />;
+      case 'static-pages':
+        return <StaticPagesManager />;
       default:
         return (
           <AdminDashboardContent 

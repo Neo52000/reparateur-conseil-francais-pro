@@ -57,6 +57,7 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=monitoring', icon: Gauge, label: 'Monitoring', tab: 'monitoring', category: 'Technical' },
     { path: '/admin?tab=chatbot', icon: Bot, label: 'Chatbot IA', tab: 'chatbot', category: 'Technical' },
     { path: '/admin?tab=documentation', icon: BookOpen, label: 'Documentation', tab: 'documentation', category: 'Technical' },
+    { path: '/admin?tab=static-pages', icon: FileText, label: 'Pages Statiques', tab: 'static-pages', category: 'Technical' },
     
     { path: '/admin?tab=features-manager', icon: Settings, label: 'Gestion Fonctionnalités', tab: 'features-manager', category: 'Technical' },
     { path: '/admin?tab=pos-admin', icon: CreditCard, label: 'POS Admin', tab: 'pos-admin', category: 'Technical' },

@@ -43,7 +43,7 @@ const StaticPagesManager = () => {
 
   const loadPages = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error }: { data: any[], error: any } = await supabase
         .from('static_pages')
         .select('*')
         .order('created_at', { ascending: false });

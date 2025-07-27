@@ -26,19 +26,19 @@ const StaticPage = () => {
 
     const fetchPageData = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error }: { data: any, error: any } = await supabase
           .from('static_pages')
           .select('*')
           .eq('slug', slug)
           .eq('is_published', true)
-          .single();
+          .maybeSingle();
 
         if (error) {
-          if (error.code === 'PGRST116') {
-            setError('Page non trouvée');
-          } else {
-            throw error;
-          }
+          throw error;
+        }
+
+        if (!data) {
+          setError('Page non trouvée');
         } else {
           setPageData(data);
         }
