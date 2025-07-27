@@ -1,5 +1,6 @@
 /**
- * Service de génération PDF pour la documentation
+ * Service de génération PDF amélioré pour la documentation
+ * Conversion markdown optimisée et styles PDF professionnels
  */
 
 import jsPDF from 'jspdf';
@@ -256,12 +257,31 @@ export class DocumentationPDFService {
         margin: 8px 0;
       }
 
-      .pdf-content code {
+      .pdf-content .inline-code {
         background: #f1f5f9;
         padding: 2px 6px;
         border-radius: 3px;
         font-family: 'Courier New', monospace;
         font-size: 13px;
+        color: #e11d48;
+        font-weight: 500;
+      }
+
+      .pdf-content .code-block {
+        background: #1e293b;
+        border-radius: 8px;
+        margin: 20px 0;
+        overflow: hidden;
+      }
+
+      .pdf-content .code-block pre {
+        margin: 0;
+        padding: 20px;
+        color: #e2e8f0;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.5;
+        overflow-x: auto;
       }
 
       .pdf-content blockquote {
@@ -270,6 +290,44 @@ export class DocumentationPDFService {
         padding: 16px 20px;
         margin: 20px 0;
         font-style: italic;
+        border-radius: 4px;
+      }
+
+      .pdf-content .pdf-link {
+        color: #2563eb;
+        text-decoration: underline;
+        font-weight: 500;
+      }
+
+      .pdf-content .pdf-list {
+        margin: 16px 0;
+        padding-left: 24px;
+      }
+
+      .pdf-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 13px;
+      }
+
+      .pdf-content th, .pdf-content td {
+        border: 1px solid #e2e8f0;
+        padding: 12px;
+        text-align: left;
+      }
+
+      .pdf-content th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: #1e293b;
+      }
+
+      .pdf-content h4 {
+        font-size: 16px;
+        font-weight: 500;
+        color: #64748b;
+        margin: 18px 0 10px 0;
       }
 
       .pdf-footer {
@@ -296,24 +354,79 @@ export class DocumentationPDFService {
   }
 
   /**
-   * Conversion basique Markdown vers HTML
+   * Conversion Markdown vers HTML améliorée
    */
   private static convertMarkdownToHTML(markdown: string): string {
-    return markdown
-      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-      .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-      .replace(/\*(.*)\*/gim, '<em>$1</em>')
-      .replace(/!\[([^\]]*)\]\(([^\)]*)\)/gim, '<img alt="$1" src="$2" style="max-width: 100%; height: auto;" />')
-      .replace(/\[([^\]]*)\]\(([^\)]*)\)/gim, '<a href="$2">$1</a>')
-      .replace(/\n/gim, '<br>')
-      .replace(/^- (.*$)/gim, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>');
+    let html = markdown;
+    
+    // Traitement des blocs de code
+    html = html.replace(/```(\w+)?\n([\s\S]*?)```/gim, (match, lang, code) => {
+      return `<div class="code-block"><pre><code class="language-${lang || 'text'}">${code.trim()}</code></pre></div>`;
+    });
+    
+    // Code inline
+    html = html.replace(/`([^`]+)`/gim, '<code class="inline-code">$1</code>');
+    
+    // Titres avec niveaux
+    html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
+    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+    
+    // Citations
+    html = html.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
+    
+    // Gras et italique
+    html = html.replace(/\*\*\*(.*?)\*\*\*/gim, '<strong><em>$1</em></strong>');
+    html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+    html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
+    
+    // Images avec styles
+    html = html.replace(/!\[([^\]]*)\]\(([^\)]*)\)/gim, 
+      '<img alt="$1" src="$2" style="max-width: 100%; height: auto; margin: 16px 0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />');
+    
+    // Liens
+    html = html.replace(/\[([^\]]*)\]\(([^\)]*)\)/gim, '<a href="$2" class="pdf-link">$1</a>');
+    
+    // Listes numérotées
+    html = html.replace(/^\d+\.\s+(.*$)/gim, '<oli>$1</oli>');
+    html = html.replace(/(<oli>.*<\/oli>)/gims, match => {
+      return '<ol>' + match.replace(/<\/?oli>/g, match.includes('</oli>') ? '</li>' : '<li>') + '</ol>';
+    });
+    
+    // Listes à puces avec sous-niveaux
+    html = html.replace(/^(\s*)[-*+]\s+(.*$)/gim, (match, indent, content) => {
+      const level = Math.floor((indent || '').length / 2) + 1;
+      return `<li data-level="${level}">${content}</li>`;
+    });
+    
+    // Grouper les listes
+    html = html.replace(/(<li[^>]*>.*<\/li>)/gims, match => {
+      return '<ul class="pdf-list">' + match + '</ul>';
+    });
+    
+    // Tables (basique)
+    html = html.replace(/\|(.+)\|/gim, (match, content) => {
+      const cells = content.split('|').map(cell => cell.trim()).filter(cell => cell);
+      const isHeader = match.includes('---');
+      if (isHeader) return '';
+      const cellTag = cells.length > 0 ? 'td' : 'th';
+      return `<tr>${cells.map(cell => `<${cellTag}>${cell}</${cellTag}>`).join('')}</tr>`;
+    });
+    
+    // Remplacer les sauts de ligne par des paragraphes
+    html = html.split('\n\n').map(paragraph => {
+      if (paragraph.trim() && !paragraph.match(/^<[h1-6]|<ul|<ol|<blockquote|<div|<table/)) {
+        return `<p>${paragraph.replace(/\n/g, '<br>')}</p>`;
+      }
+      return paragraph;
+    }).join('\n');
+    
+    return html;
   }
 
   /**
-   * Génère les métadonnées par défaut
+   * Génère les métadonnées par défaut avec contenu enrichi
    */
   static generateMetadata(docType: 'prd' | 'user-guide' | 'technical'): DocumentMetadata {
     const now = new Date().toLocaleDateString('fr-FR');
@@ -322,26 +435,26 @@ export class DocumentationPDFService {
       case 'prd':
         return {
           title: 'Product Requirements Document',
-          subtitle: 'Spécifications complètes du produit ReparMobile',
+          subtitle: 'Cahier des charges complet - Plateforme ReparMobile de mise en relation réparateurs/clients',
           filename: `PRD_ReparMobile_${now.replace(/\//g, '-')}.pdf`,
           lastUpdated: now,
-          version: '1.0.0'
+          version: '2.1.0'
         };
       case 'user-guide':
         return {
-          title: 'Guide Utilisateur',
-          subtitle: 'Manuel d\'utilisation pour tous les rôles',
-          filename: `Guide_Utilisateur_${now.replace(/\//g, '-')}.pdf`,
+          title: 'Guide Utilisateur Complet',
+          subtitle: 'Manuel d\'utilisation multi-rôles : Client, Réparateur, Administrateur',
+          filename: `Guide_Utilisateur_ReparMobile_${now.replace(/\//g, '-')}.pdf`,
           lastUpdated: now,
-          version: '1.0.0'
+          version: '2.1.0'
         };
       case 'technical':
         return {
           title: 'Documentation Technique',
-          subtitle: 'Architecture et guide développeur',
-          filename: `Doc_Technique_${now.replace(/\//g, '-')}.pdf`,
+          subtitle: 'Architecture système, API, Base de données & Guide développeur',
+          filename: `Documentation_Technique_${now.replace(/\//g, '-')}.pdf`,
           lastUpdated: now,
-          version: '1.0.0'
+          version: '2.1.0'
         };
       default:
         throw new Error('Type de document non supporté');

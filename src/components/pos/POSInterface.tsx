@@ -13,7 +13,7 @@ import StockAlertsManager from './advanced/StockAlertsManager';
 import MobileOptimization from './advanced/MobileOptimization';
 import IntegrationsManager from './advanced/IntegrationsManager';
 import AdvancedBusinessModules from './advanced/AdvancedBusinessModules';
-import RepairTrackingManager from './modules/RepairTrackingManager';
+import RepairManagement from './RepairManagement';
 import BuybackManager from './modules/BuybackManager';
 import { 
   CreditCard, 
@@ -216,7 +216,7 @@ const POSInterface: React.FC = () => {
 
             {/* Onglet Réparations */}
             <TabsContent value="repairs" className="mt-6">
-              <RepairTrackingManager />
+              <RepairManagement />
             </TabsContent>
 
             {/* Onglet Rachat */}
