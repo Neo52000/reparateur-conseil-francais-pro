@@ -211,7 +211,7 @@ const BuybackManager: React.FC = () => {
             </div>
           </div>
           <Button 
-            onClick={() => window.open('/settings', '_blank')} 
+            onClick={() => window.open('/paramètres', '_blank')} 
             className="flex items-center gap-2"
           >
             <Settings className="h-4 w-4" />
