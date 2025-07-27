@@ -5717,7 +5717,7 @@ export type Database = {
           final_amount: number | null
           id: string
           internal_notes: string | null
-          order_number: string
+          order_number: string | null
           priority: number | null
           quote_accepted_at: string | null
           quote_amount: number | null
@@ -5739,7 +5739,7 @@ export type Database = {
           final_amount?: number | null
           id?: string
           internal_notes?: string | null
-          order_number: string
+          order_number?: string | null
           priority?: number | null
           quote_accepted_at?: string | null
           quote_amount?: number | null
@@ -5761,7 +5761,7 @@ export type Database = {
           final_amount?: number | null
           id?: string
           internal_notes?: string | null
-          order_number?: string
+          order_number?: string | null
           priority?: number | null
           quote_accepted_at?: string | null
           quote_amount?: number | null
