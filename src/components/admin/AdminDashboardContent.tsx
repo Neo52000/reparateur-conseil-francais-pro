@@ -2,7 +2,7 @@
 import React from 'react';
 import AdminStatsCards from './AdminStatsCards';
 import DashboardOverview from './DashboardOverview';
-import DocumentationStatusWidget from './DocumentationStatusWidget';
+
 
 interface AdminDashboardContentProps {
   activeTab?: string;
@@ -43,7 +43,7 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
         
         {/* Side widgets */}
         <div className="xl:col-span-1 space-y-6">
-          <DocumentationStatusWidget />
+          {/* Widgets réservés pour les fonctionnalités futures */}
         </div>
       </div>
     </div>

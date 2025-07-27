@@ -95,51 +95,15 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ stats }) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { action: 'Nouveau réparateur inscrit', time: 'Il y a 5 min', type: 'success' },
-                { action: 'Abonnement Premium souscrit', time: 'Il y a 12 min', type: 'info' },
-                { action: 'Demande d\'intérêt approuvée', time: 'Il y a 25 min', type: 'warning' },
-                { action: 'Scraping terminé - 45 nouveaux résultats', time: 'Il y a 1h', type: 'success' }
-              ].map((activity, index) => (
-                <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className={`w-2 h-2 rounded-full ${
-                    activity.type === 'success' ? 'bg-green-500' :
-                    activity.type === 'info' ? 'bg-blue-500' :
-                    activity.type === 'warning' ? 'bg-yellow-500' : 'bg-gray-500'
-                  }`}></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
-                  </div>
-                </div>
-              ))}
+              <div className="text-center py-8 text-gray-500">
+                <Activity className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>Aucune activité récente</p>
+                <p className="text-sm">Les activités s'afficheront ici en temps réel</p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Actions rapides</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { title: 'Nouveau scraping', color: 'bg-blue-500', icon: '🕷️' },
-                { title: 'Code promo', color: 'bg-green-500', icon: '🏷️' },
-                { title: 'Article blog', color: 'bg-purple-500', icon: '📝' },
-                { title: 'Publicité', color: 'bg-orange-500', icon: '📢' }
-              ].map((action, index) => (
-                <button
-                  key={index}
-                  className={`p-4 rounded-lg text-white hover:opacity-90 transition-opacity ${action.color}`}
-                >
-                  <div className="text-2xl mb-2">{action.icon}</div>
-                  <div className="text-sm font-medium">{action.title}</div>
-                </button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
