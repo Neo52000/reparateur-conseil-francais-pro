@@ -5292,8 +5292,12 @@ export type Database = {
           initial_condition_id: string | null
           initial_diagnosis: string | null
           intake_date: string
+          lock_pattern: string | null
           photos: Json | null
+          pin_code: string | null
           repairer_id: string
+          security_notes: string | null
+          sim_code: string | null
           updated_at: string
         }
         Insert: {
@@ -5317,8 +5321,12 @@ export type Database = {
           initial_condition_id?: string | null
           initial_diagnosis?: string | null
           intake_date?: string
+          lock_pattern?: string | null
           photos?: Json | null
+          pin_code?: string | null
           repairer_id: string
+          security_notes?: string | null
+          sim_code?: string | null
           updated_at?: string
         }
         Update: {
@@ -5342,8 +5350,12 @@ export type Database = {
           initial_condition_id?: string | null
           initial_diagnosis?: string | null
           intake_date?: string
+          lock_pattern?: string | null
           photos?: Json | null
+          pin_code?: string | null
           repairer_id?: string
+          security_notes?: string | null
+          sim_code?: string | null
           updated_at?: string
         }
         Relationships: [

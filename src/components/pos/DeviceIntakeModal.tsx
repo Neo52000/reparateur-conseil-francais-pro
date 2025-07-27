@@ -17,6 +17,7 @@ import {
 import { useRepairManagement, type DeviceCondition } from '@/hooks/useRepairManagement';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useToast } from '@/hooks/use-toast';
+import { generateRepairTicket } from '@/components/pos/RepairTicketGenerator';
 
 interface DeviceIntakeModalProps {
   isOpen: boolean;
@@ -31,6 +32,12 @@ interface DeviceIntakeForm {
   imei_serial: string;
   custom_device_info: string;
   initial_condition_id: string;
+  
+  // Security codes
+  pin_code: string;
+  sim_code: string;
+  lock_pattern: string;
+  security_notes: string;
   
   // Customer info
   customer_name: string;
@@ -84,13 +91,17 @@ const DeviceIntakeModal: React.FC<DeviceIntakeModalProps> = ({
     setIsSubmitting(true);
 
     try {
-      await createRepairOrder({
+      const repairOrder = await createRepairOrder({
         device_type_id: formData.device_type_id,
         brand_id: formData.brand_id,
         device_model_id: formData.device_model_id,
         imei_serial: formData.imei_serial,
         custom_device_info: formData.custom_device_info,
         initial_condition_id: formData.initial_condition_id,
+        pin_code: formData.pin_code,
+        sim_code: formData.sim_code,
+        lock_pattern: formData.lock_pattern,
+        security_notes: formData.security_notes,
         customer_name: formData.customer_name!,
         customer_phone: formData.customer_phone,
         customer_email: formData.customer_email,
@@ -100,6 +111,11 @@ const DeviceIntakeModal: React.FC<DeviceIntakeModalProps> = ({
         estimated_duration_hours: formData.estimated_duration_hours,
         accessories: formData.accessories || [],
       });
+
+      // Générer et imprimer le bon de prise en charge
+      if (repairOrder) {
+        await generateRepairTicket(repairOrder as any);
+      }
 
       handleClose();
     } catch (error) {
@@ -313,6 +329,52 @@ const DeviceIntakeModal: React.FC<DeviceIntakeModalProps> = ({
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+
+                {/* Codes de sécurité */}
+                <div className="space-y-4">
+                  <Label className="text-base font-semibold">Codes de sécurité</Label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="pin_code">Code PIN appareil</Label>
+                      <Input
+                        id="pin_code"
+                        type="password"
+                        value={formData.pin_code || ''}
+                        onChange={(e) => setFormData({ ...formData, pin_code: e.target.value })}
+                        placeholder="0000"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="sim_code">Code PIN SIM</Label>
+                      <Input
+                        id="sim_code"
+                        type="password"
+                        value={formData.sim_code || ''}
+                        onChange={(e) => setFormData({ ...formData, sim_code: e.target.value })}
+                        placeholder="0000"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="lock_pattern">Modèle de verrouillage (9 points)</Label>
+                    <Input
+                      id="lock_pattern"
+                      value={formData.lock_pattern || ''}
+                      onChange={(e) => setFormData({ ...formData, lock_pattern: e.target.value })}
+                      placeholder="Ex: 1-2-3-6-9 ou description du motif"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="security_notes">Notes de sécurité</Label>
+                    <Textarea
+                      id="security_notes"
+                      value={formData.security_notes || ''}
+                      onChange={(e) => setFormData({ ...formData, security_notes: e.target.value })}
+                      placeholder="Autres informations de sécurité..."
+                      rows={2}
+                    />
                   </div>
                 </div>
 

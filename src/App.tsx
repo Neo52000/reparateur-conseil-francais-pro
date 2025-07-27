@@ -8,6 +8,7 @@ import { AuthProvider } from './hooks/useAuth';
 import Index from "./pages/Index";
 import AdminPage from "./pages/AdminPage";
 import RepairerSettingsPage from "./pages/RepairerSettingsPage";
+import RepairTrackingPage from "./pages/RepairTrackingPage";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,8 @@ const App = () => (
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/admin/*" element={<AdminPage />} />
               <Route path="/settings" element={<RepairerSettingsPage />} />
+              <Route path="/paramètres" element={<RepairerSettingsPage />} />
+              <Route path="/suivi/:orderId" element={<RepairTrackingPage />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

@@ -26,6 +26,10 @@ export interface RepairDevice {
   custom_device_info?: string;
   initial_condition_id?: string;
   current_condition_id?: string;
+  pin_code?: string;
+  sim_code?: string;
+  lock_pattern?: string;
+  security_notes?: string;
   customer_name: string;
   customer_phone?: string;
   customer_email?: string;
