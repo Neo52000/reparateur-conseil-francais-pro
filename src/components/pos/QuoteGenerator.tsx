@@ -51,6 +51,7 @@ interface RepairItem {
   repairTypeName: string;
   basePrice: number;
   customPrice?: number;
+  manualPrice?: number; // Prix saisi manuellement
   margin?: number;
   quantity: number;
   total: number;
@@ -167,7 +168,7 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
   const updateRepairQuantity = (repairId: string, quantity: number) => {
     const updatedRepairs = quoteData.repairs.map(repair => {
       if (repair.id === repairId) {
-        const price = repair.customPrice || repair.basePrice;
+        const price = repair.manualPrice || repair.customPrice || repair.basePrice;
         return { ...repair, quantity, total: price * quantity };
       }
       return repair;
@@ -179,6 +180,32 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
       ...quoteData,
       repairs: updatedRepairs,
       total_cost: quoteData.labor_cost + quoteData.parts_cost + repairsTotal
+    });
+  };
+
+  const updateRepairPrice = (repairId: string, newPrice: number) => {
+    const updatedRepairs = quoteData.repairs.map(repair => {
+      if (repair.id === repairId) {
+        return { 
+          ...repair, 
+          manualPrice: newPrice,
+          total: newPrice * repair.quantity 
+        };
+      }
+      return repair;
+    });
+
+    const repairsTotal = updatedRepairs.reduce((sum, repair) => sum + repair.total, 0);
+    
+    setQuoteData({
+      ...quoteData,
+      repairs: updatedRepairs,
+      total_cost: quoteData.labor_cost + quoteData.parts_cost + repairsTotal
+    });
+
+    toast({
+      title: "Prix modifié",
+      description: "Le prix de la réparation a été mis à jour."
     });
   };
 
@@ -267,7 +294,7 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
                 <tr style="border-bottom: 1px solid #E5E7EB;">
                   <td style="padding: 15px;">${repair.repairTypeName}<br><small style="color: #6B7280;">${repair.brandName} ${repair.modelName}</small></td>
                   <td style="padding: 15px; text-align: center;">${repair.quantity}</td>
-                  <td style="padding: 15px; text-align: right;">${(repair.customPrice || repair.basePrice).toFixed(2)} €</td>
+                  <td style="padding: 15px; text-align: right;">${(repair.manualPrice || repair.customPrice || repair.basePrice).toFixed(2)} €</td>
                   <td style="padding: 15px; text-align: right;">${repair.total.toFixed(2)} €</td>
                 </tr>
               `).join('')}
@@ -552,27 +579,22 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
               <div className="space-y-3">
                 <h4 className="font-medium">Réparations sélectionnées</h4>
                 {quoteData.repairs.map(repair => (
-                  <div key={repair.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1">
-                      <p className="font-medium">{repair.name}</p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>Prix unitaire: {(repair.customPrice || repair.basePrice).toFixed(2)} €</span>
-                        {repair.margin && (
-                          <Badge variant="secondary" className="text-xs">
-                            Marge: {repair.margin}%
-                          </Badge>
-                        )}
+                  <div key={repair.id} className="p-4 border rounded-lg space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium">{repair.repairTypeName}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {repair.brandName} {repair.modelName}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Quantité: {repair.quantity} × {(repair.manualPrice || repair.customPrice || repair.basePrice).toFixed(2)} €
+                          {repair.margin && (
+                            <Badge variant="outline" className="ml-2 text-xs">
+                              {repair.margin > 0 ? '+' : ''}{repair.margin}%
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        min="1"
-                        value={repair.quantity}
-                        onChange={(e) => updateRepairQuantity(repair.id, parseInt(e.target.value) || 1)}
-                        className="w-16 text-center"
-                      />
-                      <span className="font-medium">{repair.total.toFixed(2)} €</span>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -581,6 +603,48 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-3 items-center">
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Quantité</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={repair.quantity}
+                          onChange={(e) => updateRepairQuantity(repair.id, parseInt(e.target.value) || 1)}
+                          className="text-center"
+                        />
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">
+                          Prix unitaire (€)
+                          {repair.manualPrice && (
+                            <Badge variant="outline" className="ml-1 text-xs">Manuel</Badge>
+                          )}
+                        </Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={repair.manualPrice || repair.customPrice || repair.basePrice}
+                          onChange={(e) => updateRepairPrice(repair.id, parseFloat(e.target.value) || 0)}
+                          className="text-center"
+                        />
+                        {repair.manualPrice && (
+                          <div className="text-xs text-muted-foreground text-center">
+                            Prix original: {(repair.customPrice || repair.basePrice).toFixed(2)} €
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Total</Label>
+                        <div className="text-center font-bold text-lg">
+                          {repair.total.toFixed(2)} €
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
