@@ -270,12 +270,12 @@ export default function OptionalModulesManagerDB() {
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="icon">Icône</Label>
-                  <Select value={formData.icon} onValueChange={(value) => setFormData(prev => ({ ...prev, icon: value }))}>
+                  <Select value={formData.icon || 'Package'} onValueChange={(value) => setFormData(prev => ({ ...prev, icon: value }))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      {AVAILABLE_ICONS.map(icon => (
+                    <SelectContent className="bg-background border shadow-md z-50">
+                      {AVAILABLE_ICONS.filter(icon => icon && icon.trim() !== '').map(icon => (
                         <SelectItem key={icon} value={icon}>{icon}</SelectItem>
                       ))}
                     </SelectContent>
@@ -291,12 +291,12 @@ export default function OptionalModulesManagerDB() {
                 </div>
                 <div>
                   <Label htmlFor="color">Couleur</Label>
-                  <Select value={formData.color} onValueChange={(value) => setFormData(prev => ({ ...prev, color: value }))}>
+                  <Select value={formData.color || 'blue'} onValueChange={(value) => setFormData(prev => ({ ...prev, color: value }))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      {AVAILABLE_COLORS.map(color => (
+                    <SelectContent className="bg-background border shadow-md z-50">
+                      {AVAILABLE_COLORS.filter(color => color && color.trim() !== '').map(color => (
                         <SelectItem key={color} value={color}>{color}</SelectItem>
                       ))}
                     </SelectContent>
