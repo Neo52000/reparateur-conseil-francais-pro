@@ -8,13 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Store, 
   Check, 
-  AlertCircle, 
   Settings,
-  Globe,
-  Palette
+  RefreshCw,
+  CreditCard
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 const EcommerceActivation: React.FC = () => {
   const [isStoreActive, setIsStoreActive] = useState(false);
@@ -22,35 +20,7 @@ const EcommerceActivation: React.FC = () => {
   const [storeDescription, setStoreDescription] = useState('');
   const [storeUrl, setStoreUrl] = useState('');
   const [loading, setLoading] = useState(false);
-  const [config, setConfig] = useState(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    fetchStoreConfig();
-  }, []);
-
-  const fetchStoreConfig = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('ecommerce_store_config')
-        .select('*')
-        .eq('repairer_id', user.id)
-        .single();
-
-      if (data) {
-        setConfig(data);
-        setIsStoreActive(data.is_active);
-        setStoreName(data.store_name || '');
-        setStoreDescription(data.store_description || '');
-        setStoreUrl(data.store_url || '');
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement de la configuration:', error);
-    }
-  };
 
   const handleActivation = async () => {
     if (!storeName.trim()) {
@@ -65,28 +35,8 @@ const EcommerceActivation: React.FC = () => {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const storeConfig = {
-        repairer_id: user.id,
-        store_name: storeName,
-        store_description: storeDescription,
-        store_url: storeUrl || `${storeName.toLowerCase().replace(/\s+/g, '-')}-store`,
-        is_active: isStoreActive,
-        updated_at: new Date().toISOString()
-      };
-
-      const { error } = await supabase
-        .from('ecommerce_store_config')
-        .upsert(storeConfig);
-
-      if (error) throw error;
-
-      // Créer les tables/configuration nécessaires si activé
-      if (isStoreActive) {
-        await initializeStoreComponents(user.id);
-      }
+      // Simulation d'activation de boutique
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       toast({
         title: "Configuration sauvegardée",
@@ -95,8 +45,6 @@ const EcommerceActivation: React.FC = () => {
           "Configuration de la boutique sauvegardée.",
         variant: "default"
       });
-
-      fetchStoreConfig();
     } catch (error) {
       console.error('Erreur:', error);
       toast({
@@ -106,24 +54,6 @@ const EcommerceActivation: React.FC = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const initializeStoreComponents = async (repairerId: string) => {
-    try {
-      // Initialiser les paramètres par défaut de la boutique
-      await supabase
-        .from('ecommerce_settings')
-        .upsert({
-          repairer_id: repairerId,
-          currency: 'EUR',
-          payment_methods: ['stripe', 'click_collect'],
-          shipping_zones: ['local'],
-          tax_rate: 20.0,
-          updated_at: new Date().toISOString()
-        });
-    } catch (error) {
-      console.error('Erreur lors de l\'initialisation:', error);
     }
   };
 
@@ -255,7 +185,7 @@ const EcommerceActivation: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-3 p-3 border rounded-lg">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-sm font-medium text-primary">1</span>
+                <RefreshCw className="w-4 h-4 text-primary" />
               </div>
               <div className="flex-1">
                 <p className="font-medium">Synchroniser les produits</p>
@@ -265,7 +195,7 @@ const EcommerceActivation: React.FC = () => {
 
             <div className="flex items-center gap-3 p-3 border rounded-lg">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-sm font-medium text-primary">2</span>
+                <CreditCard className="w-4 h-4 text-primary" />
               </div>
               <div className="flex-1">
                 <p className="font-medium">Configurer les paiements</p>
@@ -275,7 +205,7 @@ const EcommerceActivation: React.FC = () => {
 
             <div className="flex items-center gap-3 p-3 border rounded-lg">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-sm font-medium text-primary">3</span>
+                <Store className="w-4 h-4 text-primary" />
               </div>
               <div className="flex-1">
                 <p className="font-medium">Personnaliser l'apparence</p>

@@ -23,6 +23,9 @@ import { StoreFront } from './StoreFront';
 import InventoryManagement from './InventoryManagement';
 import UserPreferences from './UserPreferences';
 import NotificationCenter from './NotificationCenter';
+import EcommerceActivation from './EcommerceActivation';
+import POSProductSync from './POSProductSync';
+import StripePaymentSetup from './StripePaymentSetup';
 
 interface EcommerceInterfaceProps {
   onBackToDashboard?: () => void;
@@ -31,7 +34,7 @@ interface EcommerceInterfaceProps {
 const EcommerceInterface: React.FC<EcommerceInterfaceProps> = ({ 
   onBackToDashboard 
 }) => {
-  const [activeTab, setActiveTab] = useState('storefront');
+  const [activeTab, setActiveTab] = useState('activation');
   const { hasModuleAccess } = useModuleAccess();
 
   // Vérifier l'accès au module e-commerce
@@ -102,14 +105,26 @@ const EcommerceInterface: React.FC<EcommerceInterfaceProps> = ({
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 lg:w-fit">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9 lg:w-fit">
+            <TabsTrigger value="activation" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Activation</span>
+            </TabsTrigger>
             <TabsTrigger value="storefront" className="flex items-center gap-2">
               <Store className="w-4 h-4" />
               <span className="hidden sm:inline">Vitrine</span>
             </TabsTrigger>
+            <TabsTrigger value="sync" className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              <span className="hidden sm:inline">Sync POS</span>
+            </TabsTrigger>
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="w-4 h-4" />
               <span className="hidden sm:inline">Produits</span>
+            </TabsTrigger>
+            <TabsTrigger value="payment" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Paiement</span>
             </TabsTrigger>
             <TabsTrigger value="orders" className="flex items-center gap-2">
               <ShoppingCart className="w-4 h-4" />
@@ -119,30 +134,34 @@ const EcommerceInterface: React.FC<EcommerceInterfaceProps> = ({
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Clients</span>
             </TabsTrigger>
-            <TabsTrigger value="inventory" className="flex items-center gap-2">
-              <Package className="w-4 h-4" />
-              <span className="hidden sm:inline">Stock</span>
-            </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Analytics</span>
             </TabsTrigger>
-            <TabsTrigger value="preferences" className="flex items-center gap-2">
+            <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Préférences</span>
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Notifications</span>
+              <span className="hidden sm:inline">Paramètres</span>
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="activation" className="space-y-6">
+            <EcommerceActivation />
+          </TabsContent>
 
           <TabsContent value="storefront" className="space-y-6">
             <StoreFront />
           </TabsContent>
 
+          <TabsContent value="sync" className="space-y-6">
+            <POSProductSync />
+          </TabsContent>
+
           <TabsContent value="products" className="space-y-6">
             <ProductsManagement />
+          </TabsContent>
+
+          <TabsContent value="payment" className="space-y-6">
+            <StripePaymentSetup />
           </TabsContent>
 
           <TabsContent value="orders" className="space-y-6">
@@ -153,20 +172,8 @@ const EcommerceInterface: React.FC<EcommerceInterfaceProps> = ({
             <CustomersManagement />
           </TabsContent>
 
-          <TabsContent value="inventory" className="space-y-6">
-            <InventoryManagement />
-          </TabsContent>
-
           <TabsContent value="analytics" className="space-y-6">
             <EcommerceAnalytics />
-          </TabsContent>
-
-          <TabsContent value="preferences" className="space-y-6">
-            <UserPreferences />
-          </TabsContent>
-
-          <TabsContent value="notifications" className="space-y-6">
-            <NotificationCenter />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

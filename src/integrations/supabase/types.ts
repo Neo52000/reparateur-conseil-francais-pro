@@ -3041,6 +3041,96 @@ export type Database = {
         }
         Relationships: []
       }
+      ecommerce_settings: {
+        Row: {
+          created_at: string
+          currency: string
+          id: string
+          minimum_order_amount: number | null
+          payment_methods: Json | null
+          repairer_id: string
+          return_policy: string | null
+          shipping_rates: Json | null
+          shipping_zones: Json | null
+          tax_rate: number | null
+          terms_conditions: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          id?: string
+          minimum_order_amount?: number | null
+          payment_methods?: Json | null
+          repairer_id: string
+          return_policy?: string | null
+          shipping_rates?: Json | null
+          shipping_zones?: Json | null
+          tax_rate?: number | null
+          terms_conditions?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          id?: string
+          minimum_order_amount?: number | null
+          payment_methods?: Json | null
+          repairer_id?: string
+          return_policy?: string | null
+          shipping_rates?: Json | null
+          shipping_zones?: Json | null
+          tax_rate?: number | null
+          terms_conditions?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ecommerce_store_config: {
+        Row: {
+          address: Json | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          repairer_id: string
+          store_description: string | null
+          store_name: string
+          store_url: string | null
+          theme_settings: Json | null
+          updated_at: string
+        }
+        Insert: {
+          address?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          repairer_id: string
+          store_description?: string | null
+          store_name: string
+          store_url?: string | null
+          theme_settings?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          address?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          repairer_id?: string
+          store_description?: string | null
+          store_name?: string
+          store_url?: string | null
+          theme_settings?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ecommerce_stores: {
         Row: {
           conversion_rate: number | null
