@@ -83,7 +83,9 @@ const ContactInfoCard: React.FC<ContactInfoCardProps> = ({
               <p className="text-xs text-muted-foreground mb-3">
                 Réservées aux réparateurs vérifiés
               </p>
-              {onClaimProfile}
+              {onClaimProfile && <Button onClick={onClaimProfile} className="bg-orange-600 hover:bg-orange-700 text-white">
+                Revendiquer cette fiche
+              </Button>}
             </div>
           </div>
         </CardContent>

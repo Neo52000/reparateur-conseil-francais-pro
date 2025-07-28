@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Phone, Star, Shield } from 'lucide-react';
 import { Repairer } from '@/types/repairer';
+import { generateRepairerProfilePath } from '@/utils/profileUtils';
+import { useNavigate } from 'react-router-dom';
 
 interface RepairerCardProps {
   repairer: Repairer;
@@ -16,10 +18,16 @@ const RepairerCard: React.FC<RepairerCardProps> = ({
   onViewProfile, 
   onCall 
 }) => {
+  const navigate = useNavigate();
+  
   const handleCall = () => {
     if (repairer.phone) {
       onCall(repairer.phone);
     }
+  };
+
+  const handleViewProfile = () => {
+    navigate(generateRepairerProfilePath(repairer.id, repairer.business_name));
   };
 
   return (
@@ -69,7 +77,7 @@ const RepairerCard: React.FC<RepairerCardProps> = ({
 
       <div className="flex gap-2 justify-start">
         <Button 
-          onClick={() => onViewProfile(repairer)}
+          onClick={handleViewProfile}
           className="bg-blue-600 hover:bg-blue-700 text-white"
           size="sm"
         >

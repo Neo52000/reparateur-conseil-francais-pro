@@ -15,6 +15,7 @@ import { MapPin, Phone, Star, Award, Shield } from 'lucide-react';
 import { usePriorityRepairers } from '@/hooks/usePriorityRepairers';
 import { Repairer } from '@/types/repairer';
 import Autoplay from "embla-carousel-autoplay";
+import { generateRepairerProfilePath } from '@/utils/profileUtils';
 
 interface RepairersCarouselProps {
   onViewProfile: (repairer: Repairer) => void;
@@ -128,7 +129,7 @@ const RepairersCarousel: React.FC<RepairersCarouselProps> = ({
 
                     <div className="flex gap-2 mt-auto">
                       <Button 
-                        onClick={() => navigate(`/repairer/${repairer.id}`)}
+                        onClick={() => navigate(generateRepairerProfilePath(repairer.id, repairer.business_name))}
                         className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
                         size="sm"
                       >

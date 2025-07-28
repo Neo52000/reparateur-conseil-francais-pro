@@ -1,13 +1,16 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { generateRepairerProfilePath } from '@/utils/profileUtils';
 
 const TestRepairerProfileButton: React.FC = () => {
   const navigate = useNavigate();
 
   const handleTestProfile = () => {
-    // Utiliser un ID de réparateur réel pour le test
-    navigate('/repairer/46a7659f-a40c-42a3-9986-16b1b54eadb6');
+    // Naviguer vers un profil de réparateur existant avec URL SEO-friendly
+    const repairerId = '46a7659f-a40c-42a3-9986-16b1b54eadb6';
+    const businessName = 'Repair Express Pro'; // Nom d'exemple
+    navigate(generateRepairerProfilePath(repairerId, businessName));
   };
 
   return (

@@ -51,7 +51,8 @@ const AppWithTracking = () => {
         <Route path="/" element={<Index />} />
         <Route path="/repairer" element={<RepairerDashboardPage />} />
         <Route path="/repairer/plans" element={<RepairerPlans />} />
-        <Route path="/repairer/:id" element={<RepairerProfilePage />} />
+            <Route path="/repairer/:id" element={<RepairerProfilePage />} />
+            <Route path="/repairer/:id/:slug" element={<RepairerProfilePage />} />
         <Route path="/client" element={<ClientDashboardPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/admin/*" element={<AdminPage />} />
