@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useQualiReparDossiers } from '@/hooks/useQualiReparDossiers';
 import { QualiReparDossier } from '@/types/qualirepar';
+import QualiReparCreateForm from './QualiReparCreateForm';
+import QualiReparDocumentManager from './QualiReparDocumentManager';
 import { 
   Recycle, 
   Plus, 
@@ -14,12 +17,17 @@ import {
   Clock,
   Euro,
   FileText,
-  TrendingUp
+  TrendingUp,
+  Upload,
+  Calendar,
+  Filter
 } from 'lucide-react';
 
 const QualiReparDashboard: React.FC = () => {
   const { dossiers, loading, getDossierStats } = useQualiReparDossiers();
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedDossier, setSelectedDossier] = useState<QualiReparDossier | null>(null);
   
   if (loading) {
     return <div className="animate-pulse">Chargement...</div>;
@@ -83,10 +91,25 @@ const QualiReparDashboard: React.FC = () => {
             Gérez vos demandes de bonus pour les réparations éligibles
           </p>
         </div>
-        <Button className="bg-emerald-600 hover:bg-emerald-700">
-          <Plus className="h-4 w-4 mr-2" />
-          Nouveau dossier
-        </Button>
+        <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+          <DialogTrigger asChild>
+            <Button className="bg-emerald-600 hover:bg-emerald-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau dossier
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Recycle className="h-5 w-5 text-emerald-600" />
+                Créer un nouveau dossier QualiRépar
+              </DialogTitle>
+            </DialogHeader>
+            <QualiReparCreateForm
+              onDossierCreated={() => setShowCreateForm(false)}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Statistiques */}
@@ -184,10 +207,25 @@ const QualiReparDashboard: React.FC = () => {
               <p className="text-gray-600 mb-4">
                 Commencez par créer votre premier dossier de demande de bonus
               </p>
-              <Button className="bg-emerald-600 hover:bg-emerald-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Créer mon premier dossier
-              </Button>
+              <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+                <DialogTrigger asChild>
+                  <Button className="bg-emerald-600 hover:bg-emerald-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Créer mon premier dossier
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Recycle className="h-5 w-5 text-emerald-600" />
+                      Créer votre premier dossier QualiRépar
+                    </DialogTitle>
+                  </DialogHeader>
+                  <QualiReparCreateForm
+                    onDossierCreated={() => setShowCreateForm(false)}
+                  />
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         ) : (
@@ -223,9 +261,82 @@ const QualiReparDashboard: React.FC = () => {
                   </div>
                   
                   <div className="flex items-center gap-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4 mr-1" />
+                          Voir
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <FileText className="h-5 w-5" />
+                            Dossier {dossier.dossier_number}
+                          </DialogTitle>
+                        </DialogHeader>
+                        
+                        <div className="space-y-6">
+                          {/* Informations générales */}
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="text-lg">Informations générales</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <span className="font-medium">Client:</span> {dossier.client_name}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Email:</span> {dossier.client_email}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Produit:</span> {dossier.product_brand} {dossier.product_model}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Montant:</span> {dossier.requested_bonus_amount}€
+                                </div>
+                                <div>
+                                  <span className="font-medium">Date:</span> {new Date(dossier.repair_date).toLocaleDateString()}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Statut:</span>
+                                  <Badge variant={getStatusColor(dossier.status)} className="ml-2">
+                                    {getStatusLabel(dossier.status)}
+                                  </Badge>
+                                </div>
+                              </div>
+                              
+                              <div className="mt-4">
+                                <span className="font-medium">Description:</span>
+                                <p className="text-sm text-gray-600 mt-1">{dossier.repair_description}</p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                          
+                          {/* Documents */}
+                          <QualiReparDocumentManager dossierId={dossier.id} />
+                          
+                          {/* Actions */}
+                          <div className="flex justify-end gap-3">
+                            {dossier.status === 'draft' && (
+                              <Button className="bg-blue-600 hover:bg-blue-700">
+                                <Send className="h-4 w-4 mr-2" />
+                                Envoyer le dossier
+                              </Button>
+                            )}
+                            <Button variant="outline">
+                              <FileText className="h-4 w-4 mr-2" />
+                              Générer PDF
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    
                     <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-1" />
-                      Voir
+                      <Upload className="h-4 w-4 mr-1" />
+                      Documents
                     </Button>
                   </div>
                 </div>
