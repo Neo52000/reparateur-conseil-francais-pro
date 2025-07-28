@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { OPTIONAL_MODULES } from '@/types/optionalModules';
 
 export interface OptionalModuleDB {
   id: string;
@@ -25,10 +26,42 @@ export const useOptionalModulesDB = () => {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
+  // Synchroniser les modules prédéfinis avec la base de données
+  const syncPredefinedModules = async () => {
+    for (const predefinedModule of OPTIONAL_MODULES) {
+      const { data: existingModule } = await supabase
+        .from('optional_modules_config')
+        .select('id')
+        .eq('module_id', predefinedModule.id)
+        .single();
+
+      if (!existingModule) {
+        const moduleData = {
+          module_id: predefinedModule.id,
+          module_name: predefinedModule.name,
+          description: predefinedModule.description,
+          icon: predefinedModule.icon,
+          category: predefinedModule.category,
+          features: predefinedModule.features,
+          color: predefinedModule.color,
+          pricing_monthly: predefinedModule.pricing.monthly,
+          pricing_yearly: predefinedModule.pricing.yearly,
+          available_plans: predefinedModule.availableForPlans,
+          is_active: predefinedModule.isActive
+        };
+
+        await supabase.from('optional_modules_config').insert(moduleData);
+      }
+    }
+  };
+
   // Charger les modules depuis Supabase
   const loadModules = async () => {
     try {
       setLoading(true);
+      
+      // Synchroniser les modules prédéfinis avec la base de données
+      await syncPredefinedModules();
       
       const { data, error } = await supabase
         .from('optional_modules_config')
