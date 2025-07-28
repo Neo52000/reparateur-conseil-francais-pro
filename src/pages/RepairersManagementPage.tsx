@@ -32,6 +32,22 @@ const RepairersManagementPage = () => {
       <RepairersManagementHeader onRefresh={fetchData} />
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {/* Note importante pour les réparateurs gratuits */}
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="text-blue-600 font-semibold text-sm">ℹ️</span>
+            </div>
+            <div>
+              <h3 className="font-semibold text-blue-900">Affichage selon l'abonnement</h3>
+              <p className="text-sm text-blue-700 mt-1">
+                Les réparateurs avec un plan gratuit voient leurs informations masquées côté client (comme Doctolib). 
+                Seuls les abonnés Basic+ ont accès aux fonctionnalités complètes.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Afficher directement le tableau des réparateurs comme dans AdminDashboard */}
         <RepairersTable
           repairers={repairers}

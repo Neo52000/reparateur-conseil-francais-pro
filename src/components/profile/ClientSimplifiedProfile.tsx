@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { RepairerProfile } from '@/types/repairerProfile';
-import ClaimBusinessBanner from '@/components/ClaimBusinessBanner';
+import EnhancedClaimBanner from '@/components/profile/EnhancedClaimBanner';
 import SimplifiedProfileHeader from './SimplifiedProfileHeader';
 import SimplifiedProfileActions from './SimplifiedProfileActions';
 import SimplifiedBlurredPhotos from './SimplifiedBlurredPhotos';
 import SimplifiedBlurredSections from './SimplifiedBlurredSections';
+import BlurredProfileContent from './BlurredProfileContent';
 
 interface ClientSimplifiedProfileProps {
   profile: RepairerProfile;
@@ -27,14 +28,26 @@ const ClientSimplifiedProfile: React.FC<ClientSimplifiedProfileProps> = ({
       {/* Actions limitées */}
       <SimplifiedProfileActions profile={profile} />
 
-      {/* Photos floutées */}
-      <SimplifiedBlurredPhotos profile={profile} />
+      {/* Photos floutées avec système de masquage amélioré */}
+      <BlurredProfileContent 
+        profile={profile} 
+        sectionTitle="Galerie photo"
+        isVisible={false}
+      >
+        <SimplifiedBlurredPhotos profile={profile} />
+      </BlurredProfileContent>
 
-      {/* Sections floutées */}
-      <SimplifiedBlurredSections />
+      {/* Sections floutées avec système de masquage amélioré */}
+      <BlurredProfileContent 
+        profile={profile} 
+        sectionTitle="Services et tarifs"
+        isVisible={false}
+      >
+        <SimplifiedBlurredSections />
+      </BlurredProfileContent>
 
-      {/* Banner de revendication */}
-      <ClaimBusinessBanner businessName={profile.business_name} />
+      {/* Banner de revendication amélioré */}
+      <EnhancedClaimBanner businessName={profile.business_name} />
     </div>
   );
 };
