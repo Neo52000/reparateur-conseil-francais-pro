@@ -13,7 +13,8 @@ import {
   Wand2,
   Palette,
   Shield,
-  RefreshCw
+  RefreshCw,
+  Recycle
 } from 'lucide-react';
 import OverviewTabSection from "./OverviewTabSection";
 import EnhancedOverviewTab from "./EnhancedOverviewTab";
@@ -34,6 +35,7 @@ import ComplianceModule from '@/components/compliance/ComplianceModule';
 import TeamManagement from './TeamManagement';
 import EcommerceInterface from '@/components/ecommerce/EcommerceInterface';
 import ServicesManagement from './ServicesManagement';
+import QualiReparDashboard from '@/components/qualirepar/QualiReparDashboard';
 
 interface Order {
   id: string;
@@ -106,10 +108,14 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
           <Package className="h-4 w-4" />
           Stock
         </TabsTrigger>
-        <TabsTrigger value="services" className="flex items-center gap-2">
-          <Settings className="h-4 w-4" />
-          Services
-        </TabsTrigger>
+          <TabsTrigger value="services" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Services
+          </TabsTrigger>
+          <TabsTrigger value="qualirepar" className="flex items-center gap-2">
+            <Recycle className="h-4 w-4" />
+            QualiRépar
+          </TabsTrigger>
         <TabsTrigger value="pricing" className="flex items-center gap-2">
           <Receipt className="h-4 w-4" />
           Tarifs
@@ -181,6 +187,10 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 
       <TabsContent value="services">
         <ServicesManagement />
+      </TabsContent>
+
+      <TabsContent value="qualirepar">
+        <QualiReparDashboard />
       </TabsContent>
 
       <TabsContent value="pricing">

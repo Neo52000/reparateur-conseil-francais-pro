@@ -6161,6 +6161,328 @@ export type Database = {
         }
         Relationships: []
       }
+      qualirepar_documents: {
+        Row: {
+          created_at: string
+          document_type: string
+          dossier_id: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id: string
+          is_validated: boolean | null
+          mime_type: string
+          ocr_data: Json | null
+          updated_at: string
+          validation_notes: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          dossier_id: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id?: string
+          is_validated?: boolean | null
+          mime_type: string
+          ocr_data?: Json | null
+          updated_at?: string
+          validation_notes?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          dossier_id?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          id?: string
+          is_validated?: boolean | null
+          mime_type?: string
+          ocr_data?: Json | null
+          updated_at?: string
+          validation_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualirepar_documents_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "qualirepar_dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualirepar_dossiers: {
+        Row: {
+          client_address: string
+          client_city: string
+          client_email: string
+          client_name: string
+          client_phone: string | null
+          client_postal_code: string
+          created_at: string
+          dossier_number: string
+          eco_organism: string
+          eligibility_rule_id: string | null
+          id: string
+          payment_date: string | null
+          pos_transaction_id: string | null
+          processing_date: string | null
+          product_brand: string
+          product_category: string
+          product_model: string
+          product_serial_number: string | null
+          rejection_reason: string | null
+          repair_cost: number
+          repair_date: string
+          repair_description: string
+          repair_order_id: string | null
+          repairer_id: string
+          requested_bonus_amount: number
+          status: string
+          submission_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_address: string
+          client_city: string
+          client_email: string
+          client_name: string
+          client_phone?: string | null
+          client_postal_code: string
+          created_at?: string
+          dossier_number: string
+          eco_organism: string
+          eligibility_rule_id?: string | null
+          id?: string
+          payment_date?: string | null
+          pos_transaction_id?: string | null
+          processing_date?: string | null
+          product_brand: string
+          product_category: string
+          product_model: string
+          product_serial_number?: string | null
+          rejection_reason?: string | null
+          repair_cost: number
+          repair_date: string
+          repair_description: string
+          repair_order_id?: string | null
+          repairer_id: string
+          requested_bonus_amount: number
+          status?: string
+          submission_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_address?: string
+          client_city?: string
+          client_email?: string
+          client_name?: string
+          client_phone?: string | null
+          client_postal_code?: string
+          created_at?: string
+          dossier_number?: string
+          eco_organism?: string
+          eligibility_rule_id?: string | null
+          id?: string
+          payment_date?: string | null
+          pos_transaction_id?: string | null
+          processing_date?: string | null
+          product_brand?: string
+          product_category?: string
+          product_model?: string
+          product_serial_number?: string | null
+          rejection_reason?: string | null
+          repair_cost?: number
+          repair_date?: string
+          repair_description?: string
+          repair_order_id?: string | null
+          repairer_id?: string
+          requested_bonus_amount?: number
+          status?: string
+          submission_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_qualirepar_dossiers_eligibility"
+            columns: ["eligibility_rule_id"]
+            isOneToOne: false
+            referencedRelation: "qualirepar_eligibility_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualirepar_dossiers_eligibility_rule_id_fkey"
+            columns: ["eligibility_rule_id"]
+            isOneToOne: false
+            referencedRelation: "qualirepar_eligibility_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualirepar_eligibility_rules: {
+        Row: {
+          brand: string | null
+          created_at: string
+          eco_organism: string
+          id: string
+          is_active: boolean
+          max_bonus_amount: number
+          min_repair_cost: number | null
+          model: string | null
+          product_category: string
+          updated_at: string
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          eco_organism: string
+          id?: string
+          is_active?: boolean
+          max_bonus_amount: number
+          min_repair_cost?: number | null
+          model?: string | null
+          product_category: string
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          eco_organism?: string
+          id?: string
+          is_active?: boolean
+          max_bonus_amount?: number
+          min_repair_cost?: number | null
+          model?: string | null
+          product_category?: string
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
+      qualirepar_reimbursements: {
+        Row: {
+          approval_date: string
+          approved_amount: number
+          created_at: string
+          dossier_id: string
+          id: string
+          notes: string | null
+          payment_date: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          processing_delay_days: number | null
+          submission_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          approval_date: string
+          approved_amount: number
+          created_at?: string
+          dossier_id: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          processing_delay_days?: number | null
+          submission_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approval_date?: string
+          approved_amount?: number
+          created_at?: string
+          dossier_id?: string
+          id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          processing_delay_days?: number | null
+          submission_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualirepar_reimbursements_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "qualirepar_dossiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qualirepar_reimbursements_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "qualirepar_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualirepar_submissions: {
+        Row: {
+          api_endpoint: string | null
+          created_at: string
+          dossier_id: string
+          error_message: string | null
+          external_reference: string | null
+          id: string
+          recipient_email: string | null
+          response_data: Json | null
+          status: string
+          submission_data: Json
+          submission_method: string
+          tracking_reference: string | null
+          updated_at: string
+        }
+        Insert: {
+          api_endpoint?: string | null
+          created_at?: string
+          dossier_id: string
+          error_message?: string | null
+          external_reference?: string | null
+          id?: string
+          recipient_email?: string | null
+          response_data?: Json | null
+          status?: string
+          submission_data: Json
+          submission_method: string
+          tracking_reference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          api_endpoint?: string | null
+          created_at?: string
+          dossier_id?: string
+          error_message?: string | null
+          external_reference?: string | null
+          id?: string
+          recipient_email?: string | null
+          response_data?: Json | null
+          status?: string
+          submission_data?: Json
+          submission_method?: string
+          tracking_reference?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualirepar_submissions_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "qualirepar_dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
           contact_email: string
@@ -9012,6 +9334,10 @@ export type Database = {
       }
       generate_pos_customer_number: {
         Args: { repairer_id: string }
+        Returns: string
+      }
+      generate_qualirepar_dossier_number: {
+        Args: { repairer_uuid: string }
         Returns: string
       }
       generate_repair_order_number: {

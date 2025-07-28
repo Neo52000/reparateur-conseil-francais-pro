@@ -147,5 +147,32 @@ export const OPTIONAL_MODULES: OptionalModule[] = [
     ],
     newFeatures: ['IA prédictive', 'Ciblage avancé', 'ROI optimisé'],
     color: 'red'
+  },
+  {
+    id: 'qualirepar',
+    name: 'Bonus QualiRépar',
+    description: 'Automatisez la gestion des demandes de bonus QualiRépar pour vos réparations éligibles',
+    icon: 'Recycle',
+    isActive: true,
+    pricing: {
+      monthly: 29.00,
+      yearly: 290.00
+    },
+    availableForPlans: ['basic', 'premium', 'enterprise'],
+    category: 'Environnemental',
+    features: [
+      'Détection automatique des produits éligibles',
+      'Génération automatique des dossiers de demande',
+      'Upload et validation des pièces justificatives',
+      'Envoi automatique aux éco-organismes',
+      'Suivi en temps réel des remboursements',
+      'Dashboard de gestion des dossiers',
+      'Exports comptables mensuels',
+      'Archivage sécurisé RGPD',
+      'Alertes automatiques de traitement',
+      'Reporting détaillé par période'
+    ],
+    newFeatures: ['Automation complète', 'Suivi temps réel', 'Exports comptables'],
+    color: 'green'
   }
 ];
