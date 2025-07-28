@@ -60,3 +60,6 @@ verify_jwt = false
 
 [functions.trigger-zapier-webhook]
 verify_jwt = true
+
+[functions.generate-static-page-content]
+verify_jwt = true
