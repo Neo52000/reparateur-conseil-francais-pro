@@ -300,13 +300,9 @@ const StaticPagesManager: React.FC = () => {
             {!isEditing ? (
               <div className="p-6 text-center">
                 <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p className="text-muted-foreground mb-4">
-                  Sélectionnez une page à modifier ou créez-en une nouvelle
+                <p className="text-muted-foreground">
+                  Sélectionnez une page à modifier dans la liste
                 </p>
-                <Button onClick={handleNewPage}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Créer une nouvelle page
-                </Button>
               </div>
             ) : (
               <Tabs defaultValue="content" className="h-full">
