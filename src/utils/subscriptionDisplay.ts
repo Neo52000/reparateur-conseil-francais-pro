@@ -13,14 +13,29 @@ export interface DisplayInfo {
 export const getDisplayInfo = (repairer: Repairer, subscriptionTier = 'free'): DisplayInfo => {
   const isBasicOrHigher = ['basic', 'premium', 'enterprise'].includes(subscriptionTier);
   const isPremiumOrHigher = ['premium', 'enterprise'].includes(subscriptionTier);
+  const isFree = subscriptionTier === 'free';
   
   return {
-    address: isBasicOrHigher ? repairer.address : `${repairer.city} (adresse masquée)`,
-    phone: isBasicOrHigher ? (repairer.phone || '') : '•••••••••••',
-    email: isBasicOrHigher ? (repairer.email || '') : '•••••@••••••',
-    showQuoteButton: isPremiumOrHigher,
-    showContactInfo: isBasicOrHigher,
-    showClaimBanner: subscriptionTier === 'free'
+    // Pour les comptes gratuits, masquer complètement l'adresse précise
+    address: isFree ? `${repairer.city} (adresse masquée - revendiquez votre fiche)` 
+             : isBasicOrHigher ? repairer.address : `${repairer.city} (adresse masquée)`,
+    
+    // Pour les comptes gratuits, masquer complètement le téléphone
+    phone: isFree ? 'Téléphone masqué - revendiquez votre fiche' 
+           : isBasicOrHigher ? (repairer.phone || '') : '•••••••••••',
+    
+    // Pour les comptes gratuits, masquer complètement l'email
+    email: isFree ? 'Email masqué - revendiquez votre fiche'
+           : isBasicOrHigher ? (repairer.email || '') : '•••••@••••••',
+    
+    // Pour les comptes gratuits, aucun bouton de devis
+    showQuoteButton: isFree ? false : isPremiumOrHigher,
+    
+    // Pour les comptes gratuits, aucune info de contact
+    showContactInfo: isFree ? false : isBasicOrHigher,
+    
+    // Afficher le banner de revendication pour les comptes gratuits
+    showClaimBanner: isFree
   };
 };
 

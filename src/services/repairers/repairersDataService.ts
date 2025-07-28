@@ -13,8 +13,8 @@ export class RepairersDataService {
       
       let query = supabase
         .from('repairers')
-        .select('*')
-        .eq('is_verified', true); // Only show verified repairers
+        .select('*');
+        // Remove verification filter to show all repairers including Nancy ones
 
       // Apply filters if provided
       if (filters?.services && filters.services.length > 0) {
