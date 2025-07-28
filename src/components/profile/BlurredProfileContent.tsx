@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Lock, Blur } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import EnhancedClaimBanner from './EnhancedClaimBanner';
 import { RepairerProfile } from '@/types/repairerProfile';
 
