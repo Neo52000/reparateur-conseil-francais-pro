@@ -58,7 +58,19 @@ const AIGenerationModal: React.FC<AIGenerationModalProps> = ({
         body: formData
       });
 
-      if (error) throw error;
+      if (error) {
+        // Si l'edge function n'est pas encore déployée
+        if (error.message?.includes('Failed to send a request to the Edge Function') || 
+            error.message?.includes('Failed to fetch')) {
+          toast({
+            title: "Service en cours de déploiement",
+            description: "La fonction IA est en cours de déploiement. Veuillez réessayer dans quelques minutes.",
+            variant: "destructive"
+          });
+          return;
+        }
+        throw error;
+      }
 
       if (data.success) {
         onContentGenerated(data.content);
@@ -72,11 +84,22 @@ const AIGenerationModal: React.FC<AIGenerationModalProps> = ({
       }
     } catch (error) {
       console.error('Erreur génération IA:', error);
-      toast({
-        title: "Erreur de génération",
-        description: error.message || "Impossible de générer le contenu",
-        variant: "destructive"
-      });
+      
+      // Gestion spéciale pour l'edge function non déployée
+      if (error.message?.includes('Failed to send a request to the Edge Function') || 
+          error.message?.includes('Failed to fetch')) {
+        toast({
+          title: "Service en cours de déploiement",
+          description: "La fonction IA est en cours de déploiement. Veuillez réessayer dans quelques minutes.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Erreur de génération",
+          description: error.message || "Impossible de générer le contenu",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
