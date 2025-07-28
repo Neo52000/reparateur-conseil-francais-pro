@@ -86,10 +86,28 @@ const serviceConfig = {
 
 export default function ServiceRepairPage() {
   const { serviceType } = useParams<{ serviceType: string }>();
-  const config = serviceConfig[serviceType as keyof typeof serviceConfig];
+  
+  // Extract service type from URL if it's in the format reparation-{service}
+  const actualServiceType = serviceType || window.location.pathname.replace('/reparation-', '');
+  const config = serviceConfig[actualServiceType as keyof typeof serviceConfig];
 
   if (!config) {
-    return <div>Service non trouvé</div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <h1 className="text-2xl font-bold text-foreground mb-4">Service non trouvé</h1>
+          <p className="text-muted-foreground mb-6">
+            Le service "{actualServiceType}" n'est pas disponible ou n'existe pas.
+          </p>
+          <p className="text-sm text-muted-foreground mb-6">
+            Services disponibles : smartphone, tablette, ordinateur, console
+          </p>
+          <Button onClick={() => window.history.back()}>
+            Retour
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   const Icon = config.icon;

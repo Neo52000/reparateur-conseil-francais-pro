@@ -12,6 +12,7 @@ import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
 import RepairerPlans from "./pages/RepairerPlans";
 import ServiceRepairPage from "./pages/services/ServiceRepairPage";
+import LocalSeoPage from "./pages/LocalSeoPage";
 import RepairerSettingsPage from "./pages/RepairerSettingsPage";
 import RepairTrackingPage from "./pages/RepairTrackingPage";
 import StaticPage from "./pages/StaticPage";
@@ -52,11 +53,8 @@ const AppWithTracking = () => {
         <Route path="/client" element={<ClientDashboardPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/admin/*" element={<AdminPage />} />
-        <Route path="/reparation-smartphone" element={<ServiceRepairPage />} />
-        <Route path="/reparation-tablette" element={<ServiceRepairPage />} />
-        <Route path="/reparation-ordinateur" element={<ServiceRepairPage />} />
-        <Route path="/reparation-console" element={<ServiceRepairPage />} />
-        <Route path="/reparation-smartphone-:city" element={<ServiceRepairPage />} />
+        <Route path="/reparation-:serviceType" element={<ServiceRepairPage />} />
+        <Route path="/reparateur-:serviceType-:city" element={<LocalSeoPage />} />
         <Route path="/settings" element={<RepairerSettingsPage />} />
         <Route path="/paramètres" element={<RepairerSettingsPage />} />
         <Route path="/suivi/:orderId" element={<RepairTrackingPage />} />
