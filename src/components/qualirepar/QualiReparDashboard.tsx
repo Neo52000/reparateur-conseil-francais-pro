@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useQualiReparSubmission } from '@/hooks/useQualiReparSubmission';
 import { useQualiReparDossiers } from '@/hooks/useQualiReparDossiers';
 import { QualiReparDossier } from '@/types/qualirepar';
 import QualiReparCreateForm from './QualiReparCreateForm';
@@ -25,6 +26,7 @@ import {
 
 const QualiReparDashboard: React.FC = () => {
   const { dossiers, loading, getDossierStats } = useQualiReparDossiers();
+  const { submitDossier, submitting } = useQualiReparSubmission();
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedDossier, setSelectedDossier] = useState<QualiReparDossier | null>(null);
@@ -320,9 +322,13 @@ const QualiReparDashboard: React.FC = () => {
                           {/* Actions */}
                           <div className="flex justify-end gap-3">
                             {dossier.status === 'draft' && (
-                              <Button className="bg-blue-600 hover:bg-blue-700">
+                              <Button 
+                                className="bg-blue-600 hover:bg-blue-700"
+                                onClick={() => submitDossier(dossier.id)}
+                                disabled={submitting}
+                              >
                                 <Send className="h-4 w-4 mr-2" />
-                                Envoyer le dossier
+                                {submitting ? 'Envoi...' : 'Envoyer le dossier'}
                               </Button>
                             )}
                             <Button variant="outline">
