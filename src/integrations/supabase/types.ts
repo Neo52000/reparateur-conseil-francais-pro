@@ -3131,6 +3131,33 @@ export type Database = {
         }
         Relationships: []
       }
+      edge_function_configs: {
+        Row: {
+          config: Json
+          created_at: string
+          function_name: string
+          id: string
+          is_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          function_name: string
+          id?: string
+          is_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          function_name?: string
+          id?: string
+          is_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       feature_flags_by_plan: {
         Row: {
           enabled: boolean
