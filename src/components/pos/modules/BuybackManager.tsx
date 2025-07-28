@@ -30,6 +30,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import BuybackEvaluationDialog from './BuybackEvaluationDialog';
 import DigitalPoliceLogbook from './DigitalPoliceLogbook';
+import EnhancedBuybackForm from './EnhancedBuybackForm';
 
 interface BuybackDevice {
   id: string;

@@ -2615,6 +2615,51 @@ export type Database = {
         }
         Relationships: []
       }
+      digital_police_logbook: {
+        Row: {
+          created_at: string
+          export_date: string | null
+          exported_to_police: boolean
+          id: string
+          product_description: Json
+          purchase_amount: number
+          repairer_id: string
+          retention_until: string
+          seller_identity: Json
+          transaction_date: string
+          transaction_id: string
+          transaction_type: string
+        }
+        Insert: {
+          created_at?: string
+          export_date?: string | null
+          exported_to_police?: boolean
+          id?: string
+          product_description: Json
+          purchase_amount: number
+          repairer_id: string
+          retention_until?: string
+          seller_identity: Json
+          transaction_date: string
+          transaction_id: string
+          transaction_type?: string
+        }
+        Update: {
+          created_at?: string
+          export_date?: string | null
+          exported_to_police?: boolean
+          id?: string
+          product_description?: Json
+          purchase_amount?: number
+          repairer_id?: string
+          retention_until?: string
+          seller_identity?: Json
+          transaction_date?: string
+          transaction_id?: string
+          transaction_type?: string
+        }
+        Relationships: []
+      }
       documentation_versions: {
         Row: {
           content_hash: string
@@ -3654,6 +3699,180 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      irreparability_certificates: {
+        Row: {
+          archived_at: string | null
+          certificate_number: string
+          certificate_status: string
+          client_address: string | null
+          client_email: string | null
+          client_id: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          device_brand: string
+          device_imei: string | null
+          device_model: string
+          device_serial_number: string | null
+          diagnostic_date: string
+          diagnostic_description: string
+          digital_signature_hash: string | null
+          estimated_repair_cost: number | null
+          id: string
+          insurance_claim_number: string | null
+          nf525_archive_hash: string | null
+          pdf_url: string | null
+          purchase_date: string | null
+          purchase_price: number | null
+          purchase_store: string | null
+          repair_impossibility_reason: string
+          repairer_id: string
+          replacement_value: number | null
+          technical_analysis: string
+          technician_id: string
+          updated_at: string
+          warranty_status: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          certificate_number: string
+          certificate_status?: string
+          client_address?: string | null
+          client_email?: string | null
+          client_id?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          device_brand: string
+          device_imei?: string | null
+          device_model: string
+          device_serial_number?: string | null
+          diagnostic_date?: string
+          diagnostic_description: string
+          digital_signature_hash?: string | null
+          estimated_repair_cost?: number | null
+          id?: string
+          insurance_claim_number?: string | null
+          nf525_archive_hash?: string | null
+          pdf_url?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          purchase_store?: string | null
+          repair_impossibility_reason: string
+          repairer_id: string
+          replacement_value?: number | null
+          technical_analysis: string
+          technician_id: string
+          updated_at?: string
+          warranty_status?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          certificate_number?: string
+          certificate_status?: string
+          client_address?: string | null
+          client_email?: string | null
+          client_id?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          device_brand?: string
+          device_imei?: string | null
+          device_model?: string
+          device_serial_number?: string | null
+          diagnostic_date?: string
+          diagnostic_description?: string
+          digital_signature_hash?: string | null
+          estimated_repair_cost?: number | null
+          id?: string
+          insurance_claim_number?: string | null
+          nf525_archive_hash?: string | null
+          pdf_url?: string | null
+          purchase_date?: string | null
+          purchase_price?: number | null
+          purchase_store?: string | null
+          repair_impossibility_reason?: string
+          repairer_id?: string
+          replacement_value?: number | null
+          technical_analysis?: string
+          technician_id?: string
+          updated_at?: string
+          warranty_status?: string | null
+        }
+        Relationships: []
+      }
+      irreparability_diagnostics: {
+        Row: {
+          certificate_id: string
+          component_name: string
+          component_state: string
+          created_at: string
+          estimated_repair_time: number | null
+          failure_description: string
+          id: string
+          repair_feasibility: string
+          spare_parts_availability: string | null
+        }
+        Insert: {
+          certificate_id: string
+          component_name: string
+          component_state: string
+          created_at?: string
+          estimated_repair_time?: number | null
+          failure_description: string
+          id?: string
+          repair_feasibility: string
+          spare_parts_availability?: string | null
+        }
+        Update: {
+          certificate_id?: string
+          component_name?: string
+          component_state?: string
+          created_at?: string
+          estimated_repair_time?: number | null
+          failure_description?: string
+          id?: string
+          repair_feasibility?: string
+          spare_parts_availability?: string | null
+        }
+        Relationships: []
+      }
+      irreparability_nf525_archive: {
+        Row: {
+          archived_at: string
+          certificate_data: Json
+          certificate_hash: string
+          certificate_html: string
+          certificate_id: string
+          file_size_bytes: number
+          id: string
+          repairer_id: string
+          retention_until: string
+        }
+        Insert: {
+          archived_at?: string
+          certificate_data: Json
+          certificate_hash: string
+          certificate_html: string
+          certificate_id: string
+          file_size_bytes?: number
+          id?: string
+          repairer_id: string
+          retention_until?: string
+        }
+        Update: {
+          archived_at?: string
+          certificate_data?: Json
+          certificate_hash?: string
+          certificate_html?: string
+          certificate_id?: string
+          file_size_bytes?: number
+          id?: string
+          repairer_id?: string
+          retention_until?: string
+        }
+        Relationships: []
       }
       landing_page_templates: {
         Row: {
@@ -8750,6 +8969,10 @@ export type Database = {
         Args: { user_email: string; user_id: string }
         Returns: string
       }
+      auto_archive_certificate: {
+        Args: { certificate_id: string }
+        Returns: string
+      }
       auto_archive_receipt: {
         Args: { transaction_id: string }
         Returns: string
@@ -8778,6 +9001,10 @@ export type Database = {
           fixed_count: number
           details: Json
         }[]
+      }
+      generate_certificate_number: {
+        Args: { repairer_uuid: string }
+        Returns: string
       }
       generate_order_number: {
         Args: { repairer_id: string }
