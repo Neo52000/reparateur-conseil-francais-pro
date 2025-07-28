@@ -408,4 +408,4 @@ const RepairerProfilePage: React.FC = () => {
   );
 };
 
-export default RepairerProfilePage;
+export default React.memo(RepairerProfilePage);

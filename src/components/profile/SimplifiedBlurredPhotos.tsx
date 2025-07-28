@@ -2,10 +2,9 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Images, Image, Lock } from 'lucide-react';
-import { RepairerProfile } from '@/types/repairerProfile';
 
 interface SimplifiedBlurredPhotosProps {
-  profile: RepairerProfile;
+  profile: any;
 }
 
 const SimplifiedBlurredPhotos: React.FC<SimplifiedBlurredPhotosProps> = ({

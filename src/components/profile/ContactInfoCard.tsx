@@ -13,7 +13,7 @@ import {
 import { RepairerProfile } from '@/types/repairerProfile';
 
 interface ContactInfoCardProps {
-  profile: RepairerProfile;
+  profile: any;
   isBlurred?: boolean;
   onClaimProfile?: () => void;
 }

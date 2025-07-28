@@ -12,18 +12,52 @@ interface ProfileAnalyticsData {
 
 export const useProfileAnalytics = () => {
   const trackProfileView = async (data: ProfileAnalyticsData) => {
-    // Console log for now - analytics table to be created later
-    console.log('Profile view tracked:', data);
+    try {
+      await supabase
+        .from('profile_analytics')
+        .insert({
+          repairer_id: data.repairerId,
+          event_type: 'profile_view',
+          user_agent: data.userAgent || navigator.userAgent,
+          referrer: data.referrer || document.referrer,
+          created_at: new Date().toISOString()
+        });
+    } catch (error) {
+      console.error('Error tracking profile view:', error);
+    }
   };
 
   const trackClaimClick = async (repairerId: string) => {
-    // Console log for now - analytics table to be created later
-    console.log('Claim click tracked:', repairerId);
+    try {
+      await supabase
+        .from('profile_analytics')
+        .insert({
+          repairer_id: repairerId,
+          event_type: 'claim_click',
+          user_agent: navigator.userAgent,
+          referrer: document.referrer,
+          created_at: new Date().toISOString()
+        });
+    } catch (error) {
+      console.error('Error tracking claim click:', error);
+    }
   };
 
   const trackContactClick = async (repairerId: string, contactType: 'phone' | 'email' | 'message') => {
-    // Console log for now - analytics table to be created later
-    console.log('Contact click tracked:', repairerId, contactType);
+    try {
+      await supabase
+        .from('profile_analytics')
+        .insert({
+          repairer_id: repairerId,
+          event_type: 'contact_click',
+          event_data: { contact_type: contactType },
+          user_agent: navigator.userAgent,
+          referrer: document.referrer,
+          created_at: new Date().toISOString()
+        });
+    } catch (error) {
+      console.error('Error tracking contact click:', error);
+    }
   };
 
   return {

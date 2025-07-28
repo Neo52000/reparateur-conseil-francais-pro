@@ -9,7 +9,7 @@ import SimplifiedBlurredSections from './SimplifiedBlurredSections';
 import BlurredProfileContent from './BlurredProfileContent';
 
 interface ClientSimplifiedProfileProps {
-  profile: RepairerProfile;
+  profile: any;
   onCallRepairer: () => void;
 }
 
