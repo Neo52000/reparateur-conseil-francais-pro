@@ -3,12 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Eye, Save, X } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Edit, Trash2, Eye, Save, X, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import RichTextEditor from './RichTextEditor';
+import AIGenerationModal from './AIGenerationModal';
 
 interface StaticPage {
   id: string;
@@ -155,6 +157,22 @@ const StaticPagesManager = () => {
     });
   };
 
+  const handleAIGeneration = (generatedContent: {
+    title: string;
+    meta_description: string;
+    content: string;
+    suggested_slug: string;
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      title: generatedContent.title,
+      content: generatedContent.content,
+      meta_description: generatedContent.meta_description,
+      slug: generatedContent.suggested_slug,
+      meta_title: generatedContent.title
+    }));
+  };
+
   const startCreating = () => {
     setIsCreating(true);
     setEditingPage(null);
@@ -169,10 +187,18 @@ const StaticPagesManager = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Gestion des Pages Statiques</h2>
-        <Button onClick={startCreating} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Nouvelle Page
-        </Button>
+        <div className="flex gap-2">
+          <AIGenerationModal onContentGenerated={handleAIGeneration}>
+            <Button variant="outline" className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              Générer avec l'IA
+            </Button>
+          </AIGenerationModal>
+          <Button onClick={startCreating} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Nouvelle Page
+          </Button>
+        </div>
       </div>
 
       {(isCreating || editingPage) && (
@@ -182,78 +208,134 @@ const StaticPagesManager = () => {
               {editingPage ? 'Modifier la page' : 'Créer une nouvelle page'}
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="slug">URL/Slug *</Label>
-                <Input
-                  id="slug"
-                  value={formData.slug}
-                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                  placeholder="mentions-legales"
-                />
-              </div>
-              <div>
-                <Label htmlFor="title">Titre *</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Mentions légales"
-                />
-              </div>
-            </div>
+          <CardContent>
+            <Tabs defaultValue="content" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="content">Contenu</TabsTrigger>
+                <TabsTrigger value="seo">SEO</TabsTrigger>
+                <TabsTrigger value="ai">IA</TabsTrigger>
+                <TabsTrigger value="preview">Aperçu</TabsTrigger>
+              </TabsList>
 
-            <div>
-              <Label htmlFor="content">Contenu *</Label>
-              <Textarea
-                id="content"
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                placeholder="Contenu HTML de la page..."
-                rows={10}
-              />
-            </div>
+              <TabsContent value="content" className="space-y-4 mt-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="slug">URL/Slug *</Label>
+                    <Input
+                      id="slug"
+                      value={formData.slug}
+                      onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                      placeholder="mentions-legales"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="title">Titre *</Label>
+                    <Input
+                      id="title"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      placeholder="Mentions légales"
+                    />
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="meta_title">Meta Title (SEO)</Label>
-                <Input
-                  id="meta_title"
-                  value={formData.meta_title}
-                  onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
-                  placeholder="Titre pour les moteurs de recherche"
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <Label>Contenu *</Label>
+                    <AIGenerationModal onContentGenerated={handleAIGeneration}>
+                      <Button variant="outline" size="sm" className="flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        Générer
+                      </Button>
+                    </AIGenerationModal>
+                  </div>
+                  <RichTextEditor
+                    content={formData.content}
+                    onChange={(content) => setFormData({ ...formData, content })}
+                    placeholder="Commencez à écrire le contenu de votre page..."
+                    height="500px"
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="seo" className="space-y-4 mt-6">
+                <div>
+                  <Label htmlFor="meta_title">Meta Title (SEO)</Label>
+                  <Input
+                    id="meta_title"
+                    value={formData.meta_title}
+                    onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
+                    placeholder="Titre pour les moteurs de recherche (max 60 caractères)"
+                    maxLength={60}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formData.meta_title.length}/60 caractères
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="meta_description">Meta Description (SEO)</Label>
+                  <Input
+                    id="meta_description"
+                    value={formData.meta_description}
+                    onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+                    placeholder="Description pour les moteurs de recherche (max 160 caractères)"
+                    maxLength={160}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formData.meta_description.length}/160 caractères
+                  </p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="ai" className="space-y-4 mt-6">
+                <div className="text-center py-8">
+                  <Sparkles className="h-12 w-12 text-primary mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Génération IA</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Utilisez l'intelligence artificielle pour générer du contenu optimisé pour votre page.
+                  </p>
+                  <AIGenerationModal onContentGenerated={handleAIGeneration}>
+                    <Button className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      Générer du contenu
+                    </Button>
+                  </AIGenerationModal>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="preview" className="mt-6">
+                <div className="border rounded-lg p-6 bg-background">
+                  <h1 className="text-2xl font-bold mb-4">{formData.title || 'Titre de la page'}</h1>
+                  <div 
+                    className="prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ 
+                      __html: formData.content || '<p>Aucun contenu à prévisualiser</p>' 
+                    }}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <div className="flex items-center justify-between pt-6 border-t">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_published"
+                  checked={formData.is_published}
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
                 />
+                <Label htmlFor="is_published">Page publiée</Label>
               </div>
-              <div>
-                <Label htmlFor="meta_description">Meta Description (SEO)</Label>
-                <Input
-                  id="meta_description"
-                  value={formData.meta_description}
-                  onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-                  placeholder="Description pour les moteurs de recherche"
-                />
+
+              <div className="flex gap-2">
+                <Button onClick={handleSave} className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
+                  Sauvegarder
+                </Button>
+                <Button variant="outline" onClick={handleCancel} className="flex items-center gap-2">
+                  <X className="h-4 w-4" />
+                  Annuler
+                </Button>
               </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is_published"
-                checked={formData.is_published}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
-              />
-              <Label htmlFor="is_published">Page publiée</Label>
-            </div>
-
-            <div className="flex gap-2">
-              <Button onClick={handleSave} className="flex items-center gap-2">
-                <Save className="h-4 w-4" />
-                Sauvegarder
-              </Button>
-              <Button variant="outline" onClick={handleCancel} className="flex items-center gap-2">
-                <X className="h-4 w-4" />
-                Annuler
-              </Button>
             </div>
           </CardContent>
         </Card>
