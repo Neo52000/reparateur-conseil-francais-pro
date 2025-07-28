@@ -1,163 +1,92 @@
+
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Trash2, Eye, Save, X, Sparkles } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { 
+  FileText, 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Save, 
+  Eye,
+  Sparkles,
+  Globe,
+  Search
+} from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
 import AIGenerationModal from './AIGenerationModal';
+import StaticPageSEO from './StaticPageSEO';
+import StaticPagePreview from './StaticPagePreview';
 
 interface StaticPage {
   id: string;
-  slug: string;
   title: string;
+  slug: string;
   content: string;
-  meta_title?: string;
-  meta_description?: string;
+  meta_title: string;
+  meta_description: string;
+  meta_keywords?: string;
   is_published: boolean;
   created_at: string;
   updated_at: string;
 }
 
-const StaticPagesManager = () => {
+const StaticPagesManager: React.FC = () => {
+  const { toast } = useToast();
   const [pages, setPages] = useState<StaticPage[]>([]);
+  const [selectedPage, setSelectedPage] = useState<StaticPage | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [editingPage, setEditingPage] = useState<StaticPage | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
-    slug: '',
     title: '',
+    slug: '',
     content: '',
     meta_title: '',
     meta_description: '',
+    meta_keywords: '',
     is_published: false
   });
 
+  // Charger les pages
   useEffect(() => {
-    loadPages();
+    fetchPages();
   }, []);
 
-  const loadPages = async () => {
+  const fetchPages = async () => {
     try {
-      const { data, error }: { data: any[], error: any } = await supabase
+      const { data, error } = await supabase
         .from('static_pages')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
       setPages(data || []);
     } catch (error) {
-      console.error('Erreur lors du chargement des pages:', error);
-      toast.error('Erreur lors du chargement des pages');
+      console.error('Erreur chargement pages:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les pages",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSave = async () => {
-    try {
-      if (!formData.slug || !formData.title || !formData.content) {
-        toast.error('Veuillez remplir tous les champs obligatoires');
-        return;
-      }
-
-      const pageData = {
-        slug: formData.slug.toLowerCase().replace(/\s+/g, '-'),
-        title: formData.title,
-        content: formData.content,
-        meta_title: formData.meta_title || null,
-        meta_description: formData.meta_description || null,
-        is_published: formData.is_published
-      };
-
-      if (editingPage) {
-        // Mise à jour
-        const { error } = await supabase
-          .from('static_pages')
-          .update(pageData)
-          .eq('id', editingPage.id);
-
-        if (error) throw error;
-        toast.success('Page mise à jour avec succès');
-      } else {
-        // Création
-        const { error } = await supabase
-          .from('static_pages')
-          .insert([pageData]);
-
-        if (error) throw error;
-        toast.success('Page créée avec succès');
-      }
-
-      setEditingPage(null);
-      setIsCreating(false);
-      resetForm();
-      loadPages();
-    } catch (error: any) {
-      console.error('Erreur lors de la sauvegarde:', error);
-      if (error.code === '23505') {
-        toast.error('Une page avec ce slug existe déjà');
-      } else {
-        toast.error('Erreur lors de la sauvegarde');
-      }
-    }
+  const handleFormChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  const handleEdit = (page: StaticPage) => {
-    setEditingPage(page);
-    setFormData({
-      slug: page.slug,
-      title: page.title,
-      content: page.content,
-      meta_title: page.meta_title || '',
-      meta_description: page.meta_description || '',
-      is_published: page.is_published
-    });
-    setIsCreating(false);
-  };
-
-  const handleDelete = async (pageId: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette page ?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('static_pages')
-        .delete()
-        .eq('id', pageId);
-
-      if (error) throw error;
-      toast.success('Page supprimée avec succès');
-      loadPages();
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-      toast.error('Erreur lors de la suppression');
-    }
-  };
-
-  const handleCancel = () => {
-    setEditingPage(null);
-    setIsCreating(false);
-    resetForm();
-  };
-
-  const resetForm = () => {
-    setFormData({
-      slug: '',
-      title: '',
-      content: '',
-      meta_title: '',
-      meta_description: '',
-      is_published: false
-    });
-  };
-
-  const handleAIGeneration = (generatedContent: {
+  const handleContentGenerated = (generatedContent: {
     title: string;
     meta_description: string;
     content: string;
@@ -166,247 +95,295 @@ const StaticPagesManager = () => {
     setFormData(prev => ({
       ...prev,
       title: generatedContent.title,
-      content: generatedContent.content,
+      meta_title: generatedContent.title,
       meta_description: generatedContent.meta_description,
-      slug: generatedContent.suggested_slug,
-      meta_title: generatedContent.title
+      content: generatedContent.content,
+      slug: prev.slug || generatedContent.suggested_slug
     }));
   };
 
-  const startCreating = () => {
-    setIsCreating(true);
-    setEditingPage(null);
-    resetForm();
+  const handleNewPage = () => {
+    setSelectedPage(null);
+    setFormData({
+      title: '',
+      slug: '',
+      content: '',
+      meta_title: '',
+      meta_description: '',
+      meta_keywords: '',
+      is_published: false
+    });
+    setIsEditing(true);
+  };
+
+  const handleEditPage = (page: StaticPage) => {
+    setSelectedPage(page);
+    setFormData({
+      title: page.title,
+      slug: page.slug,
+      content: page.content,
+      meta_title: page.meta_title,
+      meta_description: page.meta_description,
+      meta_keywords: page.meta_keywords || '',
+      is_published: page.is_published
+    });
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (!formData.title.trim() || !formData.slug.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Le titre et le slug sont obligatoires",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const pageData = {
+        title: formData.title,
+        slug: formData.slug,
+        content: formData.content,
+        meta_title: formData.meta_title || formData.title,
+        meta_description: formData.meta_description,
+        meta_keywords: formData.meta_keywords,
+        is_published: formData.is_published
+      };
+
+      let result;
+      if (selectedPage) {
+        // Mise à jour
+        result = await supabase
+          .from('static_pages')
+          .update(pageData)
+          .eq('id', selectedPage.id);
+      } else {
+        // Création
+        result = await supabase
+          .from('static_pages')
+          .insert([pageData]);
+      }
+
+      if (result.error) throw result.error;
+
+      toast({
+        title: "Succès",
+        description: selectedPage ? "Page mise à jour" : "Page créée",
+      });
+
+      fetchPages();
+      setIsEditing(false);
+      setSelectedPage(null);
+    } catch (error) {
+      console.error('Erreur sauvegarde:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder la page",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (page: StaticPage) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer la page "${page.title}" ?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('static_pages')
+        .delete()
+        .eq('id', page.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "Page supprimée",
+      });
+
+      fetchPages();
+      if (selectedPage?.id === page.id) {
+        setSelectedPage(null);
+        setIsEditing(false);
+      }
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer la page",
+        variant: "destructive"
+      });
+    }
   };
 
   if (loading) {
-    return <div className="flex justify-center p-8">Chargement...</div>;
+    return <div className="p-6">Chargement...</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Gestion des Pages Statiques</h2>
-        <div className="flex gap-2">
-          <AIGenerationModal onContentGenerated={handleAIGeneration}>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
-              Générer avec l'IA
-            </Button>
-          </AIGenerationModal>
-          <Button onClick={startCreating} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Nouvelle Page
-          </Button>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Pages statiques</h1>
+          <p className="text-muted-foreground">
+            Gérez le contenu des pages légales et institutionnelles
+          </p>
         </div>
+        <Button onClick={handleNewPage}>
+          <Plus className="w-4 h-4 mr-2" />
+          Nouvelle page
+        </Button>
       </div>
 
-      {(isCreating || editingPage) && (
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Liste des pages */}
+        <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle>
-              {editingPage ? 'Modifier la page' : 'Créer une nouvelle page'}
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Pages existantes ({pages.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="content" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="content">Contenu</TabsTrigger>
-                <TabsTrigger value="seo">SEO</TabsTrigger>
-                <TabsTrigger value="ai">IA</TabsTrigger>
-                <TabsTrigger value="preview">Aperçu</TabsTrigger>
-              </TabsList>
+            {pages.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>Aucune page créée</p>
+                <p className="text-sm">Créez votre première page</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {pages.map((page) => (
+                  <div
+                    key={page.id}
+                    className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                    onClick={() => handleEditPage(page)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate">{page.title}</h3>
+                        <p className="text-sm text-muted-foreground truncate">
+                          /{page.slug}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {page.is_published && (
+                          <div className="w-2 h-2 bg-green-500 rounded-full" />
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(page);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-              <TabsContent value="content" className="space-y-4 mt-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="slug">URL/Slug *</Label>
-                    <Input
-                      id="slug"
-                      value={formData.slug}
-                      onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                      placeholder="mentions-legales"
-                    />
+        {/* Éditeur */}
+        <Card className="lg:col-span-2">
+          <CardContent className="p-0">
+            {!isEditing ? (
+              <div className="p-6 text-center">
+                <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p className="text-muted-foreground mb-4">
+                  Sélectionnez une page à modifier ou créez-en une nouvelle
+                </p>
+                <Button onClick={handleNewPage}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Créer une nouvelle page
+                </Button>
+              </div>
+            ) : (
+              <Tabs defaultValue="content" className="h-full">
+                <div className="border-b px-6 py-3">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={formData.title}
+                        onChange={(e) => handleFormChange('title', e.target.value)}
+                        placeholder="Titre de la page"
+                        className="text-lg font-medium border-none px-0 h-auto focus-visible:ring-0"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <AIGenerationModal onContentGenerated={handleContentGenerated}>
+                        <Button variant="outline" size="sm">
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          IA
+                        </Button>
+                      </AIGenerationModal>
+                      <Button onClick={handleSave} disabled={saving}>
+                        <Save className="w-4 h-4 mr-2" />
+                        {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+                      </Button>
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="title">Titre *</Label>
-                    <Input
-                      id="title"
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      placeholder="Mentions légales"
-                    />
-                  </div>
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="content">Contenu</TabsTrigger>
+                    <TabsTrigger value="seo">SEO</TabsTrigger>
+                    <TabsTrigger value="ai">IA</TabsTrigger>
+                    <TabsTrigger value="preview">Aperçu</TabsTrigger>
+                  </TabsList>
                 </div>
 
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <Label>Contenu *</Label>
-                    <AIGenerationModal onContentGenerated={handleAIGeneration}>
-                      <Button variant="outline" size="sm" className="flex items-center gap-1">
-                        <Sparkles className="h-3 w-3" />
-                        Générer
+                <TabsContent value="content" className="m-0 p-6">
+                  <RichTextEditor
+                    content={formData.content}
+                    onChange={(content) => handleFormChange('content', content)}
+                    height="500px"
+                  />
+                </TabsContent>
+
+                <TabsContent value="seo" className="m-0 p-6">
+                  <StaticPageSEO
+                    formData={formData}
+                    onFormChange={handleFormChange}
+                  />
+                </TabsContent>
+
+                <TabsContent value="ai" className="m-0 p-6">
+                  <div className="text-center py-8">
+                    <Sparkles className="w-12 h-12 mx-auto mb-3 text-primary" />
+                    <h3 className="text-lg font-medium mb-2">Génération IA</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Utilisez l'IA pour générer du contenu professionnel
+                    </p>
+                    <AIGenerationModal onContentGenerated={handleContentGenerated}>
+                      <Button>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Générer du contenu
                       </Button>
                     </AIGenerationModal>
                   </div>
-                  <RichTextEditor
+                </TabsContent>
+
+                <TabsContent value="preview" className="m-0 p-6">
+                  <StaticPagePreview
+                    title={formData.meta_title || formData.title}
                     content={formData.content}
-                    onChange={(content) => setFormData({ ...formData, content })}
-                    placeholder="Commencez à écrire le contenu de votre page..."
-                    height="500px"
+                    metaDescription={formData.meta_description}
                   />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="seo" className="space-y-4 mt-6">
-                <div>
-                  <Label htmlFor="meta_title">Meta Title (SEO)</Label>
-                  <Input
-                    id="meta_title"
-                    value={formData.meta_title}
-                    onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
-                    placeholder="Titre pour les moteurs de recherche (max 60 caractères)"
-                    maxLength={60}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formData.meta_title.length}/60 caractères
-                  </p>
-                </div>
-                <div>
-                  <Label htmlFor="meta_description">Meta Description (SEO)</Label>
-                  <Input
-                    id="meta_description"
-                    value={formData.meta_description}
-                    onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-                    placeholder="Description pour les moteurs de recherche (max 160 caractères)"
-                    maxLength={160}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formData.meta_description.length}/160 caractères
-                  </p>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="ai" className="space-y-4 mt-6">
-                <div className="text-center py-8">
-                  <Sparkles className="h-12 w-12 text-primary mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Génération IA</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Utilisez l'intelligence artificielle pour générer du contenu optimisé pour votre page.
-                  </p>
-                  <AIGenerationModal onContentGenerated={handleAIGeneration}>
-                    <Button className="flex items-center gap-2">
-                      <Sparkles className="h-4 w-4" />
-                      Générer du contenu
-                    </Button>
-                  </AIGenerationModal>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="preview" className="mt-6">
-                <div className="border rounded-lg p-6 bg-background">
-                  <h1 className="text-2xl font-bold mb-4">{formData.title || 'Titre de la page'}</h1>
-                  <div 
-                    className="prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ 
-                      __html: formData.content || '<p>Aucun contenu à prévisualiser</p>' 
-                    }}
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
-
-            <div className="flex items-center justify-between pt-6 border-t">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="is_published"
-                  checked={formData.is_published}
-                  onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
-                />
-                <Label htmlFor="is_published">Page publiée</Label>
-              </div>
-
-              <div className="flex gap-2">
-                <Button onClick={handleSave} className="flex items-center gap-2">
-                  <Save className="h-4 w-4" />
-                  Sauvegarder
-                </Button>
-                <Button variant="outline" onClick={handleCancel} className="flex items-center gap-2">
-                  <X className="h-4 w-4" />
-                  Annuler
-                </Button>
-              </div>
-            </div>
+                </TabsContent>
+              </Tabs>
+            )}
           </CardContent>
         </Card>
-      )}
-
-      <div className="grid gap-4">
-        {pages.map((page) => (
-          <Card key={page.id}>
-            <CardContent className="pt-6">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold">{page.title}</h3>
-                    <Badge variant={page.is_published ? "default" : "secondary"}>
-                      {page.is_published ? "Publiée" : "Brouillon"}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    URL: /{page.slug}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Dernière modification: {new Date(page.updated_at).toLocaleDateString('fr-FR')}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  {page.is_published && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(`/${page.slug}`, '_blank')}
-                      className="flex items-center gap-1"
-                    >
-                      <Eye className="h-4 w-4" />
-                      Voir
-                    </Button>
-                  )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(page)}
-                    className="flex items-center gap-1"
-                  >
-                    <Edit className="h-4 w-4" />
-                    Modifier
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(page.id)}
-                    className="flex items-center gap-1 text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Supprimer
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
       </div>
-
-      {pages.length === 0 && (
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <p className="text-muted-foreground">Aucune page créée pour le moment.</p>
-            <Button onClick={startCreating} className="mt-4">
-              Créer la première page
-            </Button>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
