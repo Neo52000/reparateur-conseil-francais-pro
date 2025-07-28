@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import AdminPage from "./pages/AdminPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
+import RepairerProfilePage from "./pages/RepairerProfilePage";
 import RepairerPlans from "./pages/RepairerPlans";
 import ServiceRepairPage from "./pages/services/ServiceRepairPage";
 import LocalSeoPage from "./pages/LocalSeoPage";

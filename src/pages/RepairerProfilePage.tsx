@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { RepairerProfile } from '@/types/repairerProfile';
 import { Repairer } from '@/types/repairer';
 import { useToast } from '@/hooks/use-toast';
+import { useProfileAnalytics } from '@/hooks/analytics/useProfileAnalytics';
 
 // Components
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,9 +36,10 @@ const RepairerProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { trackProfileView, trackClaimClick, trackContactClick } = useProfileAnalytics();
   
-  const [profile, setProfile] = useState<RepairerProfile | null>(null);
-  const [repairer, setRepairer] = useState<Repairer | null>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [repairer, setRepairer] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isClaimed, setIsClaimed] = useState(false);
 
@@ -68,52 +70,48 @@ const RepairerProfilePage: React.FC = () => {
         return;
       }
 
-      setRepairer(repairerData as Repairer);
+      setRepairer(repairerData);
 
-      // Check if repairer has claimed profile
-      try {
-        const { data: profileData } = await supabase
-          .from('repairer_profiles')
-          .select('*')
-          .eq('repairer_id', repairerId)
-          .single();
-        
-        if (profileData) {
-          setProfile(profileData as any);
-          setIsClaimed(true);
-        }
-      } catch (profileError) {
-        // Create basic profile from repairer data
-        const basicProfile = {
-          id: repairerData.id,
-          repairer_id: repairerId,
-          business_name: repairerData.name,
-          siret_number: null,
-          description: null,
-          address: repairerData.address,
-          city: repairerData.city,
-          postal_code: repairerData.postal_code,
-          phone: repairerData.phone || '',
-          email: repairerData.email || '',
-          website: repairerData.website || null,
-          facebook_url: null,
-          instagram_url: null,
-          linkedin_url: null,
-          twitter_url: null,
-          whatsapp_url: null,
-          telegram_url: null,
-          tiktok_url: null,
-          has_qualirepar_label: false,
-          repair_types: repairerData.services || [],
-          profile_image_url: null,
-          geo_lat: repairerData.lat,
-          geo_lng: repairerData.lng,
-          created_at: repairerData.created_at,
-          updated_at: repairerData.updated_at
-        };
-        
-        setProfile(basicProfile as any);
-        setIsClaimed(false);
+      // Create basic profile from repairer data (skip complex Supabase query for now)
+      const basicProfile = {
+        id: repairerData.id,
+        repairer_id: repairerId,
+        business_name: repairerData.name || 'Réparateur',
+        siret_number: null,
+        description: null,
+        address: repairerData.address || '',
+        city: repairerData.city || '',
+        postal_code: repairerData.postal_code || '',
+        phone: repairerData.phone || '',
+        email: repairerData.email || '',
+        website: repairerData.website || null,
+        facebook_url: null,
+        instagram_url: null,
+        linkedin_url: null,
+        twitter_url: null,
+        whatsapp_url: null,
+        telegram_url: null,
+        tiktok_url: null,
+        has_qualirepar_label: false,
+        repair_types: repairerData.services || [],
+        profile_image_url: null,
+        geo_lat: repairerData.lat,
+        geo_lng: repairerData.lng,
+        created_at: repairerData.created_at || new Date().toISOString(),
+        updated_at: repairerData.updated_at || new Date().toISOString()
+      };
+      
+      setProfile(basicProfile);
+      setIsClaimed(false);
+      
+      // Track profile view
+      if (repairerId) {
+        trackProfileView({
+          repairerId,
+          profileView: true,
+          userAgent: navigator.userAgent,
+          referrer: document.referrer
+        });
       }
     } catch (error) {
       console.error('Error in fetchProfileData:', error);
@@ -128,6 +126,10 @@ const RepairerProfilePage: React.FC = () => {
   };
 
   const handleCallRepairer = () => {
+    if (profile?.repairer_id) {
+      trackContactClick(profile.repairer_id, 'phone');
+    }
+    
     if (isClaimed && profile?.phone) {
       window.open(`tel:${profile.phone}`, '_self');
     } else {
@@ -137,6 +139,9 @@ const RepairerProfilePage: React.FC = () => {
   };
 
   const handleClaimProfile = () => {
+    if (profile?.repairer_id) {
+      trackClaimClick(profile.repairer_id);
+    }
     navigate('/repairer/auth');
   };
 

@@ -1,72 +1,85 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ExternalLink, Building, Shield, Star, Eye } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Shield, Phone, Mail, CheckCircle } from 'lucide-react';
 
 interface EnhancedClaimBannerProps {
   businessName: string;
-  className?: string;
 }
 
-const EnhancedClaimBanner: React.FC<EnhancedClaimBannerProps> = ({ 
-  businessName, 
-  className = "" 
+const EnhancedClaimBanner: React.FC<EnhancedClaimBannerProps> = ({
+  businessName
 }) => {
+  const handleClaimProfile = () => {
+    window.open('tel:+33745062162', '_self');
+  };
+
+  const handleEmailContact = () => {
+    const subject = encodeURIComponent(`Revendication de fiche - ${businessName}`);
+    const body = encodeURIComponent(
+      `Bonjour,\n\nJe souhaite revendiquer la fiche de mon entreprise "${businessName}" sur votre plateforme.\n\nMerci de me contacter pour procéder à la vérification.\n\nCordialement.`
+    );
+    window.open(`mailto:contact@irreparable.fr?subject=${subject}&body=${body}`, '_self');
+  };
+
   return (
-    <Card className={`border-orange-200 bg-gradient-to-br from-orange-50 to-blue-50 ${className}`}>
+    <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
       <CardContent className="p-6">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
-          {/* Icon section */}
-          <div className="flex-shrink-0">
-            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
-              <Building className="h-8 w-8 text-orange-600" />
+        <div className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 bg-blue-100 rounded-full">
+              <Shield className="h-8 w-8 text-blue-600" />
             </div>
           </div>
           
-          {/* Content section */}
-          <div className="flex-1">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              Vous êtes le propriétaire de <span className="text-orange-600">{businessName}</span> ?
-            </h3>
-            <p className="text-gray-700 text-sm leading-relaxed mb-4">
-              Cette fiche a été créée automatiquement. Revendiquez-la pour bénéficier de fonctionnalités 
-              premium et contrôler les informations affichées à vos clients.
-            </p>
-            
-            {/* Benefits grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Shield className="h-4 w-4 text-green-600" />
-                <span>Informations vérifiées</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Star className="h-4 w-4 text-yellow-600" />
-                <span>Gestion des avis</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Eye className="h-4 w-4 text-blue-600" />
-                <span>Visibilité améliorée</span>
-              </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Vous êtes le propriétaire de {businessName} ?
+          </h2>
+          
+          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+            Revendiquez votre fiche pour débloquer toutes les fonctionnalités : 
+            gestion complète de votre profil, photos, horaires détaillés, et bien plus !
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Profil vérifié</span>
             </div>
-            
-            <div className="text-xs text-gray-500">
-              ✨ Plans à partir de 9,90€/mois • Sans engagement • Essai gratuit 14 jours
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Gestion des horaires</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <CheckCircle className="h-4 w-4 text-green-500" />
+              <span>Photos & services</span>
             </div>
           </div>
           
-          {/* CTA section */}
-          <div className="flex-shrink-0">
-            <Link to="/repairer/auth">
-              <Button 
-                className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 text-sm font-semibold whitespace-nowrap shadow-lg"
-                size="lg"
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Revendiquer ma fiche
-              </Button>
-            </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button 
+              onClick={handleClaimProfile}
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+            >
+              <Phone className="h-4 w-4 mr-2" />
+              Appeler pour revendiquer
+            </Button>
+            
+            <Button 
+              onClick={handleEmailContact}
+              variant="outline"
+              size="lg"
+              className="border-blue-300 text-blue-700 hover:bg-blue-50 px-8"
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              Contacter par email
+            </Button>
           </div>
+          
+          <p className="text-xs text-gray-500 mt-4">
+            Processus de vérification rapide • Gratuit • Support dédié
+          </p>
         </div>
       </CardContent>
     </Card>
