@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Carousel,
   CarouselContent,
@@ -26,6 +27,7 @@ const RepairersCarousel: React.FC<RepairersCarouselProps> = ({
   onCall,
   searchFilters // Paramètre ignoré maintenant
 }) => {
+  const navigate = useNavigate();
   // Utiliser le hook des réparateurs prioritaires au lieu des filtres
   const { repairers, loading } = usePriorityRepairers(20);
 
@@ -126,7 +128,7 @@ const RepairersCarousel: React.FC<RepairersCarouselProps> = ({
 
                     <div className="flex gap-2 mt-auto">
                       <Button 
-                        onClick={() => onViewProfile(repairer)}
+                        onClick={() => navigate(`/repairer/${repairer.id}`)}
                         className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
                         size="sm"
                       >

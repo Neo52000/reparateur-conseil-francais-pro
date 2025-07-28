@@ -1,3 +1,4 @@
+import TestRepairerProfileButton from '@/components/TestRepairerProfileButton';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
@@ -179,6 +180,9 @@ const Index = () => {
           repairerId={selectedRepairerForProfile}
         />
       )}
+
+      {/* Test button for profile pages */}
+      <TestRepairerProfileButton />
     </div>
   );
   } catch (error) {
