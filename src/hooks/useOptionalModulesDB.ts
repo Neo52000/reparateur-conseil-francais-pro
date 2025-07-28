@@ -37,15 +37,13 @@ export const useOptionalModulesDB = () => {
 
       if (error) throw error;
 
-      // Transformer les données en ajoutant les propriétés manquantes
+      // Transformer les données pour s'assurer du bon format
       const transformedData = (data || []).map(item => ({
         ...item,
-        module_name: item.module_id || 'Module sans nom',
-        description: 'Module configuré dynamiquement',
-        icon: 'Settings',
-        category: 'Autre',
-        features: ['Fonctionnalité configurée'],
-        color: '#6b7280',
+        // S'assurer que les features sont un array
+        features: Array.isArray(item.features) ? item.features : 
+                 typeof item.features === 'string' ? JSON.parse(item.features) : [],
+        // S'assurer que les available_plans sont un array
         available_plans: Array.isArray(item.available_plans) ? item.available_plans :
                         typeof item.available_plans === 'string' ? JSON.parse(item.available_plans) : []
       }));

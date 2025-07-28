@@ -4775,31 +4775,49 @@ export type Database = {
       }
       optional_modules_config: {
         Row: {
-          available_plans: string[]
+          available_plans: Json
+          category: string | null
+          color: string | null
           created_at: string
+          description: string | null
+          features: Json | null
+          icon: string | null
           id: string
           is_active: boolean
           module_id: string
+          module_name: string | null
           pricing_monthly: number
           pricing_yearly: number
           updated_at: string
         }
         Insert: {
-          available_plans?: string[]
+          available_plans?: Json
+          category?: string | null
+          color?: string | null
           created_at?: string
+          description?: string | null
+          features?: Json | null
+          icon?: string | null
           id?: string
           is_active?: boolean
           module_id: string
+          module_name?: string | null
           pricing_monthly?: number
           pricing_yearly?: number
           updated_at?: string
         }
         Update: {
-          available_plans?: string[]
+          available_plans?: Json
+          category?: string | null
+          color?: string | null
           created_at?: string
+          description?: string | null
+          features?: Json | null
+          icon?: string | null
           id?: string
           is_active?: boolean
           module_id?: string
+          module_name?: string | null
           pricing_monthly?: number
           pricing_yearly?: number
           updated_at?: string
