@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Trash2, Edit, Plus, Package } from "lucide-react";
+import { Trash2, Edit, Plus, Package, RefreshCw } from "lucide-react";
 import { useOptionalModulesDB, OptionalModuleDB } from "@/hooks/useOptionalModulesDB";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,7 +24,7 @@ const AVAILABLE_COLORS = [
 const AVAILABLE_PLANS = ['basic', 'premium', 'enterprise'];
 
 export default function OptionalModulesManagerDB() {
-  const { modules, loading, saving, toggleModule, updateModule, createModule, deleteModule } = useOptionalModulesDB();
+  const { modules, loading, saving, toggleModule, updateModule, createModule, deleteModule, syncModules } = useOptionalModulesDB();
   const [editingModule, setEditingModule] = useState<OptionalModuleDB | null>(null);
   const [isCreateMode, setIsCreateMode] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -141,10 +141,21 @@ export default function OptionalModulesManagerDB() {
             Configurez les modules optionnels disponibles pour chaque plan d'abonnement.
           </p>
         </div>
-        <Button onClick={handleCreate} className="bg-electric-blue hover:bg-electric-blue/90">
-          <Plus className="h-4 w-4 mr-2" />
-          Nouveau Module
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            onClick={syncModules} 
+            variant="outline" 
+            disabled={saving}
+            className="border-electric-blue text-electric-blue hover:bg-electric-blue/10"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${saving ? 'animate-spin' : ''}`} />
+            Synchroniser
+          </Button>
+          <Button onClick={handleCreate} className="bg-electric-blue hover:bg-electric-blue/90">
+            <Plus className="h-4 w-4 mr-2" />
+            Nouveau Module
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

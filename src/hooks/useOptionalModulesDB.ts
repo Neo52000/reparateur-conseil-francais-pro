@@ -217,6 +217,28 @@ export const useOptionalModulesDB = () => {
     loadModules();
   }, []);
 
+  // Synchronisation manuelle des modules prédéfinis
+  const syncModules = async () => {
+    try {
+      setSaving(true);
+      await syncPredefinedModules();
+      await loadModules();
+      toast({
+        title: "Succès",
+        description: "Modules synchronisés avec succès"
+      });
+    } catch (error) {
+      console.error('Erreur lors de la synchronisation:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de synchroniser les modules",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return {
     modules,
     loading,
@@ -229,6 +251,7 @@ export const useOptionalModulesDB = () => {
     deleteModule,
     getModulesForPlan,
     isModuleAvailableForPlan,
+    syncModules,
     reload: loadModules
   };
 };
