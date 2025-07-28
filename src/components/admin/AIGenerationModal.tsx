@@ -59,38 +59,58 @@ const AIGenerationModal: React.FC<AIGenerationModalProps> = ({
       });
 
       if (error) {
-        // Si l'edge function n'est pas encore déployée
-        if (error.message?.includes('Failed to send a request to the Edge Function') || 
-            error.message?.includes('Failed to fetch')) {
+        console.error('Edge function error:', error);
+        
+        // Messages plus spécifiques selon le type d'erreur
+        if (error.message?.includes('Failed to send a request to the Edge Function')) {
           toast({
             title: "Service en cours de déploiement",
-            description: "La fonction IA est en cours de déploiement. Veuillez réessayer dans quelques minutes.",
+            description: "L'IA est en cours de déploiement. Réessayez dans 2-3 minutes après le prochain build.",
             variant: "destructive"
           });
-          return;
+        } else if (error.message?.includes('Missing API key')) {
+          toast({
+            title: "Configuration requise",
+            description: "Les clés API IA doivent être configurées. Contactez l'administrateur.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Erreur du service IA",
+            description: error.message || "Service temporairement indisponible",
+            variant: "destructive"
+          });
         }
-        throw error;
+        return;
       }
 
-      if (data.success) {
+      if (data?.success) {
         onContentGenerated(data.content);
         setOpen(false);
         toast({
           title: "Contenu généré",
-          description: `Page "${data.content.title}" générée avec ${data.metadata.model_used}`,
+          description: `Page "${data.content.title}" générée avec ${data.metadata?.model_used || 'IA'}`,
+        });
+        
+        // Reset form
+        setFormData({
+          pageType: 'service',
+          topic: '',
+          customPrompt: '',
+          targetAudience: '',
+          seoFocus: ''
         });
       } else {
-        throw new Error(data.error || 'Erreur de génération');
+        throw new Error(data?.error || 'Erreur de génération');
       }
     } catch (error) {
       console.error('Erreur génération IA:', error);
       
-      // Gestion spéciale pour l'edge function non déployée
-      if (error.message?.includes('Failed to send a request to the Edge Function') || 
-          error.message?.includes('Failed to fetch')) {
+      // Gestion globale des erreurs réseau
+      if (error.message?.includes('Failed to fetch') || error.message?.includes('Network')) {
         toast({
-          title: "Service en cours de déploiement",
-          description: "La fonction IA est en cours de déploiement. Veuillez réessayer dans quelques minutes.",
+          title: "Problème de connexion",
+          description: "Vérifiez votre connexion et réessayez.",
           variant: "destructive"
         });
       } else {
