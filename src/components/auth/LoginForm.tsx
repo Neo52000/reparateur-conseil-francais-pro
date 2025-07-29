@@ -62,8 +62,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         } else {
           // Attendre un peu pour que l'auth state se mette à jour
           setTimeout(() => {
-            console.log('🔄 Redirecting to repairer space...');
-            navigate('/repairer', { replace: true });
+            console.log('🔄 Redirecting to repairer plans...');
+            navigate('/repairer/plans', { replace: true });
           }, 500);
         }
       }
