@@ -88,6 +88,51 @@ const RepairerPlans = () => {
         {/* Dynamic Pricing Section */}
         <DynamicPricingSection onSelectPlan={handleSelectPlan} />
 
+        {/* Resources Section */}
+        <section className="py-24 bg-muted/30">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-3xl font-bold mb-8">Découvrez nos ressources</h2>
+            <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <div className="group">
+                <div className="bg-background rounded-lg p-6 shadow-sm border hover:shadow-md transition-shadow">
+                  <h3 className="text-xl font-semibold mb-3">Témoignages</h3>
+                  <p className="text-muted-foreground mb-4">Découvrez ce que nos réparateurs disent de nos solutions</p>
+                  <a 
+                    href="/repairer/temoignages" 
+                    className="inline-flex items-center text-primary hover:text-primary/80 font-medium"
+                  >
+                    Voir les témoignages →
+                  </a>
+                </div>
+              </div>
+              <div className="group">
+                <div className="bg-background rounded-lg p-6 shadow-sm border hover:shadow-md transition-shadow">
+                  <h3 className="text-xl font-semibold mb-3">FAQ</h3>
+                  <p className="text-muted-foreground mb-4">Trouvez des réponses à toutes vos questions</p>
+                  <a 
+                    href="/repairer/faq" 
+                    className="inline-flex items-center text-primary hover:text-primary/80 font-medium"
+                  >
+                    Consulter la FAQ →
+                  </a>
+                </div>
+              </div>
+              <div className="group">
+                <div className="bg-background rounded-lg p-6 shadow-sm border hover:shadow-md transition-shadow">
+                  <h3 className="text-xl font-semibold mb-3">Démo</h3>
+                  <p className="text-muted-foreground mb-4">Réservez une démonstration personnalisée</p>
+                  <a 
+                    href="/repairer/demo" 
+                    className="inline-flex items-center text-primary hover:text-primary/80 font-medium"
+                  >
+                    Réserver une démo →
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Simple FAQ */}
         <SimpleFAQ />
 
