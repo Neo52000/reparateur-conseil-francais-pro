@@ -25,7 +25,7 @@ const RepairerAuthPage = () => {
             
 
             {/* Formulaire d'inscription */}
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-col justify-center mx-[50px] px-[5px]">
               <RepairerAuthForm />
               
               <div className="mt-6 text-center text-sm text-gray-600">
