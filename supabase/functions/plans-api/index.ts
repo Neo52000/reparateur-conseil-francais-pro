@@ -32,8 +32,7 @@ Deno.serve(async (req) => {
     // Fetch plans from database
     const { data: planData, error: planError } = await supabase
       .from('subscription_plans')
-      .select('*')
-      .order('price_monthly');
+      .select('*');
 
     if (planError) {
       console.error('Error fetching plans:', planError);
@@ -90,7 +89,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Format plans for frontend
+    // Format plans for frontend et ordre spécifique
+    const planOrder = ['gratuit', 'visibilite', 'pro', 'premium'];
     const formattedPlans: Plan[] = (plans || []).map(plan => ({
       id: plan.id,
       name: plan.name,
@@ -101,6 +101,13 @@ Deno.serve(async (req) => {
       badge: plan.promo ? 'Promo en cours' : undefined,
       recommended: plan.recommended || false
     }));
+
+    // Trier selon l'ordre défini
+    formattedPlans.sort((a, b) => {
+      const indexA = planOrder.indexOf(a.name.toLowerCase());
+      const indexB = planOrder.indexOf(b.name.toLowerCase());
+      return indexA - indexB;
+    });
 
     console.log(`Successfully fetched ${formattedPlans.length} plans`);
 
