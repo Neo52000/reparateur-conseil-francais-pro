@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
         price_yearly: plan.price_yearly,
         features: features,
         promo: plan.has_promo || false,
-        recommended: plan.is_recommended || false
+        recommended: plan.name.toLowerCase() === 'pro' || plan.is_recommended || false
       });
     }
 
