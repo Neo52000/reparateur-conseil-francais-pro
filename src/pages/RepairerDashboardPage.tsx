@@ -25,7 +25,7 @@ const RepairerDashboardPage = () => {
     
     if (!user) {
       console.log('❌ RepairerDashboardPage - No user, redirecting to auth');
-      navigate('/repairer/auth');
+      navigate('/repairer-auth');
       return;
     }
 
