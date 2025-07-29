@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
     }
 
     // Format plans for frontend et ordre spécifique
-    const planOrder = ['gratuit', 'visibilite', 'pro', 'premium'];
+    const planOrder = ['Gratuit', 'Visibilité', 'Pro', 'Premium'];
     const formattedPlans: Plan[] = (plans || []).map(plan => ({
       id: plan.id,
       name: plan.name,
@@ -105,10 +105,10 @@ Deno.serve(async (req) => {
     }));
 
     // Trier selon l'ordre défini
-    console.log('Plans before sorting:', formattedPlans.map(p => ({ name: p.name, lower: p.name.toLowerCase() })));
+    console.log('Plans before sorting:', formattedPlans.map(p => ({ name: p.name })));
     formattedPlans.sort((a, b) => {
-      const indexA = planOrder.indexOf(a.name.toLowerCase());
-      const indexB = planOrder.indexOf(b.name.toLowerCase());
+      const indexA = planOrder.indexOf(a.name);
+      const indexB = planOrder.indexOf(b.name);
       console.log(`Sorting ${a.name} (index: ${indexA}) vs ${b.name} (index: ${indexB})`);
       return indexA - indexB;
     });
