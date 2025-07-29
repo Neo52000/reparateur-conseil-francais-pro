@@ -14,16 +14,16 @@ import { Users, Save } from 'lucide-react';
 const ClientAccessControl = () => {
   const { getFlag, handleToggleFlag, handleSave, saving } = useFeatureFlags();
 
-  // Vérifier l'état du flag pour le plan "Enterprise" (plan le plus élevé)
-  const clientAccessFlag = getFlag("Enterprise", "client_access_enabled");
+  // Vérifier l'état du flag pour le plan "Premium" (plan le plus élevé)
+  const clientAccessFlag = getFlag("Premium", "client_access_enabled");
   const isClientAccessEnabled = clientAccessFlag?.enabled || false;
 
   const handleToggle = (enabled: boolean) => {
     // Activer/désactiver pour tous les plans
     handleToggleFlag("Gratuit", "client_access_enabled", enabled);
-    handleToggleFlag("Basique", "client_access_enabled", enabled);
+    handleToggleFlag("Visibilité", "client_access_enabled", enabled);
+    handleToggleFlag("Pro", "client_access_enabled", enabled);
     handleToggleFlag("Premium", "client_access_enabled", enabled);
-    handleToggleFlag("Enterprise", "client_access_enabled", enabled);
   };
 
   return (

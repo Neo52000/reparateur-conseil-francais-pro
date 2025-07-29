@@ -4,7 +4,7 @@ import { PlanName, Feature } from "@/types/featureFlags";
 /**
  * Plans d'abonnement disponibles dans l'ordre de montée en gamme
  */
-export const PLANS: PlanName[] = ["Gratuit", "Basique", "Premium", "Enterprise"];
+export const PLANS: PlanName[] = ["Gratuit", "Visibilité", "Pro", "Premium"];
 
 /**
  * Toutes les fonctionnalités disponibles organisées par catégorie

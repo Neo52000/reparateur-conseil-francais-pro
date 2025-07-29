@@ -6,7 +6,7 @@
 /**
  * Types de plans d'abonnement disponibles
  */
-export type PlanName = "Gratuit" | "Basique" | "Premium" | "Enterprise";
+export type PlanName = "Gratuit" | "Visibilité" | "Pro" | "Premium";
 
 /**
  * Structure pour une fonctionnalité avec sa clé et son nom d'affichage
