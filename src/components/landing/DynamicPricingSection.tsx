@@ -36,7 +36,13 @@ const DynamicPricingSection: React.FC<DynamicPricingSectionProps> = ({ onSelectP
       if (error) throw error;
       
       if (data?.success && data?.plans) {
-        setPlans(data.plans);
+        // Les plans arrivent déjà triés par prix croissant depuis l'API
+        // Marquer le plan "pro" comme recommandé
+        const plansWithRecommended = data.plans.map((plan: Plan) => ({
+          ...plan,
+          recommended: plan.name.toLowerCase() === 'pro'
+        }));
+        setPlans(plansWithRecommended);
       }
     } catch (error) {
       console.error('Error fetching plans:', error);
@@ -108,7 +114,7 @@ const DynamicPricingSection: React.FC<DynamicPricingSectionProps> = ({ onSelectP
         </div>
 
         <div className="flex justify-center">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl w-full justify-items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl w-full justify-items-center">
           {plans.map((plan) => {
             const price = getPrice(plan);
             const savings = getSavings(plan);

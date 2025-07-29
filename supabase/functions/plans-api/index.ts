@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     const { data: planData, error: planError } = await supabase
       .from('subscription_plans')
       .select('*')
-      .order('display_order');
+      .order('price_monthly');
 
     if (planError) {
       console.error('Error fetching plans:', planError);
