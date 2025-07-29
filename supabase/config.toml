@@ -1,6 +1,9 @@
 
 project_id = "nbugpbakfkyvvjzgfjmw"
 
+[functions.plans-api]
+verify_jwt = false
+
 [functions.create-subscription]
 verify_jwt = false
 

@@ -12,6 +12,9 @@ import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
 import RepairerProfilePage from "./pages/RepairerProfilePage";
 import RepairerPlans from "./pages/RepairerPlans";
+import RepairerTestimonials from "./pages/RepairerTestimonials";
+import RepairerFAQ from "./pages/RepairerFAQ";
+import RepairerDemo from "./pages/RepairerDemo";
 import ServiceRepairPage from "./pages/services/ServiceRepairPage";
 import LocalSeoPage from "./pages/LocalSeoPage";
 import RepairerSettingsPage from "./pages/RepairerSettingsPage";
@@ -56,6 +59,9 @@ const AppWithTracking = () => {
         <Route path="/client-auth" element={<ClientAuthPage />} />
         <Route path="/repairer" element={<RepairerDashboardPage />} />
         <Route path="/repairer/plans" element={<RepairerPlans />} />
+        <Route path="/repairer/temoignages" element={<RepairerTestimonials />} />
+        <Route path="/repairer/faq" element={<RepairerFAQ />} />
+        <Route path="/repairer/demo" element={<RepairerDemo />} />
             <Route path="/repairer/:id" element={<RepairerProfilePage />} />
             <Route path="/repairer/:id/:slug" element={<RepairerProfilePage />} />
         <Route path="/client" element={<ClientDashboardPage />} />
