@@ -147,10 +147,9 @@ const ElectronicSignature: React.FC<ElectronicSignatureProps> = ({
         clientAddress: clientInfo.address
       };
 
-      // Sauvegarder la signature dans Supabase
-      const { error: signatureError } = await supabase
-        .from('electronic_signatures')
-        .insert({
+      // Sauvegarder la signature via edge function pour éviter les problèmes de types
+      const { error: signatureError } = await supabase.functions.invoke('save-electronic-signature', {
+        body: {
           quote_id: quoteId,
           signature_data_url: signatureDataUrl,
           client_name: clientInfo.name,
@@ -161,7 +160,8 @@ const ElectronicSignature: React.FC<ElectronicSignatureProps> = ({
           ip_address: signature.ipAddress,
           user_agent: signature.userAgent,
           verification_hash: btoa(signatureDataUrl + signature.signedAt)
-        });
+        }
+      });
 
       if (signatureError) throw signatureError;
 

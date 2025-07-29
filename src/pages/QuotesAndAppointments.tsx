@@ -7,6 +7,7 @@ import ChatInterface from '@/components/ChatInterface';
 import RepairTracking from '@/components/RepairTracking';
 import PriceComparator from '@/components/PriceComparator';
 import AdvancedSearch from '@/components/AdvancedSearch';
+import QuoteManagement from '@/components/quotes/QuoteManagement';
 
 const QuotesAndAppointments = () => {
   const [selectedQuoteId, setSelectedQuoteId] = useState<string>('');
@@ -23,18 +24,23 @@ const QuotesAndAppointments = () => {
         </div>
 
         <Tabs defaultValue="quote" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="quote">Demander un devis</TabsTrigger>
-            <TabsTrigger value="appointment">Prendre RDV</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-8 text-xs">
+            <TabsTrigger value="quote">Devis Simple</TabsTrigger>
+            <TabsTrigger value="ai-quote">Devis IA</TabsTrigger>
+            <TabsTrigger value="appointment">RDV</TabsTrigger>
             <TabsTrigger value="pricing">Tarifs</TabsTrigger>
             <TabsTrigger value="comparator">Comparateur</TabsTrigger>
-            <TabsTrigger value="search">Recherche avancée</TabsTrigger>
+            <TabsTrigger value="search">Recherche</TabsTrigger>
             <TabsTrigger value="chat">Chat</TabsTrigger>
             <TabsTrigger value="tracking">Suivi</TabsTrigger>
           </TabsList>
 
           <TabsContent value="quote">
             <QuoteForm onSuccess={() => console.log('Quote created')} />
+          </TabsContent>
+
+          <TabsContent value="ai-quote">
+            <QuoteManagement repairerId="demo-repairer" />
           </TabsContent>
 
           <TabsContent value="appointment">

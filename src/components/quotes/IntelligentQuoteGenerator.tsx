@@ -146,6 +146,7 @@ const IntelligentQuoteGenerator: React.FC<QuoteGeneratorProps> = ({ repairerId, 
 
       const quoteData = {
         repairer_id: repairerId,
+        client_email: 'system@generated.com', // Placeholder pour devis IA
         device_brand: deviceInfo.brand,
         device_model: deviceInfo.model,
         device_type: deviceInfo.type,

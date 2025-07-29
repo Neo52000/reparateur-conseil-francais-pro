@@ -747,6 +747,108 @@ export type Database = {
           },
         ]
       }
+      ai_quote_analyses: {
+        Row: {
+          ai_model: string | null
+          ai_reasoning: string | null
+          alternative_solutions: Json | null
+          confidence_score: number | null
+          created_at: string
+          device_info: Json
+          id: string
+          processing_time_ms: number | null
+          quote_id: string | null
+          suggested_price: number | null
+        }
+        Insert: {
+          ai_model?: string | null
+          ai_reasoning?: string | null
+          alternative_solutions?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          device_info: Json
+          id?: string
+          processing_time_ms?: number | null
+          quote_id?: string | null
+          suggested_price?: number | null
+        }
+        Update: {
+          ai_model?: string | null
+          ai_reasoning?: string | null
+          alternative_solutions?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          device_info?: Json
+          id?: string
+          processing_time_ms?: number | null
+          quote_id?: string | null
+          suggested_price?: number | null
+        }
+        Relationships: []
+      }
+      ai_quote_templates: {
+        Row: {
+          ai_confidence: number | null
+          base_price: number
+          brand: string
+          created_at: string
+          device_type: string
+          difficulty_level: string
+          estimated_duration_minutes: number
+          id: string
+          is_active: boolean
+          labor_cost: number
+          parts_cost: number
+          performance_score: number | null
+          repair_type: string
+          repairer_id: string
+          success_rate: number | null
+          updated_at: string
+          usage_count: number | null
+          warranty_days: number | null
+        }
+        Insert: {
+          ai_confidence?: number | null
+          base_price: number
+          brand: string
+          created_at?: string
+          device_type: string
+          difficulty_level: string
+          estimated_duration_minutes: number
+          id?: string
+          is_active?: boolean
+          labor_cost: number
+          parts_cost: number
+          performance_score?: number | null
+          repair_type: string
+          repairer_id: string
+          success_rate?: number | null
+          updated_at?: string
+          usage_count?: number | null
+          warranty_days?: number | null
+        }
+        Update: {
+          ai_confidence?: number | null
+          base_price?: number
+          brand?: string
+          created_at?: string
+          device_type?: string
+          difficulty_level?: string
+          estimated_duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          labor_cost?: number
+          parts_cost?: number
+          performance_score?: number | null
+          repair_type?: string
+          repairer_id?: string
+          success_rate?: number | null
+          updated_at?: string
+          usage_count?: number | null
+          warranty_days?: number | null
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string | null
@@ -3245,6 +3347,57 @@ export type Database = {
           id?: string
           is_enabled?: boolean
           updated_at?: string
+        }
+        Relationships: []
+      }
+      electronic_signatures: {
+        Row: {
+          client_address: string | null
+          client_email: string
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          is_valid: boolean
+          quote_id: string
+          signature_data_url: string
+          signed_at: string
+          updated_at: string
+          user_agent: string | null
+          verification_hash: string
+        }
+        Insert: {
+          client_address?: string | null
+          client_email: string
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          is_valid?: boolean
+          quote_id: string
+          signature_data_url: string
+          signed_at: string
+          updated_at?: string
+          user_agent?: string | null
+          verification_hash: string
+        }
+        Update: {
+          client_address?: string | null
+          client_email?: string
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          is_valid?: boolean
+          quote_id?: string
+          signature_data_url?: string
+          signed_at?: string
+          updated_at?: string
+          user_agent?: string | null
+          verification_hash?: string
         }
         Relationships: []
       }
@@ -6693,18 +6846,24 @@ export type Database = {
       quotes_with_timeline: {
         Row: {
           accepted_at: string | null
+          ai_confidence: number | null
+          ai_generated: boolean | null
+          ai_reasoning: string | null
           client_acceptance_deadline: string | null
           client_email: string
           client_id: string | null
           client_name: string | null
           client_phone: string | null
           client_response_notes: string | null
+          client_signature_date: string | null
           created_at: string
           device_brand: string
           device_model: string
           estimated_price: number | null
           id: string
           issue_description: string | null
+          labor_cost: number | null
+          parts_cost: number | null
           quoted_at: string | null
           rejected_at: string | null
           repair_duration: string | null
@@ -6715,21 +6874,28 @@ export type Database = {
           status: string
           updated_at: string
           warranty_info: string | null
+          warranty_period_days: number | null
         }
         Insert: {
           accepted_at?: string | null
+          ai_confidence?: number | null
+          ai_generated?: boolean | null
+          ai_reasoning?: string | null
           client_acceptance_deadline?: string | null
           client_email: string
           client_id?: string | null
           client_name?: string | null
           client_phone?: string | null
           client_response_notes?: string | null
+          client_signature_date?: string | null
           created_at?: string
           device_brand: string
           device_model: string
           estimated_price?: number | null
           id?: string
           issue_description?: string | null
+          labor_cost?: number | null
+          parts_cost?: number | null
           quoted_at?: string | null
           rejected_at?: string | null
           repair_duration?: string | null
@@ -6740,21 +6906,28 @@ export type Database = {
           status?: string
           updated_at?: string
           warranty_info?: string | null
+          warranty_period_days?: number | null
         }
         Update: {
           accepted_at?: string | null
+          ai_confidence?: number | null
+          ai_generated?: boolean | null
+          ai_reasoning?: string | null
           client_acceptance_deadline?: string | null
           client_email?: string
           client_id?: string | null
           client_name?: string | null
           client_phone?: string | null
           client_response_notes?: string | null
+          client_signature_date?: string | null
           created_at?: string
           device_brand?: string
           device_model?: string
           estimated_price?: number | null
           id?: string
           issue_description?: string | null
+          labor_cost?: number | null
+          parts_cost?: number | null
           quoted_at?: string | null
           rejected_at?: string | null
           repair_duration?: string | null
@@ -6765,6 +6938,7 @@ export type Database = {
           status?: string
           updated_at?: string
           warranty_info?: string | null
+          warranty_period_days?: number | null
         }
         Relationships: []
       }
