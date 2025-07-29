@@ -282,21 +282,21 @@ const Footer = () => {
                     { city: 'Lille', slug: 'lille' },
                     { city: 'Rennes', slug: 'rennes' },
                     { city: 'Reims', slug: 'reims' }
-                  ].map((location, index, array) => (
-                    <React.Fragment key={location.slug}>
-                      <Link 
-                        to={`/reparateur-smartphone-${location.slug}`}
-                        className="text-gray-300 hover:text-white transition-colors px-3 py-1 rounded-md hover:bg-gray-800"
-                        aria-label={`Réparateurs smartphone à ${location.city}`}
-                      >
-                        <MapPin className="inline h-3 w-3 mr-1" />
-                        {location.city}
-                      </Link>
-                      {index < array.length - 1 && (
-                        <span className="text-gray-500">•</span>
-                      )}
-                    </React.Fragment>
-                  ))}
+                   ].map((location, index, array) => (
+                     <div key={location.slug} className="inline-flex items-center">
+                       <Link 
+                         to={`/reparateur-smartphone-${location.slug}`}
+                         className="text-gray-300 hover:text-white transition-colors px-3 py-1 rounded-md hover:bg-gray-800"
+                         aria-label={`Réparateurs smartphone à ${location.city}`}
+                       >
+                         <MapPin className="inline h-3 w-3 mr-1" />
+                         {location.city}
+                       </Link>
+                       {index < array.length - 1 && (
+                         <span className="text-gray-500 ml-3">•</span>
+                       )}
+                     </div>
+                   ))}
                 </div>
               </nav>
               
