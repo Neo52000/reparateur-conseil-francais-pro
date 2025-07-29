@@ -31,18 +31,16 @@ const DynamicPricingSection: React.FC<DynamicPricingSectionProps> = ({ onSelectP
 
   const fetchPlans = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke('plans-api');
+      const { data, error } = await supabase.functions.invoke('plans-api', {
+        body: { timestamp: Date.now() }
+      });
       
       if (error) throw error;
       
       if (data?.success && data?.plans) {
-        // Les plans arrivent déjà triés par prix croissant depuis l'API
-        // Marquer le plan "pro" comme recommandé
-        const plansWithRecommended = data.plans.map((plan: Plan) => ({
-          ...plan,
-          recommended: plan.name.toLowerCase() === 'pro'
-        }));
-        setPlans(plansWithRecommended);
+        // Les plans arrivent déjà triés et avec la logique de recommandation depuis l'API
+        setPlans(data.plans);
+        console.log('Plans loaded:', data.plans);
       }
     } catch (error) {
       console.error('Error fetching plans:', error);
