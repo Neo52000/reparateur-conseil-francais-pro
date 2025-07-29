@@ -14,7 +14,8 @@ import {
   Palette,
   Shield,
   RefreshCw,
-  Recycle
+  Recycle,
+  Brain
 } from 'lucide-react';
 import OverviewTabSection from "./OverviewTabSection";
 import EnhancedOverviewTab from "./EnhancedOverviewTab";
@@ -38,6 +39,7 @@ import EcommerceInterface from '@/components/ecommerce/EcommerceInterface';
 import ServicesManagement from './ServicesManagement';
 import QualiReparDashboard from '@/components/qualirepar/QualiReparDashboard';
 import ModulesStore from '@/components/modules/ModulesStore';
+import AIAssistantDashboard from '@/components/ai-assistant/AIAssistantDashboard';
 
 interface Order {
   id: string;
@@ -93,7 +95,7 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 }) => {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-13">
+      <TabsList className="grid w-full grid-cols-14">
         <TabsTrigger value="overview" className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4" />
           Aperçu
@@ -141,6 +143,10 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
         <TabsTrigger value="store" className="flex items-center gap-2">
           <Palette className="h-4 w-4" />
           Boutique
+        </TabsTrigger>
+        <TabsTrigger value="jarvis" className="flex items-center gap-2">
+          <Brain className="h-4 w-4" />
+          Jarvis IA
         </TabsTrigger>
         <TabsTrigger value="modules" className="flex items-center gap-2">
           <Package className="h-4 w-4" />
@@ -224,6 +230,10 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 
       <TabsContent value="store">
         <StoreCustomizer />
+      </TabsContent>
+
+      <TabsContent value="jarvis">
+        <AIAssistantDashboard repairerId="demo-repairer-id" />
       </TabsContent>
 
       <TabsContent value="modules">
