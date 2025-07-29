@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from './auth/types';
+import { useLocalStorage } from './useLocalStorage';
 
 interface AuthContextType {
   user: User | null;
@@ -27,10 +28,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Cache local pour les profils avec localStorage
+  const [cachedProfiles, setCachedProfiles] = useLocalStorage<Record<string, Profile>>('auth_profiles_cache', {});
 
-  // Fonction pour charger le profil sans dépendance circulaire
-  const fetchProfile = async (userId: string, userMetadata?: any) => {
+  // Fonction optimisée pour charger le profil avec cache
+  const fetchProfile = useCallback(async (userId: string, userMetadata?: any) => {
     try {
+      // Vérifier d'abord le cache local
+      const cachedProfile = cachedProfiles[userId];
+      if (cachedProfile) {
+        console.log('🎯 Profil trouvé en cache pour:', userId);
+        return cachedProfile;
+      }
+
+      console.log('🔄 Chargement du profil depuis la base pour:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -43,17 +55,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data) {
+        // Mise en cache du profil
+        setCachedProfiles(prev => ({ ...prev, [userId]: data }));
         return data;
       }
 
       // Créer un profil temporaire si non trouvé
-      return {
+      const tempProfile = {
         id: userId,
         email: userMetadata?.email || '',
         first_name: userMetadata?.first_name || 'Utilisateur',
         last_name: userMetadata?.last_name || '',
         role: userMetadata?.role || 'user'
       };
+      
+      return tempProfile;
     } catch (error) {
       console.error('Profile fetch error:', error);
       return {
@@ -64,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: 'user'
       };
     }
-  };
+  }, [cachedProfiles, setCachedProfiles]);
 
   // Calcul des permissions optimisé
   const permissions = useMemo(() => {
@@ -195,8 +211,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user?.id) {
       const profileData = await fetchProfile(user.id, user.user_metadata);
       setProfile(profileData);
+      // Mettre à jour le cache
+      setCachedProfiles(prev => ({ ...prev, [user.id]: profileData }));
     }
-  }, [user?.id, user?.user_metadata]);
+  }, [user?.id, user?.user_metadata, fetchProfile, setCachedProfiles]);
 
   const value = {
     user,

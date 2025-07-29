@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { RepairerProfile } from '@/types/repairerProfile';
 import { useRepairerProfileSave } from '@/hooks/useRepairerProfileSave';
 import { CheckCircle, ArrowRight, ArrowLeft, Shield, Star, Award } from 'lucide-react';
+import { useAutoSave } from '@/hooks/useAutoSave';
 
 // Import des sections existantes
 import BasicInfoSection from '../repairer-profile/BasicInfoSection';
@@ -45,8 +46,38 @@ const RepairerOnboardingWizard: React.FC<RepairerOnboardingWizardProps> = ({
   const { toast } = useToast();
   const { saveProfile } = useRepairerProfileSave();
 
-  // Définition des étapes d'onboarding
-  const steps: OnboardingStep[] = [
+  // Fonction optimisée pour le changement de type de réparation
+  const handleRepairTypeChange = useCallback((type: string, checked: boolean) => {
+    setFormData(prev => {
+      if (checked) {
+        return {
+          ...prev,
+          repair_types: [...prev.repair_types, type]
+        };
+      } else {
+        return {
+          ...prev,
+          repair_types: prev.repair_types.filter(t => t !== type),
+          other_services: type === 'autres' ? '' : prev.other_services
+        };
+      }
+    });
+  }, []);
+
+  // Auto-save des données du formulaire
+  const { isSaving, lastSaved } = useAutoSave({
+    data: formData,
+    onSave: async (data) => {
+      if (data.business_name?.trim()) {
+        await saveProfile(data, profile);
+      }
+    },
+    delay: 3000,
+    enabled: !!formData.business_name?.trim()
+  });
+
+  // Définition des étapes d'onboarding optimisée avec useMemo
+  const steps: OnboardingStep[] = useMemo(() => [
     {
       id: 'basic',
       title: 'Informations de base',
@@ -107,138 +138,149 @@ const RepairerOnboardingWizard: React.FC<RepairerOnboardingWizardProps> = ({
       required: false,
       component: <OpeningHoursSection formData={formData} setFormData={setFormData} />
     }
-  ];
+  ], [formData, setFormData, handleRepairTypeChange]);
 
-  function handleRepairTypeChange(type: string, checked: boolean) {
-    if (checked) {
-      setFormData(prev => ({
-        ...prev,
-        repair_types: [...prev.repair_types, type]
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        repair_types: prev.repair_types.filter(t => t !== type),
-        other_services: type === 'autres' ? '' : prev.other_services
-      }));
-    }
-  }
-
-  // Calcul des badges potentiels
-  const calculatePotentialBadges = (data: RepairerProfile) => {
+  // Calcul des badges potentiels mémorisé
+  const potentialBadges = useMemo(() => {
     const badges = [];
     
-    if (data.siret_number?.trim()) {
+    if (formData.siret_number?.trim()) {
       badges.push({ name: 'SIRET Vérifié', color: 'bg-green-100 text-green-800' });
     }
     
-    if (data.has_qualirepar_label) {
+    if (formData.has_qualirepar_label) {
       badges.push({ name: 'QualiRépar', color: 'bg-blue-100 text-blue-800' });
     }
     
-    if (data.repair_types?.length >= 3) {
+    if (formData.repair_types?.length >= 3) {
       badges.push({ name: 'Multi-spécialiste', color: 'bg-purple-100 text-purple-800' });
     }
     
-    if (data.opening_hours && Object.keys(data.opening_hours).length >= 5) {
+    if (formData.opening_hours && Object.keys(formData.opening_hours).length >= 5) {
       badges.push({ name: 'Disponible 7j/7', color: 'bg-orange-100 text-orange-800' });
     }
     
     return badges;
-  };
+  }, [formData]);
 
-  // Validation d'une étape
-  const validateStep = (stepIndex: number): boolean => {
-    const step = steps[stepIndex];
-    if (!step.validation) return true;
+  // État calculé pour la navigation
+  const navigationState = useMemo(() => {
+    const currentStepData = steps[currentStep];
+    const isFirstStep = currentStep === 0;
+    const isLastStep = currentStep === steps.length - 1;
+    const progress = ((currentStep + 1) / steps.length) * 100;
     
-    const error = step.validation(formData);
-    if (error) {
-      toast({
-        title: "Étape incomplète",
-        description: error,
-        variant: "destructive"
-      });
-      return false;
+    return {
+      currentStepData,
+      isFirstStep,
+      isLastStep,
+      progress
+    };
+  }, [currentStep, steps]);
+
+  // Validation d'une étape optimisée
+  const validateStep = useCallback((stepIndex: number): boolean => {
+    const step = steps[stepIndex];
+    if (step?.validation) {
+      const error = step.validation(formData);
+      if (error) {
+        toast({
+          title: "Validation échouée",
+          description: error,
+          variant: "destructive"
+        });
+        return false;
+      }
     }
     return true;
-  };
+  }, [steps, formData, toast]);
 
-  // Navigation entre étapes
-  const goToNextStep = () => {
-    if (validateStep(currentStep)) {
-      const stepId = steps[currentStep].id;
-      if (!completedSteps.includes(stepId)) {
-        setCompletedSteps(prev => [...prev, stepId]);
-      }
-      
-      if (currentStep < steps.length - 1) {
-        setCurrentStep(currentStep + 1);
-      }
+  // Navigation optimisée
+  const goToNextStep = useCallback(() => {
+    if (validateStep(currentStep) && currentStep < steps.length - 1) {
+      setCurrentStep(prev => prev + 1);
+      setCompletedSteps(prev => [...new Set([...prev, steps[currentStep].id])]);
     }
-  };
+  }, [currentStep, steps.length, validateStep, steps]);
 
-  const goToPreviousStep = () => {
+  const goToPreviousStep = useCallback(() => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      setCurrentStep(prev => prev - 1);
     }
-  };
+  }, [currentStep]);
 
-  // Sauvegarde finale
-  const handleFinish = async () => {
+  // Finalisation optimisée du processus
+  const handleFinish = useCallback(async () => {
     if (!validateStep(currentStep)) return;
-    
+
     setLoading(true);
     try {
-      const savedProfile = await saveProfile(formData, profile);
-      onSave(savedProfile);
+      await saveProfile(formData, profile);
       
       toast({
-        title: "Félicitations ! 🎉",
-        description: "Votre profil réparateur a été créé avec succès",
+        title: "Profil créé avec succès !",
+        description: `Votre profil réparateur est maintenant complet. ${potentialBadges.length > 0 ? `Badges obtenus: ${potentialBadges.length}` : ''}`,
+        variant: "default"
       });
-    } catch (error: any) {
+
+      onSave(formData);
+    } catch (error) {
+      console.error('Erreur lors de la finalisation:', error);
       toast({
         title: "Erreur",
-        description: error?.message || "Impossible de sauvegarder le profil",
+        description: "Une erreur est survenue lors de la sauvegarde",
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentStep, validateStep, formData, saveProfile, potentialBadges.length, onSave, toast, profile]);
 
-  const progress = ((currentStep + 1) / steps.length) * 100;
-  const currentStepData = steps[currentStep];
-  const potentialBadges = calculatePotentialBadges(formData);
-  const isLastStep = currentStep === steps.length - 1;
+  const { currentStepData, isFirstStep, isLastStep, progress } = navigationState;
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-6">
-      {/* Header avec progress */}
-      <div className="text-center space-y-4">
-        <h1 className="text-2xl font-bold text-foreground">
-          {isNewUser ? 'Bienvenue sur TopRéparateurs !' : 'Configuration de votre profil'}
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* En-tête avec indicateur d'auto-save */}
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold text-gray-900">
+          Configuration de votre profil réparateur
         </h1>
-        <div className="space-y-2">
-          <Progress value={progress} className="w-full" />
-          <p className="text-sm text-muted-foreground">
-            Étape {currentStep + 1} sur {steps.length}
-          </p>
+        <p className="text-gray-600">
+          Complétez votre profil en {steps.length} étapes simples
+        </p>
+        {isSaving && (
+          <div className="flex items-center justify-center gap-2 text-sm text-blue-600">
+            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+            Sauvegarde automatique...
+          </div>
+        )}
+        {lastSaved && !isSaving && (
+          <div className="text-xs text-green-600">
+            Dernière sauvegarde: {lastSaved.toLocaleTimeString()}
+          </div>
+        )}
+      </div>
+
+      {/* Barre de progression */}
+      <div className="space-y-2">
+        <Progress value={progress} className="w-full" />
+        <div className="flex justify-between text-sm text-gray-600">
+          <span>Étape {currentStep + 1} sur {steps.length}</span>
+          <span>{Math.round(progress)}% complété</span>
         </div>
       </div>
 
-      {/* Navigation par étapes (mobile-friendly) */}
-      <div className="flex overflow-x-auto gap-2 pb-2 md:grid md:grid-cols-5 md:gap-4">
+      {/* Navigation par étapes */}
+      <div className="hidden md:grid grid-cols-5 gap-4">
         {steps.map((step, index) => (
           <div
             key={step.id}
-            className={`flex-shrink-0 flex items-center gap-2 p-3 rounded-lg border text-sm min-w-[200px] md:min-w-0 ${
+            className={`flex items-center space-x-2 p-3 rounded-lg border ${
               index === currentStep
-                ? 'bg-primary/10 border-primary text-primary'
+                ? 'bg-blue-50 border-blue-300 text-blue-700'
                 : completedSteps.includes(step.id)
-                ? 'bg-green-50 border-green-200 text-green-700'
-                : 'bg-card border-border text-muted-foreground'
+                ? 'bg-green-50 border-green-300 text-green-700'
+                : 'bg-gray-50 border-gray-200 text-gray-500'
             }`}
           >
             <div className="flex-shrink-0">
@@ -248,9 +290,13 @@ const RepairerOnboardingWizard: React.FC<RepairerOnboardingWizardProps> = ({
                 step.icon
               )}
             </div>
-            <div className="hidden md:block">
-              <div className="font-medium">{step.title}</div>
-              {step.required && <Badge variant="outline" className="text-xs">Obligatoire</Badge>}
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium truncate">{step.title}</p>
+              {step.required && (
+                <Badge variant="outline" className="text-xs mt-1">
+                  Obligatoire
+                </Badge>
+              )}
             </div>
           </div>
         ))}
@@ -259,11 +305,11 @@ const RepairerOnboardingWizard: React.FC<RepairerOnboardingWizardProps> = ({
       {/* Contenu de l'étape courante */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center space-x-3">
             {currentStepData.icon}
             <div>
-              <CardTitle>{currentStepData.title}</CardTitle>
-              <p className="text-sm text-muted-foreground">{currentStepData.description}</p>
+              <CardTitle className="text-xl">{currentStepData.title}</CardTitle>
+              <p className="text-gray-600">{currentStepData.description}</p>
             </div>
           </div>
         </CardHeader>
@@ -272,12 +318,12 @@ const RepairerOnboardingWizard: React.FC<RepairerOnboardingWizardProps> = ({
         </CardContent>
       </Card>
 
-      {/* Preview des badges potentiels */}
+      {/* Badges potentiels */}
       {potentialBadges.length > 0 && (
-        <Card className="bg-gradient-to-r from-primary/5 to-accent/5">
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Award className="h-5 w-5" />
+              <Award className="h-5 w-5 text-blue-600" />
               Badges que vous obtiendrez
             </CardTitle>
           </CardHeader>
@@ -294,26 +340,38 @@ const RepairerOnboardingWizard: React.FC<RepairerOnboardingWizardProps> = ({
       )}
 
       {/* Navigation */}
-      <div className="flex justify-between items-center pt-4">
+      <div className="flex justify-between items-center pt-6">
         <Button
           variant="outline"
-          onClick={currentStep === 0 ? onCancel : goToPreviousStep}
+          onClick={isFirstStep ? onCancel : goToPreviousStep}
           disabled={loading}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          {currentStep === 0 ? 'Annuler' : 'Précédent'}
+          {isFirstStep ? 'Annuler' : 'Précédent'}
         </Button>
 
-        <div className="text-sm text-muted-foreground">
+        <div className="text-sm text-gray-500">
           {currentStepData.required ? 'Étape obligatoire' : 'Étape optionnelle'}
         </div>
 
         <Button
           onClick={isLastStep ? handleFinish : goToNextStep}
           disabled={loading}
+          className="bg-blue-600 hover:bg-blue-700"
         >
-          {loading ? 'Sauvegarde...' : isLastStep ? 'Terminer' : 'Suivant'}
-          {!isLastStep && <ArrowRight className="h-4 w-4 ml-2" />}
+          {loading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Sauvegarde...
+            </>
+          ) : isLastStep ? (
+            'Terminer'
+          ) : (
+            <>
+              Suivant
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </>
+          )}
         </Button>
       </div>
     </div>
