@@ -107,7 +107,8 @@ const DynamicPricingSection: React.FC<DynamicPricingSectionProps> = ({ onSelectP
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+        <div className="flex justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl w-full justify-items-center">
           {plans.map((plan) => {
             const price = getPrice(plan);
             const savings = getSavings(plan);
@@ -183,6 +184,7 @@ const DynamicPricingSection: React.FC<DynamicPricingSectionProps> = ({ onSelectP
               </Card>
             );
           })}
+          </div>
         </div>
 
         {/* Additional info */}

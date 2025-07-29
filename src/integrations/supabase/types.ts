@@ -8755,33 +8755,45 @@ export type Database = {
       subscription_plans: {
         Row: {
           created_at: string
+          display_order: number | null
           features: Json
+          has_promo: boolean | null
           id: string
+          is_recommended: boolean | null
           name: string
           price_monthly: number
           price_yearly: number
+          promo_text: string | null
           stripe_price_id_monthly: string | null
           stripe_price_id_yearly: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
+          display_order?: number | null
           features?: Json
+          has_promo?: boolean | null
           id?: string
+          is_recommended?: boolean | null
           name: string
           price_monthly: number
           price_yearly: number
+          promo_text?: string | null
           stripe_price_id_monthly?: string | null
           stripe_price_id_yearly?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
+          display_order?: number | null
           features?: Json
+          has_promo?: boolean | null
           id?: string
+          is_recommended?: boolean | null
           name?: string
           price_monthly?: number
           price_yearly?: number
+          promo_text?: string | null
           stripe_price_id_monthly?: string | null
           stripe_price_id_yearly?: string | null
           updated_at?: string

@@ -29,59 +29,55 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Create mock plans focused on directory and local SEO
-    const mockPlans = [
-      {
-        id: '2', 
-        name: 'Visibilité',
-        price_monthly: 19.90,
-        price_yearly: 199,
-        features: [
-          'Présence dans l\'annuaire TopRéparateurs',
-          'Profil de base avec coordonnées',
-          'Affichage des spécialités',
-          'Réception de demandes clients',
-          'Référencement local optimisé',
-          'Profil enrichi avec photos',
-          'Avis clients et notation',
-          'Gestion des horaires d\'ouverture',
-          'Contact direct par téléphone/email'
-        ],
-        promo: false
-      },
-      {
-        id: '3',
-        name: 'Pro', 
-        price_monthly: 39.90,
-        price_yearly: 399,
-        features: [
-          'Tout du plan Visibilité',
-          'Page dédiée avec URL personnalisée',
-          'Galerie photos avant/après',
-          'Gestion des devis en ligne',
-          'Calendrier de prise de rendez-vous',
-          'Analytics détaillées'
-        ],
-        promo: true
-      },
-      {
-        id: '4',
-        name: 'Premium',
-        price_monthly: 99.90, 
-        price_yearly: 999,
-        features: [
-          'Tout du plan Pro',
-          'Boutique en ligne intégrée',
-          'POS certifié NF525',
-          'Gestion QualiRépar automatisée',
-          'Campagnes publicitaires locales',
-          'Support prioritaire 7j/7'
-        ],
-        promo: false
-      }
-    ];
+    // Fetch plans from database
+    const { data: planData, error: planError } = await supabase
+      .from('subscription_plans')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order');
 
-    const plans = mockPlans;
+    if (planError) {
+      console.error('Error fetching plans:', planError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch plans' }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Fetch features for each plan
+    const plans = [];
+    for (const plan of planData || []) {
+      const { data: featuresData, error: featuresError } = await supabase
+        .from('plan_features')
+        .select(`
+          feature_key,
+          enabled,
+          available_features!inner(feature_name, description)
+        `)
+        .eq('plan_name', plan.name)
+        .eq('enabled', true);
+
+      if (featuresError) {
+        console.error('Error fetching features for plan:', plan.name, featuresError);
+        continue;
+      }
+
+      const features = featuresData?.map(f => f.available_features.feature_name) || [];
+      
+      plans.push({
+        id: plan.id,
+        name: plan.name,
+        price_monthly: plan.price_monthly,
+        price_yearly: plan.price_yearly,
+        features: features,
+        promo: plan.has_promo || false,
+        recommended: plan.is_recommended || false
+      });
+    }
+
     const error = null;
 
     if (error) {
@@ -104,7 +100,7 @@ Deno.serve(async (req) => {
       features: plan.features || [],
       promo: plan.promo || false,
       badge: plan.promo ? 'Promo en cours' : undefined,
-      recommended: plan.name === 'Pro' // Mark Pro as recommended
+      recommended: plan.recommended || false
     }));
 
     console.log(`Successfully fetched ${formattedPlans.length} plans`);
