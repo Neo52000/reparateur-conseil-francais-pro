@@ -40,6 +40,7 @@ import ServicesManagement from './ServicesManagement';
 import QualiReparDashboard from '@/components/qualirepar/QualiReparDashboard';
 import ModulesStore from '@/components/modules/ModulesStore';
 import AIAssistantDashboard from '@/components/ai-assistant/AIAssistantDashboard';
+import GeolocationSeoPhase from '@/components/phase5/GeolocationSeoPhase';
 
 interface Order {
   id: string;
@@ -95,7 +96,7 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 }) => {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-14">
+      <TabsList className="grid w-full grid-cols-15">
         <TabsTrigger value="overview" className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4" />
           Aperçu
@@ -155,6 +156,10 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
         <TabsTrigger value="compliance" className="flex items-center gap-2">
           <Shield className="h-4 w-4" />
           Conformité
+        </TabsTrigger>
+        <TabsTrigger value="geolocation-seo" className="flex items-center gap-2">
+          <BarChart3 className="h-4 w-4" />
+          Géo & SEO
         </TabsTrigger>
       </TabsList>
 
@@ -253,6 +258,10 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 
       <TabsContent value="profile">
         <ProfileTabSection profileData={profileData} />
+      </TabsContent>
+
+      <TabsContent value="geolocation-seo">
+        <GeolocationSeoPhase />
       </TabsContent>
     </Tabs>
   );
