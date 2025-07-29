@@ -33,7 +33,6 @@ Deno.serve(async (req) => {
     const { data: planData, error: planError } = await supabase
       .from('subscription_plans')
       .select('*')
-      .eq('is_active', true)
       .order('display_order');
 
     if (planError) {
