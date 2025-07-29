@@ -13,6 +13,18 @@ import {
   CreditCard
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+
+interface StoreConfig {
+  id: string;
+  repairer_id: string;
+  is_active: boolean;
+  store_name: string;
+  store_description?: string;
+  store_url?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 const EcommerceActivation: React.FC = () => {
   const [isStoreActive, setIsStoreActive] = useState(false);
@@ -20,7 +32,37 @@ const EcommerceActivation: React.FC = () => {
   const [storeDescription, setStoreDescription] = useState('');
   const [storeUrl, setStoreUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    loadStoreConfig();
+  }, []);
+
+  const loadStoreConfig = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: config } = await supabase
+        .from('ecommerce_store_config' as any)
+        .select('*')
+        .eq('repairer_id', user.id)
+        .maybeSingle();
+
+      if (config) {
+        const typedConfig = config as unknown as StoreConfig;
+        setIsStoreActive(typedConfig.is_active || false);
+        setStoreName(typedConfig.store_name || '');
+        setStoreDescription(typedConfig.store_description || '');
+        setStoreUrl(typedConfig.store_url || '');
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement:', error);
+    } finally {
+      setLoadingData(false);
+    }
+  };
 
   const handleActivation = async () => {
     if (!storeName.trim()) {
@@ -35,8 +77,58 @@ const EcommerceActivation: React.FC = () => {
     setLoading(true);
 
     try {
-      // Simulation d'activation de boutique
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Utilisateur non connecté');
+
+      // Vérifier si une configuration existe déjà
+      const { data: existingConfig } = await supabase
+        .from('ecommerce_store_config' as any)
+        .select('id')
+        .eq('repairer_id', user.id)
+        .maybeSingle();
+
+      const configData = {
+        repairer_id: user.id,
+        is_active: isStoreActive,
+        store_name: storeName,
+        store_description: storeDescription,
+        store_url: storeUrl,
+        updated_at: new Date().toISOString()
+      };
+
+      if (existingConfig) {
+        const typedConfig = existingConfig as unknown as { id: string };
+        await supabase
+          .from('ecommerce_store_config' as any)
+          .update(configData)
+          .eq('id', typedConfig.id);
+      } else {
+        await supabase
+          .from('ecommerce_store_config' as any)
+          .insert({
+            ...configData,
+            created_at: new Date().toISOString()
+          });
+      }
+
+      // Créer les paramètres par défaut si nécessaire
+      if (isStoreActive) {
+        await supabase
+          .from('ecommerce_settings' as any)
+          .upsert({
+            repairer_id: user.id,
+            settings: {
+              payment_methods: ['stripe', 'click_and_collect'],
+              default_currency: 'EUR',
+              tax_rate: 20,
+              shipping_enabled: true,
+              inventory_tracking: true
+            },
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'repairer_id'
+          });
+      }
 
       toast({
         title: "Configuration sauvegardée",
@@ -56,6 +148,14 @@ const EcommerceActivation: React.FC = () => {
       setLoading(false);
     }
   };
+
+  if (loadingData) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
