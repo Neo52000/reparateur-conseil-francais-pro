@@ -4,31 +4,31 @@ import { Receipt, Store, MapPin, RotateCcw } from 'lucide-react';
 
 const features = [
   {
-    icon: Receipt,
-    emoji: "🧾",
-    title: "POS certifié NF525",
-    description: "Encaissez, facturez et gérez vos produits en toute conformité.",
-    benefits: ["Conformité garantie", "Factures automatiques", "Gestion stock"]
+    icon: MapPin,
+    emoji: "📍",
+    title: "Annuaire et référencement local", 
+    description: "Apparaissez en 1ère page Google quand vos clients cherchent un réparateur près de chez eux.",
+    benefits: ["Visibilité Google garantie", "Fiche d'entreprise optimisée", "Géolocalisation précise"]
   },
   {
     icon: Store,
-    emoji: "🛍️", 
-    title: "Votre boutique en ligne",
-    description: "Créez votre vitrine locale en quelques clics, sans compétence technique.",
-    benefits: ["Installation rapide", "Design professionnel", "Paiement sécurisé"]
+    emoji: "⭐", 
+    title: "Profil réparateur enrichi",
+    description: "Créez votre vitrine professionnelle avec photos, avis clients et spécialités détaillées.",
+    benefits: ["Photos avant/après", "Avis clients vérifiés", "Spécialités par marque"]
   },
   {
-    icon: MapPin,
-    emoji: "📍",
-    title: "Référencement local intelligent", 
-    description: "Apparaissez en tête des recherches locales selon vos spécialités.",
-    benefits: ["Visibilité Google", "Pages optimisées", "Avis clients"]
+    icon: Receipt,
+    emoji: "🧾",
+    title: "Outils métier avancés",
+    description: "POS certifié NF525, gestion des devis et suivi des réparations en option.",
+    benefits: ["Conformité garantie", "Devis en ligne", "Gestion planning"]
   },
   {
     icon: RotateCcw,
     emoji: "🔁",
-    title: "Suivi QualiRépar intégré",
-    description: "Automatisez vos remboursements de bonus grâce à notre module GesCo.",
+    title: "Support QualiRépar",
+    description: "Module de gestion GesCo pour automatiser vos demandes de bonus en option.",
     benefits: ["Bonus automatiques", "Suivi centralisé", "Reporting complet"]
   }
 ];
@@ -39,10 +39,10 @@ const FeaturesSection: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            Tout ce dont vous avez besoin pour développer votre activité
+            Maximisez votre visibilité et trouvez plus de clients
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Une solution complète qui s'adapte à vos besoins et grandit avec votre business
+            Focus sur l'essentiel : être trouvé par vos clients. Les outils métier s'ajoutent selon vos besoins.
           </p>
         </div>
         

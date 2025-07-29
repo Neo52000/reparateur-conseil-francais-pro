@@ -19,13 +19,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted, onWatchDemo }) 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-4xl mx-auto text-center text-white">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-            Développez votre activité de réparation avec{' '}
+            Boostez votre visibilité locale avec{' '}
             <span className="text-vibrant-orange">TopRéparateurs</span>
           </h1>
           
           <p className="text-xl sm:text-2xl mb-8 text-electric-blue-light leading-relaxed">
-            Solution tout-en-un : caisse certifiée NF525, boutique en ligne, 
-            visibilité locale, gestion des bonus QualiRépar.
+            Rejoignez le 1er annuaire de réparateurs en France et apparaissez en tête des recherches locales de vos clients.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">

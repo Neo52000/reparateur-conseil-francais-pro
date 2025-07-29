@@ -29,12 +29,70 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Fetch subscription plans from database
-    const { data: plans, error } = await supabase
-      .from('subscription_plans')
-      .select('*')
-      .eq('is_active', true)
-      .order('price_monthly', { ascending: true });
+    // Create mock plans focused on directory and local SEO
+    const mockPlans = [
+      {
+        id: '1',
+        name: 'Gratuit',
+        price_monthly: 0,
+        price_yearly: 0,
+        features: [
+          'Présence dans l\'annuaire TopRéparateurs',
+          'Profil de base avec coordonnées',
+          'Affichage des spécialités',
+          'Réception de demandes clients'
+        ],
+        promo: false
+      },
+      {
+        id: '2', 
+        name: 'Visibilité',
+        price_monthly: 19.90,
+        price_yearly: 199,
+        features: [
+          'Tout du plan Gratuit',
+          'Référencement local optimisé',
+          'Profil enrichi avec photos',
+          'Avis clients et notation',
+          'Gestion des horaires d\'ouverture',
+          'Contact direct par téléphone/email'
+        ],
+        promo: true
+      },
+      {
+        id: '3',
+        name: 'Pro', 
+        price_monthly: 39.90,
+        price_yearly: 399,
+        features: [
+          'Tout du plan Visibilité',
+          'Page dédiée avec URL personnalisée',
+          'Galerie photos avant/après',
+          'Gestion des devis en ligne',
+          'Calendrier de prise de rendez-vous',
+          'Analytics détaillées'
+        ],
+        promo: false
+      },
+      {
+        id: '4',
+        name: 'Premium',
+        price_monthly: 99.90, 
+        price_yearly: 999,
+        features: [
+          'Tout du plan Pro',
+          'Boutique en ligne intégrée',
+          'POS certifié NF525',
+          'Gestion QualiRépar automatisée',
+          'Campagnes publicitaires locales',
+          'Support prioritaire 7j/7'
+        ],
+        promo: false
+      }
+    ];
+
+    const plans = mockPlans;
+    const error = null;
 
     if (error) {
       console.error('Error fetching plans:', error);
@@ -56,7 +114,7 @@ Deno.serve(async (req) => {
       features: plan.features || [],
       promo: plan.promo || false,
       badge: plan.promo ? 'Promo en cours' : undefined,
-      recommended: plan.name === 'Pro' // Mark Pro as recommended
+      recommended: plan.name === 'Visibilité' // Mark Visibilité as recommended
     }));
 
     console.log(`Successfully fetched ${formattedPlans.length} plans`);
