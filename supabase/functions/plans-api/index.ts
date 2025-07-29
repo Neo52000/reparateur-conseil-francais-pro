@@ -32,32 +32,22 @@ Deno.serve(async (req) => {
     // Create mock plans focused on directory and local SEO
     const mockPlans = [
       {
-        id: '1',
-        name: 'Gratuit',
-        price_monthly: 0,
-        price_yearly: 0,
-        features: [
-          'Présence dans l\'annuaire TopRéparateurs',
-          'Profil de base avec coordonnées',
-          'Affichage des spécialités',
-          'Réception de demandes clients'
-        ],
-        promo: false
-      },
-      {
         id: '2', 
         name: 'Visibilité',
         price_monthly: 19.90,
         price_yearly: 199,
         features: [
-          'Tout du plan Gratuit',
+          'Présence dans l\'annuaire TopRéparateurs',
+          'Profil de base avec coordonnées',
+          'Affichage des spécialités',
+          'Réception de demandes clients',
           'Référencement local optimisé',
           'Profil enrichi avec photos',
           'Avis clients et notation',
           'Gestion des horaires d\'ouverture',
           'Contact direct par téléphone/email'
         ],
-        promo: true
+        promo: false
       },
       {
         id: '3',
@@ -72,7 +62,7 @@ Deno.serve(async (req) => {
           'Calendrier de prise de rendez-vous',
           'Analytics détaillées'
         ],
-        promo: false
+        promo: true
       },
       {
         id: '4',
@@ -114,7 +104,7 @@ Deno.serve(async (req) => {
       features: plan.features || [],
       promo: plan.promo || false,
       badge: plan.promo ? 'Promo en cours' : undefined,
-      recommended: plan.name === 'Visibilité' // Mark Visibilité as recommended
+      recommended: plan.name === 'Pro' // Mark Pro as recommended
     }));
 
     console.log(`Successfully fetched ${formattedPlans.length} plans`);
