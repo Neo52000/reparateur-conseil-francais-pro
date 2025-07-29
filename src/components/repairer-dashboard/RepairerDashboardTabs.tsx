@@ -37,6 +37,7 @@ import TeamManagement from './TeamManagement';
 import EcommerceInterface from '@/components/ecommerce/EcommerceInterface';
 import ServicesManagement from './ServicesManagement';
 import QualiReparDashboard from '@/components/qualirepar/QualiReparDashboard';
+import ModulesStore from '@/components/modules/ModulesStore';
 
 interface Order {
   id: string;
@@ -92,7 +93,7 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 }) => {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-12">
+      <TabsList className="grid w-full grid-cols-13">
         <TabsTrigger value="overview" className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4" />
           Aperçu
@@ -140,6 +141,10 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
         <TabsTrigger value="store" className="flex items-center gap-2">
           <Palette className="h-4 w-4" />
           Boutique
+        </TabsTrigger>
+        <TabsTrigger value="modules" className="flex items-center gap-2">
+          <Package className="h-4 w-4" />
+          Modules
         </TabsTrigger>
         <TabsTrigger value="compliance" className="flex items-center gap-2">
           <Shield className="h-4 w-4" />
@@ -219,6 +224,10 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 
       <TabsContent value="store">
         <StoreCustomizer />
+      </TabsContent>
+
+      <TabsContent value="modules">
+        <ModulesStore />
       </TabsContent>
 
       <TabsContent value="compliance">
