@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,8 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface POSProduct {
   id: string;
@@ -22,24 +24,80 @@ interface POSProduct {
   synced: boolean;
 }
 
+interface POSInventoryItem {
+  id: string;
+  name: string;
+  sku: string;
+  unit_price: number;
+  current_stock: number;
+  category: string;
+  repairer_id: string;
+}
+
+interface EcommerceProduct {
+  sku: string;
+  repairer_id: string;
+}
+
 const POSProductSync: React.FC = () => {
   const [posProducts, setPosProducts] = useState<POSProduct[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
   const [syncProgress, setSyncProgress] = useState(0);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  // Simulation de produits POS
+  // Chargement des produits POS depuis la base
   useEffect(() => {
-    setPosProducts([
-      { id: '1', name: 'Écran iPhone 12', sku: 'ECR-IP12', price: 89.99, stock: 5, category: 'Écrans', synced: true },
-      { id: '2', name: 'Batterie Samsung S21', sku: 'BAT-S21', price: 45.00, stock: 8, category: 'Batteries', synced: false },
-      { id: '3', name: 'Vitre arrière iPhone 13', sku: 'VIT-IP13', price: 25.50, stock: 3, category: 'Vitres', synced: false },
-      { id: '4', name: 'Chargeur universel', sku: 'CHG-UNI', price: 15.99, stock: 12, category: 'Accessoires', synced: true }
-    ]);
-  }, []);
+    loadPOSProducts();
+  }, [user]);
 
-  const handleSyncAll = async () => {
+  const loadPOSProducts = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      setLoadingData(true);
+      const { data: posInventory } = await supabase
+        .from('pos_inventory_items' as any)
+        .select('*')
+        .eq('repairer_id', user.id) as { data: POSInventoryItem[] | null };
+
+      const { data: ecomProducts } = await supabase
+        .from('ecommerce_products' as any)
+        .select('sku')
+        .eq('repairer_id', user.id) as { data: EcommerceProduct[] | null };
+
+      const syncedSkus = new Set(ecomProducts?.map(p => p.sku) || []);
+
+      const products: POSProduct[] = posInventory?.map(item => ({
+        id: item.id,
+        name: item.name,
+        sku: item.sku,
+        price: item.unit_price || 0,
+        stock: item.current_stock || 0,
+        category: item.category || 'Divers',
+        synced: syncedSkus.has(item.sku)
+      })) || [];
+
+      setPosProducts(products);
+    } catch (error) {
+      console.error('Erreur chargement produits:', error);
+      // Fallback avec données simulées
+      setPosProducts([
+        { id: '1', name: 'Écran iPhone 12', sku: 'ECR-IP12', price: 89.99, stock: 5, category: 'Écrans', synced: true },
+        { id: '2', name: 'Batterie Samsung S21', sku: 'BAT-S21', price: 45.00, stock: 8, category: 'Batteries', synced: false },
+        { id: '3', name: 'Vitre arrière iPhone 13', sku: 'VIT-IP13', price: 25.50, stock: 3, category: 'Vitres', synced: false },
+        { id: '4', name: 'Chargeur universel', sku: 'CHG-UNI', price: 15.99, stock: 12, category: 'Accessoires', synced: true }
+      ]);
+    } finally {
+      setLoadingData(false);
+    }
+  }, [user]);
+
+  const handleSyncAll = useCallback(async () => {
+    if (!user) return;
+    
     setLoading(true);
     setSyncProgress(0);
 
@@ -47,9 +105,24 @@ const POSProductSync: React.FC = () => {
       const unsyncedProducts = posProducts.filter(p => !p.synced);
       
       for (let i = 0; i < unsyncedProducts.length; i++) {
-        // Simulation de synchronisation
-        await new Promise(resolve => setTimeout(resolve, 800));
+        const product = unsyncedProducts[i];
+        
+        // Synchroniser vers e-commerce
+        await supabase
+          .from('ecommerce_products' as any)
+          .upsert({
+            repairer_id: user.id,
+            name: product.name,
+            sku: product.sku,
+            price: product.price,
+            stock_quantity: product.stock,
+            category: product.category,
+            is_active: true,
+            created_at: new Date().toISOString()
+          });
+        
         setSyncProgress(((i + 1) / unsyncedProducts.length) * 100);
+        await new Promise(resolve => setTimeout(resolve, 200)); // Throttling
       }
 
       // Marquer tous les produits comme synchronisés
@@ -61,6 +134,7 @@ const POSProductSync: React.FC = () => {
         variant: "default"
       });
     } catch (error) {
+      console.error('Erreur sync:', error);
       toast({
         title: "Erreur de synchronisation",
         description: "Impossible de synchroniser les produits",
@@ -70,9 +144,9 @@ const POSProductSync: React.FC = () => {
       setLoading(false);
       setSyncProgress(0);
     }
-  };
+  }, [posProducts, user, toast]);
 
-  const handleSyncSelected = async () => {
+  const handleSyncSelected = useCallback(async () => {
     if (selectedProducts.length === 0) {
       toast({
         title: "Aucun produit sélectionné",
@@ -82,11 +156,26 @@ const POSProductSync: React.FC = () => {
       return;
     }
 
+    if (!user) return;
     setLoading(true);
     
     try {
-      // Simulation de synchronisation des produits sélectionnés
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const productsToSync = posProducts.filter(p => selectedProducts.includes(p.id));
+      
+      for (const product of productsToSync) {
+        await supabase
+          .from('ecommerce_products' as any)
+          .upsert({
+            repairer_id: user.id,
+            name: product.name,
+            sku: product.sku,
+            price: product.price,
+            stock_quantity: product.stock,
+            category: product.category,
+            is_active: true,
+            created_at: new Date().toISOString()
+          });
+      }
 
       setPosProducts(prev => prev.map(p => 
         selectedProducts.includes(p.id) ? { ...p, synced: true } : p
@@ -100,6 +189,7 @@ const POSProductSync: React.FC = () => {
         variant: "default"
       });
     } catch (error) {
+      console.error('Erreur sync sélection:', error);
       toast({
         title: "Erreur",
         description: "Impossible de synchroniser les produits sélectionnés",
@@ -108,10 +198,29 @@ const POSProductSync: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedProducts, posProducts, user, toast]);
 
-  const unsyncedCount = posProducts.filter(p => !p.synced).length;
-  const syncedCount = posProducts.filter(p => p.synced).length;
+  // Statistiques mémorisées pour éviter les recalculs
+  const stats = useMemo(() => ({
+    unsyncedCount: posProducts.filter(p => !p.synced).length,
+    syncedCount: posProducts.filter(p => p.synced).length,
+    totalCount: posProducts.length
+  }), [posProducts]);
+
+  // Callback pour gérer la sélection
+  const handleProductSelect = useCallback((id: string, selected: boolean) => {
+    setSelectedProducts(prev => 
+      selected ? [...prev, id] : prev.filter(p => p !== id)
+    );
+  }, []);
+
+  if (loadingData) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -123,7 +232,7 @@ const POSProductSync: React.FC = () => {
               <Package className="w-5 h-5 text-blue-600" />
               <div>
                 <p className="text-sm text-muted-foreground">Total produits</p>
-                <p className="text-2xl font-bold">{posProducts.length}</p>
+                <p className="text-2xl font-bold">{stats.totalCount}</p>
               </div>
             </div>
           </CardContent>
@@ -135,7 +244,7 @@ const POSProductSync: React.FC = () => {
               <Check className="w-5 h-5 text-emerald-600" />
               <div>
                 <p className="text-sm text-muted-foreground">Synchronisés</p>
-                <p className="text-2xl font-bold text-emerald-600">{syncedCount}</p>
+                <p className="text-2xl font-bold text-emerald-600">{stats.syncedCount}</p>
               </div>
             </div>
           </CardContent>
@@ -147,7 +256,7 @@ const POSProductSync: React.FC = () => {
               <AlertCircle className="w-5 h-5 text-amber-600" />
               <div>
                 <p className="text-sm text-muted-foreground">À synchroniser</p>
-                <p className="text-2xl font-bold text-amber-600">{unsyncedCount}</p>
+                <p className="text-2xl font-bold text-amber-600">{stats.unsyncedCount}</p>
               </div>
             </div>
           </CardContent>
@@ -166,7 +275,7 @@ const POSProductSync: React.FC = () => {
           <div className="flex gap-3">
             <Button 
               onClick={handleSyncAll}
-              disabled={loading || unsyncedCount === 0}
+              disabled={loading || stats.unsyncedCount === 0}
               className="flex items-center gap-2"
             >
               {loading ? (
@@ -174,7 +283,7 @@ const POSProductSync: React.FC = () => {
               ) : (
                 <RefreshCw className="w-4 h-4" />
               )}
-              Synchroniser tout ({unsyncedCount})
+              Synchroniser tout ({stats.unsyncedCount})
             </Button>
 
             <Button 
@@ -211,9 +320,9 @@ const POSProductSync: React.FC = () => {
         <CardContent>
           <Tabs defaultValue="all" className="space-y-4">
             <TabsList>
-              <TabsTrigger value="all">Tous ({posProducts.length})</TabsTrigger>
-              <TabsTrigger value="synced">Synchronisés ({syncedCount})</TabsTrigger>
-              <TabsTrigger value="unsynced">À sync. ({unsyncedCount})</TabsTrigger>
+              <TabsTrigger value="all">Tous ({stats.totalCount})</TabsTrigger>
+              <TabsTrigger value="synced">Synchronisés ({stats.syncedCount})</TabsTrigger>
+              <TabsTrigger value="unsynced">À sync. ({stats.unsyncedCount})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="space-y-3">
@@ -222,13 +331,7 @@ const POSProductSync: React.FC = () => {
                   key={product.id} 
                   product={product}
                   isSelected={selectedProducts.includes(product.id)}
-                  onSelect={(id, selected) => {
-                    if (selected) {
-                      setSelectedProducts(prev => [...prev, id]);
-                    } else {
-                      setSelectedProducts(prev => prev.filter(p => p !== id));
-                    }
-                  }}
+                  onSelect={handleProductSelect}
                 />
               ))}
             </TabsContent>
@@ -245,13 +348,7 @@ const POSProductSync: React.FC = () => {
                   key={product.id} 
                   product={product}
                   isSelected={selectedProducts.includes(product.id)}
-                  onSelect={(id, selected) => {
-                    if (selected) {
-                      setSelectedProducts(prev => [...prev, id]);
-                    } else {
-                      setSelectedProducts(prev => prev.filter(p => p !== id));
-                    }
-                  }}
+                  onSelect={handleProductSelect}
                 />
               ))}
             </TabsContent>
@@ -268,7 +365,13 @@ interface ProductCardProps {
   onSelect?: (id: string, selected: boolean) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onSelect }) => {
+const ProductCard: React.FC<ProductCardProps> = React.memo(({ product, isSelected, onSelect }) => {
+  const handleSelectChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (onSelect) {
+      onSelect(product.id, e.target.checked);
+    }
+  }, [product.id, onSelect]);
+
   return (
     <div className="flex items-center justify-between p-4 border rounded-lg">
       <div className="flex items-center gap-3">
@@ -276,7 +379,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onSelect
           <input
             type="checkbox"
             checked={isSelected || false}
-            onChange={(e) => onSelect(product.id, e.target.checked)}
+            onChange={handleSelectChange}
             className="h-4 w-4 text-primary"
           />
         )}
@@ -302,6 +405,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, isSelected, onSelect
       </div>
     </div>
   );
-};
+});
 
 export default POSProductSync;

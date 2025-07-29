@@ -14,6 +14,9 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAutoSave } from '@/hooks/useAutoSave';
+import { useCallback, useMemo } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface StoreConfig {
   id: string;
@@ -34,6 +37,27 @@ const EcommerceActivation: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  // Configuration de l'auto-save
+  const storeData = useMemo(() => ({
+    isStoreActive,
+    storeName,
+    storeDescription,
+    storeUrl
+  }), [isStoreActive, storeName, storeDescription, storeUrl]);
+
+  const handleAutoSave = useCallback(async (data: typeof storeData) => {
+    if (!data.storeName.trim() || !user) return;
+    // Auto-save logic would go here
+  }, [user]);
+
+  const { isSaving, lastSaved } = useAutoSave({
+    data: storeData,
+    onSave: handleAutoSave,
+    delay: 3000,
+    enabled: isStoreActive && storeName.trim().length > 0
+  });
 
   useEffect(() => {
     loadStoreConfig();

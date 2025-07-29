@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,8 @@ import {
   Store
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface StripeConfig {
   publishableKey: string;
@@ -27,6 +29,18 @@ interface PaymentMethods {
   stripe: boolean;
   clickCollect: boolean;
   bankTransfer: boolean;
+}
+
+interface EcommerceSettings {
+  repairer_id: string;
+  settings: {
+    stripe_publishable_key?: string;
+    stripe_secret_key?: string;
+    stripe_active?: boolean;
+    stripe_webhook_endpoint?: string;
+    stripe_test_mode?: boolean;
+    payment_methods?: string[];
+  };
 }
 
 const StripePaymentSetup: React.FC = () => {
@@ -44,10 +58,51 @@ const StripePaymentSetup: React.FC = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
   const [testMode, setTestMode] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const handleStripeConfigSave = async () => {
+  useEffect(() => {
+    loadStripeConfig();
+  }, [user]);
+
+  const loadStripeConfig = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      setLoadingData(true);
+      const { data: config } = await supabase
+        .from('ecommerce_settings' as any)
+        .select('*')
+        .eq('repairer_id', user.id)
+        .maybeSingle() as { data: EcommerceSettings | null };
+
+      if (config?.settings) {
+        const settings = config.settings;
+        setStripeConfig({
+          publishableKey: settings.stripe_publishable_key || '',
+          secretKey: settings.stripe_secret_key || '',
+          isActive: settings.stripe_active || false,
+          webhookEndpoint: settings.stripe_webhook_endpoint || ''
+        });
+        
+        setPaymentMethods({
+          stripe: settings.payment_methods?.includes('stripe') || false,
+          clickCollect: settings.payment_methods?.includes('click_and_collect') || true,
+          bankTransfer: settings.payment_methods?.includes('bank_transfer') || false
+        });
+        
+        setTestMode(settings.stripe_test_mode !== false);
+      }
+    } catch (error) {
+      console.error('Erreur chargement config Stripe:', error);
+    } finally {
+      setLoadingData(false);
+    }
+  }, [user]);
+
+  const handleStripeConfigSave = useCallback(async () => {
     if (!stripeConfig.publishableKey || !stripeConfig.secretKey) {
       toast({
         title: "Erreur",
@@ -57,11 +112,33 @@ const StripePaymentSetup: React.FC = () => {
       return;
     }
 
+    if (!user) return;
     setLoading(true);
 
     try {
-      // Simulation de sauvegarde
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const settings = {
+        stripe_publishable_key: stripeConfig.publishableKey,
+        stripe_secret_key: stripeConfig.secretKey,
+        stripe_active: stripeConfig.isActive,
+        stripe_webhook_endpoint: stripeConfig.webhookEndpoint,
+        stripe_test_mode: testMode,
+        payment_methods: [
+          ...(paymentMethods.stripe ? ['stripe'] : []),
+          ...(paymentMethods.clickCollect ? ['click_and_collect'] : []),
+          ...(paymentMethods.bankTransfer ? ['bank_transfer'] : [])
+        ],
+        updated_at: new Date().toISOString()
+      };
+
+      await supabase
+        .from('ecommerce_settings' as any)
+        .upsert({
+          repairer_id: user.id,
+          settings,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'repairer_id'
+        });
 
       toast({
         title: "Configuration Stripe sauvegardée",
@@ -69,6 +146,7 @@ const StripePaymentSetup: React.FC = () => {
         variant: "default"
       });
     } catch (error) {
+      console.error('Erreur sauvegarde Stripe:', error);
       toast({
         title: "Erreur",
         description: "Impossible de sauvegarder la configuration Stripe",
@@ -77,9 +155,9 @@ const StripePaymentSetup: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [stripeConfig, paymentMethods, testMode, user, toast]);
 
-  const handleTestStripe = async () => {
+  const handleTestStripe = useCallback(async () => {
     if (!stripeConfig.publishableKey) {
       toast({
         title: "Configuration incomplète",
@@ -92,7 +170,7 @@ const StripePaymentSetup: React.FC = () => {
     setLoading(true);
 
     try {
-      // Simulation de test de connexion
+      // Test de validation des clés (simulation)
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       toast({
@@ -109,7 +187,30 @@ const StripePaymentSetup: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [stripeConfig.publishableKey, toast]);
+
+  // Callbacks optimisés pour les changements d'état
+  const handleStripeConfigChange = useCallback((field: keyof StripeConfig, value: string | boolean) => {
+    setStripeConfig(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const handlePaymentMethodChange = useCallback((method: keyof PaymentMethods, checked: boolean) => {
+    setPaymentMethods(prev => ({ ...prev, [method]: checked }));
+  }, []);
+
+  // État validé pour l'affichage
+  const isConfigured = useMemo(() => 
+    stripeConfig.publishableKey && stripeConfig.secretKey, 
+    [stripeConfig.publishableKey, stripeConfig.secretKey]
+  );
+
+  if (loadingData) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -146,10 +247,7 @@ const StripePaymentSetup: React.FC = () => {
                 id="publishableKey"
                 type="text"
                 value={stripeConfig.publishableKey}
-                onChange={(e) => setStripeConfig(prev => ({
-                  ...prev,
-                  publishableKey: e.target.value
-                }))}
+                onChange={(e) => handleStripeConfigChange('publishableKey', e.target.value)}
                 placeholder={testMode ? "pk_test_..." : "pk_live_..."}
               />
             </div>
@@ -162,10 +260,7 @@ const StripePaymentSetup: React.FC = () => {
                 id="secretKey"
                 type="password"
                 value={stripeConfig.secretKey}
-                onChange={(e) => setStripeConfig(prev => ({
-                  ...prev,
-                  secretKey: e.target.value
-                }))}
+                onChange={(e) => handleStripeConfigChange('secretKey', e.target.value)}
                 placeholder={testMode ? "sk_test_..." : "sk_live_..."}
               />
             </div>
@@ -202,7 +297,7 @@ const StripePaymentSetup: React.FC = () => {
           </div>
 
           {/* Statut */}
-          {stripeConfig.publishableKey && (
+          {isConfigured && (
             <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
               <div className="flex items-center gap-2">
                 <Check className="w-5 h-5 text-emerald-600" />
@@ -237,11 +332,8 @@ const StripePaymentSetup: React.FC = () => {
             </div>
             <Switch
               checked={paymentMethods.stripe}
-              onCheckedChange={(checked) => setPaymentMethods(prev => ({
-                ...prev,
-                stripe: checked
-              }))}
-              disabled={!stripeConfig.publishableKey}
+              onCheckedChange={(checked) => handlePaymentMethodChange('stripe', checked)}
+              disabled={!isConfigured}
             />
           </div>
 
@@ -258,10 +350,7 @@ const StripePaymentSetup: React.FC = () => {
             </div>
             <Switch
               checked={paymentMethods.clickCollect}
-              onCheckedChange={(checked) => setPaymentMethods(prev => ({
-                ...prev,
-                clickCollect: checked
-              }))}
+              onCheckedChange={(checked) => handlePaymentMethodChange('clickCollect', checked)}
             />
           </div>
 
@@ -278,10 +367,7 @@ const StripePaymentSetup: React.FC = () => {
             </div>
             <Switch
               checked={paymentMethods.bankTransfer}
-              onCheckedChange={(checked) => setPaymentMethods(prev => ({
-                ...prev,
-                bankTransfer: checked
-              }))}
+              onCheckedChange={(checked) => handlePaymentMethodChange('bankTransfer', checked)}
             />
           </div>
         </CardContent>
