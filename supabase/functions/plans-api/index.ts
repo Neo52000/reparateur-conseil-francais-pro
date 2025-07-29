@@ -103,11 +103,14 @@ Deno.serve(async (req) => {
     }));
 
     // Trier selon l'ordre défini
+    console.log('Plans before sorting:', formattedPlans.map(p => ({ name: p.name, lower: p.name.toLowerCase() })));
     formattedPlans.sort((a, b) => {
       const indexA = planOrder.indexOf(a.name.toLowerCase());
       const indexB = planOrder.indexOf(b.name.toLowerCase());
+      console.log(`Sorting ${a.name} (index: ${indexA}) vs ${b.name} (index: ${indexB})`);
       return indexA - indexB;
     });
+    console.log('Plans after sorting:', formattedPlans.map(p => p.name));
 
     console.log(`Successfully fetched ${formattedPlans.length} plans`);
 
