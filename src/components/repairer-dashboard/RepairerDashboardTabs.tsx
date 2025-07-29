@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import OverviewTabSection from "./OverviewTabSection";
 import EnhancedOverviewTab from "./EnhancedOverviewTab";
+import EnhancedDashboard from '@/components/dashboard/EnhancedDashboard';
 import OrdersTabSection from "./OrdersTabSection";
 import CalendarTabSection from "./CalendarTabSection";
 import InventoryTabSection from "./InventoryTabSection";
@@ -147,7 +148,7 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
       </TabsList>
 
       <TabsContent value="overview">
-        <EnhancedOverviewTab
+        <EnhancedDashboard
           orders={orders}
           appointments={appointments}
         />
