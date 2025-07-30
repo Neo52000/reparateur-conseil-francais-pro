@@ -81,6 +81,85 @@ function validateToken(authHeader: string | null): any {
   }
 }
 
+// Validation avancée côté serveur
+function validateClaimData(data: NewClaimRequest): string[] {
+  const errors: string[] = [];
+
+  // 1. Validation des dates
+  const repairDate = new Date(data.RepairDate);
+  const now = new Date();
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(now.getMonth() - 6);
+
+  if (repairDate > now) {
+    errors.push('La date de réparation ne peut pas être dans le futur');
+  }
+  if (repairDate < sixMonthsAgo) {
+    errors.push('La date de réparation est trop ancienne (plus de 6 mois)');
+  }
+
+  // 2. Validation des montants
+  if (!data.Bill.TotalAmountInclVAT || data.Bill.TotalAmountInclVAT.amount <= 0) {
+    errors.push('Le montant total TTC doit être supérieur à 0');
+  }
+  if (!data.Bill.AmountCovered || data.Bill.AmountCovered.amount < 0) {
+    errors.push('Le montant couvert ne peut pas être négatif');
+  }
+  if (data.Bill.AmountCovered.amount > data.Bill.TotalAmountInclVAT.amount) {
+    errors.push('Le montant couvert ne peut pas être supérieur au montant total');
+  }
+
+  // 3. Validation du réparateur
+  if (!data.RepairerId || data.RepairerId.length < 5) {
+    errors.push('Identifiant réparateur invalide');
+  }
+
+  // 4. Validation du produit
+  if (!data.Product.ProductID) {
+    errors.push('Identifiant produit manquant');
+  }
+  if (!data.Product.BrandID) {
+    errors.push('Identifiant marque manquant');
+  }
+  if (!data.Product.ProductIdentificationNumber) {
+    errors.push('Numéro de série produit manquant');
+  }
+
+  // 5. Validation du code IRIS
+  if (data.Product.IrisCode && !/^[0-9]{4}$/.test(data.Product.IrisCode)) {
+    errors.push('Le code IRIS doit contenir exactement 4 chiffres');
+  }
+
+  // 6. Validation des données client
+  if (!data.Customer.Email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.Customer.Email)) {
+    errors.push('Email client invalide');
+  }
+  if (!data.Customer.PostalCode || !/^[0-9]{5}$/.test(data.Customer.PostalCode)) {
+    errors.push('Code postal client invalide');
+  }
+  if (!data.Customer.FirstName || data.Customer.FirstName.length < 2) {
+    errors.push('Prénom client requis (minimum 2 caractères)');
+  }
+  if (!data.Customer.LastName || data.Customer.LastName.length < 2) {
+    errors.push('Nom client requis (minimum 2 caractères)');
+  }
+
+  // 7. Validation de la devise
+  if (data.Bill.TotalAmountInclVAT.currency !== 'EUR') {
+    errors.push('La devise doit être EUR');
+  }
+
+  // 8. Validation des montants limites QualiRépar
+  if (data.Bill.TotalAmountInclVAT.amount > 1000) {
+    errors.push('Le montant de réparation semble trop élevé pour QualiRépar');
+  }
+  if (data.Bill.AmountCovered.amount > 50) {
+    errors.push('Le bonus demandé semble trop élevé pour QualiRépar');
+  }
+
+  return errors;
+}
+
 function validateRepairDate(repairDate: string): string | null {
   const date = new Date(repairDate);
   const now = new Date();
@@ -144,9 +223,22 @@ serve(async (req) => {
     const claimData: NewClaimRequest = await req.json();
     console.log('📝 New claim request from user:', tokenData.username);
 
-    // ============= VALIDATIONS v3 =============
+    // ============= VALIDATIONS v3 RENFORCÉES =============
     
-    // 1. Validate repair date
+    // 1. Validation complète des données
+    const validationErrors = validateClaimData(claimData);
+    if (validationErrors.length > 0) {
+      return new Response(
+        JSON.stringify({ 
+          error: '400 : DONNEES_INVALIDES', 
+          message: 'Données de la demande invalides',
+          details: validationErrors
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // 2. Validate repair date (maintenu pour compatibilité)
     const dateError = validateRepairDate(claimData.RepairDate);
     if (dateError) {
       return new Response(

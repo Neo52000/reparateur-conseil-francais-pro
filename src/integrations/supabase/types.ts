@@ -6517,6 +6517,71 @@ export type Database = {
           },
         ]
       }
+      qualirepar_auth_credentials: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_intermediary: boolean | null
+          password: string
+          updated_at: string | null
+          user_id: string | null
+          username: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_intermediary?: boolean | null
+          password: string
+          updated_at?: string | null
+          user_id?: string | null
+          username: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_intermediary?: boolean | null
+          password?: string
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string
+        }
+        Relationships: []
+      }
+      qualirepar_auth_repairers: {
+        Row: {
+          auth_id: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          repairer_code: string
+        }
+        Insert: {
+          auth_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          repairer_code: string
+        }
+        Update: {
+          auth_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          repairer_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualirepar_auth_repairers_auth_id_fkey"
+            columns: ["auth_id"]
+            isOneToOne: false
+            referencedRelation: "qualirepar_auth_credentials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       qualirepar_documents: {
         Row: {
           auto_validation_passed: boolean | null
@@ -6526,6 +6591,7 @@ export type Database = {
           file_name: string
           file_path: string
           file_size: number
+          file_size_mb: number | null
           id: string
           is_validated: boolean | null
           mime_type: string
@@ -6546,6 +6612,7 @@ export type Database = {
           file_name: string
           file_path: string
           file_size: number
+          file_size_mb?: number | null
           id?: string
           is_validated?: boolean | null
           mime_type: string
@@ -6566,6 +6633,7 @@ export type Database = {
           file_name?: string
           file_path?: string
           file_size?: number
+          file_size_mb?: number | null
           id?: string
           is_validated?: boolean | null
           mime_type?: string
@@ -6598,41 +6666,60 @@ export type Database = {
           api_version: string | null
           client_address: string
           client_city: string
+          client_country: string | null
           client_email: string
+          client_first_name: string | null
+          client_last_name: string | null
           client_name: string
           client_phone: string | null
           client_postal_code: string
+          client_title: string | null
           created_at: string
           document_types_uploaded: string[] | null
           dossier_number: string
           eco_organism: string
           eligibility_rule_id: string | null
           id: string
+          iris_code: string | null
           is_api_compliant: boolean | null
           last_api_call: string | null
           max_retry_attempts: number | null
+          new_spare_parts_amount: number | null
           official_claim_id: string | null
           payment_date: string | null
+          piec_spare_parts_amount: number | null
           pos_transaction_id: string | null
           processing_date: string | null
           processing_notifications: Json | null
           product_brand: string
+          product_brand_id: string | null
           product_category: string
+          product_commercial_reference: string | null
+          product_id: string | null
           product_model: string
           product_serial_number: string | null
+          purchase_order_by_customer: string | null
+          reimbursement_claim_id: string | null
           rejection_reason: string | null
           repair_cost: number
           repair_date: string
           repair_description: string
           repair_order_id: string | null
+          repair_place_id: string | null
+          repair_type_code: string | null
           repairer_id: string
           repairer_siret: string | null
           requested_bonus_amount: number
           retry_count: number | null
+          sap_service_order: string | null
+          second_hand_spare_parts_amount: number | null
+          spare_parts_cost: number | null
           status: string
           submission_date: string | null
           temporary_claim_id: string | null
           updated_at: string
+          v3_reject_reason: string | null
+          v3_request_status: string | null
           validation_errors: Json | null
           wizard_step: number | null
         }
@@ -6645,41 +6732,60 @@ export type Database = {
           api_version?: string | null
           client_address: string
           client_city: string
+          client_country?: string | null
           client_email: string
+          client_first_name?: string | null
+          client_last_name?: string | null
           client_name: string
           client_phone?: string | null
           client_postal_code: string
+          client_title?: string | null
           created_at?: string
           document_types_uploaded?: string[] | null
           dossier_number: string
           eco_organism: string
           eligibility_rule_id?: string | null
           id?: string
+          iris_code?: string | null
           is_api_compliant?: boolean | null
           last_api_call?: string | null
           max_retry_attempts?: number | null
+          new_spare_parts_amount?: number | null
           official_claim_id?: string | null
           payment_date?: string | null
+          piec_spare_parts_amount?: number | null
           pos_transaction_id?: string | null
           processing_date?: string | null
           processing_notifications?: Json | null
           product_brand: string
+          product_brand_id?: string | null
           product_category: string
+          product_commercial_reference?: string | null
+          product_id?: string | null
           product_model: string
           product_serial_number?: string | null
+          purchase_order_by_customer?: string | null
+          reimbursement_claim_id?: string | null
           rejection_reason?: string | null
           repair_cost: number
           repair_date: string
           repair_description: string
           repair_order_id?: string | null
+          repair_place_id?: string | null
+          repair_type_code?: string | null
           repairer_id: string
           repairer_siret?: string | null
           requested_bonus_amount: number
           retry_count?: number | null
+          sap_service_order?: string | null
+          second_hand_spare_parts_amount?: number | null
+          spare_parts_cost?: number | null
           status?: string
           submission_date?: string | null
           temporary_claim_id?: string | null
           updated_at?: string
+          v3_reject_reason?: string | null
+          v3_request_status?: string | null
           validation_errors?: Json | null
           wizard_step?: number | null
         }
@@ -6692,41 +6798,60 @@ export type Database = {
           api_version?: string | null
           client_address?: string
           client_city?: string
+          client_country?: string | null
           client_email?: string
+          client_first_name?: string | null
+          client_last_name?: string | null
           client_name?: string
           client_phone?: string | null
           client_postal_code?: string
+          client_title?: string | null
           created_at?: string
           document_types_uploaded?: string[] | null
           dossier_number?: string
           eco_organism?: string
           eligibility_rule_id?: string | null
           id?: string
+          iris_code?: string | null
           is_api_compliant?: boolean | null
           last_api_call?: string | null
           max_retry_attempts?: number | null
+          new_spare_parts_amount?: number | null
           official_claim_id?: string | null
           payment_date?: string | null
+          piec_spare_parts_amount?: number | null
           pos_transaction_id?: string | null
           processing_date?: string | null
           processing_notifications?: Json | null
           product_brand?: string
+          product_brand_id?: string | null
           product_category?: string
+          product_commercial_reference?: string | null
+          product_id?: string | null
           product_model?: string
           product_serial_number?: string | null
+          purchase_order_by_customer?: string | null
+          reimbursement_claim_id?: string | null
           rejection_reason?: string | null
           repair_cost?: number
           repair_date?: string
           repair_description?: string
           repair_order_id?: string | null
+          repair_place_id?: string | null
+          repair_type_code?: string | null
           repairer_id?: string
           repairer_siret?: string | null
           requested_bonus_amount?: number
           retry_count?: number | null
+          sap_service_order?: string | null
+          second_hand_spare_parts_amount?: number | null
+          spare_parts_cost?: number | null
           status?: string
           submission_date?: string | null
           temporary_claim_id?: string | null
           updated_at?: string
+          v3_reject_reason?: string | null
+          v3_request_status?: string | null
           validation_errors?: Json | null
           wizard_step?: number | null
         }
