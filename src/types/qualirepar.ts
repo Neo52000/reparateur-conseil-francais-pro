@@ -45,11 +45,21 @@ export interface QualiReparDossier {
   eco_organism: string;
   
   // Statut et suivi
-  status: 'draft' | 'ready_to_submit' | 'submitted' | 'processing' | 'approved' | 'paid' | 'rejected';
+  status: 'draft' | 'metadata_complete' | 'documents_uploaded' | 'ready_to_submit' | 'submitted' | 'processing' | 'approved' | 'paid' | 'rejected';
   submission_date?: string;
   processing_date?: string;
   payment_date?: string;
   rejection_reason?: string;
+  
+  // Nouveaux champs v2 API
+  temporary_claim_id?: string;
+  official_claim_id?: string;
+  api_upload_urls?: any;
+  document_types_uploaded?: string[];
+  api_status?: string;
+  api_response_data?: any;
+  wizard_step?: number;
+  is_api_compliant?: boolean;
   
   created_at: string;
   updated_at: string;

@@ -6482,7 +6482,10 @@ export type Database = {
           is_validated: boolean | null
           mime_type: string
           ocr_data: Json | null
+          official_document_type: string | null
           updated_at: string
+          upload_status: string | null
+          upload_url: string | null
           validation_notes: string | null
         }
         Insert: {
@@ -6496,7 +6499,10 @@ export type Database = {
           is_validated?: boolean | null
           mime_type: string
           ocr_data?: Json | null
+          official_document_type?: string | null
           updated_at?: string
+          upload_status?: string | null
+          upload_url?: string | null
           validation_notes?: string | null
         }
         Update: {
@@ -6510,7 +6516,10 @@ export type Database = {
           is_validated?: boolean | null
           mime_type?: string
           ocr_data?: Json | null
+          official_document_type?: string | null
           updated_at?: string
+          upload_status?: string | null
+          upload_url?: string | null
           validation_notes?: string | null
         }
         Relationships: [
@@ -6525,6 +6534,9 @@ export type Database = {
       }
       qualirepar_dossiers: {
         Row: {
+          api_response_data: Json | null
+          api_status: string | null
+          api_upload_urls: Json | null
           client_address: string
           client_city: string
           client_email: string
@@ -6532,10 +6544,13 @@ export type Database = {
           client_phone: string | null
           client_postal_code: string
           created_at: string
+          document_types_uploaded: string[] | null
           dossier_number: string
           eco_organism: string
           eligibility_rule_id: string | null
           id: string
+          is_api_compliant: boolean | null
+          official_claim_id: string | null
           payment_date: string | null
           pos_transaction_id: string | null
           processing_date: string | null
@@ -6552,9 +6567,14 @@ export type Database = {
           requested_bonus_amount: number
           status: string
           submission_date: string | null
+          temporary_claim_id: string | null
           updated_at: string
+          wizard_step: number | null
         }
         Insert: {
+          api_response_data?: Json | null
+          api_status?: string | null
+          api_upload_urls?: Json | null
           client_address: string
           client_city: string
           client_email: string
@@ -6562,10 +6582,13 @@ export type Database = {
           client_phone?: string | null
           client_postal_code: string
           created_at?: string
+          document_types_uploaded?: string[] | null
           dossier_number: string
           eco_organism: string
           eligibility_rule_id?: string | null
           id?: string
+          is_api_compliant?: boolean | null
+          official_claim_id?: string | null
           payment_date?: string | null
           pos_transaction_id?: string | null
           processing_date?: string | null
@@ -6582,9 +6605,14 @@ export type Database = {
           requested_bonus_amount: number
           status?: string
           submission_date?: string | null
+          temporary_claim_id?: string | null
           updated_at?: string
+          wizard_step?: number | null
         }
         Update: {
+          api_response_data?: Json | null
+          api_status?: string | null
+          api_upload_urls?: Json | null
           client_address?: string
           client_city?: string
           client_email?: string
@@ -6592,10 +6620,13 @@ export type Database = {
           client_phone?: string | null
           client_postal_code?: string
           created_at?: string
+          document_types_uploaded?: string[] | null
           dossier_number?: string
           eco_organism?: string
           eligibility_rule_id?: string | null
           id?: string
+          is_api_compliant?: boolean | null
+          official_claim_id?: string | null
           payment_date?: string | null
           pos_transaction_id?: string | null
           processing_date?: string | null
@@ -6612,7 +6643,9 @@ export type Database = {
           requested_bonus_amount?: number
           status?: string
           submission_date?: string | null
+          temporary_claim_id?: string | null
           updated_at?: string
+          wizard_step?: number | null
         }
         Relationships: [
           {
@@ -6673,6 +6706,42 @@ export type Database = {
           updated_at?: string
           valid_from?: string
           valid_until?: string | null
+        }
+        Relationships: []
+      }
+      qualirepar_product_catalog: {
+        Row: {
+          category_code: string
+          category_name: string
+          created_at: string | null
+          eco_organism: string | null
+          id: string
+          is_active: boolean | null
+          max_bonus_amount: number
+          min_repair_cost: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          category_code: string
+          category_name: string
+          created_at?: string | null
+          eco_organism?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_bonus_amount: number
+          min_repair_cost?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          category_code?: string
+          category_name?: string
+          created_at?: string | null
+          eco_organism?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_bonus_amount?: number
+          min_repair_cost?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
