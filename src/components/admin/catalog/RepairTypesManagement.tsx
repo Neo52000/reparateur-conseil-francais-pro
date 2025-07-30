@@ -2,411 +2,399 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import { useCatalog } from '@/hooks/useCatalog';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Wrench, 
-  Search,
-  Save,
-  X,
-  Clock,
-  DollarSign
-} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import type { RepairType } from '@/types/catalog';
 
 interface RepairTypesManagementProps {
-  onStatsUpdate: (count: number) => void;
+  onStatsUpdate?: (count: number) => void;
 }
 
 interface EditingRepairType {
-  id?: string;
   name: string;
-  category_id?: string;
-  description?: string;
-  estimated_time_minutes?: number;
-  difficulty_level?: string;
+  description: string;
+  difficulty_level: string;
+  estimated_time_minutes: number;
+  warranty_days: number;
+  category_id: string;
+  is_active: boolean;
 }
 
 const RepairTypesManagement: React.FC<RepairTypesManagementProps> = ({ onStatsUpdate }) => {
-  const { repairTypes, repairCategories, loading, createRepairType, updateRepairType, deleteRepairType } = useCatalog();
+  const { 
+    repairTypes, 
+    repairCategories,
+    loading, 
+    createRepairType, 
+    updateRepairType, 
+    deleteRepairType 
+  } = useCatalog();
+  
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [editingItem, setEditingItem] = useState<EditingRepairType | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const { toast } = useToast();
+  const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingRepairType, setEditingRepairType] = useState<RepairType | null>(null);
+  const [formData, setFormData] = useState<EditingRepairType>({
+    name: '',
+    description: '',
+    difficulty_level: 'Facile',
+    estimated_time_minutes: 0,
+    warranty_days: 180,
+    category_id: '',
+    is_active: true
+  });
 
   useEffect(() => {
-    onStatsUpdate(repairTypes.length);
+    if (onStatsUpdate) {
+      onStatsUpdate(repairTypes.length);
+    }
   }, [repairTypes.length, onStatsUpdate]);
 
   const filteredRepairTypes = repairTypes.filter(repairType => {
     const matchesSearch = repairType.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (repairType.description && repairType.description.toLowerCase().includes(searchTerm.toLowerCase()));
+                         (repairType.description && repairType.description.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = !selectedCategory || repairType.category_id === selectedCategory;
+    const matchesDifficulty = !selectedDifficulty || repairType.difficulty_level === selectedDifficulty;
     
-    return matchesSearch && matchesCategory;
+    return matchesSearch && matchesCategory && matchesDifficulty;
   });
 
-  const getCategoryName = (categoryId: string) => {
-    return repairCategories.find(cat => cat.id === categoryId)?.name || 'Catégorie inconnue';
+  const handleEdit = (repairType: RepairType) => {
+    setEditingRepairType(repairType);
+    setFormData({
+      name: repairType.name,
+      description: repairType.description || '',
+      difficulty_level: repairType.difficulty_level,
+      estimated_time_minutes: repairType.estimated_time_minutes || 0,
+      warranty_days: repairType.warranty_days,
+      category_id: repairType.category_id,
+      is_active: repairType.is_active
+    });
+    setIsDialogOpen(true);
   };
 
-  const getDifficultyBadge = (difficulty: string) => {
-    const variants = {
-      easy: { label: 'Facile', variant: 'default' as const },
-      medium: { label: 'Moyen', variant: 'secondary' as const },
-      hard: { label: 'Difficile', variant: 'destructive' as const }
-    };
-    
-    const config = variants[difficulty as keyof typeof variants] || variants.medium;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce type de réparation ?')) {
+      try {
+        await deleteRepairType(id);
+        toast({
+          title: 'Type de réparation supprimé',
+          description: 'Le type de réparation a été supprimé avec succès.',
+        });
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de supprimer le type de réparation.',
+          variant: 'destructive',
+        });
+      }
+    }
   };
 
   const handleSave = async () => {
-    if (!editingItem?.name.trim()) {
-      toast({
-        title: "Erreur",
-        description: "Le nom est obligatoire",
-        variant: "destructive"
-      });
-      return;
-    }
-
     try {
-      if (editingItem.id) {
-        // Mise à jour
-        await updateRepairType(editingItem.id, {
-          name: editingItem.name.trim(),
-          category_id: editingItem.category_id,
-          description: editingItem.description,
-          estimated_duration_minutes: editingItem.estimated_duration_minutes,
-          difficulty_level: editingItem.difficulty_level,
-          base_price: editingItem.base_price
-        });
+      const repairTypeData = {
+        name: formData.name,
+        description: formData.description,
+        difficulty_level: formData.difficulty_level,
+        estimated_time_minutes: formData.estimated_time_minutes,
+        warranty_days: formData.warranty_days,
+        category_id: formData.category_id,
+        is_active: formData.is_active
+      };
+
+      if (editingRepairType) {
+        await updateRepairType(editingRepairType.id, repairTypeData);
         toast({
-          title: "Succès",
-          description: "Type de réparation mis à jour"
+          title: 'Type de réparation mis à jour',
+          description: 'Le type de réparation a été mis à jour avec succès.',
         });
       } else {
-        // Création
-        await createRepairType({
-          name: editingItem.name.trim(),
-          category_id: editingItem.category_id,
-          description: editingItem.description,
-          estimated_duration_minutes: editingItem.estimated_duration_minutes,
-          difficulty_level: editingItem.difficulty_level,
-          base_price: editingItem.base_price
-        });
+        await createRepairType(repairTypeData);
         toast({
-          title: "Succès",
-          description: "Type de réparation créé"
+          title: 'Type de réparation créé',
+          description: 'Le nouveau type de réparation a été créé avec succès.',
         });
-        setIsCreating(false);
       }
-      setEditingItem(null);
+      setIsDialogOpen(false);
+      setEditingRepairType(null);
+      resetForm();
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder",
-        variant: "destructive"
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la sauvegarde.',
+        variant: 'destructive',
       });
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer "${name}" ?`)) return;
-
-    try {
-      await deleteRepairType(id);
-      toast({
-        title: "Succès",
-        description: "Type de réparation supprimé"
-      });
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer cet élément",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const startCreating = () => {
-    setEditingItem({ 
-      name: '', 
-      category_id: '',
+  const resetForm = () => {
+    setFormData({
+      name: '',
       description: '',
-      estimated_duration_minutes: 60,
-      difficulty_level: 'medium',
-      base_price: 0
+      difficulty_level: 'Facile',
+      estimated_time_minutes: 0,
+      warranty_days: 180,
+      category_id: '',
+      is_active: true
     });
-    setIsCreating(true);
   };
 
-  const startEditing = (repairType: any) => {
-    setEditingItem({
-      id: repairType.id,
-      name: repairType.name,
-      category_id: repairType.category_id || '',
-      description: repairType.description || '',
-      estimated_duration_minutes: repairType.estimated_duration_minutes || 60,
-      difficulty_level: repairType.difficulty_level || 'medium',
-      base_price: repairType.base_price || 0
-    });
-    setIsCreating(false);
-  };
-
-  const cancelEditing = () => {
-    setEditingItem(null);
-    setIsCreating(false);
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingRepairType(null);
+    resetForm();
   };
 
   if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <div className="flex justify-center p-8">Chargement des types de réparation...</div>;
   }
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-xl font-semibold">Gestion des types de réparation</h2>
+          <p className="text-sm text-muted-foreground">
+            {filteredRepairTypes.length} type{filteredRepairTypes.length > 1 ? 's' : ''} trouvé{filteredRepairTypes.length > 1 ? 's' : ''}
+          </p>
+        </div>
+        <Button onClick={() => setIsDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nouveau type
+        </Button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher un type de réparation..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Toutes les catégories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Toutes les catégories</SelectItem>
+            {repairCategories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Toutes les difficultés" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Toutes les difficultés</SelectItem>
+            <SelectItem value="Facile">Facile</SelectItem>
+            <SelectItem value="Moyen">Moyen</SelectItem>
+            <SelectItem value="Difficile">Difficile</SelectItem>
+            <SelectItem value="Expert">Expert</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="flex items-center gap-2">
-              <Wrench className="h-5 w-5" />
-              Types de réparation ({repairTypes.length})
-            </CardTitle>
-            <Button onClick={startCreating} disabled={isCreating || !!editingItem}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nouveau type
-            </Button>
-          </div>
+          <CardTitle>Types de réparation</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Filtres */}
-          <div className="flex flex-wrap gap-4 items-end">
-            <div className="flex-1 min-w-[200px]">
-              <Label>Recherche</Label>
-              <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher un type de réparation..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-
-            <div className="min-w-[150px]">
-              <Label>Catégorie</Label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Toutes les catégories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Toutes les catégories</SelectItem>
-                  {repairCategories.map(category => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button 
-              variant="outline" 
-              onClick={() => { setSearchTerm(''); setSelectedCategory(''); }}
-            >
-              Réinitialiser
-            </Button>
-          </div>
-
-          {/* Formulaire de création/édition */}
-          {(isCreating || editingItem) && (
-            <Card className="border-primary/20 bg-primary/5">
-              <CardContent className="p-4">
-                <div className="space-y-4">
-                  <h4 className="font-medium">
-                    {isCreating ? 'Nouveau type de réparation' : 'Modifier le type de réparation'}
-                  </h4>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nom</TableHead>
+                <TableHead>Catégorie</TableHead>
+                <TableHead>Difficulté</TableHead>
+                <TableHead>Temps estimé</TableHead>
+                <TableHead>Garantie</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredRepairTypes.map((repairType) => (
+                <TableRow key={repairType.id}>
+                  <TableCell className="font-medium">
                     <div>
-                      <Label htmlFor="name">Nom *</Label>
-                      <Input
-                        id="name"
-                        value={editingItem?.name || ''}
-                        onChange={(e) => setEditingItem(prev => ({ ...prev!, name: e.target.value }))}
-                        placeholder="ex: Remplacement écran"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="category">Catégorie</Label>
-                      <Select 
-                        value={editingItem?.category_id || ''} 
-                        onValueChange={(value) => setEditingItem(prev => ({ ...prev!, category_id: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une catégorie" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {repairCategories.map(category => (
-                            <SelectItem key={category.id} value={category.id}>
-                              {category.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="difficulty">Difficulté</Label>
-                      <Select 
-                        value={editingItem?.difficulty_level || 'medium'} 
-                        onValueChange={(value) => setEditingItem(prev => ({ ...prev!, difficulty_level: value }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="easy">Facile</SelectItem>
-                          <SelectItem value="medium">Moyen</SelectItem>
-                          <SelectItem value="hard">Difficile</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="duration">Durée estimée (minutes)</Label>
-                      <Input
-                        id="duration"
-                        type="number"
-                        value={editingItem?.estimated_duration_minutes || ''}
-                        onChange={(e) => setEditingItem(prev => ({ ...prev!, estimated_duration_minutes: parseInt(e.target.value) || 0 }))}
-                        placeholder="60"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="price">Prix de base (€)</Label>
-                      <Input
-                        id="price"
-                        type="number"
-                        step="0.01"
-                        value={editingItem?.base_price || ''}
-                        onChange={(e) => setEditingItem(prev => ({ ...prev!, base_price: parseFloat(e.target.value) || 0 }))}
-                        placeholder="0.00"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      value={editingItem?.description || ''}
-                      onChange={(e) => setEditingItem(prev => ({ ...prev!, description: e.target.value }))}
-                      placeholder="Description détaillée du type de réparation..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button onClick={handleSave} size="sm">
-                      <Save className="h-4 w-4 mr-2" />
-                      Sauvegarder
-                    </Button>
-                    <Button onClick={cancelEditing} variant="outline" size="sm">
-                      <X className="h-4 w-4 mr-2" />
-                      Annuler
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Liste des types de réparation */}
-          <div className="space-y-2">
-            {filteredRepairTypes.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                {searchTerm || selectedCategory 
-                  ? 'Aucun type de réparation trouvé avec ces critères' 
-                  : 'Aucun type de réparation configuré'}
-              </div>
-            ) : (
-              filteredRepairTypes.map((repairType) => (
-                <div key={repairType.id} className="border rounded-lg p-4 hover:bg-muted/50">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h4 className="font-medium">{repairType.name}</h4>
-                        {repairType.category && (
-                          <Badge variant="secondary">{repairType.category.name}</Badge>
-                        )}
-                        {repairType.difficulty_level && getDifficultyBadge(repairType.difficulty_level)}
-                      </div>
-                      {repairType.description && (
-                        <p className="text-sm text-muted-foreground mb-2">{repairType.description}</p>
-                      )}
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        {repairType.estimated_duration_minutes && (
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
-                            {repairType.estimated_duration_minutes} min
-                          </div>
-                        )}
-                        {repairType.base_price && (
-                          <div className="flex items-center gap-1">
-                            <DollarSign className="h-4 w-4" />
-                            {repairType.base_price}€
-                          </div>
-                        )}
+                      <div className="font-medium">{repairType.name}</div>
+                      <div className="text-sm text-muted-foreground truncate max-w-xs">
+                        {repairType.description}
                       </div>
                     </div>
-                    
-                    <div className="flex gap-2">
+                  </TableCell>
+                  <TableCell>
+                    {repairType.category?.name || 'Non définie'}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{repairType.difficulty_level}</Badge>
+                  </TableCell>
+                  <TableCell>{repairType.estimated_time_minutes || 0} min</TableCell>
+                  <TableCell className="font-medium">{repairType.warranty_days} jours</TableCell>
+                  <TableCell>
+                    <Badge variant={repairType.is_active ? "default" : "secondary"}>
+                      {repairType.is_active ? 'Actif' : 'Inactif'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
                       <Button
+                        variant="ghost"
                         size="sm"
-                        variant="outline"
-                        onClick={() => startEditing(repairType)}
-                        disabled={!!editingItem}
+                        onClick={() => handleEdit(repairType)} 
+                        aria-label={`Modifier ${repairType.name}`}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
+                        variant="ghost"
                         size="sm"
-                        variant="destructive"
-                        onClick={() => handleDelete(repairType.id, repairType.name)}
-                        disabled={!!editingItem}
+                        onClick={() => handleDelete(repairType.id)}
+                        aria-label={`Supprimer ${repairType.name}`}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          
+          {filteredRepairTypes.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              Aucun type de réparation trouvé
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Dialog de création/édition */}
+      {isDialogOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="max-w-md w-full mx-4">
+            <CardHeader>
+              <CardTitle>
+                {editingRepairType ? 'Modifier le type de réparation' : 'Nouveau type de réparation'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Nom</label>
+                <Input
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  placeholder="Remplacement écran"
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Description</label>
+                <Input
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                  placeholder="Description détaillée de la réparation"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Catégorie</label>
+                <Select 
+                  value={formData.category_id} 
+                  onValueChange={(value) => setFormData({...formData, category_id: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner une catégorie" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {repairCategories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Difficulté</label>
+                <Select 
+                  value={formData.difficulty_level} 
+                  onValueChange={(value) => setFormData({...formData, difficulty_level: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner la difficulté" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Facile">Facile</SelectItem>
+                    <SelectItem value="Moyen">Moyen</SelectItem>
+                    <SelectItem value="Difficile">Difficile</SelectItem>
+                    <SelectItem value="Expert">Expert</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Temps estimé (minutes)</label>
+                <Input
+                  type="number"
+                  value={formData.estimated_time_minutes}
+                  onChange={(e) => setFormData({...formData, estimated_time_minutes: parseInt(e.target.value) || 0})}
+                  placeholder="60"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Garantie (jours)</label>
+                <Input
+                  type="number"
+                  value={formData.warranty_days}
+                  onChange={(e) => setFormData({...formData, warranty_days: parseInt(e.target.value) || 180})}
+                  placeholder="180"
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
+                />
+                <label htmlFor="is_active" className="text-sm font-medium">
+                  Type actif
+                </label>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button variant="outline" onClick={handleCloseDialog} className="flex-1">
+                  Annuler
+                </Button>
+                <Button onClick={handleSave} className="flex-1">
+                  {editingRepairType ? 'Modifier' : 'Créer'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

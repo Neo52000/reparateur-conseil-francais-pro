@@ -2,374 +2,376 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Edit, Trash2, Search } from 'lucide-react';
 import { useCatalog } from '@/hooks/useCatalog';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Database, 
-  Search,
-  Save,
-  X,
-  Filter
-} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import type { DeviceModel, DeviceModelFormData } from '@/types/catalog';
 
 interface DeviceModelsManagementProps {
-  onStatsUpdate: (count: number) => void;
+  onStatsUpdate?: (count: number) => void;
 }
 
 interface EditingDeviceModel {
-  id?: string;
   model_name: string;
-  brand_id: string;
+  model_number: string;
   device_type_id: string;
+  brand_id: string;
+  is_active: boolean;
 }
 
 const DeviceModelsManagement: React.FC<DeviceModelsManagementProps> = ({ onStatsUpdate }) => {
-  const { deviceModels, brands, deviceTypes, loading, createDeviceModel, updateDeviceModel, deleteDeviceModel } = useCatalog();
+  const { 
+    deviceModels, 
+    deviceTypes, 
+    brands, 
+    loading, 
+    createDeviceModel, 
+    updateDeviceModel, 
+    deleteDeviceModel 
+  } = useCatalog();
+  
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('');
-  const [selectedDeviceType, setSelectedDeviceType] = useState('');
-  const [editingItem, setEditingItem] = useState<EditingDeviceModel | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    onStatsUpdate(deviceModels.length);
-  }, [deviceModels.length, onStatsUpdate]);
-
-  const filteredDeviceModels = deviceModels.filter(model => {
-    const matchesSearch = model.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesBrand = !selectedBrand || model.brand_id === selectedBrand;
-    const matchesDeviceType = !selectedDeviceType || model.device_type_id === selectedDeviceType;
-    
-    return matchesSearch && matchesBrand && matchesDeviceType;
+  const [selectedType, setSelectedType] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingModel, setEditingModel] = useState<DeviceModel | null>(null);
+  const [formData, setFormData] = useState<EditingDeviceModel>({
+    model_name: '',
+    model_number: '',
+    device_type_id: '',
+    brand_id: '',
+    is_active: true
   });
 
-  const getBrandName = (brandId: string) => {
-    return brands.find(brand => brand.id === brandId)?.name || 'Marque inconnue';
+  useEffect(() => {
+    if (onStatsUpdate) {
+      onStatsUpdate(deviceModels.length);
+    }
+  }, [deviceModels.length, onStatsUpdate]);
+
+  const filteredModels = deviceModels.filter(model => {
+    const matchesSearch = model.model_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         model.brand?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (model.model_number && model.model_number.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesBrand = !selectedBrand || model.brand_id === selectedBrand;
+    const matchesType = !selectedType || model.device_type_id === selectedType;
+    
+    return matchesSearch && matchesBrand && matchesType;
+  });
+
+  const handleEdit = (model: DeviceModel) => {
+    setEditingModel(model);
+    setFormData({
+      model_name: model.model_name || '',
+      model_number: model.model_number || '',
+      device_type_id: model.device_type_id,
+      brand_id: model.brand_id,
+      is_active: model.is_active
+    });
+    setIsDialogOpen(true);
   };
 
-  const getDeviceTypeName = (deviceTypeId: string) => {
-    return deviceTypes.find(type => type.id === deviceTypeId)?.name || 'Type inconnu';
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce modèle ?')) {
+      try {
+        await deleteDeviceModel(id);
+        toast({
+          title: 'Modèle supprimé',
+          description: 'Le modèle a été supprimé avec succès.',
+        });
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de supprimer le modèle.',
+          variant: 'destructive',
+        });
+      }
+    }
   };
 
   const handleSave = async () => {
-    if (!editingItem?.name.trim() || !editingItem?.brand_id || !editingItem?.device_type_id) {
-      toast({
-        title: "Erreur",
-        description: "Tous les champs obligatoires doivent être renseignés",
-        variant: "destructive"
-      });
-      return;
-    }
-
     try {
-      if (editingItem.id) {
-        // Mise à jour
-        await updateDeviceModel(editingItem.id, {
-          name: editingItem.name.trim(),
-          brand_id: editingItem.brand_id,
-          device_type_id: editingItem.device_type_id,
-          specifications: editingItem.specifications
-        });
+      const modelData: DeviceModelFormData = {
+        model_name: formData.model_name,
+        device_type_id: formData.device_type_id,
+        brand_id: formData.brand_id,
+        model_number: formData.model_number,
+        release_date: '',
+        screen_size: '',
+        screen_resolution: '',
+        screen_type: '',
+        battery_capacity: '',
+        operating_system: '',
+        is_active: formData.is_active
+      };
+
+      if (editingModel) {
+        await updateDeviceModel(editingModel.id, modelData);
         toast({
-          title: "Succès",
-          description: "Modèle mis à jour"
+          title: 'Modèle mis à jour',
+          description: 'Le modèle a été mis à jour avec succès.',
         });
       } else {
-        // Création
-        await createDeviceModel({
-          name: editingItem.name.trim(),
-          brand_id: editingItem.brand_id,
-          device_type_id: editingItem.device_type_id,
-          specifications: editingItem.specifications
-        });
+        await createDeviceModel(modelData);
         toast({
-          title: "Succès",
-          description: "Modèle créé"
+          title: 'Modèle créé',
+          description: 'Le nouveau modèle a été créé avec succès.',
         });
-        setIsCreating(false);
       }
-      setEditingItem(null);
+      setIsDialogOpen(false);
+      setEditingModel(null);
+      resetForm();
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder",
-        variant: "destructive"
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la sauvegarde.',
+        variant: 'destructive',
       });
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer "${name}" ?`)) return;
-
-    try {
-      await deleteDeviceModel(id);
-      toast({
-        title: "Succès",
-        description: "Modèle supprimé"
-      });
-    } catch (error) {
-      console.error('Erreur lors de la suppression:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer cet élément",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const startCreating = () => {
-    setEditingItem({ 
-      name: '', 
-      brand_id: '', 
+  const resetForm = () => {
+    setFormData({
+      model_name: '',
+      model_number: '',
       device_type_id: '',
-      specifications: ''
+      brand_id: '',
+      is_active: true
     });
-    setIsCreating(true);
   };
 
-  const startEditing = (deviceModel: any) => {
-    setEditingItem({
-      id: deviceModel.id,
-      name: deviceModel.name,
-      brand_id: deviceModel.brand_id,
-      device_type_id: deviceModel.device_type_id,
-      specifications: deviceModel.specifications || ''
-    });
-    setIsCreating(false);
-  };
-
-  const cancelEditing = () => {
-    setEditingItem(null);
-    setIsCreating(false);
-  };
-
-  const clearFilters = () => {
-    setSearchTerm('');
-    setSelectedBrand('');
-    setSelectedDeviceType('');
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setEditingModel(null);
+    resetForm();
   };
 
   if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <div className="flex justify-center p-8">Chargement des modèles...</div>;
   }
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-xl font-semibold">Gestion des modèles d'appareils</h2>
+          <p className="text-sm text-muted-foreground">
+            {filteredModels.length} modèle{filteredModels.length > 1 ? 's' : ''} trouvé{filteredModels.length > 1 ? 's' : ''}
+          </p>
+        </div>
+        <Button onClick={() => setIsDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nouveau modèle
+        </Button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher un modèle, marque ou référence..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        <Select value={selectedBrand} onValueChange={setSelectedBrand}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Toutes les marques" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Toutes les marques</SelectItem>
+            {brands.map((brand) => (
+              <SelectItem key={brand.id} value={brand.id}>
+                {brand.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={selectedType} onValueChange={setSelectedType}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Tous les types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Tous les types</SelectItem>
+            {deviceTypes.map((type) => (
+              <SelectItem key={type.id} value={type.id}>
+                {type.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="flex items-center gap-2">
-              <Database className="h-5 w-5" />
-              Modèles d'appareils ({deviceModels.length})
-            </CardTitle>
-            <Button onClick={startCreating} disabled={isCreating || !!editingItem}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nouveau modèle
-            </Button>
-          </div>
+          <CardTitle>Modèles d'appareils</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Filtres */}
-          <div className="flex flex-wrap gap-4 items-end">
-            <div className="flex-1 min-w-[200px]">
-              <Label>Recherche</Label>
-              <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher un modèle..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-
-            <div className="min-w-[150px]">
-              <Label>Marque</Label>
-              <Select value={selectedBrand} onValueChange={setSelectedBrand}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Toutes les marques" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Toutes les marques</SelectItem>
-                  {brands.map(brand => (
-                    <SelectItem key={brand.id} value={brand.id}>
-                      {brand.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="min-w-[150px]">
-              <Label>Type d'appareil</Label>
-              <Select value={selectedDeviceType} onValueChange={setSelectedDeviceType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tous les types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Tous les types</SelectItem>
-                  {deviceTypes.map(type => (
-                    <SelectItem key={type.id} value={type.id}>
-                      {type.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button variant="outline" onClick={clearFilters}>
-              <Filter className="h-4 w-4 mr-2" />
-              Réinitialiser
-            </Button>
-          </div>
-
-          {/* Formulaire de création/édition */}
-          {(isCreating || editingItem) && (
-            <Card className="border-primary/20 bg-primary/5">
-              <CardContent className="p-4">
-                <div className="space-y-4">
-                  <h4 className="font-medium">
-                    {isCreating ? 'Nouveau modèle d\'appareil' : 'Modifier le modèle d\'appareil'}
-                  </h4>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="name">Nom du modèle *</Label>
-                      <Input
-                        id="name"
-                        value={editingItem?.name || ''}
-                        onChange={(e) => setEditingItem(prev => ({ ...prev!, name: e.target.value }))}
-                        placeholder="ex: iPhone 15 Pro"
-                      />
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Modèle</TableHead>
+                <TableHead>Marque</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Référence</TableHead>
+                <TableHead>Statut</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredModels.map((model) => (
+                <TableRow key={model.id}>
+                  <TableCell className="font-medium">
+                    {model.model_name}
+                  </TableCell>
+                  <TableCell>
+                    {model.brand?.name || 'Non définie'}
+                  </TableCell>
+                  <TableCell>
+                    {model.device_type?.name || 'Non défini'}
+                  </TableCell>
+                  <TableCell className="max-w-xs">
+                    <div className="truncate" title={model.model_number || ''}>
+                      {model.model_number || 'Aucun numéro de modèle'}
                     </div>
-                    
-                    <div>
-                      <Label htmlFor="brand">Marque *</Label>
-                      <Select 
-                        value={editingItem?.brand_id || ''} 
-                        onValueChange={(value) => setEditingItem(prev => ({ ...prev!, brand_id: value }))}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={model.is_active ? "default" : "secondary"}>
+                      {model.is_active ? 'Actif' : 'Inactif'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(model)} 
+                        aria-label={`Modifier ${model.model_name}`}
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une marque" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {brands.map(brand => (
-                            <SelectItem key={brand.id} value={brand.id}>
-                              {brand.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="device_type">Type d'appareil *</Label>
-                      <Select 
-                        value={editingItem?.device_type_id || ''} 
-                        onValueChange={(value) => setEditingItem(prev => ({ ...prev!, device_type_id: value }))}
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(model.id)}
+                        aria-label={`Supprimer ${model.model_name}`}
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {deviceTypes.map(type => (
-                            <SelectItem key={type.id} value={type.id}>
-                              {type.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-
-                    <div>
-                      <Label htmlFor="specifications">Spécifications</Label>
-                      <Input
-                        id="specifications"
-                        value={editingItem?.specifications || ''}
-                        onChange={(e) => setEditingItem(prev => ({ ...prev!, specifications: e.target.value }))}
-                        placeholder="ex: 128GB, Titanium"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button onClick={handleSave} size="sm">
-                      <Save className="h-4 w-4 mr-2" />
-                      Sauvegarder
-                    </Button>
-                    <Button onClick={cancelEditing} variant="outline" size="sm">
-                      <X className="h-4 w-4 mr-2" />
-                      Annuler
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          
+          {filteredModels.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              Aucun modèle trouvé
+            </div>
           )}
-
-          {/* Liste des modèles */}
-          <div className="space-y-2">
-            {filteredDeviceModels.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                {searchTerm || selectedBrand || selectedDeviceType 
-                  ? 'Aucun modèle trouvé avec ces critères' 
-                  : 'Aucun modèle configuré'}
-              </div>
-            ) : (
-              filteredDeviceModels.map((deviceModel) => (
-                <div key={deviceModel.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <h4 className="font-medium">{deviceModel.name}</h4>
-                      <Badge variant="secondary">{getBrandName(deviceModel.brand_id)}</Badge>
-                      <Badge variant="outline">{getDeviceTypeName(deviceModel.device_type_id)}</Badge>
-                    </div>
-                    {deviceModel.specifications && (
-                      <p className="text-sm text-muted-foreground">{deviceModel.specifications}</p>
-                    )}
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => startEditing(deviceModel)}
-                      disabled={!!editingItem}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDelete(deviceModel.id, deviceModel.name)}
-                      disabled={!!editingItem}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
         </CardContent>
       </Card>
+
+      {/* Dialog de création/édition */}
+      {isDialogOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="max-w-md w-full mx-4">
+            <CardHeader>
+              <CardTitle>
+                {editingModel ? 'Modifier le modèle' : 'Nouveau modèle'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Nom du modèle</label>
+                <Input
+                  value={formData.model_name}
+                  onChange={(e) => setFormData({...formData, model_name: e.target.value})}
+                  placeholder="iPhone 15 Pro"
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Numéro de modèle</label>
+                <Input
+                  value={formData.model_number}
+                  onChange={(e) => setFormData({...formData, model_number: e.target.value})}
+                  placeholder="A2896"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Type d'appareil</label>
+                <Select 
+                  value={formData.device_type_id} 
+                  onValueChange={(value) => setFormData({...formData, device_type_id: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {deviceTypes.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Marque</label>
+                <Select 
+                  value={formData.brand_id} 
+                  onValueChange={(value) => setFormData({...formData, brand_id: value})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner une marque" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {brands.map((brand) => (
+                      <SelectItem key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
+                />
+                <label htmlFor="is_active" className="text-sm font-medium">
+                  Modèle actif
+                </label>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button variant="outline" onClick={handleCloseDialog} className="flex-1">
+                  Annuler
+                </Button>
+                <Button onClick={handleSave} className="flex-1">
+                  {editingModel ? 'Modifier' : 'Créer'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

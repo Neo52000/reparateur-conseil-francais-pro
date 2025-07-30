@@ -91,7 +91,7 @@ const CatalogAnalytics: React.FC<CatalogAnalyticsProps> = ({ onStatsUpdate }) =>
       // Analyser les devis par type d'appareil
       const deviceTypeStats: { [key: string]: number } = {};
       quotes.forEach(quote => {
-        const deviceType = quote.device_type || 'Non spécifié';
+        const deviceType = quote.device_model || 'Non spécifié';
         deviceTypeStats[deviceType] = (deviceTypeStats[deviceType] || 0) + 1;
       });
 
@@ -112,13 +112,13 @@ const CatalogAnalytics: React.FC<CatalogAnalyticsProps> = ({ onStatsUpdate }) =>
       // Identifier les devis non appariés au catalogue
       const unmatchedQuotes = quotes.filter(quote => {
         const hasMatchingDeviceType = deviceTypes.some(dt => 
-          dt.name.toLowerCase() === quote.device_type?.toLowerCase()
+          dt.name.toLowerCase() === quote.device_model?.toLowerCase()
         );
         const hasMatchingBrand = brands.some(b => 
           b.name.toLowerCase() === quote.device_brand?.toLowerCase()
         );
         const hasMatchingModel = models.some(m => 
-          m.name.toLowerCase() === quote.device_model?.toLowerCase()
+          m.model_name.toLowerCase() === quote.device_model?.toLowerCase()
         );
         const hasMatchingRepairType = repairTypes.some(rt => 
           rt.name.toLowerCase() === quote.repair_type?.toLowerCase()

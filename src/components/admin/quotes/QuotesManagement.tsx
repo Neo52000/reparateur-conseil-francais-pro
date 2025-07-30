@@ -218,7 +218,7 @@ const QuotesManagement: React.FC = () => {
         'Téléphone': quote.client_phone,
         'Marque': quote.device_brand,
         'Modèle': quote.device_model,
-        'Type d\'appareil': quote.device_type,
+        'Type d\'appareil': quote.device_model,
         'Type de réparation': quote.repair_type,
         'Description': quote.issue_description,
         'Statut': quote.status,
