@@ -317,17 +317,31 @@ export const UniversalCatalogImporter: React.FC = () => {
           );
 
           if (!deviceType) {
-            deviceType = await createDeviceType({
-              name: deviceTypeName,
-              description: `${deviceTypeName} - Import automatique`,
-              icon: deviceTypeName.toLowerCase().includes('smartphone') ? 'smartphone' :
-                   deviceTypeName.toLowerCase().includes('tablette') ? 'tablet' :
-                   deviceTypeName.toLowerCase().includes('ordinateur') ? 'laptop' :
-                   deviceTypeName.toLowerCase().includes('écouteur') ? 'headphones' :
-                   deviceTypeName.toLowerCase().includes('montre') ? 'watch' : 'device'
-            });
-            newDeviceTypes.push(deviceType);
-            toast.success(`Type "${deviceTypeName}" créé`);
+            try {
+              deviceType = await createDeviceType({
+                name: deviceTypeName,
+                description: `${deviceTypeName} - Import automatique`,
+                icon: deviceTypeName.toLowerCase().includes('smartphone') ? 'smartphone' :
+                     deviceTypeName.toLowerCase().includes('tablette') ? 'tablet' :
+                     deviceTypeName.toLowerCase().includes('ordinateur') ? 'laptop' :
+                     deviceTypeName.toLowerCase().includes('écouteur') ? 'headphones' :
+                     deviceTypeName.toLowerCase().includes('montre') ? 'watch' : 'device'
+              });
+              newDeviceTypes.push(deviceType);
+              toast.success(`Type "${deviceTypeName}" créé`);
+            } catch (typeError: any) {
+              if (typeError.message?.includes('duplicate') || typeError.message?.includes('already exists')) {
+                // Le type existe déjà, le récupérer
+                await fetchAllData();
+                deviceType = deviceTypes.find(dt => dt.name.toLowerCase() === deviceTypeName.toLowerCase());
+                if (!deviceType) {
+                  errors.push(`Impossible de récupérer le type ${deviceTypeName}`);
+                  continue;
+                }
+              } else {
+                throw typeError;
+              }
+            }
           }
 
           setProgress(10);
@@ -341,12 +355,26 @@ export const UniversalCatalogImporter: React.FC = () => {
               );
 
               if (!brand) {
-                brand = await createBrand({
-                  name: brandName,
-                  logo_url: null
-                });
-                newBrands.push(brand);
-                toast.success(`Marque ${brandName} créée`);
+                try {
+                  brand = await createBrand({
+                    name: brandName,
+                    logo_url: null
+                  });
+                  newBrands.push(brand);
+                  toast.success(`Marque ${brandName} créée`);
+                } catch (brandError: any) {
+                  if (brandError.message?.includes('duplicate') || brandError.message?.includes('already exists')) {
+                    // La marque existe déjà, la récupérer
+                    await fetchAllData();
+                    brand = brands.find(b => b.name.toLowerCase() === brandName.toLowerCase());
+                    if (!brand) {
+                      errors.push(`Impossible de récupérer la marque ${brandName}`);
+                      continue;
+                    }
+                  } else {
+                    throw brandError;
+                  }
+                }
               }
 
               // 3. Créer les modèles
@@ -376,8 +404,14 @@ export const UniversalCatalogImporter: React.FC = () => {
                     toast.success(`${processedItems}/${totalItems} modèles ajoutés`);
                   }
 
-                } catch (error) {
-                  errors.push(`Erreur modèle ${modelName}: ${error.message}`);
+                } catch (error: any) {
+                  if (error.message?.includes('duplicate') || error.message?.includes('already exists')) {
+                    // Le modèle existe déjà, passer au suivant
+                    processedItems++;
+                    continue;
+                  } else {
+                    errors.push(`Erreur modèle ${modelName}: ${error.message}`);
+                  }
                 }
               }
 
