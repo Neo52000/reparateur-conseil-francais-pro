@@ -26,6 +26,7 @@ import {
 import { format, subDays, differenceInHours } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import AdvancedAnalytics from './AdvancedAnalytics';
 
 interface Quote {
   id: string;
@@ -648,11 +649,7 @@ const QuotesManagement: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
-          <div className="text-center py-8">
-            <div className="text-muted-foreground">
-              Analyses avancées à venir...
-            </div>
-          </div>
+          <AdvancedAnalytics quotes={quotes} loading={analyticsLoading} />
         </TabsContent>
 
         <TabsContent value="evolution" className="space-y-4">
