@@ -6470,8 +6470,56 @@ export type Database = {
         }
         Relationships: []
       }
+      qualirepar_api_logs: {
+        Row: {
+          api_endpoint: string
+          created_at: string | null
+          dossier_id: string | null
+          error_details: string | null
+          id: string
+          request_method: string
+          request_payload: Json | null
+          response_data: Json | null
+          response_status: number | null
+          response_time_ms: number | null
+        }
+        Insert: {
+          api_endpoint: string
+          created_at?: string | null
+          dossier_id?: string | null
+          error_details?: string | null
+          id?: string
+          request_method: string
+          request_payload?: Json | null
+          response_data?: Json | null
+          response_status?: number | null
+          response_time_ms?: number | null
+        }
+        Update: {
+          api_endpoint?: string
+          created_at?: string | null
+          dossier_id?: string | null
+          error_details?: string | null
+          id?: string
+          request_method?: string
+          request_payload?: Json | null
+          response_data?: Json | null
+          response_status?: number | null
+          response_time_ms?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualirepar_api_logs_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "qualirepar_dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       qualirepar_documents: {
         Row: {
+          auto_validation_passed: boolean | null
           created_at: string
           document_type: string
           dossier_id: string
@@ -6481,14 +6529,17 @@ export type Database = {
           id: string
           is_validated: boolean | null
           mime_type: string
+          ocr_confidence: number | null
           ocr_data: Json | null
           official_document_type: string | null
           updated_at: string
           upload_status: string | null
           upload_url: string | null
           validation_notes: string | null
+          validation_rules: Json | null
         }
         Insert: {
+          auto_validation_passed?: boolean | null
           created_at?: string
           document_type: string
           dossier_id: string
@@ -6498,14 +6549,17 @@ export type Database = {
           id?: string
           is_validated?: boolean | null
           mime_type: string
+          ocr_confidence?: number | null
           ocr_data?: Json | null
           official_document_type?: string | null
           updated_at?: string
           upload_status?: string | null
           upload_url?: string | null
           validation_notes?: string | null
+          validation_rules?: Json | null
         }
         Update: {
+          auto_validation_passed?: boolean | null
           created_at?: string
           document_type?: string
           dossier_id?: string
@@ -6515,12 +6569,14 @@ export type Database = {
           id?: string
           is_validated?: boolean | null
           mime_type?: string
+          ocr_confidence?: number | null
           ocr_data?: Json | null
           official_document_type?: string | null
           updated_at?: string
           upload_status?: string | null
           upload_url?: string | null
           validation_notes?: string | null
+          validation_rules?: Json | null
         }
         Relationships: [
           {
@@ -6534,9 +6590,12 @@ export type Database = {
       }
       qualirepar_dossiers: {
         Row: {
+          api_endpoint: string | null
+          api_errors: Json | null
           api_response_data: Json | null
           api_status: string | null
           api_upload_urls: Json | null
+          api_version: string | null
           client_address: string
           client_city: string
           client_email: string
@@ -6550,10 +6609,13 @@ export type Database = {
           eligibility_rule_id: string | null
           id: string
           is_api_compliant: boolean | null
+          last_api_call: string | null
+          max_retry_attempts: number | null
           official_claim_id: string | null
           payment_date: string | null
           pos_transaction_id: string | null
           processing_date: string | null
+          processing_notifications: Json | null
           product_brand: string
           product_category: string
           product_model: string
@@ -6564,17 +6626,23 @@ export type Database = {
           repair_description: string
           repair_order_id: string | null
           repairer_id: string
+          repairer_siret: string | null
           requested_bonus_amount: number
+          retry_count: number | null
           status: string
           submission_date: string | null
           temporary_claim_id: string | null
           updated_at: string
+          validation_errors: Json | null
           wizard_step: number | null
         }
         Insert: {
+          api_endpoint?: string | null
+          api_errors?: Json | null
           api_response_data?: Json | null
           api_status?: string | null
           api_upload_urls?: Json | null
+          api_version?: string | null
           client_address: string
           client_city: string
           client_email: string
@@ -6588,10 +6656,13 @@ export type Database = {
           eligibility_rule_id?: string | null
           id?: string
           is_api_compliant?: boolean | null
+          last_api_call?: string | null
+          max_retry_attempts?: number | null
           official_claim_id?: string | null
           payment_date?: string | null
           pos_transaction_id?: string | null
           processing_date?: string | null
+          processing_notifications?: Json | null
           product_brand: string
           product_category: string
           product_model: string
@@ -6602,17 +6673,23 @@ export type Database = {
           repair_description: string
           repair_order_id?: string | null
           repairer_id: string
+          repairer_siret?: string | null
           requested_bonus_amount: number
+          retry_count?: number | null
           status?: string
           submission_date?: string | null
           temporary_claim_id?: string | null
           updated_at?: string
+          validation_errors?: Json | null
           wizard_step?: number | null
         }
         Update: {
+          api_endpoint?: string | null
+          api_errors?: Json | null
           api_response_data?: Json | null
           api_status?: string | null
           api_upload_urls?: Json | null
+          api_version?: string | null
           client_address?: string
           client_city?: string
           client_email?: string
@@ -6626,10 +6703,13 @@ export type Database = {
           eligibility_rule_id?: string | null
           id?: string
           is_api_compliant?: boolean | null
+          last_api_call?: string | null
+          max_retry_attempts?: number | null
           official_claim_id?: string | null
           payment_date?: string | null
           pos_transaction_id?: string | null
           processing_date?: string | null
+          processing_notifications?: Json | null
           product_brand?: string
           product_category?: string
           product_model?: string
@@ -6640,11 +6720,14 @@ export type Database = {
           repair_description?: string
           repair_order_id?: string | null
           repairer_id?: string
+          repairer_siret?: string | null
           requested_bonus_amount?: number
+          retry_count?: number | null
           status?: string
           submission_date?: string | null
           temporary_claim_id?: string | null
           updated_at?: string
+          validation_errors?: Json | null
           wizard_step?: number | null
         }
         Relationships: [
@@ -6663,6 +6746,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      qualirepar_eligibility_cache: {
+        Row: {
+          api_source_updated: string | null
+          created_at: string | null
+          eco_organism: string
+          eligibility_rules: Json | null
+          id: string
+          is_active: boolean | null
+          max_bonus_amount: number
+          min_repair_cost: number | null
+          product_brand: string | null
+          product_category: string
+          product_model: string | null
+          updated_at: string | null
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          api_source_updated?: string | null
+          created_at?: string | null
+          eco_organism: string
+          eligibility_rules?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_bonus_amount: number
+          min_repair_cost?: number | null
+          product_brand?: string | null
+          product_category: string
+          product_model?: string | null
+          updated_at?: string | null
+          valid_from: string
+          valid_until?: string | null
+        }
+        Update: {
+          api_source_updated?: string | null
+          created_at?: string | null
+          eco_organism?: string
+          eligibility_rules?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_bonus_amount?: number
+          min_repair_cost?: number | null
+          product_brand?: string | null
+          product_category?: string
+          product_model?: string | null
+          updated_at?: string | null
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: []
       }
       qualirepar_eligibility_rules: {
         Row: {
@@ -6801,6 +6935,53 @@ export type Database = {
             columns: ["submission_id"]
             isOneToOne: false
             referencedRelation: "qualirepar_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qualirepar_status_notifications: {
+        Row: {
+          created_at: string | null
+          delivery_status: string | null
+          dossier_id: string | null
+          id: string
+          message: string | null
+          new_status: string
+          notification_type: string
+          old_status: string | null
+          recipient_user_id: string | null
+          sent_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_status?: string | null
+          dossier_id?: string | null
+          id?: string
+          message?: string | null
+          new_status: string
+          notification_type: string
+          old_status?: string | null
+          recipient_user_id?: string | null
+          sent_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delivery_status?: string | null
+          dossier_id?: string | null
+          id?: string
+          message?: string | null
+          new_status?: string
+          notification_type?: string
+          old_status?: string | null
+          recipient_user_id?: string | null
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qualirepar_status_notifications_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "qualirepar_dossiers"
             referencedColumns: ["id"]
           },
         ]
