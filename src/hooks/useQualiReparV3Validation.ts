@@ -493,9 +493,56 @@ export const useQualiReparV3Validation = () => {
     return errors;
   }, [validateRepairer, validateIrisCode]);
 
+  // Nouvelle fonction de validation business simplifiée
+  const validateBusinessData = useCallback(async (data: {
+    siret: string;
+    irisCode?: string;
+    estimatedCost: number;
+  }): Promise<ValidationResult> => {
+    const errors: ValidationError[] = [];
+    const warnings: ValidationError[] = [];
+
+    // Validation SIRET
+    const siretErrors = validateSiret(data.siret);
+    errors.push(...siretErrors);
+
+    // Validation code IRIS si fourni
+    if (data.irisCode) {
+      const irisErrors = await validateIrisCode(data.irisCode);
+      errors.push(...irisErrors);
+    }
+
+    // Validation montant
+    if (data.estimatedCost <= 0) {
+      errors.push({
+        field: 'estimatedCost',
+        message: 'Le coût estimé doit être supérieur à 0',
+        severity: 'error',
+        code: 'COST_INVALID'
+      });
+    }
+
+    if (data.estimatedCost > 1000) {
+      warnings.push({
+        field: 'estimatedCost',
+        message: 'Coût élevé, vérifiez la cohérence',
+        severity: 'warning',
+        code: 'COST_HIGH'
+      });
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      canProceed: errors.length === 0
+    };
+  }, [validateSiret, validateIrisCode]);
+
   return {
     validating,
     lastValidation,
+    validateBusinessData,
     validateV3Claim,
     validateFieldV3,
     validateRepairer,

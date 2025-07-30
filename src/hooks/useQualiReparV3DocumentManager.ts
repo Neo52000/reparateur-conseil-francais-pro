@@ -116,7 +116,9 @@ export const useQualiReparV3DocumentManager = () => {
       // 2. Génération du nom de fichier sécurisé
       const timestamp = Date.now();
       const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const filePath = `${supabase.auth.getUser()?.data.user?.id}/${options.reimbursementClaimId}/${options.fileType}_${timestamp}_${sanitizedName}`;
+      const userResponse = await supabase.auth.getUser();
+      const userId = userResponse.data.user?.id || 'anonymous';
+      const filePath = `${userId}/${options.reimbursementClaimId}/${options.fileType}_${timestamp}_${sanitizedName}`;
 
       // 3. Upload vers le storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -133,7 +135,7 @@ export const useQualiReparV3DocumentManager = () => {
         .from('qualirepar_documents')
         .insert({
           dossier_id: options.reimbursementClaimId,
-          file_type: options.fileType,
+          document_type: options.fileType,
           file_path: uploadData.path,
           file_name: file.name,
           original_filename: file.name,
