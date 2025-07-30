@@ -47,7 +47,7 @@ const MetadataStep: React.FC<MetadataStepProps> = ({
   const form = useForm<MetadataFormData>({
     resolver: zodResolver(metadataSchema),
     defaultValues: dossier ? {
-      clientName: dossier.client_name,
+      clientName: `${dossier.client_first_name || ''} ${dossier.client_last_name || ''}`.trim(),
       clientEmail: dossier.client_email,
       clientPhone: dossier.client_phone || '',
       clientAddress: dossier.client_address,

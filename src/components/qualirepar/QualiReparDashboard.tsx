@@ -248,7 +248,7 @@ const QualiReparDashboard: React.FC = () => {
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
                       <div>
-                        <span className="font-medium">Client:</span> {dossier.client_name}
+                        <span className="font-medium">Client:</span> {dossier.client_first_name} {dossier.client_last_name}
                       </div>
                       <div>
                         <span className="font-medium">Produit:</span> {dossier.product_brand} {dossier.product_model}
@@ -287,7 +287,7 @@ const QualiReparDashboard: React.FC = () => {
                             <CardContent>
                               <div className="grid grid-cols-2 gap-4 text-sm">
                                 <div>
-                                  <span className="font-medium">Client:</span> {dossier.client_name}
+                                  <span className="font-medium">Client:</span> {dossier.client_first_name} {dossier.client_last_name}
                                 </div>
                                 <div>
                                   <span className="font-medium">Email:</span> {dossier.client_email}

@@ -77,7 +77,7 @@ export const useQualiReparV3Api = () => {
       const { data, error } = await supabase.functions.invoke('qualirepar-v3-upload-file', {
         body: {
           ...uploadRequest,
-          reimbursementClaimId // Pass as body param since URL construction is complex
+          reimbursementClaimId
         },
         headers: {
           'Authorization': `Bearer ${authToken}`
@@ -100,7 +100,6 @@ export const useQualiReparV3Api = () => {
   const uploadFile = async (uploadUrl: string, file: File): Promise<boolean> => {
     setLoading(true);
     try {
-      // Direct upload to the generated URL (no auth token needed)
       const response = await fetch(uploadUrl, {
         method: 'PUT',
         body: file,
@@ -160,15 +159,11 @@ export const useQualiReparV3Api = () => {
 
     setLoading(true);
     try {
-      // This would call the GET /reimbursement-claims/{id} endpoint
-      // For now, we'll query our local database
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('qualirepar_dossiers')
         .select('*')
         .eq('reimbursement_claim_id', reimbursementClaimId)
         .single();
-
-      if (error) throw error;
 
       return data;
     } catch (error) {
