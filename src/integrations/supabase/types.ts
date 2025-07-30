@@ -6588,16 +6588,22 @@ export type Database = {
           created_at: string
           document_type: string
           dossier_id: string
+          file_checksum: string | null
+          file_metadata: Json | null
           file_name: string
           file_path: string
           file_size: number
           file_size_mb: number | null
+          file_validation_errors: Json | null
+          file_validation_status: string | null
           id: string
           is_validated: boolean | null
           mime_type: string
           ocr_confidence: number | null
           ocr_data: Json | null
+          ocr_extracted_text: string | null
           official_document_type: string | null
+          original_filename: string | null
           updated_at: string
           upload_status: string | null
           upload_url: string | null
@@ -6609,16 +6615,22 @@ export type Database = {
           created_at?: string
           document_type: string
           dossier_id: string
+          file_checksum?: string | null
+          file_metadata?: Json | null
           file_name: string
           file_path: string
           file_size: number
           file_size_mb?: number | null
+          file_validation_errors?: Json | null
+          file_validation_status?: string | null
           id?: string
           is_validated?: boolean | null
           mime_type: string
           ocr_confidence?: number | null
           ocr_data?: Json | null
+          ocr_extracted_text?: string | null
           official_document_type?: string | null
+          original_filename?: string | null
           updated_at?: string
           upload_status?: string | null
           upload_url?: string | null
@@ -6630,16 +6642,22 @@ export type Database = {
           created_at?: string
           document_type?: string
           dossier_id?: string
+          file_checksum?: string | null
+          file_metadata?: Json | null
           file_name?: string
           file_path?: string
           file_size?: number
           file_size_mb?: number | null
+          file_validation_errors?: Json | null
+          file_validation_status?: string | null
           id?: string
           is_validated?: boolean | null
           mime_type?: string
           ocr_confidence?: number | null
           ocr_data?: Json | null
+          ocr_extracted_text?: string | null
           official_document_type?: string | null
+          original_filename?: string | null
           updated_at?: string
           upload_status?: string | null
           upload_url?: string | null
