@@ -11,6 +11,7 @@ import BlogSectionHomepage from '@/components/sections/BlogSectionHomepage';
 import QuickSearchModal from '@/components/search/QuickSearchModal';
 import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
+import AdvancedProductSearch from '@/components/search/AdvancedProductSearch';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 import ChatWidget from '@/components/chatbot/ChatWidget';
 import { useAuth } from '@/hooks/useAuth';
@@ -139,6 +140,21 @@ const Index = () => {
           onQuickSearch={handleHeroQuickSearch}
           onMapSearch={handleHeroMapSearch}
         />
+
+        {/* Section recherche avancée */}
+        <div className="bg-gradient-to-br from-blue-50 via-white to-green-50 py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Recherche personnalisée
+              </h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Trouvez le réparateur parfait en quelques clics avec notre assistant de recherche intelligent
+              </p>
+            </div>
+            <AdvancedProductSearch />
+          </div>
+        </div>
 
         {/* Section bannière publicitaire - déplacée au-dessus du carrousel */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
