@@ -65,7 +65,7 @@ const QuotesManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
   const [filters, setFilters] = useState({
-    status: '',
+    status: 'all',
     dateFrom: '',
     dateTo: '',
     search: ''
@@ -85,7 +85,7 @@ const QuotesManagement: React.FC = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (filters.status) {
+      if (filters.status && filters.status !== 'all') {
         query = query.eq('status', filters.status);
       }
 
@@ -379,7 +379,7 @@ const QuotesManagement: React.FC = () => {
                       <SelectValue placeholder="Tous les statuts" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tous les statuts</SelectItem>
+                      <SelectItem value="all">Tous les statuts</SelectItem>
                       <SelectItem value="pending">En attente</SelectItem>
                       <SelectItem value="accepted">Accepté</SelectItem>
                       <SelectItem value="rejected">Refusé</SelectItem>
@@ -408,7 +408,7 @@ const QuotesManagement: React.FC = () => {
 
                 <Button 
                   variant="outline" 
-                  onClick={() => setFilters({ status: '', dateFrom: '', dateTo: '', search: '' })}
+                  onClick={() => setFilters({ status: 'all', dateFrom: '', dateTo: '', search: '' })}
                 >
                   Réinitialiser
                 </Button>
