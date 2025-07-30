@@ -912,6 +912,140 @@ export const UniversalCatalogImporter: React.FC = () => {
     }
   };
 
+  const handleMobilaxLaptopModelsImport = async () => {
+    setStatus('importing');
+    setLogs([]);
+    
+    try {
+      // Find Ordinateur device type
+      const ordinateurType = deviceTypes.find(dt => dt.name.toLowerCase() === 'ordinateur');
+      if (!ordinateurType) {
+        addLog('❌ Type d\'appareil "Ordinateur" introuvable. Créez-le d\'abord.');
+        setStatus('error');
+        return;
+      }
+
+      // Extract MacBook models from Mobilax
+      const mobilaxLaptopModels = [
+        // MacBook Air models
+        { brand: 'Apple', name: 'MacBook Air 13', storage: ['256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral', 'Or'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Air 13 M1', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Air 13 M2', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or', 'Minuit'], screen: '13.6' },
+        { brand: 'Apple', name: 'MacBook Air 15 M2', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or', 'Minuit'], screen: '15.3' },
+        
+        // MacBook Pro 13" models
+        { brand: 'Apple', name: 'MacBook Pro 13', storage: ['256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Pro 13 M1', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Pro 13 Touch Bar', storage: ['256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
+        
+        // MacBook Pro 14" models
+        { brand: 'Apple', name: 'MacBook Pro 14 M1 Pro', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
+        { brand: 'Apple', name: 'MacBook Pro 14 M1 Max', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
+        { brand: 'Apple', name: 'MacBook Pro 14 M2 Pro', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
+        { brand: 'Apple', name: 'MacBook Pro 14 M2 Max', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
+        
+        // MacBook Pro 16" models
+        { brand: 'Apple', name: 'MacBook Pro 16', storage: ['512GB', '1TB', '2TB', '4TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
+        { brand: 'Apple', name: 'MacBook Pro 16 M1 Pro', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
+        { brand: 'Apple', name: 'MacBook Pro 16 M1 Max', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
+        { brand: 'Apple', name: 'MacBook Pro 16 M2 Pro', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
+        { brand: 'Apple', name: 'MacBook Pro 16 M2 Max', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' }
+      ];
+      
+      addLog(`🔍 Début de l'import modèles Mobilax Ordinateurs - ${mobilaxLaptopModels.length} modèles détectés`);
+      
+      let modelsImported = 0;
+      let modelsSkipped = 0;
+      let modelsErrors = 0;
+      let brandsCreated = 0;
+      
+      for (const modelData of mobilaxLaptopModels) {
+        try {
+          // Find or create brand
+          let brand = brands.find(b => 
+            b.name.toLowerCase() === modelData.brand.toLowerCase()
+          );
+          
+          if (!brand) {
+            try {
+              brand = await createBrand({
+                name: modelData.brand,
+                logo_url: null
+              });
+              brandsCreated++;
+              addLog(`✅ Marque "${modelData.brand}" créée`);
+            } catch (brandError: any) {
+              if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
+                // Brand was created by another process, try to find it again
+                await fetchAllData();
+                brand = brands.find(b => 
+                  b.name.toLowerCase() === modelData.brand.toLowerCase()
+                );
+              } else {
+                throw brandError;
+              }
+            }
+          }
+          
+          if (!brand) {
+            addLog(`❌ Impossible de créer/trouver la marque "${modelData.brand}"`);
+            modelsErrors++;
+            continue;
+          }
+          
+          // Check if model exists
+          const existingModel = await checkModelExists(modelData.name, brand.id, ordinateurType.id);
+          if (existingModel) {
+            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant - ignoré`);
+            modelsSkipped++;
+            continue;
+          }
+          
+          // Create new model
+          await createDeviceModel({
+            device_type_id: ordinateurType.id,
+            brand_id: brand.id,
+            model_name: modelData.name,
+            model_number: '',
+            release_date: '2025-01-01',
+            screen_size: modelData.screen,
+            screen_resolution: modelData.screen === '13.3' || modelData.screen === '13.6' ? '2560x1600' : 
+                              modelData.screen === '14.2' ? '3024x1964' : '3456x2234',
+            screen_type: 'Retina',
+            battery_capacity: modelData.screen === '13.3' || modelData.screen === '13.6' ? '52.6' : 
+                             modelData.screen === '14.2' ? '70' : '100',
+            operating_system: 'macOS',
+            is_active: true
+          });
+          
+          addLog(`✅ Modèle "${modelData.brand} ${modelData.name}" créé avec succès`);
+          modelsImported++;
+          
+        } catch (error: any) {
+          if (error.message?.includes('duplicate') || error.code === '23505') {
+            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant (BD) - ignoré`);
+            modelsSkipped++;
+          } else {
+            addLog(`❌ Erreur lors de la création de "${modelData.brand} ${modelData.name}": ${error.message}`);
+            modelsErrors++;
+          }
+        }
+      }
+      
+      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
+      setStatus(modelsErrors > 0 ? 'error' : 'completed');
+      
+      if (modelsImported > 0) {
+        toast.success(`${modelsImported} nouveaux modèles d'ordinateurs Mobilax importés !`);
+      }
+      
+    } catch (error: any) {
+      addLog(`❌ Erreur globale: ${error.message}`);
+      setStatus('error');
+      toast.error('Erreur lors de l\'import des modèles Mobilax ordinateurs');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -1068,6 +1202,26 @@ export const UniversalCatalogImporter: React.FC = () => {
                 <>
                   <Watch className="h-4 w-4 mr-2" />
                   Importer les modèles de montres Mobilax
+                </>
+              )}
+            </Button>
+
+            <Button 
+              onClick={handleMobilaxLaptopModelsImport} 
+              disabled={status === 'importing'}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              {status === 'importing' ? (
+                <>
+                  <Download className="h-4 w-4 mr-2 animate-spin" />
+                  Import Modèles Ordinateurs...
+                </>
+              ) : (
+                <>
+                  <Laptop className="h-4 w-4 mr-2" />
+                  Importer les modèles d'ordinateurs Mobilax
                 </>
               )}
             </Button>
