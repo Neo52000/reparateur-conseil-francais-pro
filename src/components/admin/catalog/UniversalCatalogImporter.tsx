@@ -18,7 +18,8 @@ import {
   Download,
   Database,
   Globe,
-  Zap
+  Zap,
+  Gamepad2
 } from 'lucide-react';
 
 interface ProductData {
@@ -1190,6 +1191,141 @@ export const UniversalCatalogImporter: React.FC = () => {
     }
   };
 
+  const importConsolesFromUtopya = async () => {
+    setStatus('importing');
+    setLogs([]);
+    
+    try {
+      // Find Console device type
+      const consoleType = deviceTypes.find(dt => dt.name.toLowerCase().includes('console'));
+      if (!consoleType) {
+        addLog('❌ Type d\'appareil "Console de jeux" introuvable. Créez-le d\'abord.');
+        setStatus('error');
+        return;
+      }
+
+      // Extract Nintendo console models from Utopya data
+      const nintendoConsoleModels = [
+        // Nintendo Switch models
+        { brand: 'Nintendo', name: 'Switch', storage: ['32GB'], colors: ['Noir', 'Gris'], type: 'Portable/Home' },
+        { brand: 'Nintendo', name: 'Switch OLED', storage: ['64GB'], colors: ['Blanc', 'Noir'], type: 'Portable/Home' },
+        { brand: 'Nintendo', name: 'Switch Lite', storage: ['32GB'], colors: ['Jaune', 'Gris', 'Turquoise', 'Corail', 'Bleu', 'Blanc'], type: 'Portable' },
+        
+        // Nintendo 3DS models
+        { brand: 'Nintendo', name: '3DS', storage: ['2GB'], colors: ['Noir', 'Bleu'], type: 'Portable' },
+        { brand: 'Nintendo', name: '3DS XL', storage: ['4GB'], colors: ['Noir', 'Bleu', 'Rouge'], type: 'Portable' },
+        { brand: 'Nintendo', name: 'New 3DS', storage: ['4GB'], colors: ['Noir', 'Blanc'], type: 'Portable' },
+        { brand: 'Nintendo', name: 'New 3DS XL', storage: ['4GB'], colors: ['Noir', 'Rouge', 'Métallique'], type: 'Portable' },
+        
+        // Nintendo Wii/Wii U
+        { brand: 'Nintendo', name: 'Wii', storage: ['512MB'], colors: ['Blanc'], type: 'Home' },
+        { brand: 'Nintendo', name: 'Wii U', storage: ['8GB', '32GB'], colors: ['Blanc', 'Noir'], type: 'Home' },
+        
+        // Nintendo DS
+        { brand: 'Nintendo', name: 'DS', storage: ['4MB'], colors: ['Gris'], type: 'Portable' },
+        { brand: 'Nintendo', name: 'DS Lite', storage: ['4MB'], colors: ['Blanc', 'Noir'], type: 'Portable' },
+        { brand: 'Nintendo', name: 'DSi', storage: ['256MB'], colors: ['Noir', 'Blanc'], type: 'Portable' },
+        { brand: 'Nintendo', name: 'DSi XL', storage: ['256MB'], colors: ['Bordeaux', 'Blanc'], type: 'Portable' },
+        
+        // Nintendo Game Boy series (rétro-gaming)
+        { brand: 'Nintendo', name: 'Game Boy', storage: ['8KB'], colors: ['Gris'], type: 'Portable' },
+        { brand: 'Nintendo', name: 'Game Boy Color', storage: ['32KB'], colors: ['Violet', 'Transparent'], type: 'Portable' },
+        { brand: 'Nintendo', name: 'Game Boy Advance', storage: ['256KB'], colors: ['Violet', 'Glacier'], type: 'Portable' },
+        { brand: 'Nintendo', name: 'Game Boy Advance SP', storage: ['256KB'], colors: ['Argent', 'Noir'], type: 'Portable' }
+      ];
+      
+      addLog(`🔍 Début de l'import modèles Nintendo Utopya - ${nintendoConsoleModels.length} modèles détectés`);
+      
+      let modelsImported = 0;
+      let modelsSkipped = 0;
+      let modelsErrors = 0;
+      let brandsCreated = 0;
+      
+      for (const modelData of nintendoConsoleModels) {
+        try {
+          // Find or create brand
+          let brand = brands.find(b => 
+            b.name.toLowerCase() === modelData.brand.toLowerCase()
+          );
+          
+          if (!brand) {
+            try {
+              brand = await createBrand({
+                name: modelData.brand,
+                logo_url: null
+              });
+              brandsCreated++;
+              addLog(`✅ Marque "${modelData.brand}" créée`);
+            } catch (brandError: any) {
+              if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
+                // Brand was created by another process, try to find it again
+                await fetchAllData();
+                brand = brands.find(b => 
+                  b.name.toLowerCase() === modelData.brand.toLowerCase()
+                );
+              } else {
+                throw brandError;
+              }
+            }
+          }
+          
+          if (!brand) {
+            addLog(`❌ Impossible de créer/trouver la marque "${modelData.brand}"`);
+            modelsErrors++;
+            continue;
+          }
+          
+          // Check if model exists
+          const existingModel = await checkModelExists(modelData.name, brand.id, consoleType.id);
+          if (existingModel) {
+            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant - ignoré`);
+            modelsSkipped++;
+            continue;
+          }
+          
+          // Create new model
+          await createDeviceModel({
+            device_type_id: consoleType.id,
+            brand_id: brand.id,
+            model_name: modelData.name,
+            model_number: '',
+            release_date: '2025-01-01',
+            screen_size: modelData.type === 'Portable' ? '6.2' : '0',
+            screen_resolution: modelData.type === 'Portable' ? '1280x720' : '',
+            screen_type: modelData.type === 'Portable' ? 'LCD' : '',
+            battery_capacity: modelData.type === 'Portable' ? '4310' : '0',
+            operating_system: 'Nintendo OS',
+            is_active: true
+          });
+          
+          addLog(`✅ Modèle "${modelData.brand} ${modelData.name}" créé avec succès`);
+          modelsImported++;
+          
+        } catch (error: any) {
+          if (error.message?.includes('duplicate') || error.code === '23505') {
+            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant (BD) - ignoré`);
+            modelsSkipped++;
+          } else {
+            addLog(`❌ Erreur lors de la création de "${modelData.brand} ${modelData.name}": ${error.message}`);
+            modelsErrors++;
+          }
+        }
+      }
+      
+      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
+      setStatus(modelsErrors > 0 ? 'error' : 'completed');
+      
+      if (modelsImported > 0) {
+        toast.success(`${modelsImported} nouveaux modèles de consoles Nintendo importés !`);
+      }
+      
+    } catch (error: any) {
+      addLog(`❌ Erreur globale: ${error.message}`);
+      setStatus('error');
+      toast.error('Erreur lors de l\'import des modèles de consoles Nintendo');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -1386,6 +1522,26 @@ export const UniversalCatalogImporter: React.FC = () => {
                 <>
                   <Zap className="h-4 w-4 mr-2" />
                   Importer les modèles de trottinettes Mobilax
+                </>
+              )}
+            </Button>
+
+            <Button 
+              onClick={importConsolesFromUtopya} 
+              disabled={status === 'importing'}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              {status === 'importing' ? (
+                <>
+                  <Download className="h-4 w-4 mr-2 animate-spin" />
+                  Import Modèles Consoles...
+                </>
+              ) : (
+                <>
+                  <Gamepad2 className="h-4 w-4 mr-2" />
+                  Importer les modèles de consoles Nintendo
                 </>
               )}
             </Button>
