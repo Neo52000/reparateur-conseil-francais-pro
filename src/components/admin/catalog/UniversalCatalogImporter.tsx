@@ -745,7 +745,7 @@ export const UniversalCatalogImporter: React.FC = () => {
             brand_id: brand.id,
             model_name: modelData.name,
             model_number: '',
-            release_date: new Date().getFullYear().toString(),
+            release_date: '2025-01-01',
             screen_size: '10.1',
             screen_resolution: '1920x1080',
             screen_type: 'LCD',
