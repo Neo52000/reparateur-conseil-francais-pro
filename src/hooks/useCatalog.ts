@@ -22,6 +22,15 @@ export const useCatalog = () => {
     ]);
   };
 
+  // Fonction pour vérifier si un modèle existe déjà
+  const checkModelExists = (modelName: string, brandId: string, deviceTypeId: string) => {
+    return deviceModelsHook.deviceModels.some(model => 
+      model.model_name.toLowerCase().trim() === modelName.toLowerCase().trim() &&
+      model.brand_id === brandId &&
+      model.device_type_id === deviceTypeId
+    );
+  };
+
   return {
     // Data
     deviceTypes: deviceTypesHook.deviceTypes,
@@ -36,6 +45,7 @@ export const useCatalog = () => {
     
     // Actions
     fetchAllData,
+    checkModelExists,
     
     // Device Types CRUD
     createDeviceType: deviceTypesHook.createDeviceType,

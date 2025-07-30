@@ -255,10 +255,12 @@ export const UniversalCatalogImporter: React.FC = () => {
   const {
     deviceTypes,
     brands,
+    deviceModels,
     createDeviceType,
     createBrand,
     createDeviceModel,
-    fetchAllData
+    fetchAllData,
+    checkModelExists
   } = useCatalog();
 
   const categories = [
@@ -287,12 +289,24 @@ export const UniversalCatalogImporter: React.FC = () => {
     setResults({ deviceTypes: [], brands: [], models: [], errors: [] });
 
     try {
+      console.log('🚀 Début de l\'importation');
+      
       let newDeviceTypes: any[] = [];
       let newBrands: any[] = [];
       let newModels: any[] = [];
+      let skippedModels = 0;
       let errors: string[] = [];
 
+      // Actualiser les données avant de commencer
+      await fetchAllData();
+      console.log('📦 Données actuelles:', { 
+        deviceTypes: deviceTypes.length, 
+        brands: brands.length 
+      });
+
       const totalItems = filteredProducts.reduce((sum, product) => sum + product.models.length, 0);
+      console.log(`📊 Total de modèles à traiter: ${totalItems}`);
+      
       let processedItems = 0;
 
       // Grouper par type d'appareil et marque
@@ -311,12 +325,15 @@ export const UniversalCatalogImporter: React.FC = () => {
 
       // 1. Créer/récupérer les types d'appareils
       for (const deviceTypeName of Object.keys(groupedData)) {
+        console.log(`🔧 Traitement du type: ${deviceTypeName}`);
+        
         try {
           let deviceType = deviceTypes.find(dt => 
-            dt.name.toLowerCase() === deviceTypeName.toLowerCase()
+            dt.name.toLowerCase().trim() === deviceTypeName.toLowerCase().trim()
           );
 
           if (!deviceType) {
+            console.log(`➕ Création du type: ${deviceTypeName}`);
             try {
               deviceType = await createDeviceType({
                 name: deviceTypeName,
@@ -328,63 +345,91 @@ export const UniversalCatalogImporter: React.FC = () => {
                      deviceTypeName.toLowerCase().includes('montre') ? 'watch' : 'device'
               });
               newDeviceTypes.push(deviceType);
-              toast.success(`Type "${deviceTypeName}" créé`);
+              console.log(`✅ Type créé: ${deviceTypeName}`);
             } catch (typeError: any) {
-              if (typeError.message?.includes('duplicate') || typeError.message?.includes('already exists')) {
-                // Le type existe déjà, le récupérer
+              console.log(`⚠️ Erreur création type ${deviceTypeName}:`, typeError);
+              if (typeError.message?.includes('duplicate') || typeError.message?.includes('already exists') || typeError.code === '23505') {
                 await fetchAllData();
-                deviceType = deviceTypes.find(dt => dt.name.toLowerCase() === deviceTypeName.toLowerCase());
+                deviceType = deviceTypes.find(dt => dt.name.toLowerCase().trim() === deviceTypeName.toLowerCase().trim());
                 if (!deviceType) {
-                  errors.push(`Impossible de récupérer le type ${deviceTypeName}`);
+                  errors.push(`Type ${deviceTypeName} non trouvé après erreur de duplicate`);
                   continue;
                 }
+                console.log(`♻️ Type existant récupéré: ${deviceTypeName}`);
               } else {
-                throw typeError;
+                errors.push(`Erreur critique type ${deviceTypeName}: ${typeError.message}`);
+                continue;
               }
             }
+          } else {
+            console.log(`✓ Type existant: ${deviceTypeName}`);
           }
 
           setProgress(10);
 
           // 2. Traiter chaque marque pour ce type d'appareil
           for (const [brandName, models] of Object.entries(groupedData[deviceTypeName])) {
+            console.log(`🏷️ Traitement marque: ${brandName} (${models.length} modèles)`);
+            
             try {
-              // Créer/récupérer la marque
+              // Normaliser le nom de la marque pour éviter les duplicatas
+              const normalizedBrandName = brandName.trim();
+              
+              // Chercher la marque existante (insensible à la casse)
               let brand = brands.find(b => 
-                b.name.toLowerCase() === brandName.toLowerCase()
+                b.name.toLowerCase().trim() === normalizedBrandName.toLowerCase()
               );
 
               if (!brand) {
+                console.log(`➕ Création marque: ${normalizedBrandName}`);
                 try {
                   brand = await createBrand({
-                    name: brandName,
+                    name: normalizedBrandName,
                     logo_url: null
                   });
                   newBrands.push(brand);
-                  toast.success(`Marque ${brandName} créée`);
+                  console.log(`✅ Marque créée: ${normalizedBrandName}`);
                 } catch (brandError: any) {
-                  if (brandError.message?.includes('duplicate') || brandError.message?.includes('already exists')) {
-                    // La marque existe déjà, la récupérer
+                  console.log(`⚠️ Erreur création marque ${normalizedBrandName}:`, brandError);
+                  if (brandError.message?.includes('duplicate') || brandError.message?.includes('already exists') || brandError.code === '23505') {
                     await fetchAllData();
-                    brand = brands.find(b => b.name.toLowerCase() === brandName.toLowerCase());
+                    brand = brands.find(b => b.name.toLowerCase().trim() === normalizedBrandName.toLowerCase());
                     if (!brand) {
-                      errors.push(`Impossible de récupérer la marque ${brandName}`);
+                      errors.push(`Marque ${normalizedBrandName} non trouvée après erreur de duplicate`);
                       continue;
                     }
+                    console.log(`♻️ Marque existante récupérée: ${normalizedBrandName}`);
                   } else {
-                    throw brandError;
+                    errors.push(`Erreur critique marque ${normalizedBrandName}: ${brandError.message}`);
+                    continue;
                   }
                 }
+              } else {
+                console.log(`✓ Marque existante: ${normalizedBrandName}`);
               }
 
               // 3. Créer les modèles
               for (const modelName of models) {
+                const normalizedModelName = modelName.trim();
+                console.log(`📱 Traitement modèle: ${normalizedModelName}`);
+                
+                // Vérifier AVANT de créer si le modèle existe déjà
+                if (checkModelExists(normalizedModelName, brand.id, deviceType.id)) {
+                  processedItems++;
+                  skippedModels++;
+                  console.log(`⚠️ Modèle déjà existant: ${normalizedModelName} (ignoré)`);
+                  
+                  const modelProgress = 10 + (processedItems / totalItems) * 85;
+                  setProgress(modelProgress);
+                  continue;
+                }
+                
                 try {
                   const deviceModel = await createDeviceModel({
                     device_type_id: deviceType.id,
                     brand_id: brand.id,
-                    model_name: modelName,
-                    model_number: modelName,
+                    model_name: normalizedModelName,
+                    model_number: normalizedModelName,
                     release_date: new Date().getFullYear().toString(),
                     screen_size: getDefaultScreenSize(deviceTypeName),
                     screen_resolution: getDefaultResolution(deviceTypeName),
@@ -396,41 +441,50 @@ export const UniversalCatalogImporter: React.FC = () => {
 
                   newModels.push(deviceModel);
                   processedItems++;
+                  console.log(`✅ Modèle créé: ${normalizedModelName} (${processedItems}/${totalItems})`);
 
                   const modelProgress = 10 + (processedItems / totalItems) * 85;
                   setProgress(modelProgress);
 
-                  if (processedItems % 10 === 0) {
-                    toast.success(`${processedItems}/${totalItems} modèles ajoutés`);
+                  if (newModels.length % 5 === 0) {
+                    toast.success(`${newModels.length} nouveaux modèles créés`);
                   }
 
                 } catch (error: any) {
+                  processedItems++;
+                  const modelProgress = 10 + (processedItems / totalItems) * 85;
+                  setProgress(modelProgress);
+                  
                   if (error.message?.includes('duplicate') || error.message?.includes('already exists') || error.code === '23505') {
-                    // Le modèle existe déjà, passer au suivant silencieusement
-                    processedItems++;
-                    const modelProgress = 10 + (processedItems / totalItems) * 85;
-                    setProgress(modelProgress);
-                    continue;
+                    skippedModels++;
+                    console.log(`⚠️ Modèle déjà existant (erreur DB): ${normalizedModelName} (ignoré)`);
                   } else {
-                    console.error(`Erreur modèle ${modelName}:`, error);
-                    processedItems++;
-                    const modelProgress = 10 + (processedItems / totalItems) * 85;
-                    setProgress(modelProgress);
+                    console.error(`❌ Erreur réelle modèle ${normalizedModelName}:`, error);
+                    errors.push(`Erreur modèle ${normalizedModelName}: ${error.message}`);
                   }
                 }
               }
 
-            } catch (error) {
+            } catch (error: any) {
+              console.error(`❌ Erreur marque ${brandName}:`, error);
               errors.push(`Erreur marque ${brandName}: ${error.message}`);
             }
           }
 
-        } catch (error) {
+        } catch (error: any) {
+          console.error(`❌ Erreur type ${deviceTypeName}:`, error);
           errors.push(`Erreur type ${deviceTypeName}: ${error.message}`);
         }
       }
 
       setProgress(100);
+      
+      console.log('📋 Résumé final de l\'importation:');
+      console.log(`  - Nouveaux types créés: ${newDeviceTypes.length}`);
+      console.log(`  - Nouvelles marques créées: ${newBrands.length}`);
+      console.log(`  - Nouveaux modèles créés: ${newModels.length}`);
+      console.log(`  - Modèles déjà existants (ignorés): ${skippedModels}`);
+      console.log(`  - Erreurs rencontrées: ${errors.length}`);
 
       // Actualiser les données
       await fetchAllData();
@@ -442,9 +496,12 @@ export const UniversalCatalogImporter: React.FC = () => {
         errors
       });
 
-      toast.success(
-        `Import terminé: ${newDeviceTypes.length} types, ${newBrands.length} marques, ${newModels.length} modèles`
-      );
+      // Message de fin plus détaillé
+      const successMessage = `Import terminé ! ✅ ${newModels.length} nouveaux modèles créés`;
+      const skippedMessage = skippedModels > 0 ? ` (${skippedModels} déjà existants ignorés)` : '';
+      const errorMessage = errors.length > 0 ? ` ⚠️ ${errors.length} erreurs` : '';
+      
+      toast.success(successMessage + skippedMessage + errorMessage);
 
     } catch (error) {
       console.error('Erreur import universel:', error);
