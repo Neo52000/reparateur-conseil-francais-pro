@@ -90,8 +90,18 @@ const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({
       // En production, utiliser l'URL retournée par l'API
       const uploadUrl = uploadResponse.uploadUrl;
       
-      // Simuler l'upload PUT (en production, utiliser fetch avec PUT)
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Upload réel du fichier via PUT
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const uploadResult = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file
+      });
+
+      if (!uploadResult.ok) {
+        throw new Error('Upload failed');
+      }
 
       // Étape 3: Confirmer l'upload dans notre base
       const { error: confirmError } = await supabase
@@ -104,7 +114,8 @@ const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({
           updated_at: new Date().toISOString()
         })
         .eq('dossier_id', dossier.id)
-        .eq('official_document_type', documentType);
+        .eq('official_document_type', documentType)
+        .eq('file_name', file.name);
 
       if (confirmError) {
         throw new Error('Failed to confirm upload');
