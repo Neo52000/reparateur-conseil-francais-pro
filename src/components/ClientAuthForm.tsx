@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { User, Phone, Mail, Eye, EyeOff } from 'lucide-react';
 
 const ClientAuthForm = () => {
@@ -17,7 +18,27 @@ const ClientAuthForm = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user } = useAuth();
+  const navigate = useNavigate();
+
+  // Gérer la redirection après connexion réussie
+  useEffect(() => {
+    if (user) {
+      // Vérifier s'il y a une recherche personnalisée en attente
+      const pendingPersonalizedSearch = localStorage.getItem('pendingPersonalizedSearch');
+      if (pendingPersonalizedSearch) {
+        localStorage.removeItem('pendingPersonalizedSearch');
+        navigate('/', { replace: true });
+        // Dispatch l'événement après un court délai pour s'assurer que la page est montée
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('restorePersonalizedSearch'));
+        }, 100);
+      } else {
+        // Redirection normale vers la page d'accueil
+        navigate('/', { replace: true });
+      }
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
