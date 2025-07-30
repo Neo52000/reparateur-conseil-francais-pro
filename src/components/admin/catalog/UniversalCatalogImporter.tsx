@@ -846,65 +846,50 @@ export const UniversalCatalogImporter: React.FC = () => {
         return;
       }
 
-      // Extract Samsung models - extensive list from Mobilax
-      const samsungModels = [
-        // Galaxy S series
-        'Galaxy S24 Ultra', 'Galaxy S24+', 'Galaxy S24',
-        'Galaxy S23 Ultra', 'Galaxy S23+', 'Galaxy S23', 'Galaxy S23 FE',
-        'Galaxy S22 Ultra', 'Galaxy S22+', 'Galaxy S22',
-        'Galaxy S21 Ultra', 'Galaxy S21+', 'Galaxy S21', 'Galaxy S21 FE',
-        'Galaxy S20 Ultra', 'Galaxy S20+', 'Galaxy S20', 'Galaxy S20 FE',
-        'Galaxy S10+', 'Galaxy S10', 'Galaxy S10e',
-        'Galaxy S9+', 'Galaxy S9',
-        'Galaxy S8+', 'Galaxy S8',
-        'Galaxy S7 Edge', 'Galaxy S7',
-        'Galaxy S6 Edge+', 'Galaxy S6 Edge', 'Galaxy S6',
-        
-        // Galaxy A series
-        'Galaxy A54 5G', 'Galaxy A34 5G', 'Galaxy A24', 'Galaxy A14',
-        'Galaxy A53 5G', 'Galaxy A33 5G', 'Galaxy A23', 'Galaxy A13',
-        'Galaxy A52s 5G', 'Galaxy A52 5G', 'Galaxy A32 5G', 'Galaxy A22',
-        'Galaxy A51', 'Galaxy A50', 'Galaxy A40', 'Galaxy A30',
-        'Galaxy A20e', 'Galaxy A10', 'Galaxy A9', 'Galaxy A8+',
-        'Galaxy A8', 'Galaxy A7', 'Galaxy A6+', 'Galaxy A6',
-        'Galaxy A5', 'Galaxy A3',
-        
-        // Galaxy Z series (Foldables)
-        'Galaxy Z Fold5', 'Galaxy Z Flip5', 'Galaxy Z Fold4', 'Galaxy Z Flip4',
-        'Galaxy Z Fold3', 'Galaxy Z Flip3', 'Galaxy Z Fold2', 'Galaxy Z Flip',
-        'Galaxy Fold',
-        
-        // Galaxy Note series
-        'Galaxy Note 20 Ultra', 'Galaxy Note 20',
-        'Galaxy Note 10+', 'Galaxy Note 10',
-        'Galaxy Note 9', 'Galaxy Note 8',
-        'Galaxy Note 7', 'Galaxy Note 5',
-        'Galaxy Note 4', 'Galaxy Note 3',
-        
-        // Galaxy M series
-        'Galaxy M54 5G', 'Galaxy M34 5G', 'Galaxy M14',
-        'Galaxy M53 5G', 'Galaxy M33 5G', 'Galaxy M23',
-        'Galaxy M52 5G', 'Galaxy M32', 'Galaxy M22',
-        'Galaxy M51', 'Galaxy M31', 'Galaxy M21',
-        'Galaxy M20', 'Galaxy M12', 'Galaxy M11',
-        
-        // Galaxy J series
-        'Galaxy J7', 'Galaxy J6', 'Galaxy J5',
-        'Galaxy J4+', 'Galaxy J4', 'Galaxy J3',
-        'Galaxy J2', 'Galaxy J1',
-        
-        // Galaxy Xcover series (Rugged)
-        'Galaxy Xcover 6 Pro', 'Galaxy Xcover 5',
-        'Galaxy Xcover 4s', 'Galaxy Xcover 4',
-        'Galaxy Xcover 3',
-        
-        // Other Galaxy models
-        'Galaxy Grand Prime', 'Galaxy Core Prime',
-        'Galaxy Ace 4', 'Galaxy Young 2',
-        'Galaxy Trend 2 Lite', 'Galaxy Star 2'
+      addLog('🔍 Scraping des modèles Samsung depuis Mobilax...');
+      
+      // Scrape Samsung models from Mobilax
+      const response = await fetch('https://www.mobilax.fr/pieces-detachees/telephonie/samsung');
+      const html = await response.text();
+      
+      // Extract Samsung series URLs from the page
+      const seriesUrls = [
+        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-s',
+        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-a',
+        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-z',
+        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-note',
+        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-m',
+        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-j',
+        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-xcover',
+        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-other'
       ];
       
-      addLog(`🔍 Début de l'import modèles Samsung Mobilax - ${samsungModels.length} modèles détectés`);
+      let allModels: string[] = [];
+      
+      for (const seriesUrl of seriesUrls) {
+        try {
+          addLog(`🔄 Scraping ${seriesUrl}...`);
+          const seriesResponse = await fetch(seriesUrl);
+          const seriesHtml = await seriesResponse.text();
+          
+          // Extract model names from the series page
+          const modelMatches = seriesHtml.match(/Samsung Galaxy [^"<>]+/g) || [];
+          const models = modelMatches
+            .map(model => model.replace('Samsung ', '').trim())
+            .filter((model, index, arr) => arr.indexOf(model) === index) // Remove duplicates
+            .filter(model => model.length > 5 && !model.includes('Samsung')); // Filter valid models
+          
+          allModels.push(...models);
+          addLog(`✅ ${models.length} modèles trouvés dans ${seriesUrl.split('/').pop()}`);
+          
+        } catch (error) {
+          addLog(`⚠️ Erreur scraping ${seriesUrl}: ${error}`);
+        }
+      }
+      
+      // Remove duplicates from all models
+      const uniqueModels = [...new Set(allModels)];
+      addLog(`📱 Total: ${uniqueModels.length} modèles Samsung uniques détectés`);
       
       let modelsImported = 0;
       let modelsSkipped = 0;
@@ -944,43 +929,37 @@ export const UniversalCatalogImporter: React.FC = () => {
         return;
       }
       
-      for (const modelName of samsungModels) {
+      for (const modelName of uniqueModels) {
         try {
+          // Clean model name
+          const cleanModelName = modelName.replace(/^Galaxy /, '').trim();
+          
           // Check if model exists
-          const existingModel = await checkModelExists(modelName, samsungBrand.id, smartphoneType.id);
+          const existingModel = await checkModelExists(cleanModelName, samsungBrand.id, smartphoneType.id);
           if (existingModel) {
-            addLog(`⚠️ Modèle "Samsung ${modelName}" déjà existant - ignoré`);
+            addLog(`⚠️ Modèle "Samsung ${cleanModelName}" déjà existant - ignoré`);
             modelsSkipped++;
             continue;
           }
           
-          // Create new model
+          // Create new model with realistic specs based on series
+          const specs = getSamsungSpecs(cleanModelName);
+          
           await createDeviceModel({
             device_type_id: smartphoneType.id,
             brand_id: samsungBrand.id,
-            model_name: modelName,
-            model_number: modelName,
-            release_date: '2025-01-01',
-            screen_size: modelName.includes('Ultra') ? '6.8' :
-                        modelName.includes('+') ? '6.4' :
-                        modelName.includes('Note') ? '6.3' :
-                        modelName.includes('Fold') ? '7.6' :
-                        modelName.includes('Flip') ? '6.7' : '6.1',
-            screen_resolution: modelName.includes('Ultra') ? '3088x1440' :
-                              modelName.includes('Fold') ? '2176x1812' :
-                              modelName.includes('Flip') ? '2640x1080' : '2340x1080',
-            screen_type: modelName.includes('S24') || modelName.includes('S23') || 
-                        modelName.includes('Note') || modelName.includes('Z') ? 'AMOLED' : 'Super AMOLED',
-            battery_capacity: modelName.includes('Ultra') ? '5000' :
-                             modelName.includes('+') ? '4500' :
-                             modelName.includes('Note') ? '4300' :
-                             modelName.includes('Fold') ? '4400' :
-                             modelName.includes('Flip') ? '3300' : '4000',
+            model_name: cleanModelName,
+            model_number: cleanModelName,
+            release_date: specs.releaseYear,
+            screen_size: specs.screenSize,
+            screen_resolution: specs.resolution,
+            screen_type: specs.screenType,
+            battery_capacity: specs.battery,
             operating_system: 'Android',
             is_active: true
           });
           
-          addLog(`✅ Modèle "Samsung ${modelName}" créé avec succès`);
+          addLog(`✅ Modèle "Samsung ${cleanModelName}" créé avec succès`);
           modelsImported++;
           
         } catch (error: any) {
@@ -994,17 +973,81 @@ export const UniversalCatalogImporter: React.FC = () => {
         }
       }
       
-      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
+      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs`);
       setStatus(modelsErrors > 0 ? 'error' : 'completed');
       
       if (modelsImported > 0) {
-        toast.success(`${modelsImported} nouveaux modèles Samsung Mobilax importés !`);
+        toast.success(`${modelsImported} nouveaux modèles Samsung importés depuis Mobilax !`);
       }
       
     } catch (error: any) {
       addLog(`❌ Erreur globale: ${error.message}`);
       setStatus('error');
       toast.error('Erreur lors de l\'import des modèles Samsung Mobilax');
+    }
+  };
+
+  // Helper function to get realistic specs based on Samsung model series
+  const getSamsungSpecs = (modelName: string) => {
+    const name = modelName.toLowerCase();
+    
+    if (name.includes('s24')) {
+      return {
+        screenSize: name.includes('ultra') ? '6.8' : name.includes('+') ? '6.7' : '6.2',
+        resolution: name.includes('ultra') ? '3088x1440' : '2340x1080',
+        screenType: 'Dynamic AMOLED',
+        battery: name.includes('ultra') ? '5000' : '4000',
+        releaseYear: '2024'
+      };
+    } else if (name.includes('s23')) {
+      return {
+        screenSize: name.includes('ultra') ? '6.8' : name.includes('+') ? '6.6' : '6.1',
+        resolution: name.includes('ultra') ? '3088x1440' : '2340x1080',
+        screenType: 'Dynamic AMOLED',
+        battery: name.includes('ultra') ? '5000' : '3900',
+        releaseYear: '2023'
+      };
+    } else if (name.includes('z fold')) {
+      return {
+        screenSize: '7.6',
+        resolution: '2176x1812',
+        screenType: 'Dynamic AMOLED',
+        battery: '4400',
+        releaseYear: '2023'
+      };
+    } else if (name.includes('z flip')) {
+      return {
+        screenSize: '6.7',
+        resolution: '2640x1080',
+        screenType: 'Dynamic AMOLED',
+        battery: '3700',
+        releaseYear: '2023'
+      };
+    } else if (name.includes('note')) {
+      return {
+        screenSize: '6.8',
+        resolution: '3088x1440',
+        screenType: 'Dynamic AMOLED',
+        battery: '4300',
+        releaseYear: '2020'
+      };
+    } else if (name.includes('a5') || name.includes('a7')) {
+      return {
+        screenSize: '6.5',
+        resolution: '2400x1080',
+        screenType: 'Super AMOLED',
+        battery: '4500',
+        releaseYear: '2023'
+      };
+    } else {
+      // Default specs for other models
+      return {
+        screenSize: '6.1',
+        resolution: '2340x1080',
+        screenType: 'Super AMOLED',
+        battery: '4000',
+        releaseYear: '2022'
+      };
     }
   };
 
