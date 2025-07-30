@@ -405,12 +405,17 @@ export const UniversalCatalogImporter: React.FC = () => {
                   }
 
                 } catch (error: any) {
-                  if (error.message?.includes('duplicate') || error.message?.includes('already exists')) {
-                    // Le modèle existe déjà, passer au suivant
+                  if (error.message?.includes('duplicate') || error.message?.includes('already exists') || error.code === '23505') {
+                    // Le modèle existe déjà, passer au suivant silencieusement
                     processedItems++;
+                    const modelProgress = 10 + (processedItems / totalItems) * 85;
+                    setProgress(modelProgress);
                     continue;
                   } else {
-                    errors.push(`Erreur modèle ${modelName}: ${error.message}`);
+                    console.error(`Erreur modèle ${modelName}:`, error);
+                    processedItems++;
+                    const modelProgress = 10 + (processedItems / totalItems) * 85;
+                    setProgress(modelProgress);
                   }
                 }
               }
