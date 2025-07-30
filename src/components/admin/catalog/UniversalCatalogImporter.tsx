@@ -52,11 +52,60 @@ const COMPLETE_PRODUCT_DATA: ProductData[] = [
     category: 'smartphone',
     icon: Smartphone,
     models: [
+      // Série Galaxy S
       'Galaxy S24 Ultra', 'Galaxy S24+', 'Galaxy S24',
       'Galaxy S23 Ultra', 'Galaxy S23+', 'Galaxy S23', 'Galaxy S23 FE',
+      'Galaxy S22 Ultra', 'Galaxy S22+', 'Galaxy S22',
+      'Galaxy S21 Ultra', 'Galaxy S21+', 'Galaxy S21', 'Galaxy S21 FE',
+      'Galaxy S20 Ultra', 'Galaxy S20+', 'Galaxy S20', 'Galaxy S20 FE',
+      'Galaxy S10+', 'Galaxy S10', 'Galaxy S10e',
+      'Galaxy S9+', 'Galaxy S9',
+      'Galaxy S8+', 'Galaxy S8',
+      'Galaxy S7 Edge', 'Galaxy S7',
+      'Galaxy S6 Edge+', 'Galaxy S6 Edge', 'Galaxy S6',
+      
+      // Série Galaxy A
       'Galaxy A54 5G', 'Galaxy A34 5G', 'Galaxy A24', 'Galaxy A14',
+      'Galaxy A53 5G', 'Galaxy A33 5G', 'Galaxy A23', 'Galaxy A13',
+      'Galaxy A52s 5G', 'Galaxy A52 5G', 'Galaxy A32 5G', 'Galaxy A22',
+      'Galaxy A51', 'Galaxy A50', 'Galaxy A40', 'Galaxy A30',
+      'Galaxy A20e', 'Galaxy A10', 'Galaxy A9', 'Galaxy A8+',
+      'Galaxy A8', 'Galaxy A7', 'Galaxy A6+', 'Galaxy A6',
+      'Galaxy A5', 'Galaxy A3',
+      
+      // Série Galaxy Z (Pliables)
       'Galaxy Z Fold5', 'Galaxy Z Flip5', 'Galaxy Z Fold4', 'Galaxy Z Flip4',
-      'Galaxy Note 20 Ultra', 'Galaxy Note 20'
+      'Galaxy Z Fold3', 'Galaxy Z Flip3', 'Galaxy Z Fold2', 'Galaxy Z Flip',
+      'Galaxy Fold',
+      
+      // Série Galaxy Note
+      'Galaxy Note 20 Ultra', 'Galaxy Note 20',
+      'Galaxy Note 10+', 'Galaxy Note 10',
+      'Galaxy Note 9', 'Galaxy Note 8',
+      'Galaxy Note 7', 'Galaxy Note 5',
+      'Galaxy Note 4', 'Galaxy Note 3',
+      
+      // Série Galaxy M
+      'Galaxy M54 5G', 'Galaxy M34 5G', 'Galaxy M14',
+      'Galaxy M53 5G', 'Galaxy M33 5G', 'Galaxy M23',
+      'Galaxy M52 5G', 'Galaxy M32', 'Galaxy M22',
+      'Galaxy M51', 'Galaxy M31', 'Galaxy M21',
+      'Galaxy M20', 'Galaxy M12', 'Galaxy M11',
+      
+      // Série Galaxy J
+      'Galaxy J7', 'Galaxy J6', 'Galaxy J5',
+      'Galaxy J4+', 'Galaxy J4', 'Galaxy J3',
+      'Galaxy J2', 'Galaxy J1',
+      
+      // Série Galaxy Xcover (Incassables)
+      'Galaxy Xcover 6 Pro', 'Galaxy Xcover 5',
+      'Galaxy Xcover 4s', 'Galaxy Xcover 4',
+      'Galaxy Xcover 3',
+      
+      // Autres modèles Galaxy
+      'Galaxy Grand Prime', 'Galaxy Core Prime',
+      'Galaxy Ace 4', 'Galaxy Young 2',
+      'Galaxy Trend 2 Lite', 'Galaxy Star 2'
     ]
   },
   {
@@ -781,6 +830,181 @@ export const UniversalCatalogImporter: React.FC = () => {
       addLog(`❌ Erreur globale: ${error.message}`);
       setStatus('error');
       toast.error('Erreur lors de l\'import des modèles Mobilax tablettes');
+    }
+  };
+
+  const handleMobilaxSamsungModelsImport = async () => {
+    setStatus('importing');
+    setLogs([]);
+    
+    try {
+      // Find Smartphone device type
+      const smartphoneType = deviceTypes.find(dt => dt.name.toLowerCase() === 'smartphone');
+      if (!smartphoneType) {
+        addLog('❌ Type d\'appareil "Smartphone" introuvable. Créez-le d\'abord.');
+        setStatus('error');
+        return;
+      }
+
+      // Extract Samsung models - extensive list from Mobilax
+      const samsungModels = [
+        // Galaxy S series
+        'Galaxy S24 Ultra', 'Galaxy S24+', 'Galaxy S24',
+        'Galaxy S23 Ultra', 'Galaxy S23+', 'Galaxy S23', 'Galaxy S23 FE',
+        'Galaxy S22 Ultra', 'Galaxy S22+', 'Galaxy S22',
+        'Galaxy S21 Ultra', 'Galaxy S21+', 'Galaxy S21', 'Galaxy S21 FE',
+        'Galaxy S20 Ultra', 'Galaxy S20+', 'Galaxy S20', 'Galaxy S20 FE',
+        'Galaxy S10+', 'Galaxy S10', 'Galaxy S10e',
+        'Galaxy S9+', 'Galaxy S9',
+        'Galaxy S8+', 'Galaxy S8',
+        'Galaxy S7 Edge', 'Galaxy S7',
+        'Galaxy S6 Edge+', 'Galaxy S6 Edge', 'Galaxy S6',
+        
+        // Galaxy A series
+        'Galaxy A54 5G', 'Galaxy A34 5G', 'Galaxy A24', 'Galaxy A14',
+        'Galaxy A53 5G', 'Galaxy A33 5G', 'Galaxy A23', 'Galaxy A13',
+        'Galaxy A52s 5G', 'Galaxy A52 5G', 'Galaxy A32 5G', 'Galaxy A22',
+        'Galaxy A51', 'Galaxy A50', 'Galaxy A40', 'Galaxy A30',
+        'Galaxy A20e', 'Galaxy A10', 'Galaxy A9', 'Galaxy A8+',
+        'Galaxy A8', 'Galaxy A7', 'Galaxy A6+', 'Galaxy A6',
+        'Galaxy A5', 'Galaxy A3',
+        
+        // Galaxy Z series (Foldables)
+        'Galaxy Z Fold5', 'Galaxy Z Flip5', 'Galaxy Z Fold4', 'Galaxy Z Flip4',
+        'Galaxy Z Fold3', 'Galaxy Z Flip3', 'Galaxy Z Fold2', 'Galaxy Z Flip',
+        'Galaxy Fold',
+        
+        // Galaxy Note series
+        'Galaxy Note 20 Ultra', 'Galaxy Note 20',
+        'Galaxy Note 10+', 'Galaxy Note 10',
+        'Galaxy Note 9', 'Galaxy Note 8',
+        'Galaxy Note 7', 'Galaxy Note 5',
+        'Galaxy Note 4', 'Galaxy Note 3',
+        
+        // Galaxy M series
+        'Galaxy M54 5G', 'Galaxy M34 5G', 'Galaxy M14',
+        'Galaxy M53 5G', 'Galaxy M33 5G', 'Galaxy M23',
+        'Galaxy M52 5G', 'Galaxy M32', 'Galaxy M22',
+        'Galaxy M51', 'Galaxy M31', 'Galaxy M21',
+        'Galaxy M20', 'Galaxy M12', 'Galaxy M11',
+        
+        // Galaxy J series
+        'Galaxy J7', 'Galaxy J6', 'Galaxy J5',
+        'Galaxy J4+', 'Galaxy J4', 'Galaxy J3',
+        'Galaxy J2', 'Galaxy J1',
+        
+        // Galaxy Xcover series (Rugged)
+        'Galaxy Xcover 6 Pro', 'Galaxy Xcover 5',
+        'Galaxy Xcover 4s', 'Galaxy Xcover 4',
+        'Galaxy Xcover 3',
+        
+        // Other Galaxy models
+        'Galaxy Grand Prime', 'Galaxy Core Prime',
+        'Galaxy Ace 4', 'Galaxy Young 2',
+        'Galaxy Trend 2 Lite', 'Galaxy Star 2'
+      ];
+      
+      addLog(`🔍 Début de l'import modèles Samsung Mobilax - ${samsungModels.length} modèles détectés`);
+      
+      let modelsImported = 0;
+      let modelsSkipped = 0;
+      let modelsErrors = 0;
+      let brandsCreated = 0;
+      
+      // Find or create Samsung brand
+      let samsungBrand = brands.find(b => 
+        b.name.toLowerCase() === 'samsung'
+      );
+      
+      if (!samsungBrand) {
+        try {
+          samsungBrand = await createBrand({
+            name: 'Samsung',
+            logo_url: null
+          });
+          brandsCreated++;
+          addLog(`✅ Marque "Samsung" créée`);
+        } catch (brandError: any) {
+          if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
+            await fetchAllData();
+            samsungBrand = brands.find(b => 
+              b.name.toLowerCase() === 'samsung'
+            );
+          } else {
+            addLog(`❌ Erreur lors de la création de la marque Samsung: ${brandError.message}`);
+            setStatus('error');
+            return;
+          }
+        }
+      }
+      
+      if (!samsungBrand) {
+        addLog(`❌ Impossible de créer/trouver la marque Samsung`);
+        setStatus('error');
+        return;
+      }
+      
+      for (const modelName of samsungModels) {
+        try {
+          // Check if model exists
+          const existingModel = await checkModelExists(modelName, samsungBrand.id, smartphoneType.id);
+          if (existingModel) {
+            addLog(`⚠️ Modèle "Samsung ${modelName}" déjà existant - ignoré`);
+            modelsSkipped++;
+            continue;
+          }
+          
+          // Create new model
+          await createDeviceModel({
+            device_type_id: smartphoneType.id,
+            brand_id: samsungBrand.id,
+            model_name: modelName,
+            model_number: modelName,
+            release_date: '2025-01-01',
+            screen_size: modelName.includes('Ultra') ? '6.8' :
+                        modelName.includes('+') ? '6.4' :
+                        modelName.includes('Note') ? '6.3' :
+                        modelName.includes('Fold') ? '7.6' :
+                        modelName.includes('Flip') ? '6.7' : '6.1',
+            screen_resolution: modelName.includes('Ultra') ? '3088x1440' :
+                              modelName.includes('Fold') ? '2176x1812' :
+                              modelName.includes('Flip') ? '2640x1080' : '2340x1080',
+            screen_type: modelName.includes('S24') || modelName.includes('S23') || 
+                        modelName.includes('Note') || modelName.includes('Z') ? 'AMOLED' : 'Super AMOLED',
+            battery_capacity: modelName.includes('Ultra') ? '5000' :
+                             modelName.includes('+') ? '4500' :
+                             modelName.includes('Note') ? '4300' :
+                             modelName.includes('Fold') ? '4400' :
+                             modelName.includes('Flip') ? '3300' : '4000',
+            operating_system: 'Android',
+            is_active: true
+          });
+          
+          addLog(`✅ Modèle "Samsung ${modelName}" créé avec succès`);
+          modelsImported++;
+          
+        } catch (error: any) {
+          if (error.message?.includes('duplicate') || error.code === '23505') {
+            addLog(`⚠️ Modèle "Samsung ${modelName}" déjà existant (BD) - ignoré`);
+            modelsSkipped++;
+          } else {
+            addLog(`❌ Erreur lors de la création de "Samsung ${modelName}": ${error.message}`);
+            modelsErrors++;
+          }
+        }
+      }
+      
+      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
+      setStatus(modelsErrors > 0 ? 'error' : 'completed');
+      
+      if (modelsImported > 0) {
+        toast.success(`${modelsImported} nouveaux modèles Samsung Mobilax importés !`);
+      }
+      
+    } catch (error: any) {
+      addLog(`❌ Erreur globale: ${error.message}`);
+      setStatus('error');
+      toast.error('Erreur lors de l\'import des modèles Samsung Mobilax');
     }
   };
 
@@ -1697,6 +1921,26 @@ export const UniversalCatalogImporter: React.FC = () => {
                 <>
                   <Gamepad2 className="h-4 w-4 mr-2" />
                   Importer les modèles de consoles Nintendo
+                </>
+              )}
+            </Button>
+
+            <Button 
+              onClick={handleMobilaxSamsungModelsImport}
+              disabled={status === 'importing'}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              {status === 'importing' ? (
+                <>
+                  <Download className="h-4 w-4 mr-2 animate-spin" />
+                  Import Modèles Samsung...
+                </>
+              ) : (
+                <>
+                  <Smartphone className="h-4 w-4 mr-2" />
+                  Importer les modèles Samsung Mobilax
                 </>
               )}
             </Button>
