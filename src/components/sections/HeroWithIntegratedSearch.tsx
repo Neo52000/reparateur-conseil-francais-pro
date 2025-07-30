@@ -67,11 +67,7 @@ const HeroWithIntegratedSearch: React.FC<HeroWithIntegratedSearchProps> = ({
     }
     
     setSelectedDeviceType(deviceTypeId);
-    // Ici on pourrait continuer avec les étapes suivantes
-    toast({
-      title: "Fonctionnalité en développement",
-      description: "La recherche avancée complète sera bientôt disponible.",
-    });
+    // Continuer avec le processus de recherche avancée
   };
 
   const handleQuickSearchClick = () => {
