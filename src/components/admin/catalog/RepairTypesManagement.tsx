@@ -36,8 +36,8 @@ const RepairTypesManagement: React.FC<RepairTypesManagementProps> = ({ onStatsUp
   
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRepairType, setEditingRepairType] = useState<RepairType | null>(null);
   const [formData, setFormData] = useState<EditingRepairType>({
@@ -59,8 +59,8 @@ const RepairTypesManagement: React.FC<RepairTypesManagementProps> = ({ onStatsUp
   const filteredRepairTypes = repairTypes.filter(repairType => {
     const matchesSearch = repairType.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (repairType.description && repairType.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = !selectedCategory || repairType.category_id === selectedCategory;
-    const matchesDifficulty = !selectedDifficulty || repairType.difficulty_level === selectedDifficulty;
+    const matchesCategory = !selectedCategory || selectedCategory === 'all' || repairType.category_id === selectedCategory;
+    const matchesDifficulty = !selectedDifficulty || selectedDifficulty === 'all' || repairType.difficulty_level === selectedDifficulty;
     
     return matchesSearch && matchesCategory && matchesDifficulty;
   });
@@ -189,7 +189,7 @@ const RepairTypesManagement: React.FC<RepairTypesManagementProps> = ({ onStatsUp
             <SelectValue placeholder="Toutes les catégories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Toutes les catégories</SelectItem>
+            <SelectItem value="all">Toutes les catégories</SelectItem>
             {repairCategories.map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 {category.name}
@@ -203,7 +203,7 @@ const RepairTypesManagement: React.FC<RepairTypesManagementProps> = ({ onStatsUp
             <SelectValue placeholder="Toutes les difficultés" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Toutes les difficultés</SelectItem>
+            <SelectItem value="all">Toutes les difficultés</SelectItem>
             <SelectItem value="Facile">Facile</SelectItem>
             <SelectItem value="Moyen">Moyen</SelectItem>
             <SelectItem value="Difficile">Difficile</SelectItem>

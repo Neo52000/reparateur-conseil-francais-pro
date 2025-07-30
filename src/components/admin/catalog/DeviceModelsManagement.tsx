@@ -35,8 +35,8 @@ const DeviceModelsManagement: React.FC<DeviceModelsManagementProps> = ({ onStats
   
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedBrand, setSelectedBrand] = useState('');
-  const [selectedType, setSelectedType] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState('all');
+  const [selectedType, setSelectedType] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingModel, setEditingModel] = useState<DeviceModel | null>(null);
   const [formData, setFormData] = useState<EditingDeviceModel>({
@@ -57,8 +57,8 @@ const DeviceModelsManagement: React.FC<DeviceModelsManagementProps> = ({ onStats
     const matchesSearch = model.model_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          model.brand?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (model.model_number && model.model_number.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesBrand = !selectedBrand || model.brand_id === selectedBrand;
-    const matchesType = !selectedType || model.device_type_id === selectedType;
+    const matchesBrand = !selectedBrand || selectedBrand === 'all' || model.brand_id === selectedBrand;
+    const matchesType = !selectedType || selectedType === 'all' || model.device_type_id === selectedType;
     
     return matchesSearch && matchesBrand && matchesType;
   });
@@ -187,7 +187,7 @@ const DeviceModelsManagement: React.FC<DeviceModelsManagementProps> = ({ onStats
             <SelectValue placeholder="Toutes les marques" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Toutes les marques</SelectItem>
+            <SelectItem value="all">Toutes les marques</SelectItem>
             {brands.map((brand) => (
               <SelectItem key={brand.id} value={brand.id}>
                 {brand.name}
@@ -201,7 +201,7 @@ const DeviceModelsManagement: React.FC<DeviceModelsManagementProps> = ({ onStats
             <SelectValue placeholder="Tous les types" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Tous les types</SelectItem>
+            <SelectItem value="all">Tous les types</SelectItem>
             {deviceTypes.map((type) => (
               <SelectItem key={type.id} value={type.id}>
                 {type.name}
