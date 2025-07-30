@@ -341,6 +341,549 @@ export const UniversalCatalogImporter: React.FC = () => {
     );
   };
 
+  // Helper functions
+  const getDefaultScreenSize = (deviceType: string): string => {
+    if (deviceType.toLowerCase().includes('smartphone')) return '6.1';
+    if (deviceType.toLowerCase().includes('tablette')) return '10.1';
+    if (deviceType.toLowerCase().includes('ordinateur')) return '13.3';
+    if (deviceType.toLowerCase().includes('montre')) return '1.9';
+    return '6.1';
+  };
+
+  const getDefaultResolution = (deviceType: string): string => {
+    if (deviceType.toLowerCase().includes('smartphone')) return '2340x1080';
+    if (deviceType.toLowerCase().includes('tablette')) return '2360x1640';
+    if (deviceType.toLowerCase().includes('ordinateur')) return '2560x1600';
+    if (deviceType.toLowerCase().includes('montre')) return '396x484';
+    return '1920x1080';
+  };
+
+  const getDefaultBattery = (deviceType: string): string => {
+    if (deviceType.toLowerCase().includes('smartphone')) return '4000';
+    if (deviceType.toLowerCase().includes('tablette')) return '8000';
+    if (deviceType.toLowerCase().includes('ordinateur')) return '70';
+    if (deviceType.toLowerCase().includes('montre')) return '18';
+    return '4000';
+  };
+
+  const getDefaultOS = (brandName: string, deviceType: string): string => {
+    if (brandName.toLowerCase() === 'apple') {
+      if (deviceType.toLowerCase().includes('smartphone')) return 'iOS';
+      if (deviceType.toLowerCase().includes('tablette')) return 'iPadOS';
+      if (deviceType.toLowerCase().includes('ordinateur')) return 'macOS';
+      if (deviceType.toLowerCase().includes('montre')) return 'watchOS';
+    }
+    if (deviceType.toLowerCase().includes('smartphone') || deviceType.toLowerCase().includes('tablette')) return 'Android';
+    if (deviceType.toLowerCase().includes('ordinateur')) return 'Windows';
+    if (deviceType.toLowerCase().includes('montre')) return 'Wear OS';
+    return 'Propriétaire';
+  };
+
+  // Import automatisé universel
+  const handleUniversalAutomatedImport = async () => {
+    setStatus('importing');
+    setLogs([]);
+    
+    try {
+      addLog('🌐 Début de l\'import automatisé universel depuis tous les sites externes...');
+      
+      let totalModelsImported = 0;
+      let totalModelsSkipped = 0;
+      let totalModelsErrors = 0;
+      let totalBrandsCreated = 0;
+      let totalDeviceTypesCreated = 0;
+
+      // Sites et configurations à scraper
+      const scrapingSources = [
+        {
+          name: 'Mobilax Smartphones',
+          baseUrl: 'https://www.mobilax.fr/pieces-detachees/telephonie',
+          deviceType: 'Smartphone',
+          brands: ['apple', 'samsung', 'xiaomi', 'huawei', 'honor', 'oppo', 'realme', 'oneplus', 'motorola', 'google', 'vivo', 'nothing']
+        },
+        {
+          name: 'Mobilax Tablettes', 
+          baseUrl: 'https://www.mobilax.fr/pieces-detachees/tablette',
+          deviceType: 'Tablette',
+          brands: ['apple', 'samsung', 'xiaomi', 'microsoft', 'lenovo']
+        },
+        {
+          name: 'Mobilax Ordinateurs',
+          baseUrl: 'https://www.mobilax.fr/protections/ordinateur',
+          deviceType: 'Ordinateur Portable',
+          brands: ['apple']
+        },
+        {
+          name: 'Mobilax Trottinettes',
+          baseUrl: 'https://www.mobilax.fr/e-mobility/pieces-detachees',
+          deviceType: 'Trottinette',
+          brands: ['xiaomi', 'ninebot', 'kugoo']
+        },
+        {
+          name: 'Utopya Consoles',
+          baseUrl: 'https://www.utopya.fr/autres-marques/nintendo.html',
+          deviceType: 'Console de jeux',
+          brands: ['nintendo']
+        }
+      ];
+
+      // Import pour chaque source
+      for (const source of scrapingSources) {
+        addLog(`🔍 Scraping ${source.name}...`);
+        
+        try {
+          // Ensure device type exists
+          let deviceType = deviceTypes.find(dt => 
+            dt.name.toLowerCase() === source.deviceType.toLowerCase()
+          );
+          
+          if (!deviceType) {
+            addLog(`➕ Création du type d'appareil: ${source.deviceType}`);
+            try {
+              deviceType = await createDeviceType({
+                name: source.deviceType,
+                description: `${source.deviceType} - Import automatique`,
+                icon: getDeviceIcon(source.deviceType)
+              });
+              totalDeviceTypesCreated++;
+            } catch (error: any) {
+              if (error.message?.includes('duplicate') || error.code === '23505') {
+                await fetchAllData();
+                deviceType = deviceTypes.find(dt => 
+                  dt.name.toLowerCase() === source.deviceType.toLowerCase()
+                );
+              } else {
+                addLog(`❌ Erreur création type ${source.deviceType}: ${error.message}`);
+                continue;
+              }
+            }
+          }
+
+          if (!deviceType) {
+            addLog(`❌ Type d'appareil ${source.deviceType} introuvable`);
+            continue;
+          }
+
+          // Import models for each brand
+          for (const brandName of source.brands) {
+            addLog(`🏷️ Import ${brandName} ${source.deviceType}...`);
+            
+            const models = await scrapeModelsFromSource(source, brandName);
+            
+            if (models.length === 0) {
+              addLog(`⚠️ Aucun modèle trouvé pour ${brandName} sur ${source.name}`);
+              continue;
+            }
+
+            // Find or create brand
+            let brand = brands.find(b => 
+              b.name.toLowerCase() === brandName.toLowerCase()
+            );
+            
+            if (!brand) {
+              try {
+                brand = await createBrand({
+                  name: capitalizeFirst(brandName),
+                  logo_url: null
+                });
+                totalBrandsCreated++;
+                addLog(`✅ Marque "${capitalizeFirst(brandName)}" créée`);
+              } catch (brandError: any) {
+                if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
+                  await fetchAllData();
+                  brand = brands.find(b => 
+                    b.name.toLowerCase() === brandName.toLowerCase()
+                  );
+                } else {
+                  addLog(`❌ Erreur création marque ${brandName}: ${brandError.message}`);
+                  continue;
+                }
+              }
+            }
+
+            if (!brand) {
+              addLog(`❌ Marque ${brandName} introuvable`);
+              continue;
+            }
+
+            // Import each model
+            for (const modelData of models) {
+              try {
+                const cleanedModelName = cleanModelName(modelData.name);
+                
+                // Check if model exists
+                const existingModel = await checkModelExists(cleanedModelName, brand.id, deviceType.id);
+                if (existingModel) {
+                  addLog(`⚠️ Modèle "${cleanedModelName}" déjà existant - ignoré`);
+                  totalModelsSkipped++;
+                  continue;
+                }
+                
+                // Create new model with realistic specs
+                const specs = getRealisticSpecs(source.deviceType, brandName, cleanedModelName, modelData);
+                
+                await createDeviceModel({
+                  device_type_id: deviceType.id,
+                  brand_id: brand.id,
+                  model_name: cleanedModelName,
+                  model_number: cleanedModelName,
+                  release_date: specs.releaseYear,
+                  screen_size: specs.screenSize || '6.1',
+                  screen_resolution: specs.resolution || '2340x1080',
+                  screen_type: specs.screenType || 'LCD',
+                  battery_capacity: specs.battery || '4000',
+                  operating_system: specs.os || getDefaultOS(brandName, source.deviceType),
+                  is_active: true
+                });
+                
+                addLog(`✅ Modèle "${cleanedModelName}" créé avec succès`);
+                totalModelsImported++;
+                
+              } catch (error: any) {
+                if (error.message?.includes('duplicate') || error.code === '23505') {
+                  addLog(`⚠️ Modèle "${modelData.name}" déjà existant (BD) - ignoré`);
+                  totalModelsSkipped++;
+                } else {
+                  addLog(`❌ Erreur création "${modelData.name}": ${error.message}`);
+                  totalModelsErrors++;
+                }
+              }
+            }
+          }
+          
+        } catch (error: any) {
+          addLog(`❌ Erreur source ${source.name}: ${error.message}`);
+        }
+      }
+      
+      addLog(`🎉 Import universel terminé:`);
+      addLog(`  - ${totalDeviceTypesCreated} types d'appareils créés`);
+      addLog(`  - ${totalBrandsCreated} marques créées`);
+      addLog(`  - ${totalModelsImported} modèles créés`);
+      addLog(`  - ${totalModelsSkipped} modèles ignorés (déjà existants)`);
+      addLog(`  - ${totalModelsErrors} erreurs rencontrées`);
+      
+      setStatus(totalModelsErrors > 0 ? 'error' : 'completed');
+      
+      if (totalModelsImported > 0) {
+        toast.success(`${totalModelsImported} nouveaux modèles importés automatiquement !`);
+      }
+      
+    } catch (error: any) {
+      addLog(`❌ Erreur globale import universel: ${error.message}`);
+      setStatus('error');
+      toast.error('Erreur lors de l\'import automatisé universel');
+    }
+  };
+
+  // Helper function to scrape models from a source
+  const scrapeModelsFromSource = async (source: any, brandName: string): Promise<any[]> => {
+    try {
+      const url = `${source.baseUrl}/${brandName}`;
+      const response = await fetch(url);
+      const html = await response.text();
+      
+      // Extract model names using various patterns
+      const patterns = [
+        new RegExp(`${capitalizeFirst(brandName)} ([^"<>]+)`, 'gi'),
+        new RegExp(`${brandName.toUpperCase()} ([^"<>]+)`, 'gi'),
+        new RegExp(`${capitalizeFirst(brandName)}\\s+([A-Za-z0-9\\s\\+\\-\\.]+)`, 'gi')
+      ];
+      
+      let allMatches: string[] = [];
+      patterns.forEach(pattern => {
+        const matches = html.match(pattern) || [];
+        allMatches.push(...matches);
+      });
+      
+      // Clean and filter model names
+      const models = allMatches
+        .map(match => {
+          const name = match
+            .replace(new RegExp(`^${capitalizeFirst(brandName)}\\s+`, 'i'), '')
+            .replace(new RegExp(`^${brandName.toUpperCase()}\\s+`, 'i'), '')
+            .trim();
+          return { name, brand: brandName };
+        })
+        .filter((model, index, arr) => 
+          model.name.length > 2 && 
+          model.name.length < 100 &&
+          !model.name.includes('<') &&
+          !model.name.includes('>') &&
+          arr.findIndex(m => m.name === model.name) === index
+        )
+        .slice(0, 50); // Limit to 50 models per brand to avoid overload
+      
+      return models;
+      
+    } catch (error) {
+      console.error(`Error scraping ${source.name} ${brandName}:`, error);
+      return [];
+    }
+  };
+
+  // Helper function to get device icon
+  const getDeviceIcon = (deviceType: string): string => {
+    const type = deviceType.toLowerCase();
+    if (type.includes('smartphone') || type.includes('téléphone')) return 'smartphone';
+    if (type.includes('tablette')) return 'tablet';
+    if (type.includes('ordinateur')) return 'laptop';
+    if (type.includes('trottinette')) return 'zap';
+    if (type.includes('console')) return 'gamepad2';
+    if (type.includes('écouteur')) return 'headphones';
+    if (type.includes('montre')) return 'watch';
+    return 'device';
+  };
+
+  // Helper function to capitalize first letter
+  const capitalizeFirst = (str: string): string => {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
+  // Helper function to clean model names
+  const cleanModelName = (name: string): string => {
+    return name
+      .replace(/[<>]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  // Helper function to get realistic specs based on device type and model
+  const getRealisticSpecs = (deviceType: string, brandName: string, modelName: string, modelData: any) => {
+    const name = modelName.toLowerCase();
+    const brand = brandName.toLowerCase();
+    const type = deviceType.toLowerCase();
+    
+    if (type.includes('smartphone')) {
+      return getSmartphoneSpecs(brand, name);
+    } else if (type.includes('tablette')) {
+      return getTabletSpecs(brand, name);
+    } else if (type.includes('ordinateur')) {
+      return getLaptopSpecs(brand, name);
+    } else if (type.includes('trottinette')) {
+      return getScooterSpecs(brand, name);
+    } else if (type.includes('console')) {
+      return getConsoleSpecs(brand, name);
+    }
+    
+    return {
+      screenSize: '6.1',
+      resolution: '1920x1080',
+      screenType: 'LCD',
+      battery: '4000',
+      releaseYear: '2023',
+      os: getDefaultOS(brandName, deviceType),
+      storage: ['64GB'],
+      colors: ['Noir'],
+      connectivity: ['WiFi', 'Bluetooth'],
+      features: []
+    };
+  };
+
+  const getSmartphoneSpecs = (brand: string, name: string) => {
+    // Logic for smartphone specs based on brand and model
+    if (brand === 'apple') {
+      return {
+        screenSize: name.includes('pro max') ? '6.7' : name.includes('pro') ? '6.1' : name.includes('plus') ? '6.7' : '6.1',
+        resolution: name.includes('pro') ? '2556x1179' : '2340x1080',
+        screenType: 'Super Retina XDR OLED',
+        battery: name.includes('pro max') ? '4422' : name.includes('pro') ? '3200' : '3279',
+        releaseYear: name.includes('15') ? '2023' : name.includes('14') ? '2022' : '2021',
+        os: 'iOS',
+        storage: ['128GB', '256GB', '512GB', '1TB'],
+        colors: ['Noir', 'Blanc', 'Bleu', 'Rose'],
+        connectivity: ['5G', 'WiFi 6', 'Bluetooth 5.3'],
+        features: ['Face ID', 'MagSafe', 'Résistant à l\'eau']
+      };
+    } else if (brand === 'samsung') {
+      return getSamsungSpecs(name);
+    }
+    
+    return {
+      screenSize: '6.1',
+      resolution: '2340x1080',
+      screenType: 'AMOLED',
+      battery: '4000',
+      releaseYear: '2023',
+      os: 'Android',
+      storage: ['128GB', '256GB'],
+      colors: ['Noir', 'Blanc'],
+      connectivity: ['4G', 'WiFi', 'Bluetooth'],
+      features: []
+    };
+  };
+
+  const getSamsungSpecs = (name: string) => {
+    if (name.includes('s24')) {
+      return {
+        screenSize: name.includes('ultra') ? '6.8' : name.includes('+') ? '6.7' : '6.2',
+        resolution: name.includes('ultra') ? '3088x1440' : '2340x1080',
+        screenType: 'Dynamic AMOLED',
+        battery: name.includes('ultra') ? '5000' : '4000',
+        releaseYear: '2024',
+        os: 'Android',
+        storage: ['256GB', '512GB', '1TB'],
+        colors: ['Noir', 'Violet', 'Jaune', 'Vert'],
+        connectivity: ['5G', 'WiFi 6E', 'Bluetooth 5.3'],
+        features: ['S Pen', 'DeX', 'Knox']
+      };
+    } else if (name.includes('s23')) {
+      return {
+        screenSize: name.includes('ultra') ? '6.8' : name.includes('+') ? '6.6' : '6.1',
+        resolution: name.includes('ultra') ? '3088x1440' : '2340x1080',
+        screenType: 'Dynamic AMOLED',
+        battery: name.includes('ultra') ? '5000' : '3900',
+        releaseYear: '2023',
+        os: 'Android',
+        storage: ['128GB', '256GB', '512GB'],
+        colors: ['Noir', 'Crème', 'Vert', 'Lavande'],
+        connectivity: ['5G', 'WiFi 6', 'Bluetooth 5.3'],
+        features: ['Knox', 'DeX', 'Ultra Wide Camera']
+      };
+    } else if (name.includes('z fold')) {
+      return {
+        screenSize: '7.6',
+        resolution: '2176x1812',
+        screenType: 'Dynamic AMOLED',
+        battery: '4400',
+        releaseYear: '2023',
+        os: 'Android',
+        storage: ['256GB', '512GB', '1TB'],
+        colors: ['Noir', 'Beige', 'Bleu'],
+        connectivity: ['5G', 'WiFi 6E', 'Bluetooth 5.3'],
+        features: ['Pliable', 'S Pen', 'Multi-Active Window']
+      };
+    } else if (name.includes('z flip')) {
+      return {
+        screenSize: '6.7',
+        resolution: '2640x1080',
+        screenType: 'Dynamic AMOLED',
+        battery: '3700',
+        releaseYear: '2023',
+        os: 'Android',
+        storage: ['256GB', '512GB'],
+        colors: ['Noir', 'Crème', 'Lavande', 'Menthe'],
+        connectivity: ['5G', 'WiFi 6', 'Bluetooth 5.3'],
+        features: ['Pliable', 'Flex Mode', 'Cover Screen']
+      };
+    } else if (name.includes('note')) {
+      return {
+        screenSize: '6.8',
+        resolution: '3088x1440',
+        screenType: 'Dynamic AMOLED',
+        battery: '4300',
+        releaseYear: '2020',
+        os: 'Android',
+        storage: ['128GB', '256GB', '512GB'],
+        colors: ['Noir', 'Bronze', 'Blanc'],
+        connectivity: ['5G', 'WiFi 6', 'Bluetooth 5.0'],
+        features: ['S Pen', 'Knox', 'DeX']
+      };
+    } else if (name.includes('a5') || name.includes('a7')) {
+      return {
+        screenSize: '6.5',
+        resolution: '2400x1080',
+        screenType: 'Super AMOLED',
+        battery: '4500',
+        releaseYear: '2023',
+        os: 'Android',
+        storage: ['128GB', '256GB'],
+        colors: ['Noir', 'Bleu', 'Blanc', 'Pêche'],
+        connectivity: ['5G', 'WiFi', 'Bluetooth'],
+        features: ['Knox', 'One UI']
+      };
+    }
+    
+    // Default specs for other Samsung models
+    return {
+      screenSize: '6.1',
+      resolution: '2340x1080',
+      screenType: 'Super AMOLED',
+      battery: '4000',
+      releaseYear: '2022',
+      os: 'Android',
+      storage: ['64GB', '128GB'],
+      colors: ['Noir', 'Blanc'],
+      connectivity: ['4G', 'WiFi', 'Bluetooth'],
+      features: ['Knox']
+    };
+  };
+
+  const getTabletSpecs = (brand: string, name: string) => {
+    if (brand === 'apple') {
+      return {
+        screenSize: name.includes('12.9') ? '12.9' : name.includes('11') ? '11' : '10.9',
+        resolution: name.includes('12.9') ? '2732x2048' : '2360x1640',
+        screenType: 'Liquid Retina',
+        battery: '10090',
+        releaseYear: '2023',
+        os: 'iPadOS',
+        storage: ['128GB', '256GB', '512GB', '1TB'],
+        colors: ['Gris', 'Argent'],
+        connectivity: ['WiFi 6', 'Bluetooth 5.3'],
+        features: ['Apple Pencil', 'Magic Keyboard']
+      };
+    }
+    
+    return {
+      screenSize: '10.1',
+      resolution: '1920x1200',
+      screenType: 'LCD',
+      battery: '8000',
+      releaseYear: '2023',
+      os: brand === 'microsoft' ? 'Windows' : 'Android',
+      storage: ['64GB', '128GB'],
+      colors: ['Noir', 'Argent'],
+      connectivity: ['WiFi', 'Bluetooth'],
+      features: []
+    };
+  };
+
+  const getLaptopSpecs = (brand: string, name: string) => {
+    return {
+      screenSize: name.includes('16') ? '16' : name.includes('14') ? '14' : '13.3',
+      resolution: name.includes('16') ? '3456x2234' : name.includes('14') ? '3024x1964' : '2560x1600',
+      screenType: 'Retina',
+      battery: name.includes('16') ? '100' : '70',
+      releaseYear: '2024',
+      os: 'macOS',
+      storage: ['256GB', '512GB', '1TB', '2TB'],
+      colors: ['Gris sidéral', 'Argent'],
+      connectivity: ['WiFi 6E', 'Bluetooth 5.3', 'Thunderbolt'],
+      features: ['Touch ID', 'Magic Keyboard', 'Force Touch']
+    };
+  };
+
+  const getScooterSpecs = (brand: string, name: string) => {
+    return {
+      screenSize: '0',
+      resolution: '',
+      screenType: '',
+      battery: name.includes('pro') ? '474' : name.includes('max') ? '551' : '280',
+      releaseYear: '2023',
+      os: 'Firmware',
+      storage: [],
+      colors: ['Noir'],
+      connectivity: ['Bluetooth'],
+      features: ['Pliable', 'Éclairage LED', 'Application mobile']
+    };
+  };
+
+  const getConsoleSpecs = (brand: string, name: string) => {
+    return {
+      screenSize: name.includes('switch') ? '6.2' : name.includes('3ds') ? '3.5' : '0',
+      resolution: name.includes('switch') ? '1280x720' : name.includes('3ds') ? '400x240' : '',
+      screenType: name.includes('oled') ? 'OLED' : 'LCD',
+      battery: name.includes('switch') ? '4310' : name.includes('3ds') ? '1300' : '0',
+      releaseYear: '2023',
+      os: 'Nintendo OS',
+      storage: ['32GB', '64GB'],
+      colors: ['Noir', 'Blanc', 'Rouge'],
+      connectivity: ['WiFi', 'Bluetooth'],
+      features: ['Portable', 'Dock TV', 'Joy-Con']
+    };
+  };
+
   const handleImport = async () => {
     setImporting(true);
     setProgress(0);
@@ -554,1450 +1097,169 @@ export const UniversalCatalogImporter: React.FC = () => {
         errors
       });
 
-      // Message de fin plus détaillé
-      const successMessage = `Import terminé ! ✅ ${newModels.length} nouveaux modèles créés`;
-      const skippedMessage = skippedModels > 0 ? ` (${skippedModels} déjà existants ignorés)` : '';
-      const errorMessage = errors.length > 0 ? ` ⚠️ ${errors.length} erreurs` : '';
-      
-      toast.success(successMessage + skippedMessage + errorMessage);
+      setStatus(errors.length > 0 ? 'error' : 'completed');
 
-    } catch (error) {
-      console.error('Erreur import universel:', error);
-      toast.error('Erreur lors de l\'import du catalogue');
+      if (newModels.length > 0) {
+        toast.success(`${newModels.length} nouveaux modèles importés avec succès !`);
+      } else if (skippedModels > 0) {
+        toast.info(`${skippedModels} modèles déjà existants trouvés`);
+      }
+
+    } catch (error: any) {
+      console.error('❌ Erreur globale:', error);
+      setStatus('error');
+      toast.error(`Erreur lors de l'import: ${error.message}`);
     } finally {
       setImporting(false);
     }
   };
 
-  // Fonctions helper pour les valeurs par défaut
-  const getDefaultScreenSize = (deviceType: string): string => {
-    if (deviceType.includes('Smartphone')) return '6.1';
-    if (deviceType.includes('Tablette')) return '10.9';
-    if (deviceType.includes('Ordinateur')) return '14.0';
-    if (deviceType.includes('Montre')) return '1.9';
-    return '6.0';
-  };
-
-  const getDefaultResolution = (deviceType: string): string => {
-    if (deviceType.includes('Smartphone')) return '2556x1179';
-    if (deviceType.includes('Tablette')) return '2360x1640';
-    if (deviceType.includes('Ordinateur')) return '2560x1600';
-    if (deviceType.includes('Montre')) return '396x484';
-    return '1920x1080';
-  };
-
-  const getDefaultBattery = (deviceType: string): string => {
-    if (deviceType.includes('Smartphone')) return '3200';
-    if (deviceType.includes('Tablette')) return '8600';
-    if (deviceType.includes('Ordinateur')) return '5200';
-    if (deviceType.includes('Montre')) return '300';
-    if (deviceType.includes('Écouteurs')) return '50';
-    return '3000';
-  };
-
-  const getDefaultOS = (brand: string, deviceType: string): string => {
-    if (brand === 'Apple') {
-      if (deviceType.includes('Smartphone')) return 'iOS';
-      if (deviceType.includes('Tablette')) return 'iPadOS';
-      if (deviceType.includes('Ordinateur')) return 'macOS';
-      if (deviceType.includes('Montre')) return 'watchOS';
-    }
-    if (deviceType.includes('Ordinateur')) return 'Windows 11';
-    if (deviceType.includes('Montre')) return 'Wear OS';
-    return 'Android';
-  };
-
-  const handleMobilaxImport = async () => {
-    setStatus('importing');
-    setLogs([]);
-    
-    try {
-      // Extract brand names from Mobilax
-      const mobilaxBrands = [
-        'Apple', 'Samsung', 'Xiaomi', 'Huawei', 'Honor', 'OPPO', 'Realme',
-        'OnePlus', 'Motorola', 'Google', 'Vivo', 'Crosscall', 'Blackview',
-        'TCL', 'Nokia', 'Alcatel', 'Sony', 'HTC', 'Wiko', 'LG', 'Asus',
-        'BlackBerry', 'Nothing', 'Caterpillar', 'HMD'
-      ];
-      
-      addLog(`🔍 Début de l'import Mobilax - ${mobilaxBrands.length} marques détectées`);
-      
-      let imported = 0;
-      let skipped = 0;
-      let errors = 0;
-      
-      for (const brandName of mobilaxBrands) {
-        try {
-          // Check if brand exists (case insensitive)
-          const existingBrand = brands.find(b => 
-            b.name.toLowerCase() === brandName.toLowerCase()
-          );
-          
-          if (existingBrand) {
-            addLog(`⚠️ Marque "${brandName}" déjà existante - ignorée`);
-            skipped++;
-            continue;
-          }
-          
-          // Create new brand
-          await createBrand({
-            name: brandName,
-            logo_url: null
-          });
-          
-          addLog(`✅ Marque "${brandName}" créée avec succès`);
-          imported++;
-          
-        } catch (error: any) {
-          if (error.message?.includes('duplicate') || error.code === '23505') {
-            addLog(`⚠️ Marque "${brandName}" déjà existante (BD) - ignorée`);
-            skipped++;
-          } else {
-            addLog(`❌ Erreur lors de la création de "${brandName}": ${error.message}`);
-            errors++;
-          }
-        }
-      }
-      
-      addLog(`🎉 Import terminé: ${imported} créées, ${skipped} ignorées, ${errors} erreurs`);
-      setStatus(errors > 0 ? 'error' : 'completed');
-      
-      if (imported > 0) {
-        toast.success(`${imported} nouvelles marques Mobilax importées !`);
-      }
-      
-    } catch (error: any) {
-      addLog(`❌ Erreur globale: ${error.message}`);
-      setStatus('error');
-      toast.error('Erreur lors de l\'import Mobilax');
-    }
-  };
-
-  const handleMobilaxTabletModelsImport = async () => {
-    setStatus('importing');
-    setLogs([]);
-    
-    try {
-      // Find Tablette device type
-      const tabletteType = deviceTypes.find(dt => dt.name.toLowerCase() === 'tablette');
-      if (!tabletteType) {
-        addLog('❌ Type d\'appareil "Tablette" introuvable. Créez-le d\'abord.');
-        setStatus('error');
-        return;
-      }
-
-      // Extract tablet models from Mobilax
-      const mobilaxTabletModels = [
-        // Apple iPad models
-        { brand: 'Apple', name: 'iPad 2', storage: ['16GB', '32GB', '64GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Apple', name: 'iPad 3', storage: ['16GB', '32GB', '64GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Apple', name: 'iPad 4', storage: ['16GB', '32GB', '64GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Apple', name: 'iPad Air', storage: ['16GB', '32GB', '64GB', '128GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Apple', name: 'iPad Air 2', storage: ['16GB', '32GB', '64GB', '128GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Apple', name: 'iPad Air 11 M2', storage: ['128GB', '256GB', '512GB', '1TB'], colors: ['Noir'] },
-        { brand: 'Apple', name: 'iPad Air 13 M2', storage: ['128GB', '256GB', '512GB', '1TB'], colors: ['Noir'] },
-        { brand: 'Apple', name: 'iPad Mini 4', storage: ['16GB', '32GB', '64GB', '128GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Apple', name: 'iPad Mini 6', storage: ['64GB', '256GB'], colors: ['Noir'] },
-        { brand: 'Apple', name: 'iPad Pro 9.7', storage: ['32GB', '128GB', '256GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Apple', name: 'iPad Pro 12.9', storage: ['32GB', '128GB', '256GB'], colors: ['Noir'] },
-        
-        // Asus models
-        { brand: 'Asus', name: 'Fonepad 7 FE171', storage: ['8GB', '16GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Asus', name: 'MeMo Pad 10 ME103', storage: ['16GB'], colors: ['Noir'] },
-        { brand: 'Asus', name: 'ZenPad 10 Z300C', storage: ['16GB', '32GB'], colors: ['Noir'] },
-        { brand: 'Asus', name: 'ZenPad 10 Z300M', storage: ['16GB', '32GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Asus', name: 'ZenPad 10 Z301', storage: ['16GB', '32GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Asus', name: 'ZenPad 7.0 Z370C', storage: ['8GB', '16GB'], colors: ['Blanc'] },
-        { brand: 'Asus', name: 'ZenPad 8.0 Z380M', storage: ['16GB'], colors: ['Blanc'] },
-        
-        // Huawei models
-        { brand: 'Huawei', name: 'MatePad', storage: ['64GB', '128GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Huawei', name: 'MatePad Pro 10.8', storage: ['128GB', '256GB', '512GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Huawei', name: 'MatePad T8', storage: ['32GB'], colors: ['Noir'] },
-        { brand: 'Huawei', name: 'MatePad 10.4', storage: ['64GB', '128GB'], colors: ['Noir'] },
-        { brand: 'Huawei', name: 'MatePad 11', storage: ['128GB', '256GB'], colors: ['Noir'] },
-        { brand: 'Huawei', name: 'MediaPad M5 Lite 8', storage: ['32GB', '64GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Huawei', name: 'MediaPad M6 10.8', storage: ['64GB', '128GB'], colors: ['Blanc', 'Noir'] },
-        { brand: 'Huawei', name: 'MediaPad T3 10', storage: ['16GB', '32GB'], colors: ['Blanc'] },
-        { brand: 'Huawei', name: 'MediaPad T3 8', storage: ['16GB', '32GB'], colors: ['Blanc', 'Noir'] },
-        
-        // Honor models
-        { brand: 'Honor', name: 'Pad 8', storage: ['128GB'], colors: ['Noir'] },
-        { brand: 'Honor', name: 'Pad X8a', storage: ['128GB'], colors: ['Noir'] },
-        
-        // Other brands
-        { brand: 'Blackview', name: 'Tab 11', storage: ['128GB'], colors: ['Noir'] },
-        { brand: 'Crosscall', name: 'Core-T4', storage: ['64GB'], colors: ['Noir'] },
-        { brand: 'Microsoft', name: 'Surface Go', storage: ['64GB', '128GB'], colors: ['Noir'] },
-        { brand: 'Nokia', name: 'T10', storage: ['32GB', '64GB'], colors: ['Noir'] },
-        { brand: 'Nokia', name: 'T20', storage: ['64GB'], colors: ['Noir'] },
-        
-        // Lenovo models (ajoutés depuis les données scrapées)
-        { brand: 'Lenovo', name: 'Tab M10 FHD Plus', storage: ['64GB', '128GB'], colors: ['Noir'] },
-        { brand: 'Lenovo', name: 'Tab M10 HD Gen 2', storage: ['32GB', '64GB'], colors: ['Noir'] },
-        { brand: 'Lenovo', name: 'Tab M11', storage: ['128GB'], colors: ['Noir'] },
-        { brand: 'Lenovo', name: 'Tab P11 Gen 2', storage: ['128GB', '256GB'], colors: ['Noir'] },
-        { brand: 'Lenovo', name: 'Tab P11 Plus', storage: ['128GB', '256GB'], colors: ['Noir'] },
-        { brand: 'Lenovo', name: 'Tab P11 Pro Gen 2', storage: ['256GB'], colors: ['Noir'] }
-      ];
-      
-      addLog(`🔍 Début de l'import modèles Mobilax Tablettes - ${mobilaxTabletModels.length} modèles détectés`);
-      
-      let modelsImported = 0;
-      let modelsSkipped = 0;
-      let modelsErrors = 0;
-      let brandsCreated = 0;
-      
-      for (const modelData of mobilaxTabletModels) {
-        try {
-          // Find or create brand
-          let brand = brands.find(b => 
-            b.name.toLowerCase() === modelData.brand.toLowerCase()
-          );
-          
-          if (!brand) {
-            try {
-              brand = await createBrand({
-                name: modelData.brand,
-                logo_url: null
-              });
-              brandsCreated++;
-              addLog(`✅ Marque "${modelData.brand}" créée`);
-            } catch (brandError: any) {
-              if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
-                // Brand was created by another process, try to find it again
-                await fetchAllData();
-                brand = brands.find(b => 
-                  b.name.toLowerCase() === modelData.brand.toLowerCase()
-                );
-              } else {
-                throw brandError;
-              }
-            }
-          }
-          
-          if (!brand) {
-            addLog(`❌ Impossible de créer/trouver la marque "${modelData.brand}"`);
-            modelsErrors++;
-            continue;
-          }
-          
-          // Check if model exists
-          const existingModel = await checkModelExists(modelData.name, brand.id, tabletteType.id);
-          if (existingModel) {
-            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant - ignoré`);
-            modelsSkipped++;
-            continue;
-          }
-          
-          // Create new model
-          await createDeviceModel({
-            device_type_id: tabletteType.id,
-            brand_id: brand.id,
-            model_name: modelData.name,
-            model_number: '',
-            release_date: '2025-01-01',
-            screen_size: '10.1',
-            screen_resolution: '1920x1080',
-            screen_type: 'LCD',
-            battery_capacity: '5000',
-            operating_system: 'Android',
-            is_active: true
-          });
-          
-          addLog(`✅ Modèle "${modelData.brand} ${modelData.name}" créé avec succès`);
-          modelsImported++;
-          
-        } catch (error: any) {
-          if (error.message?.includes('duplicate') || error.code === '23505') {
-            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant (BD) - ignoré`);
-            modelsSkipped++;
-          } else {
-            addLog(`❌ Erreur lors de la création de "${modelData.brand} ${modelData.name}": ${error.message}`);
-            modelsErrors++;
-          }
-        }
-      }
-      
-      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
-      setStatus(modelsErrors > 0 ? 'error' : 'completed');
-      
-      if (modelsImported > 0) {
-        toast.success(`${modelsImported} nouveaux modèles de tablettes Mobilax importés !`);
-      }
-      
-    } catch (error: any) {
-      addLog(`❌ Erreur globale: ${error.message}`);
-      setStatus('error');
-      toast.error('Erreur lors de l\'import des modèles Mobilax tablettes');
-    }
-  };
-
-  const handleMobilaxSamsungModelsImport = async () => {
-    setStatus('importing');
-    setLogs([]);
-    
-    try {
-      // Find Smartphone device type
-      const smartphoneType = deviceTypes.find(dt => dt.name.toLowerCase() === 'smartphone');
-      if (!smartphoneType) {
-        addLog('❌ Type d\'appareil "Smartphone" introuvable. Créez-le d\'abord.');
-        setStatus('error');
-        return;
-      }
-
-      addLog('🔍 Scraping des modèles Samsung depuis Mobilax...');
-      
-      // Scrape Samsung models from Mobilax
-      const response = await fetch('https://www.mobilax.fr/pieces-detachees/telephonie/samsung');
-      const html = await response.text();
-      
-      // Extract Samsung series URLs from the page
-      const seriesUrls = [
-        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-s',
-        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-a',
-        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-z',
-        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-note',
-        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-m',
-        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-j',
-        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-xcover',
-        'https://www.mobilax.fr/pieces-detachees/telephonie/samsung/galaxy-other'
-      ];
-      
-      let allModels: string[] = [];
-      
-      for (const seriesUrl of seriesUrls) {
-        try {
-          addLog(`🔄 Scraping ${seriesUrl}...`);
-          const seriesResponse = await fetch(seriesUrl);
-          const seriesHtml = await seriesResponse.text();
-          
-          // Extract model names from the series page
-          const modelMatches = seriesHtml.match(/Samsung Galaxy [^"<>]+/g) || [];
-          const models = modelMatches
-            .map(model => model.replace('Samsung ', '').trim())
-            .filter((model, index, arr) => arr.indexOf(model) === index) // Remove duplicates
-            .filter(model => model.length > 5 && !model.includes('Samsung')); // Filter valid models
-          
-          allModels.push(...models);
-          addLog(`✅ ${models.length} modèles trouvés dans ${seriesUrl.split('/').pop()}`);
-          
-        } catch (error) {
-          addLog(`⚠️ Erreur scraping ${seriesUrl}: ${error}`);
-        }
-      }
-      
-      // Remove duplicates from all models
-      const uniqueModels = [...new Set(allModels)];
-      addLog(`📱 Total: ${uniqueModels.length} modèles Samsung uniques détectés`);
-      
-      let modelsImported = 0;
-      let modelsSkipped = 0;
-      let modelsErrors = 0;
-      let brandsCreated = 0;
-      
-      // Find or create Samsung brand
-      let samsungBrand = brands.find(b => 
-        b.name.toLowerCase() === 'samsung'
-      );
-      
-      if (!samsungBrand) {
-        try {
-          samsungBrand = await createBrand({
-            name: 'Samsung',
-            logo_url: null
-          });
-          brandsCreated++;
-          addLog(`✅ Marque "Samsung" créée`);
-        } catch (brandError: any) {
-          if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
-            await fetchAllData();
-            samsungBrand = brands.find(b => 
-              b.name.toLowerCase() === 'samsung'
-            );
-          } else {
-            addLog(`❌ Erreur lors de la création de la marque Samsung: ${brandError.message}`);
-            setStatus('error');
-            return;
-          }
-        }
-      }
-      
-      if (!samsungBrand) {
-        addLog(`❌ Impossible de créer/trouver la marque Samsung`);
-        setStatus('error');
-        return;
-      }
-      
-      for (const modelName of uniqueModels) {
-        try {
-          // Clean model name
-          const cleanModelName = modelName.replace(/^Galaxy /, '').trim();
-          
-          // Check if model exists
-          const existingModel = await checkModelExists(cleanModelName, samsungBrand.id, smartphoneType.id);
-          if (existingModel) {
-            addLog(`⚠️ Modèle "Samsung ${cleanModelName}" déjà existant - ignoré`);
-            modelsSkipped++;
-            continue;
-          }
-          
-          // Create new model with realistic specs based on series
-          const specs = getSamsungSpecs(cleanModelName);
-          
-          await createDeviceModel({
-            device_type_id: smartphoneType.id,
-            brand_id: samsungBrand.id,
-            model_name: cleanModelName,
-            model_number: cleanModelName,
-            release_date: specs.releaseYear,
-            screen_size: specs.screenSize,
-            screen_resolution: specs.resolution,
-            screen_type: specs.screenType,
-            battery_capacity: specs.battery,
-            operating_system: 'Android',
-            is_active: true
-          });
-          
-          addLog(`✅ Modèle "Samsung ${cleanModelName}" créé avec succès`);
-          modelsImported++;
-          
-        } catch (error: any) {
-          if (error.message?.includes('duplicate') || error.code === '23505') {
-            addLog(`⚠️ Modèle "Samsung ${modelName}" déjà existant (BD) - ignoré`);
-            modelsSkipped++;
-          } else {
-            addLog(`❌ Erreur lors de la création de "Samsung ${modelName}": ${error.message}`);
-            modelsErrors++;
-          }
-        }
-      }
-      
-      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs`);
-      setStatus(modelsErrors > 0 ? 'error' : 'completed');
-      
-      if (modelsImported > 0) {
-        toast.success(`${modelsImported} nouveaux modèles Samsung importés depuis Mobilax !`);
-      }
-      
-    } catch (error: any) {
-      addLog(`❌ Erreur globale: ${error.message}`);
-      setStatus('error');
-      toast.error('Erreur lors de l\'import des modèles Samsung Mobilax');
-    }
-  };
-
-  // Helper function to get realistic specs based on Samsung model series
-  const getSamsungSpecs = (modelName: string) => {
-    const name = modelName.toLowerCase();
-    
-    if (name.includes('s24')) {
-      return {
-        screenSize: name.includes('ultra') ? '6.8' : name.includes('+') ? '6.7' : '6.2',
-        resolution: name.includes('ultra') ? '3088x1440' : '2340x1080',
-        screenType: 'Dynamic AMOLED',
-        battery: name.includes('ultra') ? '5000' : '4000',
-        releaseYear: '2024'
-      };
-    } else if (name.includes('s23')) {
-      return {
-        screenSize: name.includes('ultra') ? '6.8' : name.includes('+') ? '6.6' : '6.1',
-        resolution: name.includes('ultra') ? '3088x1440' : '2340x1080',
-        screenType: 'Dynamic AMOLED',
-        battery: name.includes('ultra') ? '5000' : '3900',
-        releaseYear: '2023'
-      };
-    } else if (name.includes('z fold')) {
-      return {
-        screenSize: '7.6',
-        resolution: '2176x1812',
-        screenType: 'Dynamic AMOLED',
-        battery: '4400',
-        releaseYear: '2023'
-      };
-    } else if (name.includes('z flip')) {
-      return {
-        screenSize: '6.7',
-        resolution: '2640x1080',
-        screenType: 'Dynamic AMOLED',
-        battery: '3700',
-        releaseYear: '2023'
-      };
-    } else if (name.includes('note')) {
-      return {
-        screenSize: '6.8',
-        resolution: '3088x1440',
-        screenType: 'Dynamic AMOLED',
-        battery: '4300',
-        releaseYear: '2020'
-      };
-    } else if (name.includes('a5') || name.includes('a7')) {
-      return {
-        screenSize: '6.5',
-        resolution: '2400x1080',
-        screenType: 'Super AMOLED',
-        battery: '4500',
-        releaseYear: '2023'
-      };
-    } else {
-      // Default specs for other models
-      return {
-        screenSize: '6.1',
-        resolution: '2340x1080',
-        screenType: 'Super AMOLED',
-        battery: '4000',
-        releaseYear: '2022'
-      };
-    }
-  };
-
-  const handleMobilaxWatchModelsImport = async () => {
-    setStatus('importing');
-    setLogs([]);
-    
-    try {
-      // Find Montre device type
-      const montreType = deviceTypes.find(dt => dt.name.toLowerCase() === 'montre');
-      if (!montreType) {
-        addLog('❌ Type d\'appareil "Montre" introuvable. Créez-le d\'abord.');
-        setStatus('error');
-        return;
-      }
-
-      // Extract watch models from Mobilax
-      const mobilaxWatchModels = [
-        // Apple Watch models
-        { brand: 'Apple', name: 'Watch Ultra', storage: ['32GB'], colors: ['Noir'], sizes: ['49mm'] },
-        { brand: 'Apple', name: 'Watch Ultra 2', storage: ['64GB'], colors: ['Noir'], sizes: ['49mm'] },
-        { brand: 'Apple', name: 'Watch SE (1e génération)', storage: ['32GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
-        { brand: 'Apple', name: 'Watch SE (2e génération)', storage: ['32GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
-        { brand: 'Apple', name: 'Watch Series 1', storage: ['8GB'], colors: ['Noir'], sizes: ['38mm', '42mm'] },
-        { brand: 'Apple', name: 'Watch Series 2', storage: ['8GB'], colors: ['Noir'], sizes: ['38mm', '42mm'] },
-        { brand: 'Apple', name: 'Watch Series 3', storage: ['16GB'], colors: ['Noir'], sizes: ['38mm', '42mm'] },
-        { brand: 'Apple', name: 'Watch Series 4', storage: ['16GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
-        { brand: 'Apple', name: 'Watch Series 5', storage: ['32GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
-        { brand: 'Apple', name: 'Watch Series 6', storage: ['32GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
-        { brand: 'Apple', name: 'Watch Series 7', storage: ['32GB'], colors: ['Noir'], sizes: ['41mm', '45mm'] },
-        { brand: 'Apple', name: 'Watch Series 8', storage: ['32GB'], colors: ['Noir'], sizes: ['41mm', '45mm'] },
-        { brand: 'Apple', name: 'Watch Series 9', storage: ['64GB'], colors: ['Noir'], sizes: ['41mm', '45mm'] },
-        { brand: 'Apple', name: 'Watch Series 10', storage: ['64GB'], colors: ['Noir'], sizes: ['42mm', '46mm'] },
-        
-        // Samsung Galaxy Watch models
-        { brand: 'Samsung', name: 'Galaxy Watch 5', storage: ['16GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
-        { brand: 'Samsung', name: 'Galaxy Watch 6', storage: ['16GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
-        { brand: 'Samsung', name: 'Galaxy Watch 6 Classic', storage: ['16GB'], colors: ['Noir'], sizes: ['43mm', '47mm'] },
-        { brand: 'Samsung', name: 'Galaxy Watch 7', storage: ['32GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] }
-      ];
-      
-      addLog(`🔍 Début de l'import modèles Mobilax Montres - ${mobilaxWatchModels.length} modèles détectés`);
-      
-      let modelsImported = 0;
-      let modelsSkipped = 0;
-      let modelsErrors = 0;
-      let brandsCreated = 0;
-      
-      for (const modelData of mobilaxWatchModels) {
-        try {
-          // Find or create brand
-          let brand = brands.find(b => 
-            b.name.toLowerCase() === modelData.brand.toLowerCase()
-          );
-          
-          if (!brand) {
-            try {
-              brand = await createBrand({
-                name: modelData.brand,
-                logo_url: null
-              });
-              brandsCreated++;
-              addLog(`✅ Marque "${modelData.brand}" créée`);
-            } catch (brandError: any) {
-              if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
-                // Brand was created by another process, try to find it again
-                await fetchAllData();
-                brand = brands.find(b => 
-                  b.name.toLowerCase() === modelData.brand.toLowerCase()
-                );
-              } else {
-                throw brandError;
-              }
-            }
-          }
-          
-          if (!brand) {
-            addLog(`❌ Impossible de créer/trouver la marque "${modelData.brand}"`);
-            modelsErrors++;
-            continue;
-          }
-          
-          // Check if model exists
-          const existingModel = await checkModelExists(modelData.name, brand.id, montreType.id);
-          if (existingModel) {
-            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant - ignoré`);
-            modelsSkipped++;
-            continue;
-          }
-          
-          // Create new model
-          await createDeviceModel({
-            device_type_id: montreType.id,
-            brand_id: brand.id,
-            model_name: modelData.name,
-            model_number: '',
-            release_date: '2025-01-01',
-            screen_size: modelData.sizes[0].replace('mm', ''),
-            screen_resolution: '368x448',
-            screen_type: 'OLED',
-            battery_capacity: '300',
-            operating_system: modelData.brand === 'Apple' ? 'watchOS' : 'Wear OS',
-            is_active: true
-          });
-          
-          addLog(`✅ Modèle "${modelData.brand} ${modelData.name}" créé avec succès`);
-          modelsImported++;
-          
-        } catch (error: any) {
-          if (error.message?.includes('duplicate') || error.code === '23505') {
-            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant (BD) - ignoré`);
-            modelsSkipped++;
-          } else {
-            addLog(`❌ Erreur lors de la création de "${modelData.brand} ${modelData.name}": ${error.message}`);
-            modelsErrors++;
-          }
-        }
-      }
-      
-      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
-      setStatus(modelsErrors > 0 ? 'error' : 'completed');
-      
-      if (modelsImported > 0) {
-        toast.success(`${modelsImported} nouveaux modèles de montres Mobilax importés !`);
-      }
-      
-    } catch (error: any) {
-      addLog(`❌ Erreur globale: ${error.message}`);
-      setStatus('error');
-      toast.error('Erreur lors de l\'import des modèles Mobilax montres');
-    }
-  };
-
-  const handleMobilaxLaptopModelsImport = async () => {
-    setStatus('importing');
-    setLogs([]);
-    
-    try {
-      // Find Ordinateur device type
-      const ordinateurType = deviceTypes.find(dt => dt.name.toLowerCase() === 'ordinateur');
-      if (!ordinateurType) {
-        addLog('❌ Type d\'appareil "Ordinateur" introuvable. Créez-le d\'abord.');
-        setStatus('error');
-        return;
-      }
-
-      // Extract MacBook models from Mobilax
-      const mobilaxLaptopModels = [
-        // MacBook Air models
-        { brand: 'Apple', name: 'MacBook Air 13', storage: ['256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral', 'Or'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Air 13 M1', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Air 13 M2', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or', 'Minuit'], screen: '13.6' },
-        { brand: 'Apple', name: 'MacBook Air 15 M2', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or', 'Minuit'], screen: '15.3' },
-        
-        // MacBook Pro 13" models
-        { brand: 'Apple', name: 'MacBook Pro 13', storage: ['256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Pro 13 M1', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Pro 13 Touch Bar', storage: ['256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
-        
-        // MacBook Pro 14" models
-        { brand: 'Apple', name: 'MacBook Pro 14 M1 Pro', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
-        { brand: 'Apple', name: 'MacBook Pro 14 M1 Max', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
-        { brand: 'Apple', name: 'MacBook Pro 14 M2 Pro', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
-        { brand: 'Apple', name: 'MacBook Pro 14 M2 Max', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
-        
-        // MacBook Pro 16" models
-        { brand: 'Apple', name: 'MacBook Pro 16', storage: ['512GB', '1TB', '2TB', '4TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
-        { brand: 'Apple', name: 'MacBook Pro 16 M1 Pro', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
-        { brand: 'Apple', name: 'MacBook Pro 16 M1 Max', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
-        { brand: 'Apple', name: 'MacBook Pro 16 M2 Pro', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
-        { brand: 'Apple', name: 'MacBook Pro 16 M2 Max', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' }
-      ];
-      
-      addLog(`🔍 Début de l'import modèles Mobilax Ordinateurs - ${mobilaxLaptopModels.length} modèles détectés`);
-      
-      let modelsImported = 0;
-      let modelsSkipped = 0;
-      let modelsErrors = 0;
-      let brandsCreated = 0;
-      
-      for (const modelData of mobilaxLaptopModels) {
-        try {
-          // Find or create brand
-          let brand = brands.find(b => 
-            b.name.toLowerCase() === modelData.brand.toLowerCase()
-          );
-          
-          if (!brand) {
-            try {
-              brand = await createBrand({
-                name: modelData.brand,
-                logo_url: null
-              });
-              brandsCreated++;
-              addLog(`✅ Marque "${modelData.brand}" créée`);
-            } catch (brandError: any) {
-              if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
-                // Brand was created by another process, try to find it again
-                await fetchAllData();
-                brand = brands.find(b => 
-                  b.name.toLowerCase() === modelData.brand.toLowerCase()
-                );
-              } else {
-                throw brandError;
-              }
-            }
-          }
-          
-          if (!brand) {
-            addLog(`❌ Impossible de créer/trouver la marque "${modelData.brand}"`);
-            modelsErrors++;
-            continue;
-          }
-          
-          // Check if model exists
-          const existingModel = await checkModelExists(modelData.name, brand.id, ordinateurType.id);
-          if (existingModel) {
-            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant - ignoré`);
-            modelsSkipped++;
-            continue;
-          }
-          
-          // Create new model
-          await createDeviceModel({
-            device_type_id: ordinateurType.id,
-            brand_id: brand.id,
-            model_name: modelData.name,
-            model_number: '',
-            release_date: '2025-01-01',
-            screen_size: modelData.screen,
-            screen_resolution: modelData.screen === '13.3' || modelData.screen === '13.6' ? '2560x1600' : 
-                              modelData.screen === '14.2' ? '3024x1964' : '3456x2234',
-            screen_type: 'Retina',
-            battery_capacity: modelData.screen === '13.3' || modelData.screen === '13.6' ? '52.6' : 
-                             modelData.screen === '14.2' ? '70' : '100',
-            operating_system: 'macOS',
-            is_active: true
-          });
-          
-          addLog(`✅ Modèle "${modelData.brand} ${modelData.name}" créé avec succès`);
-          modelsImported++;
-          
-        } catch (error: any) {
-          if (error.message?.includes('duplicate') || error.code === '23505') {
-            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant (BD) - ignoré`);
-            modelsSkipped++;
-          } else {
-            addLog(`❌ Erreur lors de la création de "${modelData.brand} ${modelData.name}": ${error.message}`);
-            modelsErrors++;
-          }
-        }
-      }
-      
-      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
-      setStatus(modelsErrors > 0 ? 'error' : 'completed');
-      
-      if (modelsImported > 0) {
-        toast.success(`${modelsImported} nouveaux modèles d'ordinateurs Mobilax importés !`);
-      }
-      
-    } catch (error: any) {
-      addLog(`❌ Erreur globale: ${error.message}`);
-      setStatus('error');
-      toast.error('Erreur lors de l\'import des modèles Mobilax ordinateurs');
-    }
-  };
-
-  const handleMobilaxScooterModelsImport = async () => {
-    setStatus('importing');
-    setLogs([]);
-    
-    try {
-      // Find Trottinette device type (or create it if it doesn't exist)
-      let trottinetteType = deviceTypes.find(dt => dt.name.toLowerCase() === 'trottinette');
-      if (!trottinetteType) {
-        addLog('⚠️ Type d\'appareil "Trottinette" introuvable. Création...');
-        try {
-          trottinetteType = await createDeviceType({
-            name: 'Trottinette',
-            description: 'Trottinettes électriques'
-          });
-          addLog('✅ Type d\'appareil "Trottinette" créé avec succès');
-        } catch (error: any) {
-          addLog(`❌ Erreur lors de la création du type "Trottinette": ${error.message}`);
-          setStatus('error');
-          return;
-        }
-      }
-
-      // Extract scooter models from Mobilax e-mobility section
-      const mobilaxScooterModels = [
-        // Xiaomi models
-        { brand: 'Xiaomi', name: 'Mi Electric Scooter M365', battery: '280Wh', autonomy: '30km', speed: '25km/h' },
-        { brand: 'Xiaomi', name: 'Mi Electric Scooter M365 Pro', battery: '474Wh', autonomy: '45km', speed: '25km/h' },
-        { brand: 'Xiaomi', name: 'Mi Electric Scooter M365 Pro 2', battery: '474Wh', autonomy: '45km', speed: '25km/h' },
-        { brand: 'Xiaomi', name: 'Mi Electric Scooter 1S', battery: '280Wh', autonomy: '30km', speed: '25km/h' },
-        { brand: 'Xiaomi', name: 'Mi Electric Scooter Essential', battery: '187Wh', autonomy: '20km', speed: '20km/h' },
-        { brand: 'Xiaomi', name: 'Mi Electric Scooter 3', battery: '280Wh', autonomy: '30km', speed: '25km/h' },
-        { brand: 'Xiaomi', name: 'Mi Electric Scooter 4 Pro', battery: '474Wh', autonomy: '55km', speed: '25km/h' },
-        
-        // Ninebot/Segway models
-        { brand: 'Ninebot', name: 'Kickscooter ES1', battery: '185Wh', autonomy: '25km', speed: '20km/h' },
-        { brand: 'Ninebot', name: 'Kickscooter ES2', battery: '187Wh', autonomy: '25km', speed: '25km/h' },
-        { brand: 'Ninebot', name: 'Kickscooter ES4', battery: '374Wh', autonomy: '45km', speed: '30km/h' },
-        { brand: 'Ninebot', name: 'Kickscooter MAX G30', battery: '551Wh', autonomy: '65km', speed: '25km/h' },
-        { brand: 'Ninebot', name: 'Kickscooter MAX G30LE', battery: '367Wh', autonomy: '40km', speed: '25km/h' },
-        { brand: 'Ninebot', name: 'Kickscooter F20', battery: '365Wh', autonomy: '20km', speed: '25km/h' },
-        { brand: 'Ninebot', name: 'Kickscooter F25E', battery: '365Wh', autonomy: '25km', speed: '25km/h' },
-        { brand: 'Ninebot', name: 'Kickscooter F30E', battery: '367Wh', autonomy: '30km', speed: '25km/h' },
-        { brand: 'Ninebot', name: 'Kickscooter F40E', battery: '367Wh', autonomy: '40km', speed: '25km/h' },
-        
-        // Kugoo models
-        { brand: 'Kugoo', name: 'S1', battery: '350Wh', autonomy: '30km', speed: '30km/h' },
-        { brand: 'Kugoo', name: 'S2', battery: '350Wh', autonomy: '35km', speed: '30km/h' },
-        { brand: 'Kugoo', name: 'S3', battery: '350Wh', autonomy: '35km', speed: '30km/h' },
-        { brand: 'Kugoo', name: 'G2 Pro', battery: '500Wh', autonomy: '50km', speed: '50km/h' }
-      ];
-      
-      addLog(`🔍 Début de l'import modèles Mobilax Trottinettes - ${mobilaxScooterModels.length} modèles détectés`);
-      
-      let modelsImported = 0;
-      let modelsSkipped = 0;
-      let modelsErrors = 0;
-      let brandsCreated = 0;
-      
-      for (const modelData of mobilaxScooterModels) {
-        try {
-          // Find or create brand
-          let brand = brands.find(b => 
-            b.name.toLowerCase() === modelData.brand.toLowerCase()
-          );
-          
-          if (!brand) {
-            try {
-              brand = await createBrand({
-                name: modelData.brand,
-                logo_url: null
-              });
-              brandsCreated++;
-              addLog(`✅ Marque "${modelData.brand}" créée`);
-            } catch (brandError: any) {
-              if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
-                // Brand was created by another process, try to find it again
-                await fetchAllData();
-                brand = brands.find(b => 
-                  b.name.toLowerCase() === modelData.brand.toLowerCase()
-                );
-              } else {
-                throw brandError;
-              }
-            }
-          }
-          
-          if (!brand) {
-            addLog(`❌ Impossible de créer/trouver la marque "${modelData.brand}"`);
-            modelsErrors++;
-            continue;
-          }
-          
-          // Check if model exists
-          const existingModel = await checkModelExists(modelData.name, brand.id, trottinetteType.id);
-          if (existingModel) {
-            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant - ignoré`);
-            modelsSkipped++;
-            continue;
-          }
-          
-          // Create new model
-          await createDeviceModel({
-            device_type_id: trottinetteType.id,
-            brand_id: brand.id,
-            model_name: modelData.name,
-            model_number: '',
-            release_date: '2025-01-01',
-            screen_size: '0',
-            screen_resolution: '',
-            screen_type: 'LED',
-            battery_capacity: modelData.battery.replace('Wh', ''),
-            operating_system: 'Propriétaire',
-            is_active: true
-          });
-          
-          addLog(`✅ Modèle "${modelData.brand} ${modelData.name}" créé avec succès`);
-          modelsImported++;
-          
-        } catch (error: any) {
-          if (error.message?.includes('duplicate') || error.code === '23505') {
-            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant (BD) - ignoré`);
-            modelsSkipped++;
-          } else {
-            addLog(`❌ Erreur lors de la création de "${modelData.brand} ${modelData.name}": ${error.message}`);
-            modelsErrors++;
-          }
-        }
-      }
-      
-      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
-      setStatus(modelsErrors > 0 ? 'error' : 'completed');
-      
-      if (modelsImported > 0) {
-        toast.success(`${modelsImported} nouveaux modèles de trottinettes Mobilax importés !`);
-      }
-      
-    } catch (error: any) {
-      addLog(`❌ Erreur globale: ${error.message}`);
-      setStatus('error');
-      toast.error('Erreur lors de l\'import des modèles Mobilax trottinettes');
-    }
-  };
-
-  const importConsolesFromUtopya = async () => {
-    setStatus('importing');
-    setLogs([]);
-    
-    try {
-      // Find Console device type
-      const consoleType = deviceTypes.find(dt => dt.name.toLowerCase().includes('console'));
-      if (!consoleType) {
-        addLog('❌ Type d\'appareil "Console de jeux" introuvable. Créez-le d\'abord.');
-        setStatus('error');
-        return;
-      }
-
-      // Extract Nintendo console models from Utopya data
-      const nintendoConsoleModels = [
-        // Nintendo Switch models
-        { brand: 'Nintendo', name: 'Switch', storage: ['32GB'], colors: ['Noir', 'Gris'], type: 'Portable/Home' },
-        { brand: 'Nintendo', name: 'Switch OLED', storage: ['64GB'], colors: ['Blanc', 'Noir'], type: 'Portable/Home' },
-        { brand: 'Nintendo', name: 'Switch Lite', storage: ['32GB'], colors: ['Jaune', 'Gris', 'Turquoise', 'Corail', 'Bleu', 'Blanc'], type: 'Portable' },
-        
-        // Nintendo 3DS models
-        { brand: 'Nintendo', name: '3DS', storage: ['2GB'], colors: ['Noir', 'Bleu'], type: 'Portable' },
-        { brand: 'Nintendo', name: '3DS XL', storage: ['4GB'], colors: ['Noir', 'Bleu', 'Rouge'], type: 'Portable' },
-        { brand: 'Nintendo', name: 'New 3DS', storage: ['4GB'], colors: ['Noir', 'Blanc'], type: 'Portable' },
-        { brand: 'Nintendo', name: 'New 3DS XL', storage: ['4GB'], colors: ['Noir', 'Rouge', 'Métallique'], type: 'Portable' },
-        
-        // Nintendo Wii/Wii U
-        { brand: 'Nintendo', name: 'Wii', storage: ['512MB'], colors: ['Blanc'], type: 'Home' },
-        { brand: 'Nintendo', name: 'Wii U', storage: ['8GB', '32GB'], colors: ['Blanc', 'Noir'], type: 'Home' },
-        
-        // Nintendo DS
-        { brand: 'Nintendo', name: 'DS', storage: ['4MB'], colors: ['Gris'], type: 'Portable' },
-        { brand: 'Nintendo', name: 'DS Lite', storage: ['4MB'], colors: ['Blanc', 'Noir'], type: 'Portable' },
-        { brand: 'Nintendo', name: 'DSi', storage: ['256MB'], colors: ['Noir', 'Blanc'], type: 'Portable' },
-        { brand: 'Nintendo', name: 'DSi XL', storage: ['256MB'], colors: ['Bordeaux', 'Blanc'], type: 'Portable' },
-        
-        // Nintendo Game Boy series (rétro-gaming)
-        { brand: 'Nintendo', name: 'Game Boy', storage: ['8KB'], colors: ['Gris'], type: 'Portable' },
-        { brand: 'Nintendo', name: 'Game Boy Color', storage: ['32KB'], colors: ['Violet', 'Transparent'], type: 'Portable' },
-        { brand: 'Nintendo', name: 'Game Boy Advance', storage: ['256KB'], colors: ['Violet', 'Glacier'], type: 'Portable' },
-        { brand: 'Nintendo', name: 'Game Boy Advance SP', storage: ['256KB'], colors: ['Argent', 'Noir'], type: 'Portable' }
-      ];
-      
-      addLog(`🔍 Début de l'import modèles Nintendo Utopya - ${nintendoConsoleModels.length} modèles détectés`);
-      
-      let modelsImported = 0;
-      let modelsSkipped = 0;
-      let modelsErrors = 0;
-      let brandsCreated = 0;
-      
-      for (const modelData of nintendoConsoleModels) {
-        try {
-          // Find or create brand
-          let brand = brands.find(b => 
-            b.name.toLowerCase() === modelData.brand.toLowerCase()
-          );
-          
-          if (!brand) {
-            try {
-              brand = await createBrand({
-                name: modelData.brand,
-                logo_url: null
-              });
-              brandsCreated++;
-              addLog(`✅ Marque "${modelData.brand}" créée`);
-            } catch (brandError: any) {
-              if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
-                // Brand was created by another process, try to find it again
-                await fetchAllData();
-                brand = brands.find(b => 
-                  b.name.toLowerCase() === modelData.brand.toLowerCase()
-                );
-              } else {
-                throw brandError;
-              }
-            }
-          }
-          
-          if (!brand) {
-            addLog(`❌ Impossible de créer/trouver la marque "${modelData.brand}"`);
-            modelsErrors++;
-            continue;
-          }
-          
-          // Check if model exists
-          const existingModel = await checkModelExists(modelData.name, brand.id, consoleType.id);
-          if (existingModel) {
-            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant - ignoré`);
-            modelsSkipped++;
-            continue;
-          }
-          
-          // Create new model
-          await createDeviceModel({
-            device_type_id: consoleType.id,
-            brand_id: brand.id,
-            model_name: modelData.name,
-            model_number: '',
-            release_date: '2025-01-01',
-            screen_size: modelData.type === 'Portable' ? '6.2' : '0',
-            screen_resolution: modelData.type === 'Portable' ? '1280x720' : '',
-            screen_type: modelData.type === 'Portable' ? 'LCD' : '',
-            battery_capacity: modelData.type === 'Portable' ? '4310' : '0',
-            operating_system: 'Nintendo OS',
-            is_active: true
-          });
-          
-          addLog(`✅ Modèle "${modelData.brand} ${modelData.name}" créé avec succès`);
-          modelsImported++;
-          
-        } catch (error: any) {
-          if (error.message?.includes('duplicate') || error.code === '23505') {
-            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant (BD) - ignoré`);
-            modelsSkipped++;
-          } else {
-            addLog(`❌ Erreur lors de la création de "${modelData.brand} ${modelData.name}": ${error.message}`);
-            modelsErrors++;
-          }
-        }
-      }
-      
-      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
-      setStatus(modelsErrors > 0 ? 'error' : 'completed');
-      
-      if (modelsImported > 0) {
-        toast.success(`${modelsImported} nouveaux modèles de consoles Nintendo importés !`);
-      }
-      
-    } catch (error: any) {
-      addLog(`❌ Erreur globale: ${error.message}`);
-      setStatus('error');
-      toast.error('Erreur lors de l\'import des modèles de consoles Nintendo');
-    }
-  };
-
-  const importLaptopsFromMobilax = async () => {
-    setStatus('importing');
-    setLogs([]);
-    
-    try {
-      // Find Ordinateur device type (needs to match what's in DB)
-      const ordinateurType = deviceTypes.find(dt => 
-        dt.name.toLowerCase().includes('ordinateur') || 
-        dt.name.toLowerCase().includes('laptop') ||
-        dt.name.toLowerCase().includes('portable')
-      );
-      
-      if (!ordinateurType) {
-        addLog('❌ Type d\'appareil "Ordinateur" introuvable. Créez-le d\'abord.');
-        setStatus('error');
-        return;
-      }
-
-      // Extract MacBook models from Mobilax data
-      const mobilaxLaptopModels = [
-        // MacBook Air models
-        { brand: 'Apple', name: 'MacBook Air 13" M1 2020', modelNumber: 'A2337', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Air 13" M2 2022', modelNumber: 'A2681', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or', 'Minuit'], screen: '13.6' },
-        { brand: 'Apple', name: 'MacBook Air 15" M2 2023', modelNumber: 'A2941', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or', 'Minuit'], screen: '15.3' },
-        { brand: 'Apple', name: 'MacBook Air 13" 2019', modelNumber: 'A1932', storage: ['128GB', '256GB', '512GB'], colors: ['Argent', 'Gris sidéral', 'Or'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Air 13" 2018', modelNumber: 'A1932', storage: ['128GB', '256GB'], colors: ['Argent', 'Gris sidéral', 'Or'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Air 13" 2020', modelNumber: 'A2179', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Air 13" 2017', modelNumber: 'A1466', storage: ['128GB', '256GB'], colors: ['Argent'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Air 13" 2015', modelNumber: 'A1466', storage: ['128GB', '256GB'], colors: ['Argent'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Air 13" 2013', modelNumber: 'A1466', storage: ['128GB', '256GB'], colors: ['Argent'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Air 13" 2012', modelNumber: 'A1466', storage: ['128GB', '256GB'], colors: ['Argent'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Air 13" 2011', modelNumber: 'A1369', storage: ['128GB', '256GB'], colors: ['Argent'], screen: '13.3' },
-        
-        // MacBook Pro 13" models
-        { brand: 'Apple', name: 'MacBook Pro 13" M1 2020', modelNumber: 'A2338', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Pro 13" 2020', modelNumber: 'A2251', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Pro 13" 2020', modelNumber: 'A2289', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Pro 13" 2019', modelNumber: 'A2159', storage: ['128GB', '256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Pro 13" 2019', modelNumber: 'A1989', storage: ['128GB', '256GB', '512GB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Pro 13" 2018', modelNumber: 'A1989', storage: ['256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Pro 13" 2017', modelNumber: 'A1706', storage: ['256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Pro 13" 2017', modelNumber: 'A1708', storage: ['128GB', '256GB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Pro 13" 2016', modelNumber: 'A1706', storage: ['256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
-        { brand: 'Apple', name: 'MacBook Pro 13" 2016', modelNumber: 'A1708', storage: ['128GB', '256GB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
-        
-        // MacBook Pro 14" models
-        { brand: 'Apple', name: 'MacBook Pro 14" M1 Pro 2021', modelNumber: 'A2442', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
-        { brand: 'Apple', name: 'MacBook Pro 14" M1 Max 2021', modelNumber: 'A2442', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
-        { brand: 'Apple', name: 'MacBook Pro 14" M2 Pro 2023', modelNumber: 'A2779', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
-        { brand: 'Apple', name: 'MacBook Pro 14" M2 Max 2023', modelNumber: 'A2779', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
-        
-        // MacBook Pro 16" models
-        { brand: 'Apple', name: 'MacBook Pro 16" M1 Pro 2021', modelNumber: 'A2485', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
-        { brand: 'Apple', name: 'MacBook Pro 16" M1 Max 2021', modelNumber: 'A2485', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
-        { brand: 'Apple', name: 'MacBook Pro 16" M2 Pro 2023', modelNumber: 'A2780', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
-        { brand: 'Apple', name: 'MacBook Pro 16" M2 Max 2023', modelNumber: 'A2780', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
-        { brand: 'Apple', name: 'MacBook Pro 16" 2019', modelNumber: 'A2141', storage: ['512GB', '1TB', '2TB', '4TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' }
-      ];
-      
-      addLog(`🔍 Début de l'import modèles Mobilax Ordinateurs - ${mobilaxLaptopModels.length} modèles détectés`);
-      
-      let modelsImported = 0;
-      let modelsSkipped = 0;
-      let modelsErrors = 0;
-      let brandsCreated = 0;
-      
-      for (const modelData of mobilaxLaptopModels) {
-        try {
-          // Find or create brand
-          let brand = brands.find(b => 
-            b.name.toLowerCase() === modelData.brand.toLowerCase()
-          );
-          
-          if (!brand) {
-            try {
-              brand = await createBrand({
-                name: modelData.brand,
-                logo_url: null
-              });
-              brandsCreated++;
-              addLog(`✅ Marque "${modelData.brand}" créée`);
-            } catch (brandError: any) {
-              if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
-                // Brand was created by another process, try to find it again
-                await fetchAllData();
-                brand = brands.find(b => 
-                  b.name.toLowerCase() === modelData.brand.toLowerCase()
-                );
-              } else {
-                throw brandError;
-              }
-            }
-          }
-          
-          if (!brand) {
-            addLog(`❌ Impossible de créer/trouver la marque "${modelData.brand}"`);
-            modelsErrors++;
-            continue;
-          }
-          
-          // Check if model exists
-          const existingModel = await checkModelExists(modelData.name, brand.id, ordinateurType.id);
-          if (existingModel) {
-            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant - ignoré`);
-            modelsSkipped++;
-            continue;
-          }
-          
-          // Create new model
-          await createDeviceModel({
-            device_type_id: ordinateurType.id,
-            brand_id: brand.id,
-            model_name: modelData.name,
-            model_number: modelData.modelNumber,
-            release_date: '2025-01-01',
-            screen_size: modelData.screen,
-            screen_resolution: modelData.screen.includes('13') ? '2560x1600' : 
-                              modelData.screen.includes('14') ? '3024x1964' : 
-                              modelData.screen.includes('15') ? '2880x1864' : '3456x2234',
-            screen_type: 'Retina',
-            battery_capacity: modelData.screen.includes('13') ? '58.2' : 
-                             modelData.screen.includes('14') ? '70' : 
-                             modelData.screen.includes('15') ? '66.5' : '100',
-            operating_system: 'macOS',
-            is_active: true
-          });
-          
-          addLog(`✅ Modèle "${modelData.brand} ${modelData.name}" créé avec succès`);
-          modelsImported++;
-          
-        } catch (error: any) {
-          if (error.message?.includes('duplicate') || error.code === '23505') {
-            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant (BD) - ignoré`);
-            modelsSkipped++;
-          } else {
-            addLog(`❌ Erreur lors de la création de "${modelData.brand} ${modelData.name}": ${error.message}`);
-            modelsErrors++;
-          }
-        }
-      }
-      
-      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
-      setStatus(modelsErrors > 0 ? 'error' : 'completed');
-      
-      if (modelsImported > 0) {
-        toast.success(`${modelsImported} nouveaux modèles d'ordinateurs Mobilax importés !`);
-      }
-      
-    } catch (error: any) {
-      addLog(`❌ Erreur globale: ${error.message}`);
-      setStatus('error');
-      toast.error('Erreur lors de l\'import des modèles d\'ordinateurs Mobilax');
-    }
-  };
-
   return (
     <div className="space-y-6">
+      {/* Status */}
+      {status !== 'idle' && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                {status === 'importing' && <Download className="h-4 w-4 animate-spin" />}
+                {status === 'completed' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                {status === 'error' && <AlertCircle className="h-4 w-4 text-red-500" />}
+                <span className="font-medium">
+                  {status === 'importing' && 'Import en cours...'}
+                  {status === 'completed' && 'Import terminé avec succès'}
+                  {status === 'error' && 'Erreurs détectées lors de l\'import'}
+                </span>
+              </div>
+              {importing && <Progress value={progress} className="w-32" />}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Import universel automatisé */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            Import Automatisé Universel
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Import automatique de tous les types d'appareils, marques et modèles depuis les sites externes
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Database className="h-4 w-4 text-blue-600" />
+              <span className="font-medium text-blue-800">Import Total Automatisé</span>
+            </div>
+            <p className="text-sm text-blue-700">
+              Cette fonction scrape automatiquement tous les sites externes (Mobilax, Utopya) pour importer tous les appareils, marques et modèles disponibles.
+            </p>
+          </div>
+          
+          <Button 
+            onClick={handleUniversalAutomatedImport}
+            disabled={status === 'importing'}
+            variant="default"
+            className="w-full"
+            size="lg"
+          >
+            {status === 'importing' ? (
+              <>
+                <Download className="h-4 w-4 mr-2 animate-spin" />
+                Import Universel en cours...
+              </>
+            ) : (
+              <>
+                <Globe className="h-4 w-4 mr-2" />
+                Lancer l'Import Automatisé Universel
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Import catalog standard (legacy) */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Database className="h-5 w-5" />
-            Import Universel du Catalogue
+            Import Catalogue Standard
           </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Import des données prédéfinies par catégorie
+          </p>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="text-sm text-muted-foreground">
-            Importez automatiquement un catalogue complet de produits : smartphones, tablettes, 
-            ordinateurs, écouteurs et montres connectées avec leurs marques et modèles.
-          </div>
-
+        <CardContent className="space-y-4">
           {/* Sélection des catégories */}
-          <div>
-            <h4 className="font-medium mb-3">Sélectionner les catégories à importer</h4>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              {categories.map((category) => {
-                const IconComponent = category.icon;
-                const isSelected = selectedCategories.includes(category.id);
-                return (
-                  <div
-                    key={category.id}
-                    onClick={() => handleCategoryToggle(category.id)}
-                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                      isSelected 
-                        ? 'border-primary bg-primary/10' 
-                        : 'border-muted hover:border-primary/50'
-                    }`}
-                  >
-                    <div className="flex flex-col items-center text-center space-y-2">
-                      <IconComponent className={`h-8 w-8 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
-                      <span className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}>
-                        {category.label}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+            {categories.map(category => (
+              <Button
+                key={category.id}
+                variant={selectedCategories.includes(category.id) ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleCategoryToggle(category.id)}
+                className="flex items-center gap-2"
+              >
+                <category.icon className="h-4 w-4" />
+                <span className="hidden md:inline">{category.label}</span>
+              </Button>
+            ))}
           </div>
 
-          {/* Aperçu des données */}
-          {filteredProducts.length > 0 && (
-            <div>
-              <h4 className="font-medium mb-3">Aperçu des données à importer</h4>
-              <div className="border rounded-lg p-4 max-h-60 overflow-y-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredProducts.map((product, index) => (
-                    <div key={index} className="text-sm">
-                      <div className="font-medium flex items-center gap-2">
-                        <product.icon className="h-4 w-4" />
-                        {product.brand}
-                      </div>
-                      <div className="text-muted-foreground">{product.deviceType}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {product.models.length} modèles
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="mt-3 text-sm text-muted-foreground">
-                Total: {filteredProducts.reduce((sum, p) => sum + p.models.length, 0)} modèles à importer
-              </div>
-            </div>
-          )}
-
-          {importing && (
+          {/* Aperçu des données sélectionnées */}
+          <div className="bg-muted rounded-lg p-4">
+            <h4 className="font-medium mb-2">Données à importer :</h4>
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span>Import en cours...</span>
-                <span>{Math.round(progress)}%</span>
-              </div>
-              <Progress value={progress} className="h-2" />
+              {filteredProducts.map((product, index) => (
+                <div key={index} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <product.icon className="h-4 w-4" />
+                    <span className="font-medium">{product.brand}</span>
+                    <span className="text-muted-foreground">{product.deviceType}</span>
+                  </div>
+                  <Badge variant="secondary">{product.models.length} modèles</Badge>
+                </div>
+              ))}
             </div>
-          )}
-
-          <div className="space-y-3">
-            <Button 
-              onClick={handleImport} 
-              disabled={importing || filteredProducts.length === 0}
-              className="w-full"
-              size="lg"
-            >
-              {importing ? (
-                <>
-                  <Download className="h-4 w-4 mr-2 animate-spin" />
-                  Import en cours...
-                </>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Importer le Catalogue ({filteredProducts.reduce((sum, p) => sum + p.models.length, 0)} modèles)
-                </>
-              )}
-            </Button>
-
-            <Button 
-              onClick={handleMobilaxImport} 
-              disabled={status === 'importing'}
-              variant="outline"
-              className="w-full"
-              size="lg"
-            >
-              {status === 'importing' ? (
-                <>
-                  <Download className="h-4 w-4 mr-2 animate-spin" />
-                  Import Mobilax...
-                </>
-              ) : (
-                <>
-                  <Globe className="h-4 w-4 mr-2" />
-                  Importer les 25 marques Mobilax (Téléphones)
-                </>
-              )}
-            </Button>
-
-            <Button 
-              onClick={handleMobilaxTabletModelsImport} 
-              disabled={status === 'importing'}
-              variant="outline"
-              className="w-full"
-              size="lg"
-            >
-              {status === 'importing' ? (
-                <>
-                  <Download className="h-4 w-4 mr-2 animate-spin" />
-                  Import Modèles Tablettes...
-                </>
-              ) : (
-                <>
-                  <Tablet className="h-4 w-4 mr-2" />
-                  Importer les modèles de tablettes Mobilax
-                </>
-              )}
-            </Button>
-
-            <Button 
-              onClick={handleMobilaxWatchModelsImport} 
-              disabled={status === 'importing'}
-              variant="outline"
-              className="w-full"
-              size="lg"
-            >
-              {status === 'importing' ? (
-                <>
-                  <Download className="h-4 w-4 mr-2 animate-spin" />
-                  Import Modèles Montres...
-                </>
-              ) : (
-                <>
-                  <Watch className="h-4 w-4 mr-2" />
-                  Importer les modèles de montres Mobilax
-                </>
-              )}
-            </Button>
-
-            <Button 
-              onClick={importLaptopsFromMobilax} 
-              disabled={status === 'importing'}
-              variant="outline"
-              className="w-full"
-              size="lg"
-            >
-              {status === 'importing' ? (
-                <>
-                  <Download className="h-4 w-4 mr-2 animate-spin" />
-                  Import Modèles Ordinateurs...
-                </>
-              ) : (
-                <>
-                  <Laptop className="h-4 w-4 mr-2" />
-                  Importer les modèles d'ordinateurs Mobilax
-                </>
-              )}
-            </Button>
-
-            <Button 
-              onClick={handleMobilaxScooterModelsImport} 
-              disabled={status === 'importing'}
-              variant="outline"
-              className="w-full"
-              size="lg"
-            >
-              {status === 'importing' ? (
-                <>
-                  <Download className="h-4 w-4 mr-2 animate-spin" />
-                  Import Modèles Trottinettes...
-                </>
-              ) : (
-                <>
-                  <Zap className="h-4 w-4 mr-2" />
-                  Importer les modèles de trottinettes Mobilax
-                </>
-              )}
-            </Button>
-
-            <Button 
-              onClick={importConsolesFromUtopya} 
-              disabled={status === 'importing'}
-              variant="outline"
-              className="w-full"
-              size="lg"
-            >
-              {status === 'importing' ? (
-                <>
-                  <Download className="h-4 w-4 mr-2 animate-spin" />
-                  Import Modèles Consoles...
-                </>
-              ) : (
-                <>
-                  <Gamepad2 className="h-4 w-4 mr-2" />
-                  Importer les modèles de consoles Nintendo
-                </>
-              )}
-            </Button>
-
-            <Button 
-              onClick={handleMobilaxSamsungModelsImport}
-              disabled={status === 'importing'}
-              variant="outline"
-              className="w-full"
-              size="lg"
-            >
-              {status === 'importing' ? (
-                <>
-                  <Download className="h-4 w-4 mr-2 animate-spin" />
-                  Import Modèles Samsung...
-                </>
-              ) : (
-                <>
-                  <Smartphone className="h-4 w-4 mr-2" />
-                  Importer les modèles Samsung Mobilax
-                </>
-              )}
-            </Button>
+            <div className="mt-3 pt-3 border-t">
+              <div className="text-sm font-medium">
+                Total : {filteredProducts.reduce((sum, product) => sum + product.models.length, 0)} modèles
+              </div>
+            </div>
           </div>
+
+          {/* Bouton d'import */}
+          <Button 
+            onClick={handleImport}
+            disabled={importing || filteredProducts.length === 0}
+            className="w-full"
+            size="lg"
+          >
+            {importing ? (
+              <>
+                <Download className="h-4 w-4 mr-2 animate-spin" />
+                Import en cours...
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4 mr-2" />
+                Importer {filteredProducts.reduce((sum, product) => sum + product.models.length, 0)} modèles
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
 
-      {/* Logs de l'import Mobilax */}
+      {/* Logs de l'import */}
       {logs.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Globe className="h-5 w-5" />
-              Logs Import Mobilax
+              Logs Import Automatisé
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -2089,3 +1351,5 @@ export const UniversalCatalogImporter: React.FC = () => {
     </div>
   );
 };
+
+export default UniversalCatalogImporter;
