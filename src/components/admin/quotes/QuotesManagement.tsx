@@ -19,10 +19,13 @@ import {
   Clock,
   AlertCircle,
   Filter,
-  Download
+  Download,
+  BarChart3,
+  UserCheck
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, subDays, differenceInHours } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 interface Quote {
   id: string;
@@ -39,6 +42,22 @@ interface Quote {
   repairer_id?: string;
   estimated_price?: number;
   client_id?: string;
+  repairer_name?: string;
+  repairer_business_name?: string;
+}
+
+interface RepairStats {
+  repair_type: string;
+  count: number;
+  percentage: number;
+}
+
+interface QuoteEvolution {
+  date: string;
+  pending: number;
+  accepted: number;
+  rejected: number;
+  completed: number;
 }
 
 interface QuoteStats {
@@ -70,11 +89,15 @@ const QuotesManagement: React.FC = () => {
     dateTo: '',
     search: ''
   });
+  const [quoteEvolution, setQuoteEvolution] = useState<QuoteEvolution[]>([]);
+  const [topRepairs, setTopRepairs] = useState<RepairStats[]>([]);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     loadQuotes();
     loadStats();
+    loadAnalytics();
   }, [filters]);
 
   const loadQuotes = async () => {
@@ -104,7 +127,43 @@ const QuotesManagement: React.FC = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setQuotes(data || []);
+      
+      // Enrichir les données avec les noms des réparateurs
+      const enrichedQuotes = await Promise.all((data || []).map(async (quote) => {
+        let repairerName = 'Non assigné';
+        let repairerBusinessName = 'Non assigné';
+        
+        if (quote.repairer_id) {
+          const { data: repairerData } = await supabase
+            .from('repairer_profiles')
+            .select('business_name, user_id')
+            .eq('id', quote.repairer_id)
+            .single();
+          
+          if (repairerData) {
+            repairerBusinessName = repairerData.business_name || 'Non assigné';
+            
+            // Récupérer le nom du réparateur depuis la table profiles
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('first_name, last_name')
+              .eq('id', repairerData.user_id)
+              .single();
+              
+            if (profileData) {
+              repairerName = `${profileData.first_name} ${profileData.last_name}`;
+            }
+          }
+        }
+        
+        return {
+          ...quote,
+          repairer_name: repairerName,
+          repairer_business_name: repairerBusinessName
+        };
+      }));
+
+      setQuotes(enrichedQuotes);
     } catch (error) {
       console.error('Erreur lors du chargement des devis:', error);
       toast({
@@ -190,13 +249,91 @@ const QuotesManagement: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const loadAnalytics = async () => {
+    setAnalyticsLoading(true);
+    try {
+      // Évolution des devis sur les 30 derniers jours
+      const last30Days = Array.from({ length: 30 }, (_, i) => {
+        const date = subDays(new Date(), 29 - i);
+        return format(date, 'yyyy-MM-dd');
+      });
+
+      const { data: evolutionData, error: evolutionError } = await supabase
+        .from('quotes_with_timeline')
+        .select('created_at, status')
+        .gte('created_at', format(subDays(new Date(), 29), 'yyyy-MM-dd'));
+
+      if (evolutionError) throw evolutionError;
+
+      const evolution = last30Days.map(date => {
+        const dayQuotes = evolutionData?.filter(q => 
+          format(new Date(q.created_at), 'yyyy-MM-dd') === date
+        ) || [];
+
+        return {
+          date: format(new Date(date), 'dd/MM'),
+          pending: dayQuotes.filter(q => q.status === 'pending').length,
+          accepted: dayQuotes.filter(q => q.status === 'accepted').length,
+          rejected: dayQuotes.filter(q => q.status === 'rejected').length,
+          completed: dayQuotes.filter(q => q.status === 'completed').length
+        };
+      });
+
+      setQuoteEvolution(evolution);
+
+      // Top des réparations demandées
+      const { data: repairData, error: repairError } = await supabase
+        .from('quotes_with_timeline')
+        .select('repair_type');
+
+      if (repairError) throw repairError;
+
+      const repairCounts = repairData?.reduce((acc, quote) => {
+        acc[quote.repair_type] = (acc[quote.repair_type] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>) || {};
+
+      const total = Object.values(repairCounts).reduce((a, b) => a + b, 0);
+      const topRepairsData = Object.entries(repairCounts)
+        .map(([repair_type, count]) => ({
+          repair_type,
+          count,
+          percentage: (count / total) * 100
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 8);
+
+      setTopRepairs(topRepairsData);
+    } catch (error) {
+      console.error('Erreur lors du chargement des analytics:', error);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+
+  const getStatusBadge = (status: string, createdAt?: string) => {
     const statusConfig = {
       pending: { label: 'En attente', variant: 'secondary' as const, icon: Clock },
       accepted: { label: 'Accepté', variant: 'default' as const, icon: CheckCircle },
       rejected: { label: 'Refusé', variant: 'destructive' as const, icon: XCircle },
-      completed: { label: 'Terminé', variant: 'default' as const, icon: CheckCircle }
+      completed: { label: 'Terminé', variant: 'default' as const, icon: CheckCircle },
+      relaunch_needed: { label: 'À relancer', variant: 'destructive' as const, icon: AlertCircle }
     };
+
+    // Vérifier si le devis en attente dépasse 24h
+    if (status === 'pending' && createdAt) {
+      const hoursElapsed = differenceInHours(new Date(), new Date(createdAt));
+      if (hoursElapsed > 24) {
+        const config = statusConfig.relaunch_needed;
+        const Icon = config.icon;
+        return (
+          <Badge variant={config.variant} className="flex items-center gap-1">
+            <Icon className="h-3 w-3" />
+            {config.label} ({Math.floor(hoursElapsed)}h)
+          </Badge>
+        );
+      }
+    }
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     const Icon = config.icon;
@@ -356,6 +493,8 @@ const QuotesManagement: React.FC = () => {
         <TabsList>
           <TabsTrigger value="list">Liste des devis</TabsTrigger>
           <TabsTrigger value="analytics">Analyses avancées</TabsTrigger>
+          <TabsTrigger value="evolution">Évolution des devis</TabsTrigger>
+          <TabsTrigger value="repairs">Top réparations</TabsTrigger>
         </TabsList>
 
         <TabsContent value="list" className="space-y-4">
@@ -441,7 +580,7 @@ const QuotesManagement: React.FC = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-medium">{quote.client_name}</h3>
-                            {getStatusBadge(quote.status)}
+                            {getStatusBadge(quote.status, quote.created_at)}
                           </div>
                           <p className="text-sm text-muted-foreground">
                             {quote.client_email} • {quote.client_phone}
@@ -450,6 +589,10 @@ const QuotesManagement: React.FC = () => {
                             <span className="font-medium">{quote.device_brand} {quote.device_model}</span>
                             {' • '}
                             <span className="text-muted-foreground">{quote.repair_type}</span>
+                          </p>
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            <UserCheck className="h-3 w-3" />
+                            Réparateur: {quote.repairer_business_name || quote.repairer_name}
                           </p>
                         </div>
                         <div className="text-right">
@@ -504,30 +647,122 @@ const QuotesManagement: React.FC = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="analytics">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Évolution des devis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  Graphique des tendances - À implémenter
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Top des réparations demandées</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  Analyse des types de réparations - À implémenter
-                </div>
-              </CardContent>
-            </Card>
+        <TabsContent value="analytics" className="space-y-4">
+          <div className="text-center py-8">
+            <div className="text-muted-foreground">
+              Analyses avancées à venir...
+            </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="evolution" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Évolution des devis (30 derniers jours)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {analyticsLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={quoteEvolution}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line 
+                        type="monotone" 
+                        dataKey="pending" 
+                        stroke="#f59e0b" 
+                        strokeWidth={2}
+                        name="En attente"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="accepted" 
+                        stroke="#10b981" 
+                        strokeWidth={2}
+                        name="Acceptés"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="rejected" 
+                        stroke="#ef4444" 
+                        strokeWidth={2}
+                        name="Refusés"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="completed" 
+                        stroke="#3b82f6" 
+                        strokeWidth={2}
+                        name="Terminés"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="repairs" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Top des réparations demandées
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {analyticsLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="h-80">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={topRepairs}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="repair_type" 
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#3b82f6" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {topRepairs.map((repair, index) => (
+                      <div key={repair.repair_type} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <p className="font-medium">{repair.repair_type}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {repair.count} demandes ({repair.percentage.toFixed(1)}%)
+                          </p>
+                        </div>
+                        <Badge variant={index < 3 ? "default" : "secondary"}>
+                          #{index + 1}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
