@@ -31,6 +31,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Monitor } from 'lucide-react';
 import { CheckmateMonitoring } from '@/components/admin/monitoring/CheckmateMonitoring';
 import StaticPagesManager from '@/components/admin/StaticPagesManager';
+import QuotesManagement from '@/components/admin/quotes/QuotesManagement';
+import CatalogManagement from '@/components/admin/catalog/CatalogManagement';
 
 const AdminPage = () => {
   const { user, profile, isAdmin, loading } = useAuth();
@@ -61,6 +63,8 @@ const AdminPage = () => {
       case 'subdomains': return 'Sous-domaines';
       case 'landing-pages': return 'Landing Pages';
       case 'repairers': return 'Réparateurs';
+      case 'quotes': return 'Gestion des Devis';
+      case 'catalog': return 'Catalogue Produits';
       case 'interest': return 'Demandes d\'intérêt';
       case 'promocodes': return 'Codes Promo';
       case 'advertising': return 'Publicités';
@@ -91,6 +95,8 @@ const AdminPage = () => {
       case 'subdomains': return 'Configuration des sous-domaines et landing pages';
       case 'landing-pages': return 'Création et gestion des landing pages personnalisées';
       case 'repairers': return 'Liste et gestion des réparateurs';
+      case 'quotes': return 'Suivi et modération des demandes de devis clients';
+      case 'catalog': return 'Gestion du catalogue de la recherche en 5 étapes (types, marques, modèles, réparations)';
       case 'interest': return 'Demandes d\'intérêt clients';
       case 'promocodes': return 'Codes de réduction et promotions';
       case 'advertising': return 'Bannières publicitaires';
@@ -135,6 +141,10 @@ const AdminPage = () => {
         return <LandingPagesManagement />;
       case 'repairers':
         return <RepairerList />;
+      case 'quotes':
+        return <QuotesManagement />;
+      case 'catalog':
+        return <CatalogManagement />;
       case 'interest':
         return <ClientInterestManagement />;
       case 'promocodes':

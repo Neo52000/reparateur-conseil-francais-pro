@@ -35,6 +35,8 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', tab: 'dashboard', category: 'Core' },
     { path: '/admin?tab=subscriptions', icon: CreditCard, label: 'Abonnements', tab: 'subscriptions', category: 'Core' },
     { path: '/admin?tab=repairers', icon: Users, label: 'Réparateurs', tab: 'repairers', category: 'Core' },
+    { path: '/admin?tab=quotes', icon: FileText, label: 'Gestion Devis', tab: 'quotes', category: 'Core' },
+    { path: '/admin?tab=catalog', icon: Database, label: 'Catalogue Produits', tab: 'catalog', category: 'Core' },
     { path: '/admin?tab=interest', icon: Heart, label: 'Demandes d\'intérêt', tab: 'interest', category: 'Core' },
     { path: '/admin?tab=analytics', icon: Gauge, label: 'Analytics', tab: 'analytics', category: 'Core' },
     
