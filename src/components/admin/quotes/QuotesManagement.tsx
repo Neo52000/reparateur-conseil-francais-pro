@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Calendar, Users, TrendingUp, Eye, MessageSquare, CheckCircle, XCircle, Clock, AlertCircle, Filter, Download, BarChart3, UserCheck } from 'lucide-react';
+import { FileText, Calendar, Users, TrendingUp, Eye, MessageSquare, CheckCircle, XCircle, Clock, AlertCircle, Filter, Download, BarChart3, UserCheck, Send } from 'lucide-react';
 import { format, subDays, differenceInHours } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
@@ -199,6 +199,42 @@ const QuotesManagement: React.FC = () => {
       toast({
         title: "Erreur",
         description: "Impossible de mettre à jour le statut",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const sendReminderToRepairer = async (quote: Quote) => {
+    try {
+      // Envoyer une notification au réparateur
+      if (quote.repairer_id) {
+        const { error } = await supabase.from('notifications_system').insert({
+          user_id: quote.repairer_id,
+          user_type: 'repairer',
+          notification_type: 'quote_reminder',
+          title: 'Rappel de devis en attente',
+          message: `Le devis pour ${quote.device_brand} ${quote.device_model} de ${quote.client_name} attend votre réponse depuis plus de 24h.`,
+          related_quote_id: quote.id
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Rappel envoyé",
+          description: `Le réparateur ${quote.repairer_name} a été relancé`
+        });
+      } else {
+        toast({
+          title: "Erreur",
+          description: "Aucun réparateur assigné à ce devis",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi du rappel:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'envoyer le rappel",
         variant: "destructive"
       });
     }
@@ -522,57 +558,83 @@ const QuotesManagement: React.FC = () => {
                 </div> : quotes.length === 0 ? <div className="text-center py-8 text-muted-foreground">
                   Aucun devis trouvé
                 </div> : <div className="space-y-4">
-                  {quotes.map(quote => <div key={quote.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-medium">{quote.client_name}</h3>
-                            {getStatusBadge(quote.status, quote.created_at)}
+                  {quotes.map(quote => {
+                    const hoursElapsed = differenceInHours(new Date(), new Date(quote.created_at));
+                    const needsReminder = quote.status === 'pending' && hoursElapsed > 24;
+                    
+                    return (
+                      <div key={quote.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-medium">{quote.client_name}</h3>
+                              {getStatusBadge(quote.status, quote.created_at)}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {quote.client_email} • {quote.client_phone}
+                            </p>
+                            <p className="text-sm">
+                              <span className="font-medium">{quote.device_brand} {quote.device_model}</span>
+                              {' • '}
+                              <span className="text-muted-foreground">{quote.repair_type}</span>
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                                <UserCheck className="h-3 w-3" />
+                                Réparateur: <span className="font-medium text-foreground">{quote.repairer_name || 'Non assigné'}</span>
+                              </p>
+                              {quote.repairer_business_name && quote.repairer_business_name !== 'Non assigné' && (
+                                <Badge variant="outline" className="text-xs">
+                                  {quote.repairer_business_name}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
-                          <p className="text-sm text-muted-foreground">
-                            {quote.client_email} • {quote.client_phone}
-                          </p>
-                          <p className="text-sm">
-                            <span className="font-medium">{quote.device_brand} {quote.device_model}</span>
-                            {' • '}
-                            <span className="text-muted-foreground">{quote.repair_type}</span>
-                          </p>
-                          <p className="text-sm text-muted-foreground flex items-center gap-1">
-                            <UserCheck className="h-3 w-3" />
-                            Réparateur: {quote.repairer_business_name || quote.repairer_name}
-                          </p>
+                          <div className="text-right">
+                            <p className="text-sm text-muted-foreground">
+                              {format(new Date(quote.created_at), 'dd/MM/yyyy HH:mm', {
+                            locale: fr
+                          })}
+                            </p>
+                            {quote.estimated_price && <p className="text-sm font-medium text-primary">
+                                {quote.estimated_price}€
+                              </p>}
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(quote.created_at), 'dd/MM/yyyy HH:mm', {
-                        locale: fr
-                      })}
-                          </p>
-                          {quote.estimated_price && <p className="text-sm font-medium text-primary">
-                              {quote.estimated_price}€
-                            </p>}
-                        </div>
-                      </div>
 
-                      <div className="flex justify-between items-center">
-                        <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
-                          {quote.issue_description}
-                        </p>
-                        <div className="flex gap-2 ml-4">
-                          <Button size="sm" variant="outline" onClick={() => setSelectedQuote(quote)}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {quote.status === 'pending' && <>
-                              <Button size="sm" variant="default" onClick={() => updateQuoteStatus(quote.id, 'accepted')}>
-                                <CheckCircle className="h-4 w-4" />
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
+                            {quote.issue_description}
+                          </p>
+                          <div className="flex gap-2 ml-4">
+                            <Button size="sm" variant="outline" onClick={() => setSelectedQuote(quote)}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {needsReminder && quote.repairer_id && (
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={() => sendReminderToRepairer(quote)}
+                                className="text-orange-600 border-orange-200 hover:bg-orange-50"
+                              >
+                                <Send className="h-4 w-4" />
                               </Button>
-                              <Button size="sm" variant="destructive" onClick={() => updateQuoteStatus(quote.id, 'rejected')}>
-                                <XCircle className="h-4 w-4" />
-                              </Button>
-                            </>}
+                            )}
+                            {quote.status === 'pending' && (
+                              <>
+                                <Button size="sm" variant="default" onClick={() => updateQuoteStatus(quote.id, 'accepted')}>
+                                  <CheckCircle className="h-4 w-4" />
+                                </Button>
+                                <Button size="sm" variant="destructive" onClick={() => updateQuoteStatus(quote.id, 'rejected')}>
+                                  <XCircle className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>)}
+                    );
+                  })}
                 </div>}
             </CardContent>
           </Card>
