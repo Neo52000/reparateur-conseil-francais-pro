@@ -622,67 +622,163 @@ export const UniversalCatalogImporter: React.FC = () => {
     }
   };
 
-  const handleMobilaxTabletImport = async () => {
+  const handleMobilaxTabletModelsImport = async () => {
     setStatus('importing');
     setLogs([]);
     
     try {
-      // Extract brand names from Mobilax Tablettes
-      const mobilaxTabletBrands = [
-        'Apple', 'Samsung', 'Xiaomi', 'Huawei', 'Honor', 'OPPO', 'Realme', 
-        'OnePlus', 'Google', 'Crosscall', 'Blackview', 'Nokia', 'Asus', 'Microsoft'
+      // Find Tablette device type
+      const tabletteType = deviceTypes.find(dt => dt.name.toLowerCase() === 'tablette');
+      if (!tabletteType) {
+        addLog('❌ Type d\'appareil "Tablette" introuvable. Créez-le d\'abord.');
+        setStatus('error');
+        return;
+      }
+
+      // Extract tablet models from Mobilax
+      const mobilaxTabletModels = [
+        // Apple iPad models
+        { brand: 'Apple', name: 'iPad 2', storage: ['16GB', '32GB', '64GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Apple', name: 'iPad 3', storage: ['16GB', '32GB', '64GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Apple', name: 'iPad 4', storage: ['16GB', '32GB', '64GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Apple', name: 'iPad Air', storage: ['16GB', '32GB', '64GB', '128GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Apple', name: 'iPad Air 2', storage: ['16GB', '32GB', '64GB', '128GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Apple', name: 'iPad Air 11 M2', storage: ['128GB', '256GB', '512GB', '1TB'], colors: ['Noir'] },
+        { brand: 'Apple', name: 'iPad Air 13 M2', storage: ['128GB', '256GB', '512GB', '1TB'], colors: ['Noir'] },
+        { brand: 'Apple', name: 'iPad Mini 4', storage: ['16GB', '32GB', '64GB', '128GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Apple', name: 'iPad Mini 6', storage: ['64GB', '256GB'], colors: ['Noir'] },
+        { brand: 'Apple', name: 'iPad Pro 9.7', storage: ['32GB', '128GB', '256GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Apple', name: 'iPad Pro 12.9', storage: ['32GB', '128GB', '256GB'], colors: ['Noir'] },
+        
+        // Asus models
+        { brand: 'Asus', name: 'Fonepad 7 FE171', storage: ['8GB', '16GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Asus', name: 'MeMo Pad 10 ME103', storage: ['16GB'], colors: ['Noir'] },
+        { brand: 'Asus', name: 'ZenPad 10 Z300C', storage: ['16GB', '32GB'], colors: ['Noir'] },
+        { brand: 'Asus', name: 'ZenPad 10 Z300M', storage: ['16GB', '32GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Asus', name: 'ZenPad 10 Z301', storage: ['16GB', '32GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Asus', name: 'ZenPad 7.0 Z370C', storage: ['8GB', '16GB'], colors: ['Blanc'] },
+        { brand: 'Asus', name: 'ZenPad 8.0 Z380M', storage: ['16GB'], colors: ['Blanc'] },
+        
+        // Huawei models
+        { brand: 'Huawei', name: 'MatePad', storage: ['64GB', '128GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Huawei', name: 'MatePad Pro 10.8', storage: ['128GB', '256GB', '512GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Huawei', name: 'MatePad T8', storage: ['32GB'], colors: ['Noir'] },
+        { brand: 'Huawei', name: 'MatePad 10.4', storage: ['64GB', '128GB'], colors: ['Noir'] },
+        { brand: 'Huawei', name: 'MatePad 11', storage: ['128GB', '256GB'], colors: ['Noir'] },
+        { brand: 'Huawei', name: 'MediaPad M5 Lite 8', storage: ['32GB', '64GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Huawei', name: 'MediaPad M6 10.8', storage: ['64GB', '128GB'], colors: ['Blanc', 'Noir'] },
+        { brand: 'Huawei', name: 'MediaPad T3 10', storage: ['16GB', '32GB'], colors: ['Blanc'] },
+        { brand: 'Huawei', name: 'MediaPad T3 8', storage: ['16GB', '32GB'], colors: ['Blanc', 'Noir'] },
+        
+        // Honor models
+        { brand: 'Honor', name: 'Pad 8', storage: ['128GB'], colors: ['Noir'] },
+        { brand: 'Honor', name: 'Pad X8a', storage: ['128GB'], colors: ['Noir'] },
+        
+        // Other brands
+        { brand: 'Blackview', name: 'Tab 11', storage: ['128GB'], colors: ['Noir'] },
+        { brand: 'Crosscall', name: 'Core-T4', storage: ['64GB'], colors: ['Noir'] },
+        { brand: 'Microsoft', name: 'Surface Go', storage: ['64GB', '128GB'], colors: ['Noir'] },
+        { brand: 'Nokia', name: 'T10', storage: ['32GB', '64GB'], colors: ['Noir'] },
+        { brand: 'Nokia', name: 'T20', storage: ['64GB'], colors: ['Noir'] },
+        
+        // Lenovo models (ajoutés depuis les données scrapées)
+        { brand: 'Lenovo', name: 'Tab M10 FHD Plus', storage: ['64GB', '128GB'], colors: ['Noir'] },
+        { brand: 'Lenovo', name: 'Tab M10 HD Gen 2', storage: ['32GB', '64GB'], colors: ['Noir'] },
+        { brand: 'Lenovo', name: 'Tab M11', storage: ['128GB'], colors: ['Noir'] },
+        { brand: 'Lenovo', name: 'Tab P11 Gen 2', storage: ['128GB', '256GB'], colors: ['Noir'] },
+        { brand: 'Lenovo', name: 'Tab P11 Plus', storage: ['128GB', '256GB'], colors: ['Noir'] },
+        { brand: 'Lenovo', name: 'Tab P11 Pro Gen 2', storage: ['256GB'], colors: ['Noir'] }
       ];
       
-      addLog(`🔍 Début de l'import Mobilax Tablettes - ${mobilaxTabletBrands.length} marques détectées`);
+      addLog(`🔍 Début de l'import modèles Mobilax Tablettes - ${mobilaxTabletModels.length} modèles détectés`);
       
-      let imported = 0;
-      let skipped = 0;
-      let errors = 0;
+      let modelsImported = 0;
+      let modelsSkipped = 0;
+      let modelsErrors = 0;
+      let brandsCreated = 0;
       
-      for (const brandName of mobilaxTabletBrands) {
+      for (const modelData of mobilaxTabletModels) {
         try {
-          // Check if brand exists (case insensitive)
-          const existingBrand = brands.find(b => 
-            b.name.toLowerCase() === brandName.toLowerCase()
+          // Find or create brand
+          let brand = brands.find(b => 
+            b.name.toLowerCase() === modelData.brand.toLowerCase()
           );
           
-          if (existingBrand) {
-            addLog(`⚠️ Marque "${brandName}" déjà existante - ignorée`);
-            skipped++;
+          if (!brand) {
+            try {
+              brand = await createBrand({
+                name: modelData.brand,
+                logo_url: null
+              });
+              brandsCreated++;
+              addLog(`✅ Marque "${modelData.brand}" créée`);
+            } catch (brandError: any) {
+              if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
+                // Brand was created by another process, try to find it again
+                await fetchAllData();
+                brand = brands.find(b => 
+                  b.name.toLowerCase() === modelData.brand.toLowerCase()
+                );
+              } else {
+                throw brandError;
+              }
+            }
+          }
+          
+          if (!brand) {
+            addLog(`❌ Impossible de créer/trouver la marque "${modelData.brand}"`);
+            modelsErrors++;
             continue;
           }
           
-          // Create new brand
-          await createBrand({
-            name: brandName,
-            logo_url: null
+          // Check if model exists
+          const existingModel = await checkModelExists(modelData.name, brand.id, tabletteType.id);
+          if (existingModel) {
+            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant - ignoré`);
+            modelsSkipped++;
+            continue;
+          }
+          
+          // Create new model
+          await createDeviceModel({
+            device_type_id: tabletteType.id,
+            brand_id: brand.id,
+            model_name: modelData.name,
+            model_number: '',
+            release_date: new Date().getFullYear().toString(),
+            screen_size: '10.1',
+            screen_resolution: '1920x1080',
+            screen_type: 'LCD',
+            battery_capacity: '5000',
+            operating_system: 'Android',
+            is_active: true
           });
           
-          addLog(`✅ Marque "${brandName}" créée avec succès`);
-          imported++;
+          addLog(`✅ Modèle "${modelData.brand} ${modelData.name}" créé avec succès`);
+          modelsImported++;
           
         } catch (error: any) {
           if (error.message?.includes('duplicate') || error.code === '23505') {
-            addLog(`⚠️ Marque "${brandName}" déjà existante (BD) - ignorée`);
-            skipped++;
+            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant (BD) - ignoré`);
+            modelsSkipped++;
           } else {
-            addLog(`❌ Erreur lors de la création de "${brandName}": ${error.message}`);
-            errors++;
+            addLog(`❌ Erreur lors de la création de "${modelData.brand} ${modelData.name}": ${error.message}`);
+            modelsErrors++;
           }
         }
       }
       
-      addLog(`🎉 Import terminé: ${imported} créées, ${skipped} ignorées, ${errors} erreurs`);
-      setStatus(errors > 0 ? 'error' : 'completed');
+      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
+      setStatus(modelsErrors > 0 ? 'error' : 'completed');
       
-      if (imported > 0) {
-        toast.success(`${imported} nouvelles marques Mobilax tablettes importées !`);
+      if (modelsImported > 0) {
+        toast.success(`${modelsImported} nouveaux modèles de tablettes Mobilax importés !`);
       }
       
     } catch (error: any) {
       addLog(`❌ Erreur globale: ${error.message}`);
       setStatus('error');
-      toast.error('Erreur lors de l\'import Mobilax tablettes');
+      toast.error('Erreur lors de l\'import des modèles Mobilax tablettes');
     }
   };
 
@@ -807,7 +903,7 @@ export const UniversalCatalogImporter: React.FC = () => {
             </Button>
 
             <Button 
-              onClick={handleMobilaxTabletImport} 
+              onClick={handleMobilaxTabletModelsImport} 
               disabled={status === 'importing'}
               variant="outline"
               className="w-full"
@@ -816,12 +912,12 @@ export const UniversalCatalogImporter: React.FC = () => {
               {status === 'importing' ? (
                 <>
                   <Download className="h-4 w-4 mr-2 animate-spin" />
-                  Import Mobilax Tablettes...
+                  Import Modèles Tablettes...
                 </>
               ) : (
                 <>
                   <Tablet className="h-4 w-4 mr-2" />
-                  Importer les 14 marques Mobilax (Tablettes)
+                  Importer les modèles de tablettes Mobilax
                 </>
               )}
             </Button>
