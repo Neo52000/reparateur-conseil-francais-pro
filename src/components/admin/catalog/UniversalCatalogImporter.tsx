@@ -17,7 +17,8 @@ import {
   AlertCircle, 
   Download,
   Database,
-  Globe
+  Globe,
+  Zap
 } from 'lucide-react';
 
 interface ProductData {
@@ -1046,6 +1047,149 @@ export const UniversalCatalogImporter: React.FC = () => {
     }
   };
 
+  const handleMobilaxScooterModelsImport = async () => {
+    setStatus('importing');
+    setLogs([]);
+    
+    try {
+      // Find Trottinette device type (or create it if it doesn't exist)
+      let trottinetteType = deviceTypes.find(dt => dt.name.toLowerCase() === 'trottinette');
+      if (!trottinetteType) {
+        addLog('⚠️ Type d\'appareil "Trottinette" introuvable. Création...');
+        try {
+          trottinetteType = await createDeviceType({
+            name: 'Trottinette',
+            description: 'Trottinettes électriques'
+          });
+          addLog('✅ Type d\'appareil "Trottinette" créé avec succès');
+        } catch (error: any) {
+          addLog(`❌ Erreur lors de la création du type "Trottinette": ${error.message}`);
+          setStatus('error');
+          return;
+        }
+      }
+
+      // Extract scooter models from Mobilax e-mobility section
+      const mobilaxScooterModels = [
+        // Xiaomi models
+        { brand: 'Xiaomi', name: 'Mi Electric Scooter M365', battery: '280Wh', autonomy: '30km', speed: '25km/h' },
+        { brand: 'Xiaomi', name: 'Mi Electric Scooter M365 Pro', battery: '474Wh', autonomy: '45km', speed: '25km/h' },
+        { brand: 'Xiaomi', name: 'Mi Electric Scooter M365 Pro 2', battery: '474Wh', autonomy: '45km', speed: '25km/h' },
+        { brand: 'Xiaomi', name: 'Mi Electric Scooter 1S', battery: '280Wh', autonomy: '30km', speed: '25km/h' },
+        { brand: 'Xiaomi', name: 'Mi Electric Scooter Essential', battery: '187Wh', autonomy: '20km', speed: '20km/h' },
+        { brand: 'Xiaomi', name: 'Mi Electric Scooter 3', battery: '280Wh', autonomy: '30km', speed: '25km/h' },
+        { brand: 'Xiaomi', name: 'Mi Electric Scooter 4 Pro', battery: '474Wh', autonomy: '55km', speed: '25km/h' },
+        
+        // Ninebot/Segway models
+        { brand: 'Ninebot', name: 'Kickscooter ES1', battery: '185Wh', autonomy: '25km', speed: '20km/h' },
+        { brand: 'Ninebot', name: 'Kickscooter ES2', battery: '187Wh', autonomy: '25km', speed: '25km/h' },
+        { brand: 'Ninebot', name: 'Kickscooter ES4', battery: '374Wh', autonomy: '45km', speed: '30km/h' },
+        { brand: 'Ninebot', name: 'Kickscooter MAX G30', battery: '551Wh', autonomy: '65km', speed: '25km/h' },
+        { brand: 'Ninebot', name: 'Kickscooter MAX G30LE', battery: '367Wh', autonomy: '40km', speed: '25km/h' },
+        { brand: 'Ninebot', name: 'Kickscooter F20', battery: '365Wh', autonomy: '20km', speed: '25km/h' },
+        { brand: 'Ninebot', name: 'Kickscooter F25E', battery: '365Wh', autonomy: '25km', speed: '25km/h' },
+        { brand: 'Ninebot', name: 'Kickscooter F30E', battery: '367Wh', autonomy: '30km', speed: '25km/h' },
+        { brand: 'Ninebot', name: 'Kickscooter F40E', battery: '367Wh', autonomy: '40km', speed: '25km/h' },
+        
+        // Kugoo models
+        { brand: 'Kugoo', name: 'S1', battery: '350Wh', autonomy: '30km', speed: '30km/h' },
+        { brand: 'Kugoo', name: 'S2', battery: '350Wh', autonomy: '35km', speed: '30km/h' },
+        { brand: 'Kugoo', name: 'S3', battery: '350Wh', autonomy: '35km', speed: '30km/h' },
+        { brand: 'Kugoo', name: 'G2 Pro', battery: '500Wh', autonomy: '50km', speed: '50km/h' }
+      ];
+      
+      addLog(`🔍 Début de l'import modèles Mobilax Trottinettes - ${mobilaxScooterModels.length} modèles détectés`);
+      
+      let modelsImported = 0;
+      let modelsSkipped = 0;
+      let modelsErrors = 0;
+      let brandsCreated = 0;
+      
+      for (const modelData of mobilaxScooterModels) {
+        try {
+          // Find or create brand
+          let brand = brands.find(b => 
+            b.name.toLowerCase() === modelData.brand.toLowerCase()
+          );
+          
+          if (!brand) {
+            try {
+              brand = await createBrand({
+                name: modelData.brand,
+                logo_url: null
+              });
+              brandsCreated++;
+              addLog(`✅ Marque "${modelData.brand}" créée`);
+            } catch (brandError: any) {
+              if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
+                // Brand was created by another process, try to find it again
+                await fetchAllData();
+                brand = brands.find(b => 
+                  b.name.toLowerCase() === modelData.brand.toLowerCase()
+                );
+              } else {
+                throw brandError;
+              }
+            }
+          }
+          
+          if (!brand) {
+            addLog(`❌ Impossible de créer/trouver la marque "${modelData.brand}"`);
+            modelsErrors++;
+            continue;
+          }
+          
+          // Check if model exists
+          const existingModel = await checkModelExists(modelData.name, brand.id, trottinetteType.id);
+          if (existingModel) {
+            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant - ignoré`);
+            modelsSkipped++;
+            continue;
+          }
+          
+          // Create new model
+          await createDeviceModel({
+            device_type_id: trottinetteType.id,
+            brand_id: brand.id,
+            model_name: modelData.name,
+            model_number: '',
+            release_date: '2025-01-01',
+            screen_size: '0',
+            screen_resolution: '',
+            screen_type: 'LED',
+            battery_capacity: modelData.battery.replace('Wh', ''),
+            operating_system: 'Propriétaire',
+            is_active: true
+          });
+          
+          addLog(`✅ Modèle "${modelData.brand} ${modelData.name}" créé avec succès`);
+          modelsImported++;
+          
+        } catch (error: any) {
+          if (error.message?.includes('duplicate') || error.code === '23505') {
+            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant (BD) - ignoré`);
+            modelsSkipped++;
+          } else {
+            addLog(`❌ Erreur lors de la création de "${modelData.brand} ${modelData.name}": ${error.message}`);
+            modelsErrors++;
+          }
+        }
+      }
+      
+      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
+      setStatus(modelsErrors > 0 ? 'error' : 'completed');
+      
+      if (modelsImported > 0) {
+        toast.success(`${modelsImported} nouveaux modèles de trottinettes Mobilax importés !`);
+      }
+      
+    } catch (error: any) {
+      addLog(`❌ Erreur globale: ${error.message}`);
+      setStatus('error');
+      toast.error('Erreur lors de l\'import des modèles Mobilax trottinettes');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -1222,6 +1366,26 @@ export const UniversalCatalogImporter: React.FC = () => {
                 <>
                   <Laptop className="h-4 w-4 mr-2" />
                   Importer les modèles d'ordinateurs Mobilax
+                </>
+              )}
+            </Button>
+
+            <Button 
+              onClick={handleMobilaxScooterModelsImport} 
+              disabled={status === 'importing'}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              {status === 'importing' ? (
+                <>
+                  <Download className="h-4 w-4 mr-2 animate-spin" />
+                  Import Modèles Trottinettes...
+                </>
+              ) : (
+                <>
+                  <Zap className="h-4 w-4 mr-2" />
+                  Importer les modèles de trottinettes Mobilax
                 </>
               )}
             </Button>
