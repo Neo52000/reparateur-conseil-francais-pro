@@ -3,24 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Database, 
-  Smartphone, 
-  Tag, 
-  Wrench, 
-  BarChart3, 
-  Plus,
-  Edit,
-  Trash2,
-  TrendingUp,
-  AlertTriangle
-} from 'lucide-react';
+import { Database, Smartphone, Tag, Wrench, BarChart3, Plus, Edit, Trash2, TrendingUp, AlertTriangle } from 'lucide-react';
 import DeviceTypesManagement from './DeviceTypesManagement';
 import BrandsManagement from './BrandsManagement';
 import DeviceModelsManagement from './DeviceModelsManagement';
 import RepairTypesManagement from './RepairTypesManagement';
 import CatalogAnalytics from './CatalogAnalytics';
-
 interface CatalogStats {
   deviceTypes: number;
   brands: number;
@@ -29,7 +17,6 @@ interface CatalogStats {
   totalQuotes: number;
   unmatchedQuotes: number;
 }
-
 const CatalogManagement: React.FC = () => {
   const [stats, setStats] = useState<CatalogStats>({
     deviceTypes: 0,
@@ -39,13 +26,11 @@ const CatalogManagement: React.FC = () => {
     totalQuotes: 0,
     unmatchedQuotes: 0
   });
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Catalogue Produits</h2>
-          <p className="text-muted-foreground">Gestion du catalogue de la recherche en 5 étapes</p>
+          
+          
         </div>
       </div>
 
@@ -125,8 +110,7 @@ const CatalogManagement: React.FC = () => {
       </div>
 
       {/* Alertes importantes */}
-      {stats.unmatchedQuotes > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
+      {stats.unmatchedQuotes > 0 && <Card className="border-orange-200 bg-orange-50">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <AlertTriangle className="h-6 w-6 text-orange-600" />
@@ -142,8 +126,7 @@ const CatalogManagement: React.FC = () => {
               </Button>
             </div>
           </CardContent>
-        </Card>
-      )}
+        </Card>}
 
       <Tabs defaultValue="device-types" className="space-y-4">
         <TabsList className="grid w-full grid-cols-5">
@@ -170,33 +153,41 @@ const CatalogManagement: React.FC = () => {
         </TabsList>
 
         <TabsContent value="device-types">
-          <DeviceTypesManagement onStatsUpdate={(count) => setStats(prev => ({ ...prev, deviceTypes: count }))} />
+          <DeviceTypesManagement onStatsUpdate={count => setStats(prev => ({
+          ...prev,
+          deviceTypes: count
+        }))} />
         </TabsContent>
 
         <TabsContent value="brands">
-          <BrandsManagement onStatsUpdate={(count) => setStats(prev => ({ ...prev, brands: count }))} />
+          <BrandsManagement onStatsUpdate={count => setStats(prev => ({
+          ...prev,
+          brands: count
+        }))} />
         </TabsContent>
 
         <TabsContent value="models">
-          <DeviceModelsManagement onStatsUpdate={(count) => setStats(prev => ({ ...prev, deviceModels: count }))} />
+          <DeviceModelsManagement onStatsUpdate={count => setStats(prev => ({
+          ...prev,
+          deviceModels: count
+        }))} />
         </TabsContent>
 
         <TabsContent value="repair-types">
-          <RepairTypesManagement onStatsUpdate={(count) => setStats(prev => ({ ...prev, repairTypes: count }))} />
+          <RepairTypesManagement onStatsUpdate={count => setStats(prev => ({
+          ...prev,
+          repairTypes: count
+        }))} />
         </TabsContent>
 
         <TabsContent value="analytics">
-          <CatalogAnalytics 
-            onStatsUpdate={(analyticsStats) => setStats(prev => ({ 
-              ...prev, 
-              totalQuotes: analyticsStats.totalQuotes,
-              unmatchedQuotes: analyticsStats.unmatchedQuotes
-            }))} 
-          />
+          <CatalogAnalytics onStatsUpdate={analyticsStats => setStats(prev => ({
+          ...prev,
+          totalQuotes: analyticsStats.totalQuotes,
+          unmatchedQuotes: analyticsStats.unmatchedQuotes
+        }))} />
         </TabsContent>
       </Tabs>
-    </div>
-  );
+    </div>;
 };
-
 export default CatalogManagement;
