@@ -7,27 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  FileText, 
-  Calendar, 
-  Users, 
-  TrendingUp, 
-  Eye, 
-  MessageSquare, 
-  CheckCircle, 
-  XCircle,
-  Clock,
-  AlertCircle,
-  Filter,
-  Download,
-  BarChart3,
-  UserCheck
-} from 'lucide-react';
+import { FileText, Calendar, Users, TrendingUp, Eye, MessageSquare, CheckCircle, XCircle, Clock, AlertCircle, Filter, Download, BarChart3, UserCheck } from 'lucide-react';
 import { format, subDays, differenceInHours } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import AdvancedAnalytics from './AdvancedAnalytics';
-
 interface Quote {
   id: string;
   client_name: string;
@@ -46,13 +30,11 @@ interface Quote {
   repairer_name?: string;
   repairer_business_name?: string;
 }
-
 interface RepairStats {
   repair_type: string;
   count: number;
   percentage: number;
 }
-
 interface QuoteEvolution {
   date: string;
   pending: number;
@@ -60,7 +42,6 @@ interface QuoteEvolution {
   rejected: number;
   completed: number;
 }
-
 interface QuoteStats {
   total: number;
   pending: number;
@@ -70,7 +51,6 @@ interface QuoteStats {
   avgResponseTime: number;
   conversionRate: number;
 }
-
 const QuotesManagement: React.FC = () => {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [stats, setStats] = useState<QuoteStats>({
@@ -93,77 +73,64 @@ const QuotesManagement: React.FC = () => {
   const [quoteEvolution, setQuoteEvolution] = useState<QuoteEvolution[]>([]);
   const [topRepairs, setTopRepairs] = useState<RepairStats[]>([]);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     loadQuotes();
     loadStats();
     loadAnalytics();
   }, [filters]);
-
   const loadQuotes = async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from('quotes_with_timeline')
-        .select('*')
-        .order('created_at', { ascending: false });
-
+      let query = supabase.from('quotes_with_timeline').select('*').order('created_at', {
+        ascending: false
+      });
       if (filters.status && filters.status !== 'all') {
         query = query.eq('status', filters.status);
       }
-
       if (filters.dateFrom) {
         query = query.gte('created_at', filters.dateFrom);
       }
-
       if (filters.dateTo) {
         query = query.lte('created_at', filters.dateTo);
       }
-
       if (filters.search) {
         query = query.or(`client_name.ilike.%${filters.search}%,client_email.ilike.%${filters.search}%,device_brand.ilike.%${filters.search}%`);
       }
-
-      const { data, error } = await query;
-
+      const {
+        data,
+        error
+      } = await query;
       if (error) throw error;
-      
+
       // Enrichir les données avec les noms des réparateurs
-      const enrichedQuotes = await Promise.all((data || []).map(async (quote) => {
+      const enrichedQuotes = await Promise.all((data || []).map(async quote => {
         let repairerName = 'Non assigné';
         let repairerBusinessName = 'Non assigné';
-        
         if (quote.repairer_id) {
-          const { data: repairerData } = await supabase
-            .from('repairer_profiles')
-            .select('business_name, user_id')
-            .eq('id', quote.repairer_id)
-            .single();
-          
+          const {
+            data: repairerData
+          } = await supabase.from('repairer_profiles').select('business_name, user_id').eq('id', quote.repairer_id).single();
           if (repairerData) {
             repairerBusinessName = repairerData.business_name || 'Non assigné';
-            
+
             // Récupérer le nom du réparateur depuis la table profiles
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('first_name, last_name')
-              .eq('id', repairerData.user_id)
-              .single();
-              
+            const {
+              data: profileData
+            } = await supabase.from('profiles').select('first_name, last_name').eq('id', repairerData.user_id).single();
             if (profileData) {
               repairerName = `${profileData.first_name} ${profileData.last_name}`;
             }
           }
         }
-        
         return {
           ...quote,
           repairer_name: repairerName,
           repairer_business_name: repairerBusinessName
         };
       }));
-
       setQuotes(enrichedQuotes);
     } catch (error) {
       console.error('Erreur lors du chargement des devis:', error);
@@ -176,15 +143,13 @@ const QuotesManagement: React.FC = () => {
       setLoading(false);
     }
   };
-
   const loadStats = async () => {
     try {
-      const { data: quotesData, error } = await supabase
-        .from('quotes_with_timeline')
-        .select('status, created_at, updated_at');
-
+      const {
+        data: quotesData,
+        error
+      } = await supabase.from('quotes_with_timeline').select('status, created_at, updated_at');
       if (error) throw error;
-
       const total = quotesData?.length || 0;
       const pending = quotesData?.filter(q => q.status === 'pending').length || 0;
       const accepted = quotesData?.filter(q => q.status === 'accepted').length || 0;
@@ -192,21 +157,15 @@ const QuotesManagement: React.FC = () => {
       const completed = quotesData?.filter(q => q.status === 'completed').length || 0;
 
       // Calcul du taux de conversion
-      const conversionRate = total > 0 ? ((accepted + completed) / total) * 100 : 0;
+      const conversionRate = total > 0 ? (accepted + completed) / total * 100 : 0;
 
       // Calcul du temps de réponse moyen (en heures)
-      const responseTimes = quotesData
-        ?.filter(q => q.status !== 'pending')
-        .map(q => {
-          const created = new Date(q.created_at);
-          const updated = new Date(q.updated_at);
-          return (updated.getTime() - created.getTime()) / (1000 * 60 * 60);
-        }) || [];
-
-      const avgResponseTime = responseTimes.length > 0 
-        ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length 
-        : 0;
-
+      const responseTimes = quotesData?.filter(q => q.status !== 'pending').map(q => {
+        const created = new Date(q.created_at);
+        const updated = new Date(q.updated_at);
+        return (updated.getTime() - created.getTime()) / (1000 * 60 * 60);
+      }) || [];
+      const avgResponseTime = responseTimes.length > 0 ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length : 0;
       setStats({
         total,
         pending,
@@ -220,24 +179,19 @@ const QuotesManagement: React.FC = () => {
       console.error('Erreur lors du chargement des statistiques:', error);
     }
   };
-
   const updateQuoteStatus = async (quoteId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from('quotes_with_timeline')
-        .update({ 
-          status: newStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', quoteId);
-
+      const {
+        error
+      } = await supabase.from('quotes_with_timeline').update({
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      }).eq('id', quoteId);
       if (error) throw error;
-
       toast({
         title: "Succès",
         description: `Statut du devis mis à jour: ${newStatus}`
       });
-
       loadQuotes();
       loadStats();
     } catch (error) {
@@ -249,28 +203,23 @@ const QuotesManagement: React.FC = () => {
       });
     }
   };
-
   const loadAnalytics = async () => {
     setAnalyticsLoading(true);
     try {
       // Évolution des devis sur les 30 derniers jours
-      const last30Days = Array.from({ length: 30 }, (_, i) => {
+      const last30Days = Array.from({
+        length: 30
+      }, (_, i) => {
         const date = subDays(new Date(), 29 - i);
         return format(date, 'yyyy-MM-dd');
       });
-
-      const { data: evolutionData, error: evolutionError } = await supabase
-        .from('quotes_with_timeline')
-        .select('created_at, status')
-        .gte('created_at', format(subDays(new Date(), 29), 'yyyy-MM-dd'));
-
+      const {
+        data: evolutionData,
+        error: evolutionError
+      } = await supabase.from('quotes_with_timeline').select('created_at, status').gte('created_at', format(subDays(new Date(), 29), 'yyyy-MM-dd'));
       if (evolutionError) throw evolutionError;
-
       const evolution = last30Days.map(date => {
-        const dayQuotes = evolutionData?.filter(q => 
-          format(new Date(q.created_at), 'yyyy-MM-dd') === date
-        ) || [];
-
+        const dayQuotes = evolutionData?.filter(q => format(new Date(q.created_at), 'yyyy-MM-dd') === date) || [];
         return {
           date: format(new Date(date), 'dd/MM'),
           pending: dayQuotes.filter(q => q.status === 'pending').length,
@@ -279,31 +228,24 @@ const QuotesManagement: React.FC = () => {
           completed: dayQuotes.filter(q => q.status === 'completed').length
         };
       });
-
       setQuoteEvolution(evolution);
 
       // Top des réparations demandées
-      const { data: repairData, error: repairError } = await supabase
-        .from('quotes_with_timeline')
-        .select('repair_type');
-
+      const {
+        data: repairData,
+        error: repairError
+      } = await supabase.from('quotes_with_timeline').select('repair_type');
       if (repairError) throw repairError;
-
       const repairCounts = repairData?.reduce((acc, quote) => {
         acc[quote.repair_type] = (acc[quote.repair_type] || 0) + 1;
         return acc;
       }, {} as Record<string, number>) || {};
-
       const total = Object.values(repairCounts).reduce((a, b) => a + b, 0);
-      const topRepairsData = Object.entries(repairCounts)
-        .map(([repair_type, count]) => ({
-          repair_type,
-          count,
-          percentage: (count / total) * 100
-        }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 8);
-
+      const topRepairsData = Object.entries(repairCounts).map(([repair_type, count]) => ({
+        repair_type,
+        count,
+        percentage: count / total * 100
+      })).sort((a, b) => b.count - a.count).slice(0, 8);
       setTopRepairs(topRepairsData);
     } catch (error) {
       console.error('Erreur lors du chargement des analytics:', error);
@@ -311,14 +253,33 @@ const QuotesManagement: React.FC = () => {
       setAnalyticsLoading(false);
     }
   };
-
   const getStatusBadge = (status: string, createdAt?: string) => {
     const statusConfig = {
-      pending: { label: 'En attente', variant: 'secondary' as const, icon: Clock },
-      accepted: { label: 'Accepté', variant: 'default' as const, icon: CheckCircle },
-      rejected: { label: 'Refusé', variant: 'destructive' as const, icon: XCircle },
-      completed: { label: 'Terminé', variant: 'default' as const, icon: CheckCircle },
-      relaunch_needed: { label: 'À relancer', variant: 'destructive' as const, icon: AlertCircle }
+      pending: {
+        label: 'En attente',
+        variant: 'secondary' as const,
+        icon: Clock
+      },
+      accepted: {
+        label: 'Accepté',
+        variant: 'default' as const,
+        icon: CheckCircle
+      },
+      rejected: {
+        label: 'Refusé',
+        variant: 'destructive' as const,
+        icon: XCircle
+      },
+      completed: {
+        label: 'Terminé',
+        variant: 'default' as const,
+        icon: CheckCircle
+      },
+      relaunch_needed: {
+        label: 'À relancer',
+        variant: 'destructive' as const,
+        icon: AlertCircle
+      }
     };
 
     // Vérifier si le devis en attente dépasse 24h
@@ -327,30 +288,25 @@ const QuotesManagement: React.FC = () => {
       if (hoursElapsed > 24) {
         const config = statusConfig.relaunch_needed;
         const Icon = config.icon;
-        return (
-          <Badge variant={config.variant} className="flex items-center gap-1">
+        return <Badge variant={config.variant} className="flex items-center gap-1">
             <Icon className="h-3 w-3" />
             {config.label} ({Math.floor(hoursElapsed)}h)
-          </Badge>
-        );
+          </Badge>;
       }
     }
-
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     const Icon = config.icon;
-
-    return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
+    return <Badge variant={config.variant} className="flex items-center gap-1">
         <Icon className="h-3 w-3" />
         {config.label}
-      </Badge>
-    );
+      </Badge>;
   };
-
   const exportQuotes = async () => {
     try {
       const csvData = quotes.map(quote => ({
-        'Date de création': format(new Date(quote.created_at), 'dd/MM/yyyy HH:mm', { locale: fr }),
+        'Date de création': format(new Date(quote.created_at), 'dd/MM/yyyy HH:mm', {
+          locale: fr
+        }),
         'Client': quote.client_name,
         'Email': quote.client_email,
         'Téléphone': quote.client_phone,
@@ -362,20 +318,16 @@ const QuotesManagement: React.FC = () => {
         'Statut': quote.status,
         'Prix estimé': quote.estimated_price || ''
       }));
-
-      const csv = [
-        Object.keys(csvData[0]).join(','),
-        ...csvData.map(row => Object.values(row).join(','))
-      ].join('\n');
-
-      const blob = new Blob([csv], { type: 'text/csv' });
+      const csv = [Object.keys(csvData[0]).join(','), ...csvData.map(row => Object.values(row).join(','))].join('\n');
+      const blob = new Blob([csv], {
+        type: 'text/csv'
+      });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `devis_export_${format(new Date(), 'yyyy-MM-dd')}.csv`;
       a.click();
       window.URL.revokeObjectURL(url);
-
       toast({
         title: "Succès",
         description: "Export CSV téléchargé avec succès"
@@ -389,13 +341,11 @@ const QuotesManagement: React.FC = () => {
       });
     }
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Gestion des Devis</h2>
-          <p className="text-muted-foreground">Suivi et administration des demandes de devis</p>
+          
+          
         </div>
         <Button onClick={exportQuotes} variant="outline" className="flex items-center gap-2">
           <Download className="h-4 w-4" />
@@ -505,16 +455,18 @@ const QuotesManagement: React.FC = () => {
               <div className="flex flex-wrap gap-4 items-end">
                 <div className="flex-1 min-w-[200px]">
                   <label className="text-sm font-medium">Recherche</label>
-                  <Input
-                    placeholder="Client, email, marque..."
-                    value={filters.search}
-                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                  />
+                  <Input placeholder="Client, email, marque..." value={filters.search} onChange={e => setFilters({
+                  ...filters,
+                  search: e.target.value
+                })} />
                 </div>
 
                 <div className="min-w-[150px]">
                   <label className="text-sm font-medium">Statut</label>
-                  <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
+                  <Select value={filters.status} onValueChange={value => setFilters({
+                  ...filters,
+                  status: value
+                })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Tous les statuts" />
                     </SelectTrigger>
@@ -530,26 +482,26 @@ const QuotesManagement: React.FC = () => {
 
                 <div className="min-w-[150px]">
                   <label className="text-sm font-medium">Date début</label>
-                  <Input
-                    type="date"
-                    value={filters.dateFrom}
-                    onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                  />
+                  <Input type="date" value={filters.dateFrom} onChange={e => setFilters({
+                  ...filters,
+                  dateFrom: e.target.value
+                })} />
                 </div>
 
                 <div className="min-w-[150px]">
                   <label className="text-sm font-medium">Date fin</label>
-                  <Input
-                    type="date"
-                    value={filters.dateTo}
-                    onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                  />
+                  <Input type="date" value={filters.dateTo} onChange={e => setFilters({
+                  ...filters,
+                  dateTo: e.target.value
+                })} />
                 </div>
 
-                <Button 
-                  variant="outline" 
-                  onClick={() => setFilters({ status: 'all', dateFrom: '', dateTo: '', search: '' })}
-                >
+                <Button variant="outline" onClick={() => setFilters({
+                status: 'all',
+                dateFrom: '',
+                dateTo: '',
+                search: ''
+              })}>
                   Réinitialiser
                 </Button>
               </div>
@@ -565,18 +517,12 @@ const QuotesManagement: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <div className="flex justify-center py-8">
+              {loading ? <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : quotes.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                </div> : quotes.length === 0 ? <div className="text-center py-8 text-muted-foreground">
                   Aucun devis trouvé
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {quotes.map((quote) => (
-                    <div key={quote.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                </div> : <div className="space-y-4">
+                  {quotes.map(quote => <div key={quote.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
@@ -598,13 +544,13 @@ const QuotesManagement: React.FC = () => {
                         </div>
                         <div className="text-right">
                           <p className="text-sm text-muted-foreground">
-                            {format(new Date(quote.created_at), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                            {format(new Date(quote.created_at), 'dd/MM/yyyy HH:mm', {
+                        locale: fr
+                      })}
                           </p>
-                          {quote.estimated_price && (
-                            <p className="text-sm font-medium text-primary">
+                          {quote.estimated_price && <p className="text-sm font-medium text-primary">
                               {quote.estimated_price}€
-                            </p>
-                          )}
+                            </p>}
                         </div>
                       </div>
 
@@ -613,37 +559,21 @@ const QuotesManagement: React.FC = () => {
                           {quote.issue_description}
                         </p>
                         <div className="flex gap-2 ml-4">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => setSelectedQuote(quote)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => setSelectedQuote(quote)}>
                             <Eye className="h-4 w-4" />
                           </Button>
-                          {quote.status === 'pending' && (
-                            <>
-                              <Button 
-                                size="sm" 
-                                variant="default"
-                                onClick={() => updateQuoteStatus(quote.id, 'accepted')}
-                              >
+                          {quote.status === 'pending' && <>
+                              <Button size="sm" variant="default" onClick={() => updateQuoteStatus(quote.id, 'accepted')}>
                                 <CheckCircle className="h-4 w-4" />
                               </Button>
-                              <Button 
-                                size="sm" 
-                                variant="destructive"
-                                onClick={() => updateQuoteStatus(quote.id, 'rejected')}
-                              >
+                              <Button size="sm" variant="destructive" onClick={() => updateQuoteStatus(quote.id, 'rejected')}>
                                 <XCircle className="h-4 w-4" />
                               </Button>
-                            </>
-                          )}
+                            </>}
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    </div>)}
+                </div>}
             </CardContent>
           </Card>
         </TabsContent>
@@ -661,50 +591,22 @@ const QuotesManagement: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {analyticsLoading ? (
-                <div className="flex justify-center py-8">
+              {analyticsLoading ? <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                <div className="h-80">
+                </div> : <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={quoteEvolution}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="date" />
                       <YAxis />
                       <Tooltip />
-                      <Line 
-                        type="monotone" 
-                        dataKey="pending" 
-                        stroke="#f59e0b" 
-                        strokeWidth={2}
-                        name="En attente"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="accepted" 
-                        stroke="#10b981" 
-                        strokeWidth={2}
-                        name="Acceptés"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="rejected" 
-                        stroke="#ef4444" 
-                        strokeWidth={2}
-                        name="Refusés"
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="completed" 
-                        stroke="#3b82f6" 
-                        strokeWidth={2}
-                        name="Terminés"
-                      />
+                      <Line type="monotone" dataKey="pending" stroke="#f59e0b" strokeWidth={2} name="En attente" />
+                      <Line type="monotone" dataKey="accepted" stroke="#10b981" strokeWidth={2} name="Acceptés" />
+                      <Line type="monotone" dataKey="rejected" stroke="#ef4444" strokeWidth={2} name="Refusés" />
+                      <Line type="monotone" dataKey="completed" stroke="#3b82f6" strokeWidth={2} name="Terminés" />
                     </LineChart>
                   </ResponsiveContainer>
-                </div>
-              )}
+                </div>}
             </CardContent>
           </Card>
         </TabsContent>
@@ -718,22 +620,14 @@ const QuotesManagement: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {analyticsLoading ? (
-                <div className="flex justify-center py-8">
+              {analyticsLoading ? <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                <div className="space-y-6">
+                </div> : <div className="space-y-6">
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={topRepairs}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="repair_type" 
-                          angle={-45}
-                          textAnchor="end"
-                          height={80}
-                        />
+                        <XAxis dataKey="repair_type" angle={-45} textAnchor="end" height={80} />
                         <YAxis />
                         <Tooltip />
                         <Bar dataKey="count" fill="#3b82f6" />
@@ -742,8 +636,7 @@ const QuotesManagement: React.FC = () => {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {topRepairs.map((repair, index) => (
-                      <div key={repair.repair_type} className="flex items-center justify-between p-3 border rounded-lg">
+                    {topRepairs.map((repair, index) => <div key={repair.repair_type} className="flex items-center justify-between p-3 border rounded-lg">
                         <div>
                           <p className="font-medium">{repair.repair_type}</p>
                           <p className="text-sm text-muted-foreground">
@@ -753,19 +646,16 @@ const QuotesManagement: React.FC = () => {
                         <Badge variant={index < 3 ? "default" : "secondary"}>
                           #{index + 1}
                         </Badge>
-                      </div>
-                    ))}
+                      </div>)}
                   </div>
-                </div>
-              )}
+                </div>}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
       {/* Modal de détail */}
-      {selectedQuote && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      {selectedQuote && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
@@ -809,36 +699,24 @@ const QuotesManagement: React.FC = () => {
               </div>
 
               <div className="flex gap-2 pt-4">
-                {selectedQuote.status === 'pending' && (
-                  <>
-                    <Button 
-                      className="flex-1"
-                      onClick={() => {
-                        updateQuoteStatus(selectedQuote.id, 'accepted');
-                        setSelectedQuote(null);
-                      }}
-                    >
+                {selectedQuote.status === 'pending' && <>
+                    <Button className="flex-1" onClick={() => {
+                updateQuoteStatus(selectedQuote.id, 'accepted');
+                setSelectedQuote(null);
+              }}>
                       Accepter
                     </Button>
-                    <Button 
-                      variant="destructive"
-                      className="flex-1"
-                      onClick={() => {
-                        updateQuoteStatus(selectedQuote.id, 'rejected');
-                        setSelectedQuote(null);
-                      }}
-                    >
+                    <Button variant="destructive" className="flex-1" onClick={() => {
+                updateQuoteStatus(selectedQuote.id, 'rejected');
+                setSelectedQuote(null);
+              }}>
                       Refuser
                     </Button>
-                  </>
-                )}
+                  </>}
               </div>
             </CardContent>
           </Card>
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 };
-
 export default QuotesManagement;
