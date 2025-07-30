@@ -66,8 +66,8 @@ const HeroWithIntegratedSearch: React.FC<HeroWithIntegratedSearchProps> = ({
       return;
     }
     
-    setSelectedDeviceType(deviceTypeId);
-    // Continuer avec le processus de recherche avancée
+    // Redirection vers la recherche avancée avec le type de produit présélectionné
+    window.location.href = `/search?deviceType=${deviceTypeId}`;
   };
 
   const handleAdvancedSearchToggle = () => {
