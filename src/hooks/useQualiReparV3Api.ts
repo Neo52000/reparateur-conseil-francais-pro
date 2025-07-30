@@ -1,14 +1,83 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import type { 
-  QualiReparV3AuthResponse,
-  QualiReparV3NewClaimRequest,
-  QualiReparV3NewClaimResponse,
-  QualiReparV3UploadRequest,
-  QualiReparV3UploadResponse,
-  QualiReparV3ConfirmResponse
-} from '@/types/qualirepar';
+
+interface QualiReparV3AuthResponse {
+  AccessToken: string;
+  ExpiresIn: number;
+  AllowedRepairer: string[];
+  isIntermediary: boolean;
+}
+
+interface QualiReparV3NewClaimRequest {
+  RepairDate: string;
+  PurchaseOrderByCustomer?: string;
+  RepairPlaceID: string;
+  RepairerId: string;
+  Product: {
+    ProductID: string;
+    BrandID: string;
+    ProductIdentificationNumber: string;
+    RepairTypeCode?: string;
+    IrisCode?: string;
+    CommercialReference?: string;
+    PartnerProduct?: string;
+  };
+  SpareParts?: {
+    NewSparePartsAmount?: number;
+    SecondHandSparePartsAmount?: number;
+    PiecSparePartsAmount?: number;
+  };
+  Customer: {
+    Title: string;
+    LastName: string;
+    FirstName: string;
+    Email: string;
+    PhoneNumber: string;
+    StreetLine1: string;
+    PostalCode: string;
+    City: string;
+    Country: string;
+  };
+  Bill: {
+    SparePartsCost?: {
+      amount: number;
+      currency: string;
+    };
+    TotalAmountInclVAT: {
+      amount: number;
+      currency: string;
+    };
+    AmountCovered: {
+      amount: number;
+      currency: string;
+    };
+  };
+}
+
+interface QualiReparV3NewClaimResponse {
+  ReimbursementClaimID: string;
+  RequestStatus: string;
+  RepairDate: string;
+  PurchaseOrderByCustomer?: string;
+  AttachedFiles: any[];
+  creationDate: string;
+}
+
+interface QualiReparV3UploadRequest {
+  FileName: string;
+  FileType: 'serial_tag' | 'invoice' | 'device_picture' | 'claim_request';
+  FileSizeInMB: number;
+}
+
+interface QualiReparV3UploadResponse {
+  url: string;
+}
+
+interface QualiReparV3ConfirmResponse {
+  RequestStatus: string;
+  SapServiceOrder: string;
+}
 
 export const useQualiReparV3Api = () => {
   const [loading, setLoading] = useState(false);
@@ -159,13 +228,13 @@ export const useQualiReparV3Api = () => {
 
     setLoading(true);
     try {
-      const { data } = await supabase
+      const result = await supabase
         .from('qualirepar_dossiers')
         .select('*')
         .eq('reimbursement_claim_id', reimbursementClaimId)
         .single();
 
-      return data;
+      return result.data;
     } catch (error) {
       console.error('V3 Get claim status error:', error);
       toast.error('Erreur lors de la récupération du statut');

@@ -1,286 +1,330 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { QualiReparDossier } from '@/types/qualirepar';
 import { toast } from 'sonner';
 
-interface ValidationRule {
+interface ValidationError {
   field: string;
-  type: 'required' | 'email' | 'phone' | 'siret' | 'amount' | 'date' | 'length';
   message: string;
-  params?: any;
+  severity: 'error' | 'warning' | 'info';
 }
 
 interface ValidationResult {
   isValid: boolean;
-  errors: { [key: string]: string };
-  warnings: { [key: string]: string };
+  errors: ValidationError[];
+  warnings: ValidationError[];
+  canProceed: boolean;
 }
 
 export const useQualiReparValidation = () => {
   const [validating, setValidating] = useState(false);
+  const [lastValidation, setLastValidation] = useState<ValidationResult | null>(null);
 
-  // Règles de validation pour les métadonnées QualiRépar
-  const metadataRules: ValidationRule[] = [
-    { field: 'client_name', type: 'required', message: 'Le nom du client est requis' },
-    { field: 'client_name', type: 'length', message: 'Le nom doit contenir au moins 2 caractères', params: { min: 2 } },
-    { field: 'client_email', type: 'required', message: 'L\'email du client est requis' },
-    { field: 'client_email', type: 'email', message: 'Format d\'email invalide' },
-    { field: 'client_address', type: 'required', message: 'L\'adresse du client est requise' },
-    { field: 'client_postal_code', type: 'required', message: 'Le code postal est requis' },
-    { field: 'client_city', type: 'required', message: 'La ville est requise' },
-    { field: 'product_category', type: 'required', message: 'La catégorie de produit est requise' },
-    { field: 'product_brand', type: 'required', message: 'La marque du produit est requise' },
-    { field: 'product_model', type: 'required', message: 'Le modèle du produit est requis' },
-    { field: 'repair_description', type: 'required', message: 'La description de la réparation est requise' },
-    { field: 'repair_description', type: 'length', message: 'La description doit contenir au moins 10 caractères', params: { min: 10 } },
-    { field: 'repair_cost', type: 'required', message: 'Le coût de réparation est requis' },
-    { field: 'repair_cost', type: 'amount', message: 'Le coût doit être supérieur à 0', params: { min: 0.01 } },
-    { field: 'repair_date', type: 'required', message: 'La date de réparation est requise' },
-    { field: 'repair_date', type: 'date', message: 'La date de réparation ne peut pas être dans le futur' },
-    { field: 'requested_bonus_amount', type: 'required', message: 'Le montant du bonus demandé est requis' },
-    { field: 'requested_bonus_amount', type: 'amount', message: 'Le montant du bonus doit être supérieur à 0', params: { min: 0.01 } }
-  ];
-
-  const validateField = (value: any, rule: ValidationRule): string | null => {
-    switch (rule.type) {
-      case 'required':
-        if (!value || (typeof value === 'string' && !value.trim())) {
-          return rule.message;
-        }
-        break;
-
-      case 'email':
-        if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          return rule.message;
-        }
-        break;
-
-      case 'phone':
-        if (value && !/^(?:\+33|0)[1-9](?:[0-9]{8})$/.test(value.replace(/\s/g, ''))) {
-          return rule.message;
-        }
-        break;
-
-      case 'siret':
-        if (value && !validateSiret(value)) {
-          return rule.message;
-        }
-        break;
-
-      case 'amount':
-        const numValue = parseFloat(value);
-        if (value && (isNaN(numValue) || numValue < (rule.params?.min || 0))) {
-          return rule.message;
-        }
-        break;
-
-      case 'date':
-        if (value) {
-          const date = new Date(value);
-          const today = new Date();
-          today.setHours(23, 59, 59, 999); // Fin de journée
-          if (date > today) {
-            return rule.message;
-          }
-        }
-        break;
-
-      case 'length':
-        if (value && typeof value === 'string') {
-          if (rule.params?.min && value.length < rule.params.min) {
-            return rule.message;
-          }
-          if (rule.params?.max && value.length > rule.params.max) {
-            return rule.message;
-          }
-        }
-        break;
-    }
-
-    return null;
-  };
-
-  const validateSiret = (siret: string): boolean => {
-    if (!siret || siret.length !== 14) return false;
-    
-    const digits = siret.replace(/\s/g, '').split('').map(Number);
-    if (digits.some(isNaN)) return false;
-
-    let sum = 0;
-    for (let i = 0; i < 14; i++) {
-      let digit = digits[i];
-      if (i % 2 === 1) {
-        digit *= 2;
-        if (digit > 9) {
-          digit = Math.floor(digit / 10) + (digit % 10);
-        }
-      }
-      sum += digit;
-    }
-
-    return sum % 10 === 0;
-  };
-
-  const validateMetadata = useCallback((data: any): ValidationResult => {
-    const errors: { [key: string]: string } = {};
-    const warnings: { [key: string]: string } = {};
-
-    // Appliquer toutes les règles de validation
-    metadataRules.forEach(rule => {
-      const error = validateField(data[rule.field], rule);
-      if (error) {
-        errors[rule.field] = error;
-      }
-    });
-
-    // Vérifications spéciales et avertissements
-    if (data.repair_cost && data.requested_bonus_amount) {
-      const repairCost = parseFloat(data.repair_cost);
-      const bonusAmount = parseFloat(data.requested_bonus_amount);
-      
-      if (bonusAmount > repairCost) {
-        warnings.requested_bonus_amount = 'Le bonus demandé est supérieur au coût de réparation';
-      }
-      
-      if (bonusAmount > repairCost * 0.5) {
-        warnings.requested_bonus_amount = 'Le bonus demandé représente plus de 50% du coût de réparation';
-      }
-    }
-
-    // Vérifier la cohérence des dates
-    if (data.repair_date) {
-      const repairDate = new Date(data.repair_date);
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-      
-      if (repairDate < sixMonthsAgo) {
-        warnings.repair_date = 'La réparation date de plus de 6 mois, cela pourrait affecter l\'éligibilité';
-      }
-    }
-
-    return {
-      isValid: Object.keys(errors).length === 0,
-      errors,
-      warnings
-    };
-  }, []);
-
-  const validateEligibility = useCallback(async (data: any) => {
+  const validateDossier = useCallback(async (dossier: Partial<QualiReparDossier>): Promise<ValidationResult> => {
     setValidating(true);
+    const errors: ValidationError[] = [];
+    const warnings: ValidationError[] = [];
+
     try {
-      // Vérifier l'éligibilité via l'API/cache local
-      const { data: eligibilityRules, error } = await supabase
-        .from('qualirepar_eligibility_cache')
-        .select('*')
-        .eq('product_category', data.product_category)
-        .eq('is_active', true)
-        .gte('valid_until', new Date().toISOString().split('T')[0])
-        .order('product_brand', { nullsLast: true })
-        .order('product_model', { nullsLast: true });
-
-      if (error) throw error;
-
-      let bestMatch = null;
-      let eligibilityScore = 0;
-
-      // Trouver la règle la plus spécifique qui correspond
-      eligibilityRules?.forEach(rule => {
-        let score = 1; // Score de base pour la catégorie
-
-        // Bonus pour correspondance de marque
-        if (rule.product_brand && rule.product_brand.toLowerCase() === data.product_brand?.toLowerCase()) {
-          score += 2;
-        } else if (rule.product_brand && rule.product_brand.toLowerCase() !== data.product_brand?.toLowerCase()) {
-          return; // Pas de correspondance, ignorer cette règle
-        }
-
-        // Bonus pour correspondance de modèle
-        if (rule.product_model && rule.product_model.toLowerCase() === data.product_model?.toLowerCase()) {
-          score += 3;
-        } else if (rule.product_model && rule.product_model.toLowerCase() !== data.product_model?.toLowerCase()) {
-          return; // Pas de correspondance, ignorer cette règle
-        }
-
-        // Vérifier le coût minimum
-        if (rule.min_repair_cost && data.repair_cost < rule.min_repair_cost) {
-          return; // Coût insuffisant
-        }
-
-        if (score > eligibilityScore) {
-          eligibilityScore = score;
-          bestMatch = rule;
-        }
-      });
-
-      if (!bestMatch) {
-        return {
-          isEligible: false,
-          reason: 'Aucune règle d\'éligibilité trouvée pour ce produit',
-          maxBonusAmount: 0
-        };
+      // Validation des champs obligatoires
+      if (!dossier.client_email) {
+        errors.push({
+          field: 'client_email',
+          message: 'L\'email du client est obligatoire',
+          severity: 'error'
+        });
       }
 
-      const isEligible = data.repair_cost >= (bestMatch.min_repair_cost || 0);
-      const maxBonusAmount = Math.min(
-        bestMatch.max_bonus_amount,
-        data.repair_cost * 0.5 // Maximum 50% du coût de réparation
-      );
+      if (!dossier.client_address) {
+        errors.push({
+          field: 'client_address',
+          message: 'L\'adresse du client est obligatoire',
+          severity: 'error'
+        });
+      }
 
-      return {
-        isEligible,
-        reason: isEligible ? 'Produit éligible au bonus QualiRépar' : 'Coût de réparation insuffisant',
-        maxBonusAmount,
-        ecoOrganism: bestMatch.eco_organism,
-        rule: bestMatch
+      if (!dossier.product_category) {
+        errors.push({
+          field: 'product_category',
+          message: 'La catégorie de produit est obligatoire',
+          severity: 'error'
+        });
+      }
+
+      if (!dossier.repair_cost || dossier.repair_cost <= 0) {
+        errors.push({
+          field: 'repair_cost',
+          message: 'Le coût de réparation doit être supérieur à 0',
+          severity: 'error'
+        });
+      }
+
+      if (!dossier.requested_bonus_amount || dossier.requested_bonus_amount <= 0) {
+        errors.push({
+          field: 'requested_bonus_amount',
+          message: 'Le montant du bonus demandé doit être supérieur à 0',
+          severity: 'error'
+        });
+      }
+
+      // Validation des montants
+      if (dossier.repair_cost && dossier.requested_bonus_amount) {
+        if (dossier.requested_bonus_amount > dossier.repair_cost) {
+          errors.push({
+            field: 'requested_bonus_amount',
+            message: 'Le bonus demandé ne peut pas être supérieur au coût de réparation',
+            severity: 'error'
+          });
+        }
+      }
+
+      // Validation de la date de réparation
+      if (dossier.repair_date) {
+        const repairDate = new Date(dossier.repair_date);
+        const now = new Date();
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(now.getMonth() - 6);
+
+        if (repairDate > now) {
+          errors.push({
+            field: 'repair_date',
+            message: 'La date de réparation ne peut pas être dans le futur',
+            severity: 'error'
+          });
+        }
+
+        if (repairDate < sixMonthsAgo) {
+          warnings.push({
+            field: 'repair_date',
+            message: 'La date de réparation est antérieure à 6 mois',
+            severity: 'warning'
+          });
+        }
+      }
+
+      // Validation de l'email
+      if (dossier.client_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dossier.client_email)) {
+        errors.push({
+          field: 'client_email',
+          message: 'Format d\'email invalide',
+          severity: 'error'
+        });
+      }
+
+      // Validation du téléphone (optionnel mais si présent doit être valide)
+      if (dossier.client_phone && !/^[0-9\s\-\+\(\)]{10,}$/.test(dossier.client_phone)) {
+        warnings.push({
+          field: 'client_phone',
+          message: 'Format de téléphone potentiellement invalide',
+          severity: 'warning'
+        });
+      }
+
+      // Validation du code postal
+      if (dossier.client_postal_code && !/^[0-9]{5}$/.test(dossier.client_postal_code)) {
+        errors.push({
+          field: 'client_postal_code',
+          message: 'Le code postal doit contenir 5 chiffres',
+          severity: 'error'
+        });
+      }
+
+      // Validation croisée avec les règles d'éligibilité
+      if (dossier.product_category && dossier.requested_bonus_amount) {
+        const { data: eligibilityRules, error } = await supabase
+          .from('qualirepar_eligibility_cache')
+          .select('*')
+          .eq('product_category', dossier.product_category)
+          .eq('is_active', true)
+          .gte('valid_until', new Date().toISOString().split('T')[0])
+          .order('created_at', { ascending: false })
+          .order('updated_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (eligibilityRules && eligibilityRules.length > 0) {
+          const applicableRule = eligibilityRules.find(rule => 
+            (!rule.product_brand || rule.product_brand === dossier.product_brand) &&
+            (!rule.product_model || rule.product_model === dossier.product_model) &&
+            (!rule.min_repair_cost || dossier.repair_cost! >= rule.min_repair_cost)
+          );
+
+          if (!applicableRule) {
+            warnings.push({
+              field: 'product_category',
+              message: 'Aucune règle d\'éligibilité trouvée pour ce produit',
+              severity: 'warning'
+            });
+          } else if (dossier.requested_bonus_amount > applicableRule.max_bonus_amount) {
+            errors.push({
+              field: 'requested_bonus_amount',
+              message: `Le bonus maximum pour ce produit est de ${applicableRule.max_bonus_amount}€`,
+              severity: 'error'
+            });
+          }
+        }
+      }
+
+      const result: ValidationResult = {
+        isValid: errors.length === 0,
+        errors,
+        warnings,
+        canProceed: errors.length === 0
       };
+
+      setLastValidation(result);
+      return result;
 
     } catch (error) {
-      console.error('Error validating eligibility:', error);
-      toast.error('Erreur lors de la vérification d\'éligibilité');
-      return {
-        isEligible: false,
-        reason: 'Erreur lors de la vérification',
-        maxBonusAmount: 0
+      console.error('Validation error:', error);
+      const result: ValidationResult = {
+        isValid: false,
+        errors: [{
+          field: 'general',
+          message: 'Erreur lors de la validation',
+          severity: 'error'
+        }],
+        warnings: [],
+        canProceed: false
       };
+
+      setLastValidation(result);
+      return result;
     } finally {
       setValidating(false);
     }
   }, []);
 
-  const validateDocuments = useCallback((documents: any[]): ValidationResult => {
-    const errors: { [key: string]: string } = {};
-    const requiredDocs = ['FACTURE', 'BON_DEPOT', 'SERIALTAG'];
-    
-    const uploadedTypes = documents.map(doc => doc.official_document_type || doc.document_type);
-    
-    requiredDocs.forEach(docType => {
-      if (!uploadedTypes.includes(docType)) {
-        errors[docType] = `Document ${docType} requis`;
-      }
-    });
+  const validateField = useCallback(async (field: string, value: any, context?: Partial<QualiReparDossier>): Promise<ValidationError[]> => {
+    const errors: ValidationError[] = [];
 
-    // Vérifier la qualité des documents
-    documents.forEach(doc => {
-      if (doc.file_size && doc.file_size > 10 * 1024 * 1024) { // 10MB
-        errors[doc.document_type] = 'Fichier trop volumineux (max 10MB)';
-      }
-      
-      if (doc.ocr_confidence && doc.ocr_confidence < 0.7) {
-        errors[doc.document_type] = 'Qualité du document insuffisante pour la lecture automatique';
-      }
-    });
+    switch (field) {
+      case 'client_email':
+        if (!value) {
+          errors.push({
+            field,
+            message: 'L\'email est obligatoire',
+            severity: 'error'
+          });
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          errors.push({
+            field,
+            message: 'Format d\'email invalide',
+            severity: 'error'
+          });
+        }
+        break;
 
-    return {
-      isValid: Object.keys(errors).length === 0,
-      errors,
-      warnings: {}
-    };
+      case 'repair_cost':
+        if (!value || value <= 0) {
+          errors.push({
+            field,
+            message: 'Le coût de réparation doit être supérieur à 0',
+            severity: 'error'
+          });
+        }
+        break;
+
+      case 'requested_bonus_amount':
+        if (!value || value <= 0) {
+          errors.push({
+            field,
+            message: 'Le montant du bonus doit être supérieur à 0',
+            severity: 'error'
+          });
+        } else if (context?.repair_cost && value > context.repair_cost) {
+          errors.push({
+            field,
+            message: 'Le bonus ne peut pas être supérieur au coût de réparation',
+            severity: 'error'
+          });
+        }
+        break;
+
+      case 'repair_date':
+        if (value) {
+          const date = new Date(value);
+          const now = new Date();
+          const sixMonthsAgo = new Date();
+          sixMonthsAgo.setMonth(now.getMonth() - 6);
+
+          if (date > now) {
+            errors.push({
+              field,
+              message: 'La date ne peut pas être dans le futur',
+              severity: 'error'
+            });
+          } else if (date < sixMonthsAgo) {
+            errors.push({
+              field,
+              message: 'La date est antérieure à 6 mois',
+              severity: 'warning'
+            });
+          }
+        }
+        break;
+
+      case 'client_postal_code':
+        if (value && !/^[0-9]{5}$/.test(value)) {
+          errors.push({
+            field,
+            message: 'Le code postal doit contenir 5 chiffres',
+            severity: 'error'
+          });
+        }
+        break;
+    }
+
+    return errors;
+  }, []);
+
+  const checkEligibility = useCallback(async (dossier: Partial<QualiReparDossier>) => {
+    if (!dossier.product_category) {
+      return { isEligible: false, reason: 'Catégorie de produit manquante' };
+    }
+
+    try {
+      const { data: rules, error } = await supabase
+        .from('qualirepar_eligibility_cache')
+        .select('*')
+        .eq('product_category', dossier.product_category)
+        .eq('is_active', true)
+        .gte('valid_until', new Date().toISOString().split('T')[0]);
+
+      if (error) throw error;
+
+      if (!rules || rules.length === 0) {
+        return { isEligible: false, reason: 'Aucune règle d\'éligibilité trouvée' };
+      }
+
+      const applicableRule = rules.find(rule => 
+        (!rule.product_brand || rule.product_brand === dossier.product_brand) &&
+        (!rule.product_model || rule.product_model === dossier.product_model) &&
+        (!rule.min_repair_cost || (dossier.repair_cost && dossier.repair_cost >= rule.min_repair_cost))
+      );
+
+      if (!applicableRule) {
+        return { isEligible: false, reason: 'Critères d\'éligibilité non remplis' };
+      }
+
+      return {
+        isEligible: true,
+        rule: applicableRule,
+        maxBonusAmount: applicableRule.max_bonus_amount,
+        ecoOrganism: applicableRule.eco_organism
+      };
+
+    } catch (error) {
+      console.error('Eligibility check error:', error);
+      return { isEligible: false, reason: 'Erreur lors de la vérification' };
+    }
   }, []);
 
   return {
     validating,
-    validateMetadata,
-    validateEligibility,
-    validateDocuments,
-    validateSiret
+    lastValidation,
+    validateDossier,
+    validateField,
+    checkEligibility
   };
 };

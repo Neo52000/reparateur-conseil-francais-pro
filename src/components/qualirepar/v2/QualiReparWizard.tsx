@@ -191,9 +191,9 @@ const QualiReparWizard: React.FC<QualiReparWizardProps> = ({
                 </p>
               </div>
             </div>
-            {dossier?.temporary_claim_id && (
+            {(dossier?.reimbursement_claim_id || dossier?.temporary_claim_id) && (
               <Badge variant="outline" className="bg-emerald-50 text-emerald-700">
-                ID: {dossier.temporary_claim_id}
+                ID: {dossier.reimbursement_claim_id || dossier.temporary_claim_id}
               </Badge>
             )}
           </div>

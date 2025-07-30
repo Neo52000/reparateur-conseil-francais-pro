@@ -201,11 +201,11 @@ const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        {dossier.temporary_claim_id && (
+        {(dossier.reimbursement_claim_id || dossier.temporary_claim_id) && (
           <Alert className="border-blue-200 bg-blue-50">
             <FileText className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-blue-800">
-              ID temporaire de demande: <strong>{dossier.temporary_claim_id}</strong>
+              ID temporaire de demande: <strong>{dossier.reimbursement_claim_id || dossier.temporary_claim_id}</strong>
             </AlertDescription>
           </Alert>
         )}

@@ -125,7 +125,7 @@ export type QualiReparV3RejectReason =
   | '14 : PIEC (manque de consentement du consommateur'
   | '15 : Plaque signalétique du téléphone portable manquant';
 
-// ============= INTERNAL TYPES =============
+// ============= INTERNAL TYPES (with backward compatibility) =============
 
 export interface QualiReparDossier {
   id: string;
@@ -134,10 +134,11 @@ export interface QualiReparDossier {
   repair_order_id?: string;
   pos_transaction_id?: string;
   
-  // Informations client (mapped to v3 Customer)
+  // Client information (v3 compatible with backward compatibility)
   client_title?: string; // v3: Title
-  client_first_name: string; // v3: FirstName
-  client_last_name: string; // v3: LastName
+  client_first_name?: string; // v3: FirstName
+  client_last_name?: string; // v3: LastName
+  client_name?: string; // Legacy field (computed from first_name + last_name)
   client_email: string; // v3: Email
   client_phone?: string; // v3: PhoneNumber
   client_address: string; // v3: StreetLine1
@@ -145,7 +146,7 @@ export interface QualiReparDossier {
   client_city: string; // v3: City
   client_country?: string; // v3: Country (default: FR)
   
-  // Informations produit (mapped to v3 Product)
+  // Product information (v3 compatible)
   product_id?: string; // v3: ProductID
   product_category: string;
   product_brand: string;
@@ -156,26 +157,26 @@ export interface QualiReparDossier {
   repair_type_code?: string; // v3: RepairTypeCode
   iris_code?: string; // v3: IrisCode
   
-  // Lieu de réparation (v3)
+  // Repair location (v3)
   repair_place_id?: string; // v3: RepairPlaceID
   
-  // Pièces détachées (mapped to v3 SpareParts)
+  // Spare parts (v3 compatible)
   new_spare_parts_amount?: number;
   second_hand_spare_parts_amount?: number;
   piec_spare_parts_amount?: number;
   spare_parts_cost?: number;
   
-  // Détails de la réparation
+  // Repair details
   repair_description: string;
   repair_cost: number; // v3: Bill.TotalAmountInclVAT.amount
   repair_date: string; // v3: RepairDate
   
-  // Informations bonus
+  // Bonus information
   eligibility_rule_id?: string;
   requested_bonus_amount: number; // v3: Bill.AmountCovered.amount
   eco_organism: string;
   
-  // Statut et suivi (mapped to v3)
+  // Status and tracking (v3 compatible with legacy)
   status: 'draft' | 'metadata_complete' | 'documents_uploaded' | 'ready_to_submit' | 'submitted' | 'processing' | 'approved' | 'paid' | 'rejected';
   v3_request_status?: QualiReparV3Status; // v3: RequestStatus
   submission_date?: string;
@@ -184,8 +185,10 @@ export interface QualiReparDossier {
   rejection_reason?: string;
   v3_reject_reason?: QualiReparV3RejectReason;
   
-  // API v3 Integration
+  // API v3 Integration (with legacy support)
   reimbursement_claim_id?: string; // v3: ReimbursementClaimID
+  temporary_claim_id?: string; // Legacy field for backward compatibility
+  official_claim_id?: string; // Legacy field
   sap_service_order?: string; // v3: SapServiceOrder
   purchase_order_by_customer?: string; // v3: PurchaseOrderByCustomer
   api_upload_urls?: any;
@@ -202,15 +205,16 @@ export interface QualiReparDossier {
 export interface QualiReparDocument {
   id: string;
   dossier_id: string;
-  // v3 official document types
-  document_type: 'serial_tag' | 'invoice' | 'device_picture' | 'claim_request';
+  // v3 official document types (with legacy support)
+  document_type: 'serial_tag' | 'invoice' | 'device_picture' | 'claim_request' | 'FACTURE' | 'BON_DEPOT' | 'SERIALTAG' | 'PHOTO_PRODUIT' | 'JUSTIFICATIF_COMPLEMENTAIRE';
+  official_document_type?: string; // For v3 compatibility
   file_name: string;
   file_path: string;
   file_size: number;
   file_size_mb?: number; // v3: FileSizeInMB
   mime_type: string;
   upload_url?: string; // v3: from upload-file endpoint
-  upload_status?: 'pending' | 'url_generated' | 'uploaded' | 'confirmed';
+  upload_status?: 'pending' | 'url_generated' | 'uploaded' | 'completed' | 'confirmed';
   ocr_data?: any;
   is_validated: boolean;
   validation_notes?: string;
@@ -262,13 +266,17 @@ export interface DossierCreationData {
   repairOrderId?: string;
   posTransactionId?: string;
   
-  // Informations client
-  clientName: string;
+  // Informations client (compatible v3)
+  clientName?: string; // Legacy field
+  clientTitle?: string;
+  clientFirstName?: string;
+  clientLastName?: string;
   clientEmail: string;
   clientPhone?: string;
   clientAddress: string;
   clientPostalCode: string;
   clientCity: string;
+  clientCountry?: string;
   
   // Informations produit
   productCategory: string;
@@ -284,3 +292,10 @@ export interface DossierCreationData {
   // Bonus demandé
   requestedBonusAmount: number;
 }
+
+// Helper type for complete backward compatibility
+export type LegacyQualiReparDossier = QualiReparDossier & {
+  // Ensure all legacy fields are available
+  client_name: string;
+  temporary_claim_id: string;
+};

@@ -241,7 +241,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
             <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
               <span className="font-medium">ID temporaire de demande:</span>
               <Badge variant="outline" className="bg-white">
-                {dossier.temporary_claim_id}
+                {dossier.reimbursement_claim_id || dossier.temporary_claim_id}
               </Badge>
             </div>
             
