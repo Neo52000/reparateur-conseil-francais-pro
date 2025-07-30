@@ -70,6 +70,10 @@ const HeroWithIntegratedSearch: React.FC<HeroWithIntegratedSearchProps> = ({
     // Continuer avec le processus de recherche avancée
   };
 
+  const handleAdvancedSearchToggle = () => {
+    setShowAdvancedSearch(!showAdvancedSearch);
+  };
+
   const handleQuickSearchClick = () => {
     if (!user) {
       // Redirection directe vers la page d'authentification
@@ -120,7 +124,7 @@ const HeroWithIntegratedSearch: React.FC<HeroWithIntegratedSearchProps> = ({
                 </Button>
 
                 <Button 
-                  onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                  onClick={handleAdvancedSearchToggle}
                   size="lg" 
                   variant="outline" 
                   className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-3"
