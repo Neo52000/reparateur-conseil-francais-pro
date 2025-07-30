@@ -61,12 +61,7 @@ const HeroWithIntegratedSearch: React.FC<HeroWithIntegratedSearchProps> = ({
 
   const handleDeviceTypeSelect = (deviceTypeId: string) => {
     if (!user) {
-      toast({
-        title: "Connexion requise",
-        description: "Vous devez vous connecter pour accéder à la recherche avancée.",
-        variant: "destructive",
-      });
-      // Rediriger vers la page d'authentification
+      // Redirection directe vers la page d'authentification
       window.location.href = '/auth';
       return;
     }
@@ -81,11 +76,7 @@ const HeroWithIntegratedSearch: React.FC<HeroWithIntegratedSearchProps> = ({
 
   const handleQuickSearchClick = () => {
     if (!user) {
-      toast({
-        title: "Connexion requise",
-        description: "Vous devez vous connecter pour rechercher des réparateurs.",
-        variant: "destructive",
-      });
+      // Redirection directe vers la page d'authentification
       window.location.href = '/auth';
       return;
     }
