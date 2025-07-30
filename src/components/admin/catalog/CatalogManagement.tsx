@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Database, Smartphone, Tag, Wrench, BarChart3, Plus, Edit, Trash2, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Database, Smartphone, Tag, Wrench, BarChart3, Plus, Edit, Trash2, TrendingUp, AlertTriangle, Download } from 'lucide-react';
 import DeviceTypesManagement from './DeviceTypesManagement';
 import BrandsManagement from './BrandsManagement';
 import DeviceModelsManagement from './DeviceModelsManagement';
 import RepairTypesManagement from './RepairTypesManagement';
 import CatalogAnalytics from './CatalogAnalytics';
+import { UniversalCatalogImporter } from './UniversalCatalogImporter';
 interface CatalogStats {
   deviceTypes: number;
   brands: number;
@@ -128,8 +129,12 @@ const CatalogManagement: React.FC = () => {
           </CardContent>
         </Card>}
 
-      <Tabs defaultValue="device-types" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs defaultValue="import" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="import" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Import Catalogue
+          </TabsTrigger>
           <TabsTrigger value="device-types" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
             Types d'appareils
@@ -151,6 +156,10 @@ const CatalogManagement: React.FC = () => {
             Analytics
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="import">
+          <UniversalCatalogImporter />
+        </TabsContent>
 
         <TabsContent value="device-types">
           <DeviceTypesManagement onStatsUpdate={count => setStats(prev => ({
