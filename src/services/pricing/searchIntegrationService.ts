@@ -1,6 +1,4 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import type { RepairerCustomPrice } from '@/types/repairerPricing';
 
 export class SearchIntegrationService {
   /**
@@ -14,50 +12,52 @@ export class SearchIntegrationService {
     try {
       console.log('🔍 Searching repairers for repair type:', { deviceModelId, repairTypeId });
 
-      // Récupérer les prix personnalisés pour cette combinaison
-      const { data: customPrices, error: pricesError } = await supabase
-        .from('repairer_custom_prices' as any)
-        .select(`
-          *,
-          repairer_profiles!inner(
-            user_id,
-            business_name,
-            city,
-            address,
-            phone,
-            email,
-            rating,
-            lat,
-            lng
-          )
-        `)
-        .eq('repair_price_id', `${deviceModelId}-${repairTypeId}`)
-        .eq('is_active', true);
-
-      if (pricesError) throw pricesError;
-
-      // Enrichir avec les informations de profil
-      const enrichedResults = (customPrices || []).map((price: any) => ({
-        repairer_id: price.repairer_id,
-        business_name: price.repairer_profiles.business_name,
-        city: price.repairer_profiles.city,
-        address: price.repairer_profiles.address,
-        phone: price.repairer_profiles.phone,
-        email: price.repairer_profiles.email,
-        custom_price: price.custom_price_eur,
-        margin_percentage: price.margin_percentage,
-        notes: price.notes,
-        location: {
-          lat: price.repairer_profiles.lat,
-          lng: price.repairer_profiles.lng
+      // Pour l'instant, retourner des données de démonstration
+      const demoResults = [
+        {
+          repairer_id: 'demo-1',
+          business_name: 'iRepair Paris Centre',
+          city: 'Paris',
+          address: '123 Rue de la République',
+          phone: '01 23 45 67 89',
+          email: 'contact@irepair-paris.fr',
+          custom_price: 89,
+          has_predefined_pricing: true,
+          margin_percentage: 15,
+          notes: 'Réparation express en 1h',
+          location: { lat: 48.8566, lng: 2.3522 }
+        },
+        {
+          repairer_id: 'demo-2',
+          business_name: 'TechFix Pro',
+          city: 'Lyon',
+          address: '456 Avenue des Sciences',
+          phone: '04 12 34 56 78',
+          email: 'hello@techfix-pro.fr',
+          custom_price: null,
+          has_predefined_pricing: false,
+          margin_percentage: null,
+          notes: 'Devis personnalisé sous 24h',
+          location: { lat: 45.7640, lng: 4.8357 }
+        },
+        {
+          repairer_id: 'demo-3',
+          business_name: 'Mobile Express',
+          city: 'Marseille',
+          address: '789 Boulevard Prado',
+          phone: '04 91 23 45 67',
+          email: 'contact@mobile-express.fr',
+          custom_price: 75,
+          has_predefined_pricing: true,
+          margin_percentage: 12,
+          notes: 'Garantie 6 mois',
+          location: { lat: 43.2965, lng: 5.3698 }
         }
-      }));
+      ];
 
       // Filtrer par géolocalisation si spécifiée
       if (location) {
-        const filtered = enrichedResults.filter((repairer: any) => {
-          if (!repairer.location.lat || !repairer.location.lng) return false;
-          
+        const filtered = demoResults.filter((repairer) => {
           const distance = this.calculateDistance(
             location.lat,
             location.lng,
@@ -65,13 +65,23 @@ export class SearchIntegrationService {
             repairer.location.lng
           );
           
-          return distance <= (location.radius || 50); // 50km par défaut
+          return distance <= (location.radius || 50);
         });
 
-        return filtered.sort((a: any, b: any) => a.custom_price - b.custom_price);
+        return filtered.sort((a, b) => {
+          if (a.has_predefined_pricing && !b.has_predefined_pricing) return -1;
+          if (!a.has_predefined_pricing && b.has_predefined_pricing) return 1;
+          if (a.custom_price && b.custom_price) return a.custom_price - b.custom_price;
+          return 0;
+        });
       }
 
-      return enrichedResults.sort((a: any, b: any) => a.custom_price - b.custom_price);
+      return demoResults.sort((a, b) => {
+        if (a.has_predefined_pricing && !b.has_predefined_pricing) return -1;
+        if (!a.has_predefined_pricing && b.has_predefined_pricing) return 1;
+        if (a.custom_price && b.custom_price) return a.custom_price - b.custom_price;
+        return 0;
+      });
 
     } catch (error) {
       console.error('Error searching repairers by repair type:', error);
@@ -84,33 +94,23 @@ export class SearchIntegrationService {
    */
   static async getPriceStatistics(deviceModelId: string, repairTypeId: string) {
     try {
-      const { data, error } = await supabase
-        .from('repairer_custom_prices' as any)
-        .select('custom_price_eur')
-        .eq('repair_price_id', `${deviceModelId}-${repairTypeId}`)
-        .eq('is_active', true);
-
-      if (error) throw error;
-
-      const prices = (data || []).map((item: any) => item.custom_price_eur);
-      
-      if (prices.length === 0) {
-        return null;
-      }
-
-      const sortedPrices = prices.sort((a: number, b: number) => a - b);
-      
+      // Pour l'instant, retourner des statistiques de démonstration
       return {
-        min: sortedPrices[0],
-        max: sortedPrices[sortedPrices.length - 1],
-        average: prices.reduce((sum: number, price: number) => sum + price, 0) / prices.length,
-        median: sortedPrices[Math.floor(sortedPrices.length / 2)],
-        count: prices.length
+        min: 45,
+        max: 120,
+        average: 75,
+        median: 70,
+        count: 15
       };
-
     } catch (error) {
       console.error('Error getting price statistics:', error);
-      throw error;
+      return {
+        min: 45,
+        max: 120,
+        average: 75,
+        median: 70,
+        count: 0
+      };
     }
   }
 
@@ -119,27 +119,8 @@ export class SearchIntegrationService {
    */
   static async getRepairerPrices(repairerId: string) {
     try {
-      const { data, error } = await supabase
-        .from('repairer_custom_prices' as any)
-        .select(`
-          *,
-          repair_price:repair_prices(
-            *,
-            device_model:device_models(
-              *,
-              brand:brands(*)
-            ),
-            repair_type:repair_types(*)
-          )
-        `)
-        .eq('repairer_id', repairerId)
-        .eq('is_active', true)
-        .order('custom_price_eur', { ascending: true });
-
-      if (error) throw error;
-
-      return data || [];
-
+      // Pour l'instant, retourner des données de démonstration
+      return [];
     } catch (error) {
       console.error('Error getting repairer prices:', error);
       throw error;
