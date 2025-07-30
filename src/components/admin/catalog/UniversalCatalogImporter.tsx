@@ -622,6 +622,70 @@ export const UniversalCatalogImporter: React.FC = () => {
     }
   };
 
+  const handleMobilaxTabletImport = async () => {
+    setStatus('importing');
+    setLogs([]);
+    
+    try {
+      // Extract brand names from Mobilax Tablettes
+      const mobilaxTabletBrands = [
+        'Apple', 'Samsung', 'Xiaomi', 'Huawei', 'Honor', 'OPPO', 'Realme', 
+        'OnePlus', 'Google', 'Crosscall', 'Blackview', 'Nokia', 'Asus', 'Microsoft'
+      ];
+      
+      addLog(`🔍 Début de l'import Mobilax Tablettes - ${mobilaxTabletBrands.length} marques détectées`);
+      
+      let imported = 0;
+      let skipped = 0;
+      let errors = 0;
+      
+      for (const brandName of mobilaxTabletBrands) {
+        try {
+          // Check if brand exists (case insensitive)
+          const existingBrand = brands.find(b => 
+            b.name.toLowerCase() === brandName.toLowerCase()
+          );
+          
+          if (existingBrand) {
+            addLog(`⚠️ Marque "${brandName}" déjà existante - ignorée`);
+            skipped++;
+            continue;
+          }
+          
+          // Create new brand
+          await createBrand({
+            name: brandName,
+            logo_url: null
+          });
+          
+          addLog(`✅ Marque "${brandName}" créée avec succès`);
+          imported++;
+          
+        } catch (error: any) {
+          if (error.message?.includes('duplicate') || error.code === '23505') {
+            addLog(`⚠️ Marque "${brandName}" déjà existante (BD) - ignorée`);
+            skipped++;
+          } else {
+            addLog(`❌ Erreur lors de la création de "${brandName}": ${error.message}`);
+            errors++;
+          }
+        }
+      }
+      
+      addLog(`🎉 Import terminé: ${imported} créées, ${skipped} ignorées, ${errors} erreurs`);
+      setStatus(errors > 0 ? 'error' : 'completed');
+      
+      if (imported > 0) {
+        toast.success(`${imported} nouvelles marques Mobilax tablettes importées !`);
+      }
+      
+    } catch (error: any) {
+      addLog(`❌ Erreur globale: ${error.message}`);
+      setStatus('error');
+      toast.error('Erreur lors de l\'import Mobilax tablettes');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -737,7 +801,27 @@ export const UniversalCatalogImporter: React.FC = () => {
               ) : (
                 <>
                   <Globe className="h-4 w-4 mr-2" />
-                  Importer les 25 marques de Mobilax
+                  Importer les 25 marques Mobilax (Téléphones)
+                </>
+              )}
+            </Button>
+
+            <Button 
+              onClick={handleMobilaxTabletImport} 
+              disabled={status === 'importing'}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              {status === 'importing' ? (
+                <>
+                  <Download className="h-4 w-4 mr-2 animate-spin" />
+                  Import Mobilax Tablettes...
+                </>
+              ) : (
+                <>
+                  <Tablet className="h-4 w-4 mr-2" />
+                  Importer les 14 marques Mobilax (Tablettes)
                 </>
               )}
             </Button>
