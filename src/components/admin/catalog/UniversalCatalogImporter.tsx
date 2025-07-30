@@ -1326,6 +1326,161 @@ export const UniversalCatalogImporter: React.FC = () => {
     }
   };
 
+  const importLaptopsFromMobilax = async () => {
+    setStatus('importing');
+    setLogs([]);
+    
+    try {
+      // Find Ordinateur device type (needs to match what's in DB)
+      const ordinateurType = deviceTypes.find(dt => 
+        dt.name.toLowerCase().includes('ordinateur') || 
+        dt.name.toLowerCase().includes('laptop') ||
+        dt.name.toLowerCase().includes('portable')
+      );
+      
+      if (!ordinateurType) {
+        addLog('❌ Type d\'appareil "Ordinateur" introuvable. Créez-le d\'abord.');
+        setStatus('error');
+        return;
+      }
+
+      // Extract MacBook models from Mobilax data
+      const mobilaxLaptopModels = [
+        // MacBook Air models
+        { brand: 'Apple', name: 'MacBook Air 13" M1 2020', modelNumber: 'A2337', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Air 13" M2 2022', modelNumber: 'A2681', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or', 'Minuit'], screen: '13.6' },
+        { brand: 'Apple', name: 'MacBook Air 15" M2 2023', modelNumber: 'A2941', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or', 'Minuit'], screen: '15.3' },
+        { brand: 'Apple', name: 'MacBook Air 13" 2019', modelNumber: 'A1932', storage: ['128GB', '256GB', '512GB'], colors: ['Argent', 'Gris sidéral', 'Or'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Air 13" 2018', modelNumber: 'A1932', storage: ['128GB', '256GB'], colors: ['Argent', 'Gris sidéral', 'Or'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Air 13" 2020', modelNumber: 'A2179', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral', 'Or'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Air 13" 2017', modelNumber: 'A1466', storage: ['128GB', '256GB'], colors: ['Argent'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Air 13" 2015', modelNumber: 'A1466', storage: ['128GB', '256GB'], colors: ['Argent'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Air 13" 2013', modelNumber: 'A1466', storage: ['128GB', '256GB'], colors: ['Argent'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Air 13" 2012', modelNumber: 'A1466', storage: ['128GB', '256GB'], colors: ['Argent'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Air 13" 2011', modelNumber: 'A1369', storage: ['128GB', '256GB'], colors: ['Argent'], screen: '13.3' },
+        
+        // MacBook Pro 13" models
+        { brand: 'Apple', name: 'MacBook Pro 13" M1 2020', modelNumber: 'A2338', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Pro 13" 2020', modelNumber: 'A2251', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Pro 13" 2020', modelNumber: 'A2289', storage: ['256GB', '512GB', '1TB', '2TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Pro 13" 2019', modelNumber: 'A2159', storage: ['128GB', '256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Pro 13" 2019', modelNumber: 'A1989', storage: ['128GB', '256GB', '512GB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Pro 13" 2018', modelNumber: 'A1989', storage: ['256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Pro 13" 2017', modelNumber: 'A1706', storage: ['256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Pro 13" 2017', modelNumber: 'A1708', storage: ['128GB', '256GB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Pro 13" 2016', modelNumber: 'A1706', storage: ['256GB', '512GB', '1TB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
+        { brand: 'Apple', name: 'MacBook Pro 13" 2016', modelNumber: 'A1708', storage: ['128GB', '256GB'], colors: ['Argent', 'Gris sidéral'], screen: '13.3' },
+        
+        // MacBook Pro 14" models
+        { brand: 'Apple', name: 'MacBook Pro 14" M1 Pro 2021', modelNumber: 'A2442', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
+        { brand: 'Apple', name: 'MacBook Pro 14" M1 Max 2021', modelNumber: 'A2442', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
+        { brand: 'Apple', name: 'MacBook Pro 14" M2 Pro 2023', modelNumber: 'A2779', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
+        { brand: 'Apple', name: 'MacBook Pro 14" M2 Max 2023', modelNumber: 'A2779', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '14.2' },
+        
+        // MacBook Pro 16" models
+        { brand: 'Apple', name: 'MacBook Pro 16" M1 Pro 2021', modelNumber: 'A2485', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
+        { brand: 'Apple', name: 'MacBook Pro 16" M1 Max 2021', modelNumber: 'A2485', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
+        { brand: 'Apple', name: 'MacBook Pro 16" M2 Pro 2023', modelNumber: 'A2780', storage: ['512GB', '1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
+        { brand: 'Apple', name: 'MacBook Pro 16" M2 Max 2023', modelNumber: 'A2780', storage: ['1TB', '2TB', '4TB', '8TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' },
+        { brand: 'Apple', name: 'MacBook Pro 16" 2019', modelNumber: 'A2141', storage: ['512GB', '1TB', '2TB', '4TB'], colors: ['Argent', 'Gris sidéral'], screen: '16' }
+      ];
+      
+      addLog(`🔍 Début de l'import modèles Mobilax Ordinateurs - ${mobilaxLaptopModels.length} modèles détectés`);
+      
+      let modelsImported = 0;
+      let modelsSkipped = 0;
+      let modelsErrors = 0;
+      let brandsCreated = 0;
+      
+      for (const modelData of mobilaxLaptopModels) {
+        try {
+          // Find or create brand
+          let brand = brands.find(b => 
+            b.name.toLowerCase() === modelData.brand.toLowerCase()
+          );
+          
+          if (!brand) {
+            try {
+              brand = await createBrand({
+                name: modelData.brand,
+                logo_url: null
+              });
+              brandsCreated++;
+              addLog(`✅ Marque "${modelData.brand}" créée`);
+            } catch (brandError: any) {
+              if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
+                // Brand was created by another process, try to find it again
+                await fetchAllData();
+                brand = brands.find(b => 
+                  b.name.toLowerCase() === modelData.brand.toLowerCase()
+                );
+              } else {
+                throw brandError;
+              }
+            }
+          }
+          
+          if (!brand) {
+            addLog(`❌ Impossible de créer/trouver la marque "${modelData.brand}"`);
+            modelsErrors++;
+            continue;
+          }
+          
+          // Check if model exists
+          const existingModel = await checkModelExists(modelData.name, brand.id, ordinateurType.id);
+          if (existingModel) {
+            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant - ignoré`);
+            modelsSkipped++;
+            continue;
+          }
+          
+          // Create new model
+          await createDeviceModel({
+            device_type_id: ordinateurType.id,
+            brand_id: brand.id,
+            model_name: modelData.name,
+            model_number: modelData.modelNumber,
+            release_date: '2025-01-01',
+            screen_size: modelData.screen,
+            screen_resolution: modelData.screen.includes('13') ? '2560x1600' : 
+                              modelData.screen.includes('14') ? '3024x1964' : 
+                              modelData.screen.includes('15') ? '2880x1864' : '3456x2234',
+            screen_type: 'Retina',
+            battery_capacity: modelData.screen.includes('13') ? '58.2' : 
+                             modelData.screen.includes('14') ? '70' : 
+                             modelData.screen.includes('15') ? '66.5' : '100',
+            operating_system: 'macOS',
+            is_active: true
+          });
+          
+          addLog(`✅ Modèle "${modelData.brand} ${modelData.name}" créé avec succès`);
+          modelsImported++;
+          
+        } catch (error: any) {
+          if (error.message?.includes('duplicate') || error.code === '23505') {
+            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant (BD) - ignoré`);
+            modelsSkipped++;
+          } else {
+            addLog(`❌ Erreur lors de la création de "${modelData.brand} ${modelData.name}": ${error.message}`);
+            modelsErrors++;
+          }
+        }
+      }
+      
+      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
+      setStatus(modelsErrors > 0 ? 'error' : 'completed');
+      
+      if (modelsImported > 0) {
+        toast.success(`${modelsImported} nouveaux modèles d'ordinateurs Mobilax importés !`);
+      }
+      
+    } catch (error: any) {
+      addLog(`❌ Erreur globale: ${error.message}`);
+      setStatus('error');
+      toast.error('Erreur lors de l\'import des modèles d\'ordinateurs Mobilax');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -1487,7 +1642,7 @@ export const UniversalCatalogImporter: React.FC = () => {
             </Button>
 
             <Button 
-              onClick={handleMobilaxLaptopModelsImport} 
+              onClick={importLaptopsFromMobilax} 
               disabled={status === 'importing'}
               variant="outline"
               className="w-full"
