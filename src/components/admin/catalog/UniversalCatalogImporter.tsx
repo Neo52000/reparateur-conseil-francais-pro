@@ -240,6 +240,8 @@ export const UniversalCatalogImporter: React.FC = () => {
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['smartphone']);
+  const [status, setStatus] = useState<'idle' | 'importing' | 'completed' | 'error'>('idle');
+  const [logs, setLogs] = useState<string[]>([]);
   const [results, setResults] = useState<{
     deviceTypes: any[];
     brands: any[];
@@ -251,6 +253,11 @@ export const UniversalCatalogImporter: React.FC = () => {
     models: [],
     errors: []
   });
+
+  const addLog = (message: string) => {
+    setLogs(prev => [...prev, message]);
+    console.log(message);
+  };
 
   const {
     deviceTypes,
@@ -549,6 +556,72 @@ export const UniversalCatalogImporter: React.FC = () => {
     return 'Android';
   };
 
+  const handleMobilaxImport = async () => {
+    setStatus('importing');
+    setLogs([]);
+    
+    try {
+      // Extract brand names from Mobilax
+      const mobilaxBrands = [
+        'Apple', 'Samsung', 'Xiaomi', 'Huawei', 'Honor', 'OPPO', 'Realme',
+        'OnePlus', 'Motorola', 'Google', 'Vivo', 'Crosscall', 'Blackview',
+        'TCL', 'Nokia', 'Alcatel', 'Sony', 'HTC', 'Wiko', 'LG', 'Asus',
+        'BlackBerry', 'Nothing', 'Caterpillar', 'HMD'
+      ];
+      
+      addLog(`🔍 Début de l'import Mobilax - ${mobilaxBrands.length} marques détectées`);
+      
+      let imported = 0;
+      let skipped = 0;
+      let errors = 0;
+      
+      for (const brandName of mobilaxBrands) {
+        try {
+          // Check if brand exists (case insensitive)
+          const existingBrand = brands.find(b => 
+            b.name.toLowerCase() === brandName.toLowerCase()
+          );
+          
+          if (existingBrand) {
+            addLog(`⚠️ Marque "${brandName}" déjà existante - ignorée`);
+            skipped++;
+            continue;
+          }
+          
+          // Create new brand
+          await createBrand({
+            name: brandName,
+            logo_url: null
+          });
+          
+          addLog(`✅ Marque "${brandName}" créée avec succès`);
+          imported++;
+          
+        } catch (error: any) {
+          if (error.message?.includes('duplicate') || error.code === '23505') {
+            addLog(`⚠️ Marque "${brandName}" déjà existante (BD) - ignorée`);
+            skipped++;
+          } else {
+            addLog(`❌ Erreur lors de la création de "${brandName}": ${error.message}`);
+            errors++;
+          }
+        }
+      }
+      
+      addLog(`🎉 Import terminé: ${imported} créées, ${skipped} ignorées, ${errors} erreurs`);
+      setStatus(errors > 0 ? 'error' : 'completed');
+      
+      if (imported > 0) {
+        toast.success(`${imported} nouvelles marques Mobilax importées !`);
+      }
+      
+    } catch (error: any) {
+      addLog(`❌ Erreur globale: ${error.message}`);
+      setStatus('error');
+      toast.error('Erreur lors de l\'import Mobilax');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -629,26 +702,69 @@ export const UniversalCatalogImporter: React.FC = () => {
             </div>
           )}
 
-          <Button 
-            onClick={handleImport} 
-            disabled={importing || filteredProducts.length === 0}
-            className="w-full"
-            size="lg"
-          >
-            {importing ? (
-              <>
-                <Download className="h-4 w-4 mr-2 animate-spin" />
-                Import en cours...
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4 mr-2" />
-                Importer le Catalogue ({filteredProducts.reduce((sum, p) => sum + p.models.length, 0)} modèles)
-              </>
-            )}
-          </Button>
+          <div className="space-y-3">
+            <Button 
+              onClick={handleImport} 
+              disabled={importing || filteredProducts.length === 0}
+              className="w-full"
+              size="lg"
+            >
+              {importing ? (
+                <>
+                  <Download className="h-4 w-4 mr-2 animate-spin" />
+                  Import en cours...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Importer le Catalogue ({filteredProducts.reduce((sum, p) => sum + p.models.length, 0)} modèles)
+                </>
+              )}
+            </Button>
+
+            <Button 
+              onClick={handleMobilaxImport} 
+              disabled={status === 'importing'}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              {status === 'importing' ? (
+                <>
+                  <Download className="h-4 w-4 mr-2 animate-spin" />
+                  Import Mobilax...
+                </>
+              ) : (
+                <>
+                  <Globe className="h-4 w-4 mr-2" />
+                  Importer les 25 marques de Mobilax
+                </>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Logs de l'import Mobilax */}
+      {logs.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Globe className="h-5 w-5" />
+              Logs Import Mobilax
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg max-h-60 overflow-y-auto font-mono text-sm">
+              {logs.map((log, index) => (
+                <div key={index} className="py-1">
+                  {log}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Résultats */}
       {(results.deviceTypes.length > 0 || results.brands.length > 0 || results.models.length > 0 || results.errors.length > 0) && (
