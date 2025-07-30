@@ -782,6 +782,136 @@ export const UniversalCatalogImporter: React.FC = () => {
     }
   };
 
+  const handleMobilaxWatchModelsImport = async () => {
+    setStatus('importing');
+    setLogs([]);
+    
+    try {
+      // Find Montre device type
+      const montreType = deviceTypes.find(dt => dt.name.toLowerCase() === 'montre');
+      if (!montreType) {
+        addLog('❌ Type d\'appareil "Montre" introuvable. Créez-le d\'abord.');
+        setStatus('error');
+        return;
+      }
+
+      // Extract watch models from Mobilax
+      const mobilaxWatchModels = [
+        // Apple Watch models
+        { brand: 'Apple', name: 'Watch Ultra', storage: ['32GB'], colors: ['Noir'], sizes: ['49mm'] },
+        { brand: 'Apple', name: 'Watch Ultra 2', storage: ['64GB'], colors: ['Noir'], sizes: ['49mm'] },
+        { brand: 'Apple', name: 'Watch SE (1e génération)', storage: ['32GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
+        { brand: 'Apple', name: 'Watch SE (2e génération)', storage: ['32GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
+        { brand: 'Apple', name: 'Watch Series 1', storage: ['8GB'], colors: ['Noir'], sizes: ['38mm', '42mm'] },
+        { brand: 'Apple', name: 'Watch Series 2', storage: ['8GB'], colors: ['Noir'], sizes: ['38mm', '42mm'] },
+        { brand: 'Apple', name: 'Watch Series 3', storage: ['16GB'], colors: ['Noir'], sizes: ['38mm', '42mm'] },
+        { brand: 'Apple', name: 'Watch Series 4', storage: ['16GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
+        { brand: 'Apple', name: 'Watch Series 5', storage: ['32GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
+        { brand: 'Apple', name: 'Watch Series 6', storage: ['32GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
+        { brand: 'Apple', name: 'Watch Series 7', storage: ['32GB'], colors: ['Noir'], sizes: ['41mm', '45mm'] },
+        { brand: 'Apple', name: 'Watch Series 8', storage: ['32GB'], colors: ['Noir'], sizes: ['41mm', '45mm'] },
+        { brand: 'Apple', name: 'Watch Series 9', storage: ['64GB'], colors: ['Noir'], sizes: ['41mm', '45mm'] },
+        { brand: 'Apple', name: 'Watch Series 10', storage: ['64GB'], colors: ['Noir'], sizes: ['42mm', '46mm'] },
+        
+        // Samsung Galaxy Watch models
+        { brand: 'Samsung', name: 'Galaxy Watch 5', storage: ['16GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
+        { brand: 'Samsung', name: 'Galaxy Watch 6', storage: ['16GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] },
+        { brand: 'Samsung', name: 'Galaxy Watch 6 Classic', storage: ['16GB'], colors: ['Noir'], sizes: ['43mm', '47mm'] },
+        { brand: 'Samsung', name: 'Galaxy Watch 7', storage: ['32GB'], colors: ['Noir'], sizes: ['40mm', '44mm'] }
+      ];
+      
+      addLog(`🔍 Début de l'import modèles Mobilax Montres - ${mobilaxWatchModels.length} modèles détectés`);
+      
+      let modelsImported = 0;
+      let modelsSkipped = 0;
+      let modelsErrors = 0;
+      let brandsCreated = 0;
+      
+      for (const modelData of mobilaxWatchModels) {
+        try {
+          // Find or create brand
+          let brand = brands.find(b => 
+            b.name.toLowerCase() === modelData.brand.toLowerCase()
+          );
+          
+          if (!brand) {
+            try {
+              brand = await createBrand({
+                name: modelData.brand,
+                logo_url: null
+              });
+              brandsCreated++;
+              addLog(`✅ Marque "${modelData.brand}" créée`);
+            } catch (brandError: any) {
+              if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
+                // Brand was created by another process, try to find it again
+                await fetchAllData();
+                brand = brands.find(b => 
+                  b.name.toLowerCase() === modelData.brand.toLowerCase()
+                );
+              } else {
+                throw brandError;
+              }
+            }
+          }
+          
+          if (!brand) {
+            addLog(`❌ Impossible de créer/trouver la marque "${modelData.brand}"`);
+            modelsErrors++;
+            continue;
+          }
+          
+          // Check if model exists
+          const existingModel = await checkModelExists(modelData.name, brand.id, montreType.id);
+          if (existingModel) {
+            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant - ignoré`);
+            modelsSkipped++;
+            continue;
+          }
+          
+          // Create new model
+          await createDeviceModel({
+            device_type_id: montreType.id,
+            brand_id: brand.id,
+            model_name: modelData.name,
+            model_number: '',
+            release_date: '2025-01-01',
+            screen_size: modelData.sizes[0].replace('mm', ''),
+            screen_resolution: '368x448',
+            screen_type: 'OLED',
+            battery_capacity: '300',
+            operating_system: modelData.brand === 'Apple' ? 'watchOS' : 'Wear OS',
+            is_active: true
+          });
+          
+          addLog(`✅ Modèle "${modelData.brand} ${modelData.name}" créé avec succès`);
+          modelsImported++;
+          
+        } catch (error: any) {
+          if (error.message?.includes('duplicate') || error.code === '23505') {
+            addLog(`⚠️ Modèle "${modelData.brand} ${modelData.name}" déjà existant (BD) - ignoré`);
+            modelsSkipped++;
+          } else {
+            addLog(`❌ Erreur lors de la création de "${modelData.brand} ${modelData.name}": ${error.message}`);
+            modelsErrors++;
+          }
+        }
+      }
+      
+      addLog(`🎉 Import terminé: ${modelsImported} modèles créés, ${modelsSkipped} ignorés, ${modelsErrors} erreurs, ${brandsCreated} marques créées`);
+      setStatus(modelsErrors > 0 ? 'error' : 'completed');
+      
+      if (modelsImported > 0) {
+        toast.success(`${modelsImported} nouveaux modèles de montres Mobilax importés !`);
+      }
+      
+    } catch (error: any) {
+      addLog(`❌ Erreur globale: ${error.message}`);
+      setStatus('error');
+      toast.error('Erreur lors de l\'import des modèles Mobilax montres');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -918,6 +1048,26 @@ export const UniversalCatalogImporter: React.FC = () => {
                 <>
                   <Tablet className="h-4 w-4 mr-2" />
                   Importer les modèles de tablettes Mobilax
+                </>
+              )}
+            </Button>
+
+            <Button 
+              onClick={handleMobilaxWatchModelsImport} 
+              disabled={status === 'importing'}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              {status === 'importing' ? (
+                <>
+                  <Download className="h-4 w-4 mr-2 animate-spin" />
+                  Import Modèles Montres...
+                </>
+              ) : (
+                <>
+                  <Watch className="h-4 w-4 mr-2" />
+                  Importer les modèles de montres Mobilax
                 </>
               )}
             </Button>
