@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,12 +30,26 @@ const QualiReparDashboard: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedDossier, setSelectedDossier] = useState<QualiReparDossier | null>(null);
+  const [stats, setStats] = useState({ total: 0, draft: 0, submitted: 0, approved: 0, rejected: 0, paid: 0, totalApproved: 0 });
+  
+  useEffect(() => {
+    const loadStats = async () => {
+      const statsData = await getDossierStats();
+      setStats({
+        ...statsData,
+        paid: statsData.approved, // Map approved to paid for display
+        totalApproved: 0 // You can calculate this based on your business logic
+      });
+    };
+    
+    if (!loading) {
+      loadStats();
+    }
+  }, [loading, getDossierStats]);
   
   if (loading) {
     return <div className="animate-pulse">Chargement...</div>;
   }
-
-  const stats = getDossierStats();
   
   const getStatusIcon = (status: QualiReparDossier['status']) => {
     switch (status) {

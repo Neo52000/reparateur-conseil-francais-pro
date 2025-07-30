@@ -220,30 +220,6 @@ export const useQualiReparV3Api = () => {
     }
   };
 
-  const getClaimStatus = async (reimbursementClaimId: string) => {
-    if (!authToken) {
-      toast.error('Token d\'authentification manquant');
-      return null;
-    }
-
-    setLoading(true);
-    try {
-      const result = await supabase
-        .from('qualirepar_dossiers')
-        .select('*')
-        .eq('reimbursement_claim_id', reimbursementClaimId)
-        .single();
-
-      return result.data;
-    } catch (error) {
-      console.error('V3 Get claim status error:', error);
-      toast.error('Erreur lors de la récupération du statut');
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return {
     loading,
     authToken,
@@ -251,7 +227,6 @@ export const useQualiReparV3Api = () => {
     createClaim,
     generateUploadUrl,
     uploadFile,
-    confirmClaim,
-    getClaimStatus
+    confirmClaim
   };
 };
