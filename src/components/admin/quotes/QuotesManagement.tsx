@@ -206,15 +206,32 @@ const QuotesManagement: React.FC = () => {
 
   const sendReminderToRepairer = async (quote: Quote) => {
     try {
-      // Envoyer une notification au réparateur
+      // Récupérer d'abord l'user_id du réparateur
       if (quote.repairer_id) {
+        const { data: repairerData } = await supabase
+          .from('repairer_profiles')
+          .select('user_id')
+          .eq('id', quote.repairer_id)
+          .single();
+
+        if (!repairerData?.user_id) {
+          toast({
+            title: "Erreur",
+            description: "Réparateur introuvable",
+            variant: "destructive"
+          });
+          return;
+        }
+
         const { error } = await supabase.from('notifications_system').insert({
-          user_id: quote.repairer_id,
+          user_id: repairerData.user_id,
           user_type: 'repairer',
           notification_type: 'quote_reminder',
           title: 'Rappel de devis en attente',
           message: `Le devis pour ${quote.device_brand} ${quote.device_model} de ${quote.client_name} attend votre réponse depuis plus de 24h.`,
-          related_quote_id: quote.id
+          related_quote_id: quote.id,
+          is_read: false,
+          created_at: new Date().toISOString()
         });
         
         if (error) throw error;
