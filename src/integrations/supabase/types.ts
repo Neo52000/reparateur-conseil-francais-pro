@@ -6861,6 +6861,45 @@ export type Database = {
           },
         ]
       }
+      quote_response_tracking: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          deadline_24h: string
+          has_predefined_pricing: boolean
+          id: string
+          quote_id: string
+          reminder_sent: boolean | null
+          repairer_id: string
+          response_status: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          deadline_24h: string
+          has_predefined_pricing?: boolean
+          id?: string
+          quote_id: string
+          reminder_sent?: boolean | null
+          repairer_id: string
+          response_status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          deadline_24h?: string
+          has_predefined_pricing?: boolean
+          id?: string
+          quote_id?: string
+          reminder_sent?: boolean | null
+          repairer_id?: string
+          response_status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       quotes: {
         Row: {
           contact_email: string
@@ -6929,10 +6968,12 @@ export type Database = {
           device_brand: string
           device_model: string
           estimated_price: number | null
+          has_predefined_pricing: boolean | null
           id: string
           issue_description: string | null
           labor_cost: number | null
           parts_cost: number | null
+          pricing_type: string | null
           quoted_at: string | null
           rejected_at: string | null
           repair_duration: string | null
@@ -6940,6 +6981,7 @@ export type Database = {
           repairer_id: string
           repairer_notes: string | null
           repairer_response_deadline: string
+          response_deadline: string | null
           status: string
           updated_at: string
           warranty_info: string | null
@@ -6961,10 +7003,12 @@ export type Database = {
           device_brand: string
           device_model: string
           estimated_price?: number | null
+          has_predefined_pricing?: boolean | null
           id?: string
           issue_description?: string | null
           labor_cost?: number | null
           parts_cost?: number | null
+          pricing_type?: string | null
           quoted_at?: string | null
           rejected_at?: string | null
           repair_duration?: string | null
@@ -6972,6 +7016,7 @@ export type Database = {
           repairer_id: string
           repairer_notes?: string | null
           repairer_response_deadline?: string
+          response_deadline?: string | null
           status?: string
           updated_at?: string
           warranty_info?: string | null
@@ -6993,10 +7038,12 @@ export type Database = {
           device_brand?: string
           device_model?: string
           estimated_price?: number | null
+          has_predefined_pricing?: boolean | null
           id?: string
           issue_description?: string | null
           labor_cost?: number | null
           parts_cost?: number | null
+          pricing_type?: string | null
           quoted_at?: string | null
           rejected_at?: string | null
           repair_duration?: string | null
@@ -7004,6 +7051,7 @@ export type Database = {
           repairer_id?: string
           repairer_notes?: string | null
           repairer_response_deadline?: string
+          response_deadline?: string | null
           status?: string
           updated_at?: string
           warranty_info?: string | null
