@@ -3,9 +3,9 @@ import { Brain, Zap, Star } from 'lucide-react';
 import { APIKeyStatus } from './types';
 
 export const DEFAULT_API_KEY_STATUSES: Record<string, APIKeyStatus> = {
-  mistral: 'configured',
-  deepseek: 'needs_config',
-  openai: 'configured'
+  mistral: 'needs_config',
+  deepseek: 'needs_config', 
+  openai: 'needs_config'
 };
 
 export const AI_BASE_OPTIONS = [

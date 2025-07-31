@@ -9,8 +9,42 @@ export const useApiKeyStatus = () => {
 
   useEffect(() => {
     const checkApiKeyAvailability = async () => {
+      console.log('🔍 Vérification des services IA...');
+      
+      // Test Mistral AI via intelligent-scraping
       try {
-        // Test DeepSeek API availability
+        const { data: mistralTest, error: mistralError } = await supabase.functions.invoke('intelligent-scraping', {
+          body: { 
+            city: 'test',
+            category: 'smartphone',
+            source: 'google_maps',
+            maxResults: 1
+          }
+        });
+        
+        console.log('🧠 Test Mistral:', { data: mistralTest, error: mistralError });
+        
+        if (!mistralError && mistralTest) {
+          setApiKeyStatuses(prev => ({
+            ...prev,
+            mistral: 'configured'
+          }));
+        } else {
+          setApiKeyStatuses(prev => ({
+            ...prev,
+            mistral: 'needs_config'
+          }));
+        }
+      } catch (error) {
+        console.log('❌ Erreur test Mistral:', error);
+        setApiKeyStatuses(prev => ({
+          ...prev,
+          mistral: 'needs_config'
+        }));
+      }
+
+      // Test DeepSeek API
+      try {
         const { data: deepseekTest, error: deepseekError } = await supabase.functions.invoke('deepseek-classify', {
           body: { 
             repairersData: [{ name: 'test', address: 'test' }], 
@@ -18,17 +52,19 @@ export const useApiKeyStatus = () => {
           }
         });
 
-        // Si pas d'erreur de clé API, alors DeepSeek est configuré
-        if (!deepseekError || !deepseekError.message?.includes('API key')) {
+        console.log('⚡ Test DeepSeek:', { data: deepseekTest, error: deepseekError });
+        
+        if (!deepseekError && deepseekTest) {
           setApiKeyStatuses(prev => ({
             ...prev,
             deepseek: 'configured'
           }));
         }
       } catch (error) {
-        console.log('DeepSeek API key check:', error);
-        // Garder le statut par défaut si erreur
+        console.log('❌ Erreur test DeepSeek:', error);
       }
+
+      console.log('✅ Vérification des services IA terminée');
     };
 
     checkApiKeyAvailability();
