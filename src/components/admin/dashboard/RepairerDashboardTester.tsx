@@ -1,492 +1,376 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  Monitor, 
-  Tablet, 
-  Smartphone, 
-  Palette, 
-  Type, 
-  Layout, 
-  RefreshCw, 
-  Save,
-  Download,
-  Copy,
-  Settings2,
-  Eye,
-  Zap
-} from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { useUIConfigurations } from '@/hooks/useUIConfigurations';
+import { 
+  Play, 
+  Save, 
+  Copy, 
+  Download, 
+  Monitor, 
+  Smartphone, 
+  Tablet,
+  Eye,
+  Settings,
+  Undo,
+  Redo
+} from 'lucide-react';
+import RepairerDashboardTabs from '@/components/repairer-dashboard/RepairerDashboardTabs';
 
-// Types for configuration
-interface DashboardConfig {
+interface DashboardConfiguration {
   layout: {
-    cardSpacing: number;
-    borderRadius: number;
-    shadow: string;
-    padding: number;
+    gridColumns: number;
+    spacing: string;
+    containerMaxWidth: string;
   };
-  colors: {
-    primary: string;
-    accent: string;
-    background: string;
-    cardBackground: string;
-    text: string;
+  components: {
+    overview: { visible: boolean; metrics: string[]; chartType: 'line' | 'bar' | 'area'; };
+    orders: { visible: boolean; statusFilters: string[]; defaultView: 'list' | 'grid'; };
+    calendar: { visible: boolean; defaultView: 'month' | 'week' | 'day'; timeSlots: number; };
+    inventory: { visible: boolean; lowStockAlert: boolean; categories: string[]; };
   };
-  typography: {
-    headerSize: number;
-    bodySize: number;
-    fontWeight: string;
-    lineHeight: number;
+  theme: {
+    primaryColor: string;
+    secondaryColor: string;
+    borderRadius: string;
+    fontFamily: string;
   };
-  responsive: {
-    viewMode: 'desktop' | 'tablet' | 'mobile';
-    breakpoint: number;
+  features: {
+    realTimeUpdates: boolean;
+    notificationSystem: boolean;
+    exportData: boolean;
+    advancedFilters: boolean;
   };
-  theme: 'light' | 'dark' | 'auto';
 }
 
-const dashboardTabs = [
-  { value: 'overview', label: 'Aperçu général', icon: '📊' },
-  { value: 'orders', label: 'Commandes', icon: '📦' },
-  { value: 'calendar', label: 'Planning', icon: '📅' },
-  { value: 'inventory', label: 'Inventaire', icon: '📋' },
-  { value: 'quotes', label: 'Devis', icon: '💰' },
-  { value: 'clients', label: 'Clients', icon: '👥' },
-  { value: 'billing', label: 'Facturation', icon: '🧾' },
-  { value: 'marketing', label: 'Marketing', icon: '📢' },
-  { value: 'analytics', label: 'Analytiques', icon: '📈' },
-  { value: 'catalog', label: 'Catalogue', icon: '🛠️' },
-  { value: 'settings', label: 'Paramètres', icon: '⚙️' },
-  { value: 'support', label: 'Support', icon: '🎧' },
-  { value: 'pos', label: 'Point de vente', icon: '🏪' },
-  { value: 'ecommerce', label: 'E-commerce', icon: '🛒' },
-  { value: 'notifications', label: 'Notifications', icon: '🔔' },
-  { value: 'profile', label: 'Profil', icon: '👤' }
-];
-
-const userPlans = [
-  { value: 'free', label: 'Gratuit', features: ['Fonctionnalités de base'] },
-  { value: 'basic', label: 'Basic', features: ['Calendrier', 'Inventaire'] },
-  { value: 'premium', label: 'Premium', features: ['Toutes fonctionnalités', 'Analytics'] },
-  { value: 'enterprise', label: 'Enterprise', features: ['API', 'Support prioritaire', 'Personnalisation'] }
-];
-
-const predefinedThemes = {
-  modern: {
-    name: 'Moderne',
-    colors: { primary: 'hsl(217, 91%, 60%)', accent: 'hsl(262, 83%, 58%)', background: 'hsl(0, 0%, 98%)', cardBackground: 'hsl(0, 0%, 100%)', text: 'hsl(0, 0%, 15%)' }
+const defaultConfiguration: DashboardConfiguration = {
+  layout: { gridColumns: 12, spacing: 'md', containerMaxWidth: '1200px' },
+  components: {
+    overview: { visible: true, metrics: ['orders', 'revenue', 'customers', 'repairs'], chartType: 'line' },
+    orders: { visible: true, statusFilters: ['pending', 'in-progress', 'completed'], defaultView: 'list' },
+    calendar: { visible: true, defaultView: 'week', timeSlots: 30 },
+    inventory: { visible: true, lowStockAlert: true, categories: ['pieces', 'outils', 'accessoires'] }
   },
-  corporate: {
-    name: 'Corporate',
-    colors: { primary: 'hsl(210, 100%, 40%)', accent: 'hsl(195, 100%, 50%)', background: 'hsl(210, 11%, 96%)', cardBackground: 'hsl(0, 0%, 100%)', text: 'hsl(210, 11%, 15%)' }
-  },
-  tech: {
-    name: 'Tech',
-    colors: { primary: 'hsl(142, 71%, 45%)', accent: 'hsl(158, 64%, 52%)', background: 'hsl(142, 13%, 7%)', cardBackground: 'hsl(142, 13%, 10%)', text: 'hsl(142, 13%, 90%)' }
-  }
+  theme: { primaryColor: 'hsl(222, 84%, 4.9%)', secondaryColor: 'hsl(210, 40%, 96%)', borderRadius: '0.5rem', fontFamily: 'system-ui' },
+  features: { realTimeUpdates: true, notificationSystem: true, exportData: true, advancedFilters: true }
 };
 
-export default function RepairerDashboardTester() {
-  const { toast } = useToast();
-  const [selectedTab, setSelectedTab] = useState('overview');
-  const [selectedPlan, setSelectedPlan] = useState('premium');
-  const [dataMode, setDataMode] = useState('demo');
-  const [config, setConfig] = useState<DashboardConfig>({
-    layout: {
-      cardSpacing: 16,
-      borderRadius: 8,
-      shadow: 'soft',
-      padding: 24
-    },
-    colors: {
-      primary: 'hsl(217, 91%, 60%)',
-      accent: 'hsl(262, 83%, 58%)',
-      background: 'hsl(0, 0%, 98%)',
-      cardBackground: 'hsl(0, 0%, 100%)',
-      text: 'hsl(0, 0%, 15%)'
-    },
-    typography: {
-      headerSize: 24,
-      bodySize: 14,
-      fontWeight: 'medium',
-      lineHeight: 1.5
-    },
-    responsive: {
-      viewMode: 'desktop',
-      breakpoint: 1024
-    },
-    theme: 'light'
-  });
+const mockData = {
+  orders: [
+    { id: '1', client: 'John Doe', device: 'iPhone 13', status: 'En cours', amount: 120, issue: 'Écran cassé', priority: 'high', estimatedPrice: 120 },
+    { id: '2', client: 'Jane Smith', device: 'Samsung Galaxy S21', status: 'Terminé', amount: 85, issue: 'Batterie défaillante', priority: 'medium', estimatedPrice: 85 },
+  ],
+  appointments: [
+    { id: '1', client: 'Mike Johnson', date: new Date(), duration: 60, time: '14:00', service: 'Réparation écran', phone: '0123456789' },
+    { id: '2', client: 'Sarah Wilson', date: new Date(), duration: 90, time: '16:00', service: 'Diagnostic complet', phone: '0987654321' },
+  ],
+  inventory: [
+    { id: '1', name: 'Écran iPhone 13', stock: 5, minStock: 10, part: 'Écran', price: 80 },
+    { id: '2', name: 'Batterie Samsung S21', stock: 15, minStock: 8, part: 'Batterie', price: 45 },
+  ],
+  profileData: { name: 'Réparations Tech', businessName: 'Réparations Tech', rating: 4.8, completedRepairs: 1250, totalRepairs: 1250, joinDate: '2023-01-15' },
+  avgRepairTime: 3.5
+};
 
-  const updateConfig = useCallback((section: keyof DashboardConfig, updates: Record<string, any>) => {
-    setConfig(prev => ({
-      ...prev,
-      [section]: { 
-        ...(prev[section] as Record<string, any>), 
-        ...updates 
-      }
-    }));
+const RepairerDashboardTester: React.FC = () => {
+  const [configuration, setConfiguration] = useState<DashboardConfiguration>(defaultConfiguration);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [undoStack, setUndoStack] = useState<DashboardConfiguration[]>([]);
+  const [redoStack, setRedoStack] = useState<DashboardConfiguration[]>([]);
+  const [configName, setConfigName] = useState('');
+  
+  const { toast } = useToast();
+  const { configurations, saveConfiguration, cloneConfiguration, trackAnalyticsEvent } = useUIConfigurations();
+
+  const pushToUndoStack = useCallback((config: DashboardConfiguration) => {
+    setUndoStack(prev => [...prev.slice(-9), config]);
+    setRedoStack([]);
   }, []);
 
-  const applyTheme = useCallback((themeName: keyof typeof predefinedThemes) => {
-    const theme = predefinedThemes[themeName];
-    updateConfig('colors', theme.colors);
-    toast({
-      title: "Thème appliqué",
-      description: `Le thème ${theme.name} a été appliqué avec succès.`
+  const updateConfiguration = useCallback((updates: Partial<DashboardConfiguration>) => {
+    setConfiguration(prev => {
+      pushToUndoStack(prev);
+      const newConfig = { ...prev, ...updates };
+      trackAnalyticsEvent('dashboard_config_changed', { changes: Object.keys(updates), timestamp: Date.now() });
+      return newConfig;
     });
-  }, [updateConfig, toast]);
+  }, [pushToUndoStack, trackAnalyticsEvent]);
 
-  const resetConfig = useCallback(() => {
-    setConfig({
-      layout: { cardSpacing: 16, borderRadius: 8, shadow: 'soft', padding: 24 },
-      colors: { primary: 'hsl(217, 91%, 60%)', accent: 'hsl(262, 83%, 58%)', background: 'hsl(0, 0%, 98%)', cardBackground: 'hsl(0, 0%, 100%)', text: 'hsl(0, 0%, 15%)' },
-      typography: { headerSize: 24, bodySize: 14, fontWeight: 'medium', lineHeight: 1.5 },
-      responsive: { viewMode: 'desktop', breakpoint: 1024 },
-      theme: 'light'
-    });
-    toast({
-      title: "Configuration réinitialisée",
-      description: "Retour aux paramètres par défaut."
-    });
-  }, [toast]);
+  const handleUndo = useCallback(() => {
+    if (undoStack.length > 0) {
+      const previousConfig = undoStack[undoStack.length - 1];
+      setRedoStack(prev => [configuration, ...prev]);
+      setConfiguration(previousConfig);
+      setUndoStack(prev => prev.slice(0, -1));
+    }
+  }, [undoStack, configuration]);
 
-  const exportConfig = useCallback(() => {
-    const configJson = JSON.stringify(config, null, 2);
-    navigator.clipboard.writeText(configJson);
-    toast({
-      title: "Configuration copiée",
-      description: "La configuration JSON a été copiée dans le presse-papiers."
-    });
-  }, [config, toast]);
+  const handleRedo = useCallback(() => {
+    if (redoStack.length > 0) {
+      const nextConfig = redoStack[0];
+      setUndoStack(prev => [...prev, configuration]);
+      setConfiguration(nextConfig);
+      setRedoStack(prev => prev.slice(1));
+    }
+  }, [redoStack, configuration]);
 
-  const generatePreviewStyles = useCallback(() => {
-    const { layout, colors, typography, responsive } = config;
-    
-    return {
-      '--preview-primary': colors.primary,
-      '--preview-accent': colors.accent,
-      '--preview-bg': colors.background,
-      '--preview-card-bg': colors.cardBackground,
-      '--preview-text': colors.text,
-      '--preview-spacing': `${layout.cardSpacing}px`,
-      '--preview-radius': `${layout.borderRadius}px`,
-      '--preview-padding': `${layout.padding}px`,
-      '--preview-header-size': `${typography.headerSize}px`,
-      '--preview-body-size': `${typography.bodySize}px`,
-      '--preview-font-weight': typography.fontWeight,
-      '--preview-line-height': typography.lineHeight.toString(),
-      width: responsive.viewMode === 'mobile' ? '375px' : 
-             responsive.viewMode === 'tablet' ? '768px' : '100%',
-    } as React.CSSProperties;
-  }, [config]);
+  const handleSaveConfiguration = async () => {
+    if (!configName.trim()) {
+      toast({ title: "Erreur", description: "Veuillez saisir un nom pour la configuration", variant: "destructive" });
+      return;
+    }
+    await saveConfiguration({
+      name: configName,
+      type: 'repairer_dashboard',
+      configuration,
+      is_active: true,
+      description: `Configuration du tableau de bord - ${new Date().toLocaleDateString()}`,
+      tags: ['dashboard', 'repairer', 'interface']
+    });
+    setConfigName('');
+    toast({ title: "Succès", description: "Configuration sauvegardée avec succès" });
+  };
+
+  const getDeviceClasses = () => {
+    switch (previewDevice) {
+      case 'mobile': return 'max-w-sm mx-auto';
+      case 'tablet': return 'max-w-2xl mx-auto';
+      default: return 'w-full';
+    }
+  };
+
+  const dashboardConfigs = configurations.filter(config => config.type === 'repairer_dashboard');
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Test Interface Réparateur</h2>
-          <p className="text-muted-foreground">
-            Configurez et testez l'affichage du tableau de bord réparateur en temps réel
-          </p>
+          <h1 className="text-3xl font-bold">Testeur de Tableau de Bord Réparateur</h1>
+          <p className="text-muted-foreground">Configurez et testez l'interface du tableau de bord réparateur</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={resetConfig}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Reset
+          <Button variant="outline" size="sm" onClick={handleUndo} disabled={undoStack.length === 0}>
+            <Undo className="h-4 w-4" />
           </Button>
-          <Button variant="outline" onClick={exportConfig}>
-            <Copy className="h-4 w-4 mr-2" />
-            Copier config
+          <Button variant="outline" size="sm" onClick={handleRedo} disabled={redoStack.length === 0}>
+            <Redo className="h-4 w-4" />
           </Button>
-          <Button>
-            <Save className="h-4 w-4 mr-2" />
-            Sauvegarder
+          <Button variant="outline" size="sm" onClick={() => setIsPreviewMode(!isPreviewMode)}>
+            <Eye className="h-4 w-4 mr-2" />
+            {isPreviewMode ? 'Éditer' : 'Aperçu'}
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Configuration Panel */}
-        <div className="lg:col-span-1 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings2 className="h-5 w-5" />
-                Configuration
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="general" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="general">Général</TabsTrigger>
-                  <TabsTrigger value="layout">Layout</TabsTrigger>
-                  <TabsTrigger value="colors">Couleurs</TabsTrigger>
-                  <TabsTrigger value="typo">Typo</TabsTrigger>
-                </TabsList>
+        {!isPreviewMode && (
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Configuration
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="layout" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="layout">Layout</TabsTrigger>
+                    <TabsTrigger value="components">Composants</TabsTrigger>
+                    <TabsTrigger value="theme">Thème</TabsTrigger>
+                    <TabsTrigger value="features">Options</TabsTrigger>
+                  </TabsList>
 
-                <TabsContent value="general" className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Onglet à tester</Label>
-                    <Select value={selectedTab} onValueChange={setSelectedTab}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {dashboardTabs.map(tab => (
-                          <SelectItem key={tab.value} value={tab.value}>
-                            {tab.icon} {tab.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Plan utilisateur</Label>
-                    <Select value={selectedPlan} onValueChange={setSelectedPlan}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {userPlans.map(plan => (
-                          <SelectItem key={plan.value} value={plan.value}>
-                            {plan.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Mode d'affichage</Label>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant={config.responsive.viewMode === 'desktop' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => updateConfig('responsive', { viewMode: 'desktop' })}
-                      >
-                        <Monitor className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant={config.responsive.viewMode === 'tablet' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => updateConfig('responsive', { viewMode: 'tablet' })}
-                      >
-                        <Tablet className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant={config.responsive.viewMode === 'mobile' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => updateConfig('responsive', { viewMode: 'mobile' })}
-                      >
-                        <Smartphone className="h-4 w-4" />
-                      </Button>
+                  <TabsContent value="layout" className="space-y-4">
+                    <div>
+                      <Label htmlFor="gridColumns">Colonnes de grille</Label>
+                      <Input
+                        id="gridColumns"
+                        type="number"
+                        min="6"
+                        max="24"
+                        value={configuration.layout.gridColumns}
+                        onChange={(e) => updateConfiguration({
+                          layout: { ...configuration.layout, gridColumns: Number(e.target.value) }
+                        })}
+                      />
                     </div>
-                  </div>
+                  </TabsContent>
 
-                  <Separator />
-
-                  <div className="space-y-2">
-                    <Label>Thèmes prédéfinis</Label>
-                    <div className="grid grid-cols-1 gap-2">
-                      {Object.entries(predefinedThemes).map(([key, theme]) => (
-                        <Button
-                          key={key}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => applyTheme(key as keyof typeof predefinedThemes)}
-                          className="justify-start"
-                        >
-                          <Palette className="h-4 w-4 mr-2" />
-                          {theme.name}
-                        </Button>
+                  <TabsContent value="components" className="space-y-4">
+                    <div className="space-y-3">
+                      <h4 className="font-semibold">Visibilité des composants</h4>
+                      {Object.entries(configuration.components).map(([key, component]) => (
+                        <div key={key} className="flex items-center justify-between">
+                          <Label htmlFor={key} className="capitalize">{key}</Label>
+                          <input
+                            id={key}
+                            type="checkbox"
+                            checked={component.visible}
+                            onChange={(e) => updateConfiguration({
+                              components: {
+                                ...configuration.components,
+                                [key]: { ...component, visible: e.target.checked }
+                              }
+                            })}
+                            className="rounded"
+                          />
+                        </div>
                       ))}
                     </div>
-                  </div>
-                </TabsContent>
+                  </TabsContent>
 
-                <TabsContent value="layout" className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Espacement des cartes: {config.layout.cardSpacing}px</Label>
-                    <Slider
-                      value={[config.layout.cardSpacing]}
-                      onValueChange={([value]) => updateConfig('layout', { cardSpacing: value })}
-                      max={32}
-                      min={8}
-                      step={4}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Border radius: {config.layout.borderRadius}px</Label>
-                    <Slider
-                      value={[config.layout.borderRadius]}
-                      onValueChange={([value]) => updateConfig('layout', { borderRadius: value })}
-                      max={24}
-                      min={0}
-                      step={2}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Padding des cartes: {config.layout.padding}px</Label>
-                    <Slider
-                      value={[config.layout.padding]}
-                      onValueChange={([value]) => updateConfig('layout', { padding: value })}
-                      max={48}
-                      min={12}
-                      step={4}
-                    />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="colors" className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Couleur primaire</Label>
-                    <Input
-                      type="color"
-                      value={config.colors.primary.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/)?.[0] || '#3b82f6'}
-                      onChange={(e) => {
-                        const hex = e.target.value;
-                        // Conversion approximative hex vers HSL pour l'exemple
-                        updateConfig('colors', { primary: `hsl(217, 91%, 60%)` });
-                      }}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Couleur d'accent</Label>
-                    <Input
-                      type="color"
-                      value={config.colors.accent.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/)?.[0] || '#8b5cf6'}
-                      onChange={(e) => updateConfig('colors', { accent: 'hsl(262, 83%, 58%)' })}
-                    />
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="typo" className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Taille en-têtes: {config.typography.headerSize}px</Label>
-                    <Slider
-                      value={[config.typography.headerSize]}
-                      onValueChange={([value]) => updateConfig('typography', { headerSize: value })}
-                      max={32}
-                      min={16}
-                      step={2}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Taille texte: {config.typography.bodySize}px</Label>
-                    <Slider
-                      value={[config.typography.bodySize]}
-                      onValueChange={([value]) => updateConfig('typography', { bodySize: value })}
-                      max={18}
-                      min={12}
-                      step={1}
-                    />
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Preview Area */}
-        <div className="lg:col-span-2">
-          <Card className="h-[800px]">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Eye className="h-5 w-5" />
-                Aperçu temps réel
-                <Badge variant="secondary">
-                  {dashboardTabs.find(t => t.value === selectedTab)?.label}
-                </Badge>
-                <Badge variant="outline">
-                  Plan {userPlans.find(p => p.value === selectedPlan)?.label}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0 h-full">
-              <div 
-                className="preview-container h-full border rounded-lg overflow-auto"
-                style={generatePreviewStyles()}
-              >
-                <div className="p-6 space-y-4" style={{ 
-                  backgroundColor: config.colors.background,
-                  color: config.colors.text,
-                  fontSize: `${config.typography.bodySize}px`,
-                  lineHeight: config.typography.lineHeight
-                }}>
-                  {/* Mock Dashboard Preview */}
-                  <div className="flex items-center justify-between">
-                    <h1 style={{ 
-                      fontSize: `${config.typography.headerSize}px`,
-                      fontWeight: config.typography.fontWeight 
-                    }}>
-                      Tableau de bord - {dashboardTabs.find(t => t.value === selectedTab)?.label}
-                    </h1>
-                    <Badge style={{ backgroundColor: config.colors.primary, color: 'white' }}>
-                      {userPlans.find(p => p.value === selectedPlan)?.label}
-                    </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {[1, 2, 3].map(i => (
-                      <div
-                        key={i}
-                        className="rounded-lg shadow-sm p-4"
-                        style={{
-                          backgroundColor: config.colors.cardBackground,
-                          borderRadius: `${config.layout.borderRadius}px`,
-                          padding: `${config.layout.padding}px`,
-                          margin: `${config.layout.cardSpacing / 2}px`
-                        }}
-                      >
-                        <h3 className="font-semibold mb-2">Métrique {i}</h3>
-                        <p className="text-2xl font-bold" style={{ color: config.colors.primary }}>
-                          {i * 123}
-                        </p>
-                        <p className="text-sm opacity-70">+12% ce mois</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div
-                    className="rounded-lg shadow-sm p-6"
-                    style={{
-                      backgroundColor: config.colors.cardBackground,
-                      borderRadius: `${config.layout.borderRadius}px`,
-                      padding: `${config.layout.padding}px`
-                    }}
-                  >
-                    <h2 className="text-lg font-semibold mb-4">
-                      Contenu de l'onglet {dashboardTabs.find(t => t.value === selectedTab)?.label}
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <div className="h-4 rounded" style={{ backgroundColor: config.colors.primary, opacity: 0.3 }}></div>
-                        <div className="h-4 rounded" style={{ backgroundColor: config.colors.accent, opacity: 0.3 }}></div>
-                        <div className="h-4 rounded w-3/4" style={{ backgroundColor: config.colors.primary, opacity: 0.2 }}></div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="h-16 rounded" style={{ backgroundColor: config.colors.accent, opacity: 0.1 }}></div>
-                        <div className="h-8 rounded" style={{ backgroundColor: config.colors.primary, opacity: 0.1 }}></div>
-                      </div>
+                  <TabsContent value="theme" className="space-y-4">
+                    <div>
+                      <Label htmlFor="primaryColor">Couleur primaire</Label>
+                      <Input
+                        id="primaryColor"
+                        type="color"
+                        value={configuration.theme.primaryColor}
+                        onChange={(e) => updateConfiguration({
+                          theme: { ...configuration.theme, primaryColor: e.target.value }
+                        })}
+                      />
                     </div>
+                  </TabsContent>
+
+                  <TabsContent value="features" className="space-y-4">
+                    <div className="space-y-3">
+                      <h4 className="font-semibold">Fonctionnalités</h4>
+                      {Object.entries(configuration.features).map(([key, enabled]) => (
+                        <div key={key} className="flex items-center justify-between">
+                          <Label htmlFor={key} className="capitalize">
+                            {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                          </Label>
+                          <input
+                            id={key}
+                            type="checkbox"
+                            checked={enabled}
+                            onChange={(e) => updateConfiguration({
+                              features: { ...configuration.features, [key]: e.target.checked }
+                            })}
+                            className="rounded"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
+                <Separator className="my-4" />
+
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="configName">Nom de la configuration</Label>
+                    <Input
+                      id="configName"
+                      placeholder="Ma configuration dashboard"
+                      value={configName}
+                      onChange={(e) => setConfigName(e.target.value)}
+                    />
                   </div>
+                  <Button onClick={handleSaveConfiguration} className="w-full">
+                    <Save className="h-4 w-4 mr-2" />
+                    Sauvegarder
+                  </Button>
+                </div>
+
+                {dashboardConfigs.length > 0 && (
+                  <>
+                    <Separator className="my-4" />
+                    <div>
+                      <h4 className="font-semibold mb-2">Configurations sauvegardées</h4>
+                      <ScrollArea className="h-32">
+                        <div className="space-y-2">
+                          {dashboardConfigs.map((config) => (
+                            <div key={config.id} className="flex items-center justify-between p-2 border rounded">
+                              <div className="flex-1">
+                                <p className="text-sm font-medium">{config.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(config.created_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div className="flex gap-1">
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost"
+                                  onClick={() => setConfiguration(config.configuration as DashboardConfiguration)}
+                                >
+                                  <Play className="h-3 w-3" />
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost"
+                                  onClick={() => cloneConfiguration(config.id, `${config.name} - Copie`)}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        <div className={isPreviewMode ? 'col-span-3' : 'lg:col-span-2'}>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Monitor className="h-5 w-5" />
+                  Aperçu du Tableau de Bord
+                </CardTitle>
+                <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
+                  <Button
+                    size="sm"
+                    variant={previewDevice === 'desktop' ? 'default' : 'ghost'}
+                    onClick={() => setPreviewDevice('desktop')}
+                  >
+                    <Monitor className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={previewDevice === 'tablet' ? 'default' : 'ghost'}
+                    onClick={() => setPreviewDevice('tablet')}
+                  >
+                    <Tablet className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={previewDevice === 'mobile' ? 'default' : 'ghost'}
+                    onClick={() => setPreviewDevice('mobile')}
+                  >
+                    <Smartphone className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className={`${getDeviceClasses()} border rounded-lg overflow-hidden`}>
+                <div className="min-h-[600px] bg-background">
+                  <RepairerDashboardTabs
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                    orders={mockData.orders}
+                    appointments={mockData.appointments}
+                    inventory={mockData.inventory}
+                    profileData={mockData.profileData}
+                    avgRepairTime={mockData.avgRepairTime}
+                  />
                 </div>
               </div>
             </CardContent>
@@ -495,4 +379,6 @@ export default function RepairerDashboardTester() {
       </div>
     </div>
   );
-}
+};
+
+export default RepairerDashboardTester;
