@@ -47,14 +47,16 @@ serve(async (req) => {
     
     console.log('🎯 Starting intelligent scraping:', target);
     
-    // Log scraping start
+    // Log scraping start - utilise une table existante
     const { data: logData } = await supabase
       .from('scraping_logs')
       .insert({
-        target_city: target.city,
-        target_category: target.category,
         source: target.source,
-        status: 'running'
+        status: 'running',
+        items_scraped: 0,
+        items_added: 0,
+        items_updated: 0,
+        started_at: new Date().toISOString()
       })
       .select()
       .single();
@@ -86,8 +88,8 @@ serve(async (req) => {
           .from('scraping_logs')
           .update({
             status: 'completed',
-            results_found: results.length,
-            execution_time_ms: executionTime,
+            items_scraped: results.length,
+            items_added: results.length,
             completed_at: new Date().toISOString()
           })
           .eq('id', logData.id);
@@ -114,7 +116,6 @@ serve(async (req) => {
           .update({
             status: 'failed',
             error_message: scrapingError.message,
-            execution_time_ms: Date.now() - startTime,
             completed_at: new Date().toISOString()
           })
           .eq('id', logData.id);
