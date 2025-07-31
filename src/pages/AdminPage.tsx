@@ -31,7 +31,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Monitor } from 'lucide-react';
 import { CheckmateMonitoring } from '@/components/admin/monitoring/CheckmateMonitoring';
 import StaticPagesManager from '@/components/admin/StaticPagesManager';
-import QuotesManagement from '@/components/admin/quotes/QuotesManagement';
+import RealTimeQuotesManager from '@/components/admin/quotes/RealTimeQuotesManager';
 import CatalogManagement from '@/components/admin/catalog/CatalogManagement';
 
 const AdminPage = () => {
@@ -142,7 +142,7 @@ const AdminPage = () => {
       case 'repairers':
         return <RepairerList />;
       case 'quotes':
-        return <QuotesManagement />;
+        return <RealTimeQuotesManager />;
       case 'catalog':
         return <CatalogManagement />;
       case 'interest':
