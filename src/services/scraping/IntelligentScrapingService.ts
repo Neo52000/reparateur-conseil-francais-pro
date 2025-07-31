@@ -51,14 +51,23 @@ export class IntelligentScrapingService {
     if (this.isInitialized) return;
     
     try {
+      console.log('🔧 Initializing AI services...');
       // Initialize AI services if API keys are available
-      const { data: secrets } = await supabase.functions.invoke('get-ai-keys');
-      if (secrets?.mistral) {
+      const { data: secrets, error } = await supabase.functions.invoke('get-ai-keys');
+      
+      if (error) {
+        console.warn('⚠️ Could not fetch AI keys:', error);
+      } else if (secrets?.mistral) {
         this.mistralService = new MistralAIService(secrets.mistral);
+        console.log('✅ Mistral AI service initialized');
+      } else {
+        console.warn('⚠️ No Mistral API key found in secrets');
       }
+      
       this.isInitialized = true;
+      console.log('✅ AI services initialization completed');
     } catch (error) {
-      console.warn('AI services not available:', error);
+      console.warn('⚠️ AI services initialization failed:', error);
       this.isInitialized = true;
     }
   }
@@ -70,31 +79,68 @@ export class IntelligentScrapingService {
     
     try {
       // Call the edge function for actual scraping
+      console.log('📞 Calling intelligent-scraping edge function...');
       const { data, error } = await supabase.functions.invoke('intelligent-scraping', {
         body: { target }
       });
 
-      if (error) throw error;
+      console.log('📊 Edge function response:', { data, error });
+
+      if (error) {
+        console.error('❌ Edge function error:', error);
+        throw new Error(`Edge function failed: ${error.message || 'Unknown error'}`);
+      }
+
+      if (!data) {
+        throw new Error('No data returned from edge function');
+      }
       
       const rawData = data.results || [];
-      console.log(`📊 Found ${rawData.length} potential repairers`);
+      console.log(`📊 Found ${rawData.length} potential repairers from scraping`);
+
+      if (rawData.length === 0) {
+        console.warn('⚠️ No raw data found, returning empty array');
+        return [];
+      }
 
       // Classify and enrich each result with AI
+      console.log('🤖 Starting AI classification and enrichment...');
       const enrichedResults = await Promise.all(
-        rawData.map(async (item: any) => this.classifyAndEnrich(item, target))
+        rawData.map(async (item: any, index: number) => {
+          try {
+            console.log(`🔄 Processing item ${index + 1}/${rawData.length}:`, item.name);
+            return await this.classifyAndEnrich(item, target);
+          } catch (error) {
+            console.error(`❌ Failed to process item ${index + 1}:`, error);
+            // Return basic structure with fallback classification
+            return this.createFallbackRepairer(item, target);
+          }
+        })
       );
 
       // Filter out low-confidence results
       const validRepairers = enrichedResults.filter(
-        result => result.ai_classification.is_repairer && result.confidence_score > 0.6
+        result => result && result.ai_classification && result.ai_classification.is_repairer && result.confidence_score > 0.6
       );
 
-      console.log(`✅ Validated ${validRepairers.length} repairers with high confidence`);
+      console.log(`✅ Validated ${validRepairers.length}/${enrichedResults.length} repairers with high confidence`);
       return validRepairers;
 
     } catch (error) {
-      console.error('❌ Scraping failed:', error);
-      throw error;
+      console.error('❌ Scraping failed with detailed error:', {
+        message: error.message,
+        stack: error.stack,
+        target
+      });
+      
+      // Provide more specific error information
+      if (error.message?.includes('Edge function failed')) {
+        throw new Error(`Erreur du service de scraping: ${error.message}`);
+      } else if (error.message?.includes('No data returned')) {
+        throw new Error('Le service de scraping n\'a retourné aucune donnée');
+      } else {
+        throw new Error(`Erreur de scraping: ${error.message || 'Erreur inconnue'}`);
+      }
     }
   }
 
@@ -206,6 +252,79 @@ export class IntelligentScrapingService {
     }
     
     return phone; // Return original if can't format
+  }
+
+  private createFallbackRepairer(rawData: any, target: ScrapingTarget): ScrapedRepairer {
+    const fallbackClassification = this.fallbackClassification(rawData, target);
+    
+    return {
+      name: rawData.name || 'Nom non spécifié',
+      address: rawData.address || '',
+      city: rawData.city || target.city,
+      postal_code: rawData.postal_code,
+      phone: this.formatPhone(rawData.phone),
+      email: rawData.email,
+      website: rawData.website,
+      google_place_id: rawData.place_id,
+      rating: parseFloat(rawData.rating) || undefined,
+      review_count: parseInt(rawData.review_count) || undefined,
+      description: rawData.description,
+      opening_hours: rawData.opening_hours,
+      source: rawData.source || target.source,
+      confidence_score: fallbackClassification.confidence,
+      ai_classification: fallbackClassification
+    };
+  }
+
+  async testConnection(): Promise<{ success: boolean; details: any }> {
+    try {
+      console.log('🧪 Testing scraping system...');
+      
+      // Test 1: Edge function connectivity
+      const testTarget = {
+        city: 'test',
+        category: 'smartphone',
+        source: 'google_maps' as const,
+        maxResults: 1
+      };
+      
+      const { data, error } = await supabase.functions.invoke('intelligent-scraping', {
+        body: { target: testTarget }
+      });
+      
+      const edgeFunctionWorking = !error && data;
+      
+      // Test 2: AI services
+      await this.initialize();
+      const aiServicesAvailable = !!this.mistralService;
+      
+      // Test 3: Database connectivity
+      const { error: dbError } = await supabase
+        .from('scraping_suggestions')
+        .select('count')
+        .limit(1);
+      
+      const databaseWorking = !dbError;
+      
+      return {
+        success: edgeFunctionWorking && databaseWorking,
+        details: {
+          edgeFunctionWorking,
+          aiServicesAvailable,
+          databaseWorking,
+          edgeError: error?.message,
+          dbError: dbError?.message
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        details: {
+          error: error.message,
+          stack: error.stack
+        }
+      };
+    }
   }
 
   async saveSuggestions(repairers: ScrapedRepairer[]): Promise<ScrapingSuggestion[]> {

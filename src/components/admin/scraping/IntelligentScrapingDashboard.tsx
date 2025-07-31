@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, Search, CheckCircle, XCircle, Clock, MapPin, Phone, Star, Globe } from 'lucide-react';
+import { Brain, Search, CheckCircle, XCircle, Clock, MapPin, Phone, Star, Globe, AlertCircle, Settings } from 'lucide-react';
 import { IntelligentScrapingService, ScrapingTarget, ScrapingSuggestion } from '@/services/scraping/IntelligentScrapingService';
 
 const IntelligentScrapingDashboard = () => {
@@ -16,6 +16,8 @@ const IntelligentScrapingDashboard = () => {
   const [isScrapingActive, setIsScrapingActive] = useState(false);
   const [suggestions, setSuggestions] = useState<ScrapingSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
+  const [testResults, setTestResults] = useState<any>(null);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
   
   // Scraping form state
   const [scrapingForm, setScrapingForm] = useState<ScrapingTarget>({
@@ -78,7 +80,7 @@ const IntelligentScrapingDashboard = () => {
       console.error('Scraping failed:', error);
       toast({
         title: "❌ Erreur de scraping",
-        description: "Une erreur est survenue lors du scraping",
+        description: error.message || "Une erreur est survenue lors du scraping",
         variant: "destructive"
       });
     } finally {
@@ -118,6 +120,36 @@ const IntelligentScrapingDashboard = () => {
         description: "Impossible de rejeter la suggestion",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleRunDiagnostics = async () => {
+    setLoading(true);
+    try {
+      const results = await scrapingService.testConnection();
+      setTestResults(results);
+      setShowDiagnostics(true);
+      
+      if (results.success) {
+        toast({
+          title: "✅ Diagnostics réussis",
+          description: "Tous les services fonctionnent correctement"
+        });
+      } else {
+        toast({
+          title: "⚠️ Problèmes détectés",
+          description: "Consultez les détails dans le panneau de diagnostics",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "❌ Erreur de diagnostic",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -259,21 +291,107 @@ const IntelligentScrapingDashboard = () => {
             </div>
           </div>
           
-          <div className="mt-4">
+          <div className="mt-4 flex gap-2">
             <Button 
               onClick={handleStartScraping} 
               disabled={loading || isScrapingActive}
-              className="w-full md:w-auto"
+              className="flex-1 md:flex-none"
             >
-              {loading ? (
+              {loading && !showDiagnostics ? (
                 <>🔄 Scraping en cours...</>
               ) : (
                 <>🚀 Lancer le scraping intelligent</>
               )}
             </Button>
+            
+            <Button 
+              variant="outline"
+              onClick={handleRunDiagnostics} 
+              disabled={loading}
+            >
+              {loading && showDiagnostics ? (
+                <>🔄 Test...</>
+              ) : (
+                <>
+                  <Settings className="h-4 w-4 mr-1" />
+                  Diagnostics
+                </>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Diagnostics Panel */}
+      {showDiagnostics && testResults && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Résultats des diagnostics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className={`p-3 rounded-lg border ${testResults.details.edgeFunctionWorking ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                  <div className="flex items-center gap-2">
+                    {testResults.details.edgeFunctionWorking ? (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-600" />
+                    )}
+                    <span className="font-medium">Edge Function</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {testResults.details.edgeFunctionWorking ? 'Fonctionne' : 'Erreur'}
+                  </p>
+                  {testResults.details.edgeError && (
+                    <p className="text-xs text-red-600 mt-1">{testResults.details.edgeError}</p>
+                  )}
+                </div>
+                
+                <div className={`p-3 rounded-lg border ${testResults.details.aiServicesAvailable ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+                  <div className="flex items-center gap-2">
+                    {testResults.details.aiServicesAvailable ? (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <AlertCircle className="h-5 w-5 text-yellow-600" />
+                    )}
+                    <span className="font-medium">Services IA</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {testResults.details.aiServicesAvailable ? 'Disponibles' : 'Non configurés'}
+                  </p>
+                </div>
+                
+                <div className={`p-3 rounded-lg border ${testResults.details.databaseWorking ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                  <div className="flex items-center gap-2">
+                    {testResults.details.databaseWorking ? (
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-600" />
+                    )}
+                    <span className="font-medium">Base de données</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {testResults.details.databaseWorking ? 'Accessible' : 'Erreur'}
+                  </p>
+                  {testResults.details.dbError && (
+                    <p className="text-xs text-red-600 mt-1">{testResults.details.dbError}</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="text-right">
+                <Button variant="outline" size="sm" onClick={() => setShowDiagnostics(false)}>
+                  Fermer
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Suggestions */}
       <Card>
