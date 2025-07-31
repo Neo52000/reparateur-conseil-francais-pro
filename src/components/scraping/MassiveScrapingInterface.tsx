@@ -94,10 +94,12 @@ const MassiveScrapingInterface = ({
           </div>
         </div>
 
-        <DepartmentSelector
-          selectedDepartment={selectedDepartment}
-          onDepartmentChange={onDepartmentChange}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <DepartmentSelector
+            selectedDepartment={selectedDepartment}
+            onDepartmentChange={onDepartmentChange}
+          />
+        </div>
 
         <ScrapingStatusIndicator
           isScrapingRunning={isScrapingRunning}

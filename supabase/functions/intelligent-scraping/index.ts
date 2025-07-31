@@ -43,15 +43,22 @@ serve(async (req) => {
   }
 
   try {
-    const { target }: { target: ScrapingTarget } = await req.json();
+    const { city, category, source, maxResults = 10, coordinates, aiModel }: { 
+      city: string; 
+      category: string; 
+      source: string; 
+      maxResults?: number; 
+      coordinates?: { lat: number; lng: number };
+      aiModel?: string;
+    } = await req.json();
     
-    console.log('🎯 Starting intelligent scraping:', target);
+    console.log('🎯 Starting intelligent scraping:', { city, category, source, maxResults, coordinates, aiModel });
     
     // Log scraping start - utilise une table existante
     const { data: logData } = await supabase
       .from('scraping_logs')
       .insert({
-        source: target.source,
+        source: source,
         status: 'running',
         items_scraped: 0,
         items_added: 0,
@@ -66,7 +73,8 @@ serve(async (req) => {
     
     try {
       // Choose scraping strategy based on source
-      switch (target.source) {
+      const target = { city, category, source, maxResults };
+      switch (source) {
         case 'google_maps':
           results = await scrapeGoogleMaps(target);
           break;
@@ -77,7 +85,7 @@ serve(async (req) => {
           results = await scrapeLocalDirectories(target);
           break;
         default:
-          throw new Error(`Unsupported source: ${target.source}`);
+          throw new Error(`Unsupported source: ${source}`);
       }
 
       const executionTime = Date.now() - startTime;
@@ -99,9 +107,15 @@ serve(async (req) => {
       
       return new Response(JSON.stringify({ 
         success: true, 
-        results,
-        execution_time_ms: executionTime,
-        source: target.source
+        data: results,
+        stats: {
+          scraped: results.length,
+          classified: results.filter(r => r.ai_classified).length,
+          city,
+          category,
+          source
+        },
+        execution_time_ms: executionTime
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
