@@ -34,6 +34,7 @@ import StaticPagesManager from '@/components/admin/StaticPagesManager';
 import RealTimeQuotesManager from '@/components/admin/quotes/RealTimeQuotesManager';
 import CatalogManagement from '@/components/admin/catalog/CatalogManagement';
 import PlanVisualizationTester from '@/components/admin/plans/PlanVisualizationTester';
+import RepairerDashboardTester from '@/components/admin/dashboard/RepairerDashboardTester';
 const AdminPage = () => {
   const {
     user,
@@ -112,6 +113,8 @@ const AdminPage = () => {
         return 'Gestion Fonctionnalités';
       case 'plans-tester':
         return 'Test Interface Plans';
+      case 'dashboard-tester':
+        return 'Test Interface Réparateur';
       case 'configuration':
         return 'Configuration';
       default:
@@ -172,6 +175,8 @@ const AdminPage = () => {
         return 'Gestionnaire centralisé de toutes les fonctionnalités et modules';
       case 'plans-tester':
         return 'Interface de test et configuration pour l\'affichage des plans réparateurs';
+      case 'dashboard-tester':
+        return 'Interface de test et configuration pour le tableau de bord réparateur';
       case 'configuration':
         return 'Configuration générale de l\'application';
       case 'static-pages':
@@ -264,6 +269,8 @@ const AdminPage = () => {
         return <ComprehensiveFeaturesManager />;
       case 'plans-tester':
         return <PlanVisualizationTester />;
+      case 'dashboard-tester':
+        return <RepairerDashboardTester />;
       case 'configuration':
         return <AdminConfigurationPage />;
       case 'static-pages':
