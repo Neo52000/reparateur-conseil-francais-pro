@@ -72,3 +72,6 @@ verify_jwt = false
 
 [functions.intelligent-scraping]
 verify_jwt = false
+
+[functions.get-ai-status]
+verify_jwt = false

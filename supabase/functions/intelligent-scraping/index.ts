@@ -110,7 +110,7 @@ serve(async (req) => {
         data: results,
         stats: {
           scraped: results.length,
-          classified: results.filter(r => r.ai_classified).length,
+          classified: 0, // Classification sera ajoutée dans une version future
           city,
           category,
           source

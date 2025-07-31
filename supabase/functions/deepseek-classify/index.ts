@@ -19,7 +19,8 @@ serve(async (req) => {
     // Initialiser le service IA avec les clés disponibles
     const aiService = new AIService({
       deepseekApiKey: Deno.env.get('DEEPSEEK_API_KEY'),
-      openaiApiKey: Deno.env.get('OPENAI_API_KEY')
+      openaiApiKey: Deno.env.get('OPENAI_API_KEY'),
+      mistralApiKey: Deno.env.get('CLE_API_MISTRAL')
     });
 
     console.log(`🤖 [DeepSeek-Classify] Classification de ${repairersData.length} réparateurs`);
