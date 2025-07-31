@@ -53,15 +53,16 @@ export class IntelligentScrapingService {
     try {
       console.log('🔧 Initializing AI services...');
       // Initialize AI services if API keys are available
-      const { data: secrets, error } = await supabase.functions.invoke('get-ai-keys');
+      const { data: secrets, error } = await supabase.functions.invoke('get-ai-status');
       
       if (error) {
         console.warn('⚠️ Could not fetch AI keys:', error);
-      } else if (secrets?.mistral) {
-        this.mistralService = new MistralAIService(secrets.mistral);
+      } else if (secrets?.statuses?.mistral === 'configured') {
+        // Mistral is configured, we can use it
+        this.mistralService = new MistralAIService('configured');
         console.log('✅ Mistral AI service initialized');
       } else {
-        console.warn('⚠️ No Mistral API key found in secrets');
+        console.warn('⚠️ Mistral API not configured');
       }
       
       this.isInitialized = true;
@@ -81,7 +82,12 @@ export class IntelligentScrapingService {
       // Call the edge function for actual scraping
       console.log('📞 Calling intelligent-scraping edge function...');
       const { data, error } = await supabase.functions.invoke('intelligent-scraping', {
-        body: { target }
+        body: {
+          city: target.city,
+          category: target.category,
+          source: target.source,
+          maxResults: target.maxResults || 10
+        }
       });
 
       console.log('📊 Edge function response:', { data, error });
@@ -289,7 +295,12 @@ export class IntelligentScrapingService {
       };
       
       const { data, error } = await supabase.functions.invoke('intelligent-scraping', {
-        body: { target: testTarget }
+        body: {
+          city: testTarget.city,
+          category: testTarget.category,
+          source: testTarget.source,
+          maxResults: testTarget.maxResults
+        }
       });
       
       const edgeFunctionWorking = !error && data;
