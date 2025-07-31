@@ -128,18 +128,67 @@
     overflow: hidden;
   }
 
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-in-out;
+  /* Animation utilities */
+  .animate-on-scroll {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s ease-out;
   }
 
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
+  .animate-on-scroll.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .hover-lift {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  .hover-scale {
+    transition: transform 0.2s ease-out;
+  }
+
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+
+  .hover-glow {
+    transition: box-shadow 0.3s ease-out;
+  }
+
+  .hover-glow:hover {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+  }
+
+  .button-press {
+    transition: transform 0.1s ease-out;
+  }
+
+  .button-press:active {
+    transform: scale(0.98);
+  }
+
+  /* Improved focus states */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-on-scroll,
+    .hover-lift,
+    .hover-scale,
+    .hover-glow,
+    .button-press,
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
     }
   }
 }
