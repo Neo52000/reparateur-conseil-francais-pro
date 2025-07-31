@@ -15,7 +15,8 @@ import {
   Shield,
   RefreshCw,
   Recycle,
-  Brain
+  Brain,
+  FileText
 } from 'lucide-react';
 import OverviewTabSection from "./OverviewTabSection";
 import EnhancedOverviewTab from "./EnhancedOverviewTab";
@@ -41,6 +42,7 @@ import QualiReparDashboard from '@/components/qualirepar/QualiReparDashboard';
 import ModulesStore from '@/components/modules/ModulesStore';
 import AIAssistantDashboard from '@/components/ai-assistant/AIAssistantDashboard';
 import GeolocationSeoPhase from '@/components/phase5/GeolocationSeoPhase';
+import QuoteRequestsTabSection from './QuoteRequestsTabSection';
 
 interface Order {
   id: string;
@@ -96,10 +98,14 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 }) => {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-15">
+      <TabsList className="grid w-full grid-cols-16">
         <TabsTrigger value="overview" className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4" />
           Aperçu
+        </TabsTrigger>
+        <TabsTrigger value="quotes" className="flex items-center gap-2">
+          <FileText className="h-4 w-4" />
+          Devis
         </TabsTrigger>
         <TabsTrigger value="orders" className="flex items-center gap-2">
           <Receipt className="h-4 w-4" />
@@ -168,6 +174,10 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
           orders={orders}
           appointments={appointments}
         />
+      </TabsContent>
+
+      <TabsContent value="quotes">
+        <QuoteRequestsTabSection />
       </TabsContent>
 
       <TabsContent value="orders">

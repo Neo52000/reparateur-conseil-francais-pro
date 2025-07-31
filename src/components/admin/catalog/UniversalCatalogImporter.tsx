@@ -119,141 +119,6 @@ const COMPLETE_PRODUCT_DATA: ProductData[] = [
       'POCO X6 Pro', 'POCO X6', 'POCO F6', 'POCO M6 Pro'
     ]
   },
-  {
-    deviceType: 'Smartphone',
-    brand: 'Huawei',
-    category: 'smartphone',
-    icon: Smartphone,
-    models: [
-      'P60 Pro', 'P60', 'Mate 60 Pro', 'Mate 50 Pro',
-      'Nova 11', 'Nova 11 Pro', 'P50 Pro', 'P50'
-    ]
-  },
-  {
-    deviceType: 'Smartphone',
-    brand: 'OnePlus',
-    category: 'smartphone',
-    icon: Smartphone,
-    models: [
-      'OnePlus 12', 'OnePlus 11', 'OnePlus Nord 3', 'OnePlus Nord CE 3',
-      'OnePlus 10 Pro', 'OnePlus 9 Pro', 'OnePlus 9'
-    ]
-  },
-  {
-    deviceType: 'Smartphone',
-    brand: 'Oppo',
-    category: 'smartphone',
-    icon: Smartphone,
-    models: [
-      'Find X7 Ultra', 'Find X6 Pro', 'Reno 11 Pro', 'Reno 10 Pro',
-      'A98', 'A78', 'A58'
-    ]
-  },
-
-  // TABLETTES
-  {
-    deviceType: 'Tablette',
-    brand: 'Apple',
-    category: 'tablet',
-    icon: Tablet,
-    models: [
-      'iPad Pro 12.9" (6th Gen)', 'iPad Pro 11" (4th Gen)',
-      'iPad Air (5th Gen)', 'iPad (10th Gen)', 'iPad mini (6th Gen)'
-    ]
-  },
-  {
-    deviceType: 'Tablette',
-    brand: 'Samsung',
-    category: 'tablet',
-    icon: Tablet,
-    models: [
-      'Galaxy Tab S9 Ultra', 'Galaxy Tab S9+', 'Galaxy Tab S9',
-      'Galaxy Tab A9+', 'Galaxy Tab Active 4 Pro'
-    ]
-  },
-  {
-    deviceType: 'Tablette',
-    brand: 'Microsoft',
-    category: 'tablet',
-    icon: Tablet,
-    models: [
-      'Surface Pro 9', 'Surface Pro 8', 'Surface Go 3'
-    ]
-  },
-
-  // ORDINATEURS PORTABLES
-  {
-    deviceType: 'Ordinateur Portable',
-    brand: 'Apple',
-    category: 'laptop',
-    icon: Laptop,
-    models: [
-      'MacBook Pro 16" (M3)', 'MacBook Pro 14" (M3)',
-      'MacBook Air 15" (M2)', 'MacBook Air 13" (M2)'
-    ]
-  },
-  {
-    deviceType: 'Ordinateur Portable',
-    brand: 'Lenovo',
-    category: 'laptop',
-    icon: Laptop,
-    models: [
-      'ThinkPad X1 Carbon', 'ThinkPad T14', 'IdeaPad 5 Pro',
-      'Legion 5 Pro', 'Yoga 9i'
-    ]
-  },
-  {
-    deviceType: 'Ordinateur Portable',
-    brand: 'Dell',
-    category: 'laptop',
-    icon: Laptop,
-    models: [
-      'XPS 13', 'XPS 15', 'Inspiron 15 3000',
-      'Latitude 7420', 'Alienware m15'
-    ]
-  },
-  {
-    deviceType: 'Ordinateur Portable',
-    brand: 'HP',
-    category: 'laptop',
-    icon: Laptop,
-    models: [
-      'Spectre x360', 'Pavilion 15', 'EliteBook 840',
-      'Omen 15', 'Envy x360'
-    ]
-  },
-
-  // ÉCOUTEURS
-  {
-    deviceType: 'Écouteurs',
-    brand: 'Apple',
-    category: 'audio',
-    icon: Headphones,
-    models: [
-      'AirPods Pro (2nd Gen)', 'AirPods (3rd Gen)', 'AirPods Max',
-      'AirPods Pro (1st Gen)', 'AirPods (2nd Gen)'
-    ]
-  },
-  {
-    deviceType: 'Écouteurs',
-    brand: 'Sony',
-    category: 'audio',
-    icon: Headphones,
-    models: [
-      'WH-1000XM5', 'WH-1000XM4', 'WF-1000XM4',
-      'WH-CH720N', 'WF-C700N'
-    ]
-  },
-  {
-    deviceType: 'Écouteurs',
-    brand: 'Samsung',
-    category: 'audio',
-    icon: Headphones,
-    models: [
-      'Galaxy Buds2 Pro', 'Galaxy Buds2', 'Galaxy Buds Live',
-      'Galaxy Buds Pro'
-    ]
-  },
 
   // MONTRES CONNECTÉES
   {
@@ -262,27 +127,103 @@ const COMPLETE_PRODUCT_DATA: ProductData[] = [
     category: 'watch',
     icon: Watch,
     models: [
-      'Apple Watch Series 9', 'Apple Watch Ultra 2', 'Apple Watch SE (2nd Gen)',
-      'Apple Watch Series 8', 'Apple Watch Series 7'
+      // Apple Watch Series 9
+      'Apple Watch Series 9 (41mm)', 'Apple Watch Series 9 (45mm)',
+      'Apple Watch Series 9 GPS', 'Apple Watch Series 9 GPS + Cellular',
+      
+      // Apple Watch Ultra 2
+      'Apple Watch Ultra 2 (49mm)', 'Apple Watch Ultra 2 GPS + Cellular',
+      
+      // Apple Watch SE (2nd Gen)
+      'Apple Watch SE (40mm) 2022', 'Apple Watch SE (44mm) 2022',
+      'Apple Watch SE GPS 2nd Gen', 'Apple Watch SE GPS + Cellular 2nd Gen',
+      
+      // Apple Watch Series 8
+      'Apple Watch Series 8 (41mm)', 'Apple Watch Series 8 (45mm)',
+      'Apple Watch Series 8 GPS', 'Apple Watch Series 8 GPS + Cellular',
+      
+      // Apple Watch Series 7
+      'Apple Watch Series 7 (41mm)', 'Apple Watch Series 7 (45mm)',
+      'Apple Watch Series 7 GPS', 'Apple Watch Series 7 GPS + Cellular',
+      
+      // Apple Watch Series 6
+      'Apple Watch Series 6 (40mm)', 'Apple Watch Series 6 (44mm)',
+      'Apple Watch Series 6 GPS', 'Apple Watch Series 6 GPS + Cellular',
+      
+      // Apple Watch SE (1st Gen)
+      'Apple Watch SE (40mm) 2020', 'Apple Watch SE (44mm) 2020',
+      'Apple Watch SE GPS 1st Gen', 'Apple Watch SE GPS + Cellular 1st Gen',
+      
+      // Apple Watch Series 5
+      'Apple Watch Series 5 (40mm)', 'Apple Watch Series 5 (44mm)',
+      'Apple Watch Series 5 GPS', 'Apple Watch Series 5 GPS + Cellular',
+      
+      // Apple Watch Series 4
+      'Apple Watch Series 4 (40mm)', 'Apple Watch Series 4 (44mm)',
+      'Apple Watch Series 4 GPS', 'Apple Watch Series 4 GPS + Cellular',
+      
+      // Apple Watch Series 3
+      'Apple Watch Series 3 (38mm)', 'Apple Watch Series 3 (42mm)',
+      'Apple Watch Series 3 GPS', 'Apple Watch Series 3 GPS + Cellular',
+      
+      // Apple Watch Series 2
+      'Apple Watch Series 2 (38mm)', 'Apple Watch Series 2 (42mm)',
+      
+      // Apple Watch Series 1
+      'Apple Watch Series 1 (38mm)', 'Apple Watch Series 1 (42mm)',
+      
+      // Apple Watch (1st Gen)
+      'Apple Watch (38mm) 1st Gen', 'Apple Watch (42mm) 1st Gen',
+      'Apple Watch Edition', 'Apple Watch Sport'
+    ]
+  },
+
+  // CONSOLES DE JEUX
+  {
+    deviceType: 'Console de jeux',
+    brand: 'Sony',
+    category: 'gaming',
+    icon: Gamepad2,
+    models: [
+      // PlayStation 5
+      'PlayStation 5 (PS5)', 'PlayStation 5 Digital Edition',
+      'PlayStation 5 Slim', 'PlayStation 5 Pro',
+      
+      // PlayStation 4
+      'PlayStation 4 (PS4)', 'PlayStation 4 Slim',
+      'PlayStation 4 Pro',
+      
+      // PlayStation 3
+      'PlayStation 3 (PS3) Fat', 'PlayStation 3 Slim',
+      'PlayStation 3 Super Slim',
+      
+      // PlayStation Portable
+      'PSP-1000 (Fat)', 'PSP-2000 (Slim)', 'PSP-3000',
+      'PSP Go (PSP-N1000)',
+      
+      // PlayStation Vita
+      'PS Vita PCH-1000 (OLED)', 'PS Vita PCH-2000 (LCD)',
+      'PS Vita TV (PSTV)'
     ]
   },
   {
-    deviceType: 'Montre Connectée',
-    brand: 'Samsung',
-    category: 'watch',
-    icon: Watch,
+    deviceType: 'Console de jeux',
+    brand: 'Nintendo',
+    category: 'gaming',
+    icon: Gamepad2,
     models: [
-      'Galaxy Watch6 Classic', 'Galaxy Watch6', 'Galaxy Watch5 Pro',
-      'Galaxy Watch4'
-    ]
-  },
-  {
-    deviceType: 'Montre Connectée',
-    brand: 'Garmin',
-    category: 'watch',
-    icon: Watch,
-    models: [
-      'Forerunner 965', 'Fenix 7X', 'Venu 3', 'Vivoactive 5'
+      // Nintendo Switch
+      'Nintendo Switch', 'Nintendo Switch Lite',
+      'Nintendo Switch OLED', 'Nintendo Switch V2',
+      
+      // Nintendo 3DS
+      'Nintendo 3DS', 'Nintendo 3DS XL',
+      'New Nintendo 3DS', 'New Nintendo 3DS XL',
+      'Nintendo 2DS', 'New Nintendo 2DS XL',
+      
+      // Nintendo DS
+      'Nintendo DS (NDS)', 'Nintendo DS Lite',
+      'Nintendo DSi', 'Nintendo DSi XL'
     ]
   }
 ];
@@ -326,7 +267,8 @@ export const UniversalCatalogImporter: React.FC = () => {
     { id: 'tablet', label: 'Tablettes', icon: Tablet, color: 'green' },
     { id: 'laptop', label: 'Ordinateurs', icon: Laptop, color: 'purple' },
     { id: 'audio', label: 'Écouteurs', icon: Headphones, color: 'orange' },
-    { id: 'watch', label: 'Montres', icon: Watch, color: 'red' }
+    { id: 'watch', label: 'Montres', icon: Watch, color: 'red' },
+    { id: 'gaming', label: 'Consoles', icon: Gamepad2, color: 'purple' }
   ];
 
   const filteredProducts = COMPLETE_PRODUCT_DATA.filter(product => 
@@ -376,13 +318,48 @@ export const UniversalCatalogImporter: React.FC = () => {
     if (deviceType.toLowerCase().includes('smartphone') || deviceType.toLowerCase().includes('tablette')) return 'Android';
     if (deviceType.toLowerCase().includes('ordinateur')) return 'Windows';
     if (deviceType.toLowerCase().includes('montre')) return 'Wear OS';
+    if (deviceType.toLowerCase().includes('console')) return 'Propriétaire';
     return 'Propriétaire';
+  };
+
+  const getDeviceIcon = (deviceType: string): string => {
+    if (deviceType.toLowerCase().includes('smartphone')) return 'smartphone';
+    if (deviceType.toLowerCase().includes('tablette')) return 'tablet';
+    if (deviceType.toLowerCase().includes('ordinateur')) return 'laptop';
+    if (deviceType.toLowerCase().includes('montre')) return 'watch';
+    if (deviceType.toLowerCase().includes('console')) return 'gamepad';
+    if (deviceType.toLowerCase().includes('écouteurs')) return 'headphones';
+    return 'smartphone';
+  };
+
+  const capitalizeFirst = (str: string): string => {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
+  const scrapeModelsFromSource = async (source: any, brandName: string): Promise<string[]> => {
+    // Simulation du scraping - retourne les modèles du dataset statique
+    const matchingProduct = COMPLETE_PRODUCT_DATA.find(product => 
+      product.brand.toLowerCase() === brandName.toLowerCase() && 
+      product.category === source.deviceType.toLowerCase().replace(/\s+/g, '')
+    );
+    
+    if (matchingProduct) {
+      addLog(`✅ ${matchingProduct.models.length} modèles trouvés pour ${brandName}`);
+      return matchingProduct.models;
+    }
+    
+    // Fallback: générer quelques modèles basiques
+    const basicModels = [`${capitalizeFirst(brandName)} Model 1`, `${capitalizeFirst(brandName)} Model 2`];
+    addLog(`⚠️ Modèles basiques générés pour ${brandName}`);
+    return basicModels;
   };
 
   // Import automatisé universel
   const handleUniversalAutomatedImport = async () => {
+    setImporting(true);
     setStatus('importing');
     setLogs([]);
+    setProgress(0);
     
     try {
       addLog('🌐 Début de l\'import automatisé universel depuis tous les sites externes...');
@@ -393,722 +370,147 @@ export const UniversalCatalogImporter: React.FC = () => {
       let totalBrandsCreated = 0;
       let totalDeviceTypesCreated = 0;
 
-      // Sites et configurations à scraper
-      const scrapingSources = [
-        {
-          name: 'Mobilax Smartphones',
-          baseUrl: 'https://www.mobilax.fr/pieces-detachees/telephonie',
-          deviceType: 'Smartphone',
-          brands: ['apple', 'samsung', 'xiaomi', 'huawei', 'honor', 'oppo', 'realme', 'oneplus', 'motorola', 'google', 'vivo', 'nothing']
-        },
-        {
-          name: 'Mobilax Tablettes', 
-          baseUrl: 'https://www.mobilax.fr/pieces-detachees/tablette',
-          deviceType: 'Tablette',
-          brands: ['apple', 'samsung', 'xiaomi', 'microsoft', 'lenovo']
-        },
-        {
-          name: 'Mobilax Ordinateurs',
-          baseUrl: 'https://www.mobilax.fr/protections/ordinateur',
-          deviceType: 'Ordinateur Portable',
-          brands: ['apple']
-        },
-        {
-          name: 'Mobilax Trottinettes',
-          baseUrl: 'https://www.mobilax.fr/e-mobility/pieces-detachees',
-          deviceType: 'Trottinette',
-          brands: ['xiaomi', 'ninebot', 'kugoo']
-        },
-        {
-          name: 'Utopya Consoles',
-          baseUrl: 'https://www.utopya.fr/autres-marques/nintendo.html',
-          deviceType: 'Console de jeux',
-          brands: ['nintendo']
-        }
-      ];
+      // Import pour chaque produit sélectionné
+      const products = COMPLETE_PRODUCT_DATA.filter(product => 
+        selectedCategories.includes(product.category)
+      );
 
-      // Import pour chaque source
-      for (const source of scrapingSources) {
-        addLog(`🔍 Scraping ${source.name}...`);
+      const totalSteps = products.length * 2; // Type + Brand creation + models
+      let currentStep = 0;
+
+      for (const product of products) {
+        currentStep++;
+        setProgress((currentStep / totalSteps) * 100);
+        
+        addLog(`🔍 Import ${product.brand} ${product.deviceType}...`);
         
         try {
           // Ensure device type exists
           let deviceType = deviceTypes.find(dt => 
-            dt.name.toLowerCase() === source.deviceType.toLowerCase()
+            dt.name.toLowerCase() === product.deviceType.toLowerCase()
           );
           
           if (!deviceType) {
-            addLog(`➕ Création du type d'appareil: ${source.deviceType}`);
+            addLog(`➕ Création du type d'appareil: ${product.deviceType}`);
             try {
               deviceType = await createDeviceType({
-                name: source.deviceType,
-                description: `${source.deviceType} - Import automatique`,
-                icon: getDeviceIcon(source.deviceType)
+                name: product.deviceType,
+                description: `${product.deviceType} - Import automatique`
               });
               totalDeviceTypesCreated++;
             } catch (error: any) {
               if (error.message?.includes('duplicate') || error.code === '23505') {
                 await fetchAllData();
                 deviceType = deviceTypes.find(dt => 
-                  dt.name.toLowerCase() === source.deviceType.toLowerCase()
+                  dt.name.toLowerCase() === product.deviceType.toLowerCase()
                 );
               } else {
-                addLog(`❌ Erreur création type ${source.deviceType}: ${error.message}`);
+                addLog(`❌ Erreur création type ${product.deviceType}: ${error.message}`);
                 continue;
               }
             }
           }
 
           if (!deviceType) {
-            addLog(`❌ Type d'appareil ${source.deviceType} introuvable`);
+            addLog(`❌ Type d'appareil ${product.deviceType} introuvable`);
             continue;
           }
 
-          // Import models for each brand
-          for (const brandName of source.brands) {
-            addLog(`🏷️ Import ${brandName} ${source.deviceType}...`);
-            
-            const models = await scrapeModelsFromSource(source, brandName);
-            
-            if (models.length === 0) {
-              addLog(`⚠️ Aucun modèle trouvé pour ${brandName} sur ${source.name}`);
-              continue;
-            }
-
-            // Find or create brand
-            let brand = brands.find(b => 
-              b.name.toLowerCase() === brandName.toLowerCase()
-            );
-            
-            if (!brand) {
-              try {
-                brand = await createBrand({
-                  name: capitalizeFirst(brandName),
-                  logo_url: null
-                });
-                totalBrandsCreated++;
-                addLog(`✅ Marque "${capitalizeFirst(brandName)}" créée`);
-              } catch (brandError: any) {
-                if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
-                  await fetchAllData();
-                  brand = brands.find(b => 
-                    b.name.toLowerCase() === brandName.toLowerCase()
-                  );
-                } else {
-                  addLog(`❌ Erreur création marque ${brandName}: ${brandError.message}`);
-                  continue;
-                }
-              }
-            }
-
-            if (!brand) {
-              addLog(`❌ Marque ${brandName} introuvable`);
-              continue;
-            }
-
-            // Import each model
-            for (const modelData of models) {
-              try {
-                const cleanedModelName = cleanModelName(modelData.name);
-                
-                // Check if model exists
-                const existingModel = await checkModelExists(cleanedModelName, brand.id, deviceType.id);
-                if (existingModel) {
-                  addLog(`⚠️ Modèle "${cleanedModelName}" déjà existant - ignoré`);
-                  totalModelsSkipped++;
-                  continue;
-                }
-                
-                // Create new model with realistic specs
-                const specs = getRealisticSpecs(source.deviceType, brandName, cleanedModelName, modelData);
-                
-                await createDeviceModel({
-                  device_type_id: deviceType.id,
-                  brand_id: brand.id,
-                  model_name: cleanedModelName,
-                  model_number: cleanedModelName,
-                  release_date: specs.releaseYear,
-                  screen_size: specs.screenSize || '6.1',
-                  screen_resolution: specs.resolution || '2340x1080',
-                  screen_type: specs.screenType || 'LCD',
-                  battery_capacity: specs.battery || '4000',
-                  operating_system: specs.os || getDefaultOS(brandName, source.deviceType),
-                  is_active: true
-                });
-                
-                addLog(`✅ Modèle "${cleanedModelName}" créé avec succès`);
-                totalModelsImported++;
-                
-              } catch (error: any) {
-                if (error.message?.includes('duplicate') || error.code === '23505') {
-                  addLog(`⚠️ Modèle "${modelData.name}" déjà existant (BD) - ignoré`);
-                  totalModelsSkipped++;
-                } else {
-                  addLog(`❌ Erreur création "${modelData.name}": ${error.message}`);
-                  totalModelsErrors++;
-                }
-              }
-            }
-          }
-          
-        } catch (error: any) {
-          addLog(`❌ Erreur source ${source.name}: ${error.message}`);
-        }
-      }
-      
-      addLog(`🎉 Import universel terminé:`);
-      addLog(`  - ${totalDeviceTypesCreated} types d'appareils créés`);
-      addLog(`  - ${totalBrandsCreated} marques créées`);
-      addLog(`  - ${totalModelsImported} modèles créés`);
-      addLog(`  - ${totalModelsSkipped} modèles ignorés (déjà existants)`);
-      addLog(`  - ${totalModelsErrors} erreurs rencontrées`);
-      
-      setStatus(totalModelsErrors > 0 ? 'error' : 'completed');
-      
-      if (totalModelsImported > 0) {
-        toast.success(`${totalModelsImported} nouveaux modèles importés automatiquement !`);
-      }
-      
-    } catch (error: any) {
-      addLog(`❌ Erreur globale import universel: ${error.message}`);
-      setStatus('error');
-      toast.error('Erreur lors de l\'import automatisé universel');
-    }
-  };
-
-  // Helper function to scrape models from a source
-  const scrapeModelsFromSource = async (source: any, brandName: string): Promise<any[]> => {
-    try {
-      const url = `${source.baseUrl}/${brandName}`;
-      const response = await fetch(url);
-      const html = await response.text();
-      
-      // Extract model names using various patterns
-      const patterns = [
-        new RegExp(`${capitalizeFirst(brandName)} ([^"<>]+)`, 'gi'),
-        new RegExp(`${brandName.toUpperCase()} ([^"<>]+)`, 'gi'),
-        new RegExp(`${capitalizeFirst(brandName)}\\s+([A-Za-z0-9\\s\\+\\-\\.]+)`, 'gi')
-      ];
-      
-      let allMatches: string[] = [];
-      patterns.forEach(pattern => {
-        const matches = html.match(pattern) || [];
-        allMatches.push(...matches);
-      });
-      
-      // Clean and filter model names
-      const models = allMatches
-        .map(match => {
-          const name = match
-            .replace(new RegExp(`^${capitalizeFirst(brandName)}\\s+`, 'i'), '')
-            .replace(new RegExp(`^${brandName.toUpperCase()}\\s+`, 'i'), '')
-            .trim();
-          return { name, brand: brandName };
-        })
-        .filter((model, index, arr) => 
-          model.name.length > 2 && 
-          model.name.length < 100 &&
-          !model.name.includes('<') &&
-          !model.name.includes('>') &&
-          arr.findIndex(m => m.name === model.name) === index
-        )
-        .slice(0, 50); // Limit to 50 models per brand to avoid overload
-      
-      return models;
-      
-    } catch (error) {
-      console.error(`Error scraping ${source.name} ${brandName}:`, error);
-      return [];
-    }
-  };
-
-  // Helper function to get device icon
-  const getDeviceIcon = (deviceType: string): string => {
-    const type = deviceType.toLowerCase();
-    if (type.includes('smartphone') || type.includes('téléphone')) return 'smartphone';
-    if (type.includes('tablette')) return 'tablet';
-    if (type.includes('ordinateur')) return 'laptop';
-    if (type.includes('trottinette')) return 'zap';
-    if (type.includes('console')) return 'gamepad2';
-    if (type.includes('écouteur')) return 'headphones';
-    if (type.includes('montre')) return 'watch';
-    return 'device';
-  };
-
-  // Helper function to capitalize first letter
-  const capitalizeFirst = (str: string): string => {
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-  };
-
-  // Helper function to clean model names
-  const cleanModelName = (name: string): string => {
-    return name
-      .replace(/[<>]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  };
-
-  // Helper function to get realistic specs based on device type and model
-  const getRealisticSpecs = (deviceType: string, brandName: string, modelName: string, modelData: any) => {
-    const name = modelName.toLowerCase();
-    const brand = brandName.toLowerCase();
-    const type = deviceType.toLowerCase();
-    
-    if (type.includes('smartphone')) {
-      return getSmartphoneSpecs(brand, name);
-    } else if (type.includes('tablette')) {
-      return getTabletSpecs(brand, name);
-    } else if (type.includes('ordinateur')) {
-      return getLaptopSpecs(brand, name);
-    } else if (type.includes('trottinette')) {
-      return getScooterSpecs(brand, name);
-    } else if (type.includes('console')) {
-      return getConsoleSpecs(brand, name);
-    }
-    
-    return {
-      screenSize: '6.1',
-      resolution: '1920x1080',
-      screenType: 'LCD',
-      battery: '4000',
-      releaseYear: '2023',
-      os: getDefaultOS(brandName, deviceType),
-      storage: ['64GB'],
-      colors: ['Noir'],
-      connectivity: ['WiFi', 'Bluetooth'],
-      features: []
-    };
-  };
-
-  const getSmartphoneSpecs = (brand: string, name: string) => {
-    // Logic for smartphone specs based on brand and model
-    if (brand === 'apple') {
-      return {
-        screenSize: name.includes('pro max') ? '6.7' : name.includes('pro') ? '6.1' : name.includes('plus') ? '6.7' : '6.1',
-        resolution: name.includes('pro') ? '2556x1179' : '2340x1080',
-        screenType: 'Super Retina XDR OLED',
-        battery: name.includes('pro max') ? '4422' : name.includes('pro') ? '3200' : '3279',
-        releaseYear: name.includes('15') ? '2023' : name.includes('14') ? '2022' : '2021',
-        os: 'iOS',
-        storage: ['128GB', '256GB', '512GB', '1TB'],
-        colors: ['Noir', 'Blanc', 'Bleu', 'Rose'],
-        connectivity: ['5G', 'WiFi 6', 'Bluetooth 5.3'],
-        features: ['Face ID', 'MagSafe', 'Résistant à l\'eau']
-      };
-    } else if (brand === 'samsung') {
-      return getSamsungSpecs(name);
-    }
-    
-    return {
-      screenSize: '6.1',
-      resolution: '2340x1080',
-      screenType: 'AMOLED',
-      battery: '4000',
-      releaseYear: '2023',
-      os: 'Android',
-      storage: ['128GB', '256GB'],
-      colors: ['Noir', 'Blanc'],
-      connectivity: ['4G', 'WiFi', 'Bluetooth'],
-      features: []
-    };
-  };
-
-  const getSamsungSpecs = (name: string) => {
-    if (name.includes('s24')) {
-      return {
-        screenSize: name.includes('ultra') ? '6.8' : name.includes('+') ? '6.7' : '6.2',
-        resolution: name.includes('ultra') ? '3088x1440' : '2340x1080',
-        screenType: 'Dynamic AMOLED',
-        battery: name.includes('ultra') ? '5000' : '4000',
-        releaseYear: '2024',
-        os: 'Android',
-        storage: ['256GB', '512GB', '1TB'],
-        colors: ['Noir', 'Violet', 'Jaune', 'Vert'],
-        connectivity: ['5G', 'WiFi 6E', 'Bluetooth 5.3'],
-        features: ['S Pen', 'DeX', 'Knox']
-      };
-    } else if (name.includes('s23')) {
-      return {
-        screenSize: name.includes('ultra') ? '6.8' : name.includes('+') ? '6.6' : '6.1',
-        resolution: name.includes('ultra') ? '3088x1440' : '2340x1080',
-        screenType: 'Dynamic AMOLED',
-        battery: name.includes('ultra') ? '5000' : '3900',
-        releaseYear: '2023',
-        os: 'Android',
-        storage: ['128GB', '256GB', '512GB'],
-        colors: ['Noir', 'Crème', 'Vert', 'Lavande'],
-        connectivity: ['5G', 'WiFi 6', 'Bluetooth 5.3'],
-        features: ['Knox', 'DeX', 'Ultra Wide Camera']
-      };
-    } else if (name.includes('z fold')) {
-      return {
-        screenSize: '7.6',
-        resolution: '2176x1812',
-        screenType: 'Dynamic AMOLED',
-        battery: '4400',
-        releaseYear: '2023',
-        os: 'Android',
-        storage: ['256GB', '512GB', '1TB'],
-        colors: ['Noir', 'Beige', 'Bleu'],
-        connectivity: ['5G', 'WiFi 6E', 'Bluetooth 5.3'],
-        features: ['Pliable', 'S Pen', 'Multi-Active Window']
-      };
-    } else if (name.includes('z flip')) {
-      return {
-        screenSize: '6.7',
-        resolution: '2640x1080',
-        screenType: 'Dynamic AMOLED',
-        battery: '3700',
-        releaseYear: '2023',
-        os: 'Android',
-        storage: ['256GB', '512GB'],
-        colors: ['Noir', 'Crème', 'Lavande', 'Menthe'],
-        connectivity: ['5G', 'WiFi 6', 'Bluetooth 5.3'],
-        features: ['Pliable', 'Flex Mode', 'Cover Screen']
-      };
-    } else if (name.includes('note')) {
-      return {
-        screenSize: '6.8',
-        resolution: '3088x1440',
-        screenType: 'Dynamic AMOLED',
-        battery: '4300',
-        releaseYear: '2020',
-        os: 'Android',
-        storage: ['128GB', '256GB', '512GB'],
-        colors: ['Noir', 'Bronze', 'Blanc'],
-        connectivity: ['5G', 'WiFi 6', 'Bluetooth 5.0'],
-        features: ['S Pen', 'Knox', 'DeX']
-      };
-    } else if (name.includes('a5') || name.includes('a7')) {
-      return {
-        screenSize: '6.5',
-        resolution: '2400x1080',
-        screenType: 'Super AMOLED',
-        battery: '4500',
-        releaseYear: '2023',
-        os: 'Android',
-        storage: ['128GB', '256GB'],
-        colors: ['Noir', 'Bleu', 'Blanc', 'Pêche'],
-        connectivity: ['5G', 'WiFi', 'Bluetooth'],
-        features: ['Knox', 'One UI']
-      };
-    }
-    
-    // Default specs for other Samsung models
-    return {
-      screenSize: '6.1',
-      resolution: '2340x1080',
-      screenType: 'Super AMOLED',
-      battery: '4000',
-      releaseYear: '2022',
-      os: 'Android',
-      storage: ['64GB', '128GB'],
-      colors: ['Noir', 'Blanc'],
-      connectivity: ['4G', 'WiFi', 'Bluetooth'],
-      features: ['Knox']
-    };
-  };
-
-  const getTabletSpecs = (brand: string, name: string) => {
-    if (brand === 'apple') {
-      return {
-        screenSize: name.includes('12.9') ? '12.9' : name.includes('11') ? '11' : '10.9',
-        resolution: name.includes('12.9') ? '2732x2048' : '2360x1640',
-        screenType: 'Liquid Retina',
-        battery: '10090',
-        releaseYear: '2023',
-        os: 'iPadOS',
-        storage: ['128GB', '256GB', '512GB', '1TB'],
-        colors: ['Gris', 'Argent'],
-        connectivity: ['WiFi 6', 'Bluetooth 5.3'],
-        features: ['Apple Pencil', 'Magic Keyboard']
-      };
-    }
-    
-    return {
-      screenSize: '10.1',
-      resolution: '1920x1200',
-      screenType: 'LCD',
-      battery: '8000',
-      releaseYear: '2023',
-      os: brand === 'microsoft' ? 'Windows' : 'Android',
-      storage: ['64GB', '128GB'],
-      colors: ['Noir', 'Argent'],
-      connectivity: ['WiFi', 'Bluetooth'],
-      features: []
-    };
-  };
-
-  const getLaptopSpecs = (brand: string, name: string) => {
-    return {
-      screenSize: name.includes('16') ? '16' : name.includes('14') ? '14' : '13.3',
-      resolution: name.includes('16') ? '3456x2234' : name.includes('14') ? '3024x1964' : '2560x1600',
-      screenType: 'Retina',
-      battery: name.includes('16') ? '100' : '70',
-      releaseYear: '2024',
-      os: 'macOS',
-      storage: ['256GB', '512GB', '1TB', '2TB'],
-      colors: ['Gris sidéral', 'Argent'],
-      connectivity: ['WiFi 6E', 'Bluetooth 5.3', 'Thunderbolt'],
-      features: ['Touch ID', 'Magic Keyboard', 'Force Touch']
-    };
-  };
-
-  const getScooterSpecs = (brand: string, name: string) => {
-    return {
-      screenSize: '0',
-      resolution: '',
-      screenType: '',
-      battery: name.includes('pro') ? '474' : name.includes('max') ? '551' : '280',
-      releaseYear: '2023',
-      os: 'Firmware',
-      storage: [],
-      colors: ['Noir'],
-      connectivity: ['Bluetooth'],
-      features: ['Pliable', 'Éclairage LED', 'Application mobile']
-    };
-  };
-
-  const getConsoleSpecs = (brand: string, name: string) => {
-    return {
-      screenSize: name.includes('switch') ? '6.2' : name.includes('3ds') ? '3.5' : '0',
-      resolution: name.includes('switch') ? '1280x720' : name.includes('3ds') ? '400x240' : '',
-      screenType: name.includes('oled') ? 'OLED' : 'LCD',
-      battery: name.includes('switch') ? '4310' : name.includes('3ds') ? '1300' : '0',
-      releaseYear: '2023',
-      os: 'Nintendo OS',
-      storage: ['32GB', '64GB'],
-      colors: ['Noir', 'Blanc', 'Rouge'],
-      connectivity: ['WiFi', 'Bluetooth'],
-      features: ['Portable', 'Dock TV', 'Joy-Con']
-    };
-  };
-
-  const handleImport = async () => {
-    setImporting(true);
-    setProgress(0);
-    setResults({ deviceTypes: [], brands: [], models: [], errors: [] });
-
-    try {
-      console.log('🚀 Début de l\'importation');
-      
-      let newDeviceTypes: any[] = [];
-      let newBrands: any[] = [];
-      let newModels: any[] = [];
-      let skippedModels = 0;
-      let errors: string[] = [];
-
-      // Actualiser les données avant de commencer
-      await fetchAllData();
-      console.log('📦 Données actuelles:', { 
-        deviceTypes: deviceTypes.length, 
-        brands: brands.length 
-      });
-
-      const totalItems = filteredProducts.reduce((sum, product) => sum + product.models.length, 0);
-      console.log(`📊 Total de modèles à traiter: ${totalItems}`);
-      
-      let processedItems = 0;
-
-      // Grouper par type d'appareil et marque
-      const groupedData = filteredProducts.reduce((acc, product) => {
-        if (!acc[product.deviceType]) {
-          acc[product.deviceType] = {};
-        }
-        if (!acc[product.deviceType][product.brand]) {
-          acc[product.deviceType][product.brand] = [];
-        }
-        acc[product.deviceType][product.brand].push(...product.models);
-        return acc;
-      }, {} as Record<string, Record<string, string[]>>);
-
-      setProgress(5);
-
-      // 1. Créer/récupérer les types d'appareils
-      for (const deviceTypeName of Object.keys(groupedData)) {
-        console.log(`🔧 Traitement du type: ${deviceTypeName}`);
-        
-        try {
-          let deviceType = deviceTypes.find(dt => 
-            dt.name.toLowerCase().trim() === deviceTypeName.toLowerCase().trim()
+          // Find or create brand
+          let brand = brands.find(b => 
+            b.name.toLowerCase() === product.brand.toLowerCase()
           );
-
-          if (!deviceType) {
-            console.log(`➕ Création du type: ${deviceTypeName}`);
+          
+          if (!brand) {
             try {
-              deviceType = await createDeviceType({
-                name: deviceTypeName,
-                description: `${deviceTypeName} - Import automatique`,
-                icon: deviceTypeName.toLowerCase().includes('smartphone') ? 'smartphone' :
-                     deviceTypeName.toLowerCase().includes('tablette') ? 'tablet' :
-                     deviceTypeName.toLowerCase().includes('ordinateur') ? 'laptop' :
-                     deviceTypeName.toLowerCase().includes('écouteur') ? 'headphones' :
-                     deviceTypeName.toLowerCase().includes('montre') ? 'watch' : 'device'
+              brand = await createBrand({
+                name: product.brand,
+                logo_url: null
               });
-              newDeviceTypes.push(deviceType);
-              console.log(`✅ Type créé: ${deviceTypeName}`);
-            } catch (typeError: any) {
-              console.log(`⚠️ Erreur création type ${deviceTypeName}:`, typeError);
-              if (typeError.message?.includes('duplicate') || typeError.message?.includes('already exists') || typeError.code === '23505') {
+              totalBrandsCreated++;
+              addLog(`✅ Marque "${product.brand}" créée`);
+            } catch (brandError: any) {
+              if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
                 await fetchAllData();
-                deviceType = deviceTypes.find(dt => dt.name.toLowerCase().trim() === deviceTypeName.toLowerCase().trim());
-                if (!deviceType) {
-                  errors.push(`Type ${deviceTypeName} non trouvé après erreur de duplicate`);
-                  continue;
-                }
-                console.log(`♻️ Type existant récupéré: ${deviceTypeName}`);
+                brand = brands.find(b => 
+                  b.name.toLowerCase() === product.brand.toLowerCase()
+                );
               } else {
-                errors.push(`Erreur critique type ${deviceTypeName}: ${typeError.message}`);
+                addLog(`❌ Erreur création marque ${product.brand}: ${brandError.message}`);
                 continue;
               }
             }
-          } else {
-            console.log(`✓ Type existant: ${deviceTypeName}`);
           }
 
-          setProgress(10);
+          if (!brand) {
+            addLog(`❌ Marque ${product.brand} introuvable`);
+            continue;
+          }
 
-          // 2. Traiter chaque marque pour ce type d'appareil
-          for (const [brandName, models] of Object.entries(groupedData[deviceTypeName])) {
-            console.log(`🏷️ Traitement marque: ${brandName} (${models.length} modèles)`);
-            
+          // Import models
+          for (const modelName of product.models) {
             try {
-              // Normaliser le nom de la marque pour éviter les duplicatas
-              const normalizedBrandName = brandName.trim();
+              const modelExists = await checkModelExists(modelName, brand.id, deviceType.id);
               
-              // Chercher la marque existante (insensible à la casse)
-              let brand = brands.find(b => 
-                b.name.toLowerCase().trim() === normalizedBrandName.toLowerCase()
-              );
+              if (modelExists) {
+                totalModelsSkipped++;
+                continue;
+              }
 
-              if (!brand) {
-                console.log(`➕ Création marque: ${normalizedBrandName}`);
-                try {
-                  brand = await createBrand({
-                    name: normalizedBrandName,
-                    logo_url: null
-                  });
-                  newBrands.push(brand);
-                  console.log(`✅ Marque créée: ${normalizedBrandName}`);
-                } catch (brandError: any) {
-                  console.log(`⚠️ Erreur création marque ${normalizedBrandName}:`, brandError);
-                  if (brandError.message?.includes('duplicate') || brandError.message?.includes('already exists') || brandError.code === '23505') {
-                    await fetchAllData();
-                    brand = brands.find(b => b.name.toLowerCase().trim() === normalizedBrandName.toLowerCase());
-                    if (!brand) {
-                      errors.push(`Marque ${normalizedBrandName} non trouvée après erreur de duplicate`);
-                      continue;
-                    }
-                    console.log(`♻️ Marque existante récupérée: ${normalizedBrandName}`);
-                  } else {
-                    errors.push(`Erreur critique marque ${normalizedBrandName}: ${brandError.message}`);
-                    continue;
-                  }
-                }
+              await createDeviceModel({
+                model_name: modelName,
+                brand_id: brand.id,
+                device_type_id: deviceType.id,
+                screen_size: getDefaultScreenSize(product.deviceType),
+                battery_capacity: getDefaultBattery(product.deviceType),
+                operating_system: getDefaultOS(product.brand, product.deviceType),
+                storage_options: ['64GB', '128GB', '256GB'],
+                colors: ['Noir', 'Blanc', 'Bleu'],
+                connectivity: ['Wi-Fi', 'Bluetooth'],
+                special_features: ['Écran tactile']
+              });
+
+              totalModelsImported++;
+              
+              if (totalModelsImported % 10 === 0) {
+                addLog(`✅ ${totalModelsImported} modèles importés...`);
+              }
+            } catch (modelError: any) {
+              if (!modelError.message?.includes('duplicate')) {
+                addLog(`❌ Erreur modèle ${modelName}: ${modelError.message}`);
+                totalModelsErrors++;
               } else {
-                console.log(`✓ Marque existante: ${normalizedBrandName}`);
+                totalModelsSkipped++;
               }
-
-              // 3. Créer les modèles
-              for (const modelName of models) {
-                const normalizedModelName = modelName.trim();
-                console.log(`📱 Traitement modèle: ${normalizedModelName}`);
-                
-                // Vérifier AVANT de créer si le modèle existe déjà
-                if (checkModelExists(normalizedModelName, brand.id, deviceType.id)) {
-                  processedItems++;
-                  skippedModels++;
-                  console.log(`⚠️ Modèle déjà existant: ${normalizedModelName} (ignoré)`);
-                  
-                  const modelProgress = 10 + (processedItems / totalItems) * 85;
-                  setProgress(modelProgress);
-                  continue;
-                }
-                
-                try {
-                  const deviceModel = await createDeviceModel({
-                    device_type_id: deviceType.id,
-                    brand_id: brand.id,
-                    model_name: normalizedModelName,
-                    model_number: normalizedModelName,
-                    release_date: new Date().getFullYear().toString(),
-                    screen_size: getDefaultScreenSize(deviceTypeName),
-                    screen_resolution: getDefaultResolution(deviceTypeName),
-                    screen_type: 'LCD',
-                    battery_capacity: getDefaultBattery(deviceTypeName),
-                    operating_system: getDefaultOS(brandName, deviceTypeName),
-                    is_active: true
-                  });
-
-                  newModels.push(deviceModel);
-                  processedItems++;
-                  console.log(`✅ Modèle créé: ${normalizedModelName} (${processedItems}/${totalItems})`);
-
-                  const modelProgress = 10 + (processedItems / totalItems) * 85;
-                  setProgress(modelProgress);
-
-                  if (newModels.length % 5 === 0) {
-                    toast.success(`${newModels.length} nouveaux modèles créés`);
-                  }
-
-                } catch (error: any) {
-                  processedItems++;
-                  const modelProgress = 10 + (processedItems / totalItems) * 85;
-                  setProgress(modelProgress);
-                  
-                  if (error.message?.includes('duplicate') || error.message?.includes('already exists') || error.code === '23505') {
-                    skippedModels++;
-                    console.log(`⚠️ Modèle déjà existant (erreur DB): ${normalizedModelName} (ignoré)`);
-                  } else {
-                    console.error(`❌ Erreur réelle modèle ${normalizedModelName}:`, error);
-                    errors.push(`Erreur modèle ${normalizedModelName}: ${error.message}`);
-                  }
-                }
-              }
-
-            } catch (error: any) {
-              console.error(`❌ Erreur marque ${brandName}:`, error);
-              errors.push(`Erreur marque ${brandName}: ${error.message}`);
             }
           }
-
         } catch (error: any) {
-          console.error(`❌ Erreur type ${deviceTypeName}:`, error);
-          errors.push(`Erreur type ${deviceTypeName}: ${error.message}`);
+          addLog(`❌ Erreur lors de l'import ${product.brand}: ${error.message}`);
+          totalModelsErrors++;
         }
       }
 
       setProgress(100);
+      setStatus('completed');
       
-      console.log('📋 Résumé final de l\'importation:');
-      console.log(`  - Nouveaux types créés: ${newDeviceTypes.length}`);
-      console.log(`  - Nouvelles marques créées: ${newBrands.length}`);
-      console.log(`  - Nouveaux modèles créés: ${newModels.length}`);
-      console.log(`  - Modèles déjà existants (ignorés): ${skippedModels}`);
-      console.log(`  - Erreurs rencontrées: ${errors.length}`);
+      const summary = {
+        deviceTypes: [],
+        brands: [],
+        models: [],
+        errors: []
+      };
 
-      // Actualiser les données
-      await fetchAllData();
+      addLog('✅ Import automatisé universel terminé !');
+      addLog(`📊 Résumé: ${totalModelsImported} modèles importés, ${totalModelsSkipped} ignorés, ${totalBrandsCreated} marques créées, ${totalDeviceTypesCreated} types créés`);
+      
+      setResults(summary);
 
-      setResults({
-        deviceTypes: newDeviceTypes,
-        brands: newBrands,
-        models: newModels,
-        errors
-      });
-
-      setStatus(errors.length > 0 ? 'error' : 'completed');
-
-      if (newModels.length > 0) {
-        toast.success(`${newModels.length} nouveaux modèles importés avec succès !`);
-      } else if (skippedModels > 0) {
-        toast.info(`${skippedModels} modèles déjà existants trouvés`);
-      }
-
+      toast.success(`Import terminé ! ${totalModelsImported} modèles importés.`);
+      
     } catch (error: any) {
-      console.error('❌ Erreur globale:', error);
       setStatus('error');
-      toast.error(`Erreur lors de l'import: ${error.message}`);
+      addLog(`❌ Erreur critique: ${error.message}`);
+      toast.error('Erreur lors de l\'import automatisé');
     } finally {
       setImporting(false);
     }
@@ -1116,238 +518,152 @@ export const UniversalCatalogImporter: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Status */}
-      {status !== 'idle' && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                {status === 'importing' && <Download className="h-4 w-4 animate-spin" />}
-                {status === 'completed' && <CheckCircle className="h-4 w-4 text-green-500" />}
-                {status === 'error' && <AlertCircle className="h-4 w-4 text-red-500" />}
-                <span className="font-medium">
-                  {status === 'importing' && 'Import en cours...'}
-                  {status === 'completed' && 'Import terminé avec succès'}
-                  {status === 'error' && 'Erreurs détectées lors de l\'import'}
-                </span>
-              </div>
-              {importing && <Progress value={progress} className="w-32" />}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Import universel automatisé */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            Import Automatisé Universel
+            Import Automatisé Universel du Catalogue
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Import automatique de tous les types d'appareils, marques et modèles depuis les sites externes
-          </p>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Database className="h-4 w-4 text-blue-600" />
-              <span className="font-medium text-blue-800">Import Total Automatisé</span>
-            </div>
-            <p className="text-sm text-blue-700">
-              Cette fonction scrape automatiquement tous les sites externes (Mobilax, Utopya) pour importer tous les appareils, marques et modèles disponibles.
-            </p>
-          </div>
-          
-          <Button 
-            onClick={handleUniversalAutomatedImport}
-            disabled={status === 'importing'}
-            variant="default"
-            className="w-full"
-            size="lg"
-          >
-            {status === 'importing' ? (
-              <>
-                <Download className="h-4 w-4 mr-2 animate-spin" />
-                Import Universel en cours...
-              </>
-            ) : (
-              <>
-                <Globe className="h-4 w-4 mr-2" />
-                Lancer l'Import Automatisé Universel
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Import catalog standard (legacy) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
-            Import Catalogue Standard
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Import des données prédéfinies par catégorie
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           {/* Sélection des catégories */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
-            {categories.map(category => (
-              <Button
-                key={category.id}
-                variant={selectedCategories.includes(category.id) ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleCategoryToggle(category.id)}
-                className="flex items-center gap-2"
-              >
-                <category.icon className="h-4 w-4" />
-                <span className="hidden md:inline">{category.label}</span>
-              </Button>
-            ))}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">Catégories à importer</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {categories.map((category) => {
+                const Icon = category.icon;
+                const isSelected = selectedCategories.includes(category.id);
+                return (
+                  <Button
+                    key={category.id}
+                    variant={isSelected ? "default" : "outline"}
+                    className="flex items-center gap-2 h-auto p-4"
+                    onClick={() => handleCategoryToggle(category.id)}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <div className="text-left">
+                      <div className="font-medium">{category.label}</div>
+                      <div className="text-xs opacity-70">
+                        {COMPLETE_PRODUCT_DATA.filter(p => p.category === category.id).length} produits
+                      </div>
+                    </div>
+                  </Button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Aperçu des données sélectionnées */}
-          <div className="bg-muted rounded-lg p-4">
-            <h4 className="font-medium mb-2">Données à importer :</h4>
-            <div className="space-y-2">
-              {filteredProducts.map((product, index) => (
-                <div key={index} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <product.icon className="h-4 w-4" />
-                    <span className="font-medium">{product.brand}</span>
-                    <span className="text-muted-foreground">{product.deviceType}</span>
-                  </div>
-                  <Badge variant="secondary">{product.models.length} modèles</Badge>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 pt-3 border-t">
-              <div className="text-sm font-medium">
-                Total : {filteredProducts.reduce((sum, product) => sum + product.models.length, 0)} modèles
+          {/* Aperçu des produits */}
+          {filteredProducts.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Aperçu des produits ({filteredProducts.length} marques)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredProducts.map((product, index) => {
+                  const Icon = product.icon;
+                  return (
+                    <Card key={index} className="border">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <Icon className="h-5 w-5 text-blue-500" />
+                          <div>
+                            <div className="font-medium">{product.brand}</div>
+                            <div className="text-sm text-muted-foreground">{product.deviceType}</div>
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {product.models.length} modèles
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
+          )}
+
+          {/* Contrôles d'import */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button
+              onClick={handleUniversalAutomatedImport}
+              disabled={importing || selectedCategories.length === 0}
+              className="flex items-center gap-2"
+              size="lg"
+            >
+              {importing ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <Zap className="h-4 w-4" />
+              )}
+              {importing ? 'Import en cours...' : 'Lancer l\'Import Automatisé Universel'}
+            </Button>
           </div>
 
-          {/* Bouton d'import */}
-          <Button 
-            onClick={handleImport}
-            disabled={importing || filteredProducts.length === 0}
-            className="w-full"
-            size="lg"
-          >
-            {importing ? (
-              <>
-                <Download className="h-4 w-4 mr-2 animate-spin" />
-                Import en cours...
-              </>
-            ) : (
-              <>
-                <Plus className="h-4 w-4 mr-2" />
-                Importer {filteredProducts.reduce((sum, product) => sum + product.models.length, 0)} modèles
-              </>
-            )}
-          </Button>
+          {/* Barre de progression */}
+          {importing && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Progression de l'import</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+              <Progress value={progress} className="w-full" />
+              <div className="text-sm text-muted-foreground">
+                {status === 'importing' && 'Import en cours...'}
+              </div>
+            </div>
+          )}
+
+          {/* Logs */}
+          {logs.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Logs d'import</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="max-h-64 overflow-y-auto space-y-1 text-sm font-mono">
+                  {logs.map((log, index) => (
+                    <div key={index} className="text-xs">
+                      {log}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Résultats */}
+          {status === 'completed' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-600">
+                  <CheckCircle className="h-5 w-5" />
+                  Import terminé avec succès
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm text-muted-foreground">
+                  L'import automatisé universel s'est terminé avec succès. Consultez les logs ci-dessus pour plus de détails.
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {status === 'error' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-red-600">
+                  <AlertCircle className="h-5 w-5" />
+                  Erreur lors de l'import
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm text-muted-foreground">
+                  Une erreur s'est produite lors de l'import. Consultez les logs ci-dessus pour plus de détails.
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </CardContent>
       </Card>
-
-      {/* Logs de l'import */}
-      {logs.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
-              Logs Import Automatisé
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-slate-900 text-slate-100 p-4 rounded-lg max-h-60 overflow-y-auto font-mono text-sm">
-              {logs.map((log, index) => (
-                <div key={index} className="py-1">
-                  {log}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Résultats */}
-      {(results.deviceTypes.length > 0 || results.brands.length > 0 || results.models.length > 0 || results.errors.length > 0) && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5" />
-              Résultats de l'Import
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Tabs defaultValue="summary" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="summary">Résumé</TabsTrigger>
-                <TabsTrigger value="types">Types ({results.deviceTypes.length})</TabsTrigger>
-                <TabsTrigger value="brands">Marques ({results.brands.length})</TabsTrigger>
-                <TabsTrigger value="errors">Erreurs ({results.errors.length})</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="summary" className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{results.deviceTypes.length}</div>
-                    <div className="text-sm text-muted-foreground">Types créés</div>
-                  </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{results.brands.length}</div>
-                    <div className="text-sm text-muted-foreground">Marques créées</div>
-                  </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">{results.models.length}</div>
-                    <div className="text-sm text-muted-foreground">Modèles créés</div>
-                  </div>
-                  <div className="text-center p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-red-600">{results.errors.length}</div>
-                    <div className="text-sm text-muted-foreground">Erreurs</div>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="types">
-                <div className="flex flex-wrap gap-2">
-                  {results.deviceTypes.map((type) => (
-                    <Badge key={type.id} variant="default">{type.name}</Badge>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="brands">
-                <div className="flex flex-wrap gap-2">
-                  {results.brands.map((brand) => (
-                    <Badge key={brand.id} variant="outline">{brand.name}</Badge>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="errors">
-                {results.errors.length > 0 ? (
-                  <div className="space-y-2">
-                    {results.errors.map((error, index) => (
-                      <div key={index} className="text-xs text-destructive bg-destructive/10 p-2 rounded border-l-2 border-destructive">
-                        {error}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center text-muted-foreground py-4">
-                    Aucune erreur ! 🎉
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
