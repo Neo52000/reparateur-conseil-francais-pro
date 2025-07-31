@@ -461,13 +461,14 @@ export const UniversalCatalogImporter: React.FC = () => {
                 model_name: modelName,
                 brand_id: brand.id,
                 device_type_id: deviceType.id,
+                model_number: `${product.brand}-${modelName.replace(/\s+/g, '-')}`,
+                release_date: new Date().getFullYear().toString(),
                 screen_size: getDefaultScreenSize(product.deviceType),
+                screen_resolution: getDefaultResolution(product.deviceType),
+                screen_type: 'OLED',
                 battery_capacity: getDefaultBattery(product.deviceType),
                 operating_system: getDefaultOS(product.brand, product.deviceType),
-                storage_options: ['64GB', '128GB', '256GB'],
-                colors: ['Noir', 'Blanc', 'Bleu'],
-                connectivity: ['Wi-Fi', 'Bluetooth'],
-                special_features: ['Écran tactile']
+                is_active: true
               });
 
               totalModelsImported++;
