@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Database, Smartphone, Tag, Wrench, BarChart3, Plus, Edit, Trash2, TrendingUp, AlertTriangle, Download } from 'lucide-react';
+import { Database, Smartphone, Tag, Wrench, BarChart3, Plus, Edit, Trash2, TrendingUp, AlertTriangle, Download, Link } from 'lucide-react';
 import DeviceTypesManagement from './DeviceTypesManagement';
 import BrandsManagement from './BrandsManagement';
 import DeviceModelsManagement from './DeviceModelsManagement';
 import RepairTypesManagement from './RepairTypesManagement';
 import CatalogAnalytics from './CatalogAnalytics';
+import RepairCategoryDeviceLinks from './RepairCategoryDeviceLinks';
 import { UniversalCatalogImporter } from './UniversalCatalogImporter';
 interface CatalogStats {
   deviceTypes: number;
@@ -130,7 +131,7 @@ const CatalogManagement: React.FC = () => {
         </Card>}
 
       <Tabs defaultValue="import" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="import" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
             Import Catalogue
@@ -150,6 +151,10 @@ const CatalogManagement: React.FC = () => {
           <TabsTrigger value="repair-types" className="flex items-center gap-2">
             <Wrench className="h-4 w-4" />
             Types de réparation
+          </TabsTrigger>
+          <TabsTrigger value="category-links" className="flex items-center gap-2">
+            <Link className="h-4 w-4" />
+            Liaisons
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
@@ -187,6 +192,10 @@ const CatalogManagement: React.FC = () => {
           ...prev,
           repairTypes: count
         }))} />
+        </TabsContent>
+
+        <TabsContent value="category-links">
+          <RepairCategoryDeviceLinks />
         </TabsContent>
 
         <TabsContent value="analytics">

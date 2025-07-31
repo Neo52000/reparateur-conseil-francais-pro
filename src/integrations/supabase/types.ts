@@ -7467,6 +7467,48 @@ export type Database = {
         }
         Relationships: []
       }
+      repair_category_device_types: {
+        Row: {
+          created_at: string
+          device_type_id: string
+          id: string
+          is_active: boolean
+          repair_category_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          device_type_id: string
+          id?: string
+          is_active?: boolean
+          repair_category_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          device_type_id?: string
+          id?: string
+          is_active?: boolean
+          repair_category_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_category_device_types_device_type_id_fkey"
+            columns: ["device_type_id"]
+            isOneToOne: false
+            referencedRelation: "device_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_category_device_types_repair_category_id_fkey"
+            columns: ["repair_category_id"]
+            isOneToOne: false
+            referencedRelation: "repair_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       repair_content_templates: {
         Row: {
           category: string
