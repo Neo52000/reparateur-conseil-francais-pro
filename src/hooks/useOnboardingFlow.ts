@@ -170,6 +170,8 @@ export const useOnboardingFlow = (profile: RepairerProfile) => {
     validateStep,
     isLastStep: flowState.currentStep === flowState.steps.length - 1,
     isFirstStep: flowState.currentStep === 0,
-    currentStepData: flowState.steps[flowState.currentStep]
+    currentStepData: flowState.steps[flowState.currentStep],
+    completionRate: flowState.completionRate,
+    canProceed: flowState.canProceed
   };
 };

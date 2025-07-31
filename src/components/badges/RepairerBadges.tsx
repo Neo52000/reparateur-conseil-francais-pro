@@ -168,21 +168,8 @@ const RepairerBadges: React.FC<RepairerBadgesProps> = ({
 
   const badgeVariants = {
     hidden: { opacity: 0, scale: 0.8, y: 20 },
-    visible: { 
-      opacity: 1, 
-      scale: 1, 
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 20
-      }
-    },
-    hover: {
-      scale: 1.05,
-      rotate: 2,
-      transition: { duration: 0.2 }
-    }
+    visible: { opacity: 1, scale: 1, y: 0 },
+    hover: { scale: 1.05, rotate: 2 }
   };
 
   if (displayBadges.length === 0) {
@@ -241,8 +228,8 @@ const RepairerBadges: React.FC<RepairerBadgesProps> = ({
         {/* Badge de nombre d'autres badges si plus de 3 */}
         {!showAll && badges.filter(b => b.earned).length > 3 && (
           <motion.div
-            variants={animate ? badgeVariants : undefined}
             whileHover={animate ? "hover" : undefined}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
           >
             <Badge 
               variant="outline" 

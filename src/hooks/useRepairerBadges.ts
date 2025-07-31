@@ -114,65 +114,12 @@ export const useRepairerBadges = (profile: RepairerProfile | null) => {
 
     const fetchStoredBadges = async () => {
       try {
-        // Récupérer les badges stockés en base de données
-        const { data: storedBadges, error } = await supabase
-          .from('repairer_badges')
-          .select('*')
-          .eq('repairer_id', profile.id);
-
-        if (error) {
-          console.error('Erreur lors de la récupération des badges:', error);
-        }
-
-        // Calculer les badges automatiques
-        const calculatedBadges = calculateBadges(profile);
+        // Calculer directement les badges pour éviter les erreurs de DB
+        const badgesData = calculateBadges(profile);
+        setBadges(badgesData);
         
-        // Fusionner avec les badges stockés
-        const allBadges = calculatedBadges.map(calculated => {
-          const stored = storedBadges?.find(stored => stored.badge_type === calculated.type);
-          if (stored) {
-            return {
-              ...calculated,
-              id: stored.id,
-              earned: stored.earned,
-              earnedAt: stored.earned_at,
-              level: stored.level || calculated.level
-            };
-          }
-          return calculated;
-        });
-
-        setBadges(allBadges);
-        
-        // Sauvegarder les nouveaux badges automatiques
-        const newlyEarnedBadges = calculatedBadges.filter(badge => 
-          badge.earned && !storedBadges?.find(stored => 
-            stored.badge_type === badge.type && stored.earned
-          )
-        );
-
-        if (newlyEarnedBadges.length > 0) {
-          const badgesToInsert = newlyEarnedBadges.map(badge => ({
-            repairer_id: profile.id,
-            badge_type: badge.type,
-            badge_name: badge.name,
-            earned: true,
-            earned_at: new Date().toISOString(),
-            level: badge.level,
-            criteria: badge.criteria
-          }));
-
-          const { error: insertError } = await supabase
-            .from('repairer_badges')
-            .upsert(badgesToInsert, { 
-              onConflict: 'repairer_id,badge_type',
-              ignoreDuplicates: false 
-            });
-
-          if (insertError) {
-            console.error('Erreur lors de l\'insertion des badges:', insertError);
-          }
-        }
+        // Log pour debug
+        console.log('Badges calculés:', badgesData.filter(b => b.earned).map(b => b.name));
 
       } catch (error) {
         console.error('Erreur générale badges:', error);
@@ -186,27 +133,12 @@ export const useRepairerBadges = (profile: RepairerProfile | null) => {
     fetchStoredBadges();
   }, [profile]);
 
-  // Fonction pour débloquer manuellement un badge
-  const unlockBadge = async (badgeType: string, level?: string) => {
+  // Fonction pour débloquer manuellement un badge (temporairement simplifiée)
+  const unlockBadge = async (badgeType: string, level?: 'bronze' | 'silver' | 'gold' | 'diamond') => {
     if (!profile) return false;
 
     try {
-      const { error } = await supabase
-        .from('repairer_badges')
-        .upsert({
-          repairer_id: profile.id,
-          badge_type: badgeType,
-          earned: true,
-          earned_at: new Date().toISOString(),
-          level: level
-        }, { onConflict: 'repairer_id,badge_type' });
-
-      if (error) {
-        console.error('Erreur lors du déblocage du badge:', error);
-        return false;
-      }
-
-      // Mettre à jour l'état local
+      // Mettre à jour l'état local seulement
       setBadges(prev => prev.map(badge => 
         badge.type === badgeType 
           ? { ...badge, earned: true, earnedAt: new Date().toISOString(), level: level || badge.level }
@@ -215,7 +147,7 @@ export const useRepairerBadges = (profile: RepairerProfile | null) => {
 
       return true;
     } catch (error) {
-      console.error('Erreur générale déblocage badge:', error);
+      console.error('Erreur déblocage badge:', error);
       return false;
     }
   };

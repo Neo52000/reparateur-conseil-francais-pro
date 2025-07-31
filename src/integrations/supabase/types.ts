@@ -8158,6 +8158,45 @@ export type Database = {
         }
         Relationships: []
       }
+      repairer_badges: {
+        Row: {
+          badge_name: string
+          badge_type: string
+          created_at: string
+          criteria: string | null
+          earned: boolean
+          earned_at: string | null
+          id: string
+          level: string | null
+          repairer_id: string
+          updated_at: string
+        }
+        Insert: {
+          badge_name: string
+          badge_type: string
+          created_at?: string
+          criteria?: string | null
+          earned?: boolean
+          earned_at?: string | null
+          id?: string
+          level?: string | null
+          repairer_id: string
+          updated_at?: string
+        }
+        Update: {
+          badge_name?: string
+          badge_type?: string
+          created_at?: string
+          criteria?: string | null
+          earned?: boolean
+          earned_at?: string | null
+          id?: string
+          level?: string | null
+          repairer_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       repairer_brand_settings: {
         Row: {
           brand_id: string
