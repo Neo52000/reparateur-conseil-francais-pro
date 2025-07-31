@@ -8928,6 +8928,45 @@ export type Database = {
         }
         Relationships: []
       }
+      scraping_suggestions: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          id: string
+          quality_score: number | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          scraped_data: Json
+          source: string
+          status: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          quality_score?: number | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          scraped_data: Json
+          source?: string
+          status?: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          quality_score?: number | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          scraped_data?: Json
+          source?: string
+          status?: string
+        }
+        Relationships: []
+      }
       security_audit_log: {
         Row: {
           action: string
