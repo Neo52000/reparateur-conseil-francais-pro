@@ -33,6 +33,7 @@ import { CheckmateMonitoring } from '@/components/admin/monitoring/CheckmateMoni
 import StaticPagesManager from '@/components/admin/StaticPagesManager';
 import RealTimeQuotesManager from '@/components/admin/quotes/RealTimeQuotesManager';
 import CatalogManagement from '@/components/admin/catalog/CatalogManagement';
+import PlanVisualizationTester from '@/components/admin/plans/PlanVisualizationTester';
 const AdminPage = () => {
   const {
     user,
@@ -109,6 +110,8 @@ const AdminPage = () => {
         return 'Documentation';
       case 'features-manager':
         return 'Gestion Fonctionnalités';
+      case 'plans-tester':
+        return 'Test Interface Plans';
       case 'configuration':
         return 'Configuration';
       default:
@@ -167,6 +170,8 @@ const AdminPage = () => {
         return 'Gestion de la documentation technique et utilisateur';
       case 'features-manager':
         return 'Gestionnaire centralisé de toutes les fonctionnalités et modules';
+      case 'plans-tester':
+        return 'Interface de test et configuration pour l\'affichage des plans réparateurs';
       case 'configuration':
         return 'Configuration générale de l\'application';
       case 'static-pages':
@@ -257,6 +262,8 @@ const AdminPage = () => {
         return <EnhancedDocumentationManager />;
       case 'features-manager':
         return <ComprehensiveFeaturesManager />;
+      case 'plans-tester':
+        return <PlanVisualizationTester />;
       case 'configuration':
         return <AdminConfigurationPage />;
       case 'static-pages':
