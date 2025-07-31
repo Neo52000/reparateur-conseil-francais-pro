@@ -9653,6 +9653,308 @@ export type Database = {
         }
         Relationships: []
       }
+      ui_ab_tests: {
+        Row: {
+          control_config_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          start_date: string | null
+          status: string
+          success_metrics: Json | null
+          target_audience: Json | null
+          traffic_split: number
+          updated_at: string
+          variant_config_id: string | null
+        }
+        Insert: {
+          control_config_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          start_date?: string | null
+          status?: string
+          success_metrics?: Json | null
+          target_audience?: Json | null
+          traffic_split?: number
+          updated_at?: string
+          variant_config_id?: string | null
+        }
+        Update: {
+          control_config_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          status?: string
+          success_metrics?: Json | null
+          target_audience?: Json | null
+          traffic_split?: number
+          updated_at?: string
+          variant_config_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ui_ab_tests_control_config_id_fkey"
+            columns: ["control_config_id"]
+            isOneToOne: false
+            referencedRelation: "ui_configurations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ui_ab_tests_variant_config_id_fkey"
+            columns: ["variant_config_id"]
+            isOneToOne: false
+            referencedRelation: "ui_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ui_analytics: {
+        Row: {
+          ab_test_id: string | null
+          configuration_id: string | null
+          conversion_value: number | null
+          device_type: string | null
+          event_data: Json
+          event_type: string
+          id: string
+          metadata: Json | null
+          page_url: string | null
+          session_id: string | null
+          timestamp: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ab_test_id?: string | null
+          configuration_id?: string | null
+          conversion_value?: number | null
+          device_type?: string | null
+          event_data?: Json
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          page_url?: string | null
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ab_test_id?: string | null
+          configuration_id?: string | null
+          conversion_value?: number | null
+          device_type?: string | null
+          event_data?: Json
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          page_url?: string | null
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ui_analytics_ab_test_id_fkey"
+            columns: ["ab_test_id"]
+            isOneToOne: false
+            referencedRelation: "ui_ab_tests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ui_analytics_configuration_id_fkey"
+            columns: ["configuration_id"]
+            isOneToOne: false
+            referencedRelation: "ui_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ui_configuration_history: {
+        Row: {
+          change_summary: string | null
+          changed_by: string | null
+          configuration_id: string | null
+          configuration_snapshot: Json
+          created_at: string
+          id: string
+          version: number
+        }
+        Insert: {
+          change_summary?: string | null
+          changed_by?: string | null
+          configuration_id?: string | null
+          configuration_snapshot: Json
+          created_at?: string
+          id?: string
+          version: number
+        }
+        Update: {
+          change_summary?: string | null
+          changed_by?: string | null
+          configuration_id?: string | null
+          configuration_snapshot?: Json
+          created_at?: string
+          id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ui_configuration_history_configuration_id_fkey"
+            columns: ["configuration_id"]
+            isOneToOne: false
+            referencedRelation: "ui_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ui_configurations: {
+        Row: {
+          configuration: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          tags: string[] | null
+          type: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          configuration?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          tags?: string[] | null
+          type: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          configuration?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          tags?: string[] | null
+          type?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      ui_templates: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_featured: boolean
+          name: string
+          preview_image_url: string | null
+          tags: string[] | null
+          template_data: Json
+          updated_at: string
+          usage_count: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_featured?: boolean
+          name: string
+          preview_image_url?: string | null
+          tags?: string[] | null
+          template_data?: Json
+          updated_at?: string
+          usage_count?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_featured?: boolean
+          name?: string
+          preview_image_url?: string | null
+          tags?: string[] | null
+          template_data?: Json
+          updated_at?: string
+          usage_count?: number
+        }
+        Relationships: []
+      }
+      ui_themes: {
+        Row: {
+          accessibility_score: number | null
+          created_at: string
+          created_by: string | null
+          css_variables: Json | null
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          preview_image_url: string | null
+          tailwind_config: Json | null
+          theme_data: Json
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          accessibility_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          css_variables?: Json | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          preview_image_url?: string | null
+          tailwind_config?: Json | null
+          theme_data?: Json
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          accessibility_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          css_variables?: Json | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          preview_image_url?: string | null
+          tailwind_config?: Json | null
+          theme_data?: Json
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       url_health_checks: {
         Row: {
           check_timestamp: string
