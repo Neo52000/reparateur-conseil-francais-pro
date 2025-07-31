@@ -15,10 +15,13 @@ interface QuickSearchModalProps {
 }
 
 interface SearchFilters {
-  brand: string;
-  model: string;
-  repairType: string;
-  location: string;
+  deviceModelId: string;
+  repairTypeId: string;
+  location?: {
+    lat: number;
+    lng: number;
+    radius?: number;
+  };
 }
 
 const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ isOpen, onClose, onSearch }) => {
@@ -51,13 +54,25 @@ const QuickSearchModal: React.FC<QuickSearchModalProps> = ({ isOpen, onClose, on
     setStep(4);
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (selectedBrand && selectedModel && selectedRepairType && location) {
+      // Convertir la location en coordonnées si c'est un string
+      let locationData;
+      
+      if (location.includes(',')) {
+        // Coordonnées GPS
+        const [lat, lng] = location.split(',').map(Number);
+        locationData = { lat, lng, radius: 50 };
+      } else {
+        // Nom de ville - on pourrait géocoder ici mais pour l'instant on laisse undefined
+        // pour utiliser la recherche générale
+        locationData = undefined;
+      }
+
       onSearch({
-        brand: selectedBrand,
-        model: selectedModel,
-        repairType: selectedRepairType,
-        location
+        deviceModelId: selectedModel,
+        repairTypeId: selectedRepairType,
+        location: locationData
       });
       onClose();
       resetForm();

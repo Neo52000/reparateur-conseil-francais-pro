@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useGeolocation } from '@/hooks/useGeolocation';
-import { useRepairers } from '@/hooks/useRepairers';
+import { useRepairerSearch } from '@/hooks/useRepairerSearch';
 import { useMapStore } from '@/stores/mapStore';
 import RepairersMapContainer from '../map/MapContainer';
 import QuoteRequestModal from '@/components/modals/QuoteRequestModal';
@@ -27,9 +27,15 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [selectedRepairer, setSelectedRepairer] = useState<any>(null);
 
-  const { repairers, loading } = useRepairers(searchFilters);
+  const { results: repairers, loading, searchRepairers } = useRepairerSearch();
   const { setRepairers, selectedRepairer: mapSelectedRepairer } = useMapStore();
   const { userLocation, getUserLocation } = useGeolocation();
+
+  useEffect(() => {
+    if (searchFilters?.deviceModelId && searchFilters?.repairTypeId) {
+      searchRepairers(searchFilters);
+    }
+  }, [searchFilters, searchRepairers]);
 
   useEffect(() => {
     setRepairers(repairers);
