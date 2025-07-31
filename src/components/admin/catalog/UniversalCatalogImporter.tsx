@@ -354,6 +354,61 @@ export const UniversalCatalogImporter: React.FC = () => {
     return basicModels;
   };
 
+  // Fonction utilitaire pour générer une date de sortie réaliste
+  const getModelReleaseDate = (brandName: string, modelName: string): string => {
+    // Mapping des dates de sortie pour les modèles connus
+    const releaseDates: { [key: string]: string } = {
+      // iPhone
+      'iPhone 15': '2023-09-22',
+      'iPhone 14': '2022-09-16',
+      'iPhone 13': '2021-09-24',
+      'iPhone 12': '2020-10-23',
+      'iPhone 11': '2019-09-20',
+      // Samsung Galaxy S
+      'Galaxy S24': '2024-01-24',
+      'Galaxy S23': '2023-02-17',
+      'Galaxy S22': '2022-02-25',
+      'Galaxy S21': '2021-01-29',
+      'Galaxy S20': '2020-03-06',
+      // Apple Watch
+      'Apple Watch Series 9': '2023-09-22',
+      'Apple Watch Series 8': '2022-09-16',
+      'Apple Watch Series 7': '2021-10-15',
+      'Apple Watch Series 6': '2020-09-18',
+      // PlayStation
+      'PlayStation 5': '2020-11-19',
+      'PlayStation 4': '2013-11-15',
+      'PlayStation 3': '2006-11-11',
+      // Nintendo Switch
+      'Nintendo Switch': '2017-03-03',
+      'Nintendo Switch Lite': '2019-09-20',
+      'Nintendo Switch OLED': '2021-10-08',
+    };
+
+    // Recherche d'une date exacte
+    const exactMatch = releaseDates[modelName];
+    if (exactMatch) return exactMatch;
+
+    // Recherche par nom partiel
+    for (const [model, date] of Object.entries(releaseDates)) {
+      if (modelName.includes(model) || model.includes(modelName)) {
+        return date;
+      }
+    }
+
+    // Date par défaut basée sur la marque et l'année courante
+    const currentYear = new Date().getFullYear();
+    if (brandName.toLowerCase() === 'apple') {
+      return `${currentYear - 1}-09-15`; // Septembre pour Apple
+    }
+    if (brandName.toLowerCase() === 'samsung') {
+      return `${currentYear - 1}-02-15`; // Février pour Samsung
+    }
+    
+    // Date par défaut générique
+    return `${currentYear - 1}-01-01`;
+  };
+
   // Import automatisé universel
   const handleUniversalAutomatedImport = async () => {
     setImporting(true);
@@ -363,6 +418,10 @@ export const UniversalCatalogImporter: React.FC = () => {
     
     try {
       addLog('🌐 Début de l\'import automatisé universel depuis tous les sites externes...');
+      addLog('🔍 Actualisation des données existantes...');
+      
+      // Refresh data to ensure we have the latest info
+      await fetchAllData();
       
       let totalModelsImported = 0;
       let totalModelsSkipped = 0;
@@ -375,7 +434,7 @@ export const UniversalCatalogImporter: React.FC = () => {
         selectedCategories.includes(product.category)
       );
 
-      const totalSteps = products.length * 2; // Type + Brand creation + models
+      const totalSteps = products.length;
       let currentStep = 0;
 
       for (const product of products) {
@@ -387,7 +446,7 @@ export const UniversalCatalogImporter: React.FC = () => {
         try {
           // Ensure device type exists
           let deviceType = deviceTypes.find(dt => 
-            dt.name.toLowerCase() === product.deviceType.toLowerCase()
+            dt.name.toLowerCase().trim() === product.deviceType.toLowerCase().trim()
           );
           
           if (!deviceType) {
@@ -395,14 +454,20 @@ export const UniversalCatalogImporter: React.FC = () => {
             try {
               deviceType = await createDeviceType({
                 name: product.deviceType,
-                description: `${product.deviceType} - Import automatique`
+                description: `${product.deviceType} - Import automatique`,
+                icon: getDeviceIcon(product.deviceType)
               });
               totalDeviceTypesCreated++;
+              addLog(`✅ Type "${product.deviceType}" créé avec succès`);
+              
+              // Refresh data after creation
+              await fetchAllData();
             } catch (error: any) {
               if (error.message?.includes('duplicate') || error.code === '23505') {
+                addLog(`⚠️ Type "${product.deviceType}" existe déjà, récupération...`);
                 await fetchAllData();
                 deviceType = deviceTypes.find(dt => 
-                  dt.name.toLowerCase() === product.deviceType.toLowerCase()
+                  dt.name.toLowerCase().trim() === product.deviceType.toLowerCase().trim()
                 );
               } else {
                 addLog(`❌ Erreur création type ${product.deviceType}: ${error.message}`);
@@ -412,28 +477,33 @@ export const UniversalCatalogImporter: React.FC = () => {
           }
 
           if (!deviceType) {
-            addLog(`❌ Type d'appareil ${product.deviceType} introuvable`);
+            addLog(`❌ Type d'appareil ${product.deviceType} introuvable après création`);
             continue;
           }
 
           // Find or create brand
           let brand = brands.find(b => 
-            b.name.toLowerCase() === product.brand.toLowerCase()
+            b.name.toLowerCase().trim() === product.brand.toLowerCase().trim()
           );
           
           if (!brand) {
+            addLog(`➕ Création de la marque: ${product.brand}`);
             try {
               brand = await createBrand({
                 name: product.brand,
                 logo_url: null
               });
               totalBrandsCreated++;
-              addLog(`✅ Marque "${product.brand}" créée`);
+              addLog(`✅ Marque "${product.brand}" créée avec succès`);
+              
+              // Refresh data after creation
+              await fetchAllData();
             } catch (brandError: any) {
               if (brandError.message?.includes('duplicate') || brandError.code === '23505') {
+                addLog(`⚠️ Marque "${product.brand}" existe déjà, récupération...`);
                 await fetchAllData();
                 brand = brands.find(b => 
-                  b.name.toLowerCase() === product.brand.toLowerCase()
+                  b.name.toLowerCase().trim() === product.brand.toLowerCase().trim()
                 );
               } else {
                 addLog(`❌ Erreur création marque ${product.brand}: ${brandError.message}`);
@@ -443,50 +513,82 @@ export const UniversalCatalogImporter: React.FC = () => {
           }
 
           if (!brand) {
-            addLog(`❌ Marque ${product.brand} introuvable`);
+            addLog(`❌ Marque ${product.brand} introuvable après création`);
             continue;
           }
 
-          // Import models
-          for (const modelName of product.models) {
-            try {
-              const modelExists = await checkModelExists(modelName, brand.id, deviceType.id);
-              
-              if (modelExists) {
-                totalModelsSkipped++;
-                continue;
-              }
+          addLog(`📱 Import de ${product.models.length} modèles pour ${product.brand}...`);
+          
+          // Import models in smaller batches
+          for (let i = 0; i < product.models.length; i += 5) {
+            const batch = product.models.slice(i, i + 5);
+            
+            for (const modelName of batch) {
+              try {
+                // Validate model name
+                if (!modelName || modelName.trim().length < 2) {
+                  addLog(`⚠️ Nom de modèle invalide ignoré: "${modelName}"`);
+                  continue;
+                }
 
-              await createDeviceModel({
-                model_name: modelName,
-                brand_id: brand.id,
-                device_type_id: deviceType.id,
-                model_number: `${product.brand}-${modelName.replace(/\s+/g, '-')}`,
-                release_date: new Date().getFullYear().toString(),
-                screen_size: getDefaultScreenSize(product.deviceType),
-                screen_resolution: getDefaultResolution(product.deviceType),
-                screen_type: 'OLED',
-                battery_capacity: getDefaultBattery(product.deviceType),
-                operating_system: getDefaultOS(product.brand, product.deviceType),
-                is_active: true
-              });
+                const cleanModelName = modelName.trim();
+                
+                // Check if model already exists
+                const modelExists = await checkModelExists(cleanModelName, brand.id, deviceType.id);
+                
+                if (modelExists) {
+                  totalModelsSkipped++;
+                  continue;
+                }
 
-              totalModelsImported++;
-              
-              if (totalModelsImported % 10 === 0) {
-                addLog(`✅ ${totalModelsImported} modèles importés...`);
-              }
-            } catch (modelError: any) {
-              if (!modelError.message?.includes('duplicate')) {
-                addLog(`❌ Erreur modèle ${modelName}: ${modelError.message}`);
+                // Create model with proper validation
+                const modelData = {
+                  model_name: cleanModelName,
+                  brand_id: brand.id,
+                  device_type_id: deviceType.id,
+                  model_number: `${product.brand.replace(/\s+/g, '-')}-${cleanModelName.replace(/\s+/g, '-')}`.toLowerCase(),
+                  release_date: getModelReleaseDate(product.brand, cleanModelName),
+                  screen_size: getDefaultScreenSize(product.deviceType),
+                  screen_resolution: getDefaultResolution(product.deviceType),
+                  screen_type: product.deviceType.toLowerCase().includes('montre') ? 'AMOLED' : 'OLED',
+                  battery_capacity: getDefaultBattery(product.deviceType),
+                  operating_system: getDefaultOS(product.brand, product.deviceType),
+                  is_active: true
+                };
+
+                await createDeviceModel(modelData);
+                totalModelsImported++;
+                
+                if (totalModelsImported % 5 === 0) {
+                  addLog(`✅ ${totalModelsImported} modèles importés...`);
+                }
+                
+              } catch (modelError: any) {
                 totalModelsErrors++;
-              } else {
-                totalModelsSkipped++;
+                if (modelError.message?.includes('duplicate') || modelError.code === '23505') {
+                  addLog(`⚠️ Modèle "${modelName}" existe déjà, ignoré`);
+                  totalModelsSkipped++;
+                } else {
+                  addLog(`❌ Erreur modèle "${modelName}": ${modelError.message}`);
+                  // Log more details for debugging
+                  if (modelError.details) {
+                    addLog(`   Détails: ${modelError.details}`);
+                  }
+                  if (modelError.code) {
+                    addLog(`   Code: ${modelError.code}`);
+                  }
+                }
               }
             }
+            
+            // Small delay between batches to prevent overwhelming the database
+            await new Promise(resolve => setTimeout(resolve, 100));
           }
+          
+          addLog(`✅ Import ${product.brand} terminé: ${product.models.length} modèles traités`);
+          
         } catch (error: any) {
-          addLog(`❌ Erreur lors de l'import ${product.brand}: ${error.message}`);
+          addLog(`❌ Erreur critique lors de l'import ${product.brand}: ${error.message}`);
           totalModelsErrors++;
         }
       }
