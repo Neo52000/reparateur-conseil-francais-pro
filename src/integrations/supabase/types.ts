@@ -747,6 +747,57 @@ export type Database = {
           },
         ]
       }
+      ai_product_suggestions: {
+        Row: {
+          confidence_score: number
+          created_at: string | null
+          frequency_count: number | null
+          id: string
+          is_active: boolean | null
+          last_suggested: string | null
+          primary_product_id: string
+          suggested_product_id: string
+          suggestion_type: string
+        }
+        Insert: {
+          confidence_score: number
+          created_at?: string | null
+          frequency_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_suggested?: string | null
+          primary_product_id: string
+          suggested_product_id: string
+          suggestion_type: string
+        }
+        Update: {
+          confidence_score?: number
+          created_at?: string | null
+          frequency_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_suggested?: string | null
+          primary_product_id?: string
+          suggested_product_id?: string
+          suggestion_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_product_suggestions_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "pos_inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_product_suggestions_suggested_product_id_fkey"
+            columns: ["suggested_product_id"]
+            isOneToOne: false
+            referencedRelation: "pos_inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_quote_analyses: {
         Row: {
           ai_model: string | null
@@ -5509,17 +5560,24 @@ export type Database = {
       parts_suppliers: {
         Row: {
           address: Json | null
+          city: string | null
           contact_person: string | null
+          country: string | null
           created_at: string
+          delivery_delay_days: number | null
           delivery_time_days: number | null
+          discount_percentage: number | null
           email: string | null
           id: string
           is_active: boolean | null
           is_preferred: boolean | null
           minimum_order: number | null
+          minimum_order_amount: number | null
           name: string
+          notes: string | null
           payment_terms: string | null
           phone: string | null
+          postal_code: string | null
           rating: number | null
           repairer_id: string
           shipping_cost: number | null
@@ -5530,17 +5588,24 @@ export type Database = {
         }
         Insert: {
           address?: Json | null
+          city?: string | null
           contact_person?: string | null
+          country?: string | null
           created_at?: string
+          delivery_delay_days?: number | null
           delivery_time_days?: number | null
+          discount_percentage?: number | null
           email?: string | null
           id?: string
           is_active?: boolean | null
           is_preferred?: boolean | null
           minimum_order?: number | null
+          minimum_order_amount?: number | null
           name: string
+          notes?: string | null
           payment_terms?: string | null
           phone?: string | null
+          postal_code?: string | null
           rating?: number | null
           repairer_id: string
           shipping_cost?: number | null
@@ -5551,17 +5616,24 @@ export type Database = {
         }
         Update: {
           address?: Json | null
+          city?: string | null
           contact_person?: string | null
+          country?: string | null
           created_at?: string
+          delivery_delay_days?: number | null
           delivery_time_days?: number | null
+          discount_percentage?: number | null
           email?: string | null
           id?: string
           is_active?: boolean | null
           is_preferred?: boolean | null
           minimum_order?: number | null
+          minimum_order_amount?: number | null
           name?: string
+          notes?: string | null
           payment_terms?: string | null
           phone?: string | null
+          postal_code?: string | null
           rating?: number | null
           repairer_id?: string
           shipping_cost?: number | null
@@ -5878,77 +5950,125 @@ export type Database = {
       }
       pos_inventory_items: {
         Row: {
+          ademe_bonus: number | null
           brand: string | null
           category: string | null
+          category_id: string | null
           cost_price: number | null
           created_at: string
           current_stock: number
+          custom_description: string | null
           description: string | null
           dimensions: Json | null
+          ecotax: number | null
+          external_reference: string | null
           id: string
+          image_url: string | null
+          intervention_service_id: string | null
           is_active: boolean
+          is_ecommerce_active: boolean | null
           is_trackable: boolean
           location: string | null
+          margin_percentage: number | null
           maximum_stock: number | null
           minimum_stock: number
+          model: string | null
           name: string
+          purchase_price_ht: number | null
+          purchase_price_ttc: number | null
           repairer_id: string
+          requires_intervention: boolean | null
           retail_price: number | null
+          sale_price_ht: number | null
+          sale_price_ttc: number | null
           selling_price: number
           shelf_position: string | null
           sku: string
           sync_source: string | null
           synced_at: string | null
+          tva_rate: number | null
           updated_at: string
           weight: number | null
         }
         Insert: {
+          ademe_bonus?: number | null
           brand?: string | null
           category?: string | null
+          category_id?: string | null
           cost_price?: number | null
           created_at?: string
           current_stock?: number
+          custom_description?: string | null
           description?: string | null
           dimensions?: Json | null
+          ecotax?: number | null
+          external_reference?: string | null
           id?: string
+          image_url?: string | null
+          intervention_service_id?: string | null
           is_active?: boolean
+          is_ecommerce_active?: boolean | null
           is_trackable?: boolean
           location?: string | null
+          margin_percentage?: number | null
           maximum_stock?: number | null
           minimum_stock?: number
+          model?: string | null
           name: string
+          purchase_price_ht?: number | null
+          purchase_price_ttc?: number | null
           repairer_id: string
+          requires_intervention?: boolean | null
           retail_price?: number | null
+          sale_price_ht?: number | null
+          sale_price_ttc?: number | null
           selling_price: number
           shelf_position?: string | null
           sku: string
           sync_source?: string | null
           synced_at?: string | null
+          tva_rate?: number | null
           updated_at?: string
           weight?: number | null
         }
         Update: {
+          ademe_bonus?: number | null
           brand?: string | null
           category?: string | null
+          category_id?: string | null
           cost_price?: number | null
           created_at?: string
           current_stock?: number
+          custom_description?: string | null
           description?: string | null
           dimensions?: Json | null
+          ecotax?: number | null
+          external_reference?: string | null
           id?: string
+          image_url?: string | null
+          intervention_service_id?: string | null
           is_active?: boolean
+          is_ecommerce_active?: boolean | null
           is_trackable?: boolean
           location?: string | null
+          margin_percentage?: number | null
           maximum_stock?: number | null
           minimum_stock?: number
+          model?: string | null
           name?: string
+          purchase_price_ht?: number | null
+          purchase_price_ttc?: number | null
           repairer_id?: string
+          requires_intervention?: boolean | null
           retail_price?: number | null
+          sale_price_ht?: number | null
+          sale_price_ttc?: number | null
           selling_price?: number
           shelf_position?: string | null
           sku?: string
           sync_source?: string | null
           synced_at?: string | null
+          tva_rate?: number | null
           updated_at?: string
           weight?: number | null
         }
@@ -6410,6 +6530,89 @@ export type Database = {
         }
         Relationships: []
       }
+      product_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          parent_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          parent_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          parent_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_links: {
+        Row: {
+          ai_confidence: number | null
+          created_at: string | null
+          id: string
+          is_automatic: boolean | null
+          link_type: string
+          linked_product_id: string
+          primary_product_id: string
+        }
+        Insert: {
+          ai_confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_automatic?: boolean | null
+          link_type: string
+          linked_product_id: string
+          primary_product_id: string
+        }
+        Update: {
+          ai_confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_automatic?: boolean | null
+          link_type?: string
+          linked_product_id?: string
+          primary_product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_links_linked_product_id_fkey"
+            columns: ["linked_product_id"]
+            isOneToOne: false
+            referencedRelation: "pos_inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_links_primary_product_id_fkey"
+            columns: ["primary_product_id"]
+            isOneToOne: false
+            referencedRelation: "pos_inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_analytics: {
         Row: {
           created_at: string
@@ -6526,6 +6729,119 @@ export type Database = {
           valid_until?: string | null
         }
         Relationships: []
+      }
+      purchase_order_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string
+          purchase_order_id: string
+          quantity: number
+          received_quantity: number | null
+          total_ht: number
+          total_ttc: number
+          unit_price_ht: number
+          unit_price_ttc: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id: string
+          purchase_order_id: string
+          quantity: number
+          received_quantity?: number | null
+          total_ht: number
+          total_ttc: number
+          unit_price_ht: number
+          unit_price_ttc: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          purchase_order_id?: string
+          quantity?: number
+          received_quantity?: number | null
+          total_ht?: number
+          total_ttc?: number
+          unit_price_ht?: number
+          unit_price_ttc?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "pos_inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          auto_generated: boolean | null
+          created_at: string | null
+          created_by: string | null
+          expected_delivery: string | null
+          id: string
+          notes: string | null
+          order_date: string
+          order_number: string
+          repairer_id: string
+          status: string
+          supplier_id: string
+          total_amount_ht: number | null
+          total_amount_ttc: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          auto_generated?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          expected_delivery?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number: string
+          repairer_id: string
+          status?: string
+          supplier_id: string
+          total_amount_ht?: number | null
+          total_amount_ttc?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          auto_generated?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          expected_delivery?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number?: string
+          repairer_id?: string
+          status?: string
+          supplier_id?: string
+          total_amount_ht?: number | null
+          total_amount_ttc?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "parts_suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       qualirepar_api_logs: {
         Row: {
@@ -9407,6 +9723,53 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_alerts: {
+        Row: {
+          alert_type: string
+          auto_order_enabled: boolean | null
+          created_at: string | null
+          current_value: number | null
+          id: string
+          is_active: boolean | null
+          last_triggered: string | null
+          product_id: string
+          repairer_id: string
+          threshold_value: number | null
+        }
+        Insert: {
+          alert_type: string
+          auto_order_enabled?: boolean | null
+          created_at?: string | null
+          current_value?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered?: string | null
+          product_id: string
+          repairer_id: string
+          threshold_value?: number | null
+        }
+        Update: {
+          alert_type?: string
+          auto_order_enabled?: boolean | null
+          created_at?: string | null
+          current_value?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered?: string | null
+          product_id?: string
+          repairer_id?: string
+          threshold_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_alerts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "pos_inventory_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_movements: {
         Row: {
           created_at: string
@@ -9630,6 +9993,66 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      supplier_products: {
+        Row: {
+          created_at: string | null
+          delivery_delay_days: number | null
+          id: string
+          is_preferred_supplier: boolean | null
+          last_price_update: string | null
+          minimum_quantity: number | null
+          product_id: string
+          supplier_id: string
+          supplier_reference: string | null
+          unit_price_ht: number | null
+          unit_price_ttc: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_delay_days?: number | null
+          id?: string
+          is_preferred_supplier?: boolean | null
+          last_price_update?: string | null
+          minimum_quantity?: number | null
+          product_id: string
+          supplier_id: string
+          supplier_reference?: string | null
+          unit_price_ht?: number | null
+          unit_price_ttc?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          delivery_delay_days?: number | null
+          id?: string
+          is_preferred_supplier?: boolean | null
+          last_price_update?: string | null
+          minimum_quantity?: number | null
+          product_id?: string
+          supplier_id?: string
+          supplier_reference?: string | null
+          unit_price_ht?: number | null
+          unit_price_ttc?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "pos_inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "parts_suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sync_logs: {
         Row: {
