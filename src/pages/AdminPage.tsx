@@ -40,8 +40,10 @@ import StaticPagesManager from '@/components/admin/StaticPagesManager';
 import RealTimeQuotesManager from '@/components/admin/quotes/RealTimeQuotesManager';
 import CatalogManagement from '@/components/admin/catalog/CatalogManagement';
 import { EnhancedPlanVisualizationTester } from '@/components/admin/plans/EnhancedPlanVisualizationTester';
-import RepairerDashboardTester from '@/components/admin/dashboard/RepairerDashboardTester';
-import POSTester from '@/components/admin/pos/POSTester';
+import { EnhancedDashboardTester } from '@/components/admin/dashboard/EnhancedDashboardTester';
+import { EnhancedPOSTester } from '@/components/admin/pos/EnhancedPOSTester';
+import { EnhancedEcommerceTester } from '@/components/admin/ecommerce/EnhancedEcommerceTester';
+
 const AdminPage = () => {
   const {
     user,
@@ -258,7 +260,7 @@ const AdminPage = () => {
       case 'pos-admin':
         return <AdminPOSManagement />;
       case 'ecommerce-admin':
-        return <AdminEcommerceManagement />;
+        return <EnhancedEcommerceTester />;
       case 'local-seo':
         return <LocalSeoManagement />;
       case 'seo-monitoring':
@@ -306,9 +308,9 @@ const AdminPage = () => {
       case 'plans-tester':
         return <EnhancedPlanVisualizationTester />;
       case 'dashboard-tester':
-        return <RepairerDashboardTester />;
+        return <EnhancedDashboardTester />;
       case 'pos-tester':
-        return <POSTester />;
+        return <EnhancedPOSTester />;
       case 'configuration':
         return <AdminConfigurationPage />;
       case 'static-pages':
