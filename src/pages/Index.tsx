@@ -29,6 +29,7 @@ interface SearchCriteria {
 const Index = () => {
   const navigate = useNavigate();
   
+  // Wrapping everything in a try-catch to prevent white screen
   try {
     const { user } = useAuth();
     const { pendingAction, clearPendingAction } = usePendingAction();

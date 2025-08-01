@@ -25,7 +25,8 @@ export const GlobalVisitorTracker: React.FC = () => {
             browser: /Chrome/.test(navigator.userAgent) ? 'Chrome' : 'Other'
           });
         } catch (error) {
-          console.error('Erreur lors du tracking initial:', error);
+          console.warn('Warning lors du tracking initial (non-critique):', error);
+          // Ne pas faire planter l'app pour un problème de tracking
         }
       };
 

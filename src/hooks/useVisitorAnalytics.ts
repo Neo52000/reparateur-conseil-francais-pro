@@ -53,9 +53,13 @@ export const useVisitorAnalytics = () => {
           visited_at: new Date().toISOString()
         }]);
 
-      if (error) throw error;
+      if (error) {
+        console.warn('Warning tracking visitor (non-critical):', error);
+        return; // Ne pas faire planter l'app pour un problème de tracking
+      }
     } catch (error) {
-      console.error('Error tracking visitor:', error);
+      console.warn('Error tracking visitor (non-critical):', error);
+      // Ne pas relancer l'erreur pour éviter de faire planter l'app
     }
   };
 

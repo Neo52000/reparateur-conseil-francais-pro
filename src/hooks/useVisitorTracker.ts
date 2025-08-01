@@ -54,7 +54,8 @@ export const useVisitorTracker = () => {
           browser: browser
         });
       } catch (error) {
-        console.error('Erreur lors du tracking de visite:', error);
+        console.warn('Warning lors du tracking de visite (non-critique):', error);
+        // Ne pas faire planter l'app pour un problème de tracking
       }
     };
 
