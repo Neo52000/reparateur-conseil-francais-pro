@@ -4,8 +4,7 @@ import Navigation from '@/components/Navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminDashboardContent from '@/components/admin/AdminDashboardContent';
 import AdminTopBar from '@/components/admin/modern/AdminTopBar';
-import EnhancedAdminSidebar from '@/components/admin/modern/EnhancedAdminSidebar';
-import ResponsiveLayout from '@/components/admin/modern/ResponsiveLayout';
+import HorizontalAdminNav from '@/components/admin/modern/HorizontalAdminNav';
 import ModernDashboardCards from '@/components/admin/modern/ModernDashboardCards';
 import QuickActions from '@/components/admin/modern/QuickActions';
 import RecentActivity from '@/components/admin/modern/RecentActivity';
@@ -320,13 +319,13 @@ const AdminPage = () => {
   };
   try {
     return (
-      <ResponsiveLayout
-        header={<AdminTopBar userName={user?.email || 'Admin'} />}
-        sidebar={<EnhancedAdminSidebar />}
-        className="bg-muted/30"
-      >
-        {renderContent()}
-      </ResponsiveLayout>
+      <div className="min-h-screen bg-background">
+        <AdminTopBar userName={user?.email || 'Admin'} />
+        <HorizontalAdminNav />
+        <main className="p-6">
+          {renderContent()}
+        </main>
+      </div>
     );
   } catch (error) {
     console.error('Erreur critique dans AdminPage:', error);

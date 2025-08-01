@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import CompactPOSNav from './modern/CompactPOSNav';
 import POSSalesInterface from './ui/POSSalesInterface';
 import POSCustomerManager from './ui/POSCustomerManager';
 import POSTransactionHistory from './ui/POSTransactionHistory';
@@ -151,35 +152,14 @@ const POSInterface: React.FC = () => {
       <div className="flex h-[calc(100vh-80px)]">
         {/* Panel principal POS */}
         <div className="flex-1 p-6">
+          {/* Navigation compacte */}
+          <CompactPOSNav 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab}
+            className="mb-6"
+          />
+          
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="space-y-4">
-              {/* Navigation principale */}
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="session">Session</TabsTrigger>
-                <TabsTrigger value="sale">Vente</TabsTrigger>
-                <TabsTrigger value="customers">Clients</TabsTrigger>
-                <TabsTrigger value="history">Historique</TabsTrigger>
-                <TabsTrigger value="inventory">Stock</TabsTrigger>
-                <TabsTrigger value="reports">Rapports</TabsTrigger>
-              </TabsList>
-              
-              {/* Navigation modules */}
-              <TabsList className="grid w-full grid-cols-7">
-                <TabsTrigger value="repairs" className="flex items-center gap-1">
-                  <Wrench className="w-4 h-4" />
-                  Réparations
-                </TabsTrigger>
-                <TabsTrigger value="buyback" className="flex items-center gap-1">
-                  <Euro className="w-4 h-4" />
-                  Rachat
-                </TabsTrigger>
-                <TabsTrigger value="alerts">Alertes</TabsTrigger>
-                <TabsTrigger value="mobile">Mobile</TabsTrigger>
-                <TabsTrigger value="integrations">Intégrations</TabsTrigger>
-                <TabsTrigger value="business">Business</TabsTrigger>
-                <TabsTrigger value="settings">Paramètres</TabsTrigger>
-              </TabsList>
-            </div>
 
             {/* Onglet Session */}
             <TabsContent value="session" className="mt-6">
