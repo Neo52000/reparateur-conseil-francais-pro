@@ -88,6 +88,8 @@ const AdminPage = () => {
         return 'Analytics';
       case 'scraping':
         return 'Scraping';
+      case 'automation':
+        return 'Relances Automatiques';
       case 'monitoring':
         return 'Monitoring Checkmate';
       case 'blog':
@@ -150,6 +152,8 @@ const AdminPage = () => {
         return 'Analyses détaillées et métriques de performance';
       case 'scraping':
         return 'Outils de collecte de données';
+      case 'automation':
+        return 'Système automatisé de relance client et réactivation des comptes inactifs';
       case 'monitoring':
         return 'Surveillance uptime, performance et métriques business exclusives';
       case 'blog':
