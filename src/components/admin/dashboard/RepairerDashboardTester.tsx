@@ -451,9 +451,10 @@ const RepairerDashboardTester: React.FC = () => {
             </CardContent>
           </Card>
         </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
+};
 
 export default RepairerDashboardTester;
