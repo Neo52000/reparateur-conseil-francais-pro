@@ -60,7 +60,7 @@ const ScrapingDebugPanel: React.FC<ScrapingDebugPanelProps> = ({
         .limit(1);
 
       // Test de l'edge function
-      const { data: edgeFunctionTest, error: edgeFunctionError } = await supabase.functions.invoke('unified-scraping', {
+      const { data: edgeFunctionTest, error: edgeFunctionError } = await supabase.functions.invoke('multi-ai-pipeline', {
         body: {
           searchTerm: 'test',
           location: 'Paris',

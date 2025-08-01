@@ -20,10 +20,6 @@ export const useApiWithFallback = () => {
             return await supabase.functions.invoke('multi-ai-pipeline', {
               body: await apiCall(apiId)
             });
-          case 'unified-scraping':
-            return await supabase.functions.invoke('unified-scraping', {
-              body: await apiCall(apiId)
-            });
           case 'apify-scraping':
             return await supabase.functions.invoke('apify-scraping', {
               body: await apiCall(apiId)

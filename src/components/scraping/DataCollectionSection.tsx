@@ -6,7 +6,7 @@ import { Brain, Search, Globe } from 'lucide-react';
 import { useDataCollection } from '@/hooks/scraping/useDataCollection';
 import MultiAICollectionTab from './collection-methods/MultiAICollectionTab';
 import SerperCollectionTab from './collection-methods/SerperCollectionTab';
-import UnifiedScrapingTab from './collection-methods/UnifiedScrapingTab';
+
 import ApifyCollectionTab from './collection-methods/ApifyCollectionTab';
 import ScrapingProgressViewer from './ScrapingProgressViewer';
 import ResultsPreviewTable from './ResultsPreviewTable';
@@ -38,7 +38,7 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
 }) => {
   const [location, setLocation] = useState('');
   const [customQuery, setCustomQuery] = useState('');
-  const [activeCollectionTab, setActiveCollectionTab] = useState('unified');
+  const [activeCollectionTab, setActiveCollectionTab] = useState('apify');
   const [scrapingInProgress, setScrapingInProgress] = useState(false);
   
   const {
@@ -49,7 +49,7 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
     generateSerperQuery,
     handleSerperSearch,
     handleMultiAIPipeline,
-    handleUnifiedScraping,
+    
     handleIntegrateToDatabase,
     handleRedirectToRepairers,
     handleCancelRedirection,
@@ -79,16 +79,6 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
     }
   };
 
-  const handleUnified = async () => {
-    onLoadingChange(true);
-    setScrapingInProgress(true);
-    try {
-      await handleUnifiedScraping(category, location);
-    } finally {
-      onLoadingChange(false);
-      setScrapingInProgress(false);
-    }
-  };
 
   const handleIntegration = async (selectedResults: any[]) => {
     await handleIntegrateToDatabase(selectedResults, category, location);
@@ -135,11 +125,7 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
 
       {/* Méthodes de collecte */}
       <Tabs value={activeCollectionTab} onValueChange={setActiveCollectionTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="unified" className="flex items-center space-x-2">
-            <Globe className="h-4 w-4" />
-            <span>Scraping Unifié</span>
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="apify" className="flex items-center space-x-2">
             <Brain className="h-4 w-4" />
             <span>Apify Premium</span>
@@ -153,14 +139,6 @@ const DataCollectionSection: React.FC<DataCollectionSectionProps> = ({
             <span>Serper Search</span>
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="unified" className="space-y-4">
-          <UnifiedScrapingTab
-            category={category}
-            isLoading={isLoading}
-            onStartScraping={handleUnified}
-          />
-        </TabsContent>
 
         <TabsContent value="apify" className="space-y-4">
           <ApifyCollectionTab

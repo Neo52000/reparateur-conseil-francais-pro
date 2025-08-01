@@ -54,12 +54,6 @@ const EdgeFunctionHealth: React.FC = () => {
       testPayload: { query: 'test', num: 1 }
     },
     {
-      name: 'unified-scraping',
-      displayName: 'Scraping Unifié',
-      description: 'Pipeline de scraping unifié',
-      testPayload: { searchTerm: 'test', location: 'France', sources: [], previewMode: true }
-    },
-    {
       name: 'multi-ai-pipeline',
       displayName: 'Pipeline Multi-IA',
       description: 'Pipeline de collecte et enrichissement IA',

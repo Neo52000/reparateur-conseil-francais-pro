@@ -74,20 +74,11 @@ export class ApiManager {
         timeout: 30000
       },
       {
-        id: 'unified-scraping',
-        name: 'unified-scraping',
-        displayName: 'Scraping Unifié',
-        description: 'Pipeline de scraping unifié multi-sources',
-        priority: 2,
-        maxRetries: 3,
-        timeout: 45000
-      },
-      {
         id: 'multi-ai-pipeline',
         name: 'multi-ai-pipeline',
         displayName: 'Pipeline Multi-IA',
         description: 'Pipeline de collecte et enrichissement IA',
-        priority: 3,
+        priority: 2,
         maxRetries: 2,
         timeout: 60000
       },
@@ -96,7 +87,7 @@ export class ApiManager {
         name: 'serper-search',
         displayName: 'Serper Search',
         description: 'Recherche avec l\'API Serper',
-        priority: 4,
+        priority: 3,
         maxRetries: 1,
         timeout: 15000
       }

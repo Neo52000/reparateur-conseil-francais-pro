@@ -1,4 +1,3 @@
-
 project_id = "nbugpbakfkyvvjzgfjmw"
 
 [functions.plans-api]
@@ -74,4 +73,13 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.get-ai-status]
+verify_jwt = false
+
+[functions.multi-ai-pipeline]
+verify_jwt = false
+
+[functions.serper-search]
+verify_jwt = false
+
+[functions.ai-suggestions]
 verify_jwt = false

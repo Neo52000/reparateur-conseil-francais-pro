@@ -94,64 +94,6 @@ export const useDataCollection = () => {
     }
   };
 
-  const handleUnifiedScraping = async (category: BusinessCategory, location: string) => {
-    try {
-      const searchTerm = category.search_keywords[0] || category.name;
-      console.log('🚀 [FALLBACK] Démarrage avec système de fallback');
-      
-      const result = await apiManager.callWithFallback(async (apiId: string) => {
-        const requestBody = {
-          searchTerm: searchTerm,
-          location: location || 'France',
-          sources: apiId === 'unified-scraping' ? ['serper', 'multi_ai'] : [],
-          maxResults: 20,
-          enableAI: true,
-          enableGeocoding: true,
-          categoryId: category.id,
-          previewMode: true
-        };
-        
-        const { data, error } = await supabase.functions.invoke(apiId, {
-          body: requestBody
-        });
-        
-        if (error) throw error;
-        return data;
-      });
-
-      if (!result.success) {
-        throw new Error(result.error || 'Toutes les APIs ont échoué');
-      }
-
-      const data = result.data;
-      const stats = data.stats || {};
-      const results = data.results || [];
-      setResults(results);
-      
-      if (result.apiUsed !== 'unified-scraping') {
-        toast({
-          title: "Fallback utilisé",
-          description: `Basculement automatique vers ${result.apiUsed}`,
-          variant: "default"
-        });
-      }
-      
-      toast({
-        title: "Collecte réussie",
-        description: `${stats.totalFound || 0} résultats trouvés avec ${result.apiUsed}`
-      });
-      
-      return results;
-    } catch (error: any) {
-      console.error('💥 Erreur scraping avec fallback:', error);
-      toast({
-        title: "Erreur Scraping",
-        description: error.message,
-        variant: "destructive"
-      });
-      throw error;
-    }
-  };
 
   const handleIntegrateToDatabase = async (selectedResults: any[], category: BusinessCategory, location: string) => {
     if (selectedResults.length === 0) {
@@ -182,61 +124,48 @@ export const useDataCollection = () => {
         console.warn('[DEBUG] Certains résultats n\'ont pas de nom:', selectedResults.filter(r => !r.name && !r.title));
       }
       
-      console.log('📡 [DEBUG] Appel intégration vers edge function...');
-      const { data, error } = await supabase.functions.invoke('unified-scraping', {
-        body: {
-          searchTerm: category.search_keywords[0] || category.name,
-          location: location || 'France',
-          sources: [], // Pas de nouvelles sources, on intègre les résultats fournis
-          maxResults: selectedResults.length,
-          enableAI: false,
-          enableGeocoding: false,
-          categoryId: category.id,
-          previewMode: false, // MODE INTÉGRATION - pas de preview
-          providedResults: selectedResults // Passer les résultats sélectionnés
-        }
-      });
+      console.log('📡 [DEBUG] Intégration directe en base...');
+      // Intégration directe via l'API repairers
+      const { data, error } = await supabase.from('repairers').insert(
+        selectedResults.map(result => ({
+          name: result.name || result.title || 'Nom inconnu',
+          address: result.address || '',
+          city: result.city || location || '',
+          postal_code: result.postal_code || '',
+          phone: result.phone || '',
+          website: result.website || result.link || '',
+          services: result.services || ['Réparation smartphone'],
+          price_range: result.price_range || 'Non spécifié',
+          source: result.source || 'manuel',
+          is_verified: false,
+          rating: result.rating || null,
+          scraped_at: new Date().toISOString()
+        }))
+      ).select();
 
       console.log('📥 [DEBUG] Réponse intégration:', { data, error });
 
       if (error) {
-        console.error('❌ [DEBUG] Erreur détaillée intégration:', {
-          error,
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
+        console.error('❌ [DEBUG] Erreur intégration directe:', error);
         throw new Error(`Erreur intégration: ${error.message || 'Erreur inconnue'}`);
       }
       
-      if (!data) {
-        throw new Error('Aucune donnée retournée lors de l\'intégration');
+      if (!data || data.length === 0) {
+        throw new Error('Aucune donnée insérée');
       }
       
-      const stats = data.stats || {};
       console.log('✅ [DEBUG] Intégration terminée:', {
-        success: data.success,
-        stats,
-        totalInserted: stats.totalInserted,
-        totalProcessed: stats.totalProcessed
+        totalInserted: data.length,
+        totalProcessed: selectedResults.length
       });
       
-      if (stats.totalInserted === 0) {
-        toast({
-          title: "Aucune insertion",
-          description: `${stats.totalProcessed || 0} résultats traités mais 0 inséré. Vérifiez les logs pour plus de détails.`,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Intégration réussie",
-          description: `${stats.totalInserted} réparateurs ajoutés en base de données sur ${selectedResults.length} sélectionnés`
-        });
-        
-        // Afficher le composant de redirection après intégration réussie
-        setShowRedirection(true);
-      }
+      toast({
+        title: "Intégration réussie",
+        description: `${data.length} réparateurs ajoutés en base de données sur ${selectedResults.length} sélectionnés`
+      });
+      
+      // Afficher le composant de redirection après intégration réussie
+      setShowRedirection(true);
       
     } catch (error: any) {
       console.error('💥 [DEBUG] Erreur complète intégration:', {
@@ -333,7 +262,7 @@ export const useDataCollection = () => {
     generateSerperQuery,
     handleSerperSearch,
     handleMultiAIPipeline,
-    handleUnifiedScraping,
+    
     handleIntegrateToDatabase,
     handleRedirectToRepairers,
     handleCancelRedirection,
