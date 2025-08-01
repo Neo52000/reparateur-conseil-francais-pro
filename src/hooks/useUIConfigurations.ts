@@ -8,7 +8,7 @@ type Tables = Database['public']['Tables'];
 export interface UIConfiguration {
   id: string;
   name: string;
-  type: 'plan_visualization' | 'repairer_dashboard';
+  type: 'plan_visualization' | 'repairer_dashboard' | 'pos_interface';
   configuration: Record<string, any>;
   is_active: boolean;
   created_by?: string | null;
