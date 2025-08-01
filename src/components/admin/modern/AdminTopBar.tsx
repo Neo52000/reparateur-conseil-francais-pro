@@ -3,15 +3,8 @@ import { Search, Bell, Settings, User, Globe, Plus, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
 interface AdminTopBarProps {
   userName?: string;
   userEmail?: string;
@@ -20,7 +13,6 @@ interface AdminTopBarProps {
   onSearch?: (query: string) => void;
   onLogout?: () => void;
 }
-
 const AdminTopBar: React.FC<AdminTopBarProps> = ({
   userName = "Admin RepairHub",
   userEmail = "admin@repairhub.fr",
@@ -30,14 +22,11 @@ const AdminTopBar: React.FC<AdminTopBarProps> = ({
   onLogout
 }) => {
   const [searchQuery, setSearchQuery] = React.useState('');
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch?.(searchQuery);
   };
-
-  return (
-    <header className="h-8 bg-wp-header border-b border-wp-header/20 sticky top-0 z-50 shadow-sm">
+  return <header className="h-8 bg-wp-header border-b border-wp-header/20 sticky top-0 z-50 shadow-sm">
       <div className="h-full px-4 flex items-center justify-between">
         {/* Left side - Logo & Quick Actions */}
         <div className="flex items-center gap-4">
@@ -45,9 +34,8 @@ const AdminTopBar: React.FC<AdminTopBarProps> = ({
             <div className="w-6 h-6 bg-wp-accent rounded-full flex items-center justify-center">
               <span className="text-xs font-bold text-white">R</span>
             </div>
-            <span className="text-wp-header-foreground font-medium text-sm hidden sm:inline">
-              RepairHub Admin
-            </span>
+            <span className="text-wp-header-foreground font-medium text-sm hidden sm:inline">TopRéparateurs.fr
+          </span>
           </div>
 
           {/* Quick Navigation */}
@@ -67,12 +55,7 @@ const AdminTopBar: React.FC<AdminTopBarProps> = ({
         <div className="flex-1 max-w-md mx-4">
           <form onSubmit={handleSearch} className="relative">
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-wp-header-foreground/40 w-3 h-3" />
-            <Input
-              placeholder="Rechercher dans l'admin..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-7 h-6 bg-wp-header-foreground/10 border-wp-header-foreground/20 text-wp-header-foreground placeholder:text-wp-header-foreground/40 text-xs focus:bg-wp-header-foreground/20"
-            />
+            <Input placeholder="Rechercher dans l'admin..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-7 h-6 bg-wp-header-foreground/10 border-wp-header-foreground/20 text-wp-header-foreground placeholder:text-wp-header-foreground/40 text-xs focus:bg-wp-header-foreground/20" />
           </form>
         </div>
 
@@ -83,14 +66,9 @@ const AdminTopBar: React.FC<AdminTopBarProps> = ({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="relative text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-7 w-7 p-0">
                 <Bell className="w-3 h-3" />
-                {notificationCount > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px] bg-admin-red"
-                  >
+                {notificationCount > 0 && <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px] bg-admin-red">
                     {notificationCount}
-                  </Badge>
-                )}
+                  </Badge>}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64">
@@ -149,8 +127,6 @@ const AdminTopBar: React.FC<AdminTopBarProps> = ({
           </DropdownMenu>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default AdminTopBar;
