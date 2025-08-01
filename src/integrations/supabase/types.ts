@@ -849,6 +849,63 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_suggestions: {
+        Row: {
+          action_steps: string[] | null
+          confidence: number | null
+          created_at: string | null
+          description: string
+          estimated_time: number | null
+          expected_change: number | null
+          id: string
+          impact_metric: string | null
+          implemented_at: string | null
+          priority: string | null
+          repairer_id: string
+          resources: string[] | null
+          status: string | null
+          suggestion_type: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          action_steps?: string[] | null
+          confidence?: number | null
+          created_at?: string | null
+          description: string
+          estimated_time?: number | null
+          expected_change?: number | null
+          id?: string
+          impact_metric?: string | null
+          implemented_at?: string | null
+          priority?: string | null
+          repairer_id: string
+          resources?: string[] | null
+          status?: string | null
+          suggestion_type: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          action_steps?: string[] | null
+          confidence?: number | null
+          created_at?: string | null
+          description?: string
+          estimated_time?: number | null
+          expected_change?: number | null
+          id?: string
+          impact_metric?: string | null
+          implemented_at?: string | null
+          priority?: string | null
+          repairer_id?: string
+          resources?: string[] | null
+          status?: string | null
+          suggestion_type?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string | null
@@ -8091,6 +8148,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      repairer_analytics: {
+        Row: {
+          competitor_analysis: Json | null
+          contact_clicks: number | null
+          conversion_rate: number | null
+          created_at: string | null
+          date: string
+          id: string
+          profile_views: number | null
+          quote_requests: number | null
+          ranking_position: number | null
+          repairer_id: string
+        }
+        Insert: {
+          competitor_analysis?: Json | null
+          contact_clicks?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          profile_views?: number | null
+          quote_requests?: number | null
+          ranking_position?: number | null
+          repairer_id: string
+        }
+        Update: {
+          competitor_analysis?: Json | null
+          contact_clicks?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          profile_views?: number | null
+          quote_requests?: number | null
+          ranking_position?: number | null
+          repairer_id?: string
+        }
+        Relationships: []
       }
       repairer_api_settings: {
         Row: {
