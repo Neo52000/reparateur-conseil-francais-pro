@@ -20,8 +20,13 @@ import {
   Eye,
   Settings,
   Undo,
-  Redo
+  Redo,
+  Layout,
+  Layers,
+  Grid
 } from 'lucide-react';
+import DragDropBuilder from '@/components/admin/builder/DragDropBuilder';
+import { dashboardWidgetTypes } from '@/components/admin/builder/widgets/DashboardWidgets';
 import RepairerDashboardTabs from '@/components/repairer-dashboard/RepairerDashboardTabs';
 
 interface DashboardConfiguration {
@@ -87,6 +92,8 @@ const RepairerDashboardTester: React.FC = () => {
   const [undoStack, setUndoStack] = useState<DashboardConfiguration[]>([]);
   const [redoStack, setRedoStack] = useState<DashboardConfiguration[]>([]);
   const [configName, setConfigName] = useState('');
+  const [builderMode, setBuilderMode] = useState(false);
+  const [builderLayout, setBuilderLayout] = useState(null);
   
   const { toast } = useToast();
   const { configurations, saveConfiguration, cloneConfiguration, trackAnalyticsEvent } = useUIConfigurations();
@@ -188,6 +195,14 @@ const RepairerDashboardTester: React.FC = () => {
           )}
         </div>
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setBuilderMode(!builderMode)}
+          >
+            <Layout className="h-4 w-4 mr-2" />
+            {builderMode ? 'Mode Simple' : 'Builder Avancé'}
+          </Button>
           <Button variant="outline" size="sm" onClick={handleUndo} disabled={undoStack.length === 0}>
             <Undo className="h-4 w-4" />
           </Button>
@@ -201,161 +216,177 @@ const RepairerDashboardTester: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
-        {!isPreviewMode && (
-          <div className="xl:col-span-1 order-2 xl:order-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Configuration
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="layout" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
-                    <TabsTrigger value="layout" className="text-xs sm:text-sm">Layout</TabsTrigger>
-                    <TabsTrigger value="components" className="text-xs sm:text-sm">Composants</TabsTrigger>
-                    <TabsTrigger value="theme" className="text-xs sm:text-sm">Thème</TabsTrigger>
-                    <TabsTrigger value="features" className="text-xs sm:text-sm">Options</TabsTrigger>
-                  </TabsList>
+      {/* Mode Builder Avancé */}
+      {builderMode ? (
+        <div className="h-[calc(100vh-200px)]">
+          <DragDropBuilder
+            widgets={dashboardWidgetTypes}
+            onSave={(layout) => {
+              setBuilderLayout(layout);
+              toast({ title: "Layout sauvegardé", description: "Configuration du builder mise à jour" });
+            }}
+            onPreview={(layout) => {
+              setBuilderLayout(layout);
+            }}
+            initialLayout={builderLayout}
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
+          {!isPreviewMode && (
+            <div className="xl:col-span-1 order-2 xl:order-1">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Configuration Simple
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="layout" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+                      <TabsTrigger value="layout" className="text-xs sm:text-sm">Layout</TabsTrigger>
+                      <TabsTrigger value="components" className="text-xs sm:text-sm">Composants</TabsTrigger>
+                      <TabsTrigger value="theme" className="text-xs sm:text-sm">Thème</TabsTrigger>
+                      <TabsTrigger value="features" className="text-xs sm:text-sm">Options</TabsTrigger>
+                    </TabsList>
 
-                  <TabsContent value="layout" className="space-y-4">
+                    <TabsContent value="layout" className="space-y-4">
+                      <div>
+                        <Label htmlFor="gridColumns">Colonnes de grille</Label>
+                        <Input
+                          id="gridColumns"
+                          type="number"
+                          min="6"
+                          max="24"
+                          value={configuration.layout.gridColumns}
+                          onChange={(e) => updateConfiguration({
+                            layout: { ...configuration.layout, gridColumns: Number(e.target.value) }
+                          })}
+                        />
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="components" className="space-y-4">
+                      <div className="space-y-3">
+                        <h4 className="font-semibold">Visibilité des composants</h4>
+                        {Object.entries(configuration.components).map(([key, component]) => (
+                          <div key={key} className="flex items-center justify-between">
+                            <Label htmlFor={key} className="capitalize">{key}</Label>
+                            <input
+                              id={key}
+                              type="checkbox"
+                              checked={component.visible}
+                              onChange={(e) => updateConfiguration({
+                                components: {
+                                  ...configuration.components,
+                                  [key]: { ...component, visible: e.target.checked }
+                                }
+                              })}
+                              className="rounded"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="theme" className="space-y-4">
+                      <div>
+                        <Label htmlFor="primaryColor">Couleur primaire</Label>
+                        <Input
+                          id="primaryColor"
+                          type="color"
+                          value={configuration.theme.primaryColor}
+                          onChange={(e) => updateConfiguration({
+                            theme: { ...configuration.theme, primaryColor: e.target.value }
+                          })}
+                        />
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="features" className="space-y-4">
+                      <div className="space-y-3">
+                        <h4 className="font-semibold">Fonctionnalités</h4>
+                        {Object.entries(configuration.features).map(([key, enabled]) => (
+                          <div key={key} className="flex items-center justify-between">
+                            <Label htmlFor={key} className="capitalize">
+                              {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                            </Label>
+                            <input
+                              id={key}
+                              type="checkbox"
+                              checked={enabled}
+                              onChange={(e) => updateConfiguration({
+                                features: { ...configuration.features, [key]: e.target.checked }
+                              })}
+                              className="rounded"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+
+                  <Separator className="my-4" />
+
+                  <div className="space-y-3">
                     <div>
-                      <Label htmlFor="gridColumns">Colonnes de grille</Label>
+                      <Label htmlFor="configName">Nom de la configuration</Label>
                       <Input
-                        id="gridColumns"
-                        type="number"
-                        min="6"
-                        max="24"
-                        value={configuration.layout.gridColumns}
-                        onChange={(e) => updateConfiguration({
-                          layout: { ...configuration.layout, gridColumns: Number(e.target.value) }
-                        })}
+                        id="configName"
+                        placeholder="Ma configuration dashboard"
+                        value={configName}
+                        onChange={(e) => setConfigName(e.target.value)}
                       />
                     </div>
-                  </TabsContent>
-
-                  <TabsContent value="components" className="space-y-4">
-                    <div className="space-y-3">
-                      <h4 className="font-semibold">Visibilité des composants</h4>
-                      {Object.entries(configuration.components).map(([key, component]) => (
-                        <div key={key} className="flex items-center justify-between">
-                          <Label htmlFor={key} className="capitalize">{key}</Label>
-                          <input
-                            id={key}
-                            type="checkbox"
-                            checked={component.visible}
-                            onChange={(e) => updateConfiguration({
-                              components: {
-                                ...configuration.components,
-                                [key]: { ...component, visible: e.target.checked }
-                              }
-                            })}
-                            className="rounded"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="theme" className="space-y-4">
-                    <div>
-                      <Label htmlFor="primaryColor">Couleur primaire</Label>
-                      <Input
-                        id="primaryColor"
-                        type="color"
-                        value={configuration.theme.primaryColor}
-                        onChange={(e) => updateConfiguration({
-                          theme: { ...configuration.theme, primaryColor: e.target.value }
-                        })}
-                      />
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="features" className="space-y-4">
-                    <div className="space-y-3">
-                      <h4 className="font-semibold">Fonctionnalités</h4>
-                      {Object.entries(configuration.features).map(([key, enabled]) => (
-                        <div key={key} className="flex items-center justify-between">
-                          <Label htmlFor={key} className="capitalize">
-                            {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                          </Label>
-                          <input
-                            id={key}
-                            type="checkbox"
-                            checked={enabled}
-                            onChange={(e) => updateConfiguration({
-                              features: { ...configuration.features, [key]: e.target.checked }
-                            })}
-                            className="rounded"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
-                </Tabs>
-
-                <Separator className="my-4" />
-
-                <div className="space-y-3">
-                  <div>
-                    <Label htmlFor="configName">Nom de la configuration</Label>
-                    <Input
-                      id="configName"
-                      placeholder="Ma configuration dashboard"
-                      value={configName}
-                      onChange={(e) => setConfigName(e.target.value)}
-                    />
+                    <Button onClick={handleSaveConfiguration} className="w-full">
+                      <Save className="h-4 w-4 mr-2" />
+                      Sauvegarder
+                    </Button>
                   </div>
-                  <Button onClick={handleSaveConfiguration} className="w-full">
-                    <Save className="h-4 w-4 mr-2" />
-                    Sauvegarder
-                  </Button>
-                </div>
 
-                {dashboardConfigs.length > 0 && (
-                  <>
-                    <Separator className="my-4" />
-                    <div>
-                      <h4 className="font-semibold mb-2">Configurations sauvegardées</h4>
-                      <ScrollArea className="h-32">
-                        <div className="space-y-2">
-                          {dashboardConfigs.map((config) => (
-                            <div key={config.id} className="flex items-center justify-between p-2 border rounded">
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">{config.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {new Date(config.created_at).toLocaleDateString()}
-                                </p>
+                  {dashboardConfigs.length > 0 && (
+                    <>
+                      <Separator className="my-4" />
+                      <div>
+                        <h4 className="font-semibold mb-2">Configurations sauvegardées</h4>
+                        <ScrollArea className="h-32">
+                          <div className="space-y-2">
+                            {dashboardConfigs.map((config) => (
+                              <div key={config.id} className="flex items-center justify-between p-2 border rounded">
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium">{config.name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {new Date(config.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <div className="flex gap-1">
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost"
+                                    onClick={() => setConfiguration(config.configuration as DashboardConfiguration)}
+                                  >
+                                    <Play className="h-3 w-3" />
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost"
+                                    onClick={() => cloneConfiguration(config.id, `${config.name} - Copie`)}
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                  </Button>
+                                </div>
                               </div>
-                              <div className="flex gap-1">
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost"
-                                  onClick={() => setConfiguration(config.configuration as DashboardConfiguration)}
-                                >
-                                  <Play className="h-3 w-3" />
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost"
-                                  onClick={() => cloneConfiguration(config.id, `${config.name} - Copie`)}
-                                >
-                                  <Copy className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
         <div className={isPreviewMode ? 'col-span-1 xl:col-span-3 order-1' : 'xl:col-span-2 order-1 xl:order-2'}>
           <Card>
@@ -420,9 +451,9 @@ const RepairerDashboardTester: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+        )}
       </div>
     </div>
   );
-};
 
 export default RepairerDashboardTester;

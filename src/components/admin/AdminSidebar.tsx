@@ -66,6 +66,7 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=features-manager', icon: Settings, label: 'Gestion Fonctionnalités', tab: 'features-manager', category: 'Technical' },
     { path: '/admin?tab=plans-tester', icon: Layout, label: 'Test Plans UI', tab: 'plans-tester', category: 'Technical' },
     { path: '/admin?tab=dashboard-tester', icon: Monitor, label: 'Test Interface Réparateur', tab: 'dashboard-tester', category: 'Technical' },
+    { path: '/admin?tab=pos-tester', icon: CreditCard, label: 'Test Interface POS', tab: 'pos-tester', category: 'Technical' },
     { path: '/admin?tab=pos-admin', icon: CreditCard, label: 'POS Admin', tab: 'pos-admin', category: 'Technical' },
     { path: '/admin?tab=ecommerce-admin', icon: ShoppingCart, label: 'E-commerce Admin', tab: 'ecommerce-admin', category: 'Technical' },
     { path: '/admin/audit', icon: ShieldCheck, label: 'Logs d\'audit', tab: 'audit', category: 'Technical' },

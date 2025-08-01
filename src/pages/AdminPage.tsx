@@ -36,6 +36,7 @@ import RealTimeQuotesManager from '@/components/admin/quotes/RealTimeQuotesManag
 import CatalogManagement from '@/components/admin/catalog/CatalogManagement';
 import PlanVisualizationTester from '@/components/admin/plans/PlanVisualizationTester';
 import RepairerDashboardTester from '@/components/admin/dashboard/RepairerDashboardTester';
+import POSTester from '@/components/admin/pos/POSTester';
 const AdminPage = () => {
   const {
     user,
@@ -118,6 +119,8 @@ const AdminPage = () => {
         return 'Test Interface Plans';
       case 'dashboard-tester':
         return 'Test Interface Réparateur';
+      case 'pos-tester':
+        return 'Test Interface POS';
       case 'configuration':
         return 'Configuration';
       default:
@@ -182,6 +185,8 @@ const AdminPage = () => {
         return 'Interface de test et configuration pour l\'affichage des plans réparateurs';
       case 'dashboard-tester':
         return 'Interface de test et configuration pour le tableau de bord réparateur';
+      case 'pos-tester':
+        return 'Interface de test et configuration pour le système de point de vente';
       case 'configuration':
         return 'Configuration générale de l\'application';
       case 'static-pages':
@@ -278,6 +283,8 @@ const AdminPage = () => {
         return <PlanVisualizationTester />;
       case 'dashboard-tester':
         return <RepairerDashboardTester />;
+      case 'pos-tester':
+        return <POSTester />;
       case 'configuration':
         return <AdminConfigurationPage />;
       case 'static-pages':
