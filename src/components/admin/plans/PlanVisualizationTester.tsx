@@ -345,9 +345,9 @@ const PlanVisualizationTester: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 sm:gap-6">
           {/* Panel de configuration */}
-          <div className="col-span-4">
+          <div className="xl:col-span-4 order-2 xl:order-1">
             <Card className="sticky top-6">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -357,11 +357,11 @@ const PlanVisualizationTester: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="visual">Visual</TabsTrigger>
-                    <TabsTrigger value="layout">Layout</TabsTrigger>
-                    <TabsTrigger value="advanced">Avancé</TabsTrigger>
-                    <TabsTrigger value="export">Export</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+                    <TabsTrigger value="visual" className="text-xs sm:text-sm">Visual</TabsTrigger>
+                    <TabsTrigger value="layout" className="text-xs sm:text-sm">Layout</TabsTrigger>
+                    <TabsTrigger value="advanced" className="text-xs sm:text-sm">Avancé</TabsTrigger>
+                    <TabsTrigger value="export" className="text-xs sm:text-sm">Export</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="visual" className="space-y-4">
@@ -617,7 +617,7 @@ const PlanVisualizationTester: React.FC = () => {
           </div>
 
           {/* Zone d'aperçu */}
-          <div className="col-span-8">
+          <div className="xl:col-span-8 order-1 xl:order-2">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">

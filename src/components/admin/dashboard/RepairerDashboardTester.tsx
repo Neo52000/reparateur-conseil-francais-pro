@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useUIConfigurations } from '@/hooks/useUIConfigurations';
+import { useAutoSave } from '@/hooks/useAutoSave';
 import { 
   Play, 
   Save, 
@@ -89,6 +90,25 @@ const RepairerDashboardTester: React.FC = () => {
   
   const { toast } = useToast();
   const { configurations, saveConfiguration, cloneConfiguration, trackAnalyticsEvent } = useUIConfigurations();
+  
+  // Auto-save avec feedback visuel
+  const { isSaving: isAutoSaving, lastSaved: autoSaveTime, forceSave } = useAutoSave({
+    data: configuration,
+    onSave: async (config) => {
+      if (configName.trim()) {
+        await saveConfiguration({
+          name: configName,
+          type: 'repairer_dashboard',
+          configuration: config,
+          is_active: true,
+          description: `Auto-sauvegarde - ${new Date().toLocaleString()}`,
+          tags: ['dashboard', 'repairer', 'auto-save']
+        });
+      }
+    },
+    delay: 30000, // 30 secondes
+    enabled: !!configName.trim()
+  });
 
   const pushToUndoStack = useCallback((config: DashboardConfiguration) => {
     setUndoStack(prev => [...prev.slice(-9), config]);
@@ -153,8 +173,19 @@ const RepairerDashboardTester: React.FC = () => {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Testeur de Tableau de Bord Réparateur</h1>
-          <p className="text-muted-foreground">Configurez et testez l'interface du tableau de bord réparateur</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Testeur de Tableau de Bord Réparateur</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Configurez et testez l'interface du tableau de bord réparateur</p>
+          {isAutoSaving && (
+            <div className="flex items-center gap-2 mt-2">
+              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+              <span className="text-xs text-muted-foreground">Sauvegarde en cours...</span>
+            </div>
+          )}
+          {autoSaveTime && (
+            <p className="text-xs text-green-600 mt-1">
+              Dernière sauvegarde: {autoSaveTime.toLocaleTimeString()}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={handleUndo} disabled={undoStack.length === 0}>
@@ -170,9 +201,9 @@ const RepairerDashboardTester: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
         {!isPreviewMode && (
-          <div className="lg:col-span-1">
+          <div className="xl:col-span-1 order-2 xl:order-1">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -182,11 +213,11 @@ const RepairerDashboardTester: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="layout" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="layout">Layout</TabsTrigger>
-                    <TabsTrigger value="components">Composants</TabsTrigger>
-                    <TabsTrigger value="theme">Thème</TabsTrigger>
-                    <TabsTrigger value="features">Options</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+                    <TabsTrigger value="layout" className="text-xs sm:text-sm">Layout</TabsTrigger>
+                    <TabsTrigger value="components" className="text-xs sm:text-sm">Composants</TabsTrigger>
+                    <TabsTrigger value="theme" className="text-xs sm:text-sm">Thème</TabsTrigger>
+                    <TabsTrigger value="features" className="text-xs sm:text-sm">Options</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="layout" className="space-y-4">
@@ -326,7 +357,7 @@ const RepairerDashboardTester: React.FC = () => {
           </div>
         )}
 
-        <div className={isPreviewMode ? 'col-span-3' : 'lg:col-span-2'}>
+        <div className={isPreviewMode ? 'col-span-1 xl:col-span-3 order-1' : 'xl:col-span-2 order-1 xl:order-2'}>
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -339,29 +370,32 @@ const RepairerDashboardTester: React.FC = () => {
                     size="sm"
                     variant={previewDevice === 'desktop' ? 'default' : 'ghost'}
                     onClick={() => setPreviewDevice('desktop')}
+                    className="p-1 sm:p-2"
                   >
-                    <Monitor className="h-4 w-4" />
+                    <Monitor className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                   <Button
                     size="sm"
                     variant={previewDevice === 'tablet' ? 'default' : 'ghost'}
                     onClick={() => setPreviewDevice('tablet')}
+                    className="p-1 sm:p-2"
                   >
-                    <Tablet className="h-4 w-4" />
+                    <Tablet className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                   <Button
                     size="sm"
                     variant={previewDevice === 'mobile' ? 'default' : 'ghost'}
                     onClick={() => setPreviewDevice('mobile')}
+                    className="p-1 sm:p-2"
                   >
-                    <Smartphone className="h-4 w-4" />
+                    <Smartphone className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className={`${getDeviceClasses()} border rounded-lg overflow-hidden`}>
-                <div className="min-h-[600px] bg-background">
+                <div className="min-h-[400px] sm:min-h-[600px] bg-background">
                   <RepairerDashboardTabs
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
