@@ -50,10 +50,27 @@ export function useDragDropAdvanced(options: UseDragDropAdvancedOptions = {}) {
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     
-    // Find the widget being dragged
-    const widget = findWidgetById(active.id as string);
-    setActiveWidget(widget);
-    setDraggedWidget(widget);
+    // Check if it's a widget from library (new widget)
+    const dragData = active.data.current;
+    if (dragData?.fromLibrary) {
+      const newWidget: WidgetData = {
+        id: active.id as string,
+        type: dragData.widgetType,
+        category: dragData.category,
+        props: dragData.defaultProps || {},
+        styles: dragData.defaultStyles || {},
+        responsiveStyles: {},
+        position: { x: 0, y: 0 },
+        size: { width: 200, height: 100 }
+      };
+      setActiveWidget(newWidget);
+      setDraggedWidget(newWidget);
+    } else {
+      // Existing widget being moved
+      const widget = findWidgetById(active.id as string);
+      setActiveWidget(widget);
+      setDraggedWidget(widget);
+    }
   }, []);
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
@@ -79,7 +96,7 @@ export function useDragDropAdvanced(options: UseDragDropAdvancedOptions = {}) {
     }
 
     // Handle different drop scenarios
-    if (active.data.current?.source === 'library') {
+    if (active.data.current?.fromLibrary) {
       // Dropping from widget library - create new widget
       const newWidget: WidgetData = {
         ...activeWidget,

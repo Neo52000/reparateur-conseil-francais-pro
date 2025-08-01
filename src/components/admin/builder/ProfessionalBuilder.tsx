@@ -224,10 +224,11 @@ export function ProfessionalBuilder({
           {/* Drag Overlay */}
           <DragOverlay>
             {dragDrop.draggedWidget ? (
-              <div className="bg-primary/10 border-2 border-primary border-dashed rounded-lg p-4">
+              <div className="bg-card border-2 border-primary rounded-lg shadow-lg p-2 opacity-90">
                 <WidgetRenderer
                   widget={dragDrop.draggedWidget}
                   isPreview={true}
+                  responsiveState={responsive.viewportState}
                 />
               </div>
             ) : null}

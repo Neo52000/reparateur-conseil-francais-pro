@@ -29,7 +29,11 @@ function DraggableWidget({ widget, viewMode }: DraggableWidgetProps) {
   } = useDraggable({
     id: `library-${widget.id}`,
     data: {
-      source: 'library',
+      fromLibrary: true,
+      widgetType: widget.id,
+      category: widget.category,
+      defaultProps: widget.defaultProps,
+      defaultStyles: widget.defaultStyles,
       widget: widget
     }
   });
