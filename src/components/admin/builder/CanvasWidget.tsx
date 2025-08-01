@@ -58,14 +58,14 @@ export function CanvasWidget({
   };
 
   // Get responsive styles for current breakpoint
-  const getResponsiveStyles = () => {
+  const getResponsiveStyles = (): React.CSSProperties => {
     const baseStyles = widget.styles || {};
     const responsiveStyles = widget.responsiveStyles?.[responsiveState.breakpoint] || {};
     
     return {
       ...baseStyles,
       ...responsiveStyles,
-      position: widget.position ? 'absolute' : 'relative',
+      position: (widget.position ? 'absolute' : 'relative') as 'absolute' | 'relative',
       left: widget.position?.x || 'auto',
       top: widget.position?.y || 'auto',
       width: widget.size?.width || 'auto',
