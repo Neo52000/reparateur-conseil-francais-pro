@@ -6,8 +6,8 @@ import AdminDashboardContent from '@/components/admin/AdminDashboardContent';
 import RepairerList from '@/components/admin/RepairerList';
 import ClientInterestManagement from '@/components/ClientInterestManagement';
 import PromoCodesManagement from '@/components/PromoCodesManagement';
-import EnhancedScrapingHub from '@/components/scraping/EnhancedScrapingHub';
-import IntelligentScrapingDashboard from '@/components/admin/scraping/IntelligentScrapingDashboard';
+import RealScrapingDashboard from '@/components/admin/scraping/RealScrapingDashboard';
+import AutomatedRelaunchDashboard from '@/components/admin/automation/AutomatedRelaunchDashboard';
 import BlogManagement from '@/components/blog/admin/BlogManagement';
 import ChatbotManagement from '@/components/admin/ChatbotManagement';
 import AdminAuthForm from '@/components/AdminAuthForm';
@@ -212,10 +212,10 @@ const AdminPage = () => {
         return <AdvertisingAIDashboard />;
       case 'analytics':
         return <RepairersAnalytics />;
-      case 'scraping':
-        return <EnhancedScrapingHub />;
-      case 'intelligent-scraping':
-        return <IntelligentScrapingDashboard />;
+        case 'scraping':
+          return <RealScrapingDashboard />;
+        case 'automation':
+          return <AutomatedRelaunchDashboard />;
       case 'monitoring':
         return <CheckmateMonitoring />;
       case 'blog':

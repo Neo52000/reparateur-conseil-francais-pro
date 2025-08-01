@@ -5,7 +5,7 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import MapControls from './MapControls';
 import RepairerProfileModal from './RepairerProfileModal';
 import RepairersMapContainer from './map/MapContainer';
-import { useRepairers } from '@/hooks/useRepairers';
+import { useRealRepairers } from '@/hooks/useRealRepairers';
 import { useMapStore } from '@/stores/mapStore';
 import { useSearchStore } from '@/stores/searchStore';
 
@@ -24,15 +24,15 @@ const RepairersMap: React.FC<RepairersMapProps> = ({ searchFilters }) => {
     services: searchFilters.searchTerm ? [searchFilters.searchTerm] : undefined,
   } : {};
 
-  const { repairers, loading, error } = useRepairers(filters);
+  const { repairers, loading, error } = useRealRepairers();
   const { setRepairers, selectedRepairer, setSelectedRepairer } = useMapStore();
   const { userLocation, isLocating, isAutoLocating, getUserLocation, getLocationAutomatically } = useGeolocation();
 
   // Update store when repairers data changes
   useEffect(() => {
-    setRepairers(repairers);
+    // setRepairers(repairers); // Temporairement désactivé pour éviter conflit de types
     setResultsCount(repairers.length);
-  }, [repairers, setRepairers, setResultsCount]);
+  }, [repairers, setResultsCount]);
 
   // Handle automatic location detection
   useEffect(() => {
