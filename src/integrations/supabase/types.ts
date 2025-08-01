@@ -5648,16 +5648,20 @@ export type Database = {
         Row: {
           amount: number
           client_id: string
+          commission_amount: number | null
+          commission_rate: number | null
           confirmed_at: string | null
           created_at: string
           currency: string
           description: string | null
+          funds_released: boolean | null
           hold_funds: boolean
           id: string
           payment_intent_id: string
           quote_id: string | null
           refund_reason: string | null
           refunded_at: string | null
+          released_at: string | null
           repairer_id: string
           status: string
           updated_at: string
@@ -5665,16 +5669,20 @@ export type Database = {
         Insert: {
           amount: number
           client_id: string
+          commission_amount?: number | null
+          commission_rate?: number | null
           confirmed_at?: string | null
           created_at?: string
           currency?: string
           description?: string | null
+          funds_released?: boolean | null
           hold_funds?: boolean
           id?: string
           payment_intent_id: string
           quote_id?: string | null
           refund_reason?: string | null
           refunded_at?: string | null
+          released_at?: string | null
           repairer_id: string
           status?: string
           updated_at?: string
@@ -5682,16 +5690,20 @@ export type Database = {
         Update: {
           amount?: number
           client_id?: string
+          commission_amount?: number | null
+          commission_rate?: number | null
           confirmed_at?: string | null
           created_at?: string
           currency?: string
           description?: string | null
+          funds_released?: boolean | null
           hold_funds?: boolean
           id?: string
           payment_intent_id?: string
           quote_id?: string | null
           refund_reason?: string | null
           refunded_at?: string | null
+          released_at?: string | null
           repairer_id?: string
           status?: string
           updated_at?: string
