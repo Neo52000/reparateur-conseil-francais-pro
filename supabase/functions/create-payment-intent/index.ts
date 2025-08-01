@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import Stripe from 'https://esm.sh/stripe@14.21.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -28,21 +29,28 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Simuler la création d'un payment intent Stripe
-    // En production, vous utiliseriez l'API Stripe réelle
-    const paymentIntent = {
-      id: `pi_${Date.now()}`,
-      amount: amount,
+    // Initialiser Stripe avec la vraie clé
+    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+      apiVersion: '2023-10-16',
+    });
+
+    // Calculer la commission (1%)
+    const applicationFeeAmount = Math.round(amount * 0.01);
+
+    // Créer un vrai payment intent Stripe avec rétention
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount, // montant en centimes
       currency: 'eur',
-      status: 'requires_payment_method',
-      client_secret: `pi_${Date.now()}_secret_${Math.random().toString(36).substring(7)}`,
+      application_fee_amount: applicationFeeAmount,
+      capture_method: holdFunds ? 'manual' : 'automatic',
       metadata: {
         quote_id: quoteId,
         repairer_id: repairerId,
         client_id: clientId,
         hold_funds: holdFunds.toString()
-      }
-    };
+      },
+      description: description
+    });
 
     // Enregistrer l'intention de paiement
     const { error } = await supabase
@@ -56,7 +64,9 @@ serve(async (req) => {
         currency: 'eur',
         status: 'pending',
         hold_funds: holdFunds,
-        description: description
+        description: description,
+        commission_amount: applicationFeeAmount,
+        commission_rate: 1.0
       });
 
     if (error) {
@@ -64,7 +74,13 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify(paymentIntent),
+      JSON.stringify({
+        id: paymentIntent.id,
+        client_secret: paymentIntent.client_secret,
+        amount: paymentIntent.amount,
+        currency: paymentIntent.currency,
+        status: paymentIntent.status
+      }),
       { 
         headers: { 
           ...corsHeaders, 

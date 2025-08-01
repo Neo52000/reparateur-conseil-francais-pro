@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import Stripe from 'https://esm.sh/stripe@14.21.0';
@@ -14,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { payment_intent_id } = await req.json();
+    const { payment_intent_id, quote_id } = await req.json();
 
     // Initialiser Supabase
     const supabase = createClient(
@@ -27,7 +26,24 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
-    // Capturer le paiement (libérer les fonds vers le réparateur)
+    console.log('Releasing funds for payment:', payment_intent_id);
+
+    // Vérifier que le travail est validé
+    const { data: quote, error: quoteError } = await supabase
+      .from('quotes_with_timeline')
+      .select('status, repair_validated')
+      .eq('id', quote_id)
+      .single();
+
+    if (quoteError || !quote) {
+      throw new Error('Quote not found');
+    }
+
+    if (quote.status !== 'completed' || !quote.repair_validated) {
+      throw new Error('Repair not validated by client');
+    }
+
+    // Capturer le paiement (libérer les fonds)
     const paymentIntent = await stripe.paymentIntents.capture(payment_intent_id);
 
     // Mettre à jour le statut du paiement
@@ -35,8 +51,8 @@ serve(async (req) => {
       .from('payments')
       .update({ 
         status: 'succeeded',
-        confirmed_at: new Date().toISOString(),
-        funds_released: true
+        funds_released: true,
+        released_at: new Date().toISOString()
       })
       .eq('payment_intent_id', payment_intent_id);
 
@@ -45,7 +61,11 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ 
+        success: true, 
+        payment_intent: paymentIntent.id,
+        status: paymentIntent.status 
+      }),
       { 
         headers: { 
           ...corsHeaders, 
@@ -55,6 +75,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    console.error('Error releasing funds:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
