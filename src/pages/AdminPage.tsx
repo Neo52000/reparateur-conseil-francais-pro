@@ -39,7 +39,7 @@ import { CheckmateMonitoring } from '@/components/admin/monitoring/CheckmateMoni
 import StaticPagesManager from '@/components/admin/StaticPagesManager';
 import RealTimeQuotesManager from '@/components/admin/quotes/RealTimeQuotesManager';
 import CatalogManagement from '@/components/admin/catalog/CatalogManagement';
-import PlanVisualizationTester from '@/components/admin/plans/PlanVisualizationTester';
+import { EnhancedPlanVisualizationTester } from '@/components/admin/plans/EnhancedPlanVisualizationTester';
 import RepairerDashboardTester from '@/components/admin/dashboard/RepairerDashboardTester';
 import POSTester from '@/components/admin/pos/POSTester';
 const AdminPage = () => {
@@ -304,7 +304,7 @@ const AdminPage = () => {
       case 'features-manager':
         return <ComprehensiveFeaturesManager />;
       case 'plans-tester':
-        return <PlanVisualizationTester />;
+        return <EnhancedPlanVisualizationTester />;
       case 'dashboard-tester':
         return <RepairerDashboardTester />;
       case 'pos-tester':

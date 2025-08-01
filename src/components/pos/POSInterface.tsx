@@ -149,9 +149,9 @@ const POSInterface: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex h-[calc(100vh-80px)]">
+      <div className="flex h-[calc(100vh-84px)] overflow-hidden">
         {/* Panel principal POS */}
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-6 overflow-y-auto">
           {/* Navigation compacte */}
           <CompactPOSNav 
             activeTab={activeTab} 
@@ -232,7 +232,7 @@ const POSInterface: React.FC = () => {
         </div>
 
         {/* Panel latéral - Statut et outils rapides */}
-        <div className="w-80 bg-card border-l p-6">
+        <div className="w-80 bg-card border-l p-6 overflow-y-auto">
           {currentSession ? (
             <div className="space-y-6">
               {/* Statut session */}
