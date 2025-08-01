@@ -12,7 +12,7 @@ interface AuthContextType {
   canAccessRepairer: boolean;
   canAccessAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   signInAdmin: (email: string, password: string) => Promise<{ error: any }>;
   refreshProfile: () => Promise<void>;
@@ -71,11 +71,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, metadata?: any) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/` }
+      options: { 
+        emailRedirectTo: `${window.location.origin}/`,
+        data: metadata 
+      }
     });
     return { error };
   };
