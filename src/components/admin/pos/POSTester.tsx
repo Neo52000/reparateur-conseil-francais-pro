@@ -32,7 +32,22 @@ import {
   Wifi,
   WifiOff
 } from 'lucide-react';
-import DragDropBuilder from '@/components/admin/builder/DragDropBuilder';
+import { useSortableWidgets } from '@/hooks/useSortableWidgets';
+import { SortableWidget } from '@/components/admin/builder/SortableWidget';
+import { SortableContainer } from '@/components/admin/builder/SortableContainer';
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import POSInterface from '@/components/pos/POSInterface';
 
 // Configuration POS
@@ -260,10 +275,43 @@ const POSTester: React.FC = () => {
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [builderMode, setBuilderMode] = useState(false);
-  const [builderLayout, setBuilderLayout] = useState(null);
   const [undoStack, setUndoStack] = useState<POSConfiguration[]>([]);
   const [redoStack, setRedoStack] = useState<POSConfiguration[]>([]);
   const [configName, setConfigName] = useState('');
+  
+  // Initialize sortable widgets hook
+  const {
+    widgets,
+    selectedWidget,
+    setSelectedWidget,
+    handleDragEnd,
+    addWidget,
+    updateWidget,
+    removeWidget,
+    toggleWidgetVisibility,
+    duplicateWidget
+  } = useSortableWidgets(
+    posWidgetTypes.map((widget, index) => ({
+      id: widget.id,
+      type: widget.id,
+      name: widget.name,
+      category: widget.category,
+      config: widget.defaultConfig,
+      isVisible: true,
+      order: index
+    })),
+    {
+      onLayoutChange: (newWidgets) => {
+        console.log('Layout changed:', newWidgets);
+      }
+    }
+  );
+  
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor)
+  );
   
   const { toast } = useToast();
   const { configurations, saveConfiguration, cloneConfiguration, trackAnalyticsEvent } = useUIConfigurations();
@@ -391,18 +439,117 @@ const POSTester: React.FC = () => {
 
       {/* Mode Builder Avancé */}
       {builderMode ? (
-        <div className="h-[calc(100vh-200px)]">
-          <DragDropBuilder
-            widgets={posWidgetTypes}
-            onSave={(layout) => {
-              setBuilderLayout(layout);
-              toast({ title: "Layout POS sauvegardé", description: "Configuration du builder POS mise à jour" });
-            }}
-            onPreview={(layout) => {
-              setBuilderLayout(layout);
-            }}
-            initialLayout={builderLayout}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-200px)]">
+          {/* Widget Library Panel */}
+          <div className="lg:col-span-3 bg-card border rounded-lg">
+            <div className="p-4 border-b">
+              <h3 className="text-lg font-semibold">Widgets POS</h3>
+              <p className="text-sm text-muted-foreground">Cliquez pour ajouter</p>
+            </div>
+            <div className="p-4 space-y-2 max-h-[calc(100%-80px)] overflow-y-auto">
+              {posWidgetTypes.map((widget) => (
+                <div
+                  key={widget.id}
+                  className="p-3 border rounded-lg cursor-pointer hover:bg-accent flex items-center gap-3"
+                  onClick={() => addWidget(widget.id, widget.name, widget.category, widget.defaultConfig)}
+                >
+                  <widget.icon className="h-5 w-5 text-primary" />
+                  <div>
+                    <div className="font-medium text-sm">{widget.name}</div>
+                    <div className="text-xs text-muted-foreground">{widget.category}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Canvas Panel */}
+          <div className="lg:col-span-6 bg-card border rounded-lg">
+            <div className="p-4 border-b">
+              <h3 className="text-lg font-semibold">Canvas POS</h3>
+              <p className="text-sm text-muted-foreground">Zone de construction</p>
+            </div>
+            <div className="p-4 min-h-[400px]">
+              {widgets.filter(w => w.isVisible).length > 0 ? (
+                <SortableContainer
+                  widgets={widgets.filter(w => w.isVisible)}
+                  onDragEnd={handleDragEnd}
+                  onWidgetSelect={setSelectedWidget}
+                  onWidgetToggleVisibility={toggleWidgetVisibility}
+                  onWidgetDuplicate={duplicateWidget}
+                  onWidgetRemove={removeWidget}
+                  selectedWidget={selectedWidget}
+                  renderWidget={(widget) => {
+                    const widgetDef = posWidgetTypes.find(w => w.id === widget.type);
+                    if (!widgetDef) return null;
+                    return <widgetDef.component config={widget.config} />;
+                  }}
+                  className="space-y-4"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-40 border-2 border-dashed border-muted-foreground/20 rounded-lg">
+                  <p className="text-muted-foreground">Cliquez sur des widgets pour commencer</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Properties Panel */}
+          <div className="lg:col-span-3 bg-card border rounded-lg">
+            <div className="p-4 border-b">
+              <h3 className="text-lg font-semibold">Propriétés</h3>
+              {selectedWidget && (
+                <p className="text-sm text-muted-foreground">{selectedWidget.name}</p>
+              )}
+            </div>
+            <div className="p-4 space-y-4">
+              {selectedWidget ? (
+                <>
+                  <div>
+                    <Label>Nom du widget</Label>
+                    <Input
+                      value={selectedWidget.name}
+                      onChange={(e) => updateWidget(selectedWidget.id, { name: e.target.value })}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label>Visible</Label>
+                    <input
+                      type="checkbox"
+                      checked={selectedWidget.isVisible}
+                      onChange={() => toggleWidgetVisibility(selectedWidget.id)}
+                      className="rounded"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => duplicateWidget(selectedWidget.id)}
+                      className="w-full"
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Dupliquer
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        removeWidget(selectedWidget.id);
+                        setSelectedWidget(null);
+                      }}
+                      className="w-full"
+                    >
+                      Supprimer
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">Sélectionnez un widget pour voir ses propriétés</p>
+              )}
+            </div>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
