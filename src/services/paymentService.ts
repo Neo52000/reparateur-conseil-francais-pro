@@ -20,24 +20,38 @@ export interface PaymentData {
 
 export class PaymentService {
   /**
-   * Créer un intention de paiement avec rétention de fonds
+   * Créer un intention de paiement avec rétention de fonds et commission 1%
    */
   static async createPaymentIntent(paymentData: PaymentData): Promise<PaymentIntent> {
     try {
       const { data, error } = await supabase.functions.invoke('create-payment-intent', {
-        body: {
-          ...paymentData,
-          // Rétention de fonds par défaut pour les réparations
-          transfer_group: `repair_${paymentData.quoteId}`,
-          application_fee_amount: Math.round(paymentData.amount * 0.05), // 5% de commission
-          on_behalf_of: paymentData.repairerId,
-        }
+        body: paymentData
       });
 
       if (error) throw error;
       return data;
     } catch (error) {
       console.error('Erreur création payment intent:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Libérer les fonds après validation du travail par le client
+   */
+  static async releaseFunds(paymentIntentId: string, quoteId: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase.functions.invoke('release-funds', {
+        body: { 
+          payment_intent_id: paymentIntentId,
+          quote_id: quoteId
+        }
+      });
+
+      if (error) throw error;
+      return data.success;
+    } catch (error) {
+      console.error('Erreur libération fonds:', error);
       throw error;
     }
   }
