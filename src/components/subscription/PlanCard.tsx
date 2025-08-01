@@ -126,10 +126,10 @@ const PlanCard: React.FC<PlanCardProps> = ({
   };
 
   return (
-    <Card className={`relative ${getCardStyle(plan.name)} hover:shadow-xl transition-shadow`}>
+    <Card className={`relative ${getCardStyle(plan.name)} hover:shadow-xl transition-shadow plan-card-dynamic`}>
       {plan.name === 'Premium' && !isCurrentUserPlan(plan.name) && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-          <Badge className="bg-purple-600 text-white">
+          <Badge className="bg-purple-600 text-white plan-badge-dynamic">
             Populaire
           </Badge>
         </div>
@@ -137,7 +137,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
 
       {isCurrentUserPlan(plan.name) && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-          <Badge className="bg-blue-600 text-white">
+          <Badge className="bg-blue-600 text-white plan-badge-dynamic">
             Plan actuel
           </Badge>
         </div>
@@ -146,11 +146,11 @@ const PlanCard: React.FC<PlanCardProps> = ({
       <CardHeader className="text-center">
         <div className="flex items-center justify-center mb-2">
           {getIcon(plan.name)}
-          <CardTitle className="ml-2 text-xl">{plan.name}</CardTitle>
+          <CardTitle className="ml-2 text-base sm:text-lg lg:text-xl plan-title-dynamic">{plan.name}</CardTitle>
         </div>
         
         <div className="space-y-1">
-          <div className="text-3xl font-bold text-gray-900">
+          <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 plan-price-dynamic">
             {calculateTotalPrice().toFixed(2)}€
           </div>
           <div className="text-sm text-gray-500">
@@ -178,7 +178,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
               <li key={index} className="flex items-start">
                 <Check className="h-4 w-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
                 <div className="flex-1">
-                  <span className="text-sm text-gray-600">{feature.feature_name}</span>
+                  <span className="text-xs sm:text-sm lg:text-base text-gray-600 plan-feature-dynamic">{feature.feature_name}</span>
                   {feature.description && (
                     <div className="text-xs text-gray-500 mt-0.5">{feature.description}</div>
                   )}
@@ -190,7 +190,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
             plan.features.map((feature, index) => (
               <li key={index} className="flex items-start">
                 <Check className="h-4 w-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
-                <span className="text-sm text-gray-600">{feature}</span>
+                <span className="text-xs sm:text-sm lg:text-base text-gray-600 plan-feature-dynamic">{feature}</span>
               </li>
             ))
           )}
@@ -334,7 +334,7 @@ const PlanCard: React.FC<PlanCardProps> = ({
         </div>
 
         <Button
-          className="w-full"
+          className="w-full plan-button-dynamic"
           variant={plan.name === 'Premium' && !isCurrentUserPlan(plan.name) ? 'default' : 'outline'}
           onClick={() => onSubscribe(plan.id, selectedModules, calculateTotalPrice())}
           disabled={loading || isCurrentUserPlan(plan.name)}

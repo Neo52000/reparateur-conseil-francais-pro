@@ -85,6 +85,7 @@ interface RepairerDashboardTabsProps {
   inventory: InventoryItem[];
   profileData: ProfileData;
   avgRepairTime: number;
+  dashboardConfig?: any;
 }
 
 const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
@@ -94,7 +95,8 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
   appointments,
   inventory,
   profileData,
-  avgRepairTime
+  avgRepairTime,
+  dashboardConfig
 }) => {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">

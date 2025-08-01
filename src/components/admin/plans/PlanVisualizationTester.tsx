@@ -272,19 +272,120 @@ const PlanVisualizationTester: React.FC = () => {
       '--background': config.colors.background,
       '--text': config.colors.text,
       '--badge': config.colors.badge,
-      '--card-padding': `${config.layout.cardPadding}px`,
+      '--card-padding-base': `${config.layout.cardPadding}px`,
+      '--card-padding-sm': `${Math.max(config.layout.cardPadding - 8, 8)}px`,
+      '--card-padding-lg': `${config.layout.cardPadding + 8}px`,
       '--border-radius': `${config.layout.borderRadius}px`,
-      '--title-size': `${config.typography.titleSize}px`,
-      '--price-size': `${config.typography.priceSize}px`,
-      '--feature-size': `${config.typography.featureSize}px`,
+      '--title-size-base': `${config.typography.titleSize}px`,
+      '--title-size-sm': `${Math.min(config.typography.titleSize + 2, 40)}px`,
+      '--title-size-lg': `${Math.min(config.typography.titleSize + 4, 48)}px`,
+      '--price-size-base': `${config.typography.priceSize}px`,
+      '--price-size-sm': `${Math.min(config.typography.priceSize + 4, 50)}px`,
+      '--price-size-lg': `${Math.min(config.typography.priceSize + 8, 60)}px`,
+      '--feature-size-base': `${config.typography.featureSize}px`,
+      '--feature-size-sm': `${Math.min(config.typography.featureSize + 1, 18)}px`,
+      '--feature-size-lg': `${Math.min(config.typography.featureSize + 2, 20)}px`,
       '--font-weight': config.typography.fontWeight,
+      '--spacing-base': `${config.layout.spacing}px`,
+      '--spacing-sm': `${Math.max(config.layout.spacing - 4, 4)}px`,
+      '--spacing-lg': `${config.layout.spacing + 4}px`,
     } as React.CSSProperties;
+
+    // Appliquer les styles CSS custom pour les composants
+    const customCSSOverrides = `
+      <style>
+        .plan-card-dynamic {
+          background: ${config.colors.background} !important;
+          color: ${config.colors.text} !important;
+          padding: var(--card-padding-base) !important;
+          border-radius: var(--border-radius) !important;
+          box-shadow: var(--shadow-${config.layout.shadow}) !important;
+        }
+        
+        @media (min-width: 640px) {
+          .plan-card-dynamic {
+            padding: var(--card-padding-sm) !important;
+          }
+        }
+        
+        @media (min-width: 1024px) {
+          .plan-card-dynamic {
+            padding: var(--card-padding-lg) !important;
+          }
+        }
+        
+        .plan-title-dynamic {
+          font-size: var(--title-size-base) !important;
+          font-weight: var(--font-weight) !important;
+          color: ${config.colors.primary} !important;
+        }
+        
+        @media (min-width: 640px) {
+          .plan-title-dynamic {
+            font-size: var(--title-size-sm) !important;
+          }
+        }
+        
+        @media (min-width: 1024px) {
+          .plan-title-dynamic {
+            font-size: var(--title-size-lg) !important;
+          }
+        }
+        
+        .plan-price-dynamic {
+          font-size: var(--price-size-base) !important;
+          font-weight: 700 !important;
+          color: ${config.colors.primary} !important;
+        }
+        
+        @media (min-width: 640px) {
+          .plan-price-dynamic {
+            font-size: var(--price-size-sm) !important;
+          }
+        }
+        
+        @media (min-width: 1024px) {
+          .plan-price-dynamic {
+            font-size: var(--price-size-lg) !important;
+          }
+        }
+        
+        .plan-feature-dynamic {
+          font-size: var(--feature-size-base) !important;
+          color: ${config.colors.text} !important;
+        }
+        
+        @media (min-width: 640px) {
+          .plan-feature-dynamic {
+            font-size: var(--feature-size-sm) !important;
+          }
+        }
+        
+        @media (min-width: 1024px) {
+          .plan-feature-dynamic {
+            font-size: var(--feature-size-lg) !important;
+          }
+        }
+        
+        .plan-badge-dynamic {
+          background: ${config.colors.badge} !important;
+          color: white !important;
+        }
+        
+        .plan-button-dynamic {
+          background: ${config.colors.primary} !important;
+          color: white !important;
+          border-radius: var(--border-radius) !important;
+        }
+      </style>
+    `;
 
     if (viewMode === 'card' && selectedPlan !== 'all') {
       const plan = mockPlans.find(p => p.id === selectedPlan);
       if (plan) {
         return (
-          <div style={style} className="p-4">
+          <div style={style} className="p-2 sm:p-4 lg:p-6">
+            <div dangerouslySetInnerHTML={{ __html: customCSSOverrides }} />
             <PlanCard
               plan={plan}
               isYearly={isYearly}
@@ -298,7 +399,8 @@ const PlanVisualizationTester: React.FC = () => {
     }
 
     return (
-      <div style={style} className="p-4">
+      <div style={style} className="p-2 sm:p-4 lg:p-6">
+        <div dangerouslySetInnerHTML={{ __html: customCSSOverrides }} />
         <PlansGrid
           plans={mockPlans}
           isYearly={isYearly}

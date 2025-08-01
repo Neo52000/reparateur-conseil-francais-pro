@@ -106,7 +106,7 @@ const RepairerDashboardTester: React.FC = () => {
         });
       }
     },
-    delay: 30000, // 30 secondes
+    delay: 5000, // 5 secondes pour feedback immédiat
     enabled: !!configName.trim()
   });
 
@@ -395,7 +395,16 @@ const RepairerDashboardTester: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className={`${getDeviceClasses()} border rounded-lg overflow-hidden`}>
-                <div className="min-h-[400px] sm:min-h-[600px] bg-background">
+                <div className="min-h-[400px] sm:min-h-[600px] bg-background" style={{
+                  '--primary': configuration.theme.primaryColor,
+                  '--secondary': configuration.theme.secondaryColor,
+                  '--border-radius': configuration.theme.borderRadius,
+                  '--font-family': configuration.theme.fontFamily,
+                  '--grid-columns': configuration.layout.gridColumns,
+                  '--spacing': configuration.layout.spacing === 'sm' ? '0.5rem' : 
+                              configuration.layout.spacing === 'md' ? '1rem' : 
+                              configuration.layout.spacing === 'lg' ? '1.5rem' : '1rem',
+                } as React.CSSProperties}>
                   <RepairerDashboardTabs
                     activeTab={activeTab}
                     onTabChange={setActiveTab}
@@ -404,6 +413,7 @@ const RepairerDashboardTester: React.FC = () => {
                     inventory={mockData.inventory}
                     profileData={mockData.profileData}
                     avgRepairTime={mockData.avgRepairTime}
+                    dashboardConfig={configuration}
                   />
                 </div>
               </div>
