@@ -112,109 +112,118 @@ const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
   }, {} as Record<string, WidgetType[]>);
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Panel des widgets */}
-      {!isPreviewMode && (
-        <div className="w-80 bg-card border-r flex flex-col">
-          <div className="p-4 border-b">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Layers className="h-5 w-5" />
-              Bibliothèque de widgets
-            </h3>
-          </div>
-          
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
-              {Object.entries(widgetsByCategory).map(([category, categoryWidgets]) => (
-                <div key={category}>
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-                    {category}
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {categoryWidgets.map((widget) => (
-                      <Draggable
-                        key={widget.id}
-                        draggableId={`widget-${widget.id}`}
-                        index={0}
-                      >
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            className={`p-3 border rounded-lg cursor-grab hover:bg-accent transition-colors ${
-                              snapshot.isDragging ? 'shadow-lg' : ''
-                            }`}
-                          >
-                            <div className="text-center">
-                              <widget.icon className="h-6 w-6 mx-auto mb-2 text-primary" />
-                              <p className="text-xs font-medium">{widget.name}</p>
-                            </div>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                  </div>
-                </div>
-              ))}
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="flex h-screen bg-background">
+        {/* Panel des widgets */}
+        {!isPreviewMode && (
+          <div className="w-80 bg-card border-r flex flex-col">
+            <div className="p-4 border-b">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Layers className="h-5 w-5" />
+                Bibliothèque de widgets
+              </h3>
             </div>
-          </ScrollArea>
-        </div>
-      )}
-
-      {/* Zone principale */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="border-b p-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-semibold">Builder Interface</h2>
             
-            {/* Sélecteur d'appareil */}
-            <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
+            <ScrollArea className="flex-1 p-4">
+              <Droppable droppableId="widget-library" isDropDisabled={true}>
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className="space-y-4"
+                  >
+                    {Object.entries(widgetsByCategory).map(([category, categoryWidgets]) => (
+                      <div key={category}>
+                        <h4 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                          {category}
+                        </h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {categoryWidgets.map((widget, index) => (
+                            <Draggable
+                              key={widget.id}
+                              draggableId={`widget-${widget.id}`}
+                              index={index}
+                            >
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  className={`p-3 border rounded-lg cursor-grab hover:bg-accent transition-colors ${
+                                    snapshot.isDragging ? 'shadow-lg' : ''
+                                  }`}
+                                >
+                                  <div className="text-center">
+                                    <widget.icon className="h-6 w-6 mx-auto mb-2 text-primary" />
+                                    <p className="text-xs font-medium">{widget.name}</p>
+                                  </div>
+                                </div>
+                              )}
+                            </Draggable>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </ScrollArea>
+          </div>
+        )}
+
+        {/* Zone principale */}
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className="border-b p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-semibold">Builder Interface</h2>
+              
+              {/* Sélecteur d'appareil */}
+              <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
+                <Button
+                  size="sm"
+                  variant={device === 'desktop' ? 'default' : 'ghost'}
+                  onClick={() => setDevice('desktop')}
+                  className="p-2"
+                >
+                  <Monitor className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={device === 'tablet' ? 'default' : 'ghost'}
+                  onClick={() => setDevice('tablet')}
+                  className="p-2"
+                >
+                  <Tablet className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={device === 'mobile' ? 'default' : 'ghost'}
+                  onClick={() => setDevice('mobile')}
+                  className="p-2"
+                >
+                  <Smartphone className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
               <Button
-                size="sm"
-                variant={device === 'desktop' ? 'default' : 'ghost'}
-                onClick={() => setDevice('desktop')}
-                className="p-2"
+                variant="outline"
+                onClick={() => setIsPreviewMode(!isPreviewMode)}
               >
-                <Monitor className="h-4 w-4" />
+                {isPreviewMode ? 'Éditer' : 'Aperçu'}
               </Button>
-              <Button
-                size="sm"
-                variant={device === 'tablet' ? 'default' : 'ghost'}
-                onClick={() => setDevice('tablet')}
-                className="p-2"
-              >
-                <Tablet className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant={device === 'mobile' ? 'default' : 'ghost'}
-                onClick={() => setDevice('mobile')}
-                className="p-2"
-              >
-                <Smartphone className="h-4 w-4" />
+              <Button onClick={handleSave}>
+                Sauvegarder
               </Button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsPreviewMode(!isPreviewMode)}
-            >
-              {isPreviewMode ? 'Éditer' : 'Aperçu'}
-            </Button>
-            <Button onClick={handleSave}>
-              Sauvegarder
-            </Button>
-          </div>
-        </div>
-
-        {/* Zone de construction */}
-        <div className="flex-1 p-6 overflow-auto">
-          <div className={getDeviceClasses()}>
-            <DragDropContext onDragEnd={handleDragEnd}>
+          {/* Zone de construction */}
+          <div className="flex-1 p-6 overflow-auto">
+            <div className={getDeviceClasses()}>
               <div className="space-y-6">
                 {containers.map((container) => (
                   <Card key={container.id} className="overflow-hidden">
@@ -352,67 +361,67 @@ const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
                   </Card>
                 ))}
               </div>
-            </DragDropContext>
-          </div>
-        </div>
-      </div>
-
-      {/* Panel des propriétés */}
-      {!isPreviewMode && selectedItem && (
-        <div className="w-80 bg-card border-l flex flex-col">
-          <div className="p-4 border-b">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Propriétés
-            </h3>
-          </div>
-          
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Titre</label>
-                <input
-                  type="text"
-                  value={selectedItem.content.title || ''}
-                  onChange={(e) => updateItem(selectedItem.id, {
-                    content: { ...selectedItem.content, title: e.target.value }
-                  })}
-                  className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
-                />
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Largeur (colonnes)</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="12"
-                  value={selectedItem.size.width}
-                  onChange={(e) => updateItem(selectedItem.id, {
-                    size: { ...selectedItem.size, width: Number(e.target.value) }
-                  })}
-                  className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
-                />
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Hauteur</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={selectedItem.size.height}
-                  onChange={(e) => updateItem(selectedItem.id, {
-                    size: { ...selectedItem.size, height: Number(e.target.value) }
-                  })}
-                  className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
-                />
-              </div>
             </div>
-          </ScrollArea>
+          </div>
         </div>
-      )}
-    </div>
+
+        {/* Panel des propriétés */}
+        {!isPreviewMode && selectedItem && (
+          <div className="w-80 bg-card border-l flex flex-col">
+            <div className="p-4 border-b">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Propriétés
+              </h3>
+            </div>
+            
+            <ScrollArea className="flex-1 p-4">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Titre</label>
+                  <input
+                    type="text"
+                    value={selectedItem.content.title || ''}
+                    onChange={(e) => updateItem(selectedItem.id, {
+                      content: { ...selectedItem.content, title: e.target.value }
+                    })}
+                    className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Largeur (colonnes)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="12"
+                    value={selectedItem.size.width}
+                    onChange={(e) => updateItem(selectedItem.id, {
+                      size: { ...selectedItem.size, width: Number(e.target.value) }
+                    })}
+                    className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Hauteur</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={selectedItem.size.height}
+                    onChange={(e) => updateItem(selectedItem.id, {
+                      size: { ...selectedItem.size, height: Number(e.target.value) }
+                    })}
+                    className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
+                  />
+                </div>
+              </div>
+            </ScrollArea>
+          </div>
+        )}
+      </div>
+    </DragDropContext>
   );
 };
 
