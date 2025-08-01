@@ -77,16 +77,49 @@ export default {
 				admin: {
 					blue: 'hsl(var(--admin-blue))',
 					'blue-light': 'hsl(var(--admin-blue-light))',
+					'blue-dark': 'hsl(var(--admin-blue-dark))',
 					green: 'hsl(var(--admin-green))',
 					'green-light': 'hsl(var(--admin-green-light))',
+					'green-dark': 'hsl(var(--admin-green-dark))',
 					purple: 'hsl(var(--admin-purple))',
 					'purple-light': 'hsl(var(--admin-purple-light))',
+					'purple-dark': 'hsl(var(--admin-purple-dark))',
 					orange: 'hsl(var(--admin-orange))',
 					'orange-light': 'hsl(var(--admin-orange-light))',
+					'orange-dark': 'hsl(var(--admin-orange-dark))',
 					pink: 'hsl(var(--admin-pink))',
 					'pink-light': 'hsl(var(--admin-pink-light))',
+					'pink-dark': 'hsl(var(--admin-pink-dark))',
 					yellow: 'hsl(var(--admin-yellow))',
-					'yellow-light': 'hsl(var(--admin-yellow-light))'
+					'yellow-light': 'hsl(var(--admin-yellow-light))',
+					'yellow-dark': 'hsl(var(--admin-yellow-dark))',
+					red: 'hsl(var(--admin-red))',
+					'red-light': 'hsl(var(--admin-red-light))',
+					'red-dark': 'hsl(var(--admin-red-dark))',
+					indigo: 'hsl(var(--admin-indigo))',
+					'indigo-light': 'hsl(var(--admin-indigo-light))',
+					'indigo-dark': 'hsl(var(--admin-indigo-dark))',
+					teal: 'hsl(var(--admin-teal))',
+					'teal-light': 'hsl(var(--admin-teal-light))',
+					'teal-dark': 'hsl(var(--admin-teal-dark))'
+				},
+				wp: {
+					header: 'hsl(var(--wp-header))',
+					'header-foreground': 'hsl(var(--wp-header-foreground))',
+					sidebar: 'hsl(var(--wp-sidebar))',
+					'sidebar-foreground': 'hsl(var(--wp-sidebar-foreground))',
+					accent: 'hsl(var(--wp-accent))',
+					'accent-hover': 'hsl(var(--wp-accent-hover))'
+				},
+				status: {
+					success: 'hsl(var(--success))',
+					'success-light': 'hsl(var(--success-light))',
+					warning: 'hsl(var(--warning))',
+					'warning-light': 'hsl(var(--warning-light))',
+					error: 'hsl(var(--error))',
+					'error-light': 'hsl(var(--error-light))',
+					info: 'hsl(var(--info))',
+					'info-light': 'hsl(var(--info-light))'
 				}
 			},
 			borderRadius: {

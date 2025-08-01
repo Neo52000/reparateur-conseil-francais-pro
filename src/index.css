@@ -44,19 +44,52 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
     
-    /* Admin theme colors */
-    --admin-blue: 214 88% 55%;
-    --admin-blue-light: 214 88% 95%;
-    --admin-green: 142 76% 36%;
-    --admin-green-light: 142 76% 95%;
-    --admin-purple: 258 90% 66%;
-    --admin-purple-light: 258 90% 95%;
-    --admin-orange: 24 95% 53%;
-    --admin-orange-light: 24 95% 95%;
-    --admin-pink: 330 81% 60%;
-    --admin-pink-light: 330 81% 95%;
-    --admin-yellow: 45 93% 47%;
-    --admin-yellow-light: 45 93% 95%;
+    /* WordPress-like Admin Colors */
+    --admin-blue: 221 72% 53%;
+    --admin-blue-light: 221 72% 96%;
+    --admin-blue-dark: 221 72% 40%;
+    --admin-green: 142 71% 45%;
+    --admin-green-light: 142 71% 96%;
+    --admin-green-dark: 142 71% 35%;
+    --admin-purple: 262 83% 58%;
+    --admin-purple-light: 262 83% 96%;
+    --admin-purple-dark: 262 83% 45%;
+    --admin-orange: 25 95% 53%;
+    --admin-orange-light: 25 95% 96%;
+    --admin-orange-dark: 25 95% 40%;
+    --admin-pink: 323 73% 64%;
+    --admin-pink-light: 323 73% 96%;
+    --admin-pink-dark: 323 73% 50%;
+    --admin-yellow: 48 96% 53%;
+    --admin-yellow-light: 48 96% 96%;
+    --admin-yellow-dark: 48 96% 40%;
+    --admin-red: 0 84% 60%;
+    --admin-red-light: 0 84% 96%;
+    --admin-red-dark: 0 84% 45%;
+    --admin-indigo: 231 48% 48%;
+    --admin-indigo-light: 231 48% 96%;
+    --admin-indigo-dark: 231 48% 35%;
+    --admin-teal: 172 66% 50%;
+    --admin-teal-light: 172 66% 96%;
+    --admin-teal-dark: 172 66% 37%;
+
+    /* WordPress Header */
+    --wp-header: 222 44% 18%;
+    --wp-header-foreground: 0 0% 100%;
+    --wp-sidebar: 0 0% 100%;
+    --wp-sidebar-foreground: 222 44% 18%;
+    --wp-accent: 221 72% 53%;
+    --wp-accent-hover: 221 72% 60%;
+    
+    /* Status Colors */
+    --success: 142 71% 45%;
+    --success-light: 142 71% 96%;
+    --warning: 48 96% 53%;
+    --warning-light: 48 96% 96%;
+    --error: 0 84% 60%;
+    --error-light: 0 84% 96%;
+    --info: 221 72% 53%;
+    --info-light: 221 72% 96%;
     
     /* Animation utilities */
     --fade-in: fadeIn 0.5s ease-in-out;

@@ -3,6 +3,12 @@ import { useSearchParams } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminDashboardContent from '@/components/admin/AdminDashboardContent';
+import AdminTopBar from '@/components/admin/modern/AdminTopBar';
+import EnhancedAdminSidebar from '@/components/admin/modern/EnhancedAdminSidebar';
+import ResponsiveLayout from '@/components/admin/modern/ResponsiveLayout';
+import ModernDashboardCards from '@/components/admin/modern/ModernDashboardCards';
+import QuickActions from '@/components/admin/modern/QuickActions';
+import RecentActivity from '@/components/admin/modern/RecentActivity';
 import RepairerList from '@/components/admin/RepairerList';
 import ClientInterestManagement from '@/components/ClientInterestManagement';
 import PromoCodesManagement from '@/components/PromoCodesManagement';
@@ -198,7 +204,26 @@ const AdminPage = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <AdminDashboardContent activeTab={activeTab} subscriptions={[]} repairers={[]} onViewProfile={() => {}} onRefresh={async () => {}} />;
+        return (
+          <div className="space-y-8">
+            {/* Modern Dashboard Overview */}
+            <div className="space-y-6">
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+                <p className="text-muted-foreground">Vue d'ensemble de votre plateforme RepairHub</p>
+              </div>
+              
+              {/* Stats Cards */}
+              <ModernDashboardCards />
+              
+              {/* Activity & Quick Actions */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <RecentActivity />
+                <QuickActions />
+              </div>
+            </div>
+          </div>
+        );
       case 'subscriptions':
         return <SubscriptionsManagement />;
       case 'subdomains':
@@ -294,21 +319,15 @@ const AdminPage = () => {
     }
   };
   try {
-    return <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="flex h-screen bg-background">
-          <AdminSidebar />
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-auto p-6">
-              <div className="mb-6">
-                
-                
-              </div>
-              {renderContent()}
-            </div>
-          </div>
-        </div>
-      </div>;
+    return (
+      <ResponsiveLayout
+        header={<AdminTopBar userName={user?.email || 'Admin'} />}
+        sidebar={<EnhancedAdminSidebar />}
+        className="bg-muted/30"
+      >
+        {renderContent()}
+      </ResponsiveLayout>
+    );
   } catch (error) {
     console.error('Erreur critique dans AdminPage:', error);
     return <div className="min-h-screen bg-background flex items-center justify-center">
