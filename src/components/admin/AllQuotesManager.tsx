@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Calendar, User, Smartphone, Search, Eye, Filter } from 'lucide-react';
+import { Calendar, User, Smartphone, Search, Eye, Filter, Edit3, UserCheck } from 'lucide-react';
 
 interface Quote {
   id: string;
@@ -22,17 +24,33 @@ interface Quote {
   assignment_status: string;
   admin_assigned_at?: string;
   subscription_tier?: string;
+  repairer_id?: string;
+}
+
+interface Repairer {
+  id: string;
+  business_name: string;
+  subscription_tier: string;
+  city: string;
+  user_id: string;
 }
 
 const AllQuotesManager: React.FC = () => {
   const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [repairers, setRepairers] = useState<Repairer[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [subscriptionFilter, setSubscriptionFilter] = useState('all');
+  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
+  const [selectedRepairer, setSelectedRepairer] = useState<string>('');
+  const [assignmentNotes, setAssignmentNotes] = useState<string>('');
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchAllQuotes();
+    fetchRepairers();
   }, []);
 
   const fetchAllQuotes = async () => {
@@ -83,6 +101,7 @@ const AllQuotesManager: React.FC = () => {
         assignment_status: quote.assignment_status || 'unassigned',
         admin_assigned_at: quote.admin_assigned_at,
         subscription_tier: quote.repairer_profiles?.repairer_subscriptions?.subscription_tier,
+        repairer_id: quote.repairer_id,
       })) || [];
 
       setQuotes(formattedQuotes);
@@ -94,6 +113,106 @@ const AllQuotesManager: React.FC = () => {
       });
     }
     setLoading(false);
+  };
+
+  const fetchRepairers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('repairer_profiles')
+        .select(`
+          id,
+          business_name,
+          city,
+          user_id,
+          repairer_subscriptions!inner (
+            subscription_tier,
+            subscribed
+          )
+        `)
+        .eq('repairer_subscriptions.subscribed', true)
+        .order('business_name');
+
+      if (error) throw error;
+
+      const formattedRepairers = data?.map((rep: any) => ({
+        id: rep.id,
+        business_name: rep.business_name,
+        subscription_tier: rep.repairer_subscriptions.subscription_tier,
+        city: rep.city,
+        user_id: rep.user_id,
+      })) || [];
+
+      setRepairers(formattedRepairers);
+    } catch (error: any) {
+      console.error('Erreur lors du chargement des réparateurs:', error);
+    }
+  };
+
+  const openAssignmentDialog = (quote: Quote) => {
+    setSelectedQuote(quote);
+    setSelectedRepairer(quote.repairer_id || '');
+    setAssignmentNotes('');
+    setDialogOpen(true);
+  };
+
+  const assignQuote = async () => {
+    if (!selectedQuote || !selectedRepairer) {
+      toast({
+        title: "Sélection requise",
+        description: "Veuillez sélectionner un réparateur",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsAssigning(true);
+    try {
+      // Mettre à jour le devis avec le nouveau réparateur
+      const { error: quoteError } = await supabase
+        .from('quotes_with_timeline')
+        .update({
+          repairer_id: selectedRepairer,
+          assignment_status: 'admin_assigned',
+          admin_assigned_at: new Date().toISOString(),
+          admin_assigned_by: (await supabase.auth.getUser()).data.user?.id
+        })
+        .eq('id', selectedQuote.id);
+
+      if (quoteError) throw quoteError;
+
+      // Créer ou mettre à jour l'enregistrement d'attribution admin
+      const { error: assignmentError } = await supabase
+        .from('admin_quote_assignments')
+        .upsert({
+          quote_id: selectedQuote.id,
+          target_repairer_id: selectedRepairer,
+          assigned_by: (await supabase.auth.getUser()).data.user?.id,
+          assigned_at: new Date().toISOString(),
+          status: 'assigned',
+          notes: assignmentNotes
+        });
+
+      if (assignmentError) throw assignmentError;
+
+      toast({
+        title: "Attribution réussie",
+        description: "Le devis a été attribué avec succès"
+      });
+
+      // Réinitialiser et recharger
+      setDialogOpen(false);
+      setSelectedQuote(null);
+      setSelectedRepairer('');
+      setAssignmentNotes('');
+      fetchAllQuotes();
+    } catch (error: any) {
+      toast({
+        title: "Erreur d'attribution",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+    setIsAssigning(false);
   };
 
   const getStatusBadge = (status: string) => {
@@ -273,7 +392,18 @@ const AllQuotesManager: React.FC = () => {
 
                   {/* Attribution */}
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Attribution</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-gray-900">Attribution</h4>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openAssignmentDialog(quote)}
+                        className="h-7 px-2"
+                      >
+                        <Edit3 className="h-3 w-3 mr-1" />
+                        Modifier
+                      </Button>
+                    </div>
                     <div className="space-y-2">
                       {getStatusBadge(quote.assignment_status)}
                       {quote.repairer_business_name ? (
@@ -309,6 +439,101 @@ const AllQuotesManager: React.FC = () => {
           ))
         )}
       </div>
+
+      {/* Dialog d'attribution */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserCheck className="h-5 w-5" />
+              Attribuer le devis
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedQuote && (
+            <div className="space-y-6">
+              {/* Informations du devis */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-semibold mb-2">Devis sélectionné</h4>
+                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p><span className="font-medium">Appareil :</span> {selectedQuote.device_brand} {selectedQuote.device_model}</p>
+                    <p><span className="font-medium">Réparation :</span> {selectedQuote.repair_type}</p>
+                  </div>
+                  <div>
+                    <p><span className="font-medium">Client :</span> {selectedQuote.client_name}</p>
+                    <p><span className="font-medium">Date :</span> {new Date(selectedQuote.created_at).toLocaleDateString('fr-FR')}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sélection du réparateur */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Attribuer à un réparateur
+                </label>
+                <Select value={selectedRepairer} onValueChange={setSelectedRepairer}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un réparateur" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Aucun réparateur</SelectItem>
+                    {repairers.map((repairer) => (
+                      <SelectItem key={repairer.id} value={repairer.id}>
+                        <div className="flex items-center justify-between w-full">
+                          <span>{repairer.business_name}</span>
+                          <div className="flex items-center gap-2 ml-2">
+                            <Badge className={
+                              repairer.subscription_tier === 'enterprise' ? 'bg-yellow-100 text-yellow-800' :
+                              repairer.subscription_tier === 'premium' ? 'bg-purple-100 text-purple-800' :
+                              repairer.subscription_tier === 'basic' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }>
+                              {repairer.subscription_tier}
+                            </Badge>
+                            <span className="text-xs text-gray-500">{repairer.city}</span>
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Notes d'attribution (optionnel)
+                </label>
+                <Textarea
+                  placeholder="Raison de l'attribution, instructions spéciales..."
+                  value={assignmentNotes}
+                  onChange={(e) => setAssignmentNotes(e.target.value)}
+                  className="min-h-[80px]"
+                />
+              </div>
+
+              {/* Boutons d'action */}
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setDialogOpen(false)}
+                  disabled={isAssigning}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  onClick={assignQuote}
+                  disabled={isAssigning}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isAssigning ? 'Attribution...' : 'Attribuer le devis'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
