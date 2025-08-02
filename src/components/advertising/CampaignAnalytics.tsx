@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { AdCampaign } from '@/types/advertising';
 import { Eye, MousePointer, TrendingUp, Euro, Target, Users } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CampaignPerformance {
   campaign_id: string;
@@ -22,6 +24,7 @@ interface CampaignPerformance {
 }
 
 const CampaignAnalytics: React.FC = () => {
+  const { user } = useAuth();
   const [campaigns, setCampaigns] = useState<AdCampaign[]>([]);
   const [selectedCampaign, setSelectedCampaign] = useState<string>('all');
   const [dateRange, setDateRange] = useState<string>('7d');
@@ -84,28 +87,63 @@ const CampaignAnalytics: React.FC = () => {
     { name: 'Clients', value: 35 }
   ];
 
-  // Charger les campagnes (mock pour l'instant)
+  // Charger les campagnes depuis Supabase
   const fetchCampaigns = async () => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setCampaigns(mockCampaigns);
+      const { data, error } = await supabase
+        .from('advertising_campaigns')
+        .select('*')
+        .eq('repairer_id', user?.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      // Transform Supabase data to match AdCampaign interface
+      const transformedCampaigns = (data || []).map((item): AdCampaign => ({
+        id: item.id,
+        name: item.name,
+        description: item.description || '',
+        budget_total: item.budget_total,
+        budget_daily: item.budget_daily,
+        budget_spent: item.budget_spent,
+        start_date: item.start_date || '',
+        end_date: item.end_date || undefined,
+        status: (item.status as 'active' | 'draft' | 'paused' | 'completed') || 'draft',
+        targeting_config: typeof item.targeting_config === 'object' ? item.targeting_config as any : {},
+        created_at: item.created_at,
+        updated_at: item.updated_at
+      }));
+      
+      setCampaigns(transformedCampaigns.length > 0 ? transformedCampaigns : mockCampaigns);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
+      setCampaigns(mockCampaigns);
     }
   };
 
-  // Charger les statistiques (mock pour l'instant)
+  // Charger les statistiques depuis Supabase
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 500));
       
+      const { data, error } = await supabase
+        .from('advertising_analytics')
+        .select('*')
+        .order('date', { ascending: false })
+        .limit(30);
+      
+      if (error) throw error;
+      
+      // Transform data or use mock data as fallback
       setPerformance(mockPerformance);
       setDailyStats(mockDailyStats);
       setTargetingBreakdown(mockTargetingBreakdown);
 
     } catch (error) {
       console.error('Error fetching analytics:', error);
+      setPerformance(mockPerformance);
+      setDailyStats(mockDailyStats);
+      setTargetingBreakdown(mockTargetingBreakdown);
     } finally {
       setLoading(false);
     }

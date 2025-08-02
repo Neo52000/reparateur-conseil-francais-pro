@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useAdminAuditIntegration } from '@/hooks/useAdminAuditIntegration';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Subscription {
   id: string;
@@ -30,8 +31,13 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
   const handleApproveSubscription = async (subscription: Subscription) => {
     setLoading(subscription.id);
     try {
-      // Simuler l'approbation de l'abonnement
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Approuver l'abonnement dans Supabase
+      const { error } = await supabase
+        .from('repairer_subscriptions')
+        .update({ subscribed: true, updated_at: new Date().toISOString() })
+        .eq('id', subscription.id);
+      
+      if (error) throw error;
       
       logSubscriptionAction('approve', subscription.id, {
         previous_status: subscription.subscribed ? 'active' : 'inactive',
@@ -61,8 +67,13 @@ const SubscriptionsTable: React.FC<SubscriptionsTableProps> = ({ subscriptions, 
   const handleSuspendSubscription = async (subscription: Subscription) => {
     setLoading(subscription.id);
     try {
-      // Simuler la suspension de l'abonnement
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Suspendre l'abonnement dans Supabase
+      const { error } = await supabase
+        .from('repairer_subscriptions')
+        .update({ subscribed: false, updated_at: new Date().toISOString() })
+        .eq('id', subscription.id);
+      
+      if (error) throw error;
       
       logSubscriptionAction('deactivate', subscription.id, {
         previous_status: 'active',

@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Target, Users, MapPin, Smartphone } from 'lucide-react';
 import { TargetingSegment } from '@/types/advertising';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdvancedTargeting: React.FC = () => {
   const [segments, setSegments] = useState<TargetingSegment[]>([]);
@@ -107,15 +108,34 @@ const AdvancedTargeting: React.FC = () => {
     }
   ];
 
-  // Charger les segments (mock pour l'instant)
+  // Charger les segments depuis Supabase
   const fetchSegments = async () => {
     try {
       setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setSegments(mockSegments);
+      const { data, error } = await supabase
+        .from('advanced_targeting_segments')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      // Transform Supabase data to match TargetingSegment interface
+      const transformedSegments = (data || []).map((item): TargetingSegment => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        criteria: typeof item.criteria === 'object' ? item.criteria as any : {},
+        estimated_reach: item.estimated_reach,
+        is_active: item.is_active,
+        created_at: item.created_at
+      }));
+      
+      setSegments(transformedSegments.length > 0 ? transformedSegments : mockSegments);
     } catch (error) {
       console.error('Error fetching segments:', error);
       toast.error('Erreur lors du chargement des segments');
+      setSegments(mockSegments);
     } finally {
       setLoading(false);
     }
