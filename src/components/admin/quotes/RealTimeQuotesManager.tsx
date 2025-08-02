@@ -517,52 +517,78 @@ const RealTimeQuotesManager: React.FC = () => {
 
   const loadAvailableRepairers = async () => {
     try {
-      // First get all repairer profiles with more info
+      // First get all repairer profiles
       const { data: repairerProfiles, error: profilesError } = await supabase
         .from('repairer_profiles')
-        .select('id, business_name, city, user_id, address, postal_code, phone');
+        .select('id, business_name, city, address, postal_code, phone, user_id');
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error('Erreur chargement profils réparateurs:', profilesError);
+        return;
+      }
 
-      // Then get profiles and subscriptions for each repairer
-      const enrichedRepairers = await Promise.all(
-        (repairerProfiles || []).map(async (rep) => {
-          // Get profile info
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, email')
-            .eq('id', rep.user_id)
-            .single();
+      if (!repairerProfiles || repairerProfiles.length === 0) {
+        setAvailableRepairers([]);
+        return;
+      }
 
-          // Get subscription info
-          const { data: subscriptionData } = await supabase
-            .from('repairer_subscriptions')
-            .select('subscription_tier, subscribed')
-            .eq('user_id', rep.user_id)
-            .eq('subscribed', true)
-            .single();
+      // Get user profiles and subscriptions for each repairer
+      const repairersWithData = await Promise.all(
+        repairerProfiles.map(async (rep) => {
+          try {
+            // Get user profile
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, email')
+              .eq('id', rep.user_id)
+              .single();
 
-          // Only include repairers with active subscriptions
-          if (!subscriptionData || !profileData) return null;
+            // Get subscription info
+            const { data: subscriptionData } = await supabase
+              .from('repairer_subscriptions')
+              .select('subscription_tier, subscribed')
+              .eq('user_id', rep.user_id)
+              .eq('subscribed', true)
+              .maybeSingle();
 
-          return {
-            id: rep.id,
-            name: `${profileData.first_name} ${profileData.last_name}`,
-            business_name: rep.business_name,
-            city: rep.city,
-            address: rep.address,
-            postal_code: rep.postal_code,
-            phone: rep.phone,
-            email: profileData.email,
-            subscription_tier: subscriptionData.subscription_tier,
-            isPaid: ['basic', 'premium', 'enterprise'].includes(subscriptionData.subscription_tier)
-          };
+            // Skip if no profile data
+            if (!profileData) return null;
+
+            // Use subscription data or default to free
+            const subscription_tier = subscriptionData?.subscription_tier || 'free';
+            const isPaid = ['basic', 'premium', 'enterprise'].includes(subscription_tier);
+
+            return {
+              id: rep.id,
+              name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim(),
+              business_name: rep.business_name,
+              city: rep.city,
+              address: rep.address,
+              postal_code: rep.postal_code,
+              phone: rep.phone,
+              email: profileData.email,
+              subscription_tier,
+              isPaid
+            };
+          } catch (error) {
+            console.error(`Erreur pour le réparateur ${rep.id}:`, error);
+            return null;
+          }
         })
       );
 
-      setAvailableRepairers(enrichedRepairers.filter(Boolean));
+      // Filter out null results and update state
+      const validRepairers = repairersWithData.filter(Boolean);
+      setAvailableRepairers(validRepairers);
+      
+      console.log('Réparateurs chargés:', validRepairers);
     } catch (error) {
       console.error('Erreur lors du chargement des réparateurs:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les réparateurs",
+        variant: "destructive",
+      });
     }
   };
 
