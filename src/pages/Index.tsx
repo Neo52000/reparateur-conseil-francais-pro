@@ -164,6 +164,50 @@ const Index = () => {
         <TrustSection />
         
         <QuickStatsSection />
+
+        {/* Section Nouvelles Fonctionnalités */}
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900">Nouvelles Fonctionnalités</h2>
+              <p className="text-gray-600 mt-4">Découvrez nos dernières améliorations pour une meilleure expérience</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center mb-4">
+                  <span className="text-2xl mr-3">⭐</span>
+                  <h3 className="text-xl font-semibold">Système d'Avis</h3>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  Consultez les avis clients et la réputation des réparateurs pour faire le meilleur choix.
+                </p>
+                <button 
+                  onClick={() => navigate('/reviews-demo')}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Voir la démo
+                </button>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center mb-4">
+                  <span className="text-2xl mr-3">💬</span>
+                  <h3 className="text-xl font-semibold">Devis & Rendez-vous</h3>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  Système complet de demande de devis, paiement sécurisé et messagerie intégrée.
+                </p>
+                <button 
+                  onClick={() => navigate('/quotes-appointments')}
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                >
+                  Découvrir
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
         
         {/* Section blog avant le footer */}
         <BlogSectionHomepage />
