@@ -9710,6 +9710,33 @@ export type Database = {
           },
         ]
       }
+      restore_points: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          point_name: string
+          point_type: string
+          snapshot_data: Json | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          point_name: string
+          point_type?: string
+          snapshot_data?: Json | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          point_name?: string
+          point_type?: string
+          snapshot_data?: Json | null
+        }
+        Relationships: []
+      }
       review_criteria: {
         Row: {
           created_at: string | null
@@ -10576,6 +10603,42 @@ export type Database = {
         }
         Relationships: []
       }
+      system_backups: {
+        Row: {
+          backup_name: string
+          backup_path: string | null
+          backup_status: string
+          backup_type: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          file_size_bytes: number | null
+          id: string
+        }
+        Insert: {
+          backup_name: string
+          backup_path?: string | null
+          backup_status?: string
+          backup_type?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_size_bytes?: number | null
+          id?: string
+        }
+        Update: {
+          backup_name?: string
+          backup_path?: string | null
+          backup_status?: string
+          backup_type?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_size_bytes?: number | null
+          id?: string
+        }
+        Relationships: []
+      }
       system_cache_entries: {
         Row: {
           cache_key: string
@@ -10645,6 +10708,75 @@ export type Database = {
           operations_per_second?: number
           total_size_mb?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      system_services: {
+        Row: {
+          error_message: string | null
+          id: string
+          last_checked: string
+          metadata: Json | null
+          response_time_ms: number | null
+          service_name: string
+          service_status: string
+        }
+        Insert: {
+          error_message?: string | null
+          id?: string
+          last_checked?: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          service_name: string
+          service_status?: string
+        }
+        Update: {
+          error_message?: string | null
+          id?: string
+          last_checked?: string
+          metadata?: Json | null
+          response_time_ms?: number | null
+          service_name?: string
+          service_status?: string
+        }
+        Relationships: []
+      }
+      system_users: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          is_active: boolean
+          last_login: string | null
+          last_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_login?: string | null
+          last_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_active?: boolean
+          last_login?: string | null
+          last_name?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
