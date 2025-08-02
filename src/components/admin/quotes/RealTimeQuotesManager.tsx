@@ -650,6 +650,22 @@ const RealTimeQuotesManager: React.FC = () => {
       return;
     }
 
+    // Solution 3: Validation frontend - vérifier que le réparateur existe
+    const { data: repairerExists, error: validationError } = await supabase
+      .from('repairer_profiles')
+      .select('id')
+      .eq('id', selectedRepairer)
+      .single();
+
+    if (validationError || !repairerExists) {
+      toast({
+        title: "Erreur de validation",
+        description: "Le réparateur sélectionné n'existe plus en base",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       console.log('Mise à jour du devis:', selectedQuote.id, 'avec réparateur:', selectedRepairer);
       
