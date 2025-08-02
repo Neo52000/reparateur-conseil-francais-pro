@@ -47,28 +47,69 @@ export default function RepairerAppointmentsCalendar() {
   const fetchAppointments = async () => {
     if (!profile?.id) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from("appointments")
-      .select("*")
-      .eq("repairer_id", profile.id)
-      .order("appointment_date", { ascending: true });
-    if (error) {
-      toast({ title: "Erreur de chargement", description: error.message, variant: "destructive" });
-      
-    } else if (data) {
-      // On peut ajouter un fallback si "client_name" n'existe pas (dépend backend)
-      setAppointments(
-        data.map((a: any) => ({
-          id: a.id,
-          appointment_date: a.appointment_date,
-          duration_minutes: a.duration_minutes,
-          client_name: a.client_name || "Client",
-          phone: a.phone || "",
-          service: a.notes || "",
-          status: a.status,
-        }))
-      );
+    
+    try {
+      // D'abord, récupérer les rendez-vous depuis appointments_with_quotes
+      const { data: appointmentsData, error: appointmentsError } = await supabase
+        .from("appointments_with_quotes")
+        .select(`
+          id,
+          appointment_date,
+          duration_minutes,
+          client_notes,
+          repairer_notes,
+          status,
+          quote_id,
+          client_id
+        `)
+        .eq("repairer_id", profile.id)
+        .order("appointment_date", { ascending: true });
+
+      if (appointmentsError) throw appointmentsError;
+
+      if (appointmentsData && appointmentsData.length > 0) {
+        // Récupérer les informations des clients
+        const clientIds = appointmentsData.map(apt => apt.client_id);
+        const { data: profilesData, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, first_name, last_name, email")
+          .in("id", clientIds);
+
+        if (profilesError) {
+          console.warn("Erreur lors du chargement des profils clients:", profilesError);
+        }
+
+        // Combiner les données
+        const combinedAppointments = appointmentsData.map((apt: any) => {
+          const clientProfile = profilesData?.find(p => p.id === apt.client_id);
+          const clientName = clientProfile 
+            ? `${clientProfile.first_name} ${clientProfile.last_name}`.trim()
+            : "Client";
+
+          return {
+            id: apt.id,
+            appointment_date: apt.appointment_date,
+            duration_minutes: apt.duration_minutes,
+            client_name: clientName,
+            phone: clientProfile?.email || "",
+            service: apt.client_notes || "Rendez-vous",
+            status: apt.status,
+          };
+        });
+
+        setAppointments(combinedAppointments);
+      } else {
+        setAppointments([]);
+      }
+    } catch (error: any) {
+      toast({ 
+        title: "Erreur de chargement", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+      setAppointments([]);
     }
+    
     setLoading(false);
   };
 
