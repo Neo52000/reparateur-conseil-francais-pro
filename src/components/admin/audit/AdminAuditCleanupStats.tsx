@@ -1,8 +1,6 @@
-
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, AlertTriangle } from 'lucide-react';
+import { Clock, Database, AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface CleanupConfig {
   id: string;
@@ -18,70 +16,63 @@ interface AdminAuditCleanupStatsProps {
 }
 
 const AdminAuditCleanupStats: React.FC<AdminAuditCleanupStatsProps> = ({ config }) => {
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Jamais';
-    return new Date(dateString).toLocaleString('fr-FR');
-  };
-
-  const getNextCleanupTime = () => {
-    // Le cron s'exécute tous les jours à 2h00
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(2, 0, 0, 0);
-    return tomorrow.toLocaleString('fr-FR');
-  };
-
   if (!config) return null;
 
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Jamais';
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getNextCleanup = () => {
+    if (!config.auto_cleanup_enabled || !config.last_cleanup) return 'Non programmé';
+    const lastCleanup = new Date(config.last_cleanup);
+    const nextCleanup = new Date(lastCleanup.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7 jours
+    return nextCleanup.toLocaleDateString('fr-FR');
+  };
+
   return (
-    <>
-      {/* Statut du nettoyage automatique */}
-      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-        <div className="flex items-center gap-3">
-          <Clock className="h-5 w-5 text-blue-600" />
-          <div>
-            <p className="font-medium">Nettoyage automatique</p>
-            <p className="text-sm text-gray-600">
-              {config.auto_cleanup_enabled ? 'Activé - Tous les jours à 2h00' : 'Désactivé'}
-            </p>
-          </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="p-4 border rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <Database className="h-4 w-4 text-blue-600" />
+          <span className="text-sm font-medium">Rétention</span>
+        </div>
+        <p className="text-2xl font-bold">{config.days_to_keep}</p>
+        <p className="text-xs text-muted-foreground">jours</p>
+      </div>
+
+      <div className="p-4 border rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <span className="text-sm font-medium">Statut</span>
         </div>
         <Badge variant={config.auto_cleanup_enabled ? 'default' : 'secondary'}>
           {config.auto_cleanup_enabled ? 'Actif' : 'Inactif'}
         </Badge>
       </div>
 
-      {/* Informations sur le dernier nettoyage */}
-      <div className="p-4 bg-blue-50 rounded-lg">
-        <h4 className="font-medium mb-2">Informations de nettoyage</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="font-medium">Dernier nettoyage :</span>
-            <br />
-            <span className="text-gray-600">{formatDate(config.last_cleanup)}</span>
-          </div>
-          {config.auto_cleanup_enabled && (
-            <div>
-              <span className="font-medium">Prochain nettoyage :</span>
-              <br />
-              <span className="text-gray-600">{getNextCleanupTime()}</span>
-            </div>
-          )}
+      <div className="p-4 border rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <Clock className="h-4 w-4 text-orange-600" />
+          <span className="text-sm font-medium">Dernier nettoyage</span>
         </div>
+        <p className="text-sm">{formatDate(config.last_cleanup)}</p>
       </div>
 
-      {/* Avertissement */}
-      <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-lg border border-amber-200">
-        <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
-        <div className="text-sm">
-          <p className="font-medium text-amber-800">Attention</p>
-          <p className="text-amber-700">
-            La suppression des logs d'audit est irréversible. Assurez-vous d'avoir configuré 
-            une période de rétention appropriée selon vos besoins de conformité.
-          </p>
+      <div className="p-4 border rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <AlertTriangle className="h-4 w-4 text-purple-600" />
+          <span className="text-sm font-medium">Prochain nettoyage</span>
         </div>
+        <p className="text-sm">{getNextCleanup()}</p>
       </div>
-    </>
+    </div>
   );
 };
 
