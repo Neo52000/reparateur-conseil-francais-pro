@@ -1,1 +1,4 @@
 project_id = "nbugpbakfkyvvjzgfjmw"
+
+[functions.scrape-cashandrepair]
+verify_jwt = false
