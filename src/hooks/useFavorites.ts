@@ -7,9 +7,8 @@ export interface FavoriteRepairer {
   id: string;
   repairer_id: string;
   created_at: string;
-  repairer_profile: {
+  repairer: {
     id: string;
-    business_name: string;
     name: string;
     city: string;
     postal_code: string;
@@ -36,9 +35,8 @@ export const useFavorites = () => {
           id,
           repairer_id,
           created_at,
-          repairer_profile:repairer_profiles!repairer_id (
+          repairer:repairers!repairer_id (
             id,
-            business_name,
             name,
             city,
             postal_code,

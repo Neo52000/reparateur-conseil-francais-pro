@@ -2533,7 +2533,7 @@ export type Database = {
             foreignKeyName: "client_favorites_repairer_id_fkey"
             columns: ["repairer_id"]
             isOneToOne: false
-            referencedRelation: "repairer_profiles"
+            referencedRelation: "repairers"
             referencedColumns: ["id"]
           },
         ]
