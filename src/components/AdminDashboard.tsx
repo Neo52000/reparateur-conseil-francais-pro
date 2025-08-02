@@ -38,6 +38,7 @@ import PerformanceManagement from './admin/PerformanceManagement';
 import SEOMonitoringDashboard from './admin/SEOMonitoringDashboard';
 import LocalSeoManagement from './admin/LocalSeoManagement';
 import EnhancedDocumentationManager from './admin/EnhancedDocumentationManager';
+import AdminQuoteAssignments from './admin/AdminQuoteAssignments';
 
 interface StatCardProps {
   title: string;
@@ -107,6 +108,7 @@ const AdminDashboard = () => {
     core: [
       { id: 'dashboard', label: 'Tableau de bord', icon: BarChart3, priority: 'high', hasAlert: false },
       { id: 'repairers', label: 'Réparateurs', icon: Users, priority: 'high', hasAlert: false },
+      { id: 'quote-assignments', label: 'Attribution Devis', icon: FileText, priority: 'high', hasAlert: false },
       { id: 'analytics', label: 'Analytics', icon: TrendingUp, priority: 'medium', hasAlert: false }
     ],
     seoPerformance: [
@@ -384,6 +386,10 @@ const AdminDashboard = () => {
           <TabsContent value="repairers">
             <h2 className="text-2xl font-bold mb-4">Gestion des réparateurs</h2>
             <RepairerList />
+          </TabsContent>
+
+          <TabsContent value="quote-assignments">
+            <AdminQuoteAssignments />
           </TabsContent>
 
           {/* Core Tabs */}

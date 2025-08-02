@@ -300,6 +300,57 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_quote_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          quote_id: string
+          status: string
+          target_repairer_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          quote_id: string
+          status?: string
+          target_repairer_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          quote_id?: string
+          status?: string
+          target_repairer_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_quote_assignments_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes_with_timeline"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_quote_assignments_target_repairer_id_fkey"
+            columns: ["target_repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       advanced_targeting_segments: {
         Row: {
           created_at: string
@@ -8163,9 +8214,12 @@ export type Database = {
       quotes_with_timeline: {
         Row: {
           accepted_at: string | null
+          admin_assigned_at: string | null
+          admin_assigned_by: string | null
           ai_confidence: number | null
           ai_generated: boolean | null
           ai_reasoning: string | null
+          assignment_status: string | null
           client_acceptance_deadline: string | null
           client_email: string
           client_id: string | null
@@ -8198,9 +8252,12 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
+          admin_assigned_at?: string | null
+          admin_assigned_by?: string | null
           ai_confidence?: number | null
           ai_generated?: boolean | null
           ai_reasoning?: string | null
+          assignment_status?: string | null
           client_acceptance_deadline?: string | null
           client_email: string
           client_id?: string | null
@@ -8233,9 +8290,12 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
+          admin_assigned_at?: string | null
+          admin_assigned_by?: string | null
           ai_confidence?: number | null
           ai_generated?: boolean | null
           ai_reasoning?: string | null
+          assignment_status?: string | null
           client_acceptance_deadline?: string | null
           client_email?: string
           client_id?: string | null
@@ -11862,6 +11922,10 @@ export type Database = {
         Args: { transaction_id: string }
         Returns: string
       }
+      auto_assign_quote_to_paid_repairer: {
+        Args: { quote_id_param: string }
+        Returns: string
+      }
       calculate_data_quality_score: {
         Args: {
           repairer_record: Database["public"]["Tables"]["repairers"]["Row"]
@@ -11976,6 +12040,10 @@ export type Database = {
       }
       has_module_access: {
         Args: { user_id: string; module_name: string }
+        Returns: boolean
+      }
+      has_paid_subscription: {
+        Args: { repairer_user_id: string }
         Returns: boolean
       }
       has_pos_permission: {

@@ -121,9 +121,10 @@ export const useQuoteForm = (repairerId: string, isOpen: boolean, onClose: () =>
 
       console.log('🔄 Sending quote request:', quoteData);
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('quotes_with_timeline')
-        .insert([quoteData]);
+        .insert([quoteData])
+        .select('assignment_status');
 
       if (error) {
         console.error('❌ Error inserting quote:', error);
@@ -145,9 +146,15 @@ export const useQuoteForm = (repairerId: string, isOpen: boolean, onClose: () =>
         console.error('⚠️ Error sending notification:', notifError);
       }
 
+      // Déterminer le message en fonction du statut d'attribution
+      const assignmentStatus = data?.[0]?.assignment_status;
+      const successMessage = assignmentStatus === 'pending_admin_assignment' 
+        ? "Votre devis est en cours de traitement. Un administrateur l'attribuera prochainement à un réparateur qualifié."
+        : "Votre demande de devis a été transmise au réparateur. Il a 24h pour vous répondre.";
+
       toast({
         title: "Demande envoyée !",
-        description: "Votre demande de devis a été transmise au réparateur. Il a 24h pour vous répondre."
+        description: successMessage
       });
 
       onClose();
