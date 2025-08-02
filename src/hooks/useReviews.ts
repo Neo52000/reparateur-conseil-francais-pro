@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Review {
@@ -32,7 +32,7 @@ export const useReviews = (repairerId?: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     if (!repairerId) return;
 
     try {
@@ -77,7 +77,7 @@ export const useReviews = (repairerId?: string) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [repairerId]);
 
   const submitReview = async (reviewData: {
     repairer_id: string;
@@ -186,7 +186,7 @@ export const useReviews = (repairerId?: string) => {
 
   useEffect(() => {
     fetchReviews();
-  }, [repairerId]);
+  }, [fetchReviews]);
 
   return {
     reviews,
