@@ -412,8 +412,8 @@ const generateWorkshopLabel = (repairOrder: RepairOrder, qrCodeDataUrl: string) 
     </html>
   `;
   
-  // Ouvrir une nouvelle fenêtre pour l'étiquette
-  setTimeout(() => {
+  // Open label window immediately using requestAnimationFrame
+  requestAnimationFrame(() => {
     const labelWindow = window.open('', '_blank', 'width=400,height=300');
     if (labelWindow) {
       labelWindow.document.write(labelHTML);
@@ -422,7 +422,7 @@ const generateWorkshopLabel = (repairOrder: RepairOrder, qrCodeDataUrl: string) 
         labelWindow.print();
       };
     }
-  }, 1000); // Délai pour éviter le conflit avec la première impression
+  });
 };
 
 // Export the main function

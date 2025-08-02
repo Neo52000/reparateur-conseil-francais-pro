@@ -166,7 +166,7 @@ const ClientInterestManagement: React.FC = () => {
     setLoading(interest.id);
     try {
       // Simuler l'envoi au réparateur
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Process interest immediately - no artificial delay needed
       
       logClientInterestAction('update', interest.id, {
         client_email: interest.client_email,

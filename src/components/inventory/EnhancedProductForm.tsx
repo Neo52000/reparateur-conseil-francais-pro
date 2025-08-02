@@ -244,7 +244,8 @@ export const EnhancedProductForm: React.FC<EnhancedProductFormProps> = ({
                     value={formData.sale_price_ht}
                     onChange={(e) => {
                       handleInputChange('sale_price_ht', parseFloat(e.target.value) || 0);
-                      setTimeout(calculateMargin, 100);
+                      // Calculate margin immediately on input change
+                      calculateMargin();
                     }}
                   />
                 </div>

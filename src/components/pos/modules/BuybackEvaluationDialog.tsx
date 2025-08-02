@@ -127,8 +127,8 @@ const BuybackEvaluationDialog: React.FC<BuybackEvaluationDialogProps> = ({
     
     setImeiValidation('checking');
     
-    // Simulation de vérification IMEI
-    setTimeout(() => {
+    // IMEI validation using Luhn algorithm - immediate processing
+    try {
       // Vérification Luhn algorithm basique
       const isValid = imei.split('').reduce((sum, digit, index) => {
         let n = parseInt(digit);
@@ -148,7 +148,10 @@ const BuybackEvaluationDialog: React.FC<BuybackEvaluationDialogProps> = ({
           variant: "destructive"
         });
       }
-    }, 1000);
+    } catch (error) {
+      console.error('IMEI validation error:', error);
+      setImeiValidation('invalid');
+    }
   };
 
   // Calcul de la valeur estimée

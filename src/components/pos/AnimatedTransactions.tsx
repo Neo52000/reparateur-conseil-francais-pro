@@ -44,11 +44,13 @@ const AnimatedTransactions: React.FC<AnimatedTransactionsProps> = ({
       setAnimatingTransaction(newTransaction.id);
       setStatsAnimation(true);
       
-      // Arrêter l'animation après 2 secondes
-      setTimeout(() => {
+      // Use effect cleanup with timer for animation duration
+      const animationTimer = setTimeout(() => {
         setAnimatingTransaction(null);
         setStatsAnimation(false);
       }, 2000);
+      
+      return () => clearTimeout(animationTimer);
     }
   }, [newTransaction]);
 

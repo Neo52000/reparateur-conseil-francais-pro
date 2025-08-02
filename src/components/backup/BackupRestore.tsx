@@ -235,7 +235,7 @@ export const BackupRestore: React.FC = () => {
         setRestoreProgress((restoredTables / tablesToRestore.length) * 100);
         
         // Délai pour montrer le progrès
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // Use immediate processing for backup operations
       }
 
       // Enregistrer la restauration en log (si la table existe)

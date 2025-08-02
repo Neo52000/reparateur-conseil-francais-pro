@@ -12,10 +12,11 @@ const AIPreDiagChatBox = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setTimeout(() => {
+    // Use requestAnimationFrame for smoother scrolling without setTimeout
+    requestAnimationFrame(() => {
       if (scrollRef.current)
         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }, 10);
+    });
   }, [messages]);
 
   const handleSend = async () => {

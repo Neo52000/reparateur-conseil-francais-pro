@@ -104,11 +104,9 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess }) => {
         if (onSuccess) {
           onSuccess();
         } else {
-          // Attendre un peu pour que l'auth state se mette à jour
-          setTimeout(() => {
-            console.log('🔄 Redirecting to repairer space after signup...');
-            navigate('/repairer', { replace: true });
-          }, 1000);
+          // Immediate redirect using navigation
+          console.log('🔄 Redirecting to repairer space after signup...');
+          navigate('/repairer', { replace: true });
         }
       }
     } catch (error: any) {

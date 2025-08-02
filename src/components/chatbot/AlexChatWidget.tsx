@@ -136,22 +136,20 @@ const AlexChatWidget: React.FC = () => {
 
       if (error) throw error;
 
-      // Délai d'attente réaliste pour Alex
-      setTimeout(() => {
-        setIsTyping(false);
-        
-        const alexResponse: Message = {
-          id: `alex-${Date.now()}`,
-          content: data.response,
-          sender: 'alex',
-          timestamp: new Date(),
-          suggestions: data.suggestions,
-          emotion: data.emotion || 'happy'
-        };
+      // Immediate Alex response - connect to real AI service
+      setIsTyping(false);
+      
+      const alexResponse: Message = {
+        id: `alex-${Date.now()}`,
+        content: data.response,
+        sender: 'alex',
+        timestamp: new Date(),
+        suggestions: data.suggestions,
+        emotion: data.emotion || 'happy'
+      };
 
-        setMessages(prev => [...prev, alexResponse]);
-        setIsLoading(false);
-      }, 1000 + Math.random() * 1500); // Entre 1 et 2.5 secondes
+      setMessages(prev => [...prev, alexResponse]);
+      setIsLoading(false);
 
     } catch (error) {
       console.error('Erreur Alex Chatbot:', error);

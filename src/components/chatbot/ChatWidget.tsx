@@ -149,26 +149,22 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ onClose }) => {
 
       if (error) throw error;
 
-      // Délai de réflexion plus naturel (1-3 secondes)
-      const thinkingDelay = 1000 + Math.random() * 2000;
+      // Immediate bot response - no artificial delay
+      setIsTyping(false);
+      const enhancedResponse = getEmotionalResponse(data.response, data);
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: enhancedResponse,
+        sender_type: 'bot',
+        timestamp: new Date(),
+        suggestions: data.suggestions,
+        actions: data.actions
+      };
+      setMessages(prev => [...prev, botMessage]);
+      setIsLoading(false);
       
-      setTimeout(() => {
-        setIsTyping(false);
-        const enhancedResponse = getEmotionalResponse(data.response, data);
-        const botMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          content: enhancedResponse,
-          sender_type: 'bot',
-          timestamp: new Date(),
-          suggestions: data.suggestions,
-          actions: data.actions
-        };
-        setMessages(prev => [...prev, botMessage]);
-        setIsLoading(false);
-        
-        // Mettre à jour l'état émotionnel avec la réponse du bot
-        updateEmotionalState(enhancedResponse, 'bot', data);
-      }, thinkingDelay);
+      // Mettre à jour l'état émotionnel avec la réponse du bot
+      updateEmotionalState(enhancedResponse, 'bot', data);
     } catch (error) {
       setIsTyping(false);
       setIsLoading(false);

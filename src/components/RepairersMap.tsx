@@ -37,11 +37,8 @@ const RepairersMap: React.FC<RepairersMapProps> = ({ searchFilters }) => {
   // Handle automatic location detection
   useEffect(() => {
     if (!userLocation) {
-      const timer = setTimeout(() => {
-        getLocationAutomatically();
-      }, 1000);
-      
-      return () => clearTimeout(timer);
+      // Use immediate location request without artificial delay
+      getLocationAutomatically();
     }
   }, [userLocation, getLocationAutomatically]);
 

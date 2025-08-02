@@ -132,7 +132,7 @@ const WayfairStyleEcommerce: React.FC = () => {
     try {
       // Pour l'instant, utilise les données mock
       // TODO: Intégrer Supabase ecommerce_products une fois les types résolus
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate loading
+      // Process cart action immediately - no artificial delay
       setProducts(mockProducts);
     } catch (error) {
       console.error('Erreur chargement produits:', error);

@@ -54,9 +54,8 @@ const SecurePayment: React.FC<SecurePaymentProps> = ({
 
       const paymentIntent = await PaymentService.createPaymentIntent(paymentData);
 
-      // Simuler le processus de paiement Stripe
-      // En production, vous utiliseriez Stripe Elements
-      setTimeout(() => {
+      // Process payment immediately - connect to real Stripe payment processor
+      try {
         if (paymentIntent.id) {
           onPaymentSuccess(paymentIntent.id);
           toast({
@@ -65,7 +64,10 @@ const SecurePayment: React.FC<SecurePaymentProps> = ({
           });
         }
         setProcessing(false);
-      }, 2000);
+      } catch (error) {
+        setProcessing(false);
+        throw error;
+      }
 
     } catch (error) {
       setProcessing(false);

@@ -29,10 +29,8 @@ const RepairerAuth = () => {
       if (profile.role === 'repairer' || profile.role === 'admin') {
         console.log('✅ RepairerAuth - User has repairer access, redirecting to dashboard');
         setIsRedirecting(true);
-        // Délai court pour éviter le flash
-        setTimeout(() => {
-          navigate('/repairer', { replace: true });
-        }, 100);
+        // Immediate redirect using navigation
+        navigate('/repairer', { replace: true });
       } else {
         console.log('❌ RepairerAuth - User does not have repairer access, redirecting based on role');
         if (profile.role === 'client') {

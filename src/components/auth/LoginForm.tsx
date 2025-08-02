@@ -60,11 +60,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
         if (onSuccess) {
           onSuccess();
         } else {
-          // Attendre un peu pour que l'auth state se mette à jour
-          setTimeout(() => {
-            console.log('🔄 Redirecting to repairer space...');
-            navigate('/repairer', { replace: true });
-          }, 500);
+          // Immediate redirect using navigation
+          console.log('🔄 Redirecting to repairer space...');
+          navigate('/repairer', { replace: true });
         }
       }
     } catch (error: any) {

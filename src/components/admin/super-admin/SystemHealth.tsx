@@ -289,15 +289,22 @@ const SystemHealth: React.FC = () => {
         description: `Redémarrage du service ${serviceName}...`,
       });
 
-      // Attendre un peu puis remettre en marche
-      setTimeout(async () => {
+      // Restart service immediately
+      try {
         await updateServiceStatus(serviceName, 'running');
         
         toast({
           title: "Service redémarré",
           description: `${serviceName} a été redémarré avec succès`,
         });
-      }, 3000);
+      } catch (error) {
+        console.error('Service restart failed:', error);
+        toast({
+          title: "Erreur",
+          description: "Échec du redémarrage du service",
+          variant: "destructive"
+        });
+      }
 
     } catch (error: any) {
       console.error('Erreur lors du redémarrage:', error);

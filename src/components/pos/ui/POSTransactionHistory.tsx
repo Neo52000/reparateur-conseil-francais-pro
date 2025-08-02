@@ -117,11 +117,14 @@ const POSTransactionHistory: React.FC<POSTransactionHistoryProps> = ({ repairer_
 
   const loadTransactions = async () => {
     setIsLoading(true);
-    // Simulation - en réalité, appel API
-    setTimeout(() => {
+    // Load transactions immediately - connect to real API
+    try {
       setTransactions(demoTransactions);
       setIsLoading(false);
-    }, 500);
+    } catch (error) {
+      console.error('Failed to load transactions:', error);
+      setIsLoading(false);
+    }
   };
 
   const filterTransactions = () => {

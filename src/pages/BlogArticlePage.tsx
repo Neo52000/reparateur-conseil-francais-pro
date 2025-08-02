@@ -54,18 +54,16 @@ const BlogArticlePage: React.FC = () => {
           setPost(postData);
           console.log('✅ Blog post loaded:', postData.title);
           
-          // Gamification: tracker la lecture d'article après 3 secondes
-          setTimeout(() => {
-            if (!hasAwarded) {
-              gamification.trackAction('article_read');
-              setHasAwarded(true);
-              toast({
-                title: "📖 Article lu !",
-                description: "+10 XP - Merci pour votre lecture",
-                duration: 3000,
-              });
-            }
-          }, 3000);
+          // Gamification: track article read immediately
+          if (!hasAwarded) {
+            gamification.trackAction('article_read');
+            setHasAwarded(true);
+            toast({
+              title: "📖 Article lu !",
+              description: "+10 XP - Merci pour votre lecture",
+              duration: 3000,
+            });
+          }
         } else {
           setNotFound(true);
           console.log('❌ Blog post not found for slug:', slug);
