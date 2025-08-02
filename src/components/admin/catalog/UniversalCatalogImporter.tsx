@@ -581,8 +581,8 @@ export const UniversalCatalogImporter: React.FC = () => {
               }
             }
             
-            // Small delay between batches to prevent overwhelming the database
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Use requestAnimationFrame for better performance
+            await new Promise(resolve => requestAnimationFrame(() => resolve(undefined)));
           }
           
           addLog(`✅ Import ${product.brand} terminé: ${product.models.length} modèles traités`);

@@ -92,8 +92,8 @@ const AIEnhancementSection: React.FC<AIEnhancementSectionProps> = ({
         description: `Processus d'amélioration ${enhancementType} démarré avec succès`
       });
 
-      // Recharger les stats après quelques secondes
-      setTimeout(loadEnhancementStats, 3000);
+      // Recharger les stats immédiatement
+      loadEnhancementStats();
     } catch (error: any) {
       console.error('Erreur lors du lancement de l\'amélioration:', error);
       toast({

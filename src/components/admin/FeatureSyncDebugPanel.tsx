@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { RefreshCw, Check, AlertTriangle, Clock } from 'lucide-react';
 import { useFeatureManagement } from '@/hooks/useFeatureManagement';
-
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const FeatureSyncDebugPanel: React.FC = () => {
   const { toast } = useToast();
@@ -24,8 +24,12 @@ const FeatureSyncDebugPanel: React.FC = () => {
   const forceSyncPricingAndFeatures = async () => {
     setSyncStatus('syncing');
     try {
-      // Simuler un délai de synchronisation
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Synchroniser via Supabase
+      const { error } = await supabase.functions.invoke('sync-features', {
+        body: { action: 'force_sync' }
+      });
+      
+      if (error) throw error;
       
       // Forcer un rechargement des données
       window.location.reload();

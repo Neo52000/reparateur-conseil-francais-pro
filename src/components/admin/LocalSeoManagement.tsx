@@ -188,7 +188,7 @@ const LocalSeoManagement = () => {
         try {
           await handleGenerateContent(city.city);
           successCount++;
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Pause entre les requêtes
+          await new Promise(resolve => requestAnimationFrame(() => resolve(undefined))); // Better than setTimeout
         } catch (error) {
           console.error(`Erreur génération ${city.city}:`, error);
         }
