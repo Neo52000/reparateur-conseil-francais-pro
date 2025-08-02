@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -592,25 +592,7 @@ const RealTimeQuotesManager: React.FC = () => {
     }
   };
 
-  // Grouper les réparateurs par département et ville
-  const groupedRepairers = availableRepairers.reduce((acc, repairer) => {
-    const department = repairer.postal_code ? repairer.postal_code.substring(0, 2) : '00';
-    const departmentName = getDepartmentName(department);
-    const key = `${department} - ${departmentName}`;
-    const city = repairer.city || 'Ville inconnue';
-    
-    if (!acc[key]) {
-      acc[key] = {};
-    }
-    if (!acc[key][city]) {
-      acc[key][city] = [];
-    }
-    
-    acc[key][city].push(repairer);
-    return acc;
-  }, {} as Record<string, Record<string, typeof availableRepairers>>);
-
-  // Helper function pour obtenir le nom du département
+  // Helper function pour obtenir le nom du département - définie avant utilisation
   const getDepartmentName = (code: string): string => {
     const departments: Record<string, string> = {
       '01': 'Ain', '02': 'Aisne', '03': 'Allier', '04': 'Alpes-de-Haute-Provence',
@@ -640,6 +622,26 @@ const RealTimeQuotesManager: React.FC = () => {
     };
     return departments[code] || 'Département inconnu';
   };
+
+  // Grouper les réparateurs par département et ville - optimisé avec useMemo
+  const groupedRepairers = React.useMemo(() => {
+    return availableRepairers.reduce((acc, repairer) => {
+      const department = repairer.postal_code ? repairer.postal_code.substring(0, 2) : '00';
+      const departmentName = getDepartmentName(department);
+      const key = `${department} - ${departmentName}`;
+      const city = repairer.city || 'Ville inconnue';
+      
+      if (!acc[key]) {
+        acc[key] = {};
+      }
+      if (!acc[key][city]) {
+        acc[key][city] = [];
+      }
+      
+      acc[key][city].push(repairer);
+      return acc;
+    }, {} as Record<string, Record<string, typeof availableRepairers>>);
+  }, [availableRepairers]);
 
   const assignRepairer = async () => {
     if (!selectedQuote || !selectedRepairer) {
