@@ -517,71 +517,65 @@ const RealTimeQuotesManager: React.FC = () => {
 
   const loadAvailableRepairers = async () => {
     try {
-      // First get all repairer profiles
+      console.log('Chargement des réparateurs disponibles...');
+      
+      // Récupérer d'abord tous les profils de réparateurs
       const { data: repairerProfiles, error: profilesError } = await supabase
         .from('repairer_profiles')
         .select('id, business_name, city, address, postal_code, phone, user_id');
 
       if (profilesError) {
         console.error('Erreur chargement profils réparateurs:', profilesError);
-        return;
+        throw profilesError;
       }
 
       if (!repairerProfiles || repairerProfiles.length === 0) {
+        console.log('Aucun profil de réparateur trouvé');
         setAvailableRepairers([]);
         return;
       }
 
-      // Get user profiles and subscriptions for each repairer
-      const repairersWithData = await Promise.all(
-        repairerProfiles.map(async (rep) => {
-          try {
-            // Get user profile
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('first_name, last_name, email')
-              .eq('id', rep.user_id)
-              .single();
+      // Récupérer tous les profils utilisateurs en une seule requête
+      const userIds = repairerProfiles.map(rep => rep.user_id);
+      const { data: userProfiles, error: usersError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .in('id', userIds);
 
-            // Get subscription info
-            const { data: subscriptionData } = await supabase
-              .from('repairer_subscriptions')
-              .select('subscription_tier, subscribed')
-              .eq('user_id', rep.user_id)
-              .eq('subscribed', true)
-              .maybeSingle();
+      if (usersError) {
+        console.error('Erreur chargement profils utilisateurs:', usersError);
+      }
 
-            // Skip if no profile data
-            if (!profileData) return null;
+      // Créer un map des profils utilisateurs pour un accès rapide
+      const userProfilesMap = new Map();
+      (userProfiles || []).forEach(profile => {
+        userProfilesMap.set(profile.id, profile);
+      });
 
-            // Use subscription data or default to free
-            const subscription_tier = subscriptionData?.subscription_tier || 'free';
-            const isPaid = ['basic', 'premium', 'enterprise'].includes(subscription_tier);
+      // Traiter les réparateurs avec les données disponibles
+      const processedRepairers = repairerProfiles
+        .map(rep => {
+          const userProfile = userProfilesMap.get(rep.user_id);
+          if (!userProfile) return null;
 
-            return {
-              id: rep.id,
-              name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim(),
-              business_name: rep.business_name,
-              city: rep.city,
-              address: rep.address,
-              postal_code: rep.postal_code,
-              phone: rep.phone,
-              email: profileData.email,
-              subscription_tier,
-              isPaid
-            };
-          } catch (error) {
-            console.error(`Erreur pour le réparateur ${rep.id}:`, error);
-            return null;
-          }
+          return {
+            id: rep.id,
+            name: `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Nom non renseigné',
+            business_name: rep.business_name || 'Entreprise non renseignée',
+            city: rep.city || 'Ville inconnue',
+            address: rep.address || 'Adresse non renseignée',
+            postal_code: rep.postal_code || '00000',
+            phone: rep.phone || 'Non renseigné',
+            email: userProfile.email,
+            subscription_tier: 'free', // Par défaut
+            isPaid: false // Par défaut
+          };
         })
-      );
+        .filter(Boolean); // Filtrer les null
 
-      // Filter out null results and update state
-      const validRepairers = repairersWithData.filter(Boolean);
-      setAvailableRepairers(validRepairers);
+      console.log('Réparateurs traités:', processedRepairers.length);
+      setAvailableRepairers(processedRepairers);
       
-      console.log('Réparateurs chargés:', validRepairers);
     } catch (error) {
       console.error('Erreur lors du chargement des réparateurs:', error);
       toast({
@@ -589,6 +583,7 @@ const RealTimeQuotesManager: React.FC = () => {
         description: "Impossible de charger les réparateurs",
         variant: "destructive",
       });
+      setAvailableRepairers([]);
     }
   };
 
@@ -644,6 +639,8 @@ const RealTimeQuotesManager: React.FC = () => {
   }, [availableRepairers]);
 
   const assignRepairer = async () => {
+    console.log('Tentative d\'assignation:', { selectedQuote: selectedQuote?.id, selectedRepairer });
+    
     if (!selectedQuote || !selectedRepairer) {
       toast({
         title: "Erreur",
@@ -654,6 +651,8 @@ const RealTimeQuotesManager: React.FC = () => {
     }
 
     try {
+      console.log('Mise à jour du devis:', selectedQuote.id, 'avec réparateur:', selectedRepairer);
+      
       // Mettre à jour le devis
       const { error: updateError } = await supabase
         .from('quotes_with_timeline')
@@ -664,37 +663,50 @@ const RealTimeQuotesManager: React.FC = () => {
         })
         .eq('id', selectedQuote.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Erreur mise à jour devis:', updateError);
+        throw updateError;
+      }
+
+      console.log('Devis mis à jour avec succès');
 
       // Enregistrer l'assignation dans la table admin_quote_assignments
+      const currentUser = await supabase.auth.getUser();
       const { error: assignError } = await supabase
         .from('admin_quote_assignments')
         .upsert({
           quote_id: selectedQuote.id,
           target_repairer_id: selectedRepairer,
           status: 'assigned',
-          notes: assignmentNote,
-          assigned_by: (await supabase.auth.getUser()).data.user?.id,
+          notes: assignmentNote || null,
+          assigned_by: currentUser.data.user?.id,
           assigned_at: new Date().toISOString()
         });
 
-      if (assignError) throw assignError;
+      if (assignError) {
+        console.error('Erreur enregistrement assignation:', assignError);
+        throw assignError;
+      }
+
+      console.log('Assignation enregistrée avec succès');
 
       toast({
         title: "Succès",
         description: "Réparateur assigné avec succès"
       });
 
+      // Fermer la modal et recharger
       setShowAssignmentModal(false);
       setSelectedRepairer('');
       setAssignmentNote('');
       setSelectedQuote(null);
       loadQuotes();
+      
     } catch (error) {
       console.error('Erreur lors de l\'assignation:', error);
       toast({
         title: "Erreur",
-        description: "Impossible d'assigner le réparateur",
+        description: `Impossible d'assigner le réparateur: ${error.message || 'Erreur inconnue'}`,
         variant: "destructive"
       });
     }
@@ -1283,6 +1295,14 @@ const RealTimeQuotesManager: React.FC = () => {
           </DialogHeader>
           
           <div className="space-y-4">
+            {/* Debug information */}
+            <div className="text-sm text-muted-foreground">
+              {availableRepairers.length} réparateur(s) disponible(s)
+              {availableRepairers.length === 0 && (
+                <span className="text-red-500"> - Aucun réparateur trouvé</span>
+              )}
+            </div>
+            
             {/* Sélection du réparateur par département */}
             <div>
               <label className="text-sm font-medium">Sélectionner un réparateur</label>
