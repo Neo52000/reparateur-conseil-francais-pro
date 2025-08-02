@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import AdminAuthFormContent from '@/components/admin/AdminAuthFormContent';
@@ -92,6 +92,18 @@ const AdminAuthForm = () => {
     }
   };
 
+  // Effect pour afficher un toast quand un utilisateur non-admin tente d'accéder
+  useEffect(() => {
+    if (user && !isAdmin && !authLoading) {
+      logger.debug('User connected but not admin - showing warning toast');
+      toast({
+        title: "Connexion admin requise",
+        description: "Veuillez vous connecter avec un compte administrateur",
+        variant: "destructive"
+      });
+    }
+  }, [user, isAdmin, authLoading, toast]);
+
   // Debug: Log de l'état actuel
   logger.debug('AdminAuthForm render state:', {
     hasUser: !!user,
@@ -101,17 +113,6 @@ const AdminAuthForm = () => {
     profileRole: profile?.role,
     profileEmail: profile?.email
   });
-
-  // Si utilisateur connecté mais pas admin, déconnecter et afficher le formulaire
-  if (user && !isAdmin && !authLoading) {
-    logger.debug('User connected but not admin - logging out and showing admin form');
-    // Notification immédiate pour les utilisateurs non-admin
-    toast({
-      title: "Connexion admin requise",
-      description: "Veuillez vous connecter avec un compte administrateur",
-      variant: "destructive"
-    });
-  }
 
   // Affichage du formulaire de connexion standard
   logger.debug('Showing login form');
