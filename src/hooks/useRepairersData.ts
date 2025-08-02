@@ -217,12 +217,8 @@ export const useRepairersData = () => {
       
       // Mapper les données avec gestion des plans spéciaux
       const mappedSubscriptions: SubscriptionData[] = (data || []).map(sub => {
-        // Gestion spéciale pour demo@demo.fr
+        // Mode production uniquement - tiers réels uniquement
         let actualTier = sub.subscription_tier || 'free';
-        if (sub.email === 'demo@demo.fr') {
-          actualTier = 'enterprise'; // Forcer enterprise pour le compte demo
-          console.log('🎯 useRepairersData - Setting demo@demo.fr to enterprise plan');
-        }
 
         return {
           id: sub.id,

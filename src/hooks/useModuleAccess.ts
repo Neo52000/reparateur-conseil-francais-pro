@@ -68,10 +68,7 @@ export const useModuleAccess = () => {
    * Vérifier si un module spécifique est actif
    */
   const hasModuleAccess = (moduleType: 'pos' | 'ecommerce'): boolean => {
-    // En mode démo, activer automatiquement tous les modules
-    if (user?.email === 'demo@demo.fr') {
-      return true;
-    }
+    // Mode production uniquement - vérification des abonnements réels
     
     const module = modules.find(m => 
       m.module_type === moduleType && 

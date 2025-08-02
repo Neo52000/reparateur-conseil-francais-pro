@@ -1,4 +1,4 @@
-import TestRepairerProfileButton from '@/components/TestRepairerProfileButton';
+// TestRepairerProfileButton supprimé - utilisation des données réelles
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
@@ -183,10 +183,10 @@ const Index = () => {
                   Consultez les avis clients et la réputation des réparateurs pour faire le meilleur choix.
                 </p>
                 <button 
-                  onClick={() => navigate('/reviews-demo')}
+                  onClick={() => navigate('/quotes-appointments')}
                   className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
                 >
-                  Voir la démo
+                  Découvrir
                 </button>
               </div>
 
@@ -215,7 +215,7 @@ const Index = () => {
                   Gestion avancée des disponibilités et réservation de créneaux en temps réel.
                 </p>
                 <button 
-                  onClick={() => navigate('/calendar-demo')}
+                  onClick={() => navigate('/quotes-appointments')}
                   className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
                 >
                   Explorer
@@ -249,8 +249,7 @@ const Index = () => {
         />
       )}
 
-      {/* Test button for profile pages */}
-      <TestRepairerProfileButton />
+      {/* TestRepairerProfileButton supprimé - production mode */}
     </div>
   );
 };
