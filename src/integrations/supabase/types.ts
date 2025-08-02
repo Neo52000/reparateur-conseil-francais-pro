@@ -1932,6 +1932,87 @@ export type Database = {
           },
         ]
       }
+      catalog_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_name: string
+          last_sync: string | null
+          price: number | null
+          repairer_id: string
+          sku: string | null
+          stock_quantity: number
+          sync_status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_name: string
+          last_sync?: string | null
+          price?: number | null
+          repairer_id: string
+          sku?: string | null
+          stock_quantity?: number
+          sync_status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_name?: string
+          last_sync?: string | null
+          price?: number | null
+          repairer_id?: string
+          sku?: string | null
+          stock_quantity?: number
+          sync_status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      catalog_sync_status: {
+        Row: {
+          auto_sync: boolean
+          created_at: string
+          error_items: number
+          id: string
+          last_sync: string | null
+          pending_items: number
+          repairer_id: string
+          sync_interval: number
+          synced_items: number
+          total_items: number
+          updated_at: string
+        }
+        Insert: {
+          auto_sync?: boolean
+          created_at?: string
+          error_items?: number
+          id?: string
+          last_sync?: string | null
+          pending_items?: number
+          repairer_id: string
+          sync_interval?: number
+          synced_items?: number
+          total_items?: number
+          updated_at?: string
+        }
+        Update: {
+          auto_sync?: boolean
+          created_at?: string
+          error_items?: number
+          id?: string
+          last_sync?: string | null
+          pending_items?: number
+          repairer_id?: string
+          sync_interval?: number
+          synced_items?: number
+          total_items?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           conversation_id: string
@@ -7903,6 +7984,42 @@ export type Database = {
         }
         Relationships: []
       }
+      recent_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          metadata: Json | null
+          repairer_id: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          metadata?: Json | null
+          repairer_id?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          metadata?: Json | null
+          repairer_id?: string | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           code: string
@@ -7930,6 +8047,57 @@ export type Database = {
           referrer_id?: string
           reward_claimed?: boolean | null
           status?: string | null
+        }
+        Relationships: []
+      }
+      relaunch_campaign_logs: {
+        Row: {
+          campaign_name: string
+          campaign_type: string
+          clicked_count: number | null
+          converted_count: number | null
+          created_at: string
+          emails_sent: number | null
+          id: string
+          next_execution: string | null
+          opened_count: number | null
+          repairer_id: string
+          sms_sent: number | null
+          status: string
+          trigger_event: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_name: string
+          campaign_type?: string
+          clicked_count?: number | null
+          converted_count?: number | null
+          created_at?: string
+          emails_sent?: number | null
+          id?: string
+          next_execution?: string | null
+          opened_count?: number | null
+          repairer_id: string
+          sms_sent?: number | null
+          status?: string
+          trigger_event: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_name?: string
+          campaign_type?: string
+          clicked_count?: number | null
+          converted_count?: number | null
+          created_at?: string
+          emails_sent?: number | null
+          id?: string
+          next_execution?: string | null
+          opened_count?: number | null
+          repairer_id?: string
+          sms_sent?: number | null
+          status?: string
+          trigger_event?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -10222,6 +10390,78 @@ export type Database = {
           resolved_by?: string | null
           sync_status?: string
           sync_type?: string
+        }
+        Relationships: []
+      }
+      system_cache_entries: {
+        Row: {
+          cache_key: string
+          created_at: string
+          hit_count: number
+          id: string
+          last_accessed: string
+          size_mb: number
+          ttl_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          hit_count?: number
+          id?: string
+          last_accessed?: string
+          size_mb?: number
+          ttl_seconds?: number
+          updated_at?: string
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          hit_count?: number
+          id?: string
+          last_accessed?: string
+          size_mb?: number
+          ttl_seconds?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      system_cache_stats: {
+        Row: {
+          active_keys: number
+          created_at: string
+          disk_usage_percent: number
+          hit_ratio: number
+          id: string
+          memory_usage_percent: number
+          miss_ratio: number
+          operations_per_second: number
+          total_size_mb: number
+          updated_at: string
+        }
+        Insert: {
+          active_keys?: number
+          created_at?: string
+          disk_usage_percent?: number
+          hit_ratio?: number
+          id?: string
+          memory_usage_percent?: number
+          miss_ratio?: number
+          operations_per_second?: number
+          total_size_mb?: number
+          updated_at?: string
+        }
+        Update: {
+          active_keys?: number
+          created_at?: string
+          disk_usage_percent?: number
+          hit_ratio?: number
+          id?: string
+          memory_usage_percent?: number
+          miss_ratio?: number
+          operations_per_second?: number
+          total_size_mb?: number
+          updated_at?: string
         }
         Relationships: []
       }

@@ -56,55 +56,30 @@ export const BusinessMetrics: React.FC = () => {
     }
   };
 
-  // Données simulées en attendant l'intégration réelle
-  const mockMetrics = [
+  // Utiliser les vraies données de la base ou des données par défaut
+  const displayMetrics = metrics.length > 0 ? metrics.map(metric => ({
+    id: metric.id,
+    metric_name: metric.metric_name,
+    metric_type: metric.metric_type || 'general',
+    current_value: metric.current_value || 0,
+    target_value: metric.target_value || 100,
+    threshold_warning: metric.threshold_warning || 50,
+    threshold_critical: metric.threshold_critical || 25,
+    unit: metric.unit || '',
+    trend: (metric.current_value && metric.target_value && metric.current_value > metric.target_value * 0.9) ? 'up' : 'down',
+    change: '+0%'
+  })) : [
     {
       id: '1',
-      metric_name: 'Chiffre d\'affaires mensuel',
-      metric_type: 'revenue',
-      current_value: 15420,
-      target_value: 18000,
-      threshold_warning: 12000,
-      threshold_critical: 8000,
-      unit: '€',
-      trend: 'up',
-      change: '+12.5%'
-    },
-    {
-      id: '2',
-      metric_name: 'Commandes du mois',
-      metric_type: 'orders',
-      current_value: 87,
+      metric_name: 'Métriques en cours de configuration',
+      metric_type: 'setup',
+      current_value: 0,
       target_value: 100,
-      threshold_warning: 70,
-      threshold_critical: 50,
-      unit: '',
-      trend: 'up',
-      change: '+8.7%'
-    },
-    {
-      id: '3',
-      metric_name: 'Satisfaction client',
-      metric_type: 'satisfaction',
-      current_value: 4.7,
-      target_value: 4.8,
-      threshold_warning: 4.0,
-      threshold_critical: 3.5,
-      unit: '/5',
-      trend: 'up',
-      change: '+0.2'
-    },
-    {
-      id: '4',
-      metric_name: 'Taux de conversion',
-      metric_type: 'conversion_rate',
-      current_value: 3.2,
-      target_value: 4.0,
-      threshold_warning: 2.5,
-      threshold_critical: 2.0,
+      threshold_warning: 50,
+      threshold_critical: 25,
       unit: '%',
-      trend: 'down',
-      change: '-0.3%'
+      trend: 'up',
+      change: '0%'
     }
   ];
 
@@ -175,7 +150,7 @@ export const BusinessMetrics: React.FC = () => {
 
       {/* Métriques principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {mockMetrics.map((metric) => (
+        {displayMetrics.map((metric) => (
           <Card key={metric.id}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{metric.metric_name}</CardTitle>
