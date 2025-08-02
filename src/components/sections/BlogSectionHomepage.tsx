@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Calendar, Eye, MessageCircle } from 'lucide-react';
+import { ArrowRight, Calendar, Eye, MessageCircle, BookOpen, Award, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useBlog } from '@/hooks/useBlog';
@@ -113,12 +113,37 @@ const BlogSectionHomepage: React.FC = () => {
     <section className="py-16 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Nos derniers conseils et actualités
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            Notre Blog - Le Doctolib de la Réparation
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Découvrez nos guides, astuces et actualités pour bien entretenir et réparer vos appareils
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
+            Guides pratiques, conseils d'experts et actualités pour faire les bons choix en matière de réparation
           </p>
+          
+          {/* Rubriques spécialisées */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="flex items-center justify-center p-4 bg-blue-50 rounded-lg border border-blue-100">
+              <BookOpen className="h-6 w-6 text-blue-600 mr-3" />
+              <div className="text-left">
+                <h3 className="font-semibold text-gray-900">Réparer ou jeter ?</h3>
+                <p className="text-sm text-gray-600">Guides de décision</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-center p-4 bg-green-50 rounded-lg border border-green-100">
+              <Award className="h-6 w-6 text-green-600 mr-3" />
+              <div className="text-left">
+                <h3 className="font-semibold text-gray-900">Trouver un réparateur</h3>
+                <p className="text-sm text-gray-600">Conseils de sélection</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-center p-4 bg-purple-50 rounded-lg border border-purple-100">
+              <TrendingUp className="h-6 w-6 text-purple-600 mr-3" />
+              <div className="text-left">
+                <h3 className="font-semibold text-gray-900">Bonus ADEME</h3>
+                <p className="text-sm text-gray-600">Mode d'emploi</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
@@ -182,10 +207,24 @@ const BlogSectionHomepage: React.FC = () => {
         </div>
 
         <div className="text-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 max-w-md mx-auto">
+            <Link to="/blog-client">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white w-full">
+                <BookOpen className="mr-2 h-4 w-4" />
+                Blog Particuliers
+              </Button>
+            </Link>
+            <Link to="/blog-repairer">
+              <Button size="lg" variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50 w-full">
+                <Award className="mr-2 h-4 w-4" />
+                Blog Réparateurs
+              </Button>
+            </Link>
+          </div>
           <Link to="/blog">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3">
+            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-blue-600">
               Voir tous les articles
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         </div>

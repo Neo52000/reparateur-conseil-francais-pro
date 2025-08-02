@@ -1,9 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, Calendar, Eye, MessageCircle, User } from 'lucide-react';
+import { ArrowLeft, Calendar, Eye, MessageCircle, User, Share2, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { useGamification } from '@/hooks/useGamification';
+import { useToast } from '@/hooks/use-toast';
 import { useBlog } from '@/hooks/useBlog';
 import { BlogPost } from '@/types/blog';
 import { format } from 'date-fns';
@@ -14,8 +17,11 @@ const BlogArticlePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const location = useLocation();
   const { fetchPostBySlug, loading } = useBlog();
+  const gamification = useGamification();
+  const { toast } = useToast();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [hasAwarded, setHasAwarded] = useState(false);
 
   // Déterminer si on vient du blog réparateurs
   const isFromRepairersBlog = location.pathname.includes('/blog/repairers') || 
@@ -47,6 +53,19 @@ const BlogArticlePage: React.FC = () => {
         if (postData) {
           setPost(postData);
           console.log('✅ Blog post loaded:', postData.title);
+          
+          // Gamification: tracker la lecture d'article après 3 secondes
+          setTimeout(() => {
+            if (!hasAwarded) {
+              gamification.trackAction('article_read');
+              setHasAwarded(true);
+              toast({
+                title: "📖 Article lu !",
+                description: "+10 XP - Merci pour votre lecture",
+                duration: 3000,
+              });
+            }
+          }, 3000);
         } else {
           setNotFound(true);
           console.log('❌ Blog post not found for slug:', slug);

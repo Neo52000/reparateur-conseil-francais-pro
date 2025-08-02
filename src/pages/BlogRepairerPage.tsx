@@ -1,16 +1,22 @@
 
 import React, { useState, useEffect } from 'react';
 import { useBlog } from '@/hooks/useBlog';
+import { useGamification } from '@/hooks/useGamification';
 import { BlogPost } from '@/types/blog';
 import BlogPostCard from '@/components/blog/BlogPostCard';
 import BlogLayout from '@/components/blog/BlogLayout';
+import ProgressBar from '@/components/gamification/ProgressBar';
 
 const BlogRepairerPage: React.FC = () => {
   const { fetchPosts, loading } = useBlog();
+  const gamification = useGamification();
   const [posts, setPosts] = useState<BlogPost[]>([]);
 
   useEffect(() => {
     loadPosts();
+    // Tracker l'activité de visite du blog réparateurs
+    gamification.updateStreak();
+    gamification.trackAction('blog_category_discovered', { category: 'repairers' });
   }, []);
 
   const loadPosts = async () => {
@@ -28,6 +34,18 @@ const BlogRepairerPage: React.FC = () => {
       backButtonUrl="/repairer"
       backButtonText="Retour à l'espace réparateur"
     >
+      {/* Barre de progression gamification */}
+      {!gamification.loading && (
+        <div className="mb-8">
+          <ProgressBar
+            currentLevel={gamification.level}
+            currentXP={gamification.currentXP}
+            nextLevelXP={gamification.nextLevelXP}
+            totalXP={gamification.totalXP}
+          />
+        </div>
+      )}
+      
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {[...Array(6)].map((_, i) => (
