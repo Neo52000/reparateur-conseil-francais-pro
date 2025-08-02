@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Calendar, User, Smartphone, Search, Eye, Filter, Edit3, UserCheck } from 'lucide-react';
+import { Calendar, User, Smartphone, Search, Eye, Filter, Edit3, UserCheck, MapPin, Star } from 'lucide-react';
 
 interface Quote {
   id: string;
@@ -394,21 +394,38 @@ const AllQuotesManager: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Attribution */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-gray-900">Attribution</h4>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openAssignmentDialog(quote)}
-                        className="h-7 px-2"
-                      >
-                        <Edit3 className="h-3 w-3 mr-1" />
-                        Modifier
-                      </Button>
+                  {/* Actions et Attribution */}
+                  <div className="space-y-4">
+                    {/* Actions visibles */}
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Actions</h4>
+                      <div className="flex gap-2">
+                        {quote.repairer_id ? (
+                          <Button
+                            onClick={() => openAssignmentDialog(quote)}
+                            size="sm"
+                            className="bg-orange-600 hover:bg-orange-700 text-white"
+                          >
+                            <UserCheck className="h-4 w-4 mr-1" />
+                            Réassigner
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={() => openAssignmentDialog(quote)}
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <UserCheck className="h-4 w-4 mr-1" />
+                            Attribuer
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <div className="space-y-2">
+
+                    {/* Statut d'attribution */}
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-2">Statut</h4>
+                      <div className="space-y-2">
                       {getStatusBadge(quote.assignment_status)}
                       {quote.repairer_business_name ? (
                         <div className="space-y-1">
@@ -427,6 +444,7 @@ const AllQuotesManager: React.FC = () => {
                       ) : (
                         <p className="text-sm text-gray-500">Aucun réparateur attribué</p>
                       )}
+                      </div>
                     </div>
                   </div>
 
@@ -471,37 +489,69 @@ const AllQuotesManager: React.FC = () => {
                 </div>
               </div>
 
-              {/* Sélection du réparateur */}
+              {/* Sélection du réparateur avec filtre */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Attribuer à un réparateur
+                  Attribuer à un réparateur ({repairers.length} disponibles)
                 </label>
                 <Select value={selectedRepairer} onValueChange={setSelectedRepairer}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-auto">
                     <SelectValue placeholder="Sélectionner un réparateur" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Aucun réparateur</SelectItem>
+                  <SelectContent className="max-h-64">
                     {repairers.map((repairer) => (
-                      <SelectItem key={repairer.id} value={repairer.id}>
-                        <div className="flex items-center justify-between w-full">
-                          <span>{repairer.business_name}</span>
-                          <div className="flex items-center gap-2 ml-2">
-                            <Badge className={
-                              repairer.subscription_tier === 'enterprise' ? 'bg-yellow-100 text-yellow-800' :
-                              repairer.subscription_tier === 'premium' ? 'bg-purple-100 text-purple-800' :
-                              repairer.subscription_tier === 'basic' ? 'bg-blue-100 text-blue-800' :
-                              'bg-gray-100 text-gray-800'
-                            }>
+                      <SelectItem key={repairer.id} value={repairer.id} className="py-3">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">{repairer.business_name}</span>
+                            <Badge 
+                              className={
+                                repairer.subscription_tier === 'enterprise' ? 'bg-yellow-100 text-yellow-800' :
+                                repairer.subscription_tier === 'premium' ? 'bg-purple-100 text-purple-800' :
+                                repairer.subscription_tier === 'basic' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                              }
+                            >
                               {repairer.subscription_tier}
                             </Badge>
-                            <span className="text-xs text-gray-500">{repairer.city}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <MapPin className="h-3 w-3" />
+                            {repairer.city}
                           </div>
                         </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                
+                {/* Aide à la sélection */}
+                <div className="mt-3 grid grid-cols-4 gap-2 text-xs">
+                  <div className="bg-yellow-50 p-2 rounded border text-center">
+                    <div className="font-medium text-yellow-800">Enterprise</div>
+                    <div className="text-yellow-600">
+                      {repairers.filter(r => r.subscription_tier === 'enterprise').length}
+                    </div>
+                  </div>
+                  <div className="bg-purple-50 p-2 rounded border text-center">
+                    <div className="font-medium text-purple-800">Premium</div>
+                    <div className="text-purple-600">
+                      {repairers.filter(r => r.subscription_tier === 'premium').length}
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 p-2 rounded border text-center">
+                    <div className="font-medium text-blue-800">Basic</div>
+                    <div className="text-blue-600">
+                      {repairers.filter(r => r.subscription_tier === 'basic').length}
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 p-2 rounded border text-center">
+                    <div className="font-medium text-gray-800">Gratuit</div>
+                    <div className="text-gray-600">
+                      {repairers.filter(r => r.subscription_tier === 'free').length}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Notes */}
