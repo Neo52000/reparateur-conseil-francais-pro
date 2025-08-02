@@ -111,7 +111,7 @@ const ClientEnhancedDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="favorites" className="mt-6">
-            <ClientFavoritesTab favorites={clientData.favorites} />
+            <ClientFavoritesTab />
           </TabsContent>
         </Tabs>
       </div>

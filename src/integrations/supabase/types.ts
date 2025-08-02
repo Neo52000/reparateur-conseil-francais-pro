@@ -2509,6 +2509,35 @@ export type Database = {
         }
         Relationships: []
       }
+      client_favorites: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          repairer_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          repairer_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          repairer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_favorites_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_interest_requests: {
         Row: {
           approved_at: string | null

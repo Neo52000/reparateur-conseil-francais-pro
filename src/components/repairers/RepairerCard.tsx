@@ -2,10 +2,11 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Phone, Star, Shield } from 'lucide-react';
+import { MapPin, Phone, Star, Shield, Heart } from 'lucide-react';
 import { Repairer } from '@/types/repairer';
 import { generateRepairerProfilePath } from '@/utils/profileUtils';
 import { useNavigate } from 'react-router-dom';
+import { useFavorites } from '@/hooks/useFavorites';
 
 interface RepairerCardProps {
   repairer: Repairer;
@@ -19,6 +20,7 @@ const RepairerCard: React.FC<RepairerCardProps> = ({
   onCall 
 }) => {
   const navigate = useNavigate();
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
   
   const handleCall = () => {
     if (repairer.phone) {
@@ -28,6 +30,14 @@ const RepairerCard: React.FC<RepairerCardProps> = ({
 
   const handleViewProfile = () => {
     navigate(generateRepairerProfilePath(repairer.id, repairer.business_name));
+  };
+
+  const handleToggleFavorite = () => {
+    if (isFavorite(repairer.id)) {
+      removeFromFavorites(repairer.id);
+    } else {
+      addToFavorites(repairer.id);
+    }
   };
 
   return (
@@ -92,6 +102,19 @@ const RepairerCard: React.FC<RepairerCardProps> = ({
         >
           <Phone className="h-4 w-4 mr-2" />
           Appeler
+        </Button>
+
+        <Button 
+          onClick={handleToggleFavorite}
+          variant="outline"
+          className={isFavorite(repairer.id) 
+            ? "border-red-200 text-red-700 hover:bg-red-50" 
+            : "border-gray-200 text-gray-700 hover:bg-gray-50"
+          }
+          size="sm"
+        >
+          <Heart className={`h-4 w-4 mr-1 ${isFavorite(repairer.id) ? 'fill-current' : ''}`} />
+          {isFavorite(repairer.id) ? 'Retirer' : 'Favori'}
         </Button>
       </div>
     </div>
