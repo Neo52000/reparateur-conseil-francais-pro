@@ -8,6 +8,8 @@ import RepairTracking from '@/components/RepairTracking';
 import PriceComparator from '@/components/PriceComparator';
 import AdvancedSearch from '@/components/AdvancedSearch';
 import QuoteManagement from '@/components/quotes/QuoteManagement';
+import { QuoteRequestForm } from '@/components/quotes/QuoteRequestForm';
+import ConversationView from '@/components/quotes/ConversationView';
 
 const QuotesAndAppointments = () => {
   const [selectedQuoteId, setSelectedQuoteId] = useState<string>('');
@@ -24,9 +26,11 @@ const QuotesAndAppointments = () => {
         </div>
 
         <Tabs defaultValue="quote" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8 text-xs">
+          <TabsList className="grid w-full grid-cols-10 text-xs">
             <TabsTrigger value="quote">Devis Simple</TabsTrigger>
             <TabsTrigger value="ai-quote">Devis IA</TabsTrigger>
+            <TabsTrigger value="request">Demande</TabsTrigger>
+            <TabsTrigger value="conversation">Messages</TabsTrigger>
             <TabsTrigger value="appointment">RDV</TabsTrigger>
             <TabsTrigger value="pricing">Tarifs</TabsTrigger>
             <TabsTrigger value="comparator">Comparateur</TabsTrigger>
@@ -41,6 +45,17 @@ const QuotesAndAppointments = () => {
 
           <TabsContent value="ai-quote">
             <QuoteManagement repairerId="demo-repairer" />
+          </TabsContent>
+
+          <TabsContent value="request">
+            <QuoteRequestForm 
+              repairerId="demo-repairer"
+              repairerName="TechRepair Pro"
+            />
+          </TabsContent>
+
+          <TabsContent value="conversation">
+            <ConversationView conversationId="demo-conversation" />
           </TabsContent>
 
           <TabsContent value="appointment">
