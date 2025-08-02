@@ -43,6 +43,7 @@ import { EnhancedPlanVisualizationTester } from '@/components/admin/plans/Enhanc
 import { EnhancedDashboardTester } from '@/components/admin/dashboard/EnhancedDashboardTester';
 import { EnhancedPOSTester } from '@/components/admin/pos/EnhancedPOSTester';
 import { EnhancedEcommerceTester } from '@/components/admin/ecommerce/EnhancedEcommerceTester';
+import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizationPanel';
 
 const AdminPage = () => {
   const {
