@@ -23,7 +23,10 @@ import {
   RefreshCw,
   UserCheck,
   Calendar,
-  MapPin
+  MapPin,
+  Edit,
+  UserPlus,
+  Users
 } from 'lucide-react';
 import { format, differenceInHours } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -108,6 +111,10 @@ const RealTimeQuotesManager: React.FC = () => {
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const [customMessage, setCustomMessage] = useState('');
   const [realTimeEnabled, setRealTimeEnabled] = useState(true);
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [availableRepairers, setAvailableRepairers] = useState<any[]>([]);
+  const [assignmentNote, setAssignmentNote] = useState('');
+  const [selectedRepairer, setSelectedRepairer] = useState<string>('');
   
   const { toast } = useToast();
 
@@ -504,6 +511,111 @@ const RealTimeQuotesManager: React.FC = () => {
     const template = templates.find(t => t.id === templateId);
     if (template) {
       setCustomMessage(template.content);
+    }
+  };
+
+  const loadAvailableRepairers = async () => {
+    try {
+      // First get all repairer profiles
+      const { data: repairerProfiles, error: profilesError } = await supabase
+        .from('repairer_profiles')
+        .select('id, business_name, city, user_id');
+
+      if (profilesError) throw profilesError;
+
+      // Then get profiles and subscriptions for each repairer
+      const enrichedRepairers = await Promise.all(
+        (repairerProfiles || []).map(async (rep) => {
+          // Get profile info
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, email')
+            .eq('id', rep.user_id)
+            .single();
+
+          // Get subscription info
+          const { data: subscriptionData } = await supabase
+            .from('repairer_subscriptions')
+            .select('subscription_tier, subscribed')
+            .eq('user_id', rep.user_id)
+            .eq('subscribed', true)
+            .single();
+
+          // Only include repairers with active subscriptions
+          if (!subscriptionData || !profileData) return null;
+
+          return {
+            id: rep.id,
+            name: `${profileData.first_name} ${profileData.last_name}`,
+            business_name: rep.business_name,
+            city: rep.city,
+            email: profileData.email,
+            subscription_tier: subscriptionData.subscription_tier,
+            isPaid: ['basic', 'premium', 'enterprise'].includes(subscriptionData.subscription_tier)
+          };
+        })
+      );
+
+      setAvailableRepairers(enrichedRepairers.filter(Boolean));
+    } catch (error) {
+      console.error('Erreur lors du chargement des réparateurs:', error);
+    }
+  };
+
+  const assignRepairer = async () => {
+    if (!selectedQuote || !selectedRepairer) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un réparateur",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Mettre à jour le devis
+      const { error: updateError } = await supabase
+        .from('quotes_with_timeline')
+        .update({
+          repairer_id: selectedRepairer,
+          assignment_status: 'admin_assigned',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedQuote.id);
+
+      if (updateError) throw updateError;
+
+      // Enregistrer l'assignation dans la table admin_quote_assignments
+      const { error: assignError } = await supabase
+        .from('admin_quote_assignments')
+        .upsert({
+          quote_id: selectedQuote.id,
+          target_repairer_id: selectedRepairer,
+          status: 'assigned',
+          notes: assignmentNote,
+          assigned_by: (await supabase.auth.getUser()).data.user?.id,
+          assigned_at: new Date().toISOString()
+        });
+
+      if (assignError) throw assignError;
+
+      toast({
+        title: "Succès",
+        description: "Réparateur assigné avec succès"
+      });
+
+      setShowAssignmentModal(false);
+      setSelectedRepairer('');
+      setAssignmentNote('');
+      setSelectedQuote(null);
+      loadQuotes();
+    } catch (error) {
+      console.error('Erreur lors de l\'assignation:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'assigner le réparateur",
+        variant: "destructive"
+      });
     }
   };
 
@@ -980,25 +1092,65 @@ const RealTimeQuotesManager: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Informations réparateur</h3>
-                <div className="space-y-2">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Nom</label>
-                    <p>{selectedQuote.repairer_name}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Entreprise</label>
-                    <p>{selectedQuote.repairer_business_name}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Email</label>
-                    <p>{selectedQuote.repairer_email || 'Non renseigné'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">Ville</label>
-                    <p>{selectedQuote.repairer_city || 'Non renseigné'}</p>
-                  </div>
+                <div className="flex justify-between items-center">
+                  <h3 className="font-semibold text-lg">Informations réparateur</h3>
+                  {selectedQuote.repairer_id ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        loadAvailableRepairers();
+                        setShowAssignmentModal(true);
+                      }}
+                      className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Réassigner
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        loadAvailableRepairers();
+                        setShowAssignmentModal(true);
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <UserPlus className="h-4 w-4 mr-1" />
+                      Assigner
+                    </Button>
+                  )}
                 </div>
+
+                {selectedQuote.repairer_id ? (
+                  <div className="border rounded-lg p-4">
+                    <div className="space-y-2">
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Nom</label>
+                        <p>{selectedQuote.repairer_name}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Entreprise</label>
+                        <p>{selectedQuote.repairer_business_name}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Email</label>
+                        <p>{selectedQuote.repairer_email || 'Non renseigné'}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Ville</label>
+                        <p>{selectedQuote.repairer_city || 'Non renseigné'}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border rounded-lg p-4 border-orange-200 bg-orange-50">
+                    <p className="text-sm text-orange-600 flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4" />
+                      Aucun réparateur assigné
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="col-span-2 space-y-4">
@@ -1038,6 +1190,109 @@ const RealTimeQuotesManager: React.FC = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Modal d'assignation de réparateur */}
+      <Dialog open={showAssignmentModal} onOpenChange={setShowAssignmentModal}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              {selectedQuote?.repairer_id ? 'Réassigner' : 'Assigner'} un réparateur
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
+              {availableRepairers.length === 0 ? (
+                <p className="text-center text-muted-foreground py-4">
+                  Aucun réparateur disponible
+                </p>
+              ) : (
+                availableRepairers.map((repairer) => (
+                  <div
+                    key={repairer.id}
+                    className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                      selectedRepairer === repairer.id
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => setSelectedRepairer(repairer.id)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium">{repairer.name}</h4>
+                          <Badge
+                            variant={repairer.isPaid ? "default" : "secondary"}
+                            className={repairer.isPaid ? "bg-green-100 text-green-800" : ""}
+                          >
+                            {repairer.subscription_tier === 'free' ? 'Gratuit' :
+                             repairer.subscription_tier === 'basic' ? 'Basic' :
+                             repairer.subscription_tier === 'premium' ? 'Premium' :
+                             repairer.subscription_tier === 'enterprise' ? 'Enterprise' :
+                             repairer.subscription_tier}
+                          </Badge>
+                        </div>
+                        
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {repairer.business_name}
+                        </p>
+                        
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {repairer.city}
+                          </span>
+                          <span>{repairer.email}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        {repairer.isPaid && (
+                          <Badge variant="outline" className="text-green-600 border-green-300">
+                            Abonnement payant
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Note d'assignation (optionnel)</label>
+              <Textarea
+                value={assignmentNote}
+                onChange={(e) => setAssignmentNote(e.target.value)}
+                placeholder="Ajouter une note sur cette assignation..."
+                rows={3}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowAssignmentModal(false);
+                  setSelectedRepairer('');
+                  setAssignmentNote('');
+                }}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={assignRepairer}
+                disabled={!selectedRepairer}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <UserCheck className="h-4 w-4 mr-2" />
+                {selectedQuote?.repairer_id ? 'Réassigner' : 'Assigner'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
