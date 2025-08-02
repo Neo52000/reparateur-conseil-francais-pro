@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel, SelectSeparator } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,7 +26,8 @@ import {
   MapPin,
   Edit,
   UserPlus,
-  Users
+  Users,
+  Crown
 } from 'lucide-react';
 import { format, differenceInHours } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -516,10 +517,10 @@ const RealTimeQuotesManager: React.FC = () => {
 
   const loadAvailableRepairers = async () => {
     try {
-      // First get all repairer profiles
+      // First get all repairer profiles with more info
       const { data: repairerProfiles, error: profilesError } = await supabase
         .from('repairer_profiles')
-        .select('id, business_name, city, user_id');
+        .select('id, business_name, city, user_id, address, postal_code, phone');
 
       if (profilesError) throw profilesError;
 
@@ -549,6 +550,9 @@ const RealTimeQuotesManager: React.FC = () => {
             name: `${profileData.first_name} ${profileData.last_name}`,
             business_name: rep.business_name,
             city: rep.city,
+            address: rep.address,
+            postal_code: rep.postal_code,
+            phone: rep.phone,
             email: profileData.email,
             subscription_tier: subscriptionData.subscription_tier,
             isPaid: ['basic', 'premium', 'enterprise'].includes(subscriptionData.subscription_tier)
@@ -560,6 +564,55 @@ const RealTimeQuotesManager: React.FC = () => {
     } catch (error) {
       console.error('Erreur lors du chargement des réparateurs:', error);
     }
+  };
+
+  // Grouper les réparateurs par département et ville
+  const groupedRepairers = availableRepairers.reduce((acc, repairer) => {
+    const department = repairer.postal_code ? repairer.postal_code.substring(0, 2) : '00';
+    const departmentName = getDepartmentName(department);
+    const key = `${department} - ${departmentName}`;
+    const city = repairer.city || 'Ville inconnue';
+    
+    if (!acc[key]) {
+      acc[key] = {};
+    }
+    if (!acc[key][city]) {
+      acc[key][city] = [];
+    }
+    
+    acc[key][city].push(repairer);
+    return acc;
+  }, {} as Record<string, Record<string, typeof availableRepairers>>);
+
+  // Helper function pour obtenir le nom du département
+  const getDepartmentName = (code: string): string => {
+    const departments: Record<string, string> = {
+      '01': 'Ain', '02': 'Aisne', '03': 'Allier', '04': 'Alpes-de-Haute-Provence',
+      '05': 'Hautes-Alpes', '06': 'Alpes-Maritimes', '07': 'Ardèche', '08': 'Ardennes',
+      '09': 'Ariège', '10': 'Aube', '11': 'Aude', '12': 'Aveyron', '13': 'Bouches-du-Rhône',
+      '14': 'Calvados', '15': 'Cantal', '16': 'Charente', '17': 'Charente-Maritime',
+      '18': 'Cher', '19': 'Corrèze', '21': 'Côte-d\'Or', '22': 'Côtes-d\'Armor',
+      '23': 'Creuse', '24': 'Dordogne', '25': 'Doubs', '26': 'Drôme', '27': 'Eure',
+      '28': 'Eure-et-Loir', '29': 'Finistère', '30': 'Gard', '31': 'Haute-Garonne',
+      '32': 'Gers', '33': 'Gironde', '34': 'Hérault', '35': 'Ille-et-Vilaine',
+      '36': 'Indre', '37': 'Indre-et-Loire', '38': 'Isère', '39': 'Jura',
+      '40': 'Landes', '41': 'Loir-et-Cher', '42': 'Loire', '43': 'Haute-Loire',
+      '44': 'Loire-Atlantique', '45': 'Loiret', '46': 'Lot', '47': 'Lot-et-Garonne',
+      '48': 'Lozère', '49': 'Maine-et-Loire', '50': 'Manche', '51': 'Marne',
+      '52': 'Haute-Marne', '53': 'Mayenne', '54': 'Meurthe-et-Moselle', '55': 'Meuse',
+      '56': 'Morbihan', '57': 'Moselle', '58': 'Nièvre', '59': 'Nord',
+      '60': 'Oise', '61': 'Orne', '62': 'Pas-de-Calais', '63': 'Puy-de-Dôme',
+      '64': 'Pyrénées-Atlantiques', '65': 'Hautes-Pyrénées', '66': 'Pyrénées-Orientales',
+      '67': 'Bas-Rhin', '68': 'Haut-Rhin', '69': 'Rhône', '70': 'Haute-Saône',
+      '71': 'Saône-et-Loire', '72': 'Sarthe', '73': 'Savoie', '74': 'Haute-Savoie',
+      '75': 'Paris', '76': 'Seine-Maritime', '77': 'Seine-et-Marne', '78': 'Yvelines',
+      '79': 'Deux-Sèvres', '80': 'Somme', '81': 'Tarn', '82': 'Tarn-et-Garonne',
+      '83': 'Var', '84': 'Vaucluse', '85': 'Vendée', '86': 'Vienne',
+      '87': 'Haute-Vienne', '88': 'Vosges', '89': 'Yonne', '90': 'Territoire de Belfort',
+      '91': 'Essonne', '92': 'Hauts-de-Seine', '93': 'Seine-Saint-Denis', '94': 'Val-de-Marne',
+      '95': 'Val-d\'Oise'
+    };
+    return departments[code] || 'Département inconnu';
   };
 
   const assignRepairer = async () => {
@@ -1202,63 +1255,114 @@ const RealTimeQuotesManager: React.FC = () => {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 max-h-96 overflow-y-auto">
-              {availableRepairers.length === 0 ? (
-                <p className="text-center text-muted-foreground py-4">
-                  Aucun réparateur disponible
-                </p>
-              ) : (
-                availableRepairers.map((repairer) => (
-                  <div
-                    key={repairer.id}
-                    className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                      selectedRepairer === repairer.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => setSelectedRepairer(repairer.id)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium">{repairer.name}</h4>
-                          <Badge
-                            variant={repairer.isPaid ? "default" : "secondary"}
-                            className={repairer.isPaid ? "bg-green-100 text-green-800" : ""}
-                          >
-                            {repairer.subscription_tier === 'free' ? 'Gratuit' :
-                             repairer.subscription_tier === 'basic' ? 'Basic' :
-                             repairer.subscription_tier === 'premium' ? 'Premium' :
-                             repairer.subscription_tier === 'enterprise' ? 'Enterprise' :
-                             repairer.subscription_tier}
-                          </Badge>
-                        </div>
-                        
-                        <p className="text-sm text-muted-foreground mb-1">
-                          {repairer.business_name}
-                        </p>
-                        
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {repairer.city}
-                          </span>
-                          <span>{repairer.email}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center">
-                        {repairer.isPaid && (
-                          <Badge variant="outline" className="text-green-600 border-green-300">
-                            Abonnement payant
-                          </Badge>
+            {/* Sélection du réparateur par département */}
+            <div>
+              <label className="text-sm font-medium">Sélectionner un réparateur</label>
+              <Select value={selectedRepairer} onValueChange={setSelectedRepairer}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un réparateur par département..." />
+                </SelectTrigger>
+                <SelectContent className="max-h-96">
+                  {Object.entries(groupedRepairers).map(([department, cities]) => (
+                    <div key={department}>
+                      <SelectGroup>
+                        <SelectLabel className="font-semibold text-primary">
+                          {department}
+                        </SelectLabel>
+                        {Object.entries(cities).map(([city, repairers]) =>
+                          repairers.map((repairer) => {
+                            const isPaid = repairer.isPaid;
+                            
+                            return (
+                              <SelectItem 
+                                key={repairer.id} 
+                                value={repairer.id}
+                                className="py-3"
+                              >
+                                <div className="flex items-center gap-2 w-full">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-1">
+                                      <span className="font-medium">{repairer.name}</span>
+                                      {isPaid && (
+                                        <Crown className="h-3 w-3 text-yellow-500" />
+                                      )}
+                                    </div>
+                                    {repairer.business_name && (
+                                      <div className="text-xs text-muted-foreground">
+                                        {repairer.business_name}
+                                      </div>
+                                    )}
+                                    <div className="text-xs text-muted-foreground">
+                                      {city} ({repairer.postal_code})
+                                    </div>
+                                  </div>
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    repairer.subscription_tier === 'free' 
+                                      ? 'bg-gray-100 text-gray-700' 
+                                      : 'bg-blue-100 text-blue-700'
+                                  }`}>
+                                    {repairer.subscription_tier === 'free' ? 'Gratuit' :
+                                     repairer.subscription_tier === 'basic' ? 'Basic' :
+                                     repairer.subscription_tier === 'premium' ? 'Premium' :
+                                     repairer.subscription_tier === 'enterprise' ? 'Enterprise' :
+                                     repairer.subscription_tier}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            );
+                          })
                         )}
-                      </div>
+                      </SelectGroup>
+                      <SelectSeparator />
                     </div>
-                  </div>
-                ))
-              )}
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
+            {/* Détails du réparateur sélectionné */}
+            {selectedRepairer && (() => {
+              const repairer = availableRepairers.find(r => r.id === selectedRepairer);
+              if (!repairer) return null;
+              
+              const isPaid = repairer.isPaid;
+              
+              return (
+                <div className="p-4 border rounded-lg bg-muted/30">
+                  <h4 className="font-medium mb-2 flex items-center gap-2">
+                    Réparateur sélectionné
+                    {isPaid && <Crown className="h-4 w-4 text-yellow-500" />}
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <p><strong>Nom :</strong> {repairer.name}</p>
+                    {repairer.business_name && (
+                      <p><strong>Entreprise :</strong> {repairer.business_name}</p>
+                    )}
+                    <p><strong>Adresse :</strong> {repairer.address}, {repairer.city} {repairer.postal_code}</p>
+                    {repairer.email && (
+                      <p><strong>Email :</strong> {repairer.email}</p>
+                    )}
+                    {repairer.phone && (
+                      <p><strong>Téléphone :</strong> {repairer.phone}</p>
+                    )}
+                    <p>
+                      <strong>Abonnement :</strong> 
+                      <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                        repairer.subscription_tier === 'free' 
+                          ? 'bg-gray-100 text-gray-700' 
+                          : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {repairer.subscription_tier === 'free' ? 'Gratuit' :
+                         repairer.subscription_tier === 'basic' ? 'Basic' :
+                         repairer.subscription_tier === 'premium' ? 'Premium' :
+                         repairer.subscription_tier === 'enterprise' ? 'Enterprise' :
+                         repairer.subscription_tier}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
 
             <div>
               <label className="text-sm font-medium">Note d'assignation (optionnel)</label>
