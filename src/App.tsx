@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
 import { AuthProvider } from "./hooks/useAuth";
 import Index from "./pages/Index";
 import AdminPage from "./pages/AdminPage";
@@ -33,15 +34,17 @@ const App = () => {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppWithTracking />
-            </BrowserRouter>
-          </TooltipProvider>
-        </AuthProvider>
+        <GlobalStoreProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AppWithTracking />
+              </BrowserRouter>
+            </TooltipProvider>
+          </AuthProvider>
+        </GlobalStoreProvider>
       </QueryClientProvider>
     </HelmetProvider>
   );
