@@ -55,7 +55,7 @@ const handler = async (req: Request): Promise<Response> => {
         const pdfBuffer = Uint8Array.from(atob(pdfBase64), c => c.charCodeAt(0));
 
         emailResult = await resend.emails.send({
-          from: "Réparation Mobile <devis@resend.dev>",
+          from: "TopRéparateurs <contact@topreparateurs.fr>",
           to: [recipientEmail],
           subject: `📱 Votre devis de réparation - ${quoteName}`,
           html: `
