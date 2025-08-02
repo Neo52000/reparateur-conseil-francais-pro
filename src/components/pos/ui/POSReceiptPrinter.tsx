@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Printer,
   FileText,
@@ -78,8 +79,12 @@ const POSReceiptPrinter: React.FC<POSReceiptPrinterProps> = ({
     setPrinterStatus('busy');
 
     try {
-      // Simulation de l'impression
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Print receipt via Supabase function
+      const { error } = await supabase.functions.invoke('print-receipt', {
+        body: { receipt: targetReceipt }
+      });
+
+      if (error) throw error;
       
       onPrint?.(targetReceipt);
       toast.success('Ticket imprimé avec succès');

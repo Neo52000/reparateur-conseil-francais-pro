@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Brain, 
   TrendingUp, 
@@ -47,8 +48,15 @@ const AIInsightsWidget: React.FC<AIInsightsWidgetProps> = ({ onActionClick }) =>
     setExecutingActions(prev => new Set([...prev, insight.id]));
     
     try {
-      // Simuler l'exécution de l'action
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Execute action via Supabase function
+      const { error } = await supabase.functions.invoke('execute-ai-insight', {
+        body: { 
+          insightId: insight.id, 
+          action: insight.action 
+        }
+      });
+
+      if (error) throw error;
       
       if (onActionClick) {
         onActionClick(insight);

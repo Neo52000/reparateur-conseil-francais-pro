@@ -398,10 +398,12 @@ const APIManager: React.FC = () => {
         description: `Test de l'intégration ${integration.name}...`,
       });
 
-      // Simuler un test d'intégration
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Test integration via edge function
+      const { error } = await supabase.functions.invoke('test-integration', {
+        body: { integrationId: integration.id, type: integration.type }
+      });
 
-      const success = Math.random() > 0.3; // 70% de chance de succès
+      const success = !error;
 
       if (success) {
         toast({

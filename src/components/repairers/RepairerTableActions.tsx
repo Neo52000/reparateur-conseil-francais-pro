@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAdminAuditIntegration } from '@/hooks/useAdminAuditIntegration';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { MoreHorizontal, Eye, Edit, Trash2, UserCheck, UserX } from 'lucide-react';
 
 interface RepairerTableActionsProps {
@@ -31,8 +32,9 @@ const RepairerTableActions: React.FC<RepairerTableActionsProps> = ({
   const handleActivateRepairer = async () => {
     setLoading(true);
     try {
-      // Simuler l'activation du réparateur
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Log action for audit trail - actual update will be implemented when is_active field is added
+      console.log('Would update repairer active status:', repairer.id);
+      // TODO: Implement real update when is_active field is added to repairers table
       
       logRepairerAction('activate', repairer.id, {
         previous_status: 'inactive',
@@ -62,8 +64,9 @@ const RepairerTableActions: React.FC<RepairerTableActionsProps> = ({
   const handleDeactivateRepairer = async () => {
     setLoading(true);
     try {
-      // Simuler la désactivation du réparateur
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Log action for audit trail - actual update will be implemented when is_active field is added
+      console.log('Would deactivate repairer:', repairer.id);
+      // TODO: Implement real update when is_active field is added to repairers table
       
       logRepairerAction('deactivate', repairer.id, {
         previous_status: 'active',
@@ -99,8 +102,9 @@ const RepairerTableActions: React.FC<RepairerTableActionsProps> = ({
 
     setLoading(true);
     try {
-      // Simuler la suppression du réparateur
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Log action for audit trail - actual deletion will be implemented carefully
+      console.log('Would delete repairer:', repairer.id);
+      // TODO: Implement real deletion with proper constraints handling
       
       logRepairerAction('delete', repairer.id, {
         repairer_email: repairer.email,

@@ -88,7 +88,8 @@ export default function FooterManager() {
     }
     setIsGenerating(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Use mock AI content for now (will connect to real AI later)
+      console.log('Generating AI content for:', formData.section_key);
       const aiContent = {
         services: {
           title: "Nos Services",

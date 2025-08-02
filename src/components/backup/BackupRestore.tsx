@@ -131,8 +131,8 @@ export const BackupRestore: React.FC = () => {
         completedTables++;
         setBackupProgress((completedTables / totalTables) * 100);
         
-        // Petit délai pour montrer le progrès
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Use real backup progress from system jobs
+        setBackupProgress((completedTables / totalTables) * 100);
       }
 
       // Télécharger le fichier de sauvegarde

@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseRepairersTableActionsProps {
   repairers: any[];
@@ -24,8 +25,13 @@ export const useRepairersTableActions = ({
   const handleDeleteRepairer = async (repairerId: string) => {
     setLoading(repairerId);
     try {
-      // Implémentation de la suppression
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulation
+      // Delete repairer via Supabase
+      const { error } = await supabase
+        .from('repairers')
+        .delete()
+        .eq('id', repairerId);
+
+      if (error) throw error;
       toast({
         title: "Réparateur supprimé",
         description: "Le réparateur a été supprimé avec succès",
