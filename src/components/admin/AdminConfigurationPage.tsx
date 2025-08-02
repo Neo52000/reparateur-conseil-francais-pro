@@ -19,6 +19,7 @@ import {
   Globe
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useSystemManagement } from '@/hooks/useSystemManagement';
 
 interface SystemConfig {
   siteName: string;
@@ -52,13 +53,16 @@ const AdminConfigurationPage: React.FC = () => {
     logRetention: 30
   });
 
+  const { loading: systemLoading, createBackup } = useSystemManagement();
   const [loading, setLoading] = useState(false);
 
   const handleSave = async (section?: string) => {
     setLoading(true);
     try {
-      // Simulation de sauvegarde
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Créer une vraie sauvegarde de configuration
+      if (section === 'backup' || !section) {
+        await createBackup(`Configuration backup - ${new Date().toLocaleDateString()}`, 'configuration');
+      }
       
       toast({
         title: "Configuration sauvegardée",

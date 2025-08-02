@@ -37,6 +37,8 @@ import {
   Cell
 } from 'recharts';
 import { useToast } from '@/hooks/use-toast';
+import { useSystemManagement } from '@/hooks/useSystemManagement';
+import { useSystemNotifications } from '@/hooks/useSystemNotifications';
 
 interface SystemMetric {
   name: string;
@@ -68,13 +70,21 @@ interface Alert {
 }
 
 const SystemHealth: React.FC = () => {
+  const { toast } = useToast();
+  const { 
+    services: systemServices, 
+    updateServiceStatus 
+  } = useSystemManagement();
+  
+  const { 
+    createNotification 
+  } = useSystemNotifications();
+  
   const [metrics, setMetrics] = useState<SystemMetric[]>([]);
   const [services, setServices] = useState<ServiceStatus[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
-
-  const { toast } = useToast();
 
   const performanceData = [
     { time: '00:00', cpu: 45, memory: 62, disk: 78 },
@@ -264,18 +274,24 @@ const SystemHealth: React.FC = () => {
 
   const handleRestartService = async (serviceName: string) => {
     try {
+      // Mettre le service en état de redémarrage
+      await updateServiceStatus(serviceName, 'restarting');
+      
+      await createNotification(
+        'maintenance',
+        'Service en cours de redémarrage',
+        `Le service ${serviceName} est en cours de redémarrage`,
+        'warning'
+      );
+
       toast({
         title: "Redémarrage en cours",
         description: `Redémarrage du service ${serviceName}...`,
       });
 
-      // Simulation du redémarrage
-      setTimeout(() => {
-        setServices(prev => prev.map(service => 
-          service.name === serviceName 
-            ? { ...service, status: 'running', error_count: 0, uptime: '0j 0h 1m' }
-            : service
-        ));
+      // Attendre un peu puis remettre en marche
+      setTimeout(async () => {
+        await updateServiceStatus(serviceName, 'running');
         
         toast({
           title: "Service redémarré",
