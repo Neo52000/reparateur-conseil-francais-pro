@@ -86,8 +86,8 @@ export const useSystemManagement = () => {
         email: user.email || '',
         first_name: user.first_name,
         last_name: user.last_name,
-        avatar_url: user.avatar_url,
-        last_login: user.last_login,
+        avatar_url: null,
+        last_login: null,
         is_active: true,
         created_at: user.created_at
       })) || []);

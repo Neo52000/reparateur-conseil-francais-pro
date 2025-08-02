@@ -59,7 +59,10 @@ export const useAPIManager = () => {
         .select('*')
         .eq('repairer_id', user.id);
 
-      setApiKeys(keysData || []);
+      setApiKeys(keysData?.map(key => ({
+        ...key,
+        permissions: Array.isArray(key.permissions) ? key.permissions.map(String) : []
+      })) || []);
       setEndpoints(endpointsData || []);
       setIntegrations(integrationsData || []);
     } catch (error) {
