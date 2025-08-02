@@ -30,35 +30,7 @@ const contentStyles = [
   { value: 'premium', label: 'Premium', description: 'Haut de gamme et qualité' }
 ];
 
-const mockGeneratedContent = [
-  {
-    id: '1',
-    type: 'ad_title',
-    content: 'Réparation iPhone Express - Expert de confiance près de chez vous',
-    style: 'proximite',
-    score: 9.2,
-    model: 'GPT-4',
-    created_at: '2024-01-20T10:30:00Z'
-  },
-  {
-    id: '2',
-    type: 'ad_description',
-    content: 'Votre iPhone ne répond plus ? Notre équipe d\'experts répare tous modèles en 24h avec garantie. Devis gratuit et transparent.',
-    style: 'proximite',
-    score: 8.8,
-    model: 'GPT-4',
-    created_at: '2024-01-20T10:25:00Z'
-  },
-  {
-    id: '3',
-    type: 'image',
-    content: 'Image générée: iPhone en réparation avec outils professionnels',
-    style: 'technique',
-    score: 9.0,
-    model: 'DALL-E 3',
-    created_at: '2024-01-20T10:20:00Z'
-  }
-];
+// Mock data removed - using real data from Supabase
 
 export const AIContentGenerator = () => {
   const [activeTab, setActiveTab] = useState('generate');
@@ -340,35 +312,50 @@ export const AIContentGenerator = () => {
               <CardTitle>Historique des contenus générés</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {mockGeneratedContent.map((content) => (
-                  <div key={content.id} className="flex items-start justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        {getContentTypeIcon(content.type)}
-                        <Badge variant="outline">{getContentTypeLabel(content.type)}</Badge>
-                        <Badge variant="secondary">{content.style}</Badge>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 text-yellow-500 fill-current" />
-                          <span className="text-xs">{content.score}</span>
+              {isLoadingHistory ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              ) : contentHistory.length === 0 ? (
+                <div className="text-center py-8">
+                  <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Aucun contenu généré pour le moment</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {contentHistory.map((content: any) => (
+                    <div key={content.id} className="flex items-start justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          {getContentTypeIcon(content.content_type)}
+                          <Badge variant="outline">{getContentTypeLabel(content.content_type)}</Badge>
+                          <Badge variant="secondary">{content.style_used || 'N/A'}</Badge>
+                          <div className="flex items-center gap-1">
+                            <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                            <span className="text-xs">{content.quality_score}</span>
+                          </div>
                         </div>
+                        <p className="text-sm font-medium mb-1">
+                          {typeof content.generated_content === 'object' 
+                            ? content.generated_content.content || JSON.stringify(content.generated_content) 
+                            : content.generated_content}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {content.ai_model} • {new Date(content.created_at).toLocaleDateString()}
+                        </p>
                       </div>
-                      <p className="text-sm font-medium mb-1">{content.content}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {content.model} • {new Date(content.created_at).toLocaleDateString()}
-                      </p>
+                      <div className="flex gap-2 ml-4">
+                        <Button size="sm" variant="outline">
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <Download className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2 ml-4">
-                      <Button size="sm" variant="outline">
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Download className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

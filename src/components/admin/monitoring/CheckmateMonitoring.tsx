@@ -21,19 +21,11 @@ import { IncidentsManager } from './IncidentsManager';
 import { BusinessMetrics } from './BusinessMetrics';
 import { StatusPages } from './StatusPages';
 import { NotificationChannels } from './NotificationChannels';
+import { useMonitoringData } from '@/hooks/useMonitoringData';
 
 export const CheckmateMonitoring: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-
-  // Mock data - à remplacer par les vraies données Supabase
-  const overviewStats = {
-    totalMonitors: 12,
-    upMonitors: 10,
-    downMonitors: 2,
-    avgResponseTime: 245,
-    uptime: 99.8,
-    incidents: 3
-  };
+  const { stats: overviewStats, loading } = useMonitoringData();
 
   return (
     <div className="space-y-6">

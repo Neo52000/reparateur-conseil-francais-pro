@@ -29,7 +29,7 @@ import RepairContentGenerator from '@/components/blog/admin/RepairContentGenerat
 import PerformanceManagement from '@/components/admin/PerformanceManagement';
 import EnhancedDocumentationManager from '@/components/admin/EnhancedDocumentationManager';
 import { AdvertisingAIDashboard } from '@/components/admin/advertising/AdvertisingAIDashboard';
-import { RepairersAnalytics } from '@/components/admin/analytics/RepairersAnalytics';
+import { AnalyticsDashboard } from '@/components/admin/dashboard/AnalyticsDashboard';
 import AdminFeaturesManager from '@/components/admin/AdminFeaturesManager';
 import AdminConfigurationPage from '@/components/admin/AdminConfigurationPage';
 import ComprehensiveFeaturesManager from '@/components/admin/ComprehensiveFeaturesManager';
@@ -247,7 +247,7 @@ const AdminPage = () => {
       case 'advertising-ai':
         return <AdvertisingAIDashboard />;
       case 'analytics':
-        return <RepairersAnalytics />;
+        return <AnalyticsDashboard />;
         case 'scraping':
           return <RealScrapingDashboard />;
         case 'automation':

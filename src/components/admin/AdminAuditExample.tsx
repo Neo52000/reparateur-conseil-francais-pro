@@ -1,12 +1,14 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAdminAuditIntegration } from '@/hooks/useAdminAuditIntegration';
 import { useToast } from '@/hooks/use-toast';
 
 /**
- * Exemple d'intégration de l'audit dans les actions d'administration
+ * ⚠️ COMPOSANT DE DÉMONSTRATION - Exemple d'intégration de l'audit
+ * Ce composant sert uniquement à illustrer le fonctionnement du système d'audit
  */
 const AdminAuditExample: React.FC = () => {
   const {
@@ -83,16 +85,24 @@ const AdminAuditExample: React.FC = () => {
   };
 
   return (
-    <Card>
+    <Card className="border-dashed border-2 border-orange-200">
       <CardHeader>
-        <CardTitle>Démonstration de l'audit automatique</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          🚧 Démonstration de l'audit automatique
+          <Badge variant="outline" className="text-orange-600 border-orange-600">DEMO</Badge>
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground mb-4">
-            Ces boutons démontrent comment les actions d'administration sont automatiquement 
-            enregistrées dans le système d'audit.
-          </p>
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+            <p className="text-sm text-orange-800 mb-2">
+              ⚠️ <strong>Composant de démonstration uniquement</strong>
+            </p>
+            <p className="text-xs text-orange-700">
+              Ces boutons simulent des actions d'administration pour illustrer 
+              le fonctionnement du système d'audit automatique.
+            </p>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Button onClick={handleSubscriptionApproval} variant="outline">

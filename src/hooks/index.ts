@@ -73,6 +73,8 @@ export { useChatbot } from './useChatbot';
 
 // Hooks d'optimisation système
 export { useSystemOptimization } from './useSystemOptimization';
+export { useAdvertisingAnalytics } from './useAdvertisingAnalytics';
+export { useMonitoringData } from './useMonitoringData';
 
 // Hooks de profil réparateur
 export { useRepairerProfileSave } from './useRepairerProfileSave';
