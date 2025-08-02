@@ -6,6 +6,8 @@ import ClientDashboardOverview from './ClientDashboardOverview';
 import ClientFavoritesTab from './ClientFavoritesTab';
 import ClientMessagingTab from './ClientMessagingTab';
 import ClientReviewsTab from './ClientReviewsTab';
+import ClientAppointmentsTab from './ClientAppointmentsTab';
+import QuoteForm from '../QuoteForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const ClientEnhancedDashboard: React.FC = () => {
@@ -76,8 +78,10 @@ const ClientEnhancedDashboard: React.FC = () => {
         />
 
         <Tabs defaultValue="overview" className="mt-8">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
+            <TabsTrigger value="appointments">Rendez-vous</TabsTrigger>
+            <TabsTrigger value="quotes">Devis</TabsTrigger>
             <TabsTrigger value="messaging">Messages</TabsTrigger>
             <TabsTrigger value="reviews">Mes avis</TabsTrigger>
             <TabsTrigger value="favorites">Favoris</TabsTrigger>
@@ -88,6 +92,14 @@ const ClientEnhancedDashboard: React.FC = () => {
               stats={clientData.stats}
               appointments={clientData.appointments}
             />
+          </TabsContent>
+
+          <TabsContent value="appointments" className="mt-6">
+            <ClientAppointmentsTab appointments={clientData.appointments} />
+          </TabsContent>
+
+          <TabsContent value="quotes" className="mt-6">
+            <QuoteForm onSuccess={() => console.log('Quote requested')} />
           </TabsContent>
 
           <TabsContent value="messaging" className="mt-6">
