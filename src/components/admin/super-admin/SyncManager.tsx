@@ -16,8 +16,9 @@ import {
   Package,
   Activity
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useSystemJobs } from '@/hooks/useSystemJobs';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SyncStatus {
   id: string;
@@ -51,22 +52,20 @@ const SyncManager: React.FC = () => {
     failed: 0,
     lastSync: null
   });
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
   const { toast } = useToast();
+  const { syncJobs, createSyncJob, loading } = useSystemJobs();
+
+  const isSyncing = syncJobs.some(job => job.status === 'pending' || job.status === 'running');
 
   useEffect(() => {
     fetchSyncData();
-    const interval = setInterval(fetchSyncData, 30000); // Actualiser toutes les 30 secondes
+    const interval = setInterval(fetchSyncData, 30000);
     return () => clearInterval(interval);
   }, []);
 
   const fetchSyncData = async () => {
     try {
-      setIsLoading(true);
-      
-      // Récupérer les logs de synchronisation
       const { data: logsData, error: logsError } = await supabase
         .from('sync_logs' as any)
         .select('*')
@@ -78,7 +77,6 @@ const SyncManager: React.FC = () => {
       const logs = (logsData as unknown as SyncStatus[]) || [];
       setSyncLogs(logs);
 
-      // Calculer les statistiques
       const total = logs.length;
       const pending = logs.filter(log => log.sync_status === 'pending').length;
       const success = logs.filter(log => log.sync_status === 'success').length;
@@ -94,56 +92,25 @@ const SyncManager: React.FC = () => {
         description: "Impossible de charger les données de synchronisation",
         variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleFullSync = async () => {
     try {
-      setIsSyncing(true);
-      setSyncProgress(0);
+      await createSyncJob(
+        'full_sync',
+        'pos',
+        'ecommerce',
+        { type: 'complete' }
+      );
 
       toast({
         title: "Synchronisation démarrée",
         description: "La synchronisation complète a commencé...",
       });
 
-      // Simulation de progression
-      const progressInterval = setInterval(() => {
-        setSyncProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return prev + 10;
-        });
-      }, 500);
-
-      // Déclencher la synchronisation
-      const { error } = await supabase.functions.invoke('sync-systems', {
-        body: { type: 'full_sync' }
-      });
-
-      if (error) throw error;
-
-      clearInterval(progressInterval);
-      setSyncProgress(100);
-
-      setTimeout(() => {
-        setIsSyncing(false);
-        setSyncProgress(0);
-        fetchSyncData();
-        toast({
-          title: "Synchronisation terminée",
-          description: "La synchronisation complète a été effectuée avec succès",
-        });
-      }, 1000);
-
     } catch (error: any) {
       console.error('Erreur lors de la synchronisation:', error);
-      setIsSyncing(false);
-      setSyncProgress(0);
       toast({
         title: "Erreur de synchronisation",
         description: error.message || "La synchronisation a échoué",
@@ -164,9 +131,15 @@ const SyncManager: React.FC = () => {
         return;
       }
 
-      const { error } = await supabase.functions.invoke('retry-failed-syncs');
-      
-      if (error) throw error;
+      // Create retry sync jobs for each failed sync
+      for (const failedLog of failedLogs) {
+        await createSyncJob(
+          failedLog.sync_type,
+          'pos',
+          'ecommerce',
+          { retry: true, original_id: failedLog.id }
+        );
+      }
 
       toast({
         title: "Relance des synchronisations",

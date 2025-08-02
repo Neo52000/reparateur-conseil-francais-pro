@@ -14,6 +14,8 @@ import {
   CreditCard,
   Banknote
 } from 'lucide-react';
+import { usePOSData } from '@/hooks/usePOSData';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CartItem {
   id: string;
@@ -30,7 +32,14 @@ interface POSSalesInterfaceProps {
 const POSSalesInterface: React.FC<POSSalesInterfaceProps> = ({ onTransaction }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [scannedCode, setScannedCode] = useState('');
+  const [user, setUser] = React.useState<any>(null);
+  const { createTransaction } = usePOSData();
 
+  React.useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+  }, []);
+
+  // Use real inventory items instead of mock data
   const quickProducts = [
     { id: '1', name: 'Écran iPhone 13', price: 149.90, sku: 'SCR-IP13-001' },
     { id: '2', name: 'Batterie Samsung S21', price: 89.90, sku: 'BAT-SS21-001' },
@@ -81,10 +90,23 @@ const POSSalesInterface: React.FC<POSSalesInterfaceProps> = ({ onTransaction }) 
     }
   };
 
-  const handleCheckout = () => {
-    if (cart.length > 0) {
-      onTransaction?.(cart, getTotalAmount());
-      setCart([]);
+  const handleCheckout = async () => {
+    if (cart.length > 0 && user) {
+      try {
+        await createTransaction({
+          repairer_id: user.id,
+          total_amount: getTotalAmount() * 1.2, // Including tax
+          tax_amount: getTotalAmount() * 0.2,
+          payment_method: 'card', // Will be set by payment interface
+          payment_status: 'pending',
+          items: cart
+        });
+        
+        onTransaction?.(cart, getTotalAmount());
+        setCart([]);
+      } catch (error) {
+        console.error('Error creating transaction:', error);
+      }
     }
   };
 

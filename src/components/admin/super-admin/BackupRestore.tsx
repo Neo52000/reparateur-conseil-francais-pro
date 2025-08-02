@@ -20,8 +20,9 @@ import {
   Cloud,
   Calendar
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useSystemManagement } from '@/hooks/useSystemManagement';
+import { useSystemJobs } from '@/hooks/useSystemJobs';
 
 interface BackupTask {
   id: string;
@@ -47,10 +48,6 @@ interface RestorePoint {
 }
 
 const BackupRestore: React.FC = () => {
-  const [backups, setBackups] = useState<BackupTask[]>([]);
-  const [restorePoints, setRestorePoints] = useState<RestorePoint[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeBackup, setActiveBackup] = useState<BackupTask | null>(null);
   const [selectedTables, setSelectedTables] = useState<string[]>([]);
   const [backupSchedule, setBackupSchedule] = useState({
     enabled: true,
@@ -60,119 +57,50 @@ const BackupRestore: React.FC = () => {
   });
 
   const { toast } = useToast();
+  const { backups, restorePoints, loading } = useSystemManagement();
+  const { 
+    backupJobs, 
+    createBackupJob, 
+    loading: jobsLoading 
+  } = useSystemJobs();
 
-  useEffect(() => {
-    fetchBackupData();
-  }, []);
+  // Transform system data to match component interface
+  const transformedBackups: BackupTask[] = backups.map(backup => ({
+    id: backup.id,
+    name: backup.backup_name,
+    type: backup.backup_type as BackupTask['type'],
+    status: backup.backup_status as BackupTask['status'],
+    progress: 100, // Default to completed
+    size: backup.file_size_bytes ? `${(backup.file_size_bytes / 1024 / 1024).toFixed(1)} MB` : '0 MB',
+    duration: backup.completed_at && backup.created_at 
+      ? Math.round((new Date(backup.completed_at).getTime() - new Date(backup.created_at).getTime()) / 1000) + ' sec'
+      : '0 sec',
+    created_at: backup.created_at,
+    tables_count: 0, // Add to backup schema if needed
+    records_count: 0 // Add to backup schema if needed
+  }));
 
-  const fetchBackupData = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Données de démonstration
-      const mockBackups = [
-        {
-          id: '1',
-          name: 'Sauvegarde complète - ' + new Date().toLocaleDateString(),
-          type: 'full' as const,
-          status: 'completed' as const,
-          progress: 100,
-          size: '2.3 GB',
-          duration: '12 min 34 sec',
-          created_at: new Date().toISOString(),
-          tables_count: 45,
-          records_count: 125000
-        },
-        {
-          id: '2',
-          name: 'Sauvegarde incrémentale',
-          type: 'incremental' as const,
-          status: 'running' as const,
-          progress: 67,
-          size: '456 MB',
-          duration: '3 min 12 sec',
-          created_at: new Date(Date.now() - 3600000).toISOString(),
-          tables_count: 12,
-          records_count: 8500
-        }
-      ] as BackupTask[];
-
-      const mockRestorePoints = [
-        {
-          id: '1',
-          name: 'Point de restauration automatique',
-          backup_date: new Date().toISOString(),
-          type: 'full',
-          size: '2.1 GB',
-          integrity_status: 'verified' as const,
-          auto_created: true
-        },
-        {
-          id: '2',
-          name: 'Avant mise à jour v2.1',
-          backup_date: new Date(Date.now() - 86400000).toISOString(),
-          type: 'full',
-          size: '1.9 GB',
-          integrity_status: 'verified' as const,
-          auto_created: false
-        }
-      ] as RestorePoint[];
-
-      setBackups(mockBackups);
-      setRestorePoints(mockRestorePoints);
-    } catch (error) {
-      console.error('Erreur lors du chargement des sauvegardes:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les données de sauvegarde",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const transformedRestorePoints: RestorePoint[] = restorePoints.map(point => ({
+    id: point.id,
+    name: point.point_name,
+    backup_date: point.created_at,
+    type: point.point_type,
+    size: '0 MB', // Add to restore point schema if needed
+    integrity_status: 'verified' as const,
+    auto_created: true
+  }));
 
   const handleCreateBackup = async (type: BackupTask['type']) => {
     try {
-      const newBackup: BackupTask = {
-        id: Date.now().toString(),
-        name: `Sauvegarde ${type} - ${new Date().toLocaleString()}`,
-        type,
-        status: 'running',
-        progress: 0,
-        size: '0 MB',
-        duration: '0 sec',
-        created_at: new Date().toISOString(),
-        tables_count: 0,
-        records_count: 0
-      };
-
-      setBackups(prev => [newBackup, ...prev]);
-      setActiveBackup(newBackup);
+      await createBackupJob(
+        `Sauvegarde ${type} - ${new Date().toLocaleString()}`,
+        type
+      );
 
       toast({
         title: "Sauvegarde lancée",
         description: `Sauvegarde ${type} en cours...`,
       });
-
-      // Simulation du progrès
-      const interval = setInterval(() => {
-        setBackups(prev => prev.map(backup => 
-          backup.id === newBackup.id 
-            ? { ...backup, progress: Math.min(backup.progress + 10, 100) }
-            : backup
-        ));
-      }, 1000);
-
-      setTimeout(() => {
-        clearInterval(interval);
-        setBackups(prev => prev.map(backup => 
-          backup.id === newBackup.id 
-            ? { ...backup, status: 'completed', progress: 100, size: '1.2 GB' }
-            : backup
-        ));
-        setActiveBackup(null);
-      }, 10000);
 
     } catch (error: any) {
       console.error('Erreur lors de la création de sauvegarde:', error);
@@ -190,18 +118,16 @@ const BackupRestore: React.FC = () => {
     }
 
     try {
+      // Create a restore job
+      await createBackupJob(
+        `Restauration - ${restorePoint.name}`,
+        'restore'
+      );
+
       toast({
         title: "Restauration lancée",
         description: "La restauration des données est en cours...",
       });
-
-      // Simulation de la restauration
-      setTimeout(() => {
-        toast({
-          title: "Restauration terminée",
-          description: "Les données ont été restaurées avec succès",
-        });
-      }, 5000);
 
     } catch (error: any) {
       console.error('Erreur lors de la restauration:', error);
@@ -253,7 +179,7 @@ const BackupRestore: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Button 
           onClick={() => handleCreateBackup('full')}
-          disabled={!!activeBackup}
+          disabled={jobsLoading}
           className="h-20 flex-col"
         >
           <Database className="h-6 w-6 mb-2" />
@@ -263,7 +189,7 @@ const BackupRestore: React.FC = () => {
         <Button 
           variant="outline"
           onClick={() => handleCreateBackup('incremental')}
-          disabled={!!activeBackup}
+          disabled={jobsLoading}
           className="h-20 flex-col"
         >
           <Archive className="h-6 w-6 mb-2" />
@@ -273,7 +199,7 @@ const BackupRestore: React.FC = () => {
         <Button 
           variant="outline"
           onClick={() => handleCreateBackup('data-only')}
-          disabled={!!activeBackup}
+          disabled={jobsLoading}
           className="h-20 flex-col"
         >
           <HardDrive className="h-6 w-6 mb-2" />
@@ -283,7 +209,7 @@ const BackupRestore: React.FC = () => {
         <Button 
           variant="outline"
           onClick={() => handleCreateBackup('schema-only')}
-          disabled={!!activeBackup}
+          disabled={jobsLoading}
           className="h-20 flex-col"
         >
           <Shield className="h-6 w-6 mb-2" />
@@ -299,7 +225,7 @@ const BackupRestore: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {backups.map((backup) => (
+              {transformedBackups.map((backup) => (
                 <div key={backup.id} className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -340,7 +266,7 @@ const BackupRestore: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {restorePoints.map((point) => (
+              {transformedRestorePoints.map((point) => (
                 <div key={point.id} className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">

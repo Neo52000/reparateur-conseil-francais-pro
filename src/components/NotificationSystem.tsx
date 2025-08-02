@@ -1,12 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bell, X, Mail, MessageSquare, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useNotifications } from '@/hooks/useNotifications';
+import { supabase } from '@/integrations/supabase/client';
 
-interface Notification {
+interface NotificationWithPriority {
   id: string;
   type: 'appointment' | 'repair_status' | 'message' | 'payment';
   title: string;
@@ -17,82 +19,53 @@ interface Notification {
 }
 
 const NotificationSystem = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
+  const [user, setUser] = useState<any>(null);
+  
+  React.useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+  }, []);
+  
+  const { notifications: supabaseNotifications, loading } = useNotifications(user?.id);
 
-  useEffect(() => {
-    // Simulation de notifications
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        type: 'appointment',
-        title: 'Rappel de rendez-vous',
-        message: 'Vous avez un rendez-vous demain à 14h00 chez TechRepair Pro',
-        timestamp: '2024-12-19T10:00:00Z',
-        read: false,
-        priority: 'high'
-      },
-      {
-        id: '2',
-        type: 'repair_status',
-        title: 'Réparation terminée',
-        message: 'Votre iPhone 14 Pro est prêt à être récupéré',
-        timestamp: '2024-12-18T16:30:00Z',
-        read: false,
-        priority: 'medium'
-      },
-      {
-        id: '3',
-        type: 'message',
-        title: 'Nouveau message',
-        message: 'Le réparateur vous a envoyé un message',
-        timestamp: '2024-12-18T14:15:00Z',
-        read: true,
-        priority: 'low'
-      }
-    ];
+  // Transform Supabase notifications to include priority
+  const notifications: NotificationWithPriority[] = supabaseNotifications.map(notif => ({
+    id: notif.id,
+    type: notif.type as 'appointment' | 'repair_status' | 'message' | 'payment',
+    title: notif.title,
+    message: notif.message,
+    timestamp: notif.created_at,
+    read: notif.is_read,
+    priority: (notif.data?.priority || 'medium') as 'low' | 'medium' | 'high'
+  }));
 
-    setNotifications(mockNotifications);
-
-    // Simulation de nouvelles notifications
-    const interval = setInterval(() => {
-      const newNotification: Notification = {
-        id: Date.now().toString(),
-        type: 'repair_status',
-        title: 'Mise à jour du statut',
-        message: 'Votre réparation est maintenant en cours',
-        timestamp: new Date().toISOString(),
-        read: false,
-        priority: 'medium'
-      };
-
-      setNotifications(prev => [newNotification, ...prev]);
-      
-      toast({
-        title: newNotification.title,
-        description: newNotification.message,
+  const markAsRead = async (id: string) => {
+    try {
+      const response = await fetch(`/api/notifications/${id}/read`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' }
       });
-    }, 30000); // Nouvelle notification toutes les 30 secondes
-
-    return () => clearInterval(interval);
-  }, [toast]);
-
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(notif =>
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
+      if (!response.ok) throw new Error('Failed to mark as read');
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== id));
+  const deleteNotification = async (id: string) => {
+    try {
+      const response = await fetch(`/api/notifications/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete notification');
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const getIcon = (type: Notification['type']) => {
+  const getIcon = (type: NotificationWithPriority['type']) => {
     switch (type) {
       case 'appointment':
         return <Clock className="h-4 w-4" />;
@@ -107,7 +80,7 @@ const NotificationSystem = () => {
     }
   };
 
-  const getPriorityColor = (priority: Notification['priority']) => {
+  const getPriorityColor = (priority: NotificationWithPriority['priority']) => {
     switch (priority) {
       case 'high':
         return 'text-red-600 bg-red-50';
