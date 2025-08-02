@@ -105,6 +105,7 @@ const AllQuotesManager: React.FC = () => {
       })) || [];
 
       setQuotes(formattedQuotes);
+      console.log('Quotes loaded:', formattedQuotes.length, formattedQuotes);
     } catch (error: any) {
       toast({
         title: "Erreur de chargement",
@@ -149,6 +150,7 @@ const AllQuotesManager: React.FC = () => {
   };
 
   const openAssignmentDialog = (quote: Quote) => {
+    console.log('Opening assignment dialog for quote:', quote);
     setSelectedQuote(quote);
     setSelectedRepairer(quote.repairer_id || '');
     setAssignmentNotes('');
@@ -257,6 +259,8 @@ const AllQuotesManager: React.FC = () => {
 
     return matchesSearch && matchesStatus && matchesSubscription;
   });
+
+  console.log('Filtered quotes:', filteredQuotes.length, 'Total quotes:', quotes.length);
 
   if (loading) {
     return (
