@@ -39,12 +39,12 @@ export const APP_CONFIG = {
     },
   },
   
-  // Features flags par défaut
+  // Features flags par défaut - MODE PRODUCTION
   features: {
     enableAdvancedSearch: true,
     enableNotifications: true,
     enableAnalytics: true,
-    enableDemo: true,
+    enableDemo: false, // DÉSACTIVÉ DÉFINITIVEMENT POUR LA PRODUCTION
   },
   
   // Configuration de logging

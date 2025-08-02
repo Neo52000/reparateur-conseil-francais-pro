@@ -1,44 +1,23 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { DemoDataService } from './demoDataService';
 import { Repairer } from '@/types/repairer';
 
 /**
- * Service de données unifié qui gère automatiquement le mode démo
+ * Service de données en production - uniquement données réelles
  */
 export class DataService {
-  /**
-   * Vérifie si le mode démo est activé pour l'utilisateur actuel
-   */
-  static async isDemoModeEnabled(): Promise<boolean> {
-    try {
-      const { data: flags } = await supabase
-        .from('feature_flags_by_plan')
-        .select('enabled')
-        .eq('feature_key', 'demo_mode_enabled')
-        .eq('plan_name', 'Enterprise')
-        .single();
-
-      const enabled = flags?.enabled || false;
-      console.log('🎯 DataService - Mode démo vérifié:', enabled);
-      return enabled;
-    } catch (error) {
-      console.error('❌ Erreur lors de la vérification du mode démo:', error);
-      return false;
-    }
-  }
 
   /**
-   * Récupère les réparateurs avec gestion automatique du mode démo
+   * Récupère uniquement les réparateurs réels (mode production)
    */
   static async getRepairers(): Promise<Repairer[]> {
-    const demoModeEnabled = await this.isDemoModeEnabled();
-    console.log('🔄 DataService - Récupération réparateurs, mode démo:', demoModeEnabled);
+    console.log('🔄 DataService - Récupération réparateurs en mode production');
     
-    // Récupérer les données réelles
+    // Récupérer uniquement les données réelles, exclure toutes les données de démonstration
     const { data: realData, error } = await supabase
       .from('repairers')
       .select('*')
+      .neq('source', 'demo') // Exclure explicitement les données de démo
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -65,50 +44,29 @@ export class DataService {
         null,
       services: item.services || [],
       specialties: item.specialties || [],
-      source: (['pages_jaunes', 'google_places', 'manual', 'demo'].includes(item.source)) 
-        ? item.source as 'pages_jaunes' | 'google_places' | 'manual' | 'demo'
+      source: (['pages_jaunes', 'google_places', 'manual'].includes(item.source)) 
+        ? item.source as 'pages_jaunes' | 'google_places' | 'manual'
         : 'manual'
     }));
 
-    // Appliquer correctement la logique du mode démo - CORRECTION CRITIQUE
-    let result: Repairer[];
-    
-    if (demoModeEnabled) {
-      // Mode démo activé : données réelles (sans démo existante) + données démo fraîches
-      const realNonDemoData = transformedRealData.filter(item => item.source !== 'demo');
-      const demoData = DemoDataService.getDemoRepairers();
-      result = [...realNonDemoData, ...demoData];
-      console.log('✅ Mode démo activé - Données combinées:', result.length, '(réelles:', realNonDemoData.length, '+ démo:', demoData.length, ')');
-    } else {
-      // Mode démo désactivé : UNIQUEMENT données réelles (filtrer toute donnée de démo)
-      result = transformedRealData.filter(item => item.source !== 'demo');
-      console.log('🚫 Mode démo désactivé - Données réelles uniquement:', result.length);
-    }
-
-    return result;
+    console.log('✅ Mode production - Données réelles uniquement:', transformedRealData.length);
+    return transformedRealData;
   }
 
   /**
-   * Filtre les données selon le mode démo actuel - VERSION CORRIGÉE
+   * Filtre les données pour ne conserver que les données réelles (mode production)
    */
   static async filterByDemoMode<T extends { source?: string }>(data: T[]): Promise<T[]> {
-    const demoModeEnabled = await this.isDemoModeEnabled();
-    console.log('🔍 DataService - Filtrage par mode démo:', demoModeEnabled, 'sur', data.length, 'éléments');
+    console.log('🔍 DataService - Filtrage en mode production sur', data.length, 'éléments');
     
-    if (demoModeEnabled) {
-      // Mode démo activé : inclure toutes les données (réelles + démo)
-      console.log('✅ Mode démo activé - Garder tous les éléments');
-      return data;
-    } else {
-      // Mode démo désactivé : exclure TOUTES les données avec source = 'demo'
-      const filtered = data.filter(item => item.source !== 'demo');
-      console.log('🚫 Mode démo désactivé - Filtré:', filtered.length, 'éléments (exclu les données démo)');
-      return filtered;
-    }
+    // Mode production : exclure TOUTES les données avec source = 'demo'
+    const filtered = data.filter(item => item.source !== 'demo');
+    console.log('✅ Mode production - Données réelles uniquement:', filtered.length, 'éléments');
+    return filtered;
   }
 
   /**
-   * Vérifie l'intégrité des données et la cohérence du mode démo
+   * Vérifie l'intégrité des données en mode production
    */
   static async auditDataIntegrity(): Promise<{
     demoModeEnabled: boolean;
@@ -116,25 +74,25 @@ export class DataService {
     demoDataCount: number;
     inconsistencies: string[];
   }> {
-    const demoModeEnabled = await this.isDemoModeEnabled();
     const allRepairers = await this.getRepairers();
     
-    const realDataCount = allRepairers.filter(r => r.source !== 'demo').length;
-    const demoDataCount = allRepairers.filter(r => r.source === 'demo').length;
+    const realDataCount = allRepairers.length; // Toutes les données sont réelles en production
+    const demoDataCount = 0; // Aucune donnée de démo en production
     
     const inconsistencies: string[] = [];
     
-    // Vérifier les incohérences
-    if (!demoModeEnabled && demoDataCount > 0) {
-      inconsistencies.push(`Mode démo désactivé mais ${demoDataCount} données démo détectées`);
-    }
+    // Vérifier qu'aucune donnée de démo n'est présente
+    const { data: demoData } = await supabase
+      .from('repairers')
+      .select('id')
+      .eq('source', 'demo');
     
-    if (demoModeEnabled && demoDataCount === 0) {
-      inconsistencies.push('Mode démo activé mais aucune donnée démo disponible');
+    if (demoData && demoData.length > 0) {
+      inconsistencies.push(`ERREUR: ${demoData.length} données de démo trouvées en mode production`);
     }
 
     return {
-      demoModeEnabled,
+      demoModeEnabled: false, // Toujours false en production
       realDataCount,
       demoDataCount,
       inconsistencies
