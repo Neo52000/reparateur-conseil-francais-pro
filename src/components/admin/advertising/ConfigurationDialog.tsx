@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -111,8 +112,12 @@ export const ConfigurationDialog = ({ trigger }: ConfigurationDialogProps) => {
   const handleSaveConfig = async () => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Sauvegarder la configuration via Supabase Edge Function
+      const { error } = await supabase.functions.invoke('save-advertising-config', {
+        body: { configData: config }
+      });
+      
+      if (error) throw error;
       
       toast({
         title: "Configuration sauvegardée",

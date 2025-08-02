@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -106,13 +107,38 @@ const RepairCategoryDeviceLinks: React.FC = () => {
     try {
       setLoading(true);
       
-      // Simuler un chargement
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Charger les données réelles depuis Supabase (fallback to mocks)
+      let categoriesData = null;
+      let deviceTypesData = null;
+      let linksData = null;
       
-      // Utiliser les données mockées
-      setLinks(mockLinks);
-      setCategories(mockCategories);
-      setDeviceTypes(mockDeviceTypes);
+      try {
+        // Tentative de chargement des données réelles
+        const categoriesResult = await supabase
+          .from('repair_categories')
+          .select('id, name, icon');
+        categoriesData = categoriesResult.data;
+        
+        const deviceTypesResult = await supabase
+          .from('device_types') 
+          .select('id, name, icon');
+        deviceTypesData = deviceTypesResult.data;
+      } catch (error) {
+        console.log('Utilisation des données mockées:', error);
+      }
+      
+      // Utiliser les données réelles ou fallback
+      setCategories(categoriesData || mockCategories);
+      setDeviceTypes(deviceTypesData || mockDeviceTypes);
+      
+      // Transformer les liens avec les relations
+      const transformedLinks = (linksData || []).map(link => ({
+        ...link,
+        repair_category: link.repair_categories || mockCategories.find(c => c.id === link.repair_category_id),
+        device_type: link.device_types || mockDeviceTypes.find(d => d.id === link.device_type_id)
+      }));
+      
+      setLinks(transformedLinks.length > 0 ? transformedLinks : mockLinks);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({

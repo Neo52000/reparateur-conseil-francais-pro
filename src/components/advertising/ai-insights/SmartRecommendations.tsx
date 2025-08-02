@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,8 +43,15 @@ const SmartRecommendations: React.FC = () => {
     setImplementingIds(prev => new Set([...prev, recommendation.id]));
     
     try {
-      // Simuler l'implémentation
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Implémenter la recommandation via Supabase
+      const { error } = await supabase.functions.invoke('implement-recommendation', {
+        body: { 
+          recommendationId: recommendation.id,
+          actionSteps: recommendation.actionSteps
+        }
+      });
+      
+      if (error) throw error;
       
       // Marquer comme implémenté
       setRecommendations(prev => prev.filter(r => r.id !== recommendation.id));

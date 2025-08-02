@@ -117,6 +117,8 @@ const AutoEnhancementDashboard: React.FC = () => {
       });
     } finally {
       setIsLoading(false);
+      // Recharger les données immédiatement après l'amélioration
+      await loadDashboardData();
     }
   };
 

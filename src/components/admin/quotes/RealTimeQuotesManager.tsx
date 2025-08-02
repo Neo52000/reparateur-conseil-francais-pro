@@ -423,8 +423,20 @@ const RealTimeQuotesManager: React.FC = () => {
         .replace(/{repair_type}/g, quote.repair_type || '')
         .replace(/{issue_description}/g, quote.issue_description || '');
 
-      // Simuler l'envoi (remplacer par l'appel à l'edge function)
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Envoyer la communication via Supabase Edge Function
+      const { error } = await supabase.functions.invoke('send-communication', {
+        body: {
+          type: communicationModal.type,
+          target: communicationModal.target,
+          message,
+          quoteId: quote.id,
+          recipient: communicationModal.target === 'client' 
+            ? { email: quote.client_email, phone: quote.client_phone }
+            : { email: quote.repairer_email, phone: quote.repairer_phone }
+        }
+      });
+      
+      if (error) throw error;
 
       toast({
         title: "Communication envoyée",

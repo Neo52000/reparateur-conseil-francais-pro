@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -46,8 +47,12 @@ const ContactForm: React.FC<ContactFormProps> = ({ onClose }) => {
 
     setIsSubmitting(true);
     try {
-      // Simulation de l'envoi
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Envoyer le formulaire via Supabase Edge Function
+      const { error } = await supabase.functions.invoke('contact-form', {
+        body: formData
+      });
+      
+      if (error) throw error;
       
       toast({
         title: "Demande envoyée !",

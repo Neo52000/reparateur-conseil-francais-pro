@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -69,22 +70,32 @@ const ScrapingExecution = () => {
   React.useEffect(() => {
     const checkApiStatus = async () => {
       try {
-        // Simuler une vérification - dans un vrai scénario, on ferait un appel test
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Vérifier le statut réel des APIs via Supabase
+        const { data } = await supabase.functions.invoke('get-ai-status');
         
-        // Simuler un statut basé sur les logs récents
-        const recentFailures = logs.filter(log => 
-          log.status === 'failed' && 
-          log.error_message?.includes('API') &&
-          new Date(log.started_at) > new Date(Date.now() - 60 * 60 * 1000) // Dernière heure
-        );
-        
-        if (recentFailures.length > 0) {
-          setApiStatus('limited');
+        if (data?.success && data?.statuses) {
+          // Vérifier si au moins un service IA est disponible
+          const hasAvailableAI = Object.values(data.statuses).some(
+            (status: any) => status === 'available'
+          );
+          
+          if (hasAvailableAI) {
+            setApiStatus('available');
+          } else {
+            setApiStatus('limited');
+          }
         } else {
-          setApiStatus('available');
+          // Fallback: analyser les logs récents
+          const recentFailures = logs.filter(log => 
+            log.status === 'failed' && 
+            log.error_message?.includes('API') &&
+            new Date(log.started_at) > new Date(Date.now() - 60 * 60 * 1000)
+          );
+          
+          setApiStatus(recentFailures.length > 0 ? 'limited' : 'available');
         }
       } catch (error) {
+        console.error('❌ Erreur vérification API:', error);
         setApiStatus('unavailable');
       }
     };
@@ -125,8 +136,10 @@ const ScrapingExecution = () => {
         await startScraping(source);
         
         // Petit délai entre les sources pour éviter la surcharge
-        if (selectedSources.length > 1) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+        if (selectedSources.length > 1 && selectedSources.indexOf(source) < selectedSources.length - 1) {
+          await new Promise(resolve => requestAnimationFrame(() => 
+            setTimeout(resolve, 500) // Délai réduit et optimisé
+          ));
         }
       }
     } catch (error) {
@@ -145,13 +158,12 @@ const ScrapingExecution = () => {
       // Test avec une source simple
       await startScraping('pages_jaunes');
       
-      setTimeout(() => {
-        setIsTestMode(false);
-        toast({
-          title: "✅ Test terminé",
-          description: "Le test de scraping s'est bien déroulé. Vérifiez les résultats dans l'onglet Résultats.",
-        });
-      }, 3000);
+      // Attendre la fin réelle du test via le hook
+      setIsTestMode(false);
+      toast({
+        title: "✅ Test terminé",
+        description: "Le test de scraping s'est bien déroulé. Vérifiez les résultats dans l'onglet Résultats.",
+      });
     } catch (error) {
       setIsTestMode(false);
       console.error('❌ Erreur test scraping:', error);

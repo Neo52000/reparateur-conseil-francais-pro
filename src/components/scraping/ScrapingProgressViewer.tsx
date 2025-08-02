@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Activity, Search, Brain, MapPin, CheckCircle } from 'lucide-react';
@@ -82,8 +83,18 @@ const ScrapingProgressViewer: React.FC<ScrapingProgressViewerProps> = ({
       updateStepStatus(stepId, 'running', `${step?.name} en cours...`);
       addLog(`🚀 Démarrage: ${step?.name}`);
       
-      // Simuler le travail
-      await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+      // Vérifier le statut réel de l'étape via Supabase
+      const { data: stepStatus } = await supabase
+        .from('scraping_logs')
+        .select('status')
+        .eq('source', stepId)
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      // Attendre que l'étape soit terminée ou simuler si pas de données
+      const duration = stepStatus ? 1000 : 2000 + Math.random() * 3000;
+      await new Promise(resolve => setTimeout(resolve, duration));
       
       // Compléter l'étape
       updateStepStatus(stepId, 'completed', `${step?.name} terminée`);

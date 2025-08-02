@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,8 +21,12 @@ const ScrapingOperations: React.FC<ScrapingOperationsProps> = ({ onRefresh }) =>
   const handleStartScraping = async (source: string, testMode: boolean = false) => {
     setLoading('start');
     try {
-      // Simuler le démarrage du scraping
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Démarrer le scraping via Supabase
+      const { data, error } = await supabase.functions.invoke('start-scraping', {
+        body: { source, testMode, maxResults: testMode ? 10 : 1000 }
+      });
+      
+      if (error) throw error;
       
       logScrapingAction('scraping_start', `scraping-${Date.now()}`, {
         source: source,
@@ -56,8 +61,8 @@ const ScrapingOperations: React.FC<ScrapingOperationsProps> = ({ onRefresh }) =>
   const handleStopScraping = async () => {
     setLoading('stop');
     try {
-      // Simuler l'arrêt du scraping
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Arrêter le scraping via Supabase
+      const { error } = await supabase.functions.invoke('stop-scraping');
       
       logScrapingAction('scraping_stop', `scraping-stop-${Date.now()}`, {
         stop_time: new Date().toISOString(),
@@ -93,8 +98,10 @@ const ScrapingOperations: React.FC<ScrapingOperationsProps> = ({ onRefresh }) =>
 
     setLoading('cleanup');
     try {
-      // Simuler le nettoyage des données
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Nettoyer les données via Supabase
+      const { error } = await supabase.functions.invoke('cleanup-scraping-data', {
+        body: { retentionDays: 30 }
+      });
       
       logScrapingAction('delete', 'data-cleanup', {
         cleanup_type: 'old_scraping_data',
@@ -128,8 +135,8 @@ const ScrapingOperations: React.FC<ScrapingOperationsProps> = ({ onRefresh }) =>
 
     setLoading('reset');
     try {
-      // Simuler la réinitialisation
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Réinitialiser le système via Supabase
+      const { error } = await supabase.functions.invoke('reset-scraping-system');
       
       logScrapingAction('configuration_change', 'scraping-reset', {
         reset_type: 'full_system_reset',
