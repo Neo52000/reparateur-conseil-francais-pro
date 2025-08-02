@@ -3580,6 +3580,114 @@ export type Database = {
           },
         ]
       }
+      gamification_profiles: {
+        Row: {
+          achievements_earned: string[] | null
+          badges_earned: string[] | null
+          created_at: string
+          current_level: number
+          current_streak: number
+          id: string
+          last_activity_date: string | null
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          achievements_earned?: string[] | null
+          badges_earned?: string[] | null
+          created_at?: string
+          current_level?: number
+          current_streak?: number
+          id?: string
+          last_activity_date?: string | null
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          achievements_earned?: string[] | null
+          badges_earned?: string[] | null
+          created_at?: string
+          current_level?: number
+          current_streak?: number
+          id?: string
+          last_activity_date?: string | null
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      gamification_rewards: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          reward_key: string
+          reward_type: string
+          title: string
+          xp_requirement: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          reward_key: string
+          reward_type: string
+          title: string
+          xp_requirement?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          reward_key?: string
+          reward_type?: string
+          title?: string
+          xp_requirement?: number | null
+        }
+        Relationships: []
+      }
+      gamification_xp_history: {
+        Row: {
+          action_type: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          reason: string | null
+          user_id: string
+          xp_amount: number
+        }
+        Insert: {
+          action_type?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          user_id: string
+          xp_amount: number
+        }
+        Update: {
+          action_type?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          user_id?: string
+          xp_amount?: number
+        }
+        Relationships: []
+      }
       geo_targeting_zones: {
         Row: {
           coordinates: Json | null
