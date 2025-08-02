@@ -12,12 +12,6 @@ export class ProfileDataRepository {
    */
   static async fetchProfile(id: string): Promise<RepairerProfile | null> {
     console.log('🔄 Fetching profile data for ID:', id);
-    
-    if (id.startsWith('mock-')) {
-      console.log('🎭 Loading mock profile');
-      const { getMockProfile } = await import('@/services/mockRepairerProfiles');
-      return getMockProfile(id);
-    }
 
     try {
       // Essayer d'abord de chercher par ID dans repairer_profiles

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,7 +15,6 @@ import RepairerProfilePage from "./pages/RepairerProfilePage";
 import RepairerPlans from "./pages/RepairerPlans";
 import RepairerTestimonials from "./pages/RepairerTestimonials";
 import RepairerFAQ from "./pages/RepairerFAQ";
-import RepairerDemo from "./pages/RepairerDemo";
 import ServiceRepairPage from "./pages/services/ServiceRepairPage";
 import LocalSeoPage from "./pages/LocalSeoPage";
 import RepairerSettingsPage from "./pages/RepairerSettingsPage";
@@ -27,10 +26,24 @@ import BlogPage from "./pages/BlogPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
 import { useVisitorTracker } from "./hooks/useVisitorTracker";
 import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
+// Configuration production
+import { initializeProductionMode, performProductionHealthCheck } from './config/productionSetup';
 
 const queryClient = new QueryClient();
 
 const App = () => {
+  useEffect(() => {
+    // Initialiser le mode production strict
+    const prodConfig = initializeProductionMode();
+    console.log('🚀 Application démarrée en mode production:', prodConfig);
+    
+    // Vérification de santé
+    const healthCheck = performProductionHealthCheck();
+    if (!healthCheck.healthy) {
+      console.warn('⚠️ Problèmes détectés lors des vérifications de production');
+    }
+  }, []);
+
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
@@ -70,7 +83,7 @@ const AppWithTracking = () => {
         <Route path="/repairer/plans" element={<RepairerPlans />} />
         <Route path="/repairer/temoignages" element={<RepairerTestimonials />} />
         <Route path="/repairer/faq" element={<RepairerFAQ />} />
-        <Route path="/repairer/demo" element={<RepairerDemo />} />
+        
             <Route path="/repairer/:id" element={<RepairerProfilePage />} />
             <Route path="/repairer/:id/:slug" element={<RepairerProfilePage />} />
         <Route path="/client" element={<ClientDashboardPage />} />

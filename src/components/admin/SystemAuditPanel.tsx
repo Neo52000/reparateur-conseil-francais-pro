@@ -32,16 +32,16 @@ const SystemAuditPanel: React.FC = () => {
       
       if (dataAudit.inconsistencies.length === 0) {
         results.push({
-          category: 'Mode Démo',
+          category: 'Mode Production',
           status: 'success',
-          message: `Mode démo ${dataAudit.demoModeEnabled ? 'activé' : 'désactivé'} - Données cohérentes`,
-          details: `${dataAudit.realDataCount} données réelles, ${dataAudit.demoDataCount} données démo`
+          message: `Mode production - Données réelles uniquement`,
+          details: `${dataAudit.realDataCount} données réelles, mode démo désactivé définitivement`
         });
       } else {
         results.push({
-          category: 'Mode Démo',
+          category: 'Mode Production',
           status: 'error',
-          message: 'Incohérences détectées dans le mode démo',
+          message: 'Incohérences détectées en mode production',
           details: dataAudit.inconsistencies.join('; ')
         });
       }

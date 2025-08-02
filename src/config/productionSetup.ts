@@ -1,10 +1,9 @@
 /**
- * Configuration finale pour le passage en production
- * Activation de toutes les optimisations et suppression des données de test
+ * Configuration finale pour le passage en production - MODE PRODUCTION STRICT
+ * Aucune donnée factice, aucun mode démo
  */
 
 import { PRODUCTION_CONFIG } from './production';
-import { initProductionOptimizations } from '@/utils/productionOptimizations';
 
 /**
  * Configuration de production finale
@@ -61,10 +60,7 @@ export const FINAL_PRODUCTION_CONFIG = {
  * À appeler au démarrage de l'application
  */
 export const initializeProductionMode = () => {
-  console.log('🚀 Initialisation du mode production...');
-  
-  // 1. Optimisations de performance
-  initProductionOptimizations();
+  console.log('🚀 Initialisation du mode production STRICT...');
   
   // 2. Configuration du logging minimal
   if (!FINAL_PRODUCTION_CONFIG.features.enableConsoleReports) {
@@ -94,7 +90,8 @@ export const initializeProductionMode = () => {
     config: FINAL_PRODUCTION_CONFIG,
     isProduction: true,
     hasRealData: true,
-    hasMockData: false
+    hasMockData: false,
+    isDemoMode: false
   };
 };
 

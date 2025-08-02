@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, MessageCircle, Bell } from 'lucide-react';
-import { ClientDemoDataService } from '@/services/clientDemoDataService';
 import ClientStatsCards from './ClientStatsCards';
 
 interface ClientDashboardOverviewProps {
@@ -36,19 +35,14 @@ const ClientDashboardOverview = ({ stats, appointments }: ClientDashboardOvervie
             ) : (
               <div className="space-y-3">
                 {appointments.slice(0, 2).map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg relative">
-                    {ClientDemoDataService.isDemoData(appointment) && (
-                      <Badge variant="outline" className="absolute top-1 right-1 text-xs">
-                        Démo
-                      </Badge>
-                    )}
-                    <div>
-                      <p className="font-medium">{appointment.service}</p>
-                      <p className="text-sm text-gray-600">{appointment.date} à {appointment.time}</p>
-                    </div>
-                    <Badge variant="secondary">{appointment.status}</Badge>
-                  </div>
-                ))}
+                   <div key={appointment.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                     <div>
+                       <p className="font-medium">{appointment.service}</p>
+                       <p className="text-sm text-gray-600">{appointment.date} à {appointment.time}</p>
+                     </div>
+                     <Badge variant="secondary">{appointment.status}</Badge>
+                   </div>
+                 ))}
               </div>
             )}
           </CardContent>
