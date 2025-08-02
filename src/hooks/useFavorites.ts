@@ -29,27 +29,36 @@ export const useFavorites = () => {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Récupérer d'abord les favoris
+      const { data: favoritesData, error: favoritesError } = await supabase
         .from('client_favorites')
-        .select(`
-          id,
-          repairer_id,
-          created_at,
-          repairer:repairers!repairer_id (
-            id,
-            name,
-            city,
-            postal_code,
-            rating,
-            review_count,
-            phone
-          )
-        `)
+        .select('id, repairer_id, created_at')
         .eq('client_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setFavorites(data || []);
+      if (favoritesError) throw favoritesError;
+
+      if (!favoritesData || favoritesData.length === 0) {
+        setFavorites([]);
+        return;
+      }
+
+      // Récupérer les informations des réparateurs
+      const repairerIds = favoritesData.map(fav => fav.repairer_id);
+      const { data: repairersData, error: repairersError } = await supabase
+        .from('repairers')
+        .select('id, name, city, postal_code, rating, review_count, phone')
+        .in('id', repairerIds);
+
+      if (repairersError) throw repairersError;
+
+      // Combiner les données
+      const combinedData = favoritesData.map(favorite => ({
+        ...favorite,
+        repairer: repairersData?.find(repairer => repairer.id === favorite.repairer_id) || null
+      })).filter(item => item.repairer !== null);
+
+      setFavorites(combinedData);
     } catch (error) {
       console.error('Erreur lors du chargement des favoris:', error);
       toast({

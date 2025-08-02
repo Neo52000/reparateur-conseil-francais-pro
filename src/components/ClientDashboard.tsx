@@ -177,7 +177,7 @@ const ClientDashboard = () => {
           </TabsContent>
 
           <TabsContent value="favorites">
-            <ClientFavoritesTab favorites={clientData.favorites} />
+            <ClientFavoritesTab />
           </TabsContent>
 
           <TabsContent value="loyalty">
