@@ -29,10 +29,10 @@ const ClientAuthForm = () => {
       if (pendingPersonalizedSearch) {
         localStorage.removeItem('pendingPersonalizedSearch');
         navigate('/', { replace: true });
-        // Dispatch l'événement après un court délai pour s'assurer que la page est montée
-        setTimeout(() => {
+        // Dispatch immédiat de l'événement via microtask
+        Promise.resolve().then(() => {
           window.dispatchEvent(new CustomEvent('restorePersonalizedSearch'));
-        }, 100);
+        });
       } else {
         // Redirection normale vers la page d'accueil
         navigate('/', { replace: true });

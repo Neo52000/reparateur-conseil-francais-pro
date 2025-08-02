@@ -36,6 +36,14 @@ export const StoreFront: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
+  // Auto-reset urlCopied state
+  useEffect(() => {
+    if (urlCopied) {
+      const timer = setTimeout(() => setUrlCopied(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [urlCopied]);
+
   // URL de la boutique (exemple)
   const storeUrl = `https://boutique.repair-connect.fr/${user?.id}`;
 
@@ -97,7 +105,7 @@ export const StoreFront: React.FC = () => {
         title: "URL copiée",
         description: "L'URL de votre boutique a été copiée dans le presse-papier"
       });
-      setTimeout(() => setUrlCopied(false), 2000);
+      // Reset automatiquement via useEffect
     } catch (error) {
       toast({
         title: "Erreur",

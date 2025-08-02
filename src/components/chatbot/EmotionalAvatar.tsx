@@ -15,11 +15,14 @@ const EmotionalAvatar: React.FC<EmotionalAvatarProps> = ({
   const [currentExpression, setCurrentExpression] = useState(emotion);
   const [isBlinking, setIsBlinking] = useState(false);
 
-  // Simulation du clignement naturel
+  // Animation clignement via CSS et Framer Motion
   useEffect(() => {
     const blinkInterval = setInterval(() => {
       setIsBlinking(true);
-      setTimeout(() => setIsBlinking(false), 150);
+      // Le reset se fait automatiquement via l'animation CSS
+      requestAnimationFrame(() => {
+        setTimeout(() => setIsBlinking(false), 150); // Minimal delay pour l'effet
+      });
     }, 3000 + Math.random() * 2000);
 
     return () => clearInterval(blinkInterval);

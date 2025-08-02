@@ -24,6 +24,14 @@ const BlogNewsTracker: React.FC = () => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [selectedAI, setSelectedAI] = useState<'perplexity' | 'openai' | 'mistral'>('perplexity');
 
+  // Auto-reset copiedIndex
+  useEffect(() => {
+    if (copiedIndex !== null) {
+      const timer = setTimeout(() => setCopiedIndex(null), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [copiedIndex]);
+
   useEffect(() => {
     loadSavedPrompt();
   }, []);
@@ -126,7 +134,7 @@ const BlogNewsTracker: React.FC = () => {
       await navigator.clipboard.writeText(text);
       if (typeof index === 'number') {
         setCopiedIndex(index);
-        setTimeout(() => setCopiedIndex(null), 2000);
+        // Auto-reset handled by useEffect
       }
       toast({
         title: "Copié !",

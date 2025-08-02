@@ -77,6 +77,14 @@ const KeyboardShortcutsOverlay: React.FC<KeyboardShortcutsOverlayProps> = ({
 }) => {
   const [activeKey, setActiveKey] = useState<string | null>(null);
 
+  // Auto-reset activeKey
+  useEffect(() => {
+    if (activeKey) {
+      const timer = setTimeout(() => setActiveKey(null), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeKey]);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!isVisible) return;
@@ -95,7 +103,7 @@ const KeyboardShortcutsOverlay: React.FC<KeyboardShortcutsOverlayProps> = ({
       const shortcut = shortcuts.find(s => s.key.toUpperCase() === keyPressed);
       if (shortcut) {
         setActiveKey(shortcut.key);
-        setTimeout(() => setActiveKey(null), 1000);
+        // Auto-reset handled by useEffect
       }
     };
 

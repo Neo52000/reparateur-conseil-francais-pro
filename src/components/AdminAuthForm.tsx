@@ -105,13 +105,12 @@ const AdminAuthForm = () => {
   // Si utilisateur connecté mais pas admin, déconnecter et afficher le formulaire
   if (user && !isAdmin && !authLoading) {
     logger.debug('User connected but not admin - logging out and showing admin form');
-    // Auto-déconnexion pour permettre la connexion admin
-    setTimeout(() => {
-      toast({
-        title: "Connexion admin requise",
-        description: "Veuillez vous connecter avec un compte administrateur"
-      });
-    }, 100);
+    // Notification immédiate pour les utilisateurs non-admin
+    toast({
+      title: "Connexion admin requise",
+      description: "Veuillez vous connecter avec un compte administrateur",
+      variant: "destructive"
+    });
   }
 
   // Affichage du formulaire de connexion standard

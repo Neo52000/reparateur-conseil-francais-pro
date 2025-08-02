@@ -122,7 +122,10 @@ const POSProductSync: React.FC = () => {
           });
         
         setSyncProgress(((i + 1) / unsyncedProducts.length) * 100);
-        await new Promise(resolve => setTimeout(resolve, 200)); // Throttling
+        // Rate limiting optimisé avec requestAnimationFrame
+        await new Promise(resolve => requestAnimationFrame(() => 
+          setTimeout(resolve, 200) // Délai minimal pour éviter la surcharge API
+        ));
       }
 
       // Marquer tous les produits comme synchronisés

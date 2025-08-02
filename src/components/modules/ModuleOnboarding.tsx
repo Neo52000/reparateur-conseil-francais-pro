@@ -192,8 +192,8 @@ const ModuleOnboarding: React.FC<ModuleOnboardingProps> = ({
     if (nextStepIndex < steps.length) {
       setCurrentStep(nextStepIndex);
     } else {
-      // Toutes les étapes sont terminées
-      setTimeout(onComplete, 1000);
+      // Toutes les étapes sont terminées - complétion immédiate
+      onComplete();
     }
   };
 
