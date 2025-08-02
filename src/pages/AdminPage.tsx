@@ -319,27 +319,14 @@ const AdminPage = () => {
         return <AdminDashboardContent activeTab={activeTab} subscriptions={[]} repairers={[]} onViewProfile={() => {}} onRefresh={async () => {}} />;
     }
   };
-  try {
-    return (
-      <div className="min-h-screen bg-background">
-        <AdminTopBar userName={user?.email || 'Admin'} />
-        <HorizontalAdminNav />
-        <main className="p-6">
-          {renderContent()}
-        </main>
-      </div>
-    );
-  } catch (error) {
-    console.error('Erreur critique dans AdminPage:', error);
-    return <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Erreur de chargement</h1>
-          <p className="text-muted-foreground mb-4">Une erreur s'est produite lors du chargement de la page d'administration.</p>
-          <button onClick={() => window.location.reload()} className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90">
-            Recharger la page
-          </button>
-        </div>
-      </div>;
-  }
+  return (
+    <div className="min-h-screen bg-background">
+      <AdminTopBar userName={user?.email || 'Admin'} />
+      <HorizontalAdminNav />
+      <main className="p-6">
+        {renderContent()}
+      </main>
+    </div>
+  );
 };
 export default AdminPage;

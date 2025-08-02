@@ -8,12 +8,15 @@ export const useAdvertising = (placement: AdPlacement) => {
   const [banners, setBanners] = useState<AdBanner[]>([]);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [hasFetched, setHasFetched] = useState(false);
   const { user, profile } = useAuth();
 
   console.log('🔥 useAdvertising - Hook initialized for placement:', placement);
 
   // Récupérer les bannières en fonction du placement et du ciblage
   const fetchBanners = useCallback(async () => {
+    if (hasFetched) return; // Éviter les appels multiples
+    
     try {
       console.log('🔍 Fetching banners for placement:', placement);
       console.log('🗄️ Database connection test - calling Supabase...');
@@ -88,6 +91,7 @@ export const useAdvertising = (placement: AdPlacement) => {
         banners: filteredBanners.map(b => ({ id: b.id, title: b.title, target_type: b.target_type }))
       });
       setBanners(filteredBanners);
+      setHasFetched(true); // Marquer comme récupéré
     } catch (error) {
       console.error('💥 Exception in fetchBanners:', error);
       setBanners([]);
@@ -95,7 +99,7 @@ export const useAdvertising = (placement: AdPlacement) => {
       console.log('🏁 Setting loading to false');
       setLoading(false);
     }
-  }, [placement]);
+  }, [placement, hasFetched]);
 
   // Enregistrer une impression
   const trackImpression = useCallback(async (bannerId: string) => {
@@ -180,11 +184,13 @@ export const useAdvertising = (placement: AdPlacement) => {
     };
   }, [banners.length]);
 
-  // Charger les bannières au montage
+  // Charger les bannières au montage (une seule fois)
   useEffect(() => {
-    console.log('🚀 Hook mounted, fetching banners');
-    fetchBanners();
-  }, [fetchBanners]);
+    if (!hasFetched) {
+      console.log('🚀 Hook mounted, fetching banners');
+      fetchBanners();
+    }
+  }, [fetchBanners, hasFetched]);
 
   // Bannière actuelle
   const currentBanner = banners[currentBannerIndex] || null;

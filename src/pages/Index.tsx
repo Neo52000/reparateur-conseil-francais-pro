@@ -28,13 +28,10 @@ interface SearchCriteria {
 
 const Index = () => {
   const navigate = useNavigate();
-  const [errorInfo, setErrorInfo] = useState<string | null>(null);
   
-  // Wrapping everything in a try-catch to prevent white screen
-  try {
-    console.log('🏠 Index page rendering');
-    const { user } = useAuth();
-    const { pendingAction, clearPendingAction } = usePendingAction();
+  console.log('🏠 Index page rendering');
+  const { user } = useAuth();
+  const { pendingAction, clearPendingAction } = usePendingAction();
     const {
       isQuoteModalOpen,
       isAppointmentModalOpen,
@@ -196,23 +193,6 @@ const Index = () => {
       <TestRepairerProfileButton />
     </div>
   );
-  } catch (error) {
-    console.error('Erreur critique dans Index:', error);
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Erreur de chargement</h1>
-          <p className="text-gray-600 mb-4">Une erreur s'est produite lors du chargement de la page.</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Recharger la page
-          </button>
-        </div>
-      </div>
-    );
-  }
 };
 
 export default Index;
