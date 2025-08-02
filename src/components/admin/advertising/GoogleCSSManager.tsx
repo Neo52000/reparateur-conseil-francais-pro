@@ -1,31 +1,22 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  TrendingUp, 
-  Euro, 
-  CheckCircle, 
-  AlertCircle, 
-  Info, 
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  Settings,
   ExternalLink,
   DollarSign,
   Percent,
-  CalendarDays
+  CalendarDays,
+  AlertCircle
 } from 'lucide-react';
-
-const mockCSSData = {
-  is_active: true,
-  css_provider: 'CSS Partner Pro',
-  css_account_id: 'CSS-789456123',
-  savings_percentage: 18.5,
-  total_savings: 1240.50,
-  monthly_savings: 320.15,
-  activation_date: '2024-01-01T00:00:00Z'
-};
 
 const cssProviders = [
   { 
@@ -48,268 +39,182 @@ const cssProviders = [
   }
 ];
 
+interface CSSData {
+  is_active: boolean;
+  css_provider: string;
+  css_account_id: string;
+  savings_percentage: number;
+  total_savings: number;
+  monthly_savings: number;
+  activation_date: string;
+}
+
 export const GoogleCSSManager = () => {
-  const [isActive, setIsActive] = useState(mockCSSData.is_active);
+  const [cssData, setCssData] = useState<CSSData | null>(null);
+  const [isActive, setIsActive] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState('css-partner-pro');
-  const [accountId, setAccountId] = useState(mockCSSData.css_account_id);
+  const [accountId, setAccountId] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadCSSData();
+  }, []);
+
+  const loadCSSData = async () => {
+    try {
+      // Configuration CSS Google Shopping pas encore implémentée en base
+      console.log('CSS configuration will be implemented later');
+    } catch (error) {
+      console.log('CSS configuration not yet implemented in database');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
         <h2 className="text-xl font-semibold text-foreground">Google CSS Manager</h2>
-        <p className="text-muted-foreground">
-          Économisez jusqu'à 20% sur vos enchères Google Shopping avec un partenaire CSS
+        <p className="text-sm text-muted-foreground mt-1">
+          Gérez votre configuration CSS Google Shopping pour réduire vos coûts publicitaires
         </p>
       </div>
 
-      {/* Status et économies */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Statut CSS</p>
-                <div className="flex items-center gap-2 mt-1">
-                  {isActive ? (
-                    <>
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="font-semibold text-green-600">Actif</span>
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle className="h-4 w-4 text-red-500" />
-                      <span className="font-semibold text-red-600">Inactif</span>
-                    </>
-                  )}
-                </div>
-              </div>
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Économies totales</p>
-                <p className="text-2xl font-bold text-foreground">
-                  €{mockCSSData.total_savings.toFixed(2)}
-                </p>
-              </div>
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Euro className="h-5 w-5 text-blue-600" />
-              </div>
-            </div>
-            <div className="flex items-center gap-1 mt-2">
-              <TrendingUp className="h-3 w-3 text-green-500" />
-              <span className="text-xs text-green-500">Depuis activation</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">% d'économies</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {mockCSSData.savings_percentage.toFixed(1)}%
-                </p>
-              </div>
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Percent className="h-5 w-5 text-purple-600" />
-              </div>
-            </div>
-            <div className="flex items-center gap-1 mt-2">
-              <span className="text-xs text-muted-foreground">Sur les enchères</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Ce mois-ci</p>
-                <p className="text-2xl font-bold text-foreground">
-                  €{mockCSSData.monthly_savings.toFixed(2)}
-                </p>
-              </div>
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <CalendarDays className="h-5 w-5 text-orange-600" />
-              </div>
-            </div>
-            <div className="flex items-center gap-1 mt-2">
-              <TrendingUp className="h-3 w-3 text-green-500" />
-              <span className="text-xs text-green-500">+12% vs mois dernier</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Configuration non disponible en production */}
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          La gestion CSS Google Shopping sera disponible prochainement. 
+          Cette fonctionnalité permettra de réduire vos coûts publicitaires de 10 à 20%.
+        </AlertDescription>
+      </Alert>
 
       {/* Configuration CSS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              Configuration CSS
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Service CSS actif</p>
-                <p className="text-sm text-muted-foreground">
-                  Économisez sur vos enchères Google Shopping
-                </p>
-              </div>
-              <Switch checked={isActive} onCheckedChange={setIsActive} />
-            </div>
-
-            {isActive && (
-              <>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Fournisseur CSS</label>
-                  <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {cssProviders.map((provider) => (
-                        <SelectItem key={provider.value} value={provider.value}>
-                          <div>
-                            <div className="font-medium">{provider.label}</div>
-                            <div className="text-xs text-muted-foreground">
-                              Économies: {provider.savings}
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block">ID Compte CSS</label>
-                  <Input
-                    value={accountId}
-                    onChange={(e) => setAccountId(e.target.value)}
-                    placeholder="CSS-123456789"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Identifiant fourni par votre partenaire CSS
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t">
-                  <Button className="w-full">
-                    Sauvegarder la configuration
-                  </Button>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Qu'est-ce que Google CSS ?</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex gap-3">
-                <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-blue-800 mb-2">
-                    Comparison Shopping Service (CSS)
-                  </p>
-                  <p className="text-sm text-blue-600">
-                    Les partenaires CSS permettent de réduire vos coûts d'enchères 
-                    Google Shopping jusqu'à 20% tout en maintenant les mêmes performances.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                <div>
-                  <p className="font-medium text-sm">Économies garanties</p>
-                  <p className="text-xs text-muted-foreground">
-                    Réduction automatique des enchères
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                <div>
-                  <p className="font-medium text-sm">Même visibilité</p>
-                  <p className="text-xs text-muted-foreground">
-                    Aucun impact sur vos positions
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                <div>
-                  <p className="font-medium text-sm">Configuration simple</p>
-                  <p className="text-xs text-muted-foreground">
-                    Activation en quelques clics
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <Button variant="outline" className="w-full">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              En savoir plus sur Google CSS
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Fournisseurs disponibles */}
       <Card>
         <CardHeader>
-          <CardTitle>Fournisseurs CSS disponibles</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Configuration CSS
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-            {cssProviders.map((provider) => (
-              <div key={provider.value} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-medium">{provider.label}</p>
-                    <Badge variant="secondary">{provider.savings}</Badge>
-                    {selectedProvider === provider.value && isActive && (
-                      <Badge className="bg-green-100 text-green-800">Actuel</Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground">{provider.description}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    Détails
-                  </Button>
-                  {selectedProvider !== provider.value && (
-                    <Button size="sm">
-                      Activer
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="css-active">Activer Google CSS</Label>
+              <p className="text-sm text-muted-foreground">
+                Réduisez vos coûts Google Shopping avec un partenaire CSS
+              </p>
+            </div>
+            <Switch
+              id="css-active"
+              checked={isActive}
+              onCheckedChange={setIsActive}
+              disabled={true} // Désactivé en production
+            />
+          </div>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="css-provider">Fournisseur CSS</Label>
+              <Select value={selectedProvider} onValueChange={setSelectedProvider} disabled={true}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un fournisseur" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cssProviders.map((provider) => (
+                    <SelectItem key={provider.value} value={provider.value}>
+                      <div className="flex flex-col">
+                        <span>{provider.label}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {provider.description} • Économies: {provider.savings}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="account-id">ID Compte CSS</Label>
+              <Input
+                id="account-id"
+                value={accountId}
+                onChange={(e) => setAccountId(e.target.value)}
+                placeholder="CSS-123456789"
+                disabled={true}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Statistiques d'économies */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Économies totales</p>
+                <p className="text-2xl font-bold text-foreground">€0.00</p>
+              </div>
+              <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                <DollarSign className="h-4 w-4 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">% d'économies</p>
+                <p className="text-2xl font-bold text-foreground">0.0%</p>
+              </div>
+              <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <Percent className="h-4 w-4 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Ce mois-ci</p>
+                <p className="text-2xl font-bold text-foreground">€0.00</p>
+              </div>
+              <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
+                <CalendarDays className="h-4 w-4 text-purple-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-2">
+        <Button disabled={true}>
+          <ExternalLink className="h-4 w-4 mr-2" />
+          Configurer Google Ads
+        </Button>
+        <Button variant="outline" disabled={true}>
+          Tester la configuration
+        </Button>
+      </div>
     </div>
   );
 };

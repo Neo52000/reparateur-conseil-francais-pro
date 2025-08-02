@@ -1,52 +1,70 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
-  ShoppingCart, 
-  CreditCard,
-  DollarSign,
-  BarChart3,
-  PieChart,
-  Activity,
-  Calendar,
-  Download,
-  RefreshCw
-} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import {
-  LineChart,
-  Line,
-  AreaChart,
-  Area,
   BarChart,
   Bar,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  AreaChart,
+  Area
 } from 'recharts';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import {
+  RefreshCw,
+  TrendingUp,
+  Users,
+  DollarSign,
+  Activity,
+  Zap,
+  AlertCircle,
+  BarChart3
+} from 'lucide-react';
 
 interface AnalyticsData {
-  revenue: any[];
-  users: any[];
-  transactions: any[];
-  modules: any[];
-  performance: any[];
+  revenue: Array<{
+    month: string;
+    pos: number;
+    ecommerce: number;
+    total: number;
+  }>;
+  users: Array<{
+    month: string;
+    new: number;
+    active: number;
+    churned: number;
+  }>;
+  transactions: Array<{
+    month: string;
+    count: number;
+    value: number;
+  }>;
+  modules: Array<{
+    name: string;
+    users: number;
+    revenue: number;
+    color: string;
+  }>;
+  performance: Array<{
+    metric: string;
+    value: number;
+    target: number;
+    status: string;
+    unit?: string;
+  }>;
 }
 
-interface KPIData {
+interface KPIs {
   totalRevenue: number;
   totalUsers: number;
   totalTransactions: number;
@@ -55,26 +73,11 @@ interface KPIData {
   churnRate: number;
 }
 
-const AdvancedAnalytics: React.FC = () => {
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
-    revenue: [],
-    users: [],
-    transactions: [],
-    modules: [],
-    performance: []
-  });
-  const [kpis, setKPIs] = useState<KPIData>({
-    totalRevenue: 0,
-    totalUsers: 0,
-    totalTransactions: 0,
-    avgTransactionValue: 0,
-    growthRate: 0,
-    churnRate: 0
-  });
+export const AdvancedAnalytics: React.FC = () => {
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [kpis, setKPIs] = useState<KPIs | null>(null);
+  const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
   const [isLoading, setIsLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState('30d');
-  const [selectedMetric, setSelectedMetric] = useState('revenue');
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchAnalyticsData();
@@ -84,440 +87,196 @@ const AdvancedAnalytics: React.FC = () => {
     try {
       setIsLoading(true);
 
-      // Données simulées pour la démonstration
-      const mockRevenueData = [
-        { month: 'Jan', pos: 45000, ecommerce: 32000, total: 77000 },
-        { month: 'Fév', pos: 52000, ecommerce: 38000, total: 90000 },
-        { month: 'Mar', pos: 48000, ecommerce: 42000, total: 90000 },
-        { month: 'Avr', pos: 61000, ecommerce: 45000, total: 106000 },
-        { month: 'Mai', pos: 55000, ecommerce: 48000, total: 103000 },
-        { month: 'Jun', pos: 67000, ecommerce: 52000, total: 119000 },
-      ];
+      // Analytics avancées pas encore implémentées en base
+      console.log('Advanced Analytics will be implemented later');
 
-      const mockUsersData = [
-        { month: 'Jan', new: 45, active: 234, churned: 12 },
-        { month: 'Fév', new: 62, active: 278, churned: 8 },
-        { month: 'Mar', new: 38, active: 298, churned: 18 },
-        { month: 'Avr', new: 71, active: 341, churned: 14 },
-        { month: 'Mai', new: 55, active: 372, churned: 24 },
-        { month: 'Jun', new: 83, active: 421, churned: 20 },
-      ];
-
-      const mockTransactionsData = [
-        { month: 'Jan', count: 1245, value: 77000 },
-        { month: 'Fév', count: 1456, value: 90000 },
-        { month: 'Mar', count: 1389, value: 90000 },
-        { month: 'Avr', count: 1678, value: 106000 },
-        { month: 'Mai', count: 1534, value: 103000 },
-        { month: 'Jun', count: 1789, value: 119000 },
-      ];
-
-      const mockModulesData = [
-        { name: 'POS Basic', users: 45, revenue: 22500, color: 'hsl(var(--admin-blue))' },
-        { name: 'POS Pro', users: 32, revenue: 48000, color: 'hsl(var(--admin-green))' },
-        { name: 'E-commerce Basic', users: 28, revenue: 24920, color: 'hsl(var(--admin-purple))' },
-        { name: 'E-commerce Pro', users: 19, revenue: 33820, color: 'hsl(var(--admin-orange))' },
-      ];
-
-      const mockPerformanceData = [
-        { metric: 'Uptime', value: 99.9, target: 99.5, status: 'excellent' },
-        { metric: 'Response Time', value: 245, target: 300, status: 'good', unit: 'ms' },
-        { metric: 'Error Rate', value: 0.05, target: 0.1, status: 'excellent', unit: '%' },
-        { metric: 'Sync Success', value: 98.7, target: 95, status: 'excellent', unit: '%' },
-      ];
-
-      setAnalyticsData({
-        revenue: mockRevenueData,
-        users: mockUsersData,
-        transactions: mockTransactionsData,
-        modules: mockModulesData,
-        performance: mockPerformanceData
-      });
-
-      // Calculer les KPI
-      const totalRevenue = mockRevenueData.reduce((sum, item) => sum + item.total, 0);
-      const totalUsers = mockUsersData[mockUsersData.length - 1].active;
-      const totalTransactions = mockTransactionsData.reduce((sum, item) => sum + item.count, 0);
-      const avgTransactionValue = totalRevenue / totalTransactions;
-      const growthRate = 12.4; // Calculé à partir des données
-      const churnRate = 4.2; // Calculé à partir des données
-
-      setKPIs({
-        totalRevenue,
-        totalUsers,
-        totalTransactions,
-        avgTransactionValue,
-        growthRate,
-        churnRate
-      });
+      // Mode production - aucune donnée mockée
+      setAnalyticsData(null);
+      setKPIs(null);
 
     } catch (error) {
-      console.error('Erreur lors du chargement des analytics:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les données d'analyse",
-        variant: "destructive"
-      });
+      console.log('Analytics avancées pas encore disponibles');
+      setAnalyticsData(null);
+      setKPIs(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const exportReport = () => {
-    toast({
-      title: "Export en cours",
-      description: "Le rapport d'analyse est en cours de génération...",
-    });
+  const refreshData = () => {
+    fetchAnalyticsData();
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'excellent': return 'text-admin-green';
-      case 'good': return 'text-admin-blue';
-      case 'warning': return 'text-admin-yellow';
-      case 'critical': return 'text-admin-red';
-      default: return 'text-muted-foreground';
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Analytics Avancées</h2>
-          <p className="text-muted-foreground">Analyse approfondie des performances</p>
+          <h2 className="text-2xl font-bold text-foreground">Analytics Avancées</h2>
+          <p className="text-muted-foreground">
+            Vue d'ensemble des performances de la plateforme
+          </p>
         </div>
-        
-        <div className="flex gap-2">
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7d">7 jours</SelectItem>
-              <SelectItem value="30d">30 jours</SelectItem>
-              <SelectItem value="90d">90 jours</SelectItem>
-              <SelectItem value="1y">1 an</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Button variant="outline" onClick={fetchAnalyticsData}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Actualiser
-          </Button>
-          
-          <Button onClick={exportReport}>
-            <Download className="h-4 w-4 mr-2" />
-            Exporter
-          </Button>
-        </div>
+        <Button onClick={refreshData} disabled={isLoading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          Actualiser
+        </Button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+      {/* Alert pour données non disponibles */}
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Les analytics avancées seront disponibles prochainement. 
+          Cette section affichera les métriques de revenus, utilisateurs, transactions et performances des modules.
+        </AlertDescription>
+      </Alert>
+
+      {/* KPIs - vides en production */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <DollarSign className="h-5 w-5 text-admin-green" />
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-green-600" />
               <div>
-                <p className="text-xs text-muted-foreground">Revenus Total</p>
-                <p className="text-lg font-bold">{kpis.totalRevenue.toLocaleString()}€</p>
-                <div className="flex items-center text-xs text-admin-green">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +{kpis.growthRate}%
-                </div>
+                <p className="text-sm text-muted-foreground">Revenus Total</p>
+                <p className="text-lg font-semibold">€0</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-admin-blue" />
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-blue-600" />
               <div>
-                <p className="text-xs text-muted-foreground">Utilisateurs Actifs</p>
-                <p className="text-lg font-bold">{kpis.totalUsers}</p>
-                <div className="flex items-center text-xs text-admin-blue">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +8.3%
-                </div>
+                <p className="text-sm text-muted-foreground">Utilisateurs</p>
+                <p className="text-lg font-semibold">0</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CreditCard className="h-5 w-5 text-admin-purple" />
+            <div className="flex items-center gap-2">
+              <Activity className="h-4 w-4 text-purple-600" />
               <div>
-                <p className="text-xs text-muted-foreground">Transactions</p>
-                <p className="text-lg font-bold">{kpis.totalTransactions.toLocaleString()}</p>
-                <div className="flex items-center text-xs text-admin-purple">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +15.7%
-                </div>
+                <p className="text-sm text-muted-foreground">Transactions</p>
+                <p className="text-lg font-semibold">0</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <ShoppingCart className="h-5 w-5 text-admin-orange" />
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-orange-600" />
               <div>
-                <p className="text-xs text-muted-foreground">Panier Moyen</p>
-                <p className="text-lg font-bold">{kpis.avgTransactionValue.toFixed(2)}€</p>
-                <div className="flex items-center text-xs text-admin-green">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +3.2%
-                </div>
+                <p className="text-sm text-muted-foreground">Panier Moyen</p>
+                <p className="text-lg font-semibold">€0</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5 text-admin-green" />
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-green-600" />
               <div>
-                <p className="text-xs text-muted-foreground">Croissance</p>
-                <p className="text-lg font-bold">{kpis.growthRate}%</p>
-                <p className="text-xs text-muted-foreground">ce mois</p>
+                <p className="text-sm text-muted-foreground">Croissance</p>
+                <p className="text-lg font-semibold">0.0%</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Activity className="h-5 w-5 text-admin-red" />
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-red-600" />
               <div>
-                <p className="text-xs text-muted-foreground">Taux de Churn</p>
-                <p className="text-lg font-bold">{kpis.churnRate}%</p>
-                <div className="flex items-center text-xs text-admin-green">
-                  <TrendingDown className="h-3 w-3 mr-1" />
-                  -1.2%
-                </div>
+                <p className="text-sm text-muted-foreground">Taux d'abandon</p>
+                <p className="text-lg font-semibold">0.0%</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Analytics Tabs */}
-      <Tabs defaultValue="revenue" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="revenue">Revenus</TabsTrigger>
-          <TabsTrigger value="users">Utilisateurs</TabsTrigger>
-          <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          <TabsTrigger value="modules">Modules</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="revenue">
-          <Card>
-            <CardHeader>
-              <CardTitle>Évolution des Revenus</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <AreaChart data={analyticsData.revenue}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Area 
-                    type="monotone" 
-                    dataKey="pos" 
-                    stackId="1"
-                    stroke="hsl(var(--admin-blue))" 
-                    fill="hsl(var(--admin-blue-light))"
-                    name="POS"
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="ecommerce" 
-                    stackId="1"
-                    stroke="hsl(var(--admin-green))" 
-                    fill="hsl(var(--admin-green-light))"
-                    name="E-commerce"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="users">
-          <Card>
-            <CardHeader>
-              <CardTitle>Évolution des Utilisateurs</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <LineChart data={analyticsData.users}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="active" 
-                    stroke="hsl(var(--admin-blue))" 
-                    name="Actifs"
-                    strokeWidth={3}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="new" 
-                    stroke="hsl(var(--admin-green))" 
-                    name="Nouveaux"
-                    strokeWidth={2}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="churned" 
-                    stroke="hsl(var(--admin-red))" 
-                    name="Churned"
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="transactions">
-          <Card>
-            <CardHeader>
-              <CardTitle>Volume des Transactions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <BarChart data={analyticsData.transactions}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="hsl(var(--admin-purple))" name="Nombre" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="modules">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Répartition par Module</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RechartsPieChart>
-                    <Pie
-                      data={analyticsData.modules}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      dataKey="revenue"
-                      label={({ name, value }) => `${name}: ${value.toLocaleString()}€`}
-                    >
-                      {analyticsData.modules.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </RechartsPieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance par Module</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {analyticsData.modules.map((module, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{module.name}</p>
-                        <p className="text-sm text-muted-foreground">{module.users} utilisateurs</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-admin-green">{module.revenue.toLocaleString()}€</p>
-                        <p className="text-sm text-muted-foreground">
-                          {(module.revenue / module.users).toFixed(0)}€/user
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="performance">
-          <Card>
-            <CardHeader>
-              <CardTitle>Indicateurs de Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {analyticsData.performance.map((perf, index) => (
-                  <div key={index} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">{perf.metric}</h4>
-                      <Badge variant={perf.status === 'excellent' ? 'default' : 'secondary'}>
-                        {perf.status}
-                      </Badge>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Actuel</span>
-                        <span className={`font-medium ${getStatusColor(perf.status)}`}>
-                          {perf.value}{perf.unit || ''}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Objectif</span>
-                        <span className="text-sm">
-                          {perf.target}{perf.unit || ''}
-                        </span>
-                      </div>
-                      
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full ${
-                            perf.status === 'excellent' ? 'bg-admin-green' :
-                            perf.status === 'good' ? 'bg-admin-blue' :
-                            perf.status === 'warning' ? 'bg-admin-yellow' :
-                            'bg-admin-red'
-                          }`}
-                          style={{ 
-                            width: `${Math.min(100, (perf.value / perf.target) * 100)}%` 
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
+      {/* Graphiques - vides pour la production */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Évolution des revenus</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>Aucune donnée de revenus</p>
+                <p className="text-sm mt-2">Les graphiques de revenus apparaîtront ici</p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Répartition par module</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <Activity className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>Aucune donnée de module</p>
+                <p className="text-sm mt-2">La répartition des modules apparaîtra ici</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Évolution des utilisateurs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>Aucune donnée d'utilisateurs</p>
+                <p className="text-sm mt-2">Les métriques utilisateurs apparaîtront ici</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Performances système</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 flex items-center justify-center text-gray-500">
+              <div className="text-center">
+                <Zap className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>Aucune donnée de performance</p>
+                <p className="text-sm mt-2">Les métriques de performance apparaîtront ici</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
