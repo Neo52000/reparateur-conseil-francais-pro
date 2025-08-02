@@ -346,13 +346,118 @@ const AdminConfigurationPage: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Palette className="w-5 h-5" />
-                Apparence
+                Thèmes et apparence
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-center p-8 text-muted-foreground">
-                🎨 Configuration des thèmes et de l'apparence bientôt disponible
-              </p>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Thèmes disponibles</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="border rounded-lg p-4 cursor-pointer hover:border-primary">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">Thème Clair</h4>
+                      <Badge variant="default">Actuel</Badge>
+                    </div>
+                    <div className="h-20 bg-gradient-to-r from-blue-50 to-indigo-50 rounded mb-2"></div>
+                    <p className="text-sm text-muted-foreground">Thème par défaut avec couleurs claires</p>
+                  </div>
+                  
+                  <div className="border rounded-lg p-4 cursor-pointer hover:border-primary">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">Thème Sombre</h4>
+                      <Badge variant="secondary">Disponible</Badge>
+                    </div>
+                    <div className="h-20 bg-gradient-to-r from-gray-800 to-gray-900 rounded mb-2"></div>
+                    <p className="text-sm text-muted-foreground">Thème adapté pour un usage nocturne</p>
+                  </div>
+                  
+                  <div className="border rounded-lg p-4 cursor-pointer hover:border-primary">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">Thème Pro</h4>
+                      <Badge variant="outline">Bientôt</Badge>
+                    </div>
+                    <div className="h-20 bg-gradient-to-r from-emerald-50 to-teal-50 rounded mb-2"></div>
+                    <p className="text-sm text-muted-foreground">Thème premium pour réparateurs</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Personnalisation</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="primaryColor">Couleur principale</Label>
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="color" 
+                        id="primaryColor"
+                        defaultValue="#3b82f6" 
+                        className="w-12 h-10 rounded border"
+                      />
+                      <Input value="#3b82f6" disabled />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="accentColor">Couleur d'accent</Label>
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="color" 
+                        id="accentColor"
+                        defaultValue="#10b981" 
+                        className="w-12 h-10 rounded border"
+                      />
+                      <Input value="#10b981" disabled />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="logoUpload">Logo personnalisé</Label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <input type="file" id="logoUpload" className="hidden" accept="image/*" />
+                    <label htmlFor="logoUpload" className="cursor-pointer">
+                      <div className="space-y-2">
+                        <div className="mx-auto w-12 h-12 text-gray-400">
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-blue-600 hover:text-blue-500">Cliquez pour uploader</span> ou glissez-déposez
+                        </div>
+                        <p className="text-xs text-gray-500">PNG, JPG jusqu'à 2MB</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-medium">Options d'affichage</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Mode sombre automatique</Label>
+                        <p className="text-sm text-muted-foreground">Basculer selon l'heure système</p>
+                      </div>
+                      <Switch />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Animations réduites</Label>
+                        <p className="text-sm text-muted-foreground">Pour améliorer les performances</p>
+                      </div>
+                      <Switch />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label>Interface compacte</Label>
+                        <p className="text-sm text-muted-foreground">Réduire l'espacement</p>
+                      </div>
+                      <Switch />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <Button onClick={() => handleSave('apparence')} disabled={loading}>
                 <Save className="w-4 h-4 mr-2" />

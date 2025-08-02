@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { MessageSquare, TrendingUp, Brain, Settings, Plus, Edit, Trash2 } from 'lucide-react';
+import { MessageSquare, TrendingUp, Brain, Settings, Plus, Edit, Trash2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface TrainingData {
@@ -35,6 +35,17 @@ interface Analytics {
   escalations: number;
 }
 
+interface RecentConversation {
+  id: string;
+  user_id: string;
+  status: string;
+  started_at: string;
+  ended_at?: string;
+  message_count: number;
+  last_message: string;
+  escalated: boolean;
+}
+
 const ChatbotManagement = () => {
   const [activeTab, setActiveTab] = useState('analytics');
   const [trainingData, setTrainingData] = useState<TrainingData[]>([]);
@@ -43,9 +54,13 @@ const ChatbotManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingData, setEditingData] = useState<TrainingData | null>(null);
+  const [recentConversations, setRecentConversations] = useState<RecentConversation[]>([]);
+  const [conversationFilter, setConversationFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadData();
+    loadRecentConversations();
   }, []);
 
   const loadData = async () => {
@@ -96,6 +111,56 @@ const ChatbotManagement = () => {
       toast.error('Erreur lors du chargement des données');
     }
     setIsLoading(false);
+  };
+
+  const loadRecentConversations = async () => {
+    try {
+      const { data: conversations } = await supabase
+        .from('ai_pre_diagnostic_chats')
+        .select(`
+          id,
+          user_id,
+          status,
+          started_at,
+          ended_at,
+          ai_pre_diagnostic_messages!inner(*)
+        `)
+        .order('started_at', { ascending: false })
+        .limit(20);
+
+      if (conversations) {
+        const processedConversations = conversations.map(conv => {
+          const messages = conv.ai_pre_diagnostic_messages as any[];
+          const lastMessage = messages[messages.length - 1];
+          
+          return {
+            id: conv.id,
+            user_id: conv.user_id,
+            status: conv.status,
+            started_at: conv.started_at,
+            ended_at: conv.ended_at,
+            message_count: messages.length,
+            last_message: lastMessage?.message?.substring(0, 100) + '...' || 'Aucun message',
+            escalated: false // À implémenter selon votre logique
+          };
+        });
+
+        // Filtrer selon les critères
+        let filtered = processedConversations;
+        if (conversationFilter !== 'all') {
+          filtered = processedConversations.filter(conv => conv.status === conversationFilter);
+        }
+        if (searchTerm) {
+          filtered = filtered.filter(conv => 
+            conv.last_message.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        }
+
+        setRecentConversations(filtered);
+      }
+    } catch (error) {
+      console.error('Erreur chargement conversations:', error);
+    }
   };
 
   const saveTrainingData = async (data: TrainingData) => {
@@ -866,10 +931,79 @@ const ChatbotManagement = () => {
         <TabsContent value="conversations" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Conversations récentes</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Conversations récentes</CardTitle>
+                <Badge variant="secondary">{recentConversations.length} actives</Badge>
+              </div>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Fonctionnalité en cours de développement...</p>
+              <div className="space-y-4">
+                {recentConversations.length === 0 ? (
+                  <p className="text-center p-8 text-muted-foreground">
+                    Aucune conversation récente
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {recentConversations.map((conversation) => (
+                      <div key={conversation.id} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-3">
+                            <Badge variant={conversation.status === 'active' ? 'default' : 'secondary'}>
+                              {conversation.status === 'active' ? 'Active' : 'Terminée'}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">
+                              {new Date(conversation.started_at).toLocaleString('fr-FR')}
+                            </span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant="outline">{conversation.message_count} messages</Badge>
+                            {conversation.escalated && (
+                              <Badge variant="destructive">Escaladée</Badge>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm mb-2">
+                          <strong>Dernier message :</strong> {conversation.last_message}
+                        </p>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>Utilisateur: {conversation.user_id || 'Anonyme'}</span>
+                          <span>Durée: {Math.round((new Date(conversation.ended_at || new Date()).getTime() - new Date(conversation.started_at).getTime()) / 1000 / 60)} min</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Filtres et recherche</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <Select value={conversationFilter} onValueChange={setConversationFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Toutes</SelectItem>
+                    <SelectItem value="active">Actives</SelectItem>
+                    <SelectItem value="completed">Terminées</SelectItem>
+                    <SelectItem value="escalated">Escaladées</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  placeholder="Rechercher dans les messages..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <Button onClick={loadRecentConversations}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Actualiser
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

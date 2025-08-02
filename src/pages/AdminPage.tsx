@@ -315,6 +315,8 @@ const AdminPage = () => {
         return <AdminConfigurationPage />;
       case 'static-pages':
         return <StaticPagesManager />;
+      case 'system-optimization':
+        return <SystemOptimizationPanel />;
       default:
         return <AdminDashboardContent activeTab={activeTab} subscriptions={[]} repairers={[]} onViewProfile={() => {}} onRefresh={async () => {}} />;
     }

@@ -59,6 +59,7 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=scraping', icon: Database, label: 'Scraping Réel', tab: 'scraping', category: 'Technical' },
     { path: '/admin?tab=automation', icon: Zap, label: 'Relances Automatiques', tab: 'automation', category: 'Technical' },
     { path: '/admin?tab=monitoring', icon: Gauge, label: 'Monitoring', tab: 'monitoring', category: 'Technical' },
+    { path: '/admin?tab=system-optimization', icon: Zap, label: 'Optimisation Système', tab: 'system-optimization', category: 'Technical' },
     { path: '/admin?tab=chatbot', icon: Bot, label: 'Chatbot IA', tab: 'chatbot', category: 'Technical' },
     { path: '/admin?tab=documentation', icon: BookOpen, label: 'Documentation', tab: 'documentation', category: 'Technical' },
     { path: '/admin?tab=static-pages', icon: FileText, label: 'Pages Statiques', tab: 'static-pages', category: 'Technical' },

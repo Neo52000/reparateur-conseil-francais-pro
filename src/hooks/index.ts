@@ -71,6 +71,9 @@ export { useDocumentationManager } from './useDocumentationManager';
 export { useAIPreDiagChat } from './useAIPreDiagChat';
 export { useChatbot } from './useChatbot';
 
+// Hooks d'optimisation système
+export { useSystemOptimization } from './useSystemOptimization';
+
 // Hooks de profil réparateur
 export { useRepairerProfileSave } from './useRepairerProfileSave';
 export { useRepairerSubscriptions } from './useRepairerSubscriptions';
