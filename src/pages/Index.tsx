@@ -173,7 +173,7 @@ const Index = () => {
               <p className="text-gray-600 mt-4">Découvrez nos dernières améliorations pour une meilleure expérience</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-4">
                   <span className="text-2xl mr-3">⭐</span>
@@ -203,6 +203,22 @@ const Index = () => {
                   className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
                 >
                   Découvrir
+                </button>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+                <div className="flex items-center mb-4">
+                  <span className="text-2xl mr-3">📅</span>
+                  <h3 className="text-xl font-semibold">Calendrier Intelligent</h3>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  Gestion avancée des disponibilités et réservation de créneaux en temps réel.
+                </p>
+                <button 
+                  onClick={() => navigate('/calendar-demo')}
+                  className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+                >
+                  Explorer
                 </button>
               </div>
             </div>

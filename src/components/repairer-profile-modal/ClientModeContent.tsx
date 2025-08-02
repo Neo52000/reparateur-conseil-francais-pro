@@ -13,6 +13,7 @@ import ClientContactSection from '@/components/profile/ClientContactSection';
 import ClientTestimonialsSection from '@/components/profile/ClientTestimonialsSection';
 import ClientSimplifiedProfile from '@/components/profile/ClientSimplifiedProfile';
 import ClaimBusinessBanner from '@/components/ClaimBusinessBanner';
+import ReviewsList from '@/components/reviews/ReviewsList';
 import { RepairerProfile } from '@/types/repairerProfile';
 
 interface ClientModeContentProps {
@@ -85,6 +86,12 @@ const ClientModeContent: React.FC<ClientModeContentProps> = ({
 
             {/* 9. Témoignages */}
             <ClientTestimonialsSection businessName={profile.business_name} />
+
+            {/* 10. Avis clients */}
+            <ReviewsList 
+              repairerId={profile.id} 
+              showAddReviewButton={true}
+            />
           </>
         )}
 
