@@ -981,6 +981,75 @@ export type Database = {
         }
         Relationships: []
       }
+      api_endpoints: {
+        Row: {
+          created_at: string
+          endpoint_name: string
+          endpoint_url: string
+          id: string
+          is_active: boolean
+          method: string
+          rate_limit: number | null
+        }
+        Insert: {
+          created_at?: string
+          endpoint_name: string
+          endpoint_url: string
+          id?: string
+          is_active?: boolean
+          method?: string
+          rate_limit?: number | null
+        }
+        Update: {
+          created_at?: string
+          endpoint_name?: string
+          endpoint_url?: string
+          id?: string
+          is_active?: boolean
+          method?: string
+          rate_limit?: number | null
+        }
+        Relationships: []
+      }
+      api_keys: {
+        Row: {
+          api_key_hash: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_name: string
+          last_used: string | null
+          permissions: Json | null
+          repairer_id: string
+          updated_at: string
+        }
+        Insert: {
+          api_key_hash: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_name: string
+          last_used?: string | null
+          permissions?: Json | null
+          repairer_id: string
+          updated_at?: string
+        }
+        Update: {
+          api_key_hash?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_name?: string
+          last_used?: string | null
+          permissions?: Json | null
+          repairer_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           appointment_date: string
@@ -2592,6 +2661,42 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_reports: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          file_url: string | null
+          generated_by: string | null
+          id: string
+          report_data: Json | null
+          report_name: string
+          report_type: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          file_url?: string | null
+          generated_by?: string | null
+          id?: string
+          report_data?: Json | null
+          report_name: string
+          report_type: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          file_url?: string | null
+          generated_by?: string | null
+          id?: string
+          report_data?: Json | null
+          report_name?: string
+          report_type?: string
+          status?: string
+        }
+        Relationships: []
+      }
       configuration_templates: {
         Row: {
           created_at: string
@@ -2753,6 +2858,48 @@ export type Database = {
           status?: string
           target_ids?: string[] | null
           target_type?: string
+        }
+        Relationships: []
+      }
+      detailed_audit_logs: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          resource_id: string | null
+          resource_type: string
+          severity: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -3959,6 +4106,42 @@ export type Database = {
           repairer_id?: string
           savings_percentage?: number | null
           total_savings?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      integrations: {
+        Row: {
+          config: Json | null
+          created_at: string
+          id: string
+          integration_name: string
+          last_sync: string | null
+          provider: string
+          repairer_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string
+          id?: string
+          integration_name: string
+          last_sync?: string | null
+          provider: string
+          repairer_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string
+          id?: string
+          integration_name?: string
+          last_sync?: string | null
+          provider?: string
+          repairer_id?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []
