@@ -2775,6 +2775,63 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          message_type: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          sender_id?: string
+        }
+        Relationships: []
+      }
+      conversations: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          quote_id: string | null
+          repairer_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          quote_id?: string | null
+          repairer_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          quote_id?: string | null
+          repairer_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       data_quality_metrics: {
         Row: {
           accuracy_score: number | null
@@ -7942,6 +7999,48 @@ export type Database = {
           },
         ]
       }
+      quote_requests: {
+        Row: {
+          client_id: string
+          created_at: string
+          device_brand: string | null
+          device_model: string | null
+          device_type: string
+          estimated_price: number | null
+          id: string
+          issue_description: string
+          repairer_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          device_brand?: string | null
+          device_model?: string | null
+          device_type: string
+          estimated_price?: number | null
+          id?: string
+          issue_description: string
+          repairer_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          device_brand?: string | null
+          device_model?: string | null
+          device_type?: string
+          estimated_price?: number | null
+          id?: string
+          issue_description?: string
+          repairer_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quote_response_tracking: {
         Row: {
           client_id: string
@@ -9913,6 +10012,42 @@ export type Database = {
           scraped_data?: Json
           source?: string
           status?: string
+        }
+        Relationships: []
+      }
+      secure_payments: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string
+          held_until: string | null
+          id: string
+          quote_id: string
+          status: string
+          stripe_payment_intent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          client_id: string
+          created_at?: string
+          held_until?: string | null
+          id?: string
+          quote_id: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string
+          held_until?: string | null
+          id?: string
+          quote_id?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
