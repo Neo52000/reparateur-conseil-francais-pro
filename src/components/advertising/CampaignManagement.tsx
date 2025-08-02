@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Edit, Trash2, Play, Pause, BarChart3, Target } from 'lucide-react';
 import { AdCampaign, AdBanner } from '@/types/advertising';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const CampaignManagement: React.FC = () => {
@@ -77,13 +78,27 @@ const CampaignManagement: React.FC = () => {
     }
   ];
 
-  // Charger les campagnes (mock pour l'instant)
+  // Load campaigns from Supabase
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
-      // Simuler un délai réseau
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setCampaigns(mockCampaigns);
+      const { data, error } = await supabase
+        .from('advertising_campaigns')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Transform data to match AdCampaign interface
+      const transformedData: AdCampaign[] = (data || []).map(campaign => ({
+        ...campaign,
+        status: campaign.status as 'draft' | 'active' | 'paused' | 'completed',
+        targeting_config: typeof campaign.targeting_config === 'string' 
+          ? JSON.parse(campaign.targeting_config) 
+          : campaign.targeting_config || {}
+      }));
+      
+      setCampaigns(transformedData);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
       toast.error('Erreur lors du chargement des campagnes');

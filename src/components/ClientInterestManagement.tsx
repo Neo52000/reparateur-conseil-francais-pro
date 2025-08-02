@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAdminAuditIntegration } from '@/hooks/useAdminAuditIntegration';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, XCircle, Clock, Mail, Phone, MessageSquare } from 'lucide-react';
 
 interface ClientInterest {
@@ -68,8 +69,9 @@ const ClientInterestManagement: React.FC = () => {
   const handleApproveInterest = async (interest: ClientInterest) => {
     setLoading(interest.id);
     try {
-      // Simuler l'approbation
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Simulate update for now (table doesn't exist yet)
+      console.log('Would update client interest:', interest.id, 'to approved');
+      // TODO: Implement real Supabase update when table is created
       
       logClientInterestAction('approve', interest.id, {
         client_email: interest.client_email,
@@ -93,10 +95,11 @@ const ClientInterestManagement: React.FC = () => {
         title: "Demande approuvée",
         description: `La demande de ${interest.client_email} a été approuvée`,
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error approving interest:', error);
       toast({
         title: "Erreur",
-        description: "Impossible d'approuver la demande",
+        description: error.message || "Impossible d'approuver la demande",
         variant: "destructive"
       });
     } finally {
@@ -111,8 +114,9 @@ const ClientInterestManagement: React.FC = () => {
 
     setLoading(interest.id);
     try {
-      // Simuler le rejet
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Simulate update for now (table doesn't exist yet)
+      console.log('Would update client interest:', interest.id, 'to rejected');
+      // TODO: Implement real Supabase update when table is created
       
       logClientInterestAction('reject', interest.id, {
         client_email: interest.client_email,

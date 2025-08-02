@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useAdminAuditIntegration } from '@/hooks/useAdminAuditIntegration';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { Plus, Trash2, Edit, Copy } from 'lucide-react';
 
 interface PromoCode {
@@ -61,8 +62,12 @@ const PromoCodesManagement: React.FC = () => {
         created_at: new Date().toISOString()
       };
 
-      // Simuler la création
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Create promo code via Supabase
+      const { error } = await supabase
+        .from('promo_codes')
+        .insert([newPromoCode]);
+
+      if (error) throw error;
       
       logPromoCodeAction('create', newPromoCode.id, {
         code: newPromoCode.code,
@@ -106,8 +111,13 @@ const PromoCodesManagement: React.FC = () => {
     }
 
     try {
-      // Simuler la suppression
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Delete promo code via Supabase
+      const { error } = await supabase
+        .from('promo_codes')
+        .delete()
+        .eq('id', promoCode.id);
+
+      if (error) throw error;
       
       logPromoCodeAction('delete', promoCode.id, {
         code: promoCode.code,
@@ -138,10 +148,15 @@ const PromoCodesManagement: React.FC = () => {
 
   const handleTogglePromoCode = async (promoCode: PromoCode) => {
     try {
-      // Simuler la mise à jour
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      // Update promo code status via Supabase
       const newStatus = !promoCode.active;
+      const { error } = await supabase
+        .from('promo_codes')
+        .update({ active: newStatus })
+        .eq('id', promoCode.id);
+
+      if (error) throw error;
+      
       const action = newStatus ? 'activate' : 'deactivate';
       
       logPromoCodeAction(action, promoCode.id, {

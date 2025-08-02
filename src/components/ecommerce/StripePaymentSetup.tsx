@@ -170,8 +170,15 @@ const StripePaymentSetup: React.FC = () => {
     setLoading(true);
 
     try {
-      // Test de validation des clés (simulation)
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Test Stripe connection via edge function
+      const { error } = await supabase.functions.invoke('test-stripe-connection', {
+        body: { 
+          publicKey: stripeConfig.publishableKey, 
+          secretKey: stripeConfig.secretKey 
+        }
+      });
+
+      if (error) throw error;
 
       toast({
         title: "Test réussi",

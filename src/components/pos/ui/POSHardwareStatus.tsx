@@ -17,6 +17,7 @@ import {
   Settings,
   Monitor
 } from 'lucide-react';
+import { usePOSData } from '@/hooks/usePOSData';
 import { toast } from 'sonner';
 
 interface HardwareDevice {
@@ -55,6 +56,7 @@ const POSHardwareStatus: React.FC = () => {
   const [devices, setDevices] = useState<HardwareDevice[]>([]);
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { updateHardwareStatus } = usePOSData();
 
   // Données de démonstration
   const mockDevices: HardwareDevice[] = [
@@ -132,8 +134,10 @@ const POSHardwareStatus: React.FC = () => {
     setIsRefreshing(true);
     
     try {
-      // Simulation de la vérification du statut
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Update all device statuses
+      for (const device of devices) {
+        await updateHardwareStatus(device.name, 'operational');
+      }
       
       // Mise à jour aléatoire de quelques statuts pour la démo
       const updatedDevices = devices.map(device => ({

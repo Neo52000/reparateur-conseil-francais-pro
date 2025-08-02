@@ -18,6 +18,7 @@ import {
   Clock,
   ArrowLeft
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface CartItem {
@@ -118,8 +119,17 @@ const POSPaymentInterface: React.FC<POSPaymentInterfaceProps> = ({
     setIsProcessing(true);
 
     try {
-      // Simulation du traitement de paiement
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Process payment via Supabase function
+      const { data, error } = await supabase.functions.invoke('process-payment', {
+        body: {
+          method: selectedPaymentMethod,
+          amount: totalAmount,
+          cashReceived: selectedPaymentMethod === 'cash' ? parseFloat(cashReceived) : totalAmount,
+          items: cartItems
+        }
+      });
+
+      if (error) throw error;
 
       const paymentData = {
         method: selectedPaymentMethod,

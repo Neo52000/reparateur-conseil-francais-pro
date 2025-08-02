@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useSystemJobs } from '@/hooks/useSystemJobs';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Wifi, 
@@ -41,6 +42,7 @@ const SyncIndicator: React.FC<SyncIndicatorProps> = ({
   });
   const { user } = useAuth();
   const { toast } = useToast();
+  const { createSyncJob } = useSystemJobs();
 
   // Vérifier le statut de synchronisation
   const checkSyncStatus = async () => {
@@ -86,8 +88,8 @@ const SyncIndicator: React.FC<SyncIndicatorProps> = ({
         duration: 2000
       });
 
-      // Simuler une synchronisation
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Trigger real sync via hook
+      await createSyncJob('pos_to_ecommerce', 'pos', 'ecommerce');
 
       // Marquer comme synchronisé
       await supabase
