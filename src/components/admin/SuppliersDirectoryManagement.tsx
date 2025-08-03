@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
 import { 
   Plus, 
   Edit, 
@@ -133,6 +134,227 @@ export const SuppliersDirectoryManagement = () => {
       console.error('Error updating review status:', error);
       toast.error('Erreur lors de la mise à jour de l\'avis');
     }
+  };
+
+  const handleCreateSupplier = async (formData: any) => {
+    try {
+      const { error } = await supabase
+        .from('suppliers_directory')
+        .insert({
+          name: formData.name,
+          description: formData.description,
+          brands_sold: formData.brands_sold.split(',').map((b: string) => b.trim()).filter(Boolean),
+          product_types: formData.product_types.split(',').map((p: string) => p.trim()).filter(Boolean),
+          website: formData.website,
+          phone: formData.phone,
+          email: formData.email,
+          address: {
+            street: formData.address_street,
+            city: formData.address_city,
+            postal_code: formData.address_postal,
+            country: formData.address_country || 'France'
+          },
+          specialties: formData.specialties.split(',').map((s: string) => s.trim()).filter(Boolean),
+          certifications: formData.certifications.split(',').map((c: string) => c.trim()).filter(Boolean),
+          logo_url: formData.logo_url,
+          payment_terms: formData.payment_terms,
+          minimum_order: formData.minimum_order ? Number(formData.minimum_order) : null,
+          delivery_info: {
+            zones: formData.delivery_zones.split(',').map((z: string) => z.trim()).filter(Boolean),
+            time: formData.delivery_time,
+            cost: formData.delivery_cost
+          },
+          rating: 0,
+          review_count: 0,
+          is_verified: false,
+          is_featured: false,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      await fetchSuppliers();
+      setIsCreateModalOpen(false);
+      toast.success('Fournisseur créé avec succès');
+    } catch (error) {
+      console.error('Error creating supplier:', error);
+      toast.error('Erreur lors de la création du fournisseur');
+    }
+  };
+
+  const SupplierForm = ({ supplier, onSubmit, onCancel }: {
+    supplier?: Supplier | null;
+    onSubmit: (data: any) => void;
+    onCancel: () => void;
+  }) => {
+    const [formData, setFormData] = useState({
+      name: supplier?.name || '',
+      description: supplier?.description || '',
+      brands_sold: supplier?.brands_sold?.join(', ') || '',
+      product_types: supplier?.product_types?.join(', ') || '',
+      website: supplier?.website || '',
+      phone: supplier?.phone || '',
+      email: supplier?.email || '',
+      address_street: supplier?.address?.street || '',
+      address_city: supplier?.address?.city || '',
+      address_postal: supplier?.address?.postal_code || '',
+      address_country: supplier?.address?.country || 'France',
+      specialties: supplier?.specialties?.join(', ') || '',
+      certifications: supplier?.certifications?.join(', ') || '',
+      logo_url: supplier?.logo_url || '',
+      payment_terms: supplier?.payment_terms || '',
+      minimum_order: supplier?.minimum_order || '',
+      delivery_zones: supplier?.delivery_info?.zones?.join(', ') || '',
+      delivery_time: supplier?.delivery_info?.time || '',
+      delivery_cost: supplier?.delivery_info?.cost || ''
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      onSubmit(formData);
+    };
+
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nom du fournisseur *</Label>
+            <Input
+              id="name"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            rows={3}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="phone">Téléphone</Label>
+            <Input
+              id="phone"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="website">Site web</Label>
+            <Input
+              id="website"
+              value={formData.website}
+              onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="brands_sold">Marques vendues (séparées par des virgules)</Label>
+          <Input
+            id="brands_sold"
+            value={formData.brands_sold}
+            onChange={(e) => setFormData({ ...formData, brands_sold: e.target.value })}
+            placeholder="Apple, Samsung, Huawei..."
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="product_types">Types de produits (séparés par des virgules)</Label>
+          <Input
+            id="product_types"
+            value={formData.product_types}
+            onChange={(e) => setFormData({ ...formData, product_types: e.target.value })}
+            placeholder="Écrans, Batteries, Coques..."
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="address_street">Adresse</Label>
+            <Input
+              id="address_street"
+              value={formData.address_street}
+              onChange={(e) => setFormData({ ...formData, address_street: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="address_city">Ville</Label>
+            <Input
+              id="address_city"
+              value={formData.address_city}
+              onChange={(e) => setFormData({ ...formData, address_city: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="address_postal">Code postal</Label>
+            <Input
+              id="address_postal"
+              value={formData.address_postal}
+              onChange={(e) => setFormData({ ...formData, address_postal: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="minimum_order">Commande minimum (€)</Label>
+            <Input
+              id="minimum_order"
+              type="number"
+              value={formData.minimum_order}
+              onChange={(e) => setFormData({ ...formData, minimum_order: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="specialties">Spécialités (séparées par des virgules)</Label>
+          <Input
+            id="specialties"
+            value={formData.specialties}
+            onChange={(e) => setFormData({ ...formData, specialties: e.target.value })}
+            placeholder="Réparation express, Microsoudure..."
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="payment_terms">Conditions de paiement</Label>
+          <Input
+            id="payment_terms"
+            value={formData.payment_terms}
+            onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
+            placeholder="30 jours, Immédiat..."
+          />
+        </div>
+
+        <div className="flex justify-end gap-4">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Annuler
+          </Button>
+          <Button type="submit">
+            {supplier ? 'Modifier' : 'Créer'}
+          </Button>
+        </div>
+      </form>
+    );
   };
 
   const filteredSuppliers = suppliers.filter(supplier => {
@@ -433,6 +655,37 @@ export const SuppliersDirectoryManagement = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Modal de création */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Ajouter un nouveau fournisseur</DialogTitle>
+          </DialogHeader>
+          <SupplierForm
+            onSubmit={handleCreateSupplier}
+            onCancel={() => setIsCreateModalOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal d'édition */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Modifier le fournisseur</DialogTitle>
+          </DialogHeader>
+          <SupplierForm
+            supplier={selectedSupplier}
+            onSubmit={(formData) => {
+              // Logique de mise à jour à implémenter
+              console.log('Update supplier:', formData);
+              setIsEditModalOpen(false);
+            }}
+            onCancel={() => setIsEditModalOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
