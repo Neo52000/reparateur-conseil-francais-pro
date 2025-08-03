@@ -35,7 +35,6 @@ const EnhancedAdminSidebar: React.FC<EnhancedAdminSidebarProps> = ({ onCollapse 
       path: '/admin',
       icon: LayoutDashboard,
       label: 'Dashboard',
-      badge: '3',
     },
     {
       path: '/admin?tab=analytics',
@@ -51,7 +50,7 @@ const EnhancedAdminSidebar: React.FC<EnhancedAdminSidebarProps> = ({ onCollapse 
       path: '/admin?tab=repairers',
       icon: Users,
       label: 'Réparateurs',
-      badge: '12',
+      badge: '1',
       children: [
         { path: '/admin?tab=repairers', icon: Users, label: 'Liste des réparateurs' },
         { path: '/admin?tab=subscriptions', icon: Star, label: 'Abonnements' },
@@ -62,7 +61,7 @@ const EnhancedAdminSidebar: React.FC<EnhancedAdminSidebarProps> = ({ onCollapse 
       path: '/admin?tab=quotes',
       icon: Receipt,
       label: 'Devis & Commandes',
-      badge: 'NEW',
+      badge: '1',
       children: [
         { path: '/admin?tab=quotes', icon: Receipt, label: 'Gestion des devis' },
         { path: '/admin?tab=interest', icon: MessageSquare, label: 'Demandes d\'intérêt' },

@@ -58,13 +58,13 @@ const HorizontalAdminNav: React.FC<HorizontalAdminNavProps> = ({ className }) =>
       id: 'repairers',
       label: 'Réparateurs',
       icon: <Users className="w-4 h-4" />,
-      badge: 47
+      badge: 1
     },
     {
       id: 'quotes',
       label: 'Devis',
       icon: <Quote className="w-4 h-4" />,
-      badge: 12
+      badge: 1
     },
     {
       id: 'analytics',
