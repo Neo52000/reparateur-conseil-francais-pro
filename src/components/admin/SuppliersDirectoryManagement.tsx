@@ -32,6 +32,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Supplier, SupplierReview } from '@/hooks/useSuppliersDirectory';
 import { toast } from 'sonner';
 import { FirecrawlService } from '@/utils/FirecrawlService';
+import { SupplierFormManager } from './SupplierFormManager';
 
 export const SuppliersDirectoryManagement = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -191,6 +192,14 @@ export const SuppliersDirectoryManagement = () => {
     onSubmit: (data: any) => void;
     onCancel: () => void;
   }) => {
+    return (
+      <SupplierFormManager 
+        supplier={supplier}
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+      />
+    );
+  };
     const [formData, setFormData] = useState({
       name: supplier?.name || '',
       description: supplier?.description || '',

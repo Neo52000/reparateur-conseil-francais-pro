@@ -46,10 +46,20 @@ serve(async (req) => {
     const prompt = content 
       ? `Analysez ce contenu de site web d'un fournisseur/grossiste en électronique/téléphonie et extrayez toutes les informations commerciales disponibles. Recherchez spécifiquement :
 
+RECHERCHE ACTIVE DU LOGO : 
+- Cherchez spécifiquement le logo de l'entreprise dans le HTML (favicon, logo header, images de marque)
+- Si aucun logo n'est trouvé, laissez logo_url null mais mentionnez-le dans les logs
+- Priorité : logo officiel de l'entreprise, pas d'images de produits
+
+EXTRACTION PRÉCISE DES INFORMATIONS DE LIVRAISON :
+- Recherchez spécifiquement les conditions de livraison, zones géographiques, délais précis
+- Notez les seuils de livraison gratuite et les tarifs
+- Identifiez les zones géographiques couvertes (France, Europe, International)
+
 INFORMATIONS GÉNÉRALES :
 - Nom exact de l'entreprise
 - Description détaillée de l'activité commerciale
-- Email de contact principal
+- Email de contact principal (priorité : contact pro/commercial)
 - Numéro de téléphone (format français de préférence)
 - Adresse complète (rue, ville, code postal, pays séparés avec précision)
 - Site web principal
@@ -94,6 +104,16 @@ Retournez UNIQUEMENT un objet JSON valide avec ces champs (utilisez null pour le
   "delivery_cost": "coûts de livraison détaillés"
 }`
       : `Recherchez des informations complètes sur l'entreprise fournisseur/grossiste en électronique/téléphonie à l'adresse ${url}. 
+
+RECHERCHE ACTIVE DU LOGO : 
+- Cherchez spécifiquement le logo de l'entreprise (favicon, logo header, images de marque)
+- Si aucun logo n'est trouvé, laissez logo_url null mais mentionnez-le dans les logs
+- Priorité : logo officiel de l'entreprise, pas d'images de produits
+
+EXTRACTION PRÉCISE DES INFORMATIONS DE LIVRAISON :
+- Recherchez spécifiquement les conditions de livraison, zones géographiques, délais précis
+- Notez les seuils de livraison gratuite et les tarifs
+- Identifiez les zones géographiques couvertes (France, Europe, International)
 
 CONTEXTE : Il s'agit d'un annuaire professionnel de fournisseurs/grossistes spécialisés dans l'électronique et la téléphonie mobile. Nous avons besoin d'informations commerciales précises pour les réparateurs professionnels.
 
@@ -181,7 +201,9 @@ Retournez UNIQUEMENT un objet JSON valide avec ces champs (soyez précis et exha
       throw new Error('Invalid JSON response from AI');
     }
 
-    // Clean and validate data
+    console.log('Parsed data:', supplierData);
+
+    // Enhanced data cleaning and validation
     const cleanedData: SupplierData = {
       name: supplierData.name?.trim() || null,
       description: supplierData.description?.trim() || null,
@@ -193,23 +215,46 @@ Retournez UNIQUEMENT un objet JSON valide avec ces champs (soyez précis et exha
       address_country: supplierData.address_country?.trim() || null,
       website: supplierData.website?.trim() || url,
       logo_url: supplierData.logo_url?.trim() || null,
-      brands_sold: Array.isArray(supplierData.brands_sold) ? supplierData.brands_sold.filter(b => b?.trim()) : [],
-      product_types: Array.isArray(supplierData.product_types) ? supplierData.product_types.filter(p => p?.trim()) : [],
-      specialties: Array.isArray(supplierData.specialties) ? supplierData.specialties.filter(s => s?.trim()) : [],
-      certifications: Array.isArray(supplierData.certifications) ? supplierData.certifications.filter(c => c?.trim()) : [],
+      // Handle string/array conversion for all array fields
+      brands_sold: Array.isArray(supplierData.brands_sold) 
+        ? supplierData.brands_sold.filter(b => b?.trim())
+        : (typeof supplierData.brands_sold === 'string' 
+          ? supplierData.brands_sold.split(',').map(b => b.trim()).filter(b => b)
+          : []),
+      product_types: Array.isArray(supplierData.product_types) 
+        ? supplierData.product_types.filter(p => p?.trim())
+        : (typeof supplierData.product_types === 'string'
+          ? supplierData.product_types.split(',').map(p => p.trim()).filter(p => p)
+          : []),
+      specialties: Array.isArray(supplierData.specialties) 
+        ? supplierData.specialties.filter(s => s?.trim())
+        : (typeof supplierData.specialties === 'string'
+          ? supplierData.specialties.split(',').map(s => s.trim()).filter(s => s)
+          : []),
+      certifications: Array.isArray(supplierData.certifications) 
+        ? supplierData.certifications.filter(c => c?.trim())
+        : (typeof supplierData.certifications === 'string'
+          ? supplierData.certifications.split(',').map(c => c.trim()).filter(c => c)
+          : []),
       payment_terms: supplierData.payment_terms?.trim() || null,
-      minimum_order: supplierData.minimum_order?.trim() || null,
+      // Extract numeric value from minimum_order if it's a string
+      minimum_order: typeof supplierData.minimum_order === 'string' 
+        ? supplierData.minimum_order.replace(/[^\d.]/g, '') || null
+        : supplierData.minimum_order?.toString() || null,
       delivery_zones: supplierData.delivery_zones?.trim() || null,
       delivery_time: supplierData.delivery_time?.trim() || null,
       delivery_cost: supplierData.delivery_cost?.trim() || null
     };
+
+    console.log('Cleaned data:', cleanedData);
+    console.log('Logo extraction result:', cleanedData.logo_url ? 'Found' : 'Not found');
 
     // Validate email format
     if (cleanedData.email && !/^[^@]+@[^@]+\.[^@]+$/.test(cleanedData.email)) {
       cleanedData.email = null;
     }
 
-    console.log('Cleaned supplier data:', cleanedData);
+    console.log('Final supplier data:', cleanedData);
 
     return new Response(JSON.stringify({
       success: true,
