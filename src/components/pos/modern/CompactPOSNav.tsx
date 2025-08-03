@@ -13,7 +13,8 @@ import {
   AlertTriangle,
   Smartphone,
   Zap,
-  Brain
+  Brain,
+  Monitor
 } from 'lucide-react';
 
 interface NavItem {
@@ -105,6 +106,13 @@ const CompactPOSNav: React.FC<CompactPOSNavProps> = ({
       label: 'Business',
       icon: <Brain className="w-4 h-4" />,
       isNew: true
+    },
+    {
+      id: 'customer-display',
+      label: 'Afficheur Client',
+      icon: <Monitor className="w-4 h-4" />,
+      isNew: true,
+      variant: 'primary'
     },
     {
       id: 'settings',

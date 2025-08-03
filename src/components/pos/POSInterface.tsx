@@ -16,6 +16,7 @@ import IntegrationsManager from './advanced/IntegrationsManager';
 import AdvancedBusinessModules from './advanced/AdvancedBusinessModules';
 import RepairManagement from './RepairManagement';
 import BuybackManager from './modules/BuybackManager';
+import CustomerDisplayConfig from './customer-display/CustomerDisplayConfig';
 import { PWAManager } from './modules/PWAManager';
 import { Documentation } from './modules/Documentation';
 import TouchOptimizedInterface from './touch/TouchOptimizedInterface';
@@ -226,6 +227,21 @@ const POSInterface: React.FC = () => {
             {/* Onglet Business */}
             <TabsContent value="business" className="mt-6">
               <AdvancedBusinessModules />
+            </TabsContent>
+
+            {/* Onglet Afficheur Client */}
+            <TabsContent value="customer-display" className="mt-6">
+              <CustomerDisplayConfig 
+                onConfigChange={(config) => {
+                  console.log('Configuration afficheur client:', config);
+                }}
+                onPreview={() => {
+                  console.log('Aperçu afficheur client');
+                }}
+                onOpenDisplay={() => {
+                  console.log('Ouverture afficheur client');
+                }}
+              />
             </TabsContent>
 
             {/* Onglet Paramètres */}
