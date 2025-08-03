@@ -10,17 +10,16 @@ import POSSessionManager from './ui/POSSessionManager';
 import POSInventoryManager from './ui/POSInventoryManager';
 import POSReportsAnalytics from './ui/POSReportsAnalytics';
 import POSSettings from './ui/POSSettings';
-import ReportsAnalytics from './modules/ReportsAnalytics';
-import HardwareIntegration from './modules/HardwareIntegration';
-import OfflineManager from './modules/OfflineManager';
-import { PWAManager } from './modules/PWAManager';
-import { Documentation } from './modules/Documentation';
 import StockAlertsManager from './advanced/StockAlertsManager';
 import MobileOptimization from './advanced/MobileOptimization';
 import IntegrationsManager from './advanced/IntegrationsManager';
 import AdvancedBusinessModules from './advanced/AdvancedBusinessModules';
 import RepairManagement from './RepairManagement';
 import BuybackManager from './modules/BuybackManager';
+import { PWAManager } from './modules/PWAManager';
+import { Documentation } from './modules/Documentation';
+import TouchOptimizedInterface from './touch/TouchOptimizedInterface';
+import { OptimizedReportsAnalytics, OptimizedHardwareIntegration, OptimizedOfflineManager } from './performance/PerformanceOptimizations';
 import { 
   CreditCard, 
   Package, 
@@ -234,17 +233,17 @@ const POSInterface: React.FC = () => {
               <POSSettings />
             </TabsContent>
 
-            {/* Nouveaux modules POS avancés */}
+            {/* Modules POS avancés avec optimisations */}
             <TabsContent value="reports-advanced" className="mt-6">
-              <ReportsAnalytics />
+              <OptimizedReportsAnalytics />
             </TabsContent>
 
             <TabsContent value="hardware" className="mt-6">
-              <HardwareIntegration />
+              <OptimizedHardwareIntegration />
             </TabsContent>
 
             <TabsContent value="offline" className="mt-6">
-              <OfflineManager />
+              <OptimizedOfflineManager />
             </TabsContent>
 
             <TabsContent value="pwa" className="mt-6">
@@ -253,6 +252,10 @@ const POSInterface: React.FC = () => {
 
             <TabsContent value="docs" className="mt-6">
               <Documentation />
+            </TabsContent>
+
+            <TabsContent value="touch" className="mt-6">
+              <TouchOptimizedInterface />
             </TabsContent>
           </Tabs>
         </div>
