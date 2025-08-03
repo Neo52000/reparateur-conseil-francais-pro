@@ -123,10 +123,17 @@ export const SuppliersDirectoryManagement = () => {
   const handleAutoComplete = async (url: string, setFormData: Function, formData: any) => {
     setIsAutoCompleting(true);
     try {
-      const result = await FirecrawlService.crawlSupplierWebsite(url);
+      // Use Supabase edge function instead of direct Firecrawl API
+      const { data, error } = await supabase.functions.invoke('scrape-supplier-website', {
+        body: { url }
+      });
       
-      if (result.success && result.data) {
-        const extractedData = result.data;
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      if (data.success && data.data) {
+        const extractedData = data.data;
         
         // Show preview and ask for confirmation
         const confirmMessage = `Données extraites du site:\n\n` +
@@ -154,7 +161,7 @@ export const SuppliersDirectoryManagement = () => {
           toast.success("Auto-complétion réussie - Les informations ont été extraites et appliquées aux champs vides.");
         }
       } else {
-        toast.error(result.error || "Impossible d'extraire les informations du site web.");
+        toast.error(data.error || "Impossible d'extraire les informations du site web.");
       }
     } catch (error) {
       console.error('Auto-completion error:', error);
