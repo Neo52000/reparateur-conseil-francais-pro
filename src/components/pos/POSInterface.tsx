@@ -228,6 +228,33 @@ const POSInterface: React.FC = () => {
             <TabsContent value="settings" className="mt-6">
               <POSSettings />
             </TabsContent>
+
+            {/* Nouveaux onglets pour les fonctionnalités avancées */}
+            <TabsContent value="hardware" className="mt-6">
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Settings className="w-5 h-5" />
+                  <h3 className="text-lg font-medium">Intégration Matérielle</h3>
+                </div>
+                {/* Contenu chargé dynamiquement */}
+                <div className="text-center py-8 text-muted-foreground">
+                  Module d'intégration matérielle (imprimantes, scanners)
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="offline" className="mt-6">
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <WifiOff className="w-5 h-5" />
+                  <h3 className="text-lg font-medium">Gestion Hors Ligne</h3>
+                </div>
+                {/* Contenu chargé dynamiquement */}
+                <div className="text-center py-8 text-muted-foreground">
+                  Module de synchronisation et travail hors ligne
+                </div>
+              </div>
+            </TabsContent>
           </Tabs>
         </div>
 
