@@ -1,1 +1,22 @@
 project_id = "nbugpbakfkyvvjzgfjmw"
+
+[functions.scrape-repairers]
+verify_jwt = false
+
+[functions.modern-scraping]
+verify_jwt = false
+
+[functions.serper-search]
+verify_jwt = false
+
+[functions.csv-intelligent-import]
+verify_jwt = false
+
+[functions.generate-catalog-ads]
+verify_jwt = false
+
+[functions.scrape-cashandrepair]
+verify_jwt = false
+
+[functions.import-mobilax-logos]
+verify_jwt = false

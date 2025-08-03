@@ -14,8 +14,10 @@ import {
   Search,
   Save,
   X,
-  Image
+  Image,
+  Download
 } from 'lucide-react';
+import MobilaxLogoImporter from '../MobilaxLogoImporter';
 
 interface BrandsManagementProps {
   onStatsUpdate: (count: number) => void;
@@ -138,6 +140,9 @@ const BrandsManagement: React.FC<BrandsManagementProps> = ({ onStatsUpdate }) =>
 
   return (
     <div className="space-y-6">
+      {/* Import Mobilax */}
+      <MobilaxLogoImporter />
+      
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
