@@ -5,6 +5,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TopRéparateurs.fr - Trouvez les meilleurs réparateurs près de chez vous</title>
+    <!-- POS PWA Enhancement -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => console.log('SW registered'))
+            .catch(error => console.log('SW registration failed'));
+        });
+      }
+    </script>
     <meta name="description" content="TopRéparateurs.fr - La plateforme de référence pour trouver les meilleurs réparateurs qualifiés près de chez vous. Devis gratuits, services de qualité." />
     <meta name="author" content="TopRéparateurs.fr" />
 

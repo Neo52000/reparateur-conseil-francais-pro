@@ -10,6 +10,11 @@ import POSSessionManager from './ui/POSSessionManager';
 import POSInventoryManager from './ui/POSInventoryManager';
 import POSReportsAnalytics from './ui/POSReportsAnalytics';
 import POSSettings from './ui/POSSettings';
+import ReportsAnalytics from './modules/ReportsAnalytics';
+import HardwareIntegration from './modules/HardwareIntegration';
+import OfflineManager from './modules/OfflineManager';
+import { PWAManager } from './modules/PWAManager';
+import { Documentation } from './modules/Documentation';
 import StockAlertsManager from './advanced/StockAlertsManager';
 import MobileOptimization from './advanced/MobileOptimization';
 import IntegrationsManager from './advanced/IntegrationsManager';
@@ -229,31 +234,25 @@ const POSInterface: React.FC = () => {
               <POSSettings />
             </TabsContent>
 
-            {/* Nouveaux onglets pour les fonctionnalités avancées */}
+            {/* Nouveaux modules POS avancés */}
+            <TabsContent value="reports-advanced" className="mt-6">
+              <ReportsAnalytics />
+            </TabsContent>
+
             <TabsContent value="hardware" className="mt-6">
-              <div className="space-y-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Settings className="w-5 h-5" />
-                  <h3 className="text-lg font-medium">Intégration Matérielle</h3>
-                </div>
-                {/* Contenu chargé dynamiquement */}
-                <div className="text-center py-8 text-muted-foreground">
-                  Module d'intégration matérielle (imprimantes, scanners)
-                </div>
-              </div>
+              <HardwareIntegration />
             </TabsContent>
 
             <TabsContent value="offline" className="mt-6">
-              <div className="space-y-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <WifiOff className="w-5 h-5" />
-                  <h3 className="text-lg font-medium">Gestion Hors Ligne</h3>
-                </div>
-                {/* Contenu chargé dynamiquement */}
-                <div className="text-center py-8 text-muted-foreground">
-                  Module de synchronisation et travail hors ligne
-                </div>
-              </div>
+              <OfflineManager />
+            </TabsContent>
+
+            <TabsContent value="pwa" className="mt-6">
+              <PWAManager />
+            </TabsContent>
+
+            <TabsContent value="docs" className="mt-6">
+              <Documentation />
             </TabsContent>
           </Tabs>
         </div>
