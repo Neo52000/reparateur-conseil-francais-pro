@@ -44,6 +44,7 @@ import { EnhancedDashboardTester } from '@/components/admin/dashboard/EnhancedDa
 import { EnhancedPOSTester } from '@/components/admin/pos/EnhancedPOSTester';
 import { EnhancedEcommerceTester } from '@/components/admin/ecommerce/EnhancedEcommerceTester';
 import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizationPanel';
+import { SuppliersDirectoryManagement } from '@/components/admin/SuppliersDirectoryManagement';
 
 const AdminPage = () => {
   const {
@@ -131,6 +132,8 @@ const AdminPage = () => {
         return 'Test Interface POS';
       case 'configuration':
         return 'Configuration';
+      case 'suppliers':
+        return 'Annuaire Fournisseurs';
       default:
         return 'Dashboard';
     }
@@ -197,6 +200,8 @@ const AdminPage = () => {
         return 'Interface de test et configuration pour le système de point de vente';
       case 'configuration':
         return 'Configuration générale de l\'application';
+      case 'suppliers':
+        return 'Gestion de l\'annuaire des fournisseurs et modération des avis';
       case 'static-pages':
         return 'Gestion des pages statiques (mentions légales, CGU, etc.)';
       default:
@@ -316,6 +321,8 @@ const AdminPage = () => {
         return <AdminConfigurationPage />;
       case 'static-pages':
         return <StaticPagesManager />;
+      case 'suppliers':
+        return <SuppliersDirectoryManagement />;
       case 'system-optimization':
         return <SystemOptimizationPanel />;
       default:
