@@ -148,26 +148,26 @@ export const SuppliersDirectoryManagement = () => {
         .insert({
           name: formData.name,
           description: formData.description,
-          brands_sold: formData.brands_sold.split(',').map((b: string) => b.trim()).filter(Boolean),
+          brands_sold: formData.brands.split(',').map((b: string) => b.trim()).filter(Boolean),
           product_types: formData.product_types.split(',').map((p: string) => p.trim()).filter(Boolean),
           website: formData.website,
           phone: formData.phone,
           email: formData.email,
           address: {
-            street: formData.address_street,
-            city: formData.address_city,
-            postal_code: formData.address_postal,
-            country: formData.address_country || 'France'
+            street: formData.address,
+            city: formData.city,
+            postal_code: formData.postal_code,
+            country: 'France'
           },
           specialties: formData.specialties.split(',').map((s: string) => s.trim()).filter(Boolean),
-          certifications: formData.certifications.split(',').map((c: string) => c.trim()).filter(Boolean),
+          certifications: formData.certification_labels.split(',').map((c: string) => c.trim()).filter(Boolean),
           logo_url: formData.logo_url,
           payment_terms: formData.payment_terms,
           minimum_order: formData.minimum_order ? Number(formData.minimum_order) : null,
           delivery_info: {
             zones: formData.delivery_zones.split(',').map((z: string) => z.trim()).filter(Boolean),
-            time: formData.delivery_time,
-            cost: formData.delivery_cost
+            time: formData.delivery_times,
+            cost: formData.delivery_costs
           },
           rating: 0,
           review_count: 0,
@@ -200,613 +200,186 @@ export const SuppliersDirectoryManagement = () => {
       />
     );
   };
-    const [formData, setFormData] = useState({
-      name: supplier?.name || '',
-      description: supplier?.description || '',
-      brands_sold: supplier?.brands_sold?.join(', ') || '',
-      product_types: supplier?.product_types?.join(', ') || '',
-      website: supplier?.website || '',
-      phone: supplier?.phone || '',
-      email: supplier?.email || '',
-      address_street: supplier?.address?.street || '',
-      address_city: supplier?.address?.city || '',
-      address_postal: supplier?.address?.postal_code || '',
-      address_country: supplier?.address?.country || 'France',
-      specialties: supplier?.specialties?.join(', ') || '',
-      certifications: supplier?.certifications?.join(', ') || '',
-      logo_url: supplier?.logo_url || '',
-      payment_terms: supplier?.payment_terms || '',
-      minimum_order: supplier?.minimum_order || '',
-      delivery_zones: supplier?.delivery_info?.zones?.join(', ') || '',
-      delivery_time: supplier?.delivery_info?.time || '',
-      delivery_cost: supplier?.delivery_info?.cost || ''
-    });
-
-    const [isAutoCompleting, setIsAutoCompleting] = useState(false);
-
-    const handleAutoComplete = async () => {
-      if (!formData.website) {
-        toast.error('Veuillez saisir un site web avant d\'utiliser l\'auto-complétion');
-        return;
-      }
-
-      setIsAutoCompleting(true);
-      let extractedData = null;
-      let source = '';
-      
-      try {
-        console.log('Starting auto-completion for URL:', formData.website);
-        
-        // Étape 1 : Tentative avec Firecrawl
-        toast.info("Scraping du site web...", { duration: 3000 });
-        
-        const { data: firecrawlData, error: firecrawlError } = await supabase.functions.invoke('scrape-supplier-website', {
-          body: { url: formData.website }
-        });
-        
-        console.log('Firecrawl response:', { firecrawlData, firecrawlError });
-        
-        if (firecrawlData && firecrawlData.success && firecrawlData.data) {
-          extractedData = firecrawlData.data;
-          source = 'firecrawl';
-          console.log('Firecrawl extraction successful:', extractedData);
-        } else {
-          console.log('Firecrawl failed or insufficient data, trying AI extraction...');
-        }
-        
-        // Étape 2 : Si Firecrawl a échoué ou données insuffisantes, utiliser Perplexity AI
-        if (!extractedData || (!extractedData.name && !extractedData.description)) {
-          toast.info("Analyse IA en cours...", { duration: 3000 });
-          
-          const { data: aiData, error: aiError } = await supabase.functions.invoke('extract-supplier-info-ai', {
-            body: { 
-              url: formData.website,
-              content: firecrawlData?.rawContent || null 
-            }
-          });
-          
-          console.log('AI extraction response:', { aiData, aiError });
-          
-          if (aiData && aiData.success && aiData.data) {
-            extractedData = aiData.data;
-            source = 'perplexity_ai';
-            console.log('AI extraction successful:', extractedData);
-          }
-        }
-        
-        if (extractedData && (extractedData.name || extractedData.description)) {
-          toast.info("Finalisation...", { duration: 1000 });
-          
-          // Show preview and ask for confirmation
-          const confirmMessage = `Données extraites du site (source: ${source === 'firecrawl' ? 'web scraping' : 'IA'}):\n\n` +
-            `Nom: ${extractedData.name || 'Non trouvé'}\n` +
-            `Description: ${extractedData.description?.substring(0, 100) || 'Non trouvée'}...\n` +
-            `Email: ${extractedData.email || 'Non trouvé'}\n` +
-            `Téléphone: ${extractedData.phone || 'Non trouvé'}\n` +
-            `Adresse: ${extractedData.address_street || 'Non trouvée'}\n` +
-            `Ville: ${extractedData.address_city || 'Non trouvée'}\n` +
-            `Logo: ${extractedData.logo_url || 'Non trouvé'}\n` +
-            `Marques: ${Array.isArray(extractedData.brands_sold) ? extractedData.brands_sold.join(', ') : (extractedData.brands_sold || 'Non trouvées')}\n` +
-            `Types produits: ${Array.isArray(extractedData.product_types) ? extractedData.product_types.join(', ') : (extractedData.product_types || 'Non trouvés')}\n` +
-            `Spécialités: ${Array.isArray(extractedData.specialties) ? extractedData.specialties.join(', ') : (extractedData.specialties || 'Non trouvées')}\n` +
-            `Conditions paiement: ${extractedData.payment_terms || 'Non trouvées'}\n` +
-            `Commande minimum: ${extractedData.minimum_order || 'Non trouvée'}\n` +
-            `\nVoulez-vous appliquer ces données aux champs du formulaire ?`;
-          
-          if (window.confirm(confirmMessage)) {
-            // Helper function to convert arrays or strings to comma-separated strings
-            const formatFieldValue = (value: any): string => {
-              if (!value) return '';
-              if (Array.isArray(value)) return value.join(', ');
-              if (typeof value === 'string') return value;
-              return String(value);
-            };
-
-            // Update fields with comprehensive mapping
-            setFormData(prev => ({
-              ...prev,
-              name: extractedData.name || prev.name,
-              description: extractedData.description || prev.description,
-              email: extractedData.email || prev.email,
-              phone: extractedData.phone || prev.phone,
-              address_street: extractedData.address_street || prev.address_street,
-              address_city: extractedData.address_city || prev.address_city,
-              address_postal: extractedData.address_postal || prev.address_postal,
-              address_country: extractedData.address_country || prev.address_country,
-              logo_url: extractedData.logo_url || prev.logo_url,
-              brands_sold: formatFieldValue(extractedData.brands_sold) || prev.brands_sold,
-              product_types: formatFieldValue(extractedData.product_types) || prev.product_types,
-              specialties: formatFieldValue(extractedData.specialties) || prev.specialties,
-              certifications: formatFieldValue(extractedData.certifications) || prev.certifications,
-              payment_terms: extractedData.payment_terms || prev.payment_terms,
-              minimum_order: extractedData.minimum_order || prev.minimum_order,
-              delivery_zones: extractedData.delivery_zones || prev.delivery_zones,
-              delivery_time: extractedData.delivery_time || prev.delivery_time,
-              delivery_cost: extractedData.delivery_cost || prev.delivery_cost
-            }));
-            
-            toast.success(`Auto-complétion réussie via ${source === 'firecrawl' ? 'scraping web' : 'IA Perplexity'} - Les informations ont été appliquées.`);
-          }
-        } else {
-          toast.error("Impossible d'extraire les informations du site web avec les méthodes disponibles.");
-        }
-      } catch (error) {
-        console.error('Auto-completion error:', error);
-        toast.error("Une erreur est survenue lors de l'extraction des données. Vérifiez que l'URL est valide et accessible.");
-      } finally {
-        setIsAutoCompleting(false);
-      }
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      onSubmit(formData);
-    };
-
-    return (
-      <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nom du fournisseur *</Label>
-            <Input
-              id="name"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            rows={3}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="phone">Téléphone</Label>
-            <Input
-              id="phone"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="website">Site web</Label>
-            <div className="flex gap-2">
-              <Input
-                id="website"
-                value={formData.website}
-                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                placeholder="https://exemple.com"
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleAutoComplete}
-                disabled={!formData.website || isAutoCompleting}
-                className="shrink-0"
-              >
-                {isAutoCompleting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Wand2 className="h-4 w-4" />
-                )}
-                {isAutoCompleting ? 'Analyse...' : 'Auto-compléter'}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="brands_sold">Marques vendues (séparées par des virgules)</Label>
-          <Input
-            id="brands_sold"
-            value={formData.brands_sold}
-            onChange={(e) => setFormData({ ...formData, brands_sold: e.target.value })}
-            placeholder="Apple, Samsung, Huawei..."
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="product_types">Types de produits (séparés par des virgules)</Label>
-          <Input
-            id="product_types"
-            value={formData.product_types}
-            onChange={(e) => setFormData({ ...formData, product_types: e.target.value })}
-            placeholder="Écrans, Batteries, Coques..."
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="address_street">Adresse</Label>
-            <Input
-              id="address_street"
-              value={formData.address_street}
-              onChange={(e) => setFormData({ ...formData, address_street: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="address_city">Ville</Label>
-            <Input
-              id="address_city"
-              value={formData.address_city}
-              onChange={(e) => setFormData({ ...formData, address_city: e.target.value })}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="address_postal">Code postal</Label>
-            <Input
-              id="address_postal"
-              value={formData.address_postal}
-              onChange={(e) => setFormData({ ...formData, address_postal: e.target.value })}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="minimum_order">Commande minimum (€)</Label>
-            <Input
-              id="minimum_order"
-              type="number"
-              value={formData.minimum_order}
-              onChange={(e) => setFormData({ ...formData, minimum_order: e.target.value })}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="specialties">Spécialités (séparées par des virgules)</Label>
-          <Input
-            id="specialties"
-            value={formData.specialties}
-            onChange={(e) => setFormData({ ...formData, specialties: e.target.value })}
-            placeholder="Réparation express, Microsoudure..."
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="payment_terms">Conditions de paiement</Label>
-          <Input
-            id="payment_terms"
-            value={formData.payment_terms}
-            onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
-            placeholder="30 jours, Immédiat..."
-          />
-        </div>
-
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Annuler
-          </Button>
-          <Button type="submit">
-            {supplier ? 'Modifier' : 'Créer'}
-          </Button>
-        </div>
-      </form>
-    );
-  };
 
   const filteredSuppliers = suppliers.filter(supplier => {
     const matchesSearch = supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         supplier.description?.toLowerCase().includes(searchTerm.toLowerCase());
+                         supplier.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         supplier.brands_sold?.some(brand => brand.toLowerCase().includes(searchTerm.toLowerCase()));
+
     const matchesStatus = statusFilter === 'all' || supplier.status === statusFilter;
+
     return matchesSearch && matchesStatus;
   });
 
-  const pendingReviews = reviews.filter(r => r.status === 'pending');
+  const SupplierCard = ({ supplier }: { supplier: Supplier }) => (
+    <Card className="p-4">
+      <div className="flex justify-between items-start mb-2">
+        <div>
+          <h3 className="font-semibold text-lg">{supplier.name}</h3>
+          <div className="flex items-center gap-2 mt-1">
+            {supplier.is_verified && (
+              <Badge variant="default" className="text-xs">
+                <Verified className="w-3 h-3 mr-1" />
+                Vérifié
+              </Badge>
+            )}
+            <Badge variant={supplier.status === 'active' ? 'default' : supplier.status === 'pending' ? 'secondary' : 'destructive'}>
+              {supplier.status}
+            </Badge>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSelectedSupplier(supplier);
+              setIsEditModalOpen(true);
+            }}
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-2 text-sm text-muted-foreground">
+        {supplier.email && (
+          <div className="flex items-center gap-2">
+            <Mail className="w-4 h-4" />
+            {supplier.email}
+          </div>
+        )}
+        {supplier.phone && (
+          <div className="flex items-center gap-2">
+            <Phone className="w-4 h-4" />
+            {supplier.phone}
+          </div>
+        )}
+        {supplier.website && (
+          <div className="flex items-center gap-2">
+            <Globe className="w-4 h-4" />
+            <a href={supplier.website} target="_blank" rel="noopener noreferrer" className="hover:underline">
+              {supplier.website}
+            </a>
+          </div>
+        )}
+        {supplier.address && (
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4" />
+            {supplier.address.street}, {supplier.address.city}
+          </div>
+        )}
+      </div>
+
+      {supplier.description && (
+        <p className="text-sm mt-3 line-clamp-2">{supplier.description}</p>
+      )}
+
+      <div className="flex flex-wrap gap-1 mt-3">
+        {supplier.brands_sold?.slice(0, 3).map((brand, index) => (
+          <Badge key={index} variant="outline" className="text-xs">
+            {brand}
+          </Badge>
+        ))}
+        {supplier.brands_sold && supplier.brands_sold.length > 3 && (
+          <Badge variant="outline" className="text-xs">
+            +{supplier.brands_sold.length - 3}
+          </Badge>
+        )}
+      </div>
+
+      <div className="flex justify-between items-center mt-4">
+        <div className="flex items-center gap-2">
+          <Star className="w-4 h-4 text-yellow-500" />
+          <span className="text-sm">{supplier.rating}/5</span>
+          <span className="text-xs text-muted-foreground">({supplier.review_count} avis)</span>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleVerificationToggle(supplier.id, supplier.is_verified)}
+          >
+            {supplier.is_verified ? 'Retirer certification' : 'Certifier'}
+          </Button>
+          <Select
+            value={supplier.status}
+            onValueChange={(value) => handleStatusChange(supplier.id, value)}
+          >
+            <SelectTrigger className="w-24">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">En attente</SelectItem>
+              <SelectItem value="active">Actif</SelectItem>
+              <SelectItem value="inactive">Inactif</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </Card>
+  );
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="animate-pulse space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
-          ))}
-        </div>
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header avec statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Total Fournisseurs</p>
-                <p className="text-xl font-bold">{suppliers.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Verified className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Certifiés</p>
-                <p className="text-xl font-bold">{suppliers.filter(s => s.is_verified).length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Star className="h-5 w-5 text-yellow-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Avis Totaux</p>
-                <p className="text-xl font-bold">{reviews.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Avis en attente</p>
-                <p className="text-xl font-bold">{pendingReviews.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Gestion des Fournisseurs</h1>
+          <p className="text-muted-foreground">
+            Gérez l'annuaire des fournisseurs et grossistes
+          </p>
+        </div>
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Ajouter un fournisseur
+        </Button>
       </div>
 
-      <Tabs defaultValue="suppliers" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="suppliers">Gestion Fournisseurs</TabsTrigger>
-          <TabsTrigger value="reviews">
-            Modération Avis
-            {pendingReviews.length > 0 && (
-              <Badge variant="destructive" className="ml-2 text-xs">
-                {pendingReviews.length}
-              </Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <Input
+            placeholder="Rechercher par nom, email ou marque..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Statut" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous</SelectItem>
+            <SelectItem value="pending">En attente</SelectItem>
+            <SelectItem value="active">Actif</SelectItem>
+            <SelectItem value="inactive">Inactif</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-        <TabsContent value="suppliers" className="space-y-6">
-          {/* Filtres et actions */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <div className="flex gap-4 flex-1">
-                  <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Rechercher un fournisseur..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tous les statuts</SelectItem>
-                      <SelectItem value="active">Actif</SelectItem>
-                      <SelectItem value="pending">En attente</SelectItem>
-                      <SelectItem value="inactive">Inactif</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={() => setIsCreateModalOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter un fournisseur
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredSuppliers.map((supplier) => (
+          <SupplierCard key={supplier.id} supplier={supplier} />
+        ))}
+      </div>
 
-          {/* Liste des fournisseurs */}
-          <div className="grid gap-4">
-            {filteredSuppliers.map((supplier) => (
-              <Card key={supplier.id}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4 flex-1">
-                      {supplier.logo_url ? (
-                        <img
-                          src={supplier.logo_url}
-                          alt={`Logo ${supplier.name}`}
-                          className="w-16 h-16 object-contain rounded-lg border"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <span className="text-lg font-semibold text-gray-600">
-                            {supplier.name.charAt(0)}
-                          </span>
-                        </div>
-                      )}
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold">{supplier.name}</h3>
-                          {supplier.is_verified && (
-                            <Verified className="h-5 w-5 text-blue-500" />
-                          )}
-                          <Badge 
-                            variant={supplier.status === 'active' ? 'default' : 'secondary'}
-                          >
-                            {supplier.status}
-                          </Badge>
-                        </div>
-                        
-                        <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
-                          {supplier.description}
-                        </p>
-                        
-                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                          {supplier.phone && (
-                            <div className="flex items-center gap-1">
-                              <Phone className="h-4 w-4" />
-                              <span>{supplier.phone}</span>
-                            </div>
-                          )}
-                          {supplier.email && (
-                            <div className="flex items-center gap-1">
-                              <Mail className="h-4 w-4" />
-                              <span>{supplier.email}</span>
-                            </div>
-                          )}
-                          {supplier.website && (
-                            <div className="flex items-center gap-1">
-                              <Globe className="h-4 w-4" />
-                              <span>Site web</span>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-4 mt-3">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 text-yellow-500" />
-                            <span className="text-sm font-medium">
-                              {supplier.rating.toFixed(1)} ({supplier.review_count} avis)
-                            </span>
-                          </div>
-                          {supplier.brands_sold.length > 0 && (
-                            <span className="text-sm">
-                              {supplier.brands_sold.length} marque(s)
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleVerificationToggle(supplier.id, supplier.is_verified)}
-                      >
-                        {supplier.is_verified ? 'Retirer certification' : 'Certifier'}
-                      </Button>
-                      <Select
-                        value={supplier.status}
-                        onValueChange={(value) => handleStatusChange(supplier.id, value)}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="active">Actif</SelectItem>
-                          <SelectItem value="pending">En attente</SelectItem>
-                          <SelectItem value="inactive">Inactif</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedSupplier(supplier);
-                          setIsEditModalOpen(true);
-                        }}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
+      {filteredSuppliers.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Aucun fournisseur trouvé</p>
+        </div>
+      )}
 
-        <TabsContent value="reviews" className="space-y-6">
-          <div className="space-y-4">
-            {pendingReviews.map((review) => {
-              const supplier = suppliers.find(s => s.id === review.supplier_id);
-              return (
-                <Card key={review.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="font-semibold">{review.title}</h4>
-                          <div className="flex items-center">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`h-4 w-4 ${
-                                  star <= review.rating 
-                                    ? 'fill-yellow-400 text-yellow-400' 
-                                    : 'text-gray-300'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <p className="text-muted-foreground text-sm mb-2">
-                          Fournisseur : <strong>{supplier?.name}</strong>
-                        </p>
-                        <p className="text-sm mb-4">{review.content}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Publié le {new Date(review.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleReviewStatusChange(review.id, 'published')}
-                        >
-                          Approuver
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleReviewStatusChange(review.id, 'rejected')}
-                        >
-                          Rejeter
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-            
-            {pendingReviews.length === 0 && (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-muted-foreground">Aucun avis en attente de modération</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {/* Modal de création */}
+      {/* Create Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Ajouter un nouveau fournisseur</DialogTitle>
           </DialogHeader>
@@ -817,16 +390,15 @@ export const SuppliersDirectoryManagement = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Modal d'édition */}
+      {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Modifier le fournisseur</DialogTitle>
           </DialogHeader>
           <SupplierForm
             supplier={selectedSupplier}
             onSubmit={(formData) => {
-              // Logique de mise à jour à implémenter
               console.log('Update supplier:', formData);
               setIsEditModalOpen(false);
             }}
@@ -837,3 +409,5 @@ export const SuppliersDirectoryManagement = () => {
     </div>
   );
 };
+
+export default SuppliersDirectoryManagement;
