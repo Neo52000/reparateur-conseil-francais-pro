@@ -31,48 +31,12 @@ interface ActivityItem {
 const mockActivities: ActivityItem[] = [
   {
     id: '1',
-    type: 'user',
-    title: 'Nouveau réparateur inscrit',
-    description: 'Jean Martin a créé son compte et attend validation',
-    timestamp: new Date(Date.now() - 5 * 60 * 1000),
-    user: { name: 'Jean Martin' },
-    actionUrl: '/admin?tab=repairers&id=123'
-  },
-  {
-    id: '2',
-    type: 'quote',
-    title: 'Devis soumis',
-    description: 'Réparation écran iPhone 14 Pro - En attente de validation',
-    timestamp: new Date(Date.now() - 12 * 60 * 1000),
-    metadata: { amount: '189€', status: 'pending' },
-    actionUrl: '/admin?tab=quotes&id=456'
-  },
-  {
-    id: '3',
     type: 'success',
-    title: 'Commande complétée',
-    description: 'Réparation batterie Samsung Galaxy terminée avec succès',
-    timestamp: new Date(Date.now() - 45 * 60 * 1000),
-    metadata: { amount: '79€', status: 'completed' },
-    actionUrl: '/admin?tab=quotes&id=789'
-  },
-  {
-    id: '4',
-    type: 'alert',
-    title: 'Stock faible',
-    description: 'Écrans iPhone 13 - Seulement 3 unités restantes',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    metadata: { priority: 'high' },
-    actionUrl: '/admin?tab=catalog&category=screens'
-  },
-  {
-    id: '5',
-    type: 'order',
-    title: 'Nouvelle commande',
-    description: 'Commande de pièces détachées par TechRepair Paris',
-    timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-    metadata: { amount: '245€' },
-    actionUrl: '/admin?tab=orders&id=101'
+    title: 'Système initialisé',
+    description: 'Plateforme RepairHub prête à l\'utilisation',
+    timestamp: new Date(),
+    metadata: { status: 'completed' },
+    actionUrl: '/admin?tab=dashboard'
   }
 ];
 

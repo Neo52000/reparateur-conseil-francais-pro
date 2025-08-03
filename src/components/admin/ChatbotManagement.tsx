@@ -397,19 +397,19 @@ const ChatbotManagement = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm">Prix réparation écran</span>
-                    <Badge variant="secondary">32</Badge>
+                    <Badge variant="secondary">0</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Diagnostic gratuit</span>
-                    <Badge variant="secondary">28</Badge>
+                    <Badge variant="secondary">0</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Rendez-vous urgent</span>
-                    <Badge variant="secondary">19</Badge>
+                    <Badge variant="secondary">0</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Garantie réparation</span>
-                    <Badge variant="secondary">15</Badge>
+                    <Badge variant="secondary">0</Badge>
                   </div>
                 </div>
               </CardContent>
@@ -423,19 +423,19 @@ const ChatbotManagement = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-sm">iPhone 14</span>
-                    <Badge variant="default">45%</Badge>
+                    <Badge variant="default">0%</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Samsung Galaxy S23</span>
-                    <Badge variant="default">32%</Badge>
+                    <Badge variant="default">0%</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">iPhone 13</span>
-                    <Badge variant="default">18%</Badge>
+                    <Badge variant="default">0%</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm">Autres</span>
-                    <Badge variant="outline">5%</Badge>
+                    <Badge variant="outline">0%</Badge>
                   </div>
                 </div>
               </CardContent>

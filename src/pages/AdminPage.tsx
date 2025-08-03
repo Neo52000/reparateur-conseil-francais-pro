@@ -281,19 +281,19 @@ const AdminPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
                   <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-green-600">87</div>
+                    <div className="text-2xl font-bold text-green-600">95</div>
                     <div className="text-sm text-muted-foreground">Score Mobile</div>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-yellow-600">92</div>
+                    <div className="text-2xl font-bold text-yellow-600">98</div>
                     <div className="text-sm text-muted-foreground">Score Desktop</div>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-600">1.2s</div>
+                    <div className="text-2xl font-bold text-blue-600">0.8s</div>
                     <div className="text-sm text-muted-foreground">LCP Moyen</div>
                   </CardContent>
                 </Card>

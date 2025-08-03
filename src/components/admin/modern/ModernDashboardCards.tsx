@@ -33,11 +33,11 @@ interface ModernDashboardCardsProps {
 const defaultStats: DashboardStat[] = [
   {
     title: 'Réparateurs actifs',
-    value: 247,
-    change: { value: 12, period: 'ce mois', isPositive: true },
+    value: 1,
+    change: { value: 0, period: 'ce mois', isPositive: true },
     icon: Users,
     color: 'blue',
-    progress: 73,
+    progress: 10,
     actions: [
       { label: 'Voir tout', href: '/admin?tab=repairers' },
       { label: 'Ajouter', href: '/admin?tab=repairers&action=add' }
@@ -45,55 +45,55 @@ const defaultStats: DashboardStat[] = [
   },
   {
     title: 'Devis en cours',
-    value: 189,
-    change: { value: 8, period: 'cette semaine', isPositive: true },
+    value: 1,
+    change: { value: 0, period: 'cette semaine', isPositive: true },
     icon: Receipt,
     color: 'green',
-    progress: 85,
+    progress: 15,
     actions: [
       { label: 'Gérer', href: '/admin?tab=quotes' }
     ]
   },
   {
     title: 'Revenus mensuels',
-    value: '€12,847',
-    change: { value: 15.3, period: 'vs mois dernier', isPositive: true },
+    value: '€0',
+    change: { value: 0, period: 'vs mois dernier', isPositive: true },
     icon: Euro,
     color: 'purple',
-    progress: 92,
+    progress: 0,
     actions: [
       { label: 'Analytics', href: '/admin?tab=analytics' }
     ]
   },
   {
     title: 'Taux de conversion',
-    value: '23.4%',
-    change: { value: 2.1, period: 'cette semaine', isPositive: true },
+    value: '0%',
+    change: { value: 0, period: 'cette semaine', isPositive: true },
     icon: TrendingUp,
     color: 'orange',
-    progress: 67,
+    progress: 0,
     actions: [
       { label: 'Optimiser', href: '/admin?tab=advertising' }
     ]
   },
   {
     title: 'Temps de réponse',
-    value: '2.3h',
-    change: { value: 0.5, period: 'amélioration', isPositive: true },
+    value: '0h',
+    change: { value: 0, period: 'amélioration', isPositive: true },
     icon: Clock,
     color: 'teal',
-    progress: 88,
+    progress: 0,
     actions: [
       { label: 'Monitoring', href: '/admin?tab=monitoring' }
     ]
   },
   {
     title: 'Sécurité',
-    value: '99.9%',
-    change: { value: 0.1, period: 'uptime', isPositive: true },
+    value: '100%',
+    change: { value: 0, period: 'uptime', isPositive: true },
     icon: Shield,
     color: 'indigo',
-    progress: 99,
+    progress: 100,
     actions: [
       { label: 'Détails', href: '/admin?tab=monitoring' }
     ]
