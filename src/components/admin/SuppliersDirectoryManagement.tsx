@@ -274,21 +274,34 @@ export const SuppliersDirectoryManagement = () => {
             `Description: ${extractedData.description?.substring(0, 100) || 'Non trouvée'}...\n` +
             `Email: ${extractedData.email || 'Non trouvé'}\n` +
             `Téléphone: ${extractedData.phone || 'Non trouvé'}\n` +
-            `Adresse: ${extractedData.address || 'Non trouvée'}\n` +
-            `Marques: ${Array.isArray(extractedData.brands) ? extractedData.brands.join(', ') : (extractedData.brands || 'Non trouvées')}\n` +
-            `\nVoulez-vous appliquer ces données aux champs vides du formulaire ?`;
+            `Adresse: ${extractedData.address_street || 'Non trouvée'}\n` +
+            `Ville: ${extractedData.address_city || 'Non trouvée'}\n` +
+            `Marques: ${Array.isArray(extractedData.brands_sold) ? extractedData.brands_sold.join(', ') : (extractedData.brands_sold || 'Non trouvées')}\n` +
+            `Types produits: ${Array.isArray(extractedData.product_types) ? extractedData.product_types.join(', ') : (extractedData.product_types || 'Non trouvés')}\n` +
+            `Spécialités: ${Array.isArray(extractedData.specialties) ? extractedData.specialties.join(', ') : (extractedData.specialties || 'Non trouvées')}\n` +
+            `\nVoulez-vous appliquer ces données aux champs du formulaire ?`;
           
           if (window.confirm(confirmMessage)) {
-            // Update fields, preserving existing data
+            // Update fields with comprehensive mapping
             setFormData(prev => ({
               ...prev,
               name: extractedData.name || prev.name,
               description: extractedData.description || prev.description,
               email: extractedData.email || prev.email,
               phone: extractedData.phone || prev.phone,
-              address_street: extractedData.address || prev.address_street,
-              brands_sold: (Array.isArray(extractedData.brands) ? extractedData.brands.join(', ') : extractedData.brands) || prev.brands_sold,
-              certifications: (Array.isArray(extractedData.certifications) ? extractedData.certifications.join(', ') : extractedData.certifications) || prev.certifications
+              address_street: extractedData.address_street || prev.address_street,
+              address_city: extractedData.address_city || prev.address_city,
+              address_postal: extractedData.address_postal || prev.address_postal,
+              address_country: extractedData.address_country || prev.address_country,
+              brands_sold: (Array.isArray(extractedData.brands_sold) ? extractedData.brands_sold.join(', ') : extractedData.brands_sold) || prev.brands_sold,
+              product_types: (Array.isArray(extractedData.product_types) ? extractedData.product_types.join(', ') : extractedData.product_types) || prev.product_types,
+              specialties: (Array.isArray(extractedData.specialties) ? extractedData.specialties.join(', ') : extractedData.specialties) || prev.specialties,
+              certifications: (Array.isArray(extractedData.certifications) ? extractedData.certifications.join(', ') : extractedData.certifications) || prev.certifications,
+              payment_terms: extractedData.payment_terms || prev.payment_terms,
+              minimum_order: extractedData.minimum_order || prev.minimum_order,
+              delivery_zones: extractedData.delivery_zones || prev.delivery_zones,
+              delivery_time: extractedData.delivery_time || prev.delivery_time,
+              delivery_cost: extractedData.delivery_cost || prev.delivery_cost
             }));
             
             toast.success(`Auto-complétion réussie via ${source === 'firecrawl' ? 'scraping web' : 'IA Perplexity'} - Les informations ont été appliquées.`);

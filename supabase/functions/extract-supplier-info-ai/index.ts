@@ -11,10 +11,20 @@ interface SupplierData {
   description?: string;
   email?: string;
   phone?: string;
-  address?: string;
+  address_street?: string;
+  address_city?: string;
+  address_postal?: string;
+  address_country?: string;
   website?: string;
-  brands?: string[];
+  brands_sold?: string[];
+  product_types?: string[];
+  specialties?: string[];
   certifications?: string[];
+  payment_terms?: string;
+  minimum_order?: string;
+  delivery_zones?: string;
+  delivery_time?: string;
+  delivery_cost?: string;
 }
 
 serve(async (req) => {
@@ -33,34 +43,84 @@ serve(async (req) => {
     }
 
     const prompt = content 
-      ? `Analyze the following website content and extract supplier information in JSON format. Focus on finding: company name, business description, email, phone, address, brands sold/serviced, certifications.
+      ? `Analysez ce contenu de site web d'un fournisseur/grossiste en électronique/téléphonie et extrayez toutes les informations commerciales disponibles. Recherchez spécifiquement :
 
-Website content:
+INFORMATIONS GÉNÉRALES :
+- Nom de l'entreprise
+- Description détaillée de l'activité
+- Email de contact principal
+- Numéro de téléphone
+- Adresse complète (rue, ville, code postal, pays séparés)
+- Site web
+
+PRODUITS ET SERVICES :
+- Marques vendues/distribuées (Apple, Samsung, Huawei, etc.)
+- Types de produits (smartphones, tablettes, accessoires, pièces détachées, etc.)
+- Spécialités techniques (réparation express, microsoudure, formation, etc.)
+- Certifications professionnelles
+
+INFORMATIONS COMMERCIALES :
+- Conditions de paiement (comptant, 30 jours, etc.)
+- Commande minimum
+- Zones de livraison
+- Délais de livraison
+- Coûts de livraison
+
+Contenu du site :
 ${content.substring(0, 8000)}
 
-Return ONLY a valid JSON object with these fields (use null for missing data):
+Retournez UNIQUEMENT un objet JSON valide avec ces champs (utilisez null pour les données manquantes) :
 {
-  "name": "company name",
-  "description": "business description", 
-  "email": "contact email",
-  "phone": "phone number",
-  "address": "full address",
-  "website": "website url",
-  "brands": ["brand1", "brand2"],
-  "certifications": ["cert1", "cert2"]
+  "name": "nom de l'entreprise",
+  "description": "description détaillée de l'activité",
+  "email": "email de contact",
+  "phone": "numéro de téléphone",
+  "address_street": "adresse rue",
+  "address_city": "ville",
+  "address_postal": "code postal",
+  "address_country": "pays",
+  "website": "url du site web",
+  "brands_sold": ["marque1", "marque2"],
+  "product_types": ["smartphones", "tablettes", "accessoires"],
+  "specialties": ["réparation express", "microsoudure"],
+  "certifications": ["certification1", "certification2"],
+  "payment_terms": "conditions de paiement",
+  "minimum_order": "commande minimum",
+  "delivery_zones": "zones de livraison",
+  "delivery_time": "délais de livraison",
+  "delivery_cost": "coûts de livraison"
 }`
-      : `Search for information about the company at ${url} and extract supplier information in JSON format. Focus on finding: company name, business description, contact email, phone number, address, brands they sell/service, certifications.
+      : `Recherchez des informations sur l'entreprise fournisseur/grossiste en électronique/téléphonie à l'adresse ${url}. Extrayez toutes les informations commerciales disponibles :
 
-Return ONLY a valid JSON object with these fields (use null for missing data):
+INFORMATIONS À RECHERCHER :
+- Nom de l'entreprise et description de l'activité
+- Coordonnées (email, téléphone, adresse complète)
+- Marques vendues/distribuées (Apple, Samsung, Huawei, etc.)
+- Types de produits (smartphones, tablettes, accessoires, pièces détachées)
+- Spécialités techniques (réparation, formation, services)
+- Certifications professionnelles
+- Conditions commerciales (paiement, commande minimum, livraison)
+
+Retournez UNIQUEMENT un objet JSON valide avec ces champs (utilisez null pour les données manquantes) :
 {
-  "name": "company name",
-  "description": "business description",
-  "email": "contact email", 
-  "phone": "phone number",
-  "address": "full address",
-  "website": "website url",
-  "brands": ["brand1", "brand2"],
-  "certifications": ["cert1", "cert2"]
+  "name": "nom de l'entreprise",
+  "description": "description détaillée de l'activité",
+  "email": "email de contact",
+  "phone": "numéro de téléphone",
+  "address_street": "adresse rue",
+  "address_city": "ville",
+  "address_postal": "code postal",
+  "address_country": "pays",
+  "website": "url du site web",
+  "brands_sold": ["marque1", "marque2"],
+  "product_types": ["smartphones", "tablettes", "accessoires"],
+  "specialties": ["réparation express", "microsoudure"],
+  "certifications": ["certification1", "certification2"],
+  "payment_terms": "conditions de paiement",
+  "minimum_order": "commande minimum",
+  "delivery_zones": "zones de livraison",
+  "delivery_time": "délais de livraison",
+  "delivery_cost": "coûts de livraison"
 }`;
 
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
@@ -119,10 +179,20 @@ Return ONLY a valid JSON object with these fields (use null for missing data):
       description: supplierData.description?.trim() || null,
       email: supplierData.email?.toLowerCase().trim() || null,
       phone: supplierData.phone?.replace(/[^\d+\s.-]/g, '').trim() || null,
-      address: supplierData.address?.trim() || null,
+      address_street: supplierData.address_street?.trim() || null,
+      address_city: supplierData.address_city?.trim() || null,
+      address_postal: supplierData.address_postal?.trim() || null,
+      address_country: supplierData.address_country?.trim() || null,
       website: supplierData.website?.trim() || url,
-      brands: Array.isArray(supplierData.brands) ? supplierData.brands.filter(b => b?.trim()) : [],
-      certifications: Array.isArray(supplierData.certifications) ? supplierData.certifications.filter(c => c?.trim()) : []
+      brands_sold: Array.isArray(supplierData.brands_sold) ? supplierData.brands_sold.filter(b => b?.trim()) : [],
+      product_types: Array.isArray(supplierData.product_types) ? supplierData.product_types.filter(p => p?.trim()) : [],
+      specialties: Array.isArray(supplierData.specialties) ? supplierData.specialties.filter(s => s?.trim()) : [],
+      certifications: Array.isArray(supplierData.certifications) ? supplierData.certifications.filter(c => c?.trim()) : [],
+      payment_terms: supplierData.payment_terms?.trim() || null,
+      minimum_order: supplierData.minimum_order?.trim() || null,
+      delivery_zones: supplierData.delivery_zones?.trim() || null,
+      delivery_time: supplierData.delivery_time?.trim() || null,
+      delivery_cost: supplierData.delivery_cost?.trim() || null
     };
 
     // Validate email format
