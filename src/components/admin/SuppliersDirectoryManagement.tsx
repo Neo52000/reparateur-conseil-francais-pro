@@ -42,7 +42,6 @@ export const SuppliersDirectoryManagement = () => {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isAutoCompleting, setIsAutoCompleting] = useState(false);
 
   useEffect(() => {
     fetchSuppliers();
@@ -120,93 +119,6 @@ export const SuppliersDirectoryManagement = () => {
     }
   };
 
-  const handleAutoComplete = async (url: string, setFormData: Function, formData: any) => {
-    setIsAutoCompleting(true);
-    let extractedData = null;
-    let source = '';
-    
-    try {
-      console.log('Starting auto-completion for URL:', url);
-      
-      // Étape 1 : Tentative avec Firecrawl
-      toast.info("Scraping du site web...", { duration: 3000 });
-      
-      const { data: firecrawlData, error: firecrawlError } = await supabase.functions.invoke('scrape-supplier-website', {
-        body: { url }
-      });
-      
-      console.log('Firecrawl response:', { firecrawlData, firecrawlError });
-      
-      if (firecrawlData && firecrawlData.success && firecrawlData.data) {
-        extractedData = firecrawlData.data;
-        source = 'firecrawl';
-        console.log('Firecrawl extraction successful:', extractedData);
-      } else {
-        console.log('Firecrawl failed or insufficient data, trying AI extraction...');
-      }
-      
-      // Étape 2 : Si Firecrawl a échoué ou données insuffisantes, utiliser Perplexity AI
-      if (!extractedData || (!extractedData.name && !extractedData.description)) {
-        toast.info("Analyse IA en cours...", { duration: 3000 });
-        
-        const { data: aiData, error: aiError } = await supabase.functions.invoke('extract-supplier-info-ai', {
-          body: { 
-            url,
-            content: firecrawlData?.rawContent || null 
-          }
-        });
-        
-        console.log('AI extraction response:', { aiData, aiError });
-        
-        if (aiData && aiData.success && aiData.data) {
-          extractedData = aiData.data;
-          source = 'perplexity_ai';
-          console.log('AI extraction successful:', extractedData);
-        }
-      }
-      
-      if (extractedData && (extractedData.name || extractedData.description)) {
-        toast.info("Finalisation...", { duration: 1000 });
-        
-        // Show preview and ask for confirmation
-        const confirmMessage = `Données extraites du site (source: ${source === 'firecrawl' ? 'web scraping' : 'IA'}):\n\n` +
-          `Nom: ${extractedData.name || 'Non trouvé'}\n` +
-          `Description: ${extractedData.description?.substring(0, 100) || 'Non trouvée'}...\n` +
-          `Email: ${extractedData.email || 'Non trouvé'}\n` +
-          `Téléphone: ${extractedData.phone || 'Non trouvé'}\n` +
-          `Adresse: ${extractedData.address || 'Non trouvée'}\n` +
-          `Marques: ${Array.isArray(extractedData.brands) ? extractedData.brands.join(', ') : (extractedData.brands || 'Non trouvées')}\n` +
-          `\nVoulez-vous appliquer ces données aux champs vides du formulaire ?`;
-        
-        if (window.confirm(confirmMessage)) {
-          // Only update empty fields to preserve user input
-          const updates: any = {};
-          if (!formData.name && extractedData.name) updates.name = extractedData.name;
-          if (!formData.description && extractedData.description) updates.description = extractedData.description;
-          if (!formData.email && extractedData.email) updates.email = extractedData.email;
-          if (!formData.phone && extractedData.phone) updates.phone = extractedData.phone;
-          if (!formData.address_street && extractedData.address) updates.address_street = extractedData.address;
-          if (!formData.brands_sold && extractedData.brands) {
-            updates.brands_sold = Array.isArray(extractedData.brands) ? extractedData.brands.join(', ') : extractedData.brands;
-          }
-          if (!formData.certifications && extractedData.certifications) {
-            updates.certifications = Array.isArray(extractedData.certifications) ? extractedData.certifications.join(', ') : extractedData.certifications;
-          }
-          
-          setFormData((prev: any) => ({ ...prev, ...updates }));
-          
-          toast.success(`Auto-complétion réussie via ${source === 'firecrawl' ? 'scraping web' : 'IA Perplexity'} - Les informations ont été appliquées aux champs vides.`);
-        }
-      } else {
-        toast.error("Impossible d'extraire les informations du site web avec les méthodes disponibles.");
-      }
-    } catch (error) {
-      console.error('Auto-completion error:', error);
-      toast.error("Une erreur est survenue lors de l'extraction des données. Vérifiez que l'URL est valide et accessible.");
-    } finally {
-      setIsAutoCompleting(false);
-    }
-  };
 
   const handleReviewStatusChange = async (reviewId: string, newStatus: string) => {
     try {
@@ -301,6 +213,101 @@ export const SuppliersDirectoryManagement = () => {
       delivery_cost: supplier?.delivery_info?.cost || ''
     });
 
+    const [isAutoCompleting, setIsAutoCompleting] = useState(false);
+
+    const handleAutoComplete = async () => {
+      if (!formData.website) {
+        toast.error('Veuillez saisir un site web avant d\'utiliser l\'auto-complétion');
+        return;
+      }
+
+      setIsAutoCompleting(true);
+      let extractedData = null;
+      let source = '';
+      
+      try {
+        console.log('Starting auto-completion for URL:', formData.website);
+        
+        // Étape 1 : Tentative avec Firecrawl
+        toast.info("Scraping du site web...", { duration: 3000 });
+        
+        const { data: firecrawlData, error: firecrawlError } = await supabase.functions.invoke('scrape-supplier-website', {
+          body: { url: formData.website }
+        });
+        
+        console.log('Firecrawl response:', { firecrawlData, firecrawlError });
+        
+        if (firecrawlData && firecrawlData.success && firecrawlData.data) {
+          extractedData = firecrawlData.data;
+          source = 'firecrawl';
+          console.log('Firecrawl extraction successful:', extractedData);
+        } else {
+          console.log('Firecrawl failed or insufficient data, trying AI extraction...');
+        }
+        
+        // Étape 2 : Si Firecrawl a échoué ou données insuffisantes, utiliser Perplexity AI
+        if (!extractedData || (!extractedData.name && !extractedData.description)) {
+          toast.info("Analyse IA en cours...", { duration: 3000 });
+          
+          const { data: aiData, error: aiError } = await supabase.functions.invoke('extract-supplier-info-ai', {
+            body: { 
+              url: formData.website,
+              content: firecrawlData?.rawContent || null 
+            }
+          });
+          
+          console.log('AI extraction response:', { aiData, aiError });
+          
+          if (aiData && aiData.success && aiData.data) {
+            extractedData = aiData.data;
+            source = 'perplexity_ai';
+            console.log('AI extraction successful:', extractedData);
+          }
+        }
+        
+        if (extractedData && (extractedData.name || extractedData.description)) {
+          toast.info("Finalisation...", { duration: 1000 });
+          
+          // Show preview and ask for confirmation
+          const confirmMessage = `Données extraites du site (source: ${source === 'firecrawl' ? 'web scraping' : 'IA'}):\n\n` +
+            `Nom: ${extractedData.name || 'Non trouvé'}\n` +
+            `Description: ${extractedData.description?.substring(0, 100) || 'Non trouvée'}...\n` +
+            `Email: ${extractedData.email || 'Non trouvé'}\n` +
+            `Téléphone: ${extractedData.phone || 'Non trouvé'}\n` +
+            `Adresse: ${extractedData.address || 'Non trouvée'}\n` +
+            `Marques: ${Array.isArray(extractedData.brands) ? extractedData.brands.join(', ') : (extractedData.brands || 'Non trouvées')}\n` +
+            `\nVoulez-vous appliquer ces données aux champs vides du formulaire ?`;
+          
+          if (window.confirm(confirmMessage)) {
+            // Only update empty fields to preserve user input
+            const updates: any = {};
+            if (!formData.name && extractedData.name) updates.name = extractedData.name;
+            if (!formData.description && extractedData.description) updates.description = extractedData.description;
+            if (!formData.email && extractedData.email) updates.email = extractedData.email;
+            if (!formData.phone && extractedData.phone) updates.phone = extractedData.phone;
+            if (!formData.address_street && extractedData.address) updates.address_street = extractedData.address;
+            if (!formData.brands_sold && extractedData.brands) {
+              updates.brands_sold = Array.isArray(extractedData.brands) ? extractedData.brands.join(', ') : extractedData.brands;
+            }
+            if (!formData.certifications && extractedData.certifications) {
+              updates.certifications = Array.isArray(extractedData.certifications) ? extractedData.certifications.join(', ') : extractedData.certifications;
+            }
+            
+            setFormData((prev: any) => ({ ...prev, ...updates }));
+            
+            toast.success(`Auto-complétion réussie via ${source === 'firecrawl' ? 'scraping web' : 'IA Perplexity'} - Les informations ont été appliquées aux champs vides.`);
+          }
+        } else {
+          toast.error("Impossible d'extraire les informations du site web avec les méthodes disponibles.");
+        }
+      } catch (error) {
+        console.error('Auto-completion error:', error);
+        toast.error("Une erreur est survenue lors de l'extraction des données. Vérifiez que l'URL est valide et accessible.");
+      } finally {
+        setIsAutoCompleting(false);
+      }
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       onSubmit(formData);
@@ -362,7 +369,7 @@ export const SuppliersDirectoryManagement = () => {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => formData.website && handleAutoComplete(formData.website, setFormData, formData)}
+                onClick={handleAutoComplete}
                 disabled={!formData.website || isAutoCompleting}
                 className="shrink-0"
               >
