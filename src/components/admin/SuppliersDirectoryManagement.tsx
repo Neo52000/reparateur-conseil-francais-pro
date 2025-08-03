@@ -122,54 +122,83 @@ export const SuppliersDirectoryManagement = () => {
 
   const handleAutoComplete = async (url: string, setFormData: Function, formData: any) => {
     setIsAutoCompleting(true);
+    let extractedData = null;
+    let source = '';
+    
     try {
       console.log('Starting auto-completion for URL:', url);
       
-      // Use Supabase edge function instead of direct Firecrawl API
-      const { data, error } = await supabase.functions.invoke('scrape-supplier-website', {
+      // Étape 1 : Tentative avec Firecrawl
+      toast.info("Scraping du site web...", { duration: 3000 });
+      
+      const { data: firecrawlData, error: firecrawlError } = await supabase.functions.invoke('scrape-supplier-website', {
         body: { url }
       });
       
-      console.log('Edge function response:', { data, error });
+      console.log('Firecrawl response:', { firecrawlData, firecrawlError });
       
-      if (error) {
-        console.error('Edge function error:', error);
-        throw new Error(error.message || 'Erreur de communication avec le service');
+      if (firecrawlData && firecrawlData.success && firecrawlData.data) {
+        extractedData = firecrawlData.data;
+        source = 'firecrawl';
+        console.log('Firecrawl extraction successful:', extractedData);
+      } else {
+        console.log('Firecrawl failed or insufficient data, trying AI extraction...');
       }
       
-      if (data && data.success && data.data) {
-        const extractedData = data.data;
-        console.log('Extracted data:', extractedData);
+      // Étape 2 : Si Firecrawl a échoué ou données insuffisantes, utiliser Perplexity AI
+      if (!extractedData || (!extractedData.name && !extractedData.description)) {
+        toast.info("Analyse IA en cours...", { duration: 3000 });
+        
+        const { data: aiData, error: aiError } = await supabase.functions.invoke('extract-supplier-info-ai', {
+          body: { 
+            url,
+            content: firecrawlData?.rawContent || null 
+          }
+        });
+        
+        console.log('AI extraction response:', { aiData, aiError });
+        
+        if (aiData && aiData.success && aiData.data) {
+          extractedData = aiData.data;
+          source = 'perplexity_ai';
+          console.log('AI extraction successful:', extractedData);
+        }
+      }
+      
+      if (extractedData && (extractedData.name || extractedData.description)) {
+        toast.info("Finalisation...", { duration: 1000 });
         
         // Show preview and ask for confirmation
-        const confirmMessage = `Données extraites du site:\n\n` +
+        const confirmMessage = `Données extraites du site (source: ${source === 'firecrawl' ? 'web scraping' : 'IA'}):\n\n` +
           `Nom: ${extractedData.name || 'Non trouvé'}\n` +
           `Description: ${extractedData.description?.substring(0, 100) || 'Non trouvée'}...\n` +
           `Email: ${extractedData.email || 'Non trouvé'}\n` +
           `Téléphone: ${extractedData.phone || 'Non trouvé'}\n` +
-          `Adresse: ${extractedData.address || 'Non trouvée'}\n\n` +
-          `Voulez-vous appliquer ces données?`;
+          `Adresse: ${extractedData.address || 'Non trouvée'}\n` +
+          `Marques: ${Array.isArray(extractedData.brands) ? extractedData.brands.join(', ') : (extractedData.brands || 'Non trouvées')}\n` +
+          `\nVoulez-vous appliquer ces données aux champs vides du formulaire ?`;
         
         if (window.confirm(confirmMessage)) {
-          // Only update empty fields to avoid overwriting user data
+          // Only update empty fields to preserve user input
           const updates: any = {};
           if (!formData.name && extractedData.name) updates.name = extractedData.name;
           if (!formData.description && extractedData.description) updates.description = extractedData.description;
           if (!formData.email && extractedData.email) updates.email = extractedData.email;
           if (!formData.phone && extractedData.phone) updates.phone = extractedData.phone;
           if (!formData.address_street && extractedData.address) updates.address_street = extractedData.address;
-          if (!formData.brands_sold && extractedData.brands?.length > 0) {
-            updates.brands_sold = extractedData.brands.join(', ');
+          if (!formData.brands_sold && extractedData.brands) {
+            updates.brands_sold = Array.isArray(extractedData.brands) ? extractedData.brands.join(', ') : extractedData.brands;
+          }
+          if (!formData.certifications && extractedData.certifications) {
+            updates.certifications = Array.isArray(extractedData.certifications) ? extractedData.certifications.join(', ') : extractedData.certifications;
           }
           
           setFormData((prev: any) => ({ ...prev, ...updates }));
           
-          toast.success("Auto-complétion réussie - Les informations ont été extraites et appliquées aux champs vides.");
+          toast.success(`Auto-complétion réussie via ${source === 'firecrawl' ? 'scraping web' : 'IA Perplexity'} - Les informations ont été appliquées aux champs vides.`);
         }
       } else {
-        const errorMsg = (data && data.error) || "Impossible d'extraire les informations du site web.";
-        console.error('Extraction failed:', errorMsg);
-        toast.error(errorMsg);
+        toast.error("Impossible d'extraire les informations du site web avec les méthodes disponibles.");
       }
     } catch (error) {
       console.error('Auto-completion error:', error);
