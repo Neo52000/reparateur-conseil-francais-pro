@@ -2,9 +2,9 @@ import React, { lazy, Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Lazy loading des modules POS
-const LazyReportsAnalytics = lazy(() => import('./modules/ReportsAnalytics'));
-const LazyHardwareIntegration = lazy(() => import('./modules/HardwareIntegration'));
-const LazyOfflineManager = lazy(() => import('./modules/OfflineManager'));
+const LazyReportsAnalytics = lazy(() => import('../modules/ReportsAnalytics'));
+const LazyHardwareIntegration = lazy(() => import('../modules/HardwareIntegration'));
+const LazyOfflineManager = lazy(() => import('../modules/OfflineManager'));
 
 // Composants de fallback pour le loading
 const ModuleLoader = ({ title }: { title: string }) => (
@@ -54,9 +54,9 @@ export const usePrefetchModules = () => {
     const prefetchTimer = setTimeout(() => {
       // Précharger seulement si l'utilisateur semble actif
       if (document.hasFocus()) {
-        import('./modules/ReportsAnalytics');
-        import('./modules/HardwareIntegration');
-        import('./modules/OfflineManager');
+        import('../modules/ReportsAnalytics');
+        import('../modules/HardwareIntegration');
+        import('../modules/OfflineManager');
       }
     }, 3000);
 
