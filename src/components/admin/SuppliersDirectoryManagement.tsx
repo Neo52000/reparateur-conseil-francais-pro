@@ -279,23 +279,19 @@ export const SuppliersDirectoryManagement = () => {
             `\nVoulez-vous appliquer ces données aux champs vides du formulaire ?`;
           
           if (window.confirm(confirmMessage)) {
-            // Only update empty fields to preserve user input
-            const updates: any = {};
-            if (!formData.name && extractedData.name) updates.name = extractedData.name;
-            if (!formData.description && extractedData.description) updates.description = extractedData.description;
-            if (!formData.email && extractedData.email) updates.email = extractedData.email;
-            if (!formData.phone && extractedData.phone) updates.phone = extractedData.phone;
-            if (!formData.address_street && extractedData.address) updates.address_street = extractedData.address;
-            if (!formData.brands_sold && extractedData.brands) {
-              updates.brands_sold = Array.isArray(extractedData.brands) ? extractedData.brands.join(', ') : extractedData.brands;
-            }
-            if (!formData.certifications && extractedData.certifications) {
-              updates.certifications = Array.isArray(extractedData.certifications) ? extractedData.certifications.join(', ') : extractedData.certifications;
-            }
+            // Update fields, preserving existing data
+            setFormData(prev => ({
+              ...prev,
+              name: extractedData.name || prev.name,
+              description: extractedData.description || prev.description,
+              email: extractedData.email || prev.email,
+              phone: extractedData.phone || prev.phone,
+              address_street: extractedData.address || prev.address_street,
+              brands_sold: (Array.isArray(extractedData.brands) ? extractedData.brands.join(', ') : extractedData.brands) || prev.brands_sold,
+              certifications: (Array.isArray(extractedData.certifications) ? extractedData.certifications.join(', ') : extractedData.certifications) || prev.certifications
+            }));
             
-            setFormData((prev: any) => ({ ...prev, ...updates }));
-            
-            toast.success(`Auto-complétion réussie via ${source === 'firecrawl' ? 'scraping web' : 'IA Perplexity'} - Les informations ont été appliquées aux champs vides.`);
+            toast.success(`Auto-complétion réussie via ${source === 'firecrawl' ? 'scraping web' : 'IA Perplexity'} - Les informations ont été appliquées.`);
           }
         } else {
           toast.error("Impossible d'extraire les informations du site web avec les méthodes disponibles.");
