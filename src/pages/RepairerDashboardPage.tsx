@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import RepairerDashboard from '@/components/RepairerDashboard';
+import { PlanPreviewControls } from '@/components/PlanPreviewControls';
 
 const RepairerDashboardPage = () => {
   const { user, loading, profile, canAccessRepairer, isAdmin } = useAuth();
@@ -85,6 +86,12 @@ const RepairerDashboardPage = () => {
           </div>
         </div>
       )}
+      
+      {/* Contrôles de prévisualisation des plans */}
+      <div className="max-w-7xl mx-auto px-4 py-4">
+        <PlanPreviewControls />
+      </div>
+      
       <RepairerDashboard />
     </div>
   );

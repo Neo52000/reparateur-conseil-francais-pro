@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
 import { AuthProvider } from "./hooks/useAuth";
+import { PlanPreviewProvider } from "./hooks/usePlanPreview";
 import Index from "./pages/Index";
 import AdminPage from "./pages/AdminPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
@@ -51,13 +52,15 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <GlobalStoreProvider>
           <AuthProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
+            <PlanPreviewProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
                 <AppWithTracking />
-              </BrowserRouter>
-            </TooltipProvider>
+                </BrowserRouter>
+              </TooltipProvider>
+            </PlanPreviewProvider>
           </AuthProvider>
         </GlobalStoreProvider>
       </QueryClientProvider>
