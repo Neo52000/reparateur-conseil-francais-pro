@@ -30,20 +30,27 @@ export class PriorityRepairersService {
         console.error('Error fetching verified repairers:', verifiedError);
       }
 
-      // Requête pour les réparateurs avec abonnements payants via jointure
-      const { data: paidRepairers, error: paidError } = await supabase
-        .from('repairers')
-        .select(`
-          *,
-          repairer_subscriptions!inner(subscription_tier)
-        `)
-        .neq('repairer_subscriptions.subscription_tier', 'free')
-        .eq('repairer_subscriptions.subscribed', true)
-        .not('lat', 'is', null)
-        .not('lng', 'is', null)
-        .not('name', 'ilike', '%�%')
-        .order('updated_at', { ascending: false })
-        .limit(Math.floor(limit / 3));
+      // Requête pour les réparateurs avec abonnements payants
+      // D'abord récupérer les emails des réparateurs avec abonnements payants
+      const { data: paidSubscriptions } = await supabase
+        .from('repairer_subscriptions')
+        .select('email')
+        .neq('subscription_tier', 'free')
+        .eq('subscribed', true);
+
+      const paidEmails = paidSubscriptions?.map(sub => sub.email) || [];
+      
+      const { data: paidRepairers, error: paidError } = paidEmails.length > 0 
+        ? await supabase
+            .from('repairers')
+            .select('*')
+            .in('email', paidEmails)
+            .not('lat', 'is', null)
+            .not('lng', 'is', null)
+            .not('name', 'ilike', '%�%')
+            .order('updated_at', { ascending: false })
+            .limit(Math.floor(limit / 3))
+        : { data: [], error: null };
 
       if (paidError) {
         console.error('Error fetching paid repairers:', paidError);
