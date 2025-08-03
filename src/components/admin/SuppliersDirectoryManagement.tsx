@@ -23,12 +23,15 @@ import {
   Mail,
   Globe,
   Verified,
-  AlertTriangle
+  AlertTriangle,
+  Wand2,
+  Loader2
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Supplier, SupplierReview } from '@/hooks/useSuppliersDirectory';
 import { toast } from 'sonner';
+import { FirecrawlService } from '@/utils/FirecrawlService';
 
 export const SuppliersDirectoryManagement = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -39,6 +42,7 @@ export const SuppliersDirectoryManagement = () => {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isAutoCompleting, setIsAutoCompleting] = useState(false);
 
   useEffect(() => {
     fetchSuppliers();
@@ -113,6 +117,50 @@ export const SuppliersDirectoryManagement = () => {
     } catch (error) {
       console.error('Error updating verification:', error);
       toast.error('Erreur lors de la mise à jour de la certification');
+    }
+  };
+
+  const handleAutoComplete = async (url: string, setFormData: Function, formData: any) => {
+    setIsAutoCompleting(true);
+    try {
+      const result = await FirecrawlService.crawlSupplierWebsite(url);
+      
+      if (result.success && result.data) {
+        const extractedData = result.data;
+        
+        // Show preview and ask for confirmation
+        const confirmMessage = `Données extraites du site:\n\n` +
+          `Nom: ${extractedData.name || 'Non trouvé'}\n` +
+          `Description: ${extractedData.description?.substring(0, 100) || 'Non trouvée'}...\n` +
+          `Email: ${extractedData.email || 'Non trouvé'}\n` +
+          `Téléphone: ${extractedData.phone || 'Non trouvé'}\n` +
+          `Adresse: ${extractedData.address || 'Non trouvée'}\n\n` +
+          `Voulez-vous appliquer ces données?`;
+        
+        if (window.confirm(confirmMessage)) {
+          // Only update empty fields to avoid overwriting user data
+          const updates: any = {};
+          if (!formData.name && extractedData.name) updates.name = extractedData.name;
+          if (!formData.description && extractedData.description) updates.description = extractedData.description;
+          if (!formData.email && extractedData.email) updates.email = extractedData.email;
+          if (!formData.phone && extractedData.phone) updates.phone = extractedData.phone;
+          if (!formData.address_street && extractedData.address) updates.address_street = extractedData.address;
+          if (!formData.brands_sold && extractedData.brands?.length > 0) {
+            updates.brands_sold = extractedData.brands.join(', ');
+          }
+          
+          setFormData((prev: any) => ({ ...prev, ...updates }));
+          
+          toast.success("Auto-complétion réussie - Les informations ont été extraites et appliquées aux champs vides.");
+        }
+      } else {
+        toast.error(result.error || "Impossible d'extraire les informations du site web.");
+      }
+    } catch (error) {
+      console.error('Auto-completion error:', error);
+      toast.error("Une erreur est survenue lors de l'extraction des données.");
+    } finally {
+      setIsAutoCompleting(false);
     }
   };
 
@@ -258,11 +306,30 @@ export const SuppliersDirectoryManagement = () => {
           </div>
           <div className="space-y-2">
             <Label htmlFor="website">Site web</Label>
-            <Input
-              id="website"
-              value={formData.website}
-              onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="website"
+                value={formData.website}
+                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                placeholder="https://exemple.com"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => formData.website && handleAutoComplete(formData.website, setFormData, formData)}
+                disabled={!formData.website || isAutoCompleting}
+                className="shrink-0"
+              >
+                {isAutoCompleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Wand2 className="h-4 w-4" />
+                )}
+                {isAutoCompleting ? 'Analyse...' : 'Auto-compléter'}
+              </Button>
+            </div>
           </div>
         </div>
 

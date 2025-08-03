@@ -26,4 +26,13 @@ export class FirecrawlClient {
       ...scrapeOptions
     });
   }
+
+  static async crawlSupplierWebsite(apiKey: string, url: string): Promise<{ success: boolean; data?: any; error?: string }> {
+    const scrapeOptions = FirecrawlUrlBuilder.buildScrapeOptions();
+    
+    return FirecrawlApiService.makeRequest('/scrape', apiKey, {
+      url: url,
+      ...scrapeOptions
+    });
+  }
 }
