@@ -276,12 +276,23 @@ export const SuppliersDirectoryManagement = () => {
             `Téléphone: ${extractedData.phone || 'Non trouvé'}\n` +
             `Adresse: ${extractedData.address_street || 'Non trouvée'}\n` +
             `Ville: ${extractedData.address_city || 'Non trouvée'}\n` +
+            `Logo: ${extractedData.logo_url || 'Non trouvé'}\n` +
             `Marques: ${Array.isArray(extractedData.brands_sold) ? extractedData.brands_sold.join(', ') : (extractedData.brands_sold || 'Non trouvées')}\n` +
             `Types produits: ${Array.isArray(extractedData.product_types) ? extractedData.product_types.join(', ') : (extractedData.product_types || 'Non trouvés')}\n` +
             `Spécialités: ${Array.isArray(extractedData.specialties) ? extractedData.specialties.join(', ') : (extractedData.specialties || 'Non trouvées')}\n` +
+            `Conditions paiement: ${extractedData.payment_terms || 'Non trouvées'}\n` +
+            `Commande minimum: ${extractedData.minimum_order || 'Non trouvée'}\n` +
             `\nVoulez-vous appliquer ces données aux champs du formulaire ?`;
           
           if (window.confirm(confirmMessage)) {
+            // Helper function to convert arrays or strings to comma-separated strings
+            const formatFieldValue = (value: any): string => {
+              if (!value) return '';
+              if (Array.isArray(value)) return value.join(', ');
+              if (typeof value === 'string') return value;
+              return String(value);
+            };
+
             // Update fields with comprehensive mapping
             setFormData(prev => ({
               ...prev,
@@ -293,10 +304,11 @@ export const SuppliersDirectoryManagement = () => {
               address_city: extractedData.address_city || prev.address_city,
               address_postal: extractedData.address_postal || prev.address_postal,
               address_country: extractedData.address_country || prev.address_country,
-              brands_sold: (Array.isArray(extractedData.brands_sold) ? extractedData.brands_sold.join(', ') : extractedData.brands_sold) || prev.brands_sold,
-              product_types: (Array.isArray(extractedData.product_types) ? extractedData.product_types.join(', ') : extractedData.product_types) || prev.product_types,
-              specialties: (Array.isArray(extractedData.specialties) ? extractedData.specialties.join(', ') : extractedData.specialties) || prev.specialties,
-              certifications: (Array.isArray(extractedData.certifications) ? extractedData.certifications.join(', ') : extractedData.certifications) || prev.certifications,
+              logo_url: extractedData.logo_url || prev.logo_url,
+              brands_sold: formatFieldValue(extractedData.brands_sold) || prev.brands_sold,
+              product_types: formatFieldValue(extractedData.product_types) || prev.product_types,
+              specialties: formatFieldValue(extractedData.specialties) || prev.specialties,
+              certifications: formatFieldValue(extractedData.certifications) || prev.certifications,
               payment_terms: extractedData.payment_terms || prev.payment_terms,
               minimum_order: extractedData.minimum_order || prev.minimum_order,
               delivery_zones: extractedData.delivery_zones || prev.delivery_zones,

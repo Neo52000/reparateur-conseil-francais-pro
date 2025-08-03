@@ -16,6 +16,7 @@ interface SupplierData {
   address_postal?: string;
   address_country?: string;
   website?: string;
+  logo_url?: string;
   brands_sold?: string[];
   product_types?: string[];
   specialties?: string[];
@@ -46,72 +47,79 @@ serve(async (req) => {
       ? `Analysez ce contenu de site web d'un fournisseur/grossiste en électronique/téléphonie et extrayez toutes les informations commerciales disponibles. Recherchez spécifiquement :
 
 INFORMATIONS GÉNÉRALES :
-- Nom de l'entreprise
-- Description détaillée de l'activité
+- Nom exact de l'entreprise
+- Description détaillée de l'activité commerciale
 - Email de contact principal
-- Numéro de téléphone
-- Adresse complète (rue, ville, code postal, pays séparés)
-- Site web
+- Numéro de téléphone (format français de préférence)
+- Adresse complète (rue, ville, code postal, pays séparés avec précision)
+- Site web principal
+- Logo de l'entreprise (URL de l'image du logo)
 
-PRODUITS ET SERVICES :
-- Marques vendues/distribuées (Apple, Samsung, Huawei, etc.)
-- Types de produits (smartphones, tablettes, accessoires, pièces détachées, etc.)
-- Spécialités techniques (réparation express, microsoudure, formation, etc.)
-- Certifications professionnelles
+PRODUITS ET SERVICES DÉTAILLÉS :
+- Marques vendues/distribuées précises (Apple, Samsung, Huawei, Xiaomi, OnePlus, etc.)
+- Types de produits exacts (smartphones, tablettes, accessoires, écrans, batteries, coques, chargeurs, pièces détachées, etc.)
+- Spécialités techniques détaillées (réparation express, microsoudure, formation, diagnostic, récupération de données, etc.)
+- Certifications professionnelles spécifiques
 
-INFORMATIONS COMMERCIALES :
-- Conditions de paiement (comptant, 30 jours, etc.)
-- Commande minimum
-- Zones de livraison
-- Délais de livraison
-- Coûts de livraison
+INFORMATIONS COMMERCIALES COMPLÈTES :
+- Conditions de paiement exactes (comptant, 30 jours, 60 jours, carte bancaire, virement, etc.)
+- Montant minimum de commande
+- Zones de livraison précises (départements, régions, pays)
+- Délais de livraison exacts
+- Coûts de livraison détaillés
 
-Contenu du site :
+Contenu du site analysé :
 ${content.substring(0, 8000)}
 
-Retournez UNIQUEMENT un objet JSON valide avec ces champs (utilisez null pour les données manquantes) :
+Retournez UNIQUEMENT un objet JSON valide avec ces champs (utilisez null pour les données manquantes, soyez précis et exhaustif) :
 {
-  "name": "nom de l'entreprise",
-  "description": "description détaillée de l'activité",
-  "email": "email de contact",
-  "phone": "numéro de téléphone",
-  "address_street": "adresse rue",
-  "address_city": "ville",
-  "address_postal": "code postal",
+  "name": "nom exact de l'entreprise",
+  "description": "description complète et détaillée de l'activité",
+  "email": "email de contact principal",
+  "phone": "numéro de téléphone formaté",
+  "address_street": "adresse exacte avec numéro et rue",
+  "address_city": "ville précise",
+  "address_postal": "code postal exact",
   "address_country": "pays",
   "website": "url du site web",
-  "brands_sold": ["marque1", "marque2"],
+  "logo_url": "url du logo de l'entreprise",
+  "brands_sold": ["marque1", "marque2", "marque3"],
   "product_types": ["smartphones", "tablettes", "accessoires"],
-  "specialties": ["réparation express", "microsoudure"],
+  "specialties": ["réparation express", "microsoudure", "formation"],
   "certifications": ["certification1", "certification2"],
-  "payment_terms": "conditions de paiement",
-  "minimum_order": "commande minimum",
-  "delivery_zones": "zones de livraison",
-  "delivery_time": "délais de livraison",
-  "delivery_cost": "coûts de livraison"
+  "payment_terms": "conditions de paiement détaillées",
+  "minimum_order": "montant minimum de commande",
+  "delivery_zones": "zones de livraison précises",
+  "delivery_time": "délais de livraison exacts",
+  "delivery_cost": "coûts de livraison détaillés"
 }`
-      : `Recherchez des informations sur l'entreprise fournisseur/grossiste en électronique/téléphonie à l'adresse ${url}. Extrayez toutes les informations commerciales disponibles :
+      : `Recherchez des informations complètes sur l'entreprise fournisseur/grossiste en électronique/téléphonie à l'adresse ${url}. 
 
-INFORMATIONS À RECHERCHER :
-- Nom de l'entreprise et description de l'activité
-- Coordonnées (email, téléphone, adresse complète)
-- Marques vendues/distribuées (Apple, Samsung, Huawei, etc.)
-- Types de produits (smartphones, tablettes, accessoires, pièces détachées)
-- Spécialités techniques (réparation, formation, services)
-- Certifications professionnelles
-- Conditions commerciales (paiement, commande minimum, livraison)
+CONTEXTE : Il s'agit d'un annuaire professionnel de fournisseurs/grossistes spécialisés dans l'électronique et la téléphonie mobile. Nous avons besoin d'informations commerciales précises pour les réparateurs professionnels.
 
-Retournez UNIQUEMENT un objet JSON valide avec ces champs (utilisez null pour les données manquantes) :
+INFORMATIONS ESSENTIELLES À RECHERCHER :
+- Nom officiel de l'entreprise et raison sociale
+- Description complète de l'activité commerciale et des services
+- Coordonnées complètes (email professionnel, téléphone, adresse détaillée)
+- Logo officiel de l'entreprise (URL de l'image)
+- Marques vendues/distribuées (Apple, Samsung, Huawei, Xiaomi, etc.)
+- Types de produits précis (smartphones, tablettes, accessoires, pièces détachées, etc.)
+- Spécialités techniques (réparation, formation, diagnostic, etc.)
+- Certifications et labels qualité
+- Conditions commerciales (paiement, commandes, livraison)
+
+Retournez UNIQUEMENT un objet JSON valide avec ces champs (soyez précis et exhaustif, utilisez null pour les données manquantes) :
 {
-  "name": "nom de l'entreprise",
-  "description": "description détaillée de l'activité",
-  "email": "email de contact",
-  "phone": "numéro de téléphone",
-  "address_street": "adresse rue",
+  "name": "nom officiel de l'entreprise",
+  "description": "description complète de l'activité",
+  "email": "email professionnel de contact",
+  "phone": "numéro de téléphone formaté",
+  "address_street": "adresse complète avec numéro et rue",
   "address_city": "ville",
   "address_postal": "code postal",
   "address_country": "pays",
   "website": "url du site web",
+  "logo_url": "url du logo de l'entreprise",
   "brands_sold": ["marque1", "marque2"],
   "product_types": ["smartphones", "tablettes", "accessoires"],
   "specialties": ["réparation express", "microsoudure"],
@@ -184,6 +192,7 @@ Retournez UNIQUEMENT un objet JSON valide avec ces champs (utilisez null pour le
       address_postal: supplierData.address_postal?.trim() || null,
       address_country: supplierData.address_country?.trim() || null,
       website: supplierData.website?.trim() || url,
+      logo_url: supplierData.logo_url?.trim() || null,
       brands_sold: Array.isArray(supplierData.brands_sold) ? supplierData.brands_sold.filter(b => b?.trim()) : [],
       product_types: Array.isArray(supplierData.product_types) ? supplierData.product_types.filter(p => p?.trim()) : [],
       specialties: Array.isArray(supplierData.specialties) ? supplierData.specialties.filter(s => s?.trim()) : [],
