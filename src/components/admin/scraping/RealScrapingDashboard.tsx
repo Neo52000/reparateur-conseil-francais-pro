@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { CashAndRepairScraper } from '../CashAndRepairScraper';
 import { Play, Square, RefreshCw, MapPin, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 interface ScrapingLog {
@@ -243,9 +242,6 @@ const RealScrapingDashboard: React.FC = () => {
           )}
         </CardContent>
       </Card>
-
-      {/* Cash & Repair Scraper */}
-      <CashAndRepairScraper />
 
       <Card>
         <CardHeader>
