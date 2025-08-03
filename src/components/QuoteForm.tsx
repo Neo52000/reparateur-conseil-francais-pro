@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FileText, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useCatalog } from '@/hooks/useCatalog';
 
 interface QuoteFormProps {
   repairerId?: string;
@@ -18,6 +19,7 @@ interface QuoteFormProps {
 }
 
 const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
+  const { brands: catalogBrands, deviceTypes, repairTypes, loading: catalogLoading } = useCatalog();
   const [formData, setFormData] = useState({
     deviceType: '',
     brand: '',
@@ -32,59 +34,10 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const deviceTypes = [
-    'Smartphone',
-    'Tablette',
-    'Ordinateur portable',
-    'Ordinateur de bureau',
-    'Console de jeux',
-    'Montre connectée',
-    'Écouteurs/Casque',
-    'Autre'
-  ];
-
-  const brands = [
-    'Apple',
-    'Samsung',
-    'Huawei',
-    'Xiaomi',
-    'OnePlus',
-    'Google',
-    'Sony',
-    'LG',
-    'Oppo',
-    'Nokia',
-    'Motorola',
-    'Honor',
-    'Realme',
-    'Asus',
-    'HP',
-    'Dell',
-    'Lenovo',
-    'Acer',
-    'MSI',
-    'Nintendo',
-    'PlayStation',
-    'Xbox',
-    'Autre'
-  ];
-
-  const issueTypes = [
-    'Écran cassé/fissuré',
-    'Écran noir/ne s\'allume plus',
-    'Batterie défaillante/ne charge plus',
-    'Problème de charge/connecteur',
-    'Dégât des eaux/liquide renversé',
-    'Appareil photo défaillant',
-    'Haut-parleur/micro défaillant',
-    'Boutons cassés/non fonctionnels',
-    'Problème logiciel/bug',
-    'Problème de réseau/WiFi/Bluetooth',
-    'Surchauffe',
-    'Virus/malware',
-    'Récupération de données',
-    'Autre problème'
-  ];
+  // Utiliser les vraies données du catalogue
+  const deviceTypeNames = deviceTypes.map(type => type.name).sort();
+  const brandNames = catalogBrands.map(brand => brand.name).sort();
+  const issueTypeNames = repairTypes.map(repair => repair.name).sort();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,7 +147,7 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
               <SelectValue placeholder="Sélectionnez le type d'appareil" />
             </SelectTrigger>
             <SelectContent>
-              {deviceTypes.map((type) => (
+              {deviceTypeNames.map((type) => (
                 <SelectItem key={type} value={type}>{type}</SelectItem>
               ))}
             </SelectContent>
@@ -210,9 +163,13 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
                 <SelectValue placeholder="Marque" />
               </SelectTrigger>
               <SelectContent>
-                {brands.map((brand) => (
-                  <SelectItem key={brand} value={brand}>{brand}</SelectItem>
-                ))}
+                {catalogLoading ? (
+                  <SelectItem value="" disabled>Chargement...</SelectItem>
+                ) : (
+                  brandNames.map((brand) => (
+                    <SelectItem key={brand} value={brand}>{brand}</SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -238,9 +195,13 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
               <SelectValue placeholder="Quel est le problème ?" />
             </SelectTrigger>
             <SelectContent>
-              {issueTypes.map((issue) => (
-                <SelectItem key={issue} value={issue}>{issue}</SelectItem>
-              ))}
+              {catalogLoading ? (
+                <SelectItem value="" disabled>Chargement...</SelectItem>
+              ) : (
+                issueTypeNames.map((issue) => (
+                  <SelectItem key={issue} value={issue}>{issue}</SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
         </div>
