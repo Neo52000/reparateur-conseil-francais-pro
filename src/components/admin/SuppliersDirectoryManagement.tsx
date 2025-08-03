@@ -123,17 +123,23 @@ export const SuppliersDirectoryManagement = () => {
   const handleAutoComplete = async (url: string, setFormData: Function, formData: any) => {
     setIsAutoCompleting(true);
     try {
+      console.log('Starting auto-completion for URL:', url);
+      
       // Use Supabase edge function instead of direct Firecrawl API
       const { data, error } = await supabase.functions.invoke('scrape-supplier-website', {
         body: { url }
       });
       
+      console.log('Edge function response:', { data, error });
+      
       if (error) {
-        throw new Error(error.message);
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Erreur de communication avec le service');
       }
       
-      if (data.success && data.data) {
+      if (data && data.success && data.data) {
         const extractedData = data.data;
+        console.log('Extracted data:', extractedData);
         
         // Show preview and ask for confirmation
         const confirmMessage = `Données extraites du site:\n\n` +
@@ -161,11 +167,13 @@ export const SuppliersDirectoryManagement = () => {
           toast.success("Auto-complétion réussie - Les informations ont été extraites et appliquées aux champs vides.");
         }
       } else {
-        toast.error(data.error || "Impossible d'extraire les informations du site web.");
+        const errorMsg = (data && data.error) || "Impossible d'extraire les informations du site web.";
+        console.error('Extraction failed:', errorMsg);
+        toast.error(errorMsg);
       }
     } catch (error) {
       console.error('Auto-completion error:', error);
-      toast.error("Une erreur est survenue lors de l'extraction des données.");
+      toast.error("Une erreur est survenue lors de l'extraction des données. Vérifiez que l'URL est valide et accessible.");
     } finally {
       setIsAutoCompleting(false);
     }
