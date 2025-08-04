@@ -29,11 +29,8 @@ interface SearchCriteria {
 const Index = () => {
   const navigate = useNavigate();
   
-  console.log('🏠 Index page rendering - START');
-  console.log('🏠 Window location:', window.location.href);
-  
+  console.log('🏠 Index page rendering');
   const { user } = useAuth();
-  console.log('🏠 Auth user:', user);
   const { pendingAction, clearPendingAction } = usePendingAction();
     const {
       isQuoteModalOpen,

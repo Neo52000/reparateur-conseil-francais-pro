@@ -1,11 +1,5 @@
 project_id = "nbugpbakfkyvvjzgfjmw"
 
-[functions.scrape-supplier-website]
-verify_jwt = false
-
-[functions.extract-supplier-info-ai]
-verify_jwt = false
-
 [functions.scrape-repairers]
 verify_jwt = false
 
