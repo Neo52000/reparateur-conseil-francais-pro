@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
 import { AuthProvider } from "./hooks/useAuth";
+import { SimplifiedAuthProvider } from "./hooks/useSimplifiedAuth";
 import { PlanPreviewProvider } from "./hooks/usePlanPreview";
 import Index from "./pages/Index";
 import AdminPage from "./pages/AdminPage";
@@ -29,52 +30,64 @@ import { SuppliersDirectoryPage } from "./pages/SuppliersDirectoryPage";
 import QuotesAndAppointments from "./pages/QuotesAndAppointments";
 import { useVisitorTracker } from "./hooks/useVisitorTracker";
 import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
+import DebugErrorBoundary from "./components/DebugErrorBoundary";
 // Configuration production
 import { initializeProductionMode, performProductionHealthCheck } from './config/productionSetup';
 
 const queryClient = new QueryClient();
 
 const App = () => {
+  console.log('🔍 App - Composant principal monté');
+  
   useEffect(() => {
-    // Initialiser le mode production strict
-    const prodConfig = initializeProductionMode();
-    console.log('🚀 Application démarrée en mode production:', prodConfig);
-    
-    // Vérification de santé
-    const healthCheck = performProductionHealthCheck();
-    if (!healthCheck.healthy) {
-      console.warn('⚠️ Problèmes détectés lors des vérifications de production');
+    console.log('🔍 App - useEffect démarré');
+    try {
+      // TEMPORAIRE: Simplifier l'initialisation pour débugger
+      console.log('🚀 Application démarrée en mode débogage');
+      
+      // Désactiver temporairement les vérifications de santé
+      // const prodConfig = initializeProductionMode();
+      // const healthCheck = performProductionHealthCheck();
+      
+      console.log('✅ Initialisation simplifiée réussie');
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'initialisation:', error);
     }
   }, []);
 
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
+    <DebugErrorBoundary>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
         <GlobalStoreProvider>
-          <AuthProvider>
+          <SimplifiedAuthProvider>
             <PlanPreviewProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                <AppWithTracking />
-                </BrowserRouter>
-              </TooltipProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                  <AppWithTracking />
+                  </BrowserRouter>
+                </TooltipProvider>
             </PlanPreviewProvider>
-          </AuthProvider>
+          </SimplifiedAuthProvider>
         </GlobalStoreProvider>
-      </QueryClientProvider>
-    </HelmetProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
+    </DebugErrorBoundary>
   );
 };
 
 const AppWithTracking = () => {
-  // Hook de tracking des visiteurs
-  useVisitorTracker();
+  console.log('🔍 AppWithTracking - Composant monté');
+  
+  // TEMPORAIRE: Désactiver le tracking pour débugger
+  // useVisitorTracker();
   
   return (
     <>
-      <GlobalVisitorTracker />
+      {/* TEMPORAIRE: Désactiver GlobalVisitorTracker pour débugger */}
+      {/* <GlobalVisitorTracker /> */}
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/blog" element={<BlogPage />} />
