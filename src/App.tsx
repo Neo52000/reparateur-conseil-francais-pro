@@ -6,7 +6,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 // Lazy loading des composants principaux
 const Navigation = lazy(() => import("@/components/Navigation"));
-const SafeRepairersCarousel = lazy(() => import("@/components/safe/SafeRepairersCarousel"));
+const RepairersCarousel = lazy(() => import("@/components/RepairersCarousel"));
 const DebugPanel = lazy(() => import("@/components/debug/DebugPanel"));
 
 // Lazy loading des pages principales
@@ -79,9 +79,12 @@ const StabilizedIndex = () => {
             </div>
           </div>
         }>
-          <Suspense fallback={<LoadingFallback text="Chargement des réparateurs..." />}>
-            <SafeRepairersCarousel />
-          </Suspense>
+        <Suspense fallback={<LoadingFallback text="Chargement des réparateurs..." />}>
+          <RepairersCarousel 
+            onViewProfile={() => {}}
+            onCall={() => {}}
+          />
+        </Suspense>
         </ErrorBoundary>
 
         <ErrorBoundary fallback={
