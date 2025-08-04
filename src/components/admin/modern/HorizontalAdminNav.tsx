@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useSearchParams } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -21,14 +21,6 @@ import {
   CreditCard,
   Store
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 interface NavItem {
   id: string;
@@ -41,11 +33,10 @@ interface NavItem {
 
 interface HorizontalAdminNavProps {
   className?: string;
+  activeTab?: string;
 }
 
-const HorizontalAdminNav: React.FC<HorizontalAdminNavProps> = ({ className }) => {
-  const [searchParams] = useSearchParams();
-  const activeTab = searchParams.get('tab') || 'dashboard';
+const HorizontalAdminNav: React.FC<HorizontalAdminNavProps> = ({ className, activeTab = 'dashboard' }) => {
 
   // Navigation items principales (toujours visibles)
   const mainNavItems: NavItem[] = [
@@ -228,59 +219,7 @@ const HorizontalAdminNav: React.FC<HorizontalAdminNavProps> = ({ className }) =>
     </NavLink>
   );
 
-  const DropdownNavMenu: React.FC<{ 
-    label: string; 
-    items: NavItem[]; 
-    icon: React.ReactNode;
-    hasActiveItem: boolean;
-  }> = ({ label, items, icon, hasActiveItem }) => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant={hasActiveItem ? "default" : "ghost"}
-          size="sm"
-          className={`
-            gap-2 h-9 px-3
-            ${hasActiveItem ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-muted text-muted-foreground hover:text-foreground'}
-            transition-all duration-200
-          `}
-        >
-          {icon}
-          <span className="font-medium">{label}</span>
-          <ChevronDown className="w-3 h-3" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-64">
-        <DropdownMenuLabel>{label}</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {items.map((item) => (
-          <DropdownMenuItem key={item.id} asChild>
-            <NavLink 
-              to={`/admin?tab=${item.id}`}
-              className={`
-                flex items-center gap-3 px-3 py-2 w-full cursor-pointer
-                ${activeTab === item.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'}
-              `}
-            >
-              {item.icon}
-              <span className="flex-1">{item.label}</span>
-              {item.badge && (
-                <Badge variant="secondary" className="h-5 px-1.5 text-xs">
-                  {item.badge}
-                </Badge>
-              )}
-              {item.isNew && (
-                <Badge className="h-5 px-1.5 text-xs bg-admin-green text-white">
-                  NEW
-                </Badge>
-              )}
-            </NavLink>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-
+  // Simplified navigation without dropdowns for now
   return (
     <nav className={`bg-card border-b border-border/60 px-6 py-3 ${className}`}>
       <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
@@ -292,30 +231,6 @@ const HorizontalAdminNav: React.FC<HorizontalAdminNavProps> = ({ className }) =>
             isActive={activeTab === item.id} 
           />
         ))}
-        
-        <div className="h-6 w-px bg-border mx-2" />
-        
-        {/* Menus déroulants */}
-        <DropdownNavMenu 
-          label="Outils"
-          icon={<Settings className="w-4 h-4" />}
-          items={toolsItems}
-          hasActiveItem={toolsItems.some(item => item.id === activeTab)}
-        />
-        
-        <DropdownNavMenu 
-          label="Interfaces"
-          icon={<TestTube className="w-4 h-4" />}
-          items={interfacesItems}
-          hasActiveItem={interfacesItems.some(item => item.id === activeTab)}
-        />
-        
-        <DropdownNavMenu 
-          label="Config"
-          icon={<Settings className="w-4 h-4" />}
-          items={configItems}
-          hasActiveItem={configItems.some(item => item.id === activeTab)}
-        />
       </div>
     </nav>
   );

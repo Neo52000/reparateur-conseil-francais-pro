@@ -392,7 +392,7 @@ const AdminPage = () => {
         onNewAction={handleNewAction}
         onVisitAction={handleVisitAction}
       />
-      <HorizontalAdminNav />
+      <HorizontalAdminNav activeTab={activeTab} />
       <main className="p-6">
         {renderContent()}
       </main>
