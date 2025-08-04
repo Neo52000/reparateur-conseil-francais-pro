@@ -97,7 +97,6 @@ const EnhancedAdminSidebar: React.FC<EnhancedAdminSidebarProps> = ({ onCollapse 
         { path: '/admin?tab=scraping', icon: Database, label: 'Scraping' },
         { path: '/admin?tab=automation', icon: Rocket, label: 'Automatisation' },
         { path: '/admin?tab=chatbot', icon: Bot, label: 'Chatbot' },
-        { path: '/admin?tab=suppliers', icon: Users, label: 'Annuaire Fournisseurs' },
         { path: '/admin?tab=monitoring', icon: Shield, label: 'Monitoring' },
       ]
     },

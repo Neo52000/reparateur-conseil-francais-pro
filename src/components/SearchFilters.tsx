@@ -9,7 +9,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { X, Filter } from 'lucide-react';
-import { useCatalog } from '@/hooks/useCatalog';
 
 interface SearchFiltersProps {
   onFiltersChange?: (filters: any) => void;
@@ -20,7 +19,6 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   onFiltersChange,
   initialFilters = {}
 }) => {
-  const { brands: catalogBrands, loading } = useCatalog();
   const [priceRange, setPriceRange] = useState(initialFilters.priceRange || [0, 300]);
   const [selectedServices, setSelectedServices] = useState<string[]>(initialFilters.services || []);
   const [selectedBrands, setSelectedBrands] = useState<string[]>(initialFilters.brands || []);
@@ -52,8 +50,16 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     'Problème logiciel'
   ];
 
-  // Utiliser les vraies marques de la base de données
-  const brands = catalogBrands.map(brand => brand.name).sort();
+  const brands = [
+    'Apple',
+    'Samsung',
+    'Huawei',
+    'Xiaomi',
+    'OnePlus',
+    'Google',
+    'Sony',
+    'Oppo'
+  ];
 
   const handleServiceToggle = (service: string) => {
     setSelectedServices(prev => 
@@ -135,47 +141,18 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
         {/* Marques */}
         <div>
           <Label className="text-sm font-medium mb-3 block">Marques spécialisées</Label>
-          {loading ? (
-            <p className="text-sm text-gray-500">Chargement des marques...</p>
-          ) : (
-            <div className="space-y-2">
-              <Select 
-                value="" 
-                onValueChange={(value) => {
-                  if (value && !selectedBrands.includes(value)) {
-                    handleBrandToggle(value);
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner une marque..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {brands
-                    .filter(brand => !selectedBrands.includes(brand))
-                    .map((brand) => (
-                      <SelectItem key={brand} value={brand}>
-                        {brand}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-              
-              {selectedBrands.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {selectedBrands.map((brand) => (
-                    <Badge key={brand} variant="secondary" className="text-xs">
-                      {brand}
-                      <X 
-                        className="h-3 w-3 ml-1 cursor-pointer" 
-                        onClick={() => handleBrandToggle(brand)}
-                      />
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          <div className="grid grid-cols-2 gap-2">
+            {brands.map((brand) => (
+              <div key={brand} className="flex items-center space-x-2">
+                <Checkbox
+                  id={brand}
+                  checked={selectedBrands.includes(brand)}
+                  onCheckedChange={() => handleBrandToggle(brand)}
+                />
+                <Label htmlFor={brand} className="text-sm">{brand}</Label>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Note minimale */}

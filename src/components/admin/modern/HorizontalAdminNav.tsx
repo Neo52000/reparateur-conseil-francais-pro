@@ -97,11 +97,6 @@ const HorizontalAdminNav: React.FC<HorizontalAdminNavProps> = ({ className }) =>
       icon: <Tag className="w-4 h-4" />,
     },
     {
-      id: 'suppliers',
-      label: 'Annuaire Fournisseurs',
-      icon: <Store className="w-4 h-4" />,
-    },
-    {
       id: 'scraping',
       label: 'Scraping',
       icon: <Search className="w-4 h-4" />,

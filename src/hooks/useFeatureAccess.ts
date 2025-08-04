@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { usePlanPreview } from '@/hooks/usePlanPreview';
 
 export interface FeatureAccess {
   hasAccess: boolean;
@@ -11,28 +10,33 @@ export interface FeatureAccess {
 
 export const useFeatureAccess = () => {
   const { user } = useAuth();
-  const { activeTier } = usePlanPreview(); // Utilise le tier actif (preview ou réel)
+  const [userPlan, setUserPlan] = useState<string>('Gratuit');
   const [planFeatures, setPlanFeatures] = useState<Record<string, { enabled: boolean; limit?: number }>>({});
   const [loading, setLoading] = useState(true);
 
-  // Charger les fonctionnalités disponibles pour le tier actif
+  // Charger le plan de l'utilisateur et les fonctionnalités disponibles
   useEffect(() => {
-    const loadPlanFeatures = async () => {
-      if (!user?.id || !activeTier) {
+    const loadUserPlanAndFeatures = async () => {
+      if (!user?.id) {
         setLoading(false);
         return;
       }
 
       try {
-        // Mapper les tiers aux noms de plans dans la base
-        const tierToPlanName = {
-          'free': 'Gratuit',
-          'basic': 'Visibilité',
-          'premium': 'Pro',
-          'enterprise': 'Premium'
-        };
+        // Récupérer l'abonnement de l'utilisateur
+        const { data: subscription, error: subError } = await supabase
+          .from('repairer_subscriptions')
+          .select('subscription_tier')
+          .eq('user_id', user.id)
+          .single();
 
-        const planName = tierToPlanName[activeTier as keyof typeof tierToPlanName] || 'Gratuit';
+        if (subError && subError.code !== 'PGRST116') { // PGRST116 = no rows returned
+          console.error('Error loading user subscription:', subError);
+        }
+
+        const currentPlan = subscription?.subscription_tier || 'Gratuit';
+        const planName = currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1);
+        setUserPlan(planName);
 
         // Récupérer les fonctionnalités disponibles pour ce plan
         const { data: features, error: featuresError } = await supabase
@@ -54,14 +58,14 @@ export const useFeatureAccess = () => {
           setPlanFeatures(featuresMap);
         }
       } catch (error) {
-        console.error('Error loading plan features:', error);
+        console.error('Error loading user plan and features:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    loadPlanFeatures();
-  }, [user?.id, activeTier]);
+    loadUserPlanAndFeatures();
+  }, [user?.id]);
 
   // Vérifier l'accès à une fonctionnalité
   const checkFeatureAccess = (featureKey: string): FeatureAccess => {
@@ -74,14 +78,14 @@ export const useFeatureAccess = () => {
     if (!feature) {
       return { 
         hasAccess: false, 
-        reason: `Fonctionnalité non disponible dans le plan ${activeTier}` 
+        reason: `Fonctionnalité non disponible dans le plan ${userPlan}` 
       };
     }
 
     if (!feature.enabled) {
       return { 
         hasAccess: false, 
-        reason: `Fonctionnalité désactivée dans le plan ${activeTier}` 
+        reason: `Fonctionnalité désactivée dans le plan ${userPlan}` 
       };
     }
 
@@ -129,16 +133,16 @@ export const useFeatureAccess = () => {
   // Obtenir des suggestions de mise à niveau
   const getUpgradeSuggestions = (featureKey: string) => {
     const suggestions = {
-      'free': 'basic',
-      'basic': 'premium',
-      'premium': 'enterprise'
+      'Gratuit': 'Basique',
+      'Basique': 'Premium',
+      'Premium': 'Enterprise'
     };
 
-    return suggestions[activeTier as keyof typeof suggestions] || null;
+    return suggestions[userPlan as keyof typeof suggestions] || null;
   };
 
   return {
-    activeTier,
+    userPlan,
     planFeatures,
     loading,
     checkFeatureAccess,

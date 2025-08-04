@@ -109,19 +109,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export const useAuth = () => {
-  console.log('🔍 useAuth - Hook appelé');
-  
-  // Vérification de sécurité pour éviter l'erreur null
-  if (!useContext) {
-    console.error('🚨 useContext est null - problème d\'import React');
-    throw new Error('useContext is not available - React import issue');
-  }
-  
-  if (!AuthContext) {
-    console.error('🚨 AuthContext est undefined');
-    throw new Error('AuthContext is not defined');
-  }
-  
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');

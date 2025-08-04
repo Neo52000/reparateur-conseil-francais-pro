@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useSimplifiedAuth } from '@/hooks/useSimplifiedAuth';
+import { useAuth } from '@/hooks/useAuth';
 import AdminAuthFormContent from '@/components/admin/AdminAuthFormContent';
 import { Button } from '@/components/ui/button';
 import { logger } from '@/utils/logger';
@@ -18,15 +18,8 @@ const AdminAuthForm = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  // TEMPORAIRE: Désactiver useToast qui cause l'erreur useState null
-  // const { toast } = useToast();
-  const toast = (options: any) => {
-    console.log('🔍 Toast désactivé temporairement:', options);
-  };
-  const { signIn: signInAdmin, user, profile, loading: authLoading } = useSimplifiedAuth();
-  // Simpler la vérification admin temporairement
-  const isAdmin = profile?.role === 'admin';
-  const refreshProfile = () => Promise.resolve();
+  const { toast } = useToast();
+  const { signInAdmin, user, isAdmin, profile, loading: authLoading, refreshProfile } = useAuth();
 
   /**
    * Gestion de la soumission du formulaire de connexion

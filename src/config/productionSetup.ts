@@ -62,17 +62,14 @@ export const FINAL_PRODUCTION_CONFIG = {
 export const initializeProductionMode = () => {
   console.log('🚀 Initialisation du mode production STRICT...');
   
-  // 2. Configuration du logging minimal - temporairement activé pour débugger
-  // TEMPORAIRE: Gardons les logs pour identifier le problème de page blanche
-  console.log('🔧 Logs temporairement activés pour débugger la page blanche');
-  
-  // if (!FINAL_PRODUCTION_CONFIG.features.enableConsoleReports) {
-  //   // Désactiver les console.log en production sauf erreurs
-  //   console.log = () => {};
-  //   console.info = () => {};
-  //   console.warn = console.warn; // Garder les warnings
-  //   console.error = console.error; // Garder les erreurs
-  // }
+  // 2. Configuration du logging minimal
+  if (!FINAL_PRODUCTION_CONFIG.features.enableConsoleReports) {
+    // Désactiver les console.log en production sauf erreurs
+    console.log = () => {};
+    console.info = () => {};
+    console.warn = console.warn; // Garder les warnings
+    console.error = console.error; // Garder les erreurs
+  }
   
   // 3. Service Worker pour le cache
   if (FINAL_PRODUCTION_CONFIG.performance.enableServiceWorker) {

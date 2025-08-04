@@ -45,11 +45,6 @@ export const useVisitorAnalytics = () => {
     device_type?: string;
     browser?: string;
   }) => {
-    // TEMPORAIRE: Désactiver complètement le tracking pour corriger l'erreur 404
-    console.log('🔍 trackVisitor - Désactivé temporairement pour debug');
-    return;
-    
-    /*
     try {
       const { error } = await supabase
         .from('visitor_analytics')
@@ -66,17 +61,9 @@ export const useVisitorAnalytics = () => {
       console.warn('Error tracking visitor (non-critical):', error);
       // Ne pas relancer l'erreur pour éviter de faire planter l'app
     }
-    */
   };
 
   const loadAnalytics = async () => {
-    // TEMPORAIRE: Désactiver loadAnalytics pour corriger l'erreur 404
-    console.log('🔍 loadAnalytics - Désactivé temporairement pour debug');
-    setLoading(false);
-    setError(null);
-    return;
-    
-    /*
     try {
       setLoading(true);
       setError(null);
@@ -199,7 +186,6 @@ export const useVisitorAnalytics = () => {
     } finally {
       setLoading(false);
     }
-    */
   };
 
   useEffect(() => {

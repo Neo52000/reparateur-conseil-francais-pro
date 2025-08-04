@@ -15,7 +15,6 @@ import {
   X,
   Search
 } from 'lucide-react';
-import { useCatalog } from '@/hooks/useCatalog';
 
 interface Filters {
   category: string[];
@@ -37,7 +36,6 @@ const WayfairSidebar: React.FC<WayfairSidebarProps> = ({
   onFiltersChange,
   productCount
 }) => {
-  const { brands: catalogBrands, loading } = useCatalog();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     categories: true,
     price: true,
@@ -59,12 +57,16 @@ const WayfairSidebar: React.FC<WayfairSidebarProps> = ({
     { id: 'outils', name: 'Outils', count: 45 }
   ];
 
-  // Utiliser les vraies marques de la base de données
-  const brands = catalogBrands.map(brand => ({
-    id: brand.id,
-    name: brand.name,
-    count: Math.floor(Math.random() * 150) + 10 // Simulated count for now
-  })).sort((a, b) => a.name.localeCompare(b.name));
+  const brands = [
+    { id: 'apple', name: 'Apple', count: 156 },
+    { id: 'samsung', name: 'Samsung', count: 134 },
+    { id: 'huawei', name: 'Huawei', count: 89 },
+    { id: 'xiaomi', name: 'Xiaomi', count: 76 },
+    { id: 'oneplus', name: 'OnePlus', count: 45 },
+    { id: 'google', name: 'Google', count: 23 },
+    { id: 'oppo', name: 'Oppo', count: 19 },
+    { id: 'vivo', name: 'Vivo', count: 15 }
+  ];
 
   const features = [
     { id: 'garantie-6mois', name: 'Garantie 6 mois', count: 189 },
@@ -298,30 +300,26 @@ const WayfairSidebar: React.FC<WayfairSidebarProps> = ({
                 />
               </div>
               <div className="max-h-48 overflow-y-auto space-y-3">
-                {loading ? (
-                  <p className="text-sm text-muted-foreground">Chargement des marques...</p>
-                ) : (
-                  filteredBrands.map(brand => (
-                    <div key={brand.id} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id={brand.id}
-                          checked={filters.brands.includes(brand.id)}
-                          onCheckedChange={() => toggleArrayFilter('brands', brand.id)}
-                        />
-                        <label
-                          htmlFor={brand.id}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                        >
-                          {brand.name}
-                        </label>
-                      </div>
-                      <Badge variant="outline" className="text-xs">
-                        {brand.count}
-                      </Badge>
+                {filteredBrands.map(brand => (
+                  <div key={brand.id} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id={brand.id}
+                        checked={filters.brands.includes(brand.id)}
+                        onCheckedChange={() => toggleArrayFilter('brands', brand.id)}
+                      />
+                      <label
+                        htmlFor={brand.id}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
+                        {brand.name}
+                      </label>
                     </div>
-                  ))
-                )}
+                    <Badge variant="outline" className="text-xs">
+                      {brand.count}
+                    </Badge>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </CollapsibleContent>

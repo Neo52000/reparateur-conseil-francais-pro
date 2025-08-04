@@ -16,7 +16,7 @@ import AutomatedRelaunchDashboard from '@/components/admin/automation/AutomatedR
 import BlogManagement from '@/components/blog/admin/BlogManagement';
 import ChatbotManagement from '@/components/admin/ChatbotManagement';
 import AdminAuthForm from '@/components/AdminAuthForm';
-import { useSimplifiedAuth } from '@/hooks/useSimplifiedAuth';
+import { useAuth } from '@/hooks/useAuth';
 import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdvertisingDashboard';
 import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement';
 import SubdomainsManagement from '@/components/admin/SubdomainsManagement';
@@ -44,18 +44,14 @@ import { EnhancedDashboardTester } from '@/components/admin/dashboard/EnhancedDa
 import { EnhancedPOSTester } from '@/components/admin/pos/EnhancedPOSTester';
 import { EnhancedEcommerceTester } from '@/components/admin/ecommerce/EnhancedEcommerceTester';
 import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizationPanel';
-import { SuppliersDirectoryManagement } from '@/components/admin/SuppliersDirectoryManagement';
 
 const AdminPage = () => {
-  // TEMPORAIRE: Utiliser useSimplifiedAuth au lieu de useAuth pour éviter l'erreur de contexte
   const {
     user,
     profile,
+    isAdmin,
     loading
-  } = useSimplifiedAuth();
-  
-  // Simpler la vérification admin temporairement
-  const isAdmin = profile?.role === 'admin';
+  } = useAuth();
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'dashboard';
 
@@ -135,8 +131,6 @@ const AdminPage = () => {
         return 'Test Interface POS';
       case 'configuration':
         return 'Configuration';
-      case 'suppliers':
-        return 'Annuaire Fournisseurs';
       default:
         return 'Dashboard';
     }
@@ -203,8 +197,6 @@ const AdminPage = () => {
         return 'Interface de test et configuration pour le système de point de vente';
       case 'configuration':
         return 'Configuration générale de l\'application';
-      case 'suppliers':
-        return 'Gestion de l\'annuaire des fournisseurs et modération des avis';
       case 'static-pages':
         return 'Gestion des pages statiques (mentions légales, CGU, etc.)';
       default:
@@ -324,8 +316,6 @@ const AdminPage = () => {
         return <AdminConfigurationPage />;
       case 'static-pages':
         return <StaticPagesManager />;
-      case 'suppliers':
-        return <SuppliersDirectoryManagement />;
       case 'system-optimization':
         return <SystemOptimizationPanel />;
       default:

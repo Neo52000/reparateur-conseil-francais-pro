@@ -39,20 +39,4 @@ export class FirecrawlService {
 
     return result;
   }
-
-  static async crawlSupplierWebsite(url: string): Promise<{ success: boolean; data?: any; error?: string }> {
-    const apiKey = FirecrawlStorage.getApiKey();
-    if (!apiKey) {
-      return { success: false, error: 'Firecrawl API key not found' };
-    }
-
-    const result = await FirecrawlClient.crawlSupplierWebsite(apiKey, url);
-    
-    if (result.success && result.data) {
-      const parsedData = FirecrawlParser.parseSupplierData(result.data);
-      return { success: true, data: parsedData };
-    }
-
-    return result;
-  }
 }

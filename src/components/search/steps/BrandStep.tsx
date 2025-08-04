@@ -17,41 +17,38 @@ const BrandStep: React.FC<BrandStepProps> = ({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAllBrands = async () => {
+    const fetchBrandsForDeviceType = async () => {
       if (!searchData.deviceTypeId) return;
 
       setLoading(true);
       try {
-        // Récupérer toutes les marques avec indication des modèles disponibles
-        const { data: allBrands, error: brandsError } = await supabase
-          .from('brands')
-          .select('id, name, logo_url, created_at')
-          .order('name');
-
-        if (brandsError) throw brandsError;
-
         // Récupérer les marques qui ont des modèles pour ce type de device
-        const { data: brandsWithModels, error: modelsError } = await supabase
+        const { data, error } = await supabase
           .from('brands')
           .select(`
             id,
+            name,
+            logo_url,
             device_models!inner(device_type_id)
           `)
           .eq('device_models.device_type_id', searchData.deviceTypeId);
 
-        if (modelsError) throw modelsError;
+        if (error) throw error;
 
-        // Marquer les marques qui ont des modèles disponibles
-        const brandsWithModelsIds = new Set(
-          brandsWithModels.map(brand => brand.id)
-        );
+        // Dédoublonner les marques
+        const uniqueBrands = data.reduce((acc: Brand[], brand: any) => {
+          if (!acc.find(b => b.id === brand.id)) {
+            acc.push({
+              id: brand.id,
+              name: brand.name,
+              logo_url: brand.logo_url,
+              created_at: brand.created_at
+            });
+          }
+          return acc;
+        }, []);
 
-        const enrichedBrands = allBrands.map(brand => ({
-          ...brand,
-          hasModels: brandsWithModelsIds.has(brand.id)
-        }));
-
-        setBrands(enrichedBrands);
+        setBrands(uniqueBrands.sort((a, b) => a.name.localeCompare(b.name)));
       } catch (error) {
         console.error('Error fetching brands:', error);
         setBrands([]);
@@ -60,7 +57,7 @@ const BrandStep: React.FC<BrandStepProps> = ({
       }
     };
 
-    fetchAllBrands();
+    fetchBrandsForDeviceType();
   }, [searchData.deviceTypeId]);
 
   const handleSelect = (brand: Brand) => {
@@ -103,29 +100,19 @@ const BrandStep: React.FC<BrandStepProps> = ({
       </h3>
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {brands.map((brand: any) => {
+        {brands.map((brand) => {
           const isSelected = searchData.brandId === brand.id;
-          const hasModels = brand.hasModels;
           
           return (
             <Card
               key={brand.id}
-              className={`p-4 cursor-pointer transition-all duration-200 hover:shadow-lg relative ${
+              className={`p-4 cursor-pointer transition-all duration-200 hover:shadow-lg ${
                 isSelected 
                   ? 'ring-2 ring-primary bg-primary/5 border-primary' 
-                  : hasModels
-                  ? 'hover:border-primary/50'
-                  : 'hover:border-gray-300 opacity-75'
+                  : 'hover:border-primary/50'
               }`}
               onClick={() => handleSelect(brand)}
             >
-              {!hasModels && (
-                <div className="absolute top-2 right-2">
-                  <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full">
-                    Limité
-                  </span>
-                </div>
-              )}
               <div className="text-center">
                 {brand.logo_url ? (
                   <img
@@ -141,7 +128,7 @@ const BrandStep: React.FC<BrandStepProps> = ({
                   </div>
                 )}
                 <h4 className={`font-medium text-sm ${
-                  isSelected ? 'text-primary' : hasModels ? 'text-gray-900' : 'text-gray-600'
+                  isSelected ? 'text-primary' : 'text-gray-900'
                 }`}>
                   {brand.name}
                 </h4>
