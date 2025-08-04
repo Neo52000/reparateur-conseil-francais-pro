@@ -1,17 +1,29 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
-import SafeNavigation from "@/components/safe/SafeNavigation";
-import SafeRepairersCarousel from "@/components/safe/SafeRepairersCarousel";
 import SafeAppProvider from "@/providers/SafeAppProvider";
-import DebugPanel from "@/components/debug/DebugPanel";
 
-// Version stabilisée avec Error Boundaries
+// Lazy loading des composants principaux
+const SafeNavigation = lazy(() => import("@/components/safe/SafeNavigation"));
+const SafeRepairersCarousel = lazy(() => import("@/components/safe/SafeRepairersCarousel"));
+const DebugPanel = lazy(() => import("@/components/debug/DebugPanel"));
+
+// Composant de fallback pour le loading
+const LoadingFallback: React.FC<{ text?: string }> = ({ text = "Chargement..." }) => (
+  <div className="flex items-center justify-center py-8">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    <span className="ml-3 text-muted-foreground">{text}</span>
+  </div>
+);
+
+// Version stabilisée avec Error Boundaries et Lazy Loading
 const StabilizedIndex = () => {
   return (
     <div className="min-h-screen bg-white">
       <ErrorBoundary>
-        <SafeNavigation />
+        <Suspense fallback={<LoadingFallback text="Chargement de la navigation..." />}>
+          <SafeNavigation />
+        </Suspense>
       </ErrorBoundary>
       
       <main>
@@ -30,10 +42,10 @@ const StabilizedIndex = () => {
                 Trouvez le réparateur de smartphone idéal près de chez vous
               </p>
               <div className="flex justify-center space-x-4">
-                <button className="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100">
+                <button className="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors">
                   Trouver un réparateur
                 </button>
-                <button className="border border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-blue-600">
+                <button className="border border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-blue-600 transition-colors">
                   Devenir réparateur
                 </button>
               </div>
@@ -49,7 +61,9 @@ const StabilizedIndex = () => {
             </div>
           </div>
         }>
-          <SafeRepairersCarousel />
+          <Suspense fallback={<LoadingFallback text="Chargement des réparateurs..." />}>
+            <SafeRepairersCarousel />
+          </Suspense>
         </ErrorBoundary>
 
         <ErrorBoundary fallback={
@@ -109,7 +123,9 @@ const StabilizedIndex = () => {
         </footer>
       </ErrorBoundary>
       
-      <DebugPanel />
+      <Suspense fallback={null}>
+        <DebugPanel />
+      </Suspense>
     </div>
   );
 };

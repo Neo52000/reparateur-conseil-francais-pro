@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import Logo from '@/components/Logo';
 
-const SafeNavigation = () => {
+const SafeNavigation = memo(() => {
   return (
     <ErrorBoundary fallback={
       <nav className="bg-white shadow-sm">
@@ -48,6 +48,6 @@ const SafeNavigation = () => {
       </nav>
     </ErrorBoundary>
   );
-};
+});
 
 export default SafeNavigation;

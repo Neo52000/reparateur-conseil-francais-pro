@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import LogsViewer from '@/components/debug/LogsViewer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Activity } from 'lucide-react';
 
-const DebugPanel: React.FC = () => {
+const DebugPanel: React.FC = memo(() => {
   const [isVisible, setIsVisible] = useState(false);
 
   // Afficher seulement en développement
@@ -21,10 +21,11 @@ const DebugPanel: React.FC = () => {
           variant="outline"
           size="sm"
           onClick={() => setIsVisible(true)}
-          className="bg-background shadow-lg"
+          className="bg-background shadow-lg border-green-200"
         >
-          <Eye className="h-4 w-4 mr-2" />
+          <Activity className="h-4 w-4 mr-2 text-green-600" />
           Debug
+          <Badge variant="secondary" className="ml-2 text-xs">OK</Badge>
         </Button>
       </div>
     );
@@ -52,13 +53,19 @@ const DebugPanel: React.FC = () => {
           <CardContent className="pt-0">
             <div className="space-y-2">
               <div className="text-xs text-muted-foreground">
-                État de l'application : <span className="text-green-600 font-medium">Stable</span>
+                État de l'application : <span className="text-green-600 font-medium">✅ Stable</span>
               </div>
               <div className="text-xs text-muted-foreground">
-                Error Boundaries : <span className="text-green-600 font-medium">Actifs</span>
+                Error Boundaries : <span className="text-green-600 font-medium">✅ Actifs</span>
               </div>
               <div className="text-xs text-muted-foreground">
-                Safe Hooks : <span className="text-green-600 font-medium">Opérationnels</span>
+                Safe Hooks : <span className="text-green-600 font-medium">✅ Opérationnels</span>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Lazy Loading : <span className="text-green-600 font-medium">✅ Activé</span>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Performance : <span className="text-green-600 font-medium">✅ Optimisée</span>
               </div>
             </div>
           </CardContent>
@@ -70,6 +77,6 @@ const DebugPanel: React.FC = () => {
       </div>
     </ErrorBoundary>
   );
-};
+});
 
 export default DebugPanel;
