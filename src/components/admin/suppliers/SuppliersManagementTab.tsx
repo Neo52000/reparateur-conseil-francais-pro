@@ -185,7 +185,10 @@ const SuppliersManagementTab: React.FC = () => {
     e.preventDefault();
     
     try {
-      console.log('🚀 [SuppliersManagement] Starting supplier submission:', { editingSupplier: !!editingSupplier });
+      console.log('🚀 [SuppliersManagement] Starting supplier submission:', { 
+        editingSupplier: !!editingSupplier,
+        formData: formData 
+      });
       
       // Phase 1: Validation des données
       const validation = ErrorHandlingService.validateSupplierData(formData);
@@ -203,7 +206,22 @@ const SuppliersManagementTab: React.FC = () => {
       const supplierData = ErrorHandlingService.prepareSupplierData(formData);
       console.log('📦 [SuppliersManagement] Prepared supplier data:', supplierData);
 
-      // Phase 3: Envoi à Supabase
+      // Phase 3: Test de la connexion Supabase d'abord
+      console.log('🔗 [SuppliersManagement] Testing Supabase connection...');
+      const testQuery = await supabase
+        .from('suppliers_directory')
+        .select('count')
+        .limit(1)
+        .single();
+      
+      if (testQuery.error) {
+        console.error('❌ [SuppliersManagement] Supabase connection test failed:', testQuery.error);
+        throw new Error(`Erreur de connexion à la base de données: ${testQuery.error.message}`);
+      }
+
+      console.log('✅ [SuppliersManagement] Supabase connection OK');
+
+      // Phase 4: Envoi à Supabase
       let result;
       if (editingSupplier) {
         console.log('🔄 [SuppliersManagement] Updating existing supplier:', editingSupplier.id);
@@ -220,10 +238,26 @@ const SuppliersManagementTab: React.FC = () => {
           .select();
       }
 
-      // Phase 4: Gestion du résultat
+      // Phase 5: Gestion du résultat avec logging détaillé
+      console.log('📊 [SuppliersManagement] Supabase result:', {
+        data: result.data,
+        error: result.error,
+        status: result.status,
+        statusText: result.statusText
+      });
+
       if (result.error) {
-        console.error('❌ [SuppliersManagement] Supabase error:', result.error);
+        console.error('❌ [SuppliersManagement] Supabase error details:', {
+          message: result.error.message,
+          details: result.error.details,
+          hint: result.error.hint,
+          code: result.error.code
+        });
         throw result.error;
+      }
+
+      if (!result.data || result.data.length === 0) {
+        throw new Error('Aucune donnée retournée après la sauvegarde');
       }
 
       console.log('✅ [SuppliersManagement] Supplier saved successfully:', result.data);
@@ -239,8 +273,10 @@ const SuppliersManagementTab: React.FC = () => {
       
     } catch (err) {
       console.error('💥 [SuppliersManagement] Error during supplier submission:', err);
+      console.error('💥 [SuppliersManagement] Error type:', typeof err);
+      console.error('💥 [SuppliersManagement] Error constructor:', err?.constructor?.name);
       
-      // Utilisation du service de gestion d'erreurs centralisé
+      // Utilisation du service de gestion d'erreurs centralisé amélioré
       const context = editingSupplier ? 'la mise à jour du fournisseur' : 'la création du fournisseur';
       const errorMessage = ErrorHandlingService.formatError(err, context);
       
