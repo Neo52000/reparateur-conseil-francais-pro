@@ -44,7 +44,7 @@ import { EnhancedDashboardTester } from '@/components/admin/dashboard/EnhancedDa
 import { EnhancedPOSTester } from '@/components/admin/pos/EnhancedPOSTester';
 import { EnhancedEcommerceTester } from '@/components/admin/ecommerce/EnhancedEcommerceTester';
 import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizationPanel';
-import { SuppliersDirectoryManagement } from '@/components/admin/SuppliersDirectoryManagement';
+import SuppliersManagementTab from '@/components/admin/suppliers/SuppliersManagementTab';
 
 const AdminPage = () => {
   const {
@@ -322,7 +322,7 @@ const AdminPage = () => {
       case 'static-pages':
         return <StaticPagesManager />;
       case 'suppliers':
-        return <SuppliersDirectoryManagement />;
+        return <SuppliersManagementTab />;
       case 'system-optimization':
         return <SystemOptimizationPanel />;
       default:

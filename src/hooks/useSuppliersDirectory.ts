@@ -53,6 +53,9 @@ export const useSuppliersDirectory = () => {
 
   const hasAccess = () => {
     if (!user) return false;
+    // Check if user is admin first
+    if (user.user_metadata?.role === 'admin') return true;
+    // Then check subscription tier
     const tier = getSubscriptionTier(user.id);
     return tier === 'premium' || tier === 'enterprise';
   };
