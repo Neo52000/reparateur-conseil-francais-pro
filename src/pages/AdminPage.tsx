@@ -338,8 +338,8 @@ const AdminPage = () => {
         return <SuppliersManagementTab />;
       case 'system-optimization':
         return <SystemOptimizationPanel />;
-      case 'debug-auth':
-        return <DebugAuthPanel />;
+      case 'system-optimization':
+        return <SystemOptimizationPanel />;
       default:
         return <AdminDashboardContent activeTab={activeTab} subscriptions={[]} repairers={[]} onViewProfile={() => {}} onRefresh={async () => {}} />;
     }

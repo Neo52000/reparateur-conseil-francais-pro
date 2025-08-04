@@ -29,24 +29,10 @@ import { SuppliersDirectoryPage } from "./pages/SuppliersDirectoryPage";
 import QuotesAndAppointments from "./pages/QuotesAndAppointments";
 import { useVisitorTracker } from "./hooks/useVisitorTracker";
 import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
-// Configuration production
-import { initializeProductionMode, performProductionHealthCheck } from './config/productionSetup';
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  useEffect(() => {
-    // Initialiser le mode production strict
-    const prodConfig = initializeProductionMode();
-    console.log('🚀 Application démarrée en mode production:', prodConfig);
-    
-    // Vérification de santé
-    const healthCheck = performProductionHealthCheck();
-    if (!healthCheck.healthy) {
-      console.warn('⚠️ Problèmes détectés lors des vérifications de production');
-    }
-  }, []);
-
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
