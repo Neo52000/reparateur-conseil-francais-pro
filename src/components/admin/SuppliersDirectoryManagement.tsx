@@ -138,47 +138,64 @@ export const SuppliersDirectoryManagement = () => {
 
   const handleCreateSupplier = async (formData: any) => {
     try {
-      const { error } = await supabase
-        .from('suppliers_directory')
-        .insert({
-          name: formData.name,
-          description: formData.description,
-          brands_sold: formData.brands_sold.split(',').map((b: string) => b.trim()).filter(Boolean),
-          product_types: formData.product_types.split(',').map((p: string) => p.trim()).filter(Boolean),
-          website: formData.website,
-          phone: formData.phone,
-          email: formData.email,
-          address: {
-            street: formData.address_street,
-            city: formData.address_city,
-            postal_code: formData.address_postal,
-            country: formData.address_country || 'France'
-          },
-          specialties: formData.specialties.split(',').map((s: string) => s.trim()).filter(Boolean),
-          certifications: formData.certifications.split(',').map((c: string) => c.trim()).filter(Boolean),
-          logo_url: formData.logo_url,
-          payment_terms: formData.payment_terms,
-          minimum_order: formData.minimum_order ? Number(formData.minimum_order) : null,
-          delivery_info: {
-            zones: formData.delivery_zones.split(',').map((z: string) => z.trim()).filter(Boolean),
-            time: formData.delivery_time,
-            cost: formData.delivery_cost
-          },
-          rating: 0,
-          review_count: 0,
-          is_verified: false,
-          is_featured: false,
-          status: 'pending'
-        });
+      // Validation des champs obligatoires
+      if (!formData.name || formData.name.trim() === '') {
+        toast.error('Le nom du fournisseur est obligatoire');
+        return;
+      }
 
-      if (error) throw error;
+      const supplierData = {
+        name: formData.name.trim(),
+        description: formData.description || null,
+        brands_sold: formData.brands_sold ? formData.brands_sold.split(',').map((b: string) => b.trim()).filter(Boolean) : [],
+        product_types: formData.product_types ? formData.product_types.split(',').map((p: string) => p.trim()).filter(Boolean) : [],
+        website: formData.website || null,
+        phone: formData.phone || null,
+        email: formData.email || null,
+        address: formData.address_street || formData.address_city ? {
+          street: formData.address_street || null,
+          city: formData.address_city || null,
+          postal_code: formData.address_postal || null,
+          country: formData.address_country || 'France'
+        } : null,
+        specialties: formData.specialties ? formData.specialties.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
+        certifications: formData.certifications ? formData.certifications.split(',').map((c: string) => c.trim()).filter(Boolean) : [],
+        logo_url: formData.logo_url || null,
+        payment_terms: formData.payment_terms || null,
+        minimum_order: formData.minimum_order ? Number(formData.minimum_order) : null,
+        delivery_info: formData.delivery_zones || formData.delivery_time || formData.delivery_cost ? {
+          zones: formData.delivery_zones ? formData.delivery_zones.split(',').map((z: string) => z.trim()).filter(Boolean) : [],
+          time: formData.delivery_time || null,
+          cost: formData.delivery_cost || null
+        } : null,
+        rating: 0.0,
+        review_count: 0,
+        is_verified: false,
+        is_featured: false,
+        status: 'pending'
+      };
+
+      console.log('Creating supplier with data:', supplierData);
+
+      const { data, error } = await supabase
+        .from('suppliers_directory')
+        .insert(supplierData)
+        .select();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Supplier created successfully:', data);
 
       await fetchSuppliers();
       setIsCreateModalOpen(false);
       toast.success('Fournisseur créé avec succès');
     } catch (error) {
       console.error('Error creating supplier:', error);
-      toast.error('Erreur lors de la création du fournisseur');
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error(`Erreur lors de la création du fournisseur: ${errorMessage}`);
     }
   };
 
