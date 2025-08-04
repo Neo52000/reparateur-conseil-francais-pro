@@ -46,13 +46,21 @@ export class ErrorHandlingService {
 
     // Cas 3: Erreur Supabase avec structure complète
     if (error && typeof error === 'object') {
-      // Vérifier d'abord les erreurs HTTP spécifiques
+      // Vérifier d'abord les erreurs HTTP spécifiques et d'authentification
       if (error.status === 404) {
+        // Analyser si c'est un problème d'authentification
+        if (this.isAuthenticationError(error)) {
+          return '🔒 Vous devez être connecté en tant qu\'administrateur pour accéder à cette fonctionnalité. Veuillez vous connecter.';
+        }
         return 'Table ou ressource non trouvée. Vérifiez que la table existe et que vous avez les permissions nécessaires.';
       }
       
-      if (error.status === 403 || error.status === 401) {
-        return 'Accès refusé. Vous n\'avez pas les permissions nécessaires pour cette action.';
+      if (error.status === 403) {
+        return '🔒 Accès refusé. Vous devez être connecté en tant qu\'administrateur pour effectuer cette action.';
+      }
+
+      if (error.status === 401) {
+        return '🔑 Authentification requise. Veuillez vous connecter pour continuer.';
       }
 
       if (error.status >= 500) {
@@ -181,6 +189,42 @@ export class ErrorHandlingService {
     const contextMsg = context ? ` lors de ${context}` : '';
     console.error('💀 [ErrorHandlingService] Unhandled error format:', error);
     return `Erreur technique non identifiée${contextMsg}. Consultez la console pour plus de détails.`;
+  }
+
+  /**
+   * Vérifie si une erreur est liée à un problème d'authentification
+   * @param error - L'erreur à analyser
+   * @returns true si l'erreur est liée à l'authentification
+   */
+  private static isAuthenticationError(error: any): boolean {
+    // Vérifier si l'URL contient des éléments d'authentification
+    if (error.config?.url?.includes('suppliers_directory') && error.status === 404) {
+      return true;
+    }
+    
+    // Vérifier les messages d'erreur typiques
+    const errorMessage = error.message?.toLowerCase() || '';
+    const authKeywords = ['permission', 'access', 'denied', 'unauthorized', 'forbidden', 'policy'];
+    
+    return authKeywords.some(keyword => errorMessage.includes(keyword));
+  }
+
+  /**
+   * Vérifie l'état d'authentification avant les opérations sensibles
+   * @param user - Utilisateur actuel
+   * @param isAdmin - Booléen indiquant si l'utilisateur est admin
+   * @returns Message d'erreur ou null si OK
+   */
+  static checkAuthentication(user: any, isAdmin: boolean): string | null {
+    if (!user) {
+      return '🔑 Vous devez être connecté pour effectuer cette action. Redirection vers la page de connexion...';
+    }
+    
+    if (!isAdmin) {
+      return '🔒 Accès réservé aux administrateurs. Contactez votre administrateur si vous pensez qu\'il s\'agit d\'une erreur.';
+    }
+    
+    return null;
   }
 
   /**

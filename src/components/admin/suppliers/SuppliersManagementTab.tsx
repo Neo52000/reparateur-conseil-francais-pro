@@ -9,6 +9,7 @@ import { Plus, Edit, Trash2, Star, MapPin, Phone, Mail, Globe, Download, Upload,
 import SupplierForm from './SupplierForm';
 import { SuppliersCSVService } from '@/services/suppliers/SuppliersCSVService';
 import { ErrorHandlingService } from '@/services/error/ErrorHandlingService';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Dialog,
   DialogContent,
@@ -61,6 +62,9 @@ const SuppliersManagementTab: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [importing, setImporting] = useState(false);
   const { toast } = useToast();
+  
+  // Hook d'authentification
+  const { user, isAdmin, loading: authLoading } = useAuth();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -187,10 +191,24 @@ const SuppliersManagementTab: React.FC = () => {
     try {
       console.log('🚀 [SuppliersManagement] Starting supplier submission:', { 
         editingSupplier: !!editingSupplier,
-        formData: formData 
+        formData: formData,
+        user: user?.id,
+        isAdmin 
       });
       
-      // Phase 1: Validation des données
+      // Phase 1: Vérification de l'authentification
+      const authError = ErrorHandlingService.checkAuthentication(user, isAdmin);
+      if (authError) {
+        toast({
+          title: "Authentification requise",
+          description: authError,
+          variant: "destructive",
+        });
+        // Optionnel: redirection vers la page de connexion
+        return;
+      }
+      
+      // Phase 2: Validation des données
       const validation = ErrorHandlingService.validateSupplierData(formData);
       if (!validation.isValid) {
         const errorMessages = validation.errors.map(err => `${err.field}: ${err.message}`).join('\n');
@@ -202,12 +220,19 @@ const SuppliersManagementTab: React.FC = () => {
         return;
       }
 
-      // Phase 2: Préparation des données
+      // Phase 3: Préparation des données
       const supplierData = ErrorHandlingService.prepareSupplierData(formData);
       console.log('📦 [SuppliersManagement] Prepared supplier data:', supplierData);
 
-      // Phase 3: Test de la connexion Supabase d'abord
-      console.log('🔗 [SuppliersManagement] Testing Supabase connection...');
+      // Phase 4: Test de la connexion Supabase et des permissions
+      console.log('🔗 [SuppliersManagement] Testing Supabase connection and permissions...');
+      console.log('👤 [SuppliersManagement] User session info:', {
+        userId: user?.id,
+        email: user?.email,
+        isAdmin,
+        authLoading
+      });
+      
       const testQuery = await supabase
         .from('suppliers_directory')
         .select('count')
@@ -216,12 +241,12 @@ const SuppliersManagementTab: React.FC = () => {
       
       if (testQuery.error) {
         console.error('❌ [SuppliersManagement] Supabase connection test failed:', testQuery.error);
-        throw new Error(`Erreur de connexion à la base de données: ${testQuery.error.message}`);
+        throw testQuery.error; // Laisser ErrorHandlingService gérer l'erreur
       }
 
-      console.log('✅ [SuppliersManagement] Supabase connection OK');
+      console.log('✅ [SuppliersManagement] Supabase connection and permissions OK');
 
-      // Phase 4: Envoi à Supabase
+      // Phase 5: Envoi à Supabase
       let result;
       if (editingSupplier) {
         console.log('🔄 [SuppliersManagement] Updating existing supplier:', editingSupplier.id);
@@ -238,7 +263,7 @@ const SuppliersManagementTab: React.FC = () => {
           .select();
       }
 
-      // Phase 5: Gestion du résultat avec logging détaillé
+      // Phase 6: Gestion du résultat avec logging détaillé
       console.log('📊 [SuppliersManagement] Supabase result:', {
         data: result.data,
         error: result.error,
@@ -419,12 +444,43 @@ const SuppliersManagementTab: React.FC = () => {
     );
   };
 
-  if (loading) {
+  // Vérification de l'authentification avant l'affichage
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Chargement des fournisseurs...</p>
+          <p className="mt-2 text-muted-foreground">
+            {authLoading ? 'Vérification des permissions...' : 'Chargement des fournisseurs...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Vérification des permissions d'administration
+  if (!user || !isAdmin) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center space-y-4">
+          <div className="text-6xl">🔒</div>
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">Accès réservé aux administrateurs</h3>
+            <p className="text-muted-foreground mt-2">
+              {!user 
+                ? 'Vous devez être connecté en tant qu\'administrateur pour accéder à cette section.'
+                : 'Votre compte ne dispose pas des permissions administrateur.'
+              }
+            </p>
+            {!user && (
+              <Button 
+                onClick={() => window.location.href = '/auth'} 
+                className="mt-4"
+              >
+                Se connecter
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -432,13 +488,21 @@ const SuppliersManagementTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header avec statut de connexion */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Gestion des Fournisseurs</h2>
           <p className="text-muted-foreground">
             Gérez votre annuaire de fournisseurs de pièces détachées
           </p>
+          <div className="flex items-center gap-2 mt-2">
+            <Badge variant="secondary" className="text-xs">
+              🟢 Connecté: {user?.email}
+            </Badge>
+            <Badge variant="default" className="text-xs">
+              👑 Administrateur
+            </Badge>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
