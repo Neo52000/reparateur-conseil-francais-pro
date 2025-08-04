@@ -17,6 +17,7 @@ import BlogManagement from '@/components/blog/admin/BlogManagement';
 import ChatbotManagement from '@/components/admin/ChatbotManagement';
 import AdminAuthForm from '@/components/AdminAuthForm';
 import { useAuth } from '@/hooks/useAuth';
+import { handleAuthError } from '@/services/errorHandlingService';
 import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdvertisingDashboard';
 import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement';
 import SubdomainsManagement from '@/components/admin/SubdomainsManagement';
@@ -53,6 +54,15 @@ const AdminPage = () => {
     isAdmin,
     loading
   } = useAuth();
+
+  // Debugging complet de l'état d'authentification
+  console.log('🔍 AdminPage Auth State:', {
+    user: user ? { id: user.id, email: user.email } : null,
+    profile: profile ? { id: profile.id, email: profile.email, role: profile.role } : null,
+    isAdmin,
+    loading,
+    timestamp: new Date().toISOString()
+  });
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'dashboard';
 
@@ -68,8 +78,11 @@ const AdminPage = () => {
 
   // Si pas d'utilisateur ou pas admin, afficher le formulaire de connexion
   if (!user || !isAdmin) {
+    console.log('🚫 AdminPage: Access denied', { hasUser: !!user, isAdmin });
     return <AdminAuthForm />;
   }
+
+  console.log('✅ AdminPage: Access granted to admin interface');
   const getPageTitle = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -325,6 +338,8 @@ const AdminPage = () => {
         return <SuppliersManagementTab />;
       case 'system-optimization':
         return <SystemOptimizationPanel />;
+      case 'debug-auth':
+        return <DebugAuthPanel />;
       default:
         return <AdminDashboardContent activeTab={activeTab} subscriptions={[]} repairers={[]} onViewProfile={() => {}} onRefresh={async () => {}} />;
     }

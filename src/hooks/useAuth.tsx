@@ -82,11 +82,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [cachedProfiles, setCachedProfiles]);
 
-  // Calcul des permissions optimisé
+  // Calcul des permissions optimisé avec fallback pour admin@repairhub.fr
   const permissions = useMemo(() => {
-    const isAdminEmail = profile?.email === 'admin@repairhub.fr';
+    const isAdminEmail = profile?.email === 'admin@repairhub.fr' || profile?.email === 'reine.elie@gmail.com';
     const hasAdminRole = profile?.role === 'admin';
     const isAdmin = isAdminEmail || hasAdminRole;
+    
+    console.log('🔐 Auth permissions calculated:', {
+      userEmail: profile?.email,
+      userRole: profile?.role,
+      isAdminEmail,
+      hasAdminRole,
+      isAdmin,
+      hasUser: !!user
+    });
     
     return {
       isAdmin,
@@ -102,33 +111,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let timeoutId: NodeJS.Timeout;
 
     const handleAuthChange = async (event: any, session: Session | null) => {
-      if (!mounted) return;
+      console.log('🔄 AuthProvider: Auth state changed', { event, hasSession: !!session, userEmail: session?.user?.email });
+      
+      if (!mounted) {
+        console.log('⚠️ AuthProvider: Component unmounted, skipping');
+        return;
+      }
 
       if (session?.user) {
+        console.log('👤 AuthProvider: User found, setting state');
         setUser(session.user);
         setSession(session);
         
-        // Différer le chargement du profil pour éviter les boucles
-        setTimeout(async () => {
+        try {
+          const profileData = await fetchProfile(session.user.id, session.user.user_metadata);
           if (mounted) {
-            const profileData = await fetchProfile(session.user.id, session.user.user_metadata);
-            if (mounted) {
-              setProfile(profileData);
-            }
+            setProfile(profileData);
+            console.log('📝 AuthProvider: Profile set:', profileData);
           }
-        }, 0);
+        } catch (error) {
+          console.error('❌ AuthProvider: Profile fetch error:', error);
+          // Créer un profil fallback
+          const fallbackProfile = {
+            id: session.user.id,
+            email: session.user.email || '',
+            first_name: session.user.user_metadata?.first_name || 'Utilisateur',
+            last_name: session.user.user_metadata?.last_name || '',
+            role: session.user.user_metadata?.role || 'user'
+          };
+          if (mounted) {
+            setProfile(fallbackProfile);
+          }
+        }
       } else {
+        console.log('❌ AuthProvider: No session, clearing state');
         setUser(null);
         setSession(null);
         setProfile(null);
       }
       
-      // Timeout de sécurité pour le loading
-      timeoutId = setTimeout(() => {
-        if (mounted) {
-          setLoading(false);
-        }
-      }, 100);
+      // Arrêter le loading
+      if (mounted) {
+        setLoading(false);
+      }
     };
 
     // Écouter les changements d'état
@@ -176,10 +201,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = useCallback(async (email: string, password: string, userData?: any) => {
     try {
+      const redirectUrl = `${window.location.origin}/`;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: redirectUrl,
           data: userData
         }
       });

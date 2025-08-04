@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { OPTIONAL_MODULES } from '@/types/optionalModules';
+import { handleDataError } from '@/services/errorHandlingService';
 
 export interface OptionalModuleDB {
   id: string;
@@ -83,12 +84,7 @@ export const useOptionalModulesDB = () => {
 
       setModules(transformedData);
     } catch (error) {
-      console.error('Erreur lors du chargement des modules:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les modules optionnels",
-        variant: "destructive"
-      });
+      handleDataError(error, 'useOptionalModulesDB', 'loadModules');
     } finally {
       setLoading(false);
     }
@@ -112,12 +108,7 @@ export const useOptionalModulesDB = () => {
         description: "Module mis à jour avec succès"
       });
     } catch (error) {
-      console.error('Erreur lors de la mise à jour:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le module",
-        variant: "destructive"
-      });
+      handleDataError(error, 'useOptionalModulesDB', 'updateModule');
     } finally {
       setSaving(false);
     }
