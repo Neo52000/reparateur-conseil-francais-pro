@@ -63,13 +63,15 @@ const App = () => {
         <GlobalStoreProvider>
           <SimplifiedAuthProvider>
             <PlanPreviewProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
+                {/* TEMPORAIRE: Désactiver TooltipProvider qui cause l'erreur useState null */}
+                {/* <TooltipProvider> */}
+                  {/* TEMPORAIRE: Désactiver Toaster et Sonner qui peuvent causer des problèmes */}
+                  {/* <Toaster /> */}
+                  {/* <Sonner /> */}
                   <BrowserRouter>
                   <AppWithTracking />
                   </BrowserRouter>
-                </TooltipProvider>
+                {/* </TooltipProvider> */}
             </PlanPreviewProvider>
           </SimplifiedAuthProvider>
         </GlobalStoreProvider>
