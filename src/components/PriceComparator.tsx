@@ -5,18 +5,27 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Star, MapPin, Clock, Euro, TrendingUp } from 'lucide-react';
+import { useCatalog } from '@/hooks/useCatalog';
 
 const PriceComparator = () => {
+  const { brands: catalogBrands, deviceModels, repairTypes, loading } = useCatalog();
   const [selectedBrand, setSelectedBrand] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [selectedIssue, setSelectedIssue] = useState('');
 
-  const brands = ['iPhone', 'Samsung', 'Xiaomi', 'Huawei'];
-  const models = {
-    'iPhone': ['iPhone 15 Pro Max', 'iPhone 15 Pro', 'iPhone 15', 'iPhone 14 Pro'],
-    'Samsung': ['Galaxy S24 Ultra', 'Galaxy S24+', 'Galaxy S24', 'Galaxy S23 Ultra']
+  // Utiliser les vraies données du catalogue
+  const brands = catalogBrands.map(brand => brand.name).sort();
+  
+  const getModelsForBrand = (brandName: string) => {
+    const brand = catalogBrands.find(b => b.name === brandName);
+    if (!brand) return [];
+    return deviceModels
+      .filter(model => model.brand_id === brand.id)
+      .map(model => model.model_name)
+      .sort();
   };
-  const issues = ['Écran cassé', 'Batterie', 'Connecteur charge', 'Boutons', 'Appareil photo'];
+  
+  const issues = repairTypes.map(repair => repair.name).sort();
 
   // Données mockées des prix
   const priceData = [
@@ -106,7 +115,7 @@ const PriceComparator = () => {
                   <SelectValue placeholder="Sélectionner" />
                 </SelectTrigger>
                 <SelectContent>
-                  {selectedBrand && models[selectedBrand as keyof typeof models]?.map(model => (
+                  {selectedBrand && getModelsForBrand(selectedBrand).map(model => (
                     <SelectItem key={model} value={model}>{model}</SelectItem>
                   ))}
                 </SelectContent>

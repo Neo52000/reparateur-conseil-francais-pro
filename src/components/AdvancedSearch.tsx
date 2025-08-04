@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Search, MapPin, Filter, Star, Clock, Euro, Smartphone } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useCatalog } from '@/hooks/useCatalog';
 
 interface AdvancedSearchProps {
   onSearch: (filters: SearchFilters) => void;
@@ -24,6 +25,7 @@ interface SearchFilters {
 
 const AdvancedSearch = ({ onSearch }: AdvancedSearchProps) => {
   const { user } = useAuth();
+  const { brands: catalogBrands, deviceModels, repairTypes, loading } = useCatalog();
   const [filters, setFilters] = useState<SearchFilters>({
     brand: '',
     model: '',
@@ -34,19 +36,21 @@ const AdvancedSearch = ({ onSearch }: AdvancedSearchProps) => {
     maxPrice: 200
   });
 
-  const brands = [
-    'iPhone', 'Samsung', 'Xiaomi', 'Huawei', 'OnePlus', 'Google Pixel', 'Oppo', 'Vivo'
-  ];
+  // Utiliser les vraies marques de la base de données
+  const brands = catalogBrands.map(brand => brand.name).sort();
 
-  const models = {
-    'iPhone': ['iPhone 15 Pro Max', 'iPhone 15 Pro', 'iPhone 15', 'iPhone 14 Pro Max', 'iPhone 14 Pro', 'iPhone 14', 'iPhone 13 Pro Max', 'iPhone 13 Pro', 'iPhone 13'],
-    'Samsung': ['Galaxy S24 Ultra', 'Galaxy S24+', 'Galaxy S24', 'Galaxy S23 Ultra', 'Galaxy S23+', 'Galaxy S23', 'Galaxy A54', 'Galaxy A34']
+  // Filtrer les modèles par marque sélectionnée
+  const getModelsForBrand = (brandName: string) => {
+    const brand = catalogBrands.find(b => b.name === brandName);
+    if (!brand) return [];
+    return deviceModels
+      .filter(model => model.brand_id === brand.id)
+      .map(model => model.model_name)
+      .sort();
   };
 
-  const issueTypes = [
-    'Écran cassé', 'Batterie défaillante', 'Connecteur de charge', 'Boutons défectueux',
-    'Appareil photo', 'Haut-parleur', 'Micro', 'Vitre arrière', 'Dégât des eaux'
-  ];
+  // Utiliser les vrais types de réparation
+  const issueTypes = repairTypes.map(repair => repair.name).sort();
 
   const isPremiumUser = user; // Pour la démo, tous les utilisateurs connectés ont accès
 
@@ -128,7 +132,7 @@ const AdvancedSearch = ({ onSearch }: AdvancedSearchProps) => {
                 <SelectValue placeholder="Sélectionner un modèle" />
               </SelectTrigger>
               <SelectContent>
-                {filters.brand && models[filters.brand as keyof typeof models]?.map(model => (
+                {filters.brand && getModelsForBrand(filters.brand).map(model => (
                   <SelectItem key={model} value={model}>{model}</SelectItem>
                 ))}
               </SelectContent>

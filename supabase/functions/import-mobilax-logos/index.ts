@@ -56,10 +56,115 @@ serve(async (req) => {
       })
     });
 
-    const crawlResult: FirecrawlResponse = await firecrawlResponse.json();
+    if (!firecrawlResponse.ok) {
+      const errorText = await firecrawlResponse.text();
+      throw new Error(`Firecrawl API error ${firecrawlResponse.status}: ${errorText}`);
+    }
 
-    if (!crawlResult.success || !crawlResult.data?.[0]) {
-      throw new Error(`Firecrawl failed: ${crawlResult.error || 'No data received'}`);
+    const crawlResult: FirecrawlResponse = await firecrawlResponse.json();
+    console.log('Firecrawl response:', JSON.stringify(crawlResult, null, 2));
+
+    if (!crawlResult.success) {
+      throw new Error(`Firecrawl failed: ${crawlResult.error || 'Unknown error'}`);
+    }
+
+    if (!crawlResult.data || crawlResult.data.length === 0) {
+      console.log('No data returned from Firecrawl, using fallback method...');
+      
+      // Fallback: utiliser des logos prédéfinis depuis les URLs connues
+      const fallbackLogos = [
+        { name: 'Apple', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg' },
+        { name: 'Samsung', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/24/Samsung_Logo.svg' },
+        { name: 'Huawei', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/04/Huawei_Standard_logo.svg' },
+        { name: 'Xiaomi', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/29/Xiaomi_logo.svg' },
+        { name: 'OnePlus', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/02/OnePlus_logo.svg' },
+        { name: 'Google', logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg' }
+      ];
+      
+      const brandLogos: BrandLogo[] = fallbackLogos.map(logo => ({
+        ...logo,
+        confidence: 0.9
+      }));
+      
+      console.log(`Using ${brandLogos.length} fallback brand logos`);
+      
+      // Continuer avec le traitement des logos
+      let updatedCount = 0;
+      let createdCount = 0;
+      const results = [];
+      
+      // Récupérer les marques existantes
+      const { data: existingBrands, error: brandsError } = await supabase
+        .from('brands')
+        .select('id, name, logo_url');
+
+      if (brandsError) {
+        throw new Error(`Error fetching brands: ${brandsError.message}`);
+      }
+
+      // Mettre à jour ou créer les marques
+      for (const logo of brandLogos) {
+        const existingBrand = existingBrands?.find(b => 
+          b.name.toLowerCase() === logo.name.toLowerCase()
+        );
+
+        if (existingBrand) {
+          if (!existingBrand.logo_url) {
+            const { error: updateError } = await supabase
+              .from('brands')
+              .update({ logo_url: logo.logoUrl })
+              .eq('id', existingBrand.id);
+
+            if (!updateError) {
+              updatedCount++;
+              results.push({
+                action: 'updated',
+                brand: logo.name,
+                logoUrl: logo.logoUrl
+              });
+            }
+          } else {
+            results.push({
+              action: 'skipped',
+              brand: logo.name,
+              reason: 'Logo already exists'
+            });
+          }
+        } else {
+          const { error: createError } = await supabase
+            .from('brands')
+            .insert([{
+              name: logo.name,
+              logo_url: logo.logoUrl
+            }]);
+
+          if (!createError) {
+            createdCount++;
+            results.push({
+              action: 'created',
+              brand: logo.name,
+              logoUrl: logo.logoUrl
+            });
+          }
+        }
+      }
+
+      console.log(`Fallback import completed: ${updatedCount} updated, ${createdCount} created`);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          fallback: true,
+          summary: {
+            totalFound: brandLogos.length,
+            updated: updatedCount,
+            created: createdCount,
+            skipped: results.filter(r => r.action === 'skipped').length
+          },
+          details: results
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const htmlContent = crawlResult.data[0].html;
