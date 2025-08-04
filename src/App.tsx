@@ -2,11 +2,20 @@ import React, { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import SafeAppProvider from "@/providers/SafeAppProvider";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 // Lazy loading des composants principaux
 const SafeNavigation = lazy(() => import("@/components/safe/SafeNavigation"));
 const SafeRepairersCarousel = lazy(() => import("@/components/safe/SafeRepairersCarousel"));
 const DebugPanel = lazy(() => import("@/components/debug/DebugPanel"));
+
+// Lazy loading des pages principales
+const AdminDashboard = lazy(() => import("@/components/AdminDashboard"));
+const AdminAuthForm = lazy(() => import("@/components/AdminAuthForm"));
+const ClientAuthForm = lazy(() => import("@/components/ClientAuthForm"));
+const RepairerAuthForm = lazy(() => import("@/components/RepairerAuthForm"));
+const RepairerDashboard = lazy(() => import("@/components/repairer-dashboard/RepairerDashboard"));
+const ClientDashboard = lazy(() => import("@/components/ClientDashboard"));
 
 // Composant de fallback pour le loading
 const LoadingFallback: React.FC<{ text?: string }> = ({ text = "Chargement..." }) => (
@@ -135,9 +144,69 @@ const App = () => {
     <SafeAppProvider>
       <BrowserRouter>
         <Routes>
+          {/* Page d'accueil */}
           <Route path="/" element={<StabilizedIndex />} />
+          
+          {/* Routes d'authentification */}
+          <Route path="/admin-auth" element={
+            <ErrorBoundary>
+              <Suspense fallback={<LoadingFallback text="Chargement de l'authentification admin..." />}>
+                <AdminAuthForm />
+              </Suspense>
+            </ErrorBoundary>
+          } />
+          <Route path="/client-auth" element={
+            <ErrorBoundary>
+              <Suspense fallback={<LoadingFallback text="Chargement de l'authentification client..." />}>
+                <ClientAuthForm />
+              </Suspense>
+            </ErrorBoundary>
+          } />
+          <Route path="/repairer-auth" element={
+            <ErrorBoundary>
+              <Suspense fallback={<LoadingFallback text="Chargement de l'authentification réparateur..." />}>
+                <RepairerAuthForm />
+              </Suspense>
+            </ErrorBoundary>
+          } />
+          
+          {/* Routes protégées */}
+          <Route path="/admin" element={
+            <ProtectedRoute requiredRole="admin">
+              <ErrorBoundary>
+                <Suspense fallback={<LoadingFallback text="Chargement du dashboard admin..." />}>
+                  <AdminDashboard />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          } />
+          <Route path="/repairer" element={
+            <ProtectedRoute requiredRole="repairer">
+              <ErrorBoundary>
+                <Suspense fallback={<LoadingFallback text="Chargement du dashboard réparateur..." />}>
+                  <RepairerDashboard />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          } />
+          <Route path="/client" element={
+            <ProtectedRoute requiredRole="user">
+              <ErrorBoundary>
+                <Suspense fallback={<LoadingFallback text="Chargement du dashboard client..." />}>
+                  <ClientDashboard />
+                </Suspense>
+              </ErrorBoundary>
+            </ProtectedRoute>
+          } />
+          
+          {/* Fallback pour toutes les autres routes */}
           <Route path="*" element={<StabilizedIndex />} />
         </Routes>
+        
+        {/* Panel de debug global */}
+        <Suspense fallback={null}>
+          <DebugPanel />
+        </Suspense>
       </BrowserRouter>
     </SafeAppProvider>
   );
