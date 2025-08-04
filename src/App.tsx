@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
-import { AuthProvider } from "./hooks/useAuth.tsx";
+import { AuthProvider } from "./hooks/useAuth";
 import { PlanPreviewProvider } from "./hooks/usePlanPreview";
 import Index from "./pages/Index";
 import AdminPage from "./pages/AdminPage";
