@@ -40,8 +40,6 @@ const App = () => {
         <GlobalStoreProvider>
           <AuthProvider>
             <PlanPreviewProvider>
-              <Toaster />
-              <Sonner />
               <BrowserRouter>
                 <AppWithTracking />
               </BrowserRouter>
