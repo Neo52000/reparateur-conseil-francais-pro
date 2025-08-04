@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+// import { TooltipProvider } from "@/components/ui/tooltip"; // Temporarily disabled
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
@@ -51,11 +51,9 @@ const App = () => {
         <BrowserRouter>
           <GlobalStoreProvider>
             <AuthProvider>
-              <TooltipProvider>
-                <AppWithTracking />
-                <Toaster />
-                <Sonner />
-              </TooltipProvider>
+              <AppWithTracking />
+              <Toaster />
+              <Sonner />
             </AuthProvider>
           </GlobalStoreProvider>
         </BrowserRouter>
