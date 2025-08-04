@@ -4,6 +4,7 @@ import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from './auth/types';
 import { useLocalStorage } from './useLocalStorage';
+import { useAuthStore } from '@/stores/authStore';
 
 interface AuthContextType {
   user: User | null;
@@ -24,6 +25,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Synchronisation avec Zustand store
+  const authStore = useAuthStore();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -123,10 +126,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session.user);
         setSession(session);
         
+        // Synchroniser avec Zustand
+        authStore.setAuth(session, null);
+        
         try {
           const profileData = await fetchProfile(session.user.id, session.user.user_metadata);
           if (mounted) {
             setProfile(profileData);
+            authStore.setProfile(profileData);
             console.log('📝 AuthProvider: Profile set:', profileData);
           }
         } catch (error) {
@@ -148,6 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
         setSession(null);
         setProfile(null);
+        authStore.clearAuth();
       }
       
       // Arrêter le loading

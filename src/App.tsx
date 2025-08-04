@@ -9,7 +9,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
 import { AuthProvider } from "./hooks/useAuth";
 import { PlanPreviewProvider } from "./hooks/usePlanPreview";
-import Index from "./pages/Index-simple";
+import Index from "./pages/Index";
 import AdminPage from "./pages/AdminPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
