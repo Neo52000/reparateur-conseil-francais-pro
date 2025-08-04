@@ -2,7 +2,8 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import SafeNavigation from "@/components/safe/SafeNavigation";
-import SafeRepairersSection from "@/components/safe/SafeRepairersSection";
+import SafeRepairersCarousel from "@/components/safe/SafeRepairersCarousel";
+import SafeAppProvider from "@/providers/SafeAppProvider";
 
 // Version stabilisée avec Error Boundaries
 const StabilizedIndex = () => {
@@ -39,8 +40,15 @@ const StabilizedIndex = () => {
           </section>
         </ErrorBoundary>
 
-        <ErrorBoundary>
-          <SafeRepairersSection />
+        <ErrorBoundary fallback={
+          <div className="py-16 bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Nos Réparateurs</h2>
+              <p className="text-gray-600">Section temporairement indisponible</p>
+            </div>
+          </div>
+        }>
+          <SafeRepairersCarousel />
         </ErrorBoundary>
 
         <ErrorBoundary fallback={
@@ -105,21 +113,14 @@ const StabilizedIndex = () => {
 
 const App = () => {
   return (
-    <ErrorBoundary fallback={
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">RepairHub</h1>
-          <p className="text-gray-600">L'application se charge...</p>
-        </div>
-      </div>
-    }>
+    <SafeAppProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<StabilizedIndex />} />
           <Route path="*" element={<StabilizedIndex />} />
         </Routes>
       </BrowserRouter>
-    </ErrorBoundary>
+    </SafeAppProvider>
   );
 };
 
