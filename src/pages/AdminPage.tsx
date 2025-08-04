@@ -16,7 +16,7 @@ import AutomatedRelaunchDashboard from '@/components/admin/automation/AutomatedR
 import BlogManagement from '@/components/blog/admin/BlogManagement';
 import ChatbotManagement from '@/components/admin/ChatbotManagement';
 import AdminAuthForm from '@/components/AdminAuthForm';
-import { useAuth } from '@/hooks/useAuth';
+import { useSimplifiedAuth } from '@/hooks/useSimplifiedAuth';
 import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdvertisingDashboard';
 import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement';
 import SubdomainsManagement from '@/components/admin/SubdomainsManagement';
@@ -47,12 +47,15 @@ import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizatio
 import { SuppliersDirectoryManagement } from '@/components/admin/SuppliersDirectoryManagement';
 
 const AdminPage = () => {
+  // TEMPORAIRE: Utiliser useSimplifiedAuth au lieu de useAuth pour éviter l'erreur de contexte
   const {
     user,
     profile,
-    isAdmin,
     loading
-  } = useAuth();
+  } = useSimplifiedAuth();
+  
+  // Simpler la vérification admin temporairement
+  const isAdmin = profile?.role === 'admin';
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'dashboard';
 
