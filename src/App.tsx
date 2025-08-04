@@ -4,6 +4,7 @@ import { ErrorBoundary } from "@/components/error/ErrorBoundary";
 import SafeNavigation from "@/components/safe/SafeNavigation";
 import SafeRepairersCarousel from "@/components/safe/SafeRepairersCarousel";
 import SafeAppProvider from "@/providers/SafeAppProvider";
+import DebugPanel from "@/components/debug/DebugPanel";
 
 // Version stabilisée avec Error Boundaries
 const StabilizedIndex = () => {
@@ -107,6 +108,8 @@ const StabilizedIndex = () => {
           </div>
         </footer>
       </ErrorBoundary>
+      
+      <DebugPanel />
     </div>
   );
 };

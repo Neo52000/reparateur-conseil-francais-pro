@@ -1,5 +1,6 @@
 import { useSafeState } from './useSafeState';
 import { useSafeToast } from './useSafeToast';
+import { useLogger } from './useLogger';
 import { useCallback, useEffect } from 'react';
 
 interface SafeRepairer {
@@ -15,13 +16,15 @@ export const useSafePriorityRepairers = (limit: number = 20) => {
   const [loading, setLoading] = useSafeState(true);
   const [error, setError] = useSafeState<string | null>(null);
   const { toast } = useSafeToast();
+  const { logInfo, logError, logWarn } = useLogger('SafePriorityRepairers');
 
   const fetchPriorityRepairers = useCallback(async () => {
     try {
+      logInfo('Début du chargement des réparateurs prioritaires', { limit });
       setLoading(true);
       setError(null);
       
-      console.log('SafePriorityRepairers - Fetching data...');
+      logInfo('Utilisation de données mock pour la stabilité');
       
       // Mock data pour éviter les erreurs de service
       const mockRepairers: SafeRepairer[] = [
@@ -34,10 +37,11 @@ export const useSafePriorityRepairers = (limit: number = 20) => {
       await new Promise(resolve => setTimeout(resolve, 500));
       
       setRepairers(mockRepairers.slice(0, limit));
-      console.log('SafePriorityRepairers - Successfully loaded mock data');
+      logInfo('Données chargées avec succès', { count: mockRepairers.slice(0, limit).length });
+      
       
     } catch (err) {
-      console.error('SafePriorityRepairers - Error:', err);
+      logError('Erreur lors du chargement des réparateurs', err);
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement';
       setError(errorMessage);
       setRepairers([]);
