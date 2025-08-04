@@ -172,42 +172,123 @@ const SuppliersManagementTab: React.FC = () => {
     setEditingSupplier(null);
   };
 
+  const formatError = (error: any): string => {
+    if (!error) return 'Erreur inconnue';
+    
+    // Si c'est une erreur Supabase
+    if (error.message) {
+      if (error.code === '23505') {
+        return 'Un fournisseur avec ce nom existe déjà';
+      }
+      if (error.code === '23502') {
+        return 'Champs requis manquants';
+      }
+      if (error.message.includes('duplicate key')) {
+        return 'Ce fournisseur existe déjà dans la base de données';
+      }
+      if (error.message.includes('permission denied')) {
+        return 'Permissions insuffisantes pour cette action';
+      }
+      return error.message;
+    }
+    
+    // Si c'est juste une string
+    if (typeof error === 'string') {
+      return error;
+    }
+    
+    // Fallback pour autres types d'erreurs
+    return error.toString() || 'Erreur inconnue lors de la sauvegarde';
+  };
+
+  const validateSupplierData = (data: any): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    
+    if (!data.name || data.name.trim() === '') {
+      errors.push('Le nom du fournisseur est requis');
+    }
+    
+    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      errors.push('Format email invalide');
+    }
+    
+    if (data.website && data.website.trim() && !/^https?:\/\/.+/.test(data.website)) {
+      errors.push('URL invalide (doit commencer par http:// ou https://)');
+    }
+    
+    if (data.phone && data.phone.trim() && !/^[\d\s\+\-\(\)\.]+$/.test(data.phone)) {
+      errors.push('Format téléphone invalide');
+    }
+    
+    return { isValid: errors.length === 0, errors };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
+      // Validation des données avant envoi
+      const validation = validateSupplierData(formData);
+      if (!validation.isValid) {
+        toast({
+          title: "Erreur de validation",
+          description: validation.errors.join(', '),
+          variant: "destructive",
+        });
+        return;
+      }
+
       const supplierData = {
-        name: formData.name,
-        description: formData.description,
-        email: formData.email,
-        phone: formData.phone,
-        website: formData.website,
+        name: formData.name.trim(),
+        description: formData.description?.trim() || '',
+        email: formData.email?.trim() || '',
+        phone: formData.phone?.trim() || '',
+        website: formData.website?.trim() || '',
         brands_sold: formData.brands_sold.split(',').map(s => s.trim()).filter(Boolean),
         product_types: formData.product_types.split(',').map(s => s.trim()).filter(Boolean),
         specialties: formData.specialties.split(',').map(s => s.trim()).filter(Boolean),
         certifications: formData.certifications.split(',').map(s => s.trim()).filter(Boolean),
-        payment_terms: formData.payment_terms,
+        payment_terms: formData.payment_terms?.trim() || '',
         minimum_order: formData.minimum_order ? parseFloat(formData.minimum_order) : null,
-        address: formData.address,
-        delivery_info: formData.delivery_info,
-        is_verified: formData.is_verified,
-        is_featured: formData.is_featured,
-        status: formData.status
+        address: {
+          street: formData.address?.street?.trim() || '',
+          city: formData.address?.city?.trim() || '',
+          postal_code: formData.address?.postal_code?.trim() || '',
+          country: formData.address?.country?.trim() || 'France'
+        },
+        delivery_info: {
+          standard: formData.delivery_info?.standard?.trim() || '',
+          express: formData.delivery_info?.express?.trim() || '',
+          zones: Array.isArray(formData.delivery_info?.zones) ? formData.delivery_info.zones : [],
+          cost: formData.delivery_info?.cost?.trim() || ''
+        },
+        is_verified: formData.is_verified || false,
+        is_featured: formData.is_featured || false,
+        status: formData.status || 'active'
       };
 
-      let error;
+      console.log('💾 Saving supplier data:', supplierData);
+
+      let result;
       if (editingSupplier) {
-        ({ error } = await supabase
+        result = await supabase
           .from('suppliers_directory')
           .update(supplierData)
-          .eq('id', editingSupplier.id));
+          .eq('id', editingSupplier.id)
+          .select();
       } else {
-        ({ error } = await supabase
+        result = await supabase
           .from('suppliers_directory')
-          .insert([supplierData]));
+          .insert([supplierData])
+          .select();
       }
 
-      if (error) throw error;
+      if (result.error) {
+        console.error('❌ Supabase error:', result.error);
+        throw result.error;
+      }
+
+      console.log('✅ Supplier saved successfully:', result.data);
 
       toast({
         title: "Succès",
@@ -218,10 +299,11 @@ const SuppliersManagementTab: React.FC = () => {
       setIsCreateDialogOpen(false);
       fetchSuppliers();
     } catch (err) {
-      console.error('Error saving supplier:', err);
+      console.error('❌ Error saving supplier:', err);
+      const errorMessage = formatError(err);
       toast({
         title: "Erreur",
-        description: `Impossible de sauvegarder le fournisseur: ${err}`,
+        description: `Impossible de sauvegarder le fournisseur: ${errorMessage}`,
         variant: "destructive",
       });
     }
@@ -268,10 +350,11 @@ const SuppliersManagementTab: React.FC = () => {
 
       fetchSuppliers();
     } catch (err) {
-      console.error('Error deleting supplier:', err);
+      console.error('❌ Error deleting supplier:', err);
+      const errorMessage = formatError(err);
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer le fournisseur",
+        description: `Impossible de supprimer le fournisseur: ${errorMessage}`,
         variant: "destructive",
       });
     }
