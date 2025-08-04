@@ -48,17 +48,17 @@ const App = () => {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <GlobalStoreProvider>
-          <AuthProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
+        <BrowserRouter>
+          <GlobalStoreProvider>
+            <AuthProvider>
+              <TooltipProvider>
                 <AppWithTracking />
-              </BrowserRouter>
-            </TooltipProvider>
-          </AuthProvider>
-        </GlobalStoreProvider>
+                <Toaster />
+                <Sonner />
+              </TooltipProvider>
+            </AuthProvider>
+          </GlobalStoreProvider>
+        </BrowserRouter>
       </QueryClientProvider>
     </HelmetProvider>
   );
