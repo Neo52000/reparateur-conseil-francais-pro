@@ -175,6 +175,13 @@ export const SuppliersDirectoryManagement = () => {
         status: 'pending'
       };
 
+      // Debug : vérifier l'utilisateur actuel et son rôle
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user:', user);
+      
+      const { data: roleData } = await supabase.rpc('get_current_user_role');
+      console.log('Current user role:', roleData);
+
       console.log('Creating supplier with data:', supplierData);
 
       const { data, error } = await supabase
