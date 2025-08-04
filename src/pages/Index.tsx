@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// TestRepairerProfileButton supprimé - utilisation des données réelles
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -12,6 +13,9 @@ import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 import ChatWidget from '@/components/chatbot/ChatWidget';
+import { useAuth } from '@/hooks/useAuth';
+import { usePendingAction } from '@/hooks/usePendingAction';
+import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
 
 interface SearchCriteria {
   deviceType: string;
@@ -26,11 +30,68 @@ const Index = () => {
   const navigate = useNavigate();
   
   console.log('🏠 Index page rendering');
-  
-  const [selectedRepairerForProfile, setSelectedRepairerForProfile] = useState<string | null>(null);
-  const [showQuickSearch, setShowQuickSearch] = useState(false);
-  const [showMapSearch, setShowMapSearch] = useState(false);
-  const [searchFilters, setSearchFilters] = useState<any>(null);
+  const { user } = useAuth();
+  const { pendingAction, clearPendingAction } = usePendingAction();
+    const {
+      isQuoteModalOpen,
+      isAppointmentModalOpen,
+      selectedRepairerId,
+      selectedQuoteId,
+      handleRequestQuote,
+      handleBookAppointment,
+      closeQuoteModal,
+      closeAppointmentModal
+    } = useQuoteAndAppointment();
+    
+    const [selectedRepairerForProfile, setSelectedRepairerForProfile] = useState<string | null>(null);
+    const [showQuickSearch, setShowQuickSearch] = useState(false);
+    const [showMapSearch, setShowMapSearch] = useState(false);
+    const [searchFilters, setSearchFilters] = useState<any>(null);
+
+    console.log('🏠 Index page rendering');
+
+  // Gérer la restauration des actions après connexion
+  useEffect(() => {
+    if (user && pendingAction) {
+      if (pendingAction.type === 'quote_request') {
+        const data = pendingAction.data as any;
+        if (data.repairerId) {
+          handleRequestQuote(data.repairerId);
+        }
+        clearPendingAction();
+      } else if (pendingAction.type === 'appointment_request') {
+        const data = pendingAction.data as { repairerId: string; quoteId?: string };
+        handleBookAppointment(data.repairerId, data.quoteId);
+        clearPendingAction();
+      }
+    }
+  }, [user, pendingAction, handleRequestQuote, handleBookAppointment, clearPendingAction]);
+
+  // Gérer l'ancien système pour les devis (rétrocompatibilité)
+  useEffect(() => {
+    if (user) {
+      const oldPendingQuote = localStorage.getItem('pendingQuoteAction');
+      if (oldPendingQuote) {
+        try {
+          const data = JSON.parse(oldPendingQuote);
+          if (data.type === 'quote_request' && data.data?.repairerId) {
+            handleRequestQuote(data.data.repairerId);
+          }
+        } catch (error) {
+          console.error('Error parsing old pending quote:', error);
+        }
+        localStorage.removeItem('pendingQuoteAction');
+      }
+
+      // Gérer la recherche personnalisée en attente
+      const pendingPersonalizedSearch = localStorage.getItem('pendingPersonalizedSearch');
+      if (pendingPersonalizedSearch) {
+        localStorage.removeItem('pendingPersonalizedSearch');
+        // La logique sera gérée par le composant HeroWithIntegratedSearch
+        window.dispatchEvent(new CustomEvent('restorePersonalizedSearch'));
+      }
+    }
+  }, [user, handleRequestQuote]);
 
   const handleViewProfile = (repairer: any) => {
     setSelectedRepairerForProfile(repairer.id);
@@ -187,6 +248,8 @@ const Index = () => {
           repairerId={selectedRepairerForProfile}
         />
       )}
+
+      {/* TestRepairerProfileButton supprimé - production mode */}
     </div>
   );
 };
