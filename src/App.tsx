@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
 import { AuthProvider } from "./hooks/useAuth";
+import { PlanPreviewProvider } from "./hooks/usePlanPreview";
 import Index from "./pages/Index";
 import AdminPage from "./pages/AdminPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
@@ -24,6 +25,7 @@ import RepairerAuthPage from "./pages/RepairerAuthPage";
 import ClientAuthPage from "./pages/ClientAuthPage";
 import BlogPage from "./pages/BlogPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
+import { SuppliersDirectoryPage } from "./pages/SuppliersDirectoryPage";
 import QuotesAndAppointments from "./pages/QuotesAndAppointments";
 import { useVisitorTracker } from "./hooks/useVisitorTracker";
 import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
@@ -50,13 +52,15 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <GlobalStoreProvider>
           <AuthProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
+            <PlanPreviewProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
                 <AppWithTracking />
-              </BrowserRouter>
-            </TooltipProvider>
+                </BrowserRouter>
+              </TooltipProvider>
+            </PlanPreviewProvider>
           </AuthProvider>
         </GlobalStoreProvider>
       </QueryClientProvider>
@@ -90,6 +94,7 @@ const AppWithTracking = () => {
         <Route path="/client" element={<ClientDashboardPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/admin/*" element={<AdminPage />} />
+        <Route path="/suppliers" element={<SuppliersDirectoryPage />} />
         <Route path="/reparation-:serviceType" element={<ServiceRepairPage />} />
         <Route path="/reparateur-:serviceType-:city" element={<LocalSeoPage />} />
         <Route path="/settings" element={<RepairerSettingsPage />} />
