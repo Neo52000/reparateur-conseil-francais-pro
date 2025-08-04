@@ -27,7 +27,12 @@ export class ErrorHandlingService {
    * @returns Message d'erreur formaté pour l'utilisateur
    */
   static formatError(error: any, context?: string): string {
-    console.log('🔍 [ErrorHandlingService] Formatting error:', { error, context, type: typeof error });
+    console.log('🔍 [ErrorHandlingService] Formatting error:', { 
+      error, 
+      context, 
+      type: typeof error,
+      errorKeys: error && typeof error === 'object' ? Object.keys(error) : 'N/A'
+    });
     
     // Cas 1: Erreur null ou undefined
     if (!error) {
@@ -41,6 +46,19 @@ export class ErrorHandlingService {
 
     // Cas 3: Erreur Supabase avec structure complète
     if (error && typeof error === 'object') {
+      // Vérifier d'abord les erreurs HTTP spécifiques
+      if (error.status === 404) {
+        return 'Table ou ressource non trouvée. Vérifiez que la table existe et que vous avez les permissions nécessaires.';
+      }
+      
+      if (error.status === 403 || error.status === 401) {
+        return 'Accès refusé. Vous n\'avez pas les permissions nécessaires pour cette action.';
+      }
+
+      if (error.status >= 500) {
+        return 'Erreur serveur temporaire. Veuillez réessayer dans quelques instants.';
+      }
+
       // Erreur Supabase avec code PostgreSQL
       if (error.code) {
         const postgresError = this.handlePostgresError(error);
@@ -62,11 +80,36 @@ export class ErrorHandlingService {
       if (error.name === 'NetworkError' || error.name === 'TypeError') {
         return 'Problème de connexion. Veuillez vérifier votre connexion internet.';
       }
+
+      // Erreur de fetch ou de réseau
+      if (error.name === 'FetchError') {
+        return 'Erreur de communication avec le serveur. Vérifiez votre connexion.';
+      }
     }
 
-    // Cas 4: Tentative de sérialisation sécurisée
+    // Cas 4: Tentative de sérialisation sécurisée et logging détaillé
     try {
       if (typeof error === 'object' && error !== null) {
+        // Log détaillé de l'erreur pour debugging
+        console.group('🐛 [ErrorHandlingService] Detailed Error Analysis');
+        console.log('Error type:', typeof error);
+        console.log('Error constructor:', error.constructor?.name);
+        console.log('Error prototype:', Object.getPrototypeOf(error));
+        console.log('Own properties:', Object.getOwnPropertyNames(error));
+        console.log('Enumerable properties:', Object.keys(error));
+        
+        // Essayer d'extraire toutes les propriétés
+        const allProps: Record<string, any> = {};
+        for (const prop of Object.getOwnPropertyNames(error)) {
+          try {
+            allProps[prop] = error[prop];
+          } catch (e) {
+            allProps[prop] = '[Propriété non accessible]';
+          }
+        }
+        console.log('All properties:', allProps);
+        console.groupEnd();
+
         // Si l'objet a une méthode toString personnalisée
         if (error.toString && error.toString !== Object.prototype.toString) {
           const stringified = error.toString();
@@ -75,10 +118,26 @@ export class ErrorHandlingService {
           }
         }
 
-        // Essayer de sérialiser en JSON
-        const jsonString = JSON.stringify(error, null, 2);
-        if (jsonString && jsonString !== '{}') {
+        // Essayer de sérialiser en JSON avec replacer pour gérer les propriétés non énumérables
+        const replacer = (key: string, value: any) => {
+          if (value instanceof Error) {
+            const errorObj: any = {};
+            Object.getOwnPropertyNames(value).forEach(prop => {
+              errorObj[prop] = value[prop];
+            });
+            return errorObj;
+          }
+          return value;
+        };
+
+        const jsonString = JSON.stringify(error, replacer, 2);
+        if (jsonString && jsonString !== '{}' && jsonString !== 'null') {
           console.log('📝 [ErrorHandlingService] Serialized error:', jsonString);
+          // Extraire le message principal au lieu d'afficher tout le JSON
+          const parsedError = JSON.parse(jsonString);
+          if (parsedError.message) {
+            return `Erreur: ${parsedError.message}`;
+          }
           return `Erreur technique: ${jsonString}`;
         }
       }
@@ -92,17 +151,35 @@ export class ErrorHandlingService {
       console.log('🔧 [ErrorHandlingService] Error properties:', errorProps);
       
       const importantProps = errorProps
-        .filter(prop => ['message', 'code', 'details', 'hint', 'statusText'].includes(prop))
-        .map(prop => `${prop}: ${error[prop]}`)
+        .filter(prop => ['message', 'code', 'details', 'hint', 'statusText', 'status'].includes(prop))
+        .map(prop => {
+          try {
+            return `${prop}: ${error[prop]}`;
+          } catch (e) {
+            return `${prop}: [Non accessible]`;
+          }
+        })
         .join(', ');
       
       if (importantProps) {
         return `Erreur: ${importantProps}`;
       }
+
+      // Essayer de récupérer au moins quelques propriétés standard
+      const standardProps = ['name', 'message', 'stack', 'cause'];
+      const availableProps = standardProps
+        .filter(prop => prop in error)
+        .map(prop => `${prop}: ${String(error[prop]).slice(0, 100)}`)
+        .join(', ');
+
+      if (availableProps) {
+        return `Erreur: ${availableProps}`;
+      }
     }
 
-    // Cas 6: Dernier recours
+    // Cas 6: Dernier recours avec plus d'informations
     const contextMsg = context ? ` lors de ${context}` : '';
+    console.error('💀 [ErrorHandlingService] Unhandled error format:', error);
     return `Erreur technique non identifiée${contextMsg}. Consultez la console pour plus de détails.`;
   }
 
