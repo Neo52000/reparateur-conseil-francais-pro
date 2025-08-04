@@ -10776,6 +10776,140 @@ export type Database = {
           },
         ]
       }
+      suppliers_directory: {
+        Row: {
+          address: Json | null
+          brands_sold: string[] | null
+          certifications: string[] | null
+          created_at: string
+          created_by: string | null
+          delivery_info: Json | null
+          description: string | null
+          email: string | null
+          featured_image_url: string | null
+          id: string
+          is_featured: boolean | null
+          is_verified: boolean | null
+          logo_url: string | null
+          minimum_order: number | null
+          name: string
+          payment_terms: string | null
+          phone: string | null
+          product_types: string[] | null
+          rating: number | null
+          review_count: number | null
+          specialties: string[] | null
+          status: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: Json | null
+          brands_sold?: string[] | null
+          certifications?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          delivery_info?: Json | null
+          description?: string | null
+          email?: string | null
+          featured_image_url?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_verified?: boolean | null
+          logo_url?: string | null
+          minimum_order?: number | null
+          name: string
+          payment_terms?: string | null
+          phone?: string | null
+          product_types?: string[] | null
+          rating?: number | null
+          review_count?: number | null
+          specialties?: string[] | null
+          status?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: Json | null
+          brands_sold?: string[] | null
+          certifications?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          delivery_info?: Json | null
+          description?: string | null
+          email?: string | null
+          featured_image_url?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_verified?: boolean | null
+          logo_url?: string | null
+          minimum_order?: number | null
+          name?: string
+          payment_terms?: string | null
+          phone?: string | null
+          product_types?: string[] | null
+          rating?: number | null
+          review_count?: number | null
+          specialties?: string[] | null
+          status?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      suppliers_directory_reviews: {
+        Row: {
+          cons: Json | null
+          content: string
+          created_at: string
+          id: string
+          pros: Json | null
+          rating: number
+          repairer_id: string
+          status: string | null
+          supplier_id: string
+          title: string
+          updated_at: string
+          verified_purchase: boolean | null
+        }
+        Insert: {
+          cons?: Json | null
+          content: string
+          created_at?: string
+          id?: string
+          pros?: Json | null
+          rating: number
+          repairer_id: string
+          status?: string | null
+          supplier_id: string
+          title: string
+          updated_at?: string
+          verified_purchase?: boolean | null
+        }
+        Update: {
+          cons?: Json | null
+          content?: string
+          created_at?: string
+          id?: string
+          pros?: Json | null
+          rating?: number
+          repairer_id?: string
+          status?: string | null
+          supplier_id?: string
+          title?: string
+          updated_at?: string
+          verified_purchase?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_directory_reviews_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers_directory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sync_logs: {
         Row: {
           after_data: Json | null
