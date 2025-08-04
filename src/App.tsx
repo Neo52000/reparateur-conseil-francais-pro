@@ -24,6 +24,7 @@ import RepairTrackingPage from "./pages/RepairTrackingPage";
 import StaticPage from "./pages/StaticPage";
 import SimpleRepairerAuth from "./pages/SimpleRepairerAuth";
 import SimpleClientAuth from "./pages/SimpleClientAuth";
+import SimpleClientDashboard from "./pages/SimpleClientDashboard";
 import SimpleAdminPage from "./pages/SimpleAdminPage";
 import BlogPage from "./pages/BlogPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
