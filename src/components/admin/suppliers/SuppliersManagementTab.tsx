@@ -124,6 +124,16 @@ const SuppliersManagementTab: React.FC = () => {
     setEditingSupplier(null);
   };
 
+  const parseJsonField = (value: string, fallback: any = {}) => {
+    if (!value || value.trim() === '') return fallback;
+    try {
+      return JSON.parse(value);
+    } catch (error) {
+      console.warn('Invalid JSON:', value);
+      return fallback;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -135,8 +145,8 @@ const SuppliersManagementTab: React.FC = () => {
         specialties: formData.specialties.split(',').map(s => s.trim()).filter(Boolean),
         certifications: formData.certifications.split(',').map(s => s.trim()).filter(Boolean),
         minimum_order: formData.minimum_order ? parseFloat(formData.minimum_order) : null,
-        address: formData.address ? JSON.parse(formData.address) : {},
-        delivery_info: formData.delivery_info ? JSON.parse(formData.delivery_info) : {},
+        address: parseJsonField(formData.address, {}),
+        delivery_info: parseJsonField(formData.delivery_info, {}),
       };
 
       let error;
