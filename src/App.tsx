@@ -9,7 +9,7 @@ import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
 import { AuthProvider } from "./hooks/useAuth";
 import { SimplifiedAuthProvider } from "./hooks/useSimplifiedAuth";
 import { PlanPreviewProvider } from "./hooks/usePlanPreview";
-import Index from "./pages/Index";
+import TempSimpleIndex from "./pages/TempSimpleIndex";
 import DebugIndex from "./pages/DebugIndex";
 import AdminPage from "./pages/AdminPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
@@ -96,11 +96,11 @@ const AppWithTracking = () => {
       <Routes>
         <Route path="/" element={
           <>
-            {console.log('🔍 Route / - Element rendu')}
-            <DebugIndex />
+            {console.log('🔍 Route / - Element rendu avec TempSimpleIndex')}
+            <TempSimpleIndex />
           </>
         } />
-        <Route path="/debug-original" element={<Index />} />
+        <Route path="/debug-original" element={<DebugIndex />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/repairers" element={<BlogPage />} />
         <Route path="/blog/repairers/:slug" element={<BlogArticlePage />} />
