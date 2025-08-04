@@ -16,7 +16,7 @@ import AutomatedRelaunchDashboard from '@/components/admin/automation/AutomatedR
 import BlogManagement from '@/components/blog/admin/BlogManagement';
 import ChatbotManagement from '@/components/admin/ChatbotManagement';
 import AdminAuthForm from '@/components/AdminAuthForm';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useSimpleAuth';
 import { handleAuthError } from '@/services/errorHandlingService';
 import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdvertisingDashboard';
 import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement';

@@ -24,7 +24,7 @@ import RepairTrackingPage from "./pages/RepairTrackingPage";
 import StaticPage from "./pages/StaticPage";
 import SimpleRepairerAuth from "./pages/SimpleRepairerAuth";
 import SimpleClientAuth from "./pages/SimpleClientAuth";
-import SimpleClientDashboard from "./pages/SimpleClientDashboard";
+import SimpleAdminPage from "./pages/SimpleAdminPage";
 import BlogPage from "./pages/BlogPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
 import { SuppliersDirectoryPage } from "./pages/SuppliersDirectoryPage";
@@ -72,8 +72,8 @@ const AppWithTracking = () => {
             <Route path="/repairer/:id" element={<RepairerProfilePage />} />
             <Route path="/repairer/:id/:slug" element={<RepairerProfilePage />} />
         <Route path="/client" element={<SimpleClientDashboard />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/admin/*" element={<AdminPage />} />
+        <Route path="/admin" element={<SimpleAdminPage />} />
+        <Route path="/admin/*" element={<SimpleAdminPage />} />
         <Route path="/suppliers" element={<SuppliersDirectoryPage />} />
         <Route path="/reparation-:serviceType" element={<ServiceRepairPage />} />
         <Route path="/reparateur-:serviceType-:city" element={<LocalSeoPage />} />
