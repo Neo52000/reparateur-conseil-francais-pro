@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Search, Bell, Settings, User, Globe, Plus, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,7 @@ const AdminTopBar: React.FC<AdminTopBarProps> = ({
   showNewButton = true,
   showVisitButton = true
 }) => {
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch?.(searchQuery);
@@ -48,7 +48,17 @@ const AdminTopBar: React.FC<AdminTopBarProps> = ({
 
           {/* Quick Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            {showNewButton}
+            {showNewButton && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onNewAction} 
+                className="text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-7 px-2 text-xs"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Nouveau
+              </Button>
+            )}
             {showVisitButton && <Button variant="ghost" size="sm" onClick={onVisitAction} className="text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-7 px-2 text-xs">
                 <Globe className="w-3 h-3 mr-1" />
                 Visiter
