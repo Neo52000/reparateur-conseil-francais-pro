@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Plus, Edit, Trash2, Star, MapPin, Phone, Mail, Globe, Download, Upload, Search, Filter } from 'lucide-react';
 import SupplierForm from './SupplierForm';
 import { SuppliersCSVService } from '@/services/suppliers/SuppliersCSVService';
+import { ErrorHandlingService } from '@/services/error/ErrorHandlingService';
 import {
   Dialog,
   DialogContent,
@@ -172,138 +173,80 @@ const SuppliersManagementTab: React.FC = () => {
     setEditingSupplier(null);
   };
 
-  const formatError = (error: any): string => {
-    if (!error) return 'Erreur inconnue';
-    
-    // Si c'est une erreur Supabase
-    if (error.message) {
-      if (error.code === '23505') {
-        return 'Un fournisseur avec ce nom existe déjà';
-      }
-      if (error.code === '23502') {
-        return 'Champs requis manquants';
-      }
-      if (error.message.includes('duplicate key')) {
-        return 'Ce fournisseur existe déjà dans la base de données';
-      }
-      if (error.message.includes('permission denied')) {
-        return 'Permissions insuffisantes pour cette action';
-      }
-      return error.message;
-    }
-    
-    // Si c'est juste une string
-    if (typeof error === 'string') {
-      return error;
-    }
-    
-    // Fallback pour autres types d'erreurs
-    return error.toString() || 'Erreur inconnue lors de la sauvegarde';
-  };
+  /**
+   * Gestion centralisée des erreurs via le service dédié
+   */
 
-  const validateSupplierData = (data: any): { isValid: boolean; errors: string[] } => {
-    const errors: string[] = [];
-    
-    if (!data.name || data.name.trim() === '') {
-      errors.push('Le nom du fournisseur est requis');
-    }
-    
-    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      errors.push('Format email invalide');
-    }
-    
-    if (data.website && data.website.trim() && !/^https?:\/\/.+/.test(data.website)) {
-      errors.push('URL invalide (doit commencer par http:// ou https://)');
-    }
-    
-    if (data.phone && data.phone.trim() && !/^[\d\s\+\-\(\)\.]+$/.test(data.phone)) {
-      errors.push('Format téléphone invalide');
-    }
-    
-    return { isValid: errors.length === 0, errors };
-  };
-
+  /**
+   * Gère la soumission du formulaire de fournisseur
+   * Utilise le service de gestion d'erreurs pour une meilleure expérience utilisateur
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      // Validation des données avant envoi
-      const validation = validateSupplierData(formData);
+      console.log('🚀 [SuppliersManagement] Starting supplier submission:', { editingSupplier: !!editingSupplier });
+      
+      // Phase 1: Validation des données
+      const validation = ErrorHandlingService.validateSupplierData(formData);
       if (!validation.isValid) {
+        const errorMessages = validation.errors.map(err => `${err.field}: ${err.message}`).join('\n');
         toast({
           title: "Erreur de validation",
-          description: validation.errors.join(', '),
+          description: errorMessages,
           variant: "destructive",
         });
         return;
       }
 
-      const supplierData = {
-        name: formData.name.trim(),
-        description: formData.description?.trim() || '',
-        email: formData.email?.trim() || '',
-        phone: formData.phone?.trim() || '',
-        website: formData.website?.trim() || '',
-        brands_sold: formData.brands_sold.split(',').map(s => s.trim()).filter(Boolean),
-        product_types: formData.product_types.split(',').map(s => s.trim()).filter(Boolean),
-        specialties: formData.specialties.split(',').map(s => s.trim()).filter(Boolean),
-        certifications: formData.certifications.split(',').map(s => s.trim()).filter(Boolean),
-        payment_terms: formData.payment_terms?.trim() || '',
-        minimum_order: formData.minimum_order ? parseFloat(formData.minimum_order) : null,
-        address: {
-          street: formData.address?.street?.trim() || '',
-          city: formData.address?.city?.trim() || '',
-          postal_code: formData.address?.postal_code?.trim() || '',
-          country: formData.address?.country?.trim() || 'France'
-        },
-        delivery_info: {
-          standard: formData.delivery_info?.standard?.trim() || '',
-          express: formData.delivery_info?.express?.trim() || '',
-          zones: Array.isArray(formData.delivery_info?.zones) ? formData.delivery_info.zones : [],
-          cost: formData.delivery_info?.cost?.trim() || ''
-        },
-        is_verified: formData.is_verified || false,
-        is_featured: formData.is_featured || false,
-        status: formData.status || 'active'
-      };
+      // Phase 2: Préparation des données
+      const supplierData = ErrorHandlingService.prepareSupplierData(formData);
+      console.log('📦 [SuppliersManagement] Prepared supplier data:', supplierData);
 
-      console.log('💾 Saving supplier data:', supplierData);
-
+      // Phase 3: Envoi à Supabase
       let result;
       if (editingSupplier) {
+        console.log('🔄 [SuppliersManagement] Updating existing supplier:', editingSupplier.id);
         result = await supabase
           .from('suppliers_directory')
           .update(supplierData)
           .eq('id', editingSupplier.id)
           .select();
       } else {
+        console.log('➕ [SuppliersManagement] Creating new supplier');
         result = await supabase
           .from('suppliers_directory')
           .insert([supplierData])
           .select();
       }
 
+      // Phase 4: Gestion du résultat
       if (result.error) {
-        console.error('❌ Supabase error:', result.error);
+        console.error('❌ [SuppliersManagement] Supabase error:', result.error);
         throw result.error;
       }
 
-      console.log('✅ Supplier saved successfully:', result.data);
+      console.log('✅ [SuppliersManagement] Supplier saved successfully:', result.data);
 
       toast({
         title: "Succès",
-        description: editingSupplier ? "Fournisseur mis à jour" : "Fournisseur créé",
+        description: editingSupplier ? "Fournisseur mis à jour avec succès" : "Fournisseur créé avec succès",
       });
 
       resetForm();
       setIsCreateDialogOpen(false);
       fetchSuppliers();
+      
     } catch (err) {
-      console.error('❌ Error saving supplier:', err);
-      const errorMessage = formatError(err);
+      console.error('💥 [SuppliersManagement] Error during supplier submission:', err);
+      
+      // Utilisation du service de gestion d'erreurs centralisé
+      const context = editingSupplier ? 'la mise à jour du fournisseur' : 'la création du fournisseur';
+      const errorMessage = ErrorHandlingService.formatError(err, context);
+      
       toast({
-        title: "Erreur",
-        description: `Impossible de sauvegarder le fournisseur: ${errorMessage}`,
+        title: "Erreur de sauvegarde",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -350,11 +293,11 @@ const SuppliersManagementTab: React.FC = () => {
 
       fetchSuppliers();
     } catch (err) {
-      console.error('❌ Error deleting supplier:', err);
-      const errorMessage = formatError(err);
+      console.error('❌ [SuppliersManagement] Error deleting supplier:', err);
+      const errorMessage = ErrorHandlingService.formatError(err, 'la suppression du fournisseur');
       toast({
-        title: "Erreur",
-        description: `Impossible de supprimer le fournisseur: ${errorMessage}`,
+        title: "Erreur de suppression",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -403,10 +346,11 @@ const SuppliersManagementTab: React.FC = () => {
         });
       }
     } catch (err) {
-      console.error('Import error:', err);
+      console.error('💥 [SuppliersManagement] Import error:', err);
+      const errorMessage = ErrorHandlingService.formatError(err, "l'import des fournisseurs");
       toast({
         title: "Erreur d'import",
-        description: "Impossible d'importer les fournisseurs",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
