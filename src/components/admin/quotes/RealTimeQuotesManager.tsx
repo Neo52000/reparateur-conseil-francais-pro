@@ -116,6 +116,16 @@ const RealTimeQuotesManager: React.FC = () => {
   const [availableRepairers, setAvailableRepairers] = useState<any[]>([]);
   const [assignmentNote, setAssignmentNote] = useState('');
   const [selectedRepairer, setSelectedRepairer] = useState<string>('');
+  const [showCreateQuoteModal, setShowCreateQuoteModal] = useState(false);
+  const [newQuoteData, setNewQuoteData] = useState({
+    client_name: '',
+    client_email: '',
+    client_phone: '',
+    device_brand: '',
+    device_model: '',
+    repair_type: '',
+    issue_description: ''
+  });
   
   const { toast } = useToast();
 
@@ -180,6 +190,13 @@ const RealTimeQuotesManager: React.FC = () => {
     loadStats();
     loadTemplates();
     
+    // Écouter l'événement de création de devis depuis AdminTopBar
+    const handleCreateQuote = () => {
+      setShowCreateQuoteModal(true);
+    };
+    
+    window.addEventListener('admin:create-quote', handleCreateQuote);
+    
     // Rafraîchissement automatique toutes les 30 secondes
     const interval = setInterval(() => {
       if (realTimeEnabled) {
@@ -188,7 +205,10 @@ const RealTimeQuotesManager: React.FC = () => {
       }
     }, 30000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('admin:create-quote', handleCreateQuote);
+    };
   }, [filters, realTimeEnabled]);
 
   const loadQuotes = async () => {
@@ -723,6 +743,58 @@ const RealTimeQuotesManager: React.FC = () => {
       toast({
         title: "Erreur",
         description: `Impossible d'assigner le réparateur: ${error.message || 'Erreur inconnue'}`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const createQuote = async () => {
+    if (!newQuoteData.client_name || !newQuoteData.client_email || !newQuoteData.device_brand) {
+      toast({
+        title: "Erreur",
+        description: "Nom du client, email et marque d'appareil sont requis",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Get a temporary UUID for repairer_id since it's required
+      const tempRepairerId = '00000000-0000-0000-0000-000000000000';
+      
+      const { error } = await supabase
+        .from('quotes_with_timeline')
+        .insert({
+          ...newQuoteData,
+          repairer_id: tempRepairerId,
+          repairer_response_deadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Succès",
+        description: "Devis créé avec succès"
+      });
+
+      setShowCreateQuoteModal(false);
+      setNewQuoteData({
+        client_name: '',
+        client_email: '',
+        client_phone: '',
+        device_brand: '',
+        device_model: '',
+        repair_type: '',
+        issue_description: ''
+      });
+      
+      loadQuotes();
+      loadStats();
+    } catch (error) {
+      console.error('Erreur lors de la création du devis:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le devis",
         variant: "destructive"
       });
     }
@@ -1456,6 +1528,95 @@ const RealTimeQuotesManager: React.FC = () => {
               >
                 <UserCheck className="h-4 w-4 mr-2" />
                 {selectedQuote?.repairer_id ? 'Réassigner' : 'Assigner'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de création de devis */}
+      <Dialog open={showCreateQuoteModal} onOpenChange={setShowCreateQuoteModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Créer un nouveau devis</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Nom du client *</label>
+                <Input
+                  value={newQuoteData.client_name}
+                  onChange={(e) => setNewQuoteData({...newQuoteData, client_name: e.target.value})}
+                  placeholder="Nom complet"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Email *</label>
+                <Input
+                  type="email"
+                  value={newQuoteData.client_email}
+                  onChange={(e) => setNewQuoteData({...newQuoteData, client_email: e.target.value})}
+                  placeholder="email@exemple.com"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium">Téléphone</label>
+              <Input
+                value={newQuoteData.client_phone}
+                onChange={(e) => setNewQuoteData({...newQuoteData, client_phone: e.target.value})}
+                placeholder="+33 6 XX XX XX XX"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Marque d'appareil *</label>
+                <Input
+                  value={newQuoteData.device_brand}
+                  onChange={(e) => setNewQuoteData({...newQuoteData, device_brand: e.target.value})}
+                  placeholder="iPhone, Samsung, etc."
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Modèle</label>
+                <Input
+                  value={newQuoteData.device_model}
+                  onChange={(e) => setNewQuoteData({...newQuoteData, device_model: e.target.value})}
+                  placeholder="iPhone 14, Galaxy S23, etc."
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Type de réparation</label>
+              <Input
+                value={newQuoteData.repair_type}
+                onChange={(e) => setNewQuoteData({...newQuoteData, repair_type: e.target.value})}
+                placeholder="Écran cassé, batterie, etc."
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Description du problème</label>
+              <Textarea
+                value={newQuoteData.issue_description}
+                onChange={(e) => setNewQuoteData({...newQuoteData, issue_description: e.target.value})}
+                placeholder="Décrivez le problème en détail..."
+                rows={3}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowCreateQuoteModal(false)}
+              >
+                Annuler
+              </Button>
+              <Button onClick={createQuote}>
+                Créer le devis
               </Button>
             </div>
           </div>

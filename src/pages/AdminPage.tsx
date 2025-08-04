@@ -329,9 +329,54 @@ const AdminPage = () => {
         return <AdminDashboardContent activeTab={activeTab} subscriptions={[]} repairers={[]} onViewProfile={() => {}} onRefresh={async () => {}} />;
     }
   };
+  const handleNewAction = () => {
+    switch (activeTab) {
+      case 'quotes':
+        // Ouvrir modal de création de devis
+        window.dispatchEvent(new CustomEvent('admin:create-quote'));
+        break;
+      case 'repairers':
+        // Rediriger vers inscription réparateur
+        window.open('/repairer-auth', '_blank');
+        break;
+      case 'blog':
+        // Créer nouveau post de blog
+        window.dispatchEvent(new CustomEvent('admin:new-blog-post'));
+        break;
+      default:
+        window.open('/', '_blank');
+        break;
+    }
+  };
+
+  const handleVisitAction = () => {
+    switch (activeTab) {
+      case 'quotes':
+        // Visiter page de demande de devis
+        window.open('/search', '_blank');
+        break;
+      case 'repairers':
+        // Visiter page réparateurs
+        window.open('/search', '_blank');
+        break;
+      case 'blog':
+        // Visiter le blog
+        window.open('/blog', '_blank');
+        break;
+      default:
+        // Visiter la page d'accueil
+        window.open('/', '_blank');
+        break;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <AdminTopBar userName={user?.email || 'Admin'} />
+      <AdminTopBar 
+        userName={user?.email || 'Admin'} 
+        onNewAction={handleNewAction}
+        onVisitAction={handleVisitAction}
+      />
       <HorizontalAdminNav />
       <main className="p-6">
         {renderContent()}

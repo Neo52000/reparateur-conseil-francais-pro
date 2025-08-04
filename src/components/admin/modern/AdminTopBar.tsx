@@ -12,6 +12,10 @@ interface AdminTopBarProps {
   notificationCount?: number;
   onSearch?: (query: string) => void;
   onLogout?: () => void;
+  onNewAction?: () => void;
+  onVisitAction?: () => void;
+  showNewButton?: boolean;
+  showVisitButton?: boolean;
 }
 const AdminTopBar: React.FC<AdminTopBarProps> = ({
   userName = "Admin RepairHub",
@@ -19,7 +23,11 @@ const AdminTopBar: React.FC<AdminTopBarProps> = ({
   userAvatar,
   notificationCount = 3,
   onSearch,
-  onLogout
+  onLogout,
+  onNewAction,
+  onVisitAction,
+  showNewButton = true,
+  showVisitButton = true
 }) => {
   const [searchQuery, setSearchQuery] = React.useState('');
   const handleSearch = (e: React.FormEvent) => {
@@ -40,14 +48,28 @@ const AdminTopBar: React.FC<AdminTopBarProps> = ({
 
           {/* Quick Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-7 px-2 text-xs">
-              <Plus className="w-3 h-3 mr-1" />
-              Nouveau
-            </Button>
-            <Button variant="ghost" size="sm" className="text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-7 px-2 text-xs">
-              <Globe className="w-3 h-3 mr-1" />
-              Visiter
-            </Button>
+            {showNewButton && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onNewAction}
+                className="text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-7 px-2 text-xs"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Nouveau
+              </Button>
+            )}
+            {showVisitButton && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onVisitAction}
+                className="text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-7 px-2 text-xs"
+              >
+                <Globe className="w-3 h-3 mr-1" />
+                Visiter
+              </Button>
+            )}
           </nav>
         </div>
 
