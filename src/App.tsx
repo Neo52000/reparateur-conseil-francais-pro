@@ -7,9 +7,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
-import { AuthProvider } from "./hooks/useAuth";
+import { SimpleAuthProvider } from "./hooks/useSimpleAuth";
 import { PlanPreviewProvider } from "./hooks/usePlanPreview";
-import Index from "./pages/SimpleIndex";
+import Index from "./pages/CompleteIndex";
 import AdminPage from "./pages/AdminPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
@@ -22,8 +22,9 @@ import LocalSeoPage from "./pages/LocalSeoPage";
 import RepairerSettingsPage from "./pages/RepairerSettingsPage";
 import RepairTrackingPage from "./pages/RepairTrackingPage";
 import StaticPage from "./pages/StaticPage";
-import RepairerAuthPage from "./pages/RepairerAuthPage";
-import ClientAuthPage from "./pages/ClientAuthPage";
+import SimpleRepairerAuth from "./pages/SimpleRepairerAuth";
+import SimpleClientAuth from "./pages/SimpleClientAuth";
+import SimpleClientDashboard from "./pages/SimpleClientDashboard";
 import BlogPage from "./pages/BlogPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
 import { SuppliersDirectoryPage } from "./pages/SuppliersDirectoryPage";
@@ -37,10 +38,11 @@ const App = () => {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        {/* Temporairement désactiver tous les providers problématiques */}
-        <BrowserRouter>
-          <AppWithTracking />
-        </BrowserRouter>
+        <SimpleAuthProvider>
+          <BrowserRouter>
+            <AppWithTracking />
+          </BrowserRouter>
+        </SimpleAuthProvider>
       </QueryClientProvider>
     </HelmetProvider>
   );
@@ -59,9 +61,9 @@ const AppWithTracking = () => {
         <Route path="/blog/:slug" element={<BlogArticlePage />} />
         <Route path="/blog/repairers" element={<BlogPage />} />
         <Route path="/blog/repairers/:slug" element={<BlogArticlePage />} />
-        <Route path="/repairer-auth" element={<RepairerAuthPage />} />
-        <Route path="/devenir-reparateur" element={<RepairerAuthPage />} />
-        <Route path="/client-auth" element={<ClientAuthPage />} />
+        <Route path="/repairer-auth" element={<SimpleRepairerAuth />} />
+        <Route path="/devenir-reparateur" element={<SimpleRepairerAuth />} />
+        <Route path="/client-auth" element={<SimpleClientAuth />} />
         <Route path="/repairer" element={<RepairerDashboardPage />} />
         <Route path="/repairer/plans" element={<RepairerPlans />} />
         <Route path="/repairer/temoignages" element={<RepairerTestimonials />} />
@@ -69,7 +71,7 @@ const AppWithTracking = () => {
         
             <Route path="/repairer/:id" element={<RepairerProfilePage />} />
             <Route path="/repairer/:id/:slug" element={<RepairerProfilePage />} />
-        <Route path="/client" element={<ClientDashboardPage />} />
+        <Route path="/client" element={<SimpleClientDashboard />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/admin/*" element={<AdminPage />} />
         <Route path="/suppliers" element={<SuppliersDirectoryPage />} />
