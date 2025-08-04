@@ -168,7 +168,7 @@ export const SuppliersDirectoryManagement = () => {
           time: formData.delivery_time || null,
           cost: formData.delivery_cost || null
         } : null,
-        rating: 0.0,
+        rating: 0,
         review_count: 0,
         is_verified: false,
         is_featured: false,
