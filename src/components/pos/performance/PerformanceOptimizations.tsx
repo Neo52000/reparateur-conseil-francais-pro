@@ -1,10 +1,15 @@
 import React, { lazy, Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Lazy loading des modules POS
-const LazyReportsAnalytics = lazy(() => import('../modules/ReportsAnalytics'));
-const LazyHardwareIntegration = lazy(() => import('../modules/HardwareIntegration'));
-const LazyOfflineManager = lazy(() => import('../modules/OfflineManager'));
+// TEMPORAIRE: Désactiver les imports lazy qui causent des erreurs 500
+// const LazyReportsAnalytics = lazy(() => import('../modules/ReportsAnalytics'));
+// const LazyHardwareIntegration = lazy(() => import('../modules/HardwareIntegration'));
+// const LazyOfflineManager = lazy(() => import('../modules/OfflineManager'));
+
+// Composants de fallback temporaires
+const FallbackReportsAnalytics = () => <div>Reports & Analytics Module (Temporairement désactivé)</div>;
+const FallbackHardwareIntegration = () => <div>Hardware Integration Module (Temporairement désactivé)</div>;
+const FallbackOfflineManager = () => <div>Offline Manager Module (Temporairement désactivé)</div>;
 
 // Composants de fallback pour le loading
 const ModuleLoader = ({ title }: { title: string }) => (
@@ -42,17 +47,18 @@ export const withPerformanceOptimization = <P extends object>(
   return OptimizedComponent;
 };
 
-// Composants optimisés
-export const OptimizedReportsAnalytics = withPerformanceOptimization(LazyReportsAnalytics, 'Reports & Analytics');
-export const OptimizedHardwareIntegration = withPerformanceOptimization(LazyHardwareIntegration, 'Hardware Integration');
-export const OptimizedOfflineManager = withPerformanceOptimization(LazyOfflineManager, 'Offline Manager');
+// Composants optimisés temporaires (sans lazy loading)
+export const OptimizedReportsAnalytics = FallbackReportsAnalytics;
+export const OptimizedHardwareIntegration = FallbackHardwareIntegration;
+export const OptimizedOfflineManager = FallbackOfflineManager;
 
-// Hook pour préchargement conditionnel
+// Hook pour préchargement conditionnel (temporairement désactivé)
 export const usePrefetchModules = () => {
   React.useEffect(() => {
-    // Précharger les modules après un délai pour ne pas impacter le chargement initial
+    console.log('🔍 usePrefetchModules - Désactivé temporairement pour debug');
+    // TEMPORAIRE: Désactiver le préchargement qui cause des erreurs
+    /*
     const prefetchTimer = setTimeout(() => {
-      // Précharger seulement si l'utilisateur semble actif
       if (document.hasFocus()) {
         import('../modules/ReportsAnalytics');
         import('../modules/HardwareIntegration');
@@ -61,6 +67,7 @@ export const usePrefetchModules = () => {
     }, 3000);
 
     return () => clearTimeout(prefetchTimer);
+    */
   }, []);
 };
 
