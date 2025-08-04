@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -375,32 +376,67 @@ const AdminDashboard = () => {
           </div>
 
           <TabsContent value="dashboard">
-            <h2 className="text-2xl font-bold mb-4">Tableau de bord</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <StatCard
-                title="Nombre de réparateurs"
-                value={stats?.repairerCount || 0}
-                icon={<Users className="h-6 w-6 text-gray-500" />}
-              />
-            </div>
+            <ErrorBoundary fallback={
+              <div className="text-center p-8 text-muted-foreground">
+                <h3 className="text-lg font-semibold mb-2">Erreur du tableau de bord</h3>
+                <p>Une erreur est survenue lors du chargement des statistiques.</p>
+              </div>
+            }>
+              <h2 className="text-2xl font-bold mb-4">Tableau de bord</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <StatCard
+                  title="Nombre de réparateurs"
+                  value={stats?.repairerCount || 0}
+                  icon={<Users className="h-6 w-6 text-gray-500" />}
+                />
+              </div>
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="repairers">
-            <h2 className="text-2xl font-bold mb-4">Gestion des réparateurs</h2>
-            <RepairerList />
+            <ErrorBoundary fallback={
+              <div className="text-center p-8 text-muted-foreground">
+                <h3 className="text-lg font-semibold mb-2">Erreur de la gestion des réparateurs</h3>
+                <p>Une erreur est survenue lors du chargement de la liste des réparateurs.</p>
+              </div>
+            }>
+              <h2 className="text-2xl font-bold mb-4">Gestion des réparateurs</h2>
+              <RepairerList />
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="quotes">
-            <AllQuotesManager />
+            <ErrorBoundary fallback={
+              <div className="text-center p-8 text-muted-foreground">
+                <h3 className="text-lg font-semibold mb-2">Erreur des devis</h3>
+                <p>Une erreur est survenue lors du chargement des devis.</p>
+              </div>
+            }>
+              <AllQuotesManager />
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="quote-assignments">
-            <AdminQuoteAssignments />
+            <ErrorBoundary fallback={
+              <div className="text-center p-8 text-muted-foreground">
+                <h3 className="text-lg font-semibold mb-2">Erreur d'attribution des devis</h3>
+                <p>Une erreur est survenue lors du chargement des attributions.</p>
+              </div>
+            }>
+              <AdminQuoteAssignments />
+            </ErrorBoundary>
           </TabsContent>
 
           {/* Core Tabs */}
           <TabsContent value="analytics">
-            <RepairerAnalyticsDashboard />
+            <ErrorBoundary fallback={
+              <div className="text-center p-8 text-muted-foreground">
+                <h3 className="text-lg font-semibold mb-2">Erreur des analytics</h3>
+                <p>Une erreur est survenue lors du chargement des analytics.</p>
+              </div>
+            }>
+              <RepairerAnalyticsDashboard />
+            </ErrorBoundary>
           </TabsContent>
 
           {/* SEO & Performance Tabs */}
@@ -456,17 +492,38 @@ const AdminDashboard = () => {
 
           {/* Content & Marketing Tabs */}
           <TabsContent value="blog">
-            <h2 className="text-2xl font-bold mb-4">Gestion du Blog</h2>
-            <BlogAdmin />
+            <ErrorBoundary fallback={
+              <div className="text-center p-8 text-muted-foreground">
+                <h3 className="text-lg font-semibold mb-2">Erreur du blog</h3>
+                <p>Une erreur est survenue lors du chargement du gestionnaire de blog.</p>
+              </div>
+            }>
+              <h2 className="text-2xl font-bold mb-4">Gestion du Blog</h2>
+              <BlogAdmin />
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="repair-generator">
-            <h2 className="text-2xl font-bold mb-4">Générateur de Contenu Mobile</h2>
-            <RepairContentGenerator />
+            <ErrorBoundary fallback={
+              <div className="text-center p-8 text-muted-foreground">
+                <h3 className="text-lg font-semibold mb-2">Erreur du générateur</h3>
+                <p>Une erreur est survenue lors du chargement du générateur de contenu.</p>
+              </div>
+            }>
+              <h2 className="text-2xl font-bold mb-4">Générateur de Contenu Mobile</h2>
+              <RepairContentGenerator />
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="advertising">
-            <AdvancedAdvertisingDashboard />
+            <ErrorBoundary fallback={
+              <div className="text-center p-8 text-muted-foreground">
+                <h3 className="text-lg font-semibold mb-2">Erreur des publicités</h3>
+                <p>Une erreur est survenue lors du chargement du dashboard publicitaire.</p>
+              </div>
+            }>
+              <AdvancedAdvertisingDashboard />
+            </ErrorBoundary>
           </TabsContent>
 
           {/* Technical Tabs */}

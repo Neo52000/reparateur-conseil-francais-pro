@@ -5,7 +5,7 @@ import SafeAppProvider from "@/providers/SafeAppProvider";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 // Lazy loading des composants principaux
-const SafeNavigation = lazy(() => import("@/components/safe/SafeNavigation"));
+const Navigation = lazy(() => import("@/components/Navigation"));
 const SafeRepairersCarousel = lazy(() => import("@/components/safe/SafeRepairersCarousel"));
 const DebugPanel = lazy(() => import("@/components/debug/DebugPanel"));
 
@@ -29,9 +29,18 @@ const LoadingFallback: React.FC<{ text?: string }> = ({ text = "Chargement..." }
 const StabilizedIndex = () => {
   return (
     <div className="min-h-screen bg-white">
-      <ErrorBoundary>
+      <ErrorBoundary fallback={
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="text-xl font-semibold text-blue-600">RepairHub</div>
+              <div className="text-sm text-muted-foreground">Navigation temporairement indisponible</div>
+            </div>
+          </div>
+        </div>
+      }>
         <Suspense fallback={<LoadingFallback text="Chargement de la navigation..." />}>
-          <SafeNavigation />
+          <Navigation />
         </Suspense>
       </ErrorBoundary>
       
