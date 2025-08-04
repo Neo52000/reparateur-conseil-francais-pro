@@ -13,7 +13,7 @@ import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 import ChatWidget from '@/components/chatbot/ChatWidget';
-import { useAuth } from '@/hooks/useAuth';
+import { useSimplifiedAuth } from '@/hooks/useSimplifiedAuth';
 import { usePendingAction } from '@/hooks/usePendingAction';
 import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
 
@@ -30,7 +30,7 @@ const Index = () => {
   const navigate = useNavigate();
   
   console.log('🏠 Index page rendering');
-  const { user } = useAuth();
+  const { user } = useSimplifiedAuth();
   const { pendingAction, clearPendingAction } = usePendingAction();
     const {
       isQuoteModalOpen,
