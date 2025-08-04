@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Edit, Trash2, Star, MapPin, Phone, Mail, Globe } from 'lucide-react';
+import { Plus, Edit, Trash2, Star, MapPin, Phone, Mail, Globe, Download, Upload, Search, Filter } from 'lucide-react';
+import SupplierForm from './SupplierForm';
+import { SuppliersCSVService } from '@/services/suppliers/SuppliersCSVService';
 import {
   Dialog,
   DialogContent,
@@ -52,9 +52,13 @@ interface Supplier {
 
 const SuppliersManagementTab: React.FC = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [importing, setImporting] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -69,8 +73,18 @@ const SuppliersManagementTab: React.FC = () => {
     certifications: '',
     payment_terms: '',
     minimum_order: '',
-    delivery_info: '',
-    address: '',
+    address: {
+      street: '',
+      city: '',
+      postal_code: '',
+      country: 'France'
+    },
+    delivery_info: {
+      standard: '',
+      express: '',
+      zones: [] as string[],
+      cost: ''
+    },
     is_verified: false,
     is_featured: false,
     status: 'active'
@@ -79,6 +93,10 @@ const SuppliersManagementTab: React.FC = () => {
   useEffect(() => {
     fetchSuppliers();
   }, []);
+
+  useEffect(() => {
+    filterSuppliers();
+  }, [suppliers, searchTerm, statusFilter]);
 
   const fetchSuppliers = async () => {
     try {
@@ -102,6 +120,26 @@ const SuppliersManagementTab: React.FC = () => {
     }
   };
 
+  const filterSuppliers = () => {
+    let filtered = suppliers;
+
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(supplier => 
+        supplier.name.toLowerCase().includes(search) ||
+        supplier.description?.toLowerCase().includes(search) ||
+        supplier.brands_sold.some(brand => brand.toLowerCase().includes(search)) ||
+        supplier.product_types.some(type => type.toLowerCase().includes(search))
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(supplier => supplier.status === statusFilter);
+    }
+
+    setFilteredSuppliers(filtered);
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -115,8 +153,18 @@ const SuppliersManagementTab: React.FC = () => {
       certifications: '',
       payment_terms: '',
       minimum_order: '',
-      delivery_info: '',
-      address: '',
+      address: {
+        street: '',
+        city: '',
+        postal_code: '',
+        country: 'France'
+      },
+      delivery_info: {
+        standard: '',
+        express: '',
+        zones: [],
+        cost: ''
+      },
       is_verified: false,
       is_featured: false,
       status: 'active'
@@ -124,29 +172,27 @@ const SuppliersManagementTab: React.FC = () => {
     setEditingSupplier(null);
   };
 
-  const parseJsonField = (value: string, fallback: any = {}) => {
-    if (!value || value.trim() === '') return fallback;
-    try {
-      return JSON.parse(value);
-    } catch (error) {
-      console.warn('Invalid JSON:', value);
-      return fallback;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       const supplierData = {
-        ...formData,
+        name: formData.name,
+        description: formData.description,
+        email: formData.email,
+        phone: formData.phone,
+        website: formData.website,
         brands_sold: formData.brands_sold.split(',').map(s => s.trim()).filter(Boolean),
         product_types: formData.product_types.split(',').map(s => s.trim()).filter(Boolean),
         specialties: formData.specialties.split(',').map(s => s.trim()).filter(Boolean),
         certifications: formData.certifications.split(',').map(s => s.trim()).filter(Boolean),
+        payment_terms: formData.payment_terms,
         minimum_order: formData.minimum_order ? parseFloat(formData.minimum_order) : null,
-        address: parseJsonField(formData.address, {}),
-        delivery_info: parseJsonField(formData.delivery_info, {}),
+        address: formData.address,
+        delivery_info: formData.delivery_info,
+        is_verified: formData.is_verified,
+        is_featured: formData.is_featured,
+        status: formData.status
       };
 
       let error;
@@ -175,7 +221,7 @@ const SuppliersManagementTab: React.FC = () => {
       console.error('Error saving supplier:', err);
       toast({
         title: "Erreur",
-        description: "Impossible de sauvegarder le fournisseur",
+        description: `Impossible de sauvegarder le fournisseur: ${err}`,
         variant: "destructive",
       });
     }
@@ -194,8 +240,8 @@ const SuppliersManagementTab: React.FC = () => {
       certifications: supplier.certifications.join(', '),
       payment_terms: supplier.payment_terms || '',
       minimum_order: supplier.minimum_order?.toString() || '',
-      delivery_info: JSON.stringify(supplier.delivery_info),
-      address: JSON.stringify(supplier.address),
+      address: supplier.address || { street: '', city: '', postal_code: '', country: 'France' },
+      delivery_info: supplier.delivery_info || { standard: '', express: '', zones: [], cost: '' },
       is_verified: supplier.is_verified,
       is_featured: supplier.is_featured,
       status: supplier.status
@@ -228,6 +274,67 @@ const SuppliersManagementTab: React.FC = () => {
         description: "Impossible de supprimer le fournisseur",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleExport = () => {
+    SuppliersCSVService.exportToCSV(suppliers, `fournisseurs_${new Date().toISOString().split('T')[0]}.csv`);
+    toast({
+      title: "Export réussi",
+      description: `${suppliers.length} fournisseurs exportés`,
+    });
+  };
+
+  const handleDownloadTemplate = () => {
+    SuppliersCSVService.generateTemplate();
+    toast({
+      title: "Template téléchargé",
+      description: "Utilisez ce fichier comme modèle pour importer vos fournisseurs",
+    });
+  };
+
+  const handleImport = async (file: File) => {
+    setImporting(true);
+    try {
+      const result = await SuppliersCSVService.parseFile(file);
+      
+      if (result.success && result.data.length > 0) {
+        // Insérer les données dans Supabase
+        const { error } = await supabase
+          .from('suppliers_directory')
+          .insert(result.data);
+
+        if (error) throw error;
+
+        toast({
+          title: "Import réussi",
+          description: `${result.processed} fournisseurs importés avec succès`,
+        });
+
+        fetchSuppliers();
+      } else {
+        toast({
+          title: "Erreur d'import",
+          description: result.errors.join('\n'),
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error('Import error:', err);
+      toast({
+        title: "Erreur d'import",
+        description: "Impossible d'importer les fournisseurs",
+        variant: "destructive",
+      });
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleImport(file);
     }
   };
 
@@ -270,208 +377,95 @@ const SuppliersManagementTab: React.FC = () => {
             Gérez votre annuaire de fournisseurs de pièces détachées
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nouveau Fournisseur
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleDownloadTemplate}
+            size="sm"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Template CSV
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            size="sm"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Exporter CSV
+          </Button>
+          <div className="relative">
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleFileUpload}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              disabled={importing}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={importing}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {importing ? 'Import...' : 'Importer CSV'}
             </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          </div>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={resetForm}>
+                <Plus className="h-4 w-4 mr-2" />
+                Nouveau Fournisseur
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingSupplier ? 'Modifier le fournisseur' : 'Créer un fournisseur'}
               </DialogTitle>
               <DialogDescription>
-                Remplissez les informations du fournisseur
+                Remplissez les informations du fournisseur avec le formulaire structuré
               </DialogDescription>
             </DialogHeader>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Nom *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="status">Statut</Label>
-                  <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Actif</SelectItem>
-                      <SelectItem value="inactive">Inactif</SelectItem>
-                      <SelectItem value="pending">En attente</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            <SupplierForm
+              formData={formData}
+              onFormDataChange={setFormData}
+              onSubmit={handleSubmit}
+              onCancel={() => setIsCreateDialogOpen(false)}
+              isEditing={!!editingSupplier}
+            />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
 
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Téléphone</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="website">Site web</Label>
-                  <Input
-                    id="website"
-                    type="url"
-                    value={formData.website}
-                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="brands_sold">Marques vendues (séparées par des virgules)</Label>
-                  <Input
-                    id="brands_sold"
-                    value={formData.brands_sold}
-                    onChange={(e) => setFormData({ ...formData, brands_sold: e.target.value })}
-                    placeholder="Apple, Samsung, Huawei"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="product_types">Types de produits (séparés par des virgules)</Label>
-                  <Input
-                    id="product_types"
-                    value={formData.product_types}
-                    onChange={(e) => setFormData({ ...formData, product_types: e.target.value })}
-                    placeholder="Écrans, Batteries, Connecteurs"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="specialties">Spécialités (séparées par des virgules)</Label>
-                  <Input
-                    id="specialties"
-                    value={formData.specialties}
-                    onChange={(e) => setFormData({ ...formData, specialties: e.target.value })}
-                    placeholder="Réparation iPhone, Livraison express"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="certifications">Certifications (séparées par des virgules)</Label>
-                  <Input
-                    id="certifications"
-                    value={formData.certifications}
-                    onChange={(e) => setFormData({ ...formData, certifications: e.target.value })}
-                    placeholder="ISO 9001, Certification Apple"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="payment_terms">Conditions de paiement</Label>
-                  <Input
-                    id="payment_terms"
-                    value={formData.payment_terms}
-                    onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
-                    placeholder="30 jours fin de mois"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="minimum_order">Commande minimum (€)</Label>
-                  <Input
-                    id="minimum_order"
-                    type="number"
-                    step="0.01"
-                    value={formData.minimum_order}
-                    onChange={(e) => setFormData({ ...formData, minimum_order: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="address">Adresse (JSON)</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder='{"street": "123 rue Example", "city": "Paris", "postal_code": "75001", "country": "France"}'
-                  rows={2}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="delivery_info">Informations de livraison (JSON)</Label>
-                <Textarea
-                  id="delivery_info"
-                  value={formData.delivery_info}
-                  onChange={(e) => setFormData({ ...formData, delivery_info: e.target.value })}
-                  placeholder='{"standard": "24-48h", "express": "Même jour", "zones": ["France"]}'
-                  rows={2}
-                />
-              </div>
-
-              <div className="flex items-center space-x-6">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_verified}
-                    onChange={(e) => setFormData({ ...formData, is_verified: e.target.checked })}
-                  />
-                  <span>Vérifié</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_featured}
-                    onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                  />
-                  <span>En vedette</span>
-                </label>
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsCreateDialogOpen(false)}
-                >
-                  Annuler
-                </Button>
-                <Button type="submit">
-                  {editingSupplier ? 'Mettre à jour' : 'Créer'}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+      {/* Filtres et recherche */}
+      <div className="flex items-center gap-4 p-4 bg-card rounded-lg border">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Rechercher un fournisseur, une marque, un produit..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border border-input bg-background px-3 py-2 rounded-md text-sm"
+          >
+            <option value="all">Tous les statuts</option>
+            <option value="active">Actifs</option>
+            <option value="inactive">Inactifs</option>
+            <option value="pending">En attente</option>
+          </select>
+        </div>
       </div>
 
       {/* Statistics */}
@@ -501,16 +495,16 @@ const SuppliersManagementTab: React.FC = () => {
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-blue-600">
-              {suppliers.filter(s => s.status === 'active').length}
+              {filteredSuppliers.length}
             </div>
-            <p className="text-sm text-muted-foreground">Actifs</p>
+            <p className="text-sm text-muted-foreground">Affichés</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Suppliers List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {suppliers.map((supplier) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredSuppliers.map((supplier) => (
           <Card key={supplier.id} className="h-fit">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
@@ -626,11 +620,11 @@ const SuppliersManagementTab: React.FC = () => {
         ))}
       </div>
 
-      {suppliers.length === 0 && (
+      {filteredSuppliers.length === 0 && (
         <Card>
           <CardContent className="p-8 text-center">
             <p className="text-muted-foreground mb-4">
-              Aucun fournisseur trouvé
+              {suppliers.length === 0 ? 'Aucun fournisseur trouvé' : 'Aucun résultat pour cette recherche'}
             </p>
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
