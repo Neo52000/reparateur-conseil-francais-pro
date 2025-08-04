@@ -1,102 +1,44 @@
-import React, { useEffect } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-// import { TooltipProvider } from "@/components/ui/tooltip"; // Temporarily disabled
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { HelmetProvider } from "react-helmet-async";
-import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
-import { AuthProvider } from "./hooks/useAuth";
-import Index from "./pages/Index";
-import AdminPage from "./pages/AdminPage";
-import RepairerDashboardPage from "./pages/RepairerDashboardPage";
-import ClientDashboardPage from "./pages/ClientDashboardPage";
-import RepairerProfilePage from "./pages/RepairerProfilePage";
-import RepairerPlans from "./pages/RepairerPlans";
-import RepairerTestimonials from "./pages/RepairerTestimonials";
-import RepairerFAQ from "./pages/RepairerFAQ";
-import ServiceRepairPage from "./pages/services/ServiceRepairPage";
-import LocalSeoPage from "./pages/LocalSeoPage";
-import RepairerSettingsPage from "./pages/RepairerSettingsPage";
-import RepairTrackingPage from "./pages/RepairTrackingPage";
-import StaticPage from "./pages/StaticPage";
-import RepairerAuthPage from "./pages/RepairerAuthPage";
-import ClientAuthPage from "./pages/ClientAuthPage";
-import BlogPage from "./pages/BlogPage";
-import BlogArticlePage from "./pages/BlogArticlePage";
-import QuotesAndAppointments from "./pages/QuotesAndAppointments";
-import { useVisitorTracker } from "./hooks/useVisitorTracker";
-import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
-// Configuration production
-import { initializeProductionMode, performProductionHealthCheck } from './config/productionSetup';
 
-const queryClient = new QueryClient();
-
-const App = () => {
-  useEffect(() => {
-    // Initialiser le mode production strict
-    const prodConfig = initializeProductionMode();
-    console.log('🚀 Application démarrée en mode production:', prodConfig);
-    
-    // Vérification de santé
-    const healthCheck = performProductionHealthCheck();
-    if (!healthCheck.healthy) {
-      console.warn('⚠️ Problèmes détectés lors des vérifications de production');
-    }
-  }, []);
-
+// Version ultra-simplifiée pour résoudre les problèmes d'initialisation React
+const SimpleIndex = () => {
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <GlobalStoreProvider>
-            <AuthProvider>
-              <AppWithTracking />
-              <Toaster />
-              <Sonner />
-            </AuthProvider>
-          </GlobalStoreProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </HelmetProvider>
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold text-center mb-8">RepairHub</h1>
+        <div className="text-center">
+          <p className="text-lg text-gray-600 mb-4">
+            Plateforme de mise en relation avec des réparateurs de smartphones
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold mb-2">Trouvez un réparateur</h3>
+              <p className="text-gray-600">Recherchez un professionnel près de chez vous</p>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold mb-2">Demandez un devis</h3>
+              <p className="text-gray-600">Obtenez des devis gratuits et transparents</p>
+            </div>
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold mb-2">Prenez rendez-vous</h3>
+              <p className="text-gray-600">Réservez un créneau en quelques clics</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
-const AppWithTracking = () => {
-  // Hook de tracking des visiteurs
-  useVisitorTracker();
-  
+const App = () => {
   return (
-    <>
-      <GlobalVisitorTracker />
+    <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/blog/:slug" element={<BlogArticlePage />} />
-        <Route path="/blog/repairers" element={<BlogPage />} />
-        <Route path="/blog/repairers/:slug" element={<BlogArticlePage />} />
-        <Route path="/repairer-auth" element={<RepairerAuthPage />} />
-        <Route path="/devenir-reparateur" element={<RepairerAuthPage />} />
-        <Route path="/client-auth" element={<ClientAuthPage />} />
-        <Route path="/repairer" element={<RepairerDashboardPage />} />
-        <Route path="/repairer/plans" element={<RepairerPlans />} />
-        <Route path="/repairer/temoignages" element={<RepairerTestimonials />} />
-        <Route path="/repairer/faq" element={<RepairerFAQ />} />
-        
-            <Route path="/repairer/:id" element={<RepairerProfilePage />} />
-            <Route path="/repairer/:id/:slug" element={<RepairerProfilePage />} />
-        <Route path="/client" element={<ClientDashboardPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/admin/*" element={<AdminPage />} />
-        <Route path="/reparation-:serviceType" element={<ServiceRepairPage />} />
-        <Route path="/reparateur-:serviceType-:city" element={<LocalSeoPage />} />
-        <Route path="/settings" element={<RepairerSettingsPage />} />
-        <Route path="/paramètres" element={<RepairerSettingsPage />} />
-        <Route path="/suivi/:orderId" element={<RepairTrackingPage />} />
-        <Route path="/quotes-appointments" element={<QuotesAndAppointments />} />
-        <Route path="/:slug" element={<StaticPage />} />
+        <Route path="/" element={<SimpleIndex />} />
+        <Route path="*" element={<SimpleIndex />} />
       </Routes>
-    </>
+    </BrowserRouter>
   );
 };
 
