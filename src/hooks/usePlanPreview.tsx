@@ -15,6 +15,10 @@ interface PlanPreviewContextType {
 const PlanPreviewContext = createContext<PlanPreviewContextType | undefined>(undefined);
 
 export const PlanPreviewProvider = ({ children }: { children: ReactNode }) => {
+  console.log('🔍 PlanPreviewProvider - Composant monté');
+  
+  // TEMPORAIRE: Désactiver l'utilisation de useAuth pour éviter l'erreur
+  /*
   const { user, profile } = useAuth();
   const { getSubscriptionTier } = useRepairerSubscriptions();
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -23,16 +27,28 @@ export const PlanPreviewProvider = ({ children }: { children: ReactNode }) => {
   const actualTier = user ? getSubscriptionTier(user.id) : 'free';
   const canPreview = profile?.role === 'admin' || user?.email === 'demo@demo.fr';
   const activeTier = isPreviewMode && previewTier ? previewTier : actualTier;
+  */
+  
+  // Valeurs temporaires pour éviter l'erreur
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [previewTier, setPreviewTier] = useState<string | null>(null);
+  const actualTier = 'free';
+  const canPreview = false;
+  const activeTier = isPreviewMode && previewTier ? previewTier : actualTier;
 
   const startPreview = (tier: string) => {
-    if (!canPreview) return;
-    setIsPreviewMode(true);
-    setPreviewTier(tier);
+    console.log('🔍 startPreview - Désactivé temporairement');
+    // TEMPORAIRE: Désactivé pour debug
+    // if (!canPreview) return;
+    // setIsPreviewMode(true);
+    // setPreviewTier(tier);
   };
 
   const stopPreview = () => {
-    setIsPreviewMode(false);
-    setPreviewTier(null);
+    console.log('🔍 stopPreview - Désactivé temporairement');
+    // TEMPORAIRE: Désactivé pour debug
+    // setIsPreviewMode(false);
+    // setPreviewTier(null);
   };
 
   return (
