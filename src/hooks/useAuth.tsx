@@ -4,7 +4,6 @@ import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from './auth/types';
 import { useLocalStorage } from './useLocalStorage';
-import { useAuthSync } from './useAuthSync';
 
 interface AuthContextType {
   user: User | null;
@@ -83,8 +82,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [cachedProfiles, setCachedProfiles]);
 
-  // Synchronisation avec Zustand (séparée pour éviter les conflits)
-  const zustandPermissions = useAuthSync(user, session, profile, loading);
+  // Désactiver complètement Zustand pour stabiliser
+  // const zustandPermissions = useAuthSync(user, session, profile, loading);
 
   // Calcul des permissions optimisé avec fallback pour admin@repairhub.fr
   const permissions = useMemo(() => {

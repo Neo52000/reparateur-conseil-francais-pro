@@ -9,7 +9,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
 import { AuthProvider } from "./hooks/useAuth";
 import { PlanPreviewProvider } from "./hooks/usePlanPreview";
-import Index from "./pages/Index";
+import Index from "./pages/SimpleIndex";
 import AdminPage from "./pages/AdminPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
@@ -37,15 +37,10 @@ const App = () => {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <GlobalStoreProvider>
-          <AuthProvider>
-            <PlanPreviewProvider>
-              <BrowserRouter>
-                <AppWithTracking />
-              </BrowserRouter>
-            </PlanPreviewProvider>
-          </AuthProvider>
-        </GlobalStoreProvider>
+        {/* Temporairement désactiver tous les providers problématiques */}
+        <BrowserRouter>
+          <AppWithTracking />
+        </BrowserRouter>
       </QueryClientProvider>
     </HelmetProvider>
   );

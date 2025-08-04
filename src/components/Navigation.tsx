@@ -7,7 +7,7 @@ import NotificationSystem from './NotificationSystem';
 import { OfflineIndicator } from '@/components/common/OfflineIndicator';
 import Logo from './Logo';
 import { User, Wrench, Shield } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast-simple';
 
 const Navigation = () => {
   const { user, isAdmin, signOut, profile, canAccessClient, canAccessRepairer, canAccessAdmin } = useAuth();
