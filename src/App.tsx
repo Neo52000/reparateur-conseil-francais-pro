@@ -10,6 +10,7 @@ import { AuthProvider } from "./hooks/useAuth";
 import { SimplifiedAuthProvider } from "./hooks/useSimplifiedAuth";
 import { PlanPreviewProvider } from "./hooks/usePlanPreview";
 import Index from "./pages/Index";
+import DebugIndex from "./pages/DebugIndex";
 import AdminPage from "./pages/AdminPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
@@ -84,14 +85,21 @@ const AppWithTracking = () => {
   // TEMPORAIRE: Désactiver le tracking pour débugger
   // useVisitorTracker();
   
+  console.log('🔍 AppWithTracking - Avant le return');
+  
   return (
     <>
       {/* TEMPORAIRE: Désactiver GlobalVisitorTracker pour débugger */}
       {/* <GlobalVisitorTracker /> */}
       <Routes>
-        <Route path="/" element={<Index />} />
+        <Route path="/" element={
+          <>
+            {console.log('🔍 Route / - Element rendu')}
+            <DebugIndex />
+          </>
+        } />
+        <Route path="/debug-original" element={<Index />} />
         <Route path="/blog" element={<BlogPage />} />
-        <Route path="/blog/:slug" element={<BlogArticlePage />} />
         <Route path="/blog/repairers" element={<BlogPage />} />
         <Route path="/blog/repairers/:slug" element={<BlogArticlePage />} />
         <Route path="/repairer-auth" element={<RepairerAuthPage />} />

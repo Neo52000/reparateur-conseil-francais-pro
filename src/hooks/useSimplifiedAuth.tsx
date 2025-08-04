@@ -48,15 +48,33 @@ export const SimplifiedAuthProvider = ({ children }: { children: ReactNode }) =>
           setUser(session?.user ?? null);
           
           if (session?.user) {
-            // Essayer de récupérer le profil de manière simple
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
+            console.log('🔍 Auth - Utilisateur connecté, récupération du profil...');
+            // TEMPORAIRE: Simplifier encore plus - pas de fetch de profil pour le moment
+            /*
+            try {
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+              
+              if (mounted) {
+                setProfile(profileData || null);
+              }
+            } catch (profileError) {
+              console.error('🚨 Erreur profil (non bloquante):', profileError);
+            }
+            */
             
+            // Profil temporaire basique
             if (mounted) {
-              setProfile(profileData || null);
+              setProfile({
+                id: session.user.id,
+                email: session.user.email || '',
+                first_name: null,
+                last_name: null,
+                role: 'user'
+              });
             }
           } else {
             if (mounted) {
