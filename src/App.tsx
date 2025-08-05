@@ -10,7 +10,7 @@ import { ThemeProvider } from 'next-themes';
 import HomePage from '@/pages/SimpleIndex';
 import ClientAuthPage from '@/pages/ClientAuthPage';
 import RepairerAuthPage from '@/pages/RepairerAuthPage';
-import AdminPage from '@/pages/AdminPage';
+import StaticAdminPage from '@/pages/StaticAdminPage';
 import ClientDashboardPage from '@/pages/ClientDashboardPage';
 import RepairerDashboardPage from '@/pages/RepairerDashboardPage';
 import BlogPage from '@/pages/BlogPage';
@@ -63,7 +63,7 @@ const App: React.FC = () => {
                   {/* Tableaux de bord */}
                   <Route path="/client/*" element={<ClientDashboardPage />} />
                   <Route path="/repairer/*" element={<RepairerDashboardPage />} />
-                  <Route path="/admin/*" element={<AdminPage />} />
+                  <Route path="/admin/*" element={<StaticAdminPage />} />
                   
                   {/* Blog */}
                   <Route path="/blog" element={<BlogPage />} />
