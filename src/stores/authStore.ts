@@ -34,44 +34,54 @@ export const useAuthStore = create<AuthState>()(
       loading: true,
       
       // Actions
-      setAuth: (session, profile) => set({ 
-        session, 
-        user: session?.user ?? null, 
-        profile,
-        loading: false 
-      }),
+      setAuth: (session, profile) => {
+        const state = {
+          session, 
+          user: session?.user ?? null, 
+          profile,
+          loading: false
+        };
+        
+        // Calculer les propriétés dérivées
+        const isAdmin = profile?.email === 'admin@repairhub.fr' || profile?.role === 'admin';
+        
+        set({
+          ...state,
+          isAdmin,
+          canAccessClient: !!state.user,
+          canAccessRepairer: profile?.role === 'repairer' || isAdmin,
+          canAccessAdmin: isAdmin
+        });
+      },
       
       setLoading: (loading) => set({ loading }),
       
-      setProfile: (profile) => set({ profile }),
+      setProfile: (profile) => {
+        const isAdmin = profile?.email === 'admin@repairhub.fr' || profile?.role === 'admin';
+        set({ 
+          profile,
+          isAdmin,
+          canAccessRepairer: profile?.role === 'repairer' || isAdmin,
+          canAccessAdmin: isAdmin
+        });
+      },
       
       clearAuth: () => set({ 
         user: null, 
         session: null, 
         profile: null, 
-        loading: false 
+        loading: false,
+        isAdmin: false,
+        canAccessClient: false,
+        canAccessRepairer: false,
+        canAccessAdmin: false
       }),
       
-      // Computed values (getters)
-      get isAdmin() {
-        const { profile } = get();
-        return profile?.email === 'admin@repairhub.fr' || profile?.role === 'admin';
-      },
-      
-      get canAccessClient() {
-        const { user } = get();
-        return !!user;
-      },
-      
-      get canAccessRepairer() {
-        const { profile } = get();
-        const isAdmin = get().isAdmin;
-        return profile?.role === 'repairer' || isAdmin;
-      },
-      
-      get canAccessAdmin() {
-        return get().isAdmin;
-      }
+      // Propriétés calculées (valeurs par défaut)
+      isAdmin: false,
+      canAccessClient: false,
+      canAccessRepairer: false,
+      canAccessAdmin: false
     })),
     {
       name: 'auth-storage',

@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search, Star, Shield, Clock, Smartphone, MapPin, Users, Wrench } from 'lucide-react';
-import { useAuthStore } from '@/stores/authStore';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, profile } = useAuthStore();
+  // Temporairement désactivé pour éviter les erreurs de store
+  // const { user, profile } = useAuthStore();
+  const user = null; // Temporaire
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -183,29 +183,21 @@ export const useGamificationStore = create<GamificationState>()(
         }
       },
       
-      reset: () => set({ profile: null, loading: false, error: null }),
+      reset: () => set({ 
+        profile: null, 
+        loading: false, 
+        error: null,
+        currentLevel: 1,
+        currentXP: 0,
+        nextLevelXP: 100,
+        progressPercentage: 0
+      }),
       
-      // Computed values
-      get currentLevel() {
-        const { profile } = get();
-        return profile ? calculateLevel(profile.total_xp).level : 1;
-      },
-      
-      get currentXP() {
-        const { profile } = get();
-        return profile ? calculateLevel(profile.total_xp).currentXP : 0;
-      },
-      
-      get nextLevelXP() {
-        const { profile } = get();
-        return profile ? calculateLevel(profile.total_xp).nextLevelXP : 100;
-      },
-      
-      get progressPercentage() {
-        const currentXP = get().currentXP;
-        const nextLevelXP = get().nextLevelXP;
-        return nextLevelXP > 0 ? (currentXP / nextLevelXP) * 100 : 0;
-      }
+      // Computed values (valeurs par défaut)
+      currentLevel: 1,
+      currentXP: 0,
+      nextLevelXP: 100,
+      progressPercentage: 0
     })),
     {
       name: 'gamification-storage',
