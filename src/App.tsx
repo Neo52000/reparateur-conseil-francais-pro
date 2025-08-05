@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
 import { SimpleAuthProvider as AuthProvider } from '@/hooks/useSimpleAuth';
-import { Toaster } from '@/components/ui/toaster';
+// import { Toaster } from '@/components/ui/toaster'; // Temporarily disabled
 import { ThemeProvider } from 'next-themes';
 
 // Pages
@@ -79,8 +79,8 @@ const App: React.FC = () => {
                 </Routes>
               </Suspense>
               
-              {/* Toast notifications */}
-              <Toaster />
+              {/* Toast notifications - temporarily disabled due to React corruption */}
+              {/* <Toaster /> */}
             </Router>
           </AuthProvider>
         </QueryClientProvider>
