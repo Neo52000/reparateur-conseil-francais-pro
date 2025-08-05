@@ -39,35 +39,35 @@ export const APP_CONFIG = {
     },
   },
   
-  // Features flags par défaut - MODE PRODUCTION
+  // Features flags par défaut - MODE DIAGNOSTIC (TOUT DÉSACTIVÉ)
   features: {
-    // Modules Business
-    enableSuppliersDirectory: false, // DÉSACTIVÉ POUR DIAGNOSTIC
+    // Modules Business - TOUT DÉSACTIVÉ
+    enableSuppliersDirectory: false,
     enableWeatherModule: false,
-    enablePOSModule: true,
-    enableEcommerceModule: true,
-    enableChatbotModule: true,
-    enableBlogModule: true,
+    enablePOSModule: false,
+    enableEcommerceModule: false,
+    enableChatbotModule: false,
+    enableBlogModule: false,
     
-    // Modules Techniques  
-    enableScrapingModule: true,
-    enableAutomationModule: true,
-    enableMonitoringModule: true,
-    enableSEOModule: true,
-    enableAdvertisingAI: true,
+    // Modules Techniques - TOUT DÉSACTIVÉ
+    enableScrapingModule: false,
+    enableAutomationModule: false,
+    enableMonitoringModule: false,
+    enableSEOModule: false,
+    enableAdvertisingAI: false,
     
-    // Fonctionnalités Core
-    enableAdvancedSearch: true,
-    enableNotifications: true,
-    enableAnalytics: true,
+    // Fonctionnalités Core - MINIMALES
+    enableAdvancedSearch: false,
+    enableNotifications: false,
+    enableAnalytics: false,
     
-    // Modules de Test
+    // Modules de Test - DÉSACTIVÉS
     enableDashboardTester: false,
     enablePOSTester: false,
     enablePlansTester: false,
     
-    // Système
-    enableDemo: false, // DÉSACTIVÉ DÉFINITIVEMENT POUR LA PRODUCTION
+    // Système - DÉSACTIVÉS
+    enableDemo: false,
   },
   
   // Configuration de logging
