@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.import-mobilax-logos]
 verify_jwt = false
+
+[functions.weather-api]
+verify_jwt = false

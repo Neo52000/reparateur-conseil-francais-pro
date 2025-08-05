@@ -36,6 +36,7 @@ import AdminConfigurationPage from '@/components/admin/AdminConfigurationPage';
 import ComprehensiveFeaturesManager from '@/components/admin/ComprehensiveFeaturesManager';
 import { Card, CardContent } from '@/components/ui/card';
 import { Monitor } from 'lucide-react';
+import WeatherDashboard from '@/components/admin/weather/WeatherDashboard';
 import { CheckmateMonitoring } from '@/components/admin/monitoring/CheckmateMonitoring';
 import StaticPagesManager from '@/components/admin/StaticPagesManager';
 import RealTimeQuotesManager from '@/components/admin/quotes/RealTimeQuotesManager';
@@ -109,6 +110,8 @@ const AdminPage = () => {
         return 'Publicité IA';
       case 'analytics':
         return 'Analytics';
+      case 'weather':
+        return 'Météo Chaumont';
       case 'scraping':
         return 'Scraping';
       case 'automation':
@@ -177,6 +180,8 @@ const AdminPage = () => {
         return 'Campagnes publicitaires intelligentes avec IA';
       case 'analytics':
         return 'Analyses détaillées et métriques de performance';
+      case 'weather':
+        return 'Données météorologiques en temps réel pour Chaumont';
       case 'scraping':
         return 'Outils de collecte de données';
       case 'automation':
@@ -266,6 +271,8 @@ const AdminPage = () => {
         return <AdvertisingAIDashboard />;
       case 'analytics':
         return <AnalyticsDashboard />;
+      case 'weather':
+        return <WeatherDashboard />;
         case 'scraping':
           return <RealScrapingDashboard />;
         case 'automation':

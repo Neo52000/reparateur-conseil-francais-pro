@@ -19,7 +19,8 @@ import {
   TestTube,
   ChevronDown,
   CreditCard,
-  Store
+  Store,
+  CloudSun
 } from 'lucide-react';
 
 interface NavItem {
@@ -61,6 +62,11 @@ const HorizontalAdminNav: React.FC<HorizontalAdminNavProps> = ({ className, acti
       id: 'analytics',
       label: 'Analytics',
       icon: <BarChart3 className="w-4 h-4" />,
+    },
+    {
+      id: 'weather',
+      label: 'Météo',
+      icon: <CloudSun className="w-4 h-4" />,
     },
     {
       id: 'advertising-ai',
