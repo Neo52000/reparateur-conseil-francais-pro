@@ -1,6 +1,6 @@
-// TestRepairerProfileButton supprimé - utilisation des données réelles
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import HeroWithIntegratedSearch from '@/components/sections/HeroWithIntegratedSearch';
@@ -13,6 +13,7 @@ import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 import ChatWidget from '@/components/chatbot/ChatWidget';
+import CookieBanner from '@/components/CookieBanner';
 import { useAuth } from '@/hooks/useAuth';
 import { usePendingAction } from '@/hooks/usePendingAction';
 import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
@@ -129,41 +130,63 @@ const Index = () => {
       setSearchFilters(null);
     }} />;
   }
-  return <div className="min-h-screen bg-white">
-      <Navigation />
+  return (
+    <>
+      <Helmet>
+        <title>TopRéparateurs.fr - Trouvez le meilleur réparateur près de chez vous</title>
+        <meta name="description" content="Plateforme n°1 de mise en relation avec des réparateurs certifiés. Smartphone, tablette, ordinateur - Devis gratuit, intervention rapide partout en France." />
+        <meta name="keywords" content="réparateur, smartphone, tablette, ordinateur, réparation, devis gratuit, France" />
+        <link rel="canonical" href="https://topreparateurs.fr/" />
+        <meta property="og:title" content="TopRéparateurs.fr - Réparateurs certifiés près de chez vous" />
+        <meta property="og:description" content="Trouvez rapidement un réparateur certifié pour smartphone, tablette, ordinateur. Devis gratuit et intervention sous 24h." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://topreparateurs.fr/" />
+        <meta property="og:image" content="https://topreparateurs.fr/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png" />
+      </Helmet>
       
-      <main>
-        <HeroWithIntegratedSearch onQuickSearch={handleHeroQuickSearch} onMapSearch={handleHeroMapSearch} />
-
-        {/* Section bannière publicitaire - déplacée au-dessus du carrousel */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <AdBannerDisplay placement="homepage_carousel" className="" />
-        </div>
-
-        <RepairersCarouselSection onViewProfile={handleViewProfile} onCall={handleCall} />
+      <div className="min-h-screen bg-white">
+        <Navigation />
         
-        <TrustSection />
-        
-        <QuickStatsSection />
+        <main>
+          <HeroWithIntegratedSearch onQuickSearch={handleHeroQuickSearch} onMapSearch={handleHeroMapSearch} />
 
-        {/* Section Nouvelles Fonctionnalités */}
-        
-        
-        {/* Section blog avant le footer */}
-        <BlogSectionHomepage />
-      </main>
+          {/* Section bannière publicitaire */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <AdBannerDisplay placement="homepage_carousel" className="" />
+          </div>
 
-      <Footer />
+          <RepairersCarouselSection onViewProfile={handleViewProfile} onCall={handleCall} />
+          
+          <TrustSection />
+          
+          <QuickStatsSection />
+          
+          {/* Section blog */}
+          <BlogSectionHomepage />
+        </main>
 
-      {/* Widget de Chat IA */}
-      <ChatWidget />
+        <Footer />
 
-      {/* Modals */}
-      <QuickSearchModal isOpen={showQuickSearch} onClose={() => setShowQuickSearch(false)} onSearch={handleQuickSearchResults} />
+        {/* Widgets */}
+        <ChatWidget />
+        <CookieBanner />
 
-      {selectedRepairerForProfile && <RepairerProfileModal isOpen={!!selectedRepairerForProfile} onClose={() => setSelectedRepairerForProfile(null)} repairerId={selectedRepairerForProfile} />}
+        {/* Modals */}
+        <QuickSearchModal 
+          isOpen={showQuickSearch} 
+          onClose={() => setShowQuickSearch(false)} 
+          onSearch={handleQuickSearchResults} 
+        />
 
-      {/* TestRepairerProfileButton supprimé - production mode */}
-    </div>;
+        {selectedRepairerForProfile && (
+          <RepairerProfileModal 
+            isOpen={!!selectedRepairerForProfile} 
+            onClose={() => setSelectedRepairerForProfile(null)} 
+            repairerId={selectedRepairerForProfile} 
+          />
+        )}
+      </div>
+    </>
+  );
 };
 export default Index;
