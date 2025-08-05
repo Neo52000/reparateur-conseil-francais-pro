@@ -37,6 +37,12 @@ serve(async (req) => {
       case 'hourly':
         apiUrl = `https://api.meteo-concept.com/api/forecast/hourly/0/periods?latlng=${lat}%2C${lng}&insee=${insee}&world=false`;
         break;
+      case 'weekly':
+        apiUrl = `https://api.meteo-concept.com/api/forecast/daily?latlng=${lat}%2C${lng}&insee=${insee}&world=false`;
+        break;
+      case 'alerts':
+        apiUrl = `https://api.meteo-concept.com/api/vigilance?insee=${insee}`;
+        break;
       default:
         throw new Error('Invalid endpoint');
     }

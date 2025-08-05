@@ -10,6 +10,10 @@ import { fr } from 'date-fns/locale';
 const WeatherDashboard: React.FC = () => {
   const { weatherData, loading, error, refetch } = useWeather();
 
+  const handleRefresh = () => {
+    refetch();
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">

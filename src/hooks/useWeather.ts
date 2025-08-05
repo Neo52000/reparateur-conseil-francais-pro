@@ -47,7 +47,7 @@ export const useWeather = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchWeatherData = async (endpoint: 'current' | 'forecast' | 'hourly' = 'forecast') => {
+  const fetchWeatherData = async (endpoint: 'current' | 'forecast' | 'hourly' | 'weekly' | 'alerts' = 'forecast') => {
     setLoading(true);
     setError(null);
 
