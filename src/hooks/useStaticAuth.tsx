@@ -1,6 +1,4 @@
-import * as React from 'react';
-
-// Static auth context without any React hooks
+// Completely static auth without any React dependencies
 interface StaticAuthContextType {
   user: null;
   session: null;
@@ -33,16 +31,12 @@ const staticAuthValue: StaticAuthContextType = {
   refreshProfile: async () => {}
 };
 
-const StaticAuthContext = React.createContext<StaticAuthContextType>(staticAuthValue);
-
-export const StaticAuthProvider = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <StaticAuthContext.Provider value={staticAuthValue}>
-      {children}
-    </StaticAuthContext.Provider>
-  );
+// Static provider that just renders children
+export const StaticAuthProvider = ({ children }: { children: any }) => {
+  return children;
 };
 
+// Static hook that returns fixed values
 export const useStaticAuth = () => {
   return staticAuthValue;
 };
