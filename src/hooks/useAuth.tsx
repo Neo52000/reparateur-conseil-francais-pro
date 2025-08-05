@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -271,10 +270,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuthAlternative = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuthAlternative must be used within an AuthProvider');
   }
   return context;
 };
