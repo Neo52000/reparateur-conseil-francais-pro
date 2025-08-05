@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import RichTextEditor from '@/components/admin/RichTextEditor';
+import CoqueRichTextEditor from './CoqueRichTextEditor';
 import { Palette, Save, Eye, Upload, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -261,7 +261,7 @@ const CoqueDesigner: React.FC = () => {
               <div>
                 <Label>Description du produit</Label>
                 <div className="mt-2">
-                  <RichTextEditor
+                  <CoqueRichTextEditor
                     content={designData.description}
                     onChange={(content) => setDesignData({...designData, description: content})}
                     placeholder="Décrivez votre coque en détail : protection, design, compatibilité..."
@@ -273,7 +273,7 @@ const CoqueDesigner: React.FC = () => {
               <div>
                 <Label>Options de personnalisation</Label>
                 <div className="mt-2">
-                  <RichTextEditor
+                  <CoqueRichTextEditor
                     content={designData.customization}
                     onChange={(content) => setDesignData({...designData, customization: content})}
                     placeholder="Décrivez les options de personnalisation disponibles : gravure, impression personnalisée..."
