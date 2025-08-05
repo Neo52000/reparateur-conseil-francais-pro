@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminDashboardContent from '@/components/admin/AdminDashboardContent';
-import AdminTopBar from '@/components/admin/modern/AdminTopBar';
+import SimpleAdminTopBar from '@/components/admin/SimpleAdminTopBar';
 import HorizontalAdminNav from '@/components/admin/modern/HorizontalAdminNav';
 import ModernDashboardCards from '@/components/admin/modern/ModernDashboardCards';
 import QuickActions from '@/components/admin/modern/QuickActions';
@@ -468,7 +468,7 @@ const AdminPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <AdminTopBar 
+      <SimpleAdminTopBar 
         userName={user?.email || 'Admin'} 
         onNewAction={handleNewAction}
         onVisitAction={handleVisitAction}
