@@ -16,7 +16,6 @@ import ChatWidget from '@/components/chatbot/ChatWidget';
 import { useAuth } from '@/hooks/useAuth';
 import { usePendingAction } from '@/hooks/usePendingAction';
 import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
-
 interface SearchCriteria {
   deviceType: string;
   brand: string;
@@ -25,30 +24,31 @@ interface SearchCriteria {
   city: string;
   postalCode: string;
 }
-
 const Index = () => {
   const navigate = useNavigate();
-  
   console.log('🏠 Index page rendering');
-  const { user } = useAuth();
-  const { pendingAction, clearPendingAction } = usePendingAction();
-    const {
-      isQuoteModalOpen,
-      isAppointmentModalOpen,
-      selectedRepairerId,
-      selectedQuoteId,
-      handleRequestQuote,
-      handleBookAppointment,
-      closeQuoteModal,
-      closeAppointmentModal
-    } = useQuoteAndAppointment();
-    
-    const [selectedRepairerForProfile, setSelectedRepairerForProfile] = useState<string | null>(null);
-    const [showQuickSearch, setShowQuickSearch] = useState(false);
-    const [showMapSearch, setShowMapSearch] = useState(false);
-    const [searchFilters, setSearchFilters] = useState<any>(null);
-
-    console.log('🏠 Index page rendering');
+  const {
+    user
+  } = useAuth();
+  const {
+    pendingAction,
+    clearPendingAction
+  } = usePendingAction();
+  const {
+    isQuoteModalOpen,
+    isAppointmentModalOpen,
+    selectedRepairerId,
+    selectedQuoteId,
+    handleRequestQuote,
+    handleBookAppointment,
+    closeQuoteModal,
+    closeAppointmentModal
+  } = useQuoteAndAppointment();
+  const [selectedRepairerForProfile, setSelectedRepairerForProfile] = useState<string | null>(null);
+  const [showQuickSearch, setShowQuickSearch] = useState(false);
+  const [showMapSearch, setShowMapSearch] = useState(false);
+  const [searchFilters, setSearchFilters] = useState<any>(null);
+  console.log('🏠 Index page rendering');
 
   // Gérer la restauration des actions après connexion
   useEffect(() => {
@@ -60,7 +60,10 @@ const Index = () => {
         }
         clearPendingAction();
       } else if (pendingAction.type === 'appointment_request') {
-        const data = pendingAction.data as { repairerId: string; quoteId?: string };
+        const data = pendingAction.data as {
+          repairerId: string;
+          quoteId?: string;
+        };
         handleBookAppointment(data.repairerId, data.quoteId);
         clearPendingAction();
       }
@@ -92,22 +95,18 @@ const Index = () => {
       }
     }
   }, [user, handleRequestQuote]);
-
   const handleViewProfile = (repairer: any) => {
     setSelectedRepairerForProfile(repairer.id);
   };
-
   const handleCall = (phone: string) => {
     if (phone) {
       window.location.href = `tel:${phone}`;
     }
   };
-
   const handleQuickSearchResults = (filters: any) => {
     setSearchFilters(filters);
     setShowMapSearch(true);
   };
-
   const handleHeroQuickSearch = (searchCriteria: SearchCriteria) => {
     // Transform search criteria to filters format
     const filters = {
@@ -121,109 +120,34 @@ const Index = () => {
     setSearchFilters(filters);
     setShowMapSearch(true);
   };
-
   const handleHeroMapSearch = () => {
     setShowMapSearch(true);
   };
-
   if (showMapSearch) {
-    return (
-      <EnhancedRepairersMap
-        searchFilters={searchFilters}
-        onClose={() => {
-          setShowMapSearch(false);
-          setSearchFilters(null);
-        }}
-      />
-    );
+    return <EnhancedRepairersMap searchFilters={searchFilters} onClose={() => {
+      setShowMapSearch(false);
+      setSearchFilters(null);
+    }} />;
   }
-
-  return (
-    <div className="min-h-screen bg-white">
+  return <div className="min-h-screen bg-white">
       <Navigation />
       
       <main>
-        <HeroWithIntegratedSearch 
-          onQuickSearch={handleHeroQuickSearch}
-          onMapSearch={handleHeroMapSearch}
-        />
+        <HeroWithIntegratedSearch onQuickSearch={handleHeroQuickSearch} onMapSearch={handleHeroMapSearch} />
 
         {/* Section bannière publicitaire - déplacée au-dessus du carrousel */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <AdBannerDisplay 
-            placement="homepage_carousel" 
-            className=""
-          />
+          <AdBannerDisplay placement="homepage_carousel" className="" />
         </div>
 
-        <RepairersCarouselSection 
-          onViewProfile={handleViewProfile}
-          onCall={handleCall}
-        />
+        <RepairersCarouselSection onViewProfile={handleViewProfile} onCall={handleCall} />
         
         <TrustSection />
         
         <QuickStatsSection />
 
         {/* Section Nouvelles Fonctionnalités */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900">Nouvelles Fonctionnalités</h2>
-              <p className="text-gray-600 mt-4">Découvrez nos dernières améliorations pour une meilleure expérience</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-                <div className="flex items-center mb-4">
-                  <span className="text-2xl mr-3">⭐</span>
-                  <h3 className="text-xl font-semibold">Système d'Avis</h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  Consultez les avis clients et la réputation des réparateurs pour faire le meilleur choix.
-                </p>
-                <button 
-                  onClick={() => navigate('/quotes-appointments')}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  Découvrir
-                </button>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-                <div className="flex items-center mb-4">
-                  <span className="text-2xl mr-3">💬</span>
-                  <h3 className="text-xl font-semibold">Devis & Rendez-vous</h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  Système complet de demande de devis, paiement sécurisé et messagerie intégrée.
-                </p>
-                <button 
-                  onClick={() => navigate('/quotes-appointments')}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                >
-                  Découvrir
-                </button>
-              </div>
-
-              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-                <div className="flex items-center mb-4">
-                  <span className="text-2xl mr-3">📅</span>
-                  <h3 className="text-xl font-semibold">Calendrier Intelligent</h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  Gestion avancée des disponibilités et réservation de créneaux en temps réel.
-                </p>
-                <button 
-                  onClick={() => navigate('/quotes-appointments')}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
-                >
-                  Explorer
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
+        
         
         {/* Section blog avant le footer */}
         <BlogSectionHomepage />
@@ -235,23 +159,11 @@ const Index = () => {
       <ChatWidget />
 
       {/* Modals */}
-      <QuickSearchModal
-        isOpen={showQuickSearch}
-        onClose={() => setShowQuickSearch(false)}
-        onSearch={handleQuickSearchResults}
-      />
+      <QuickSearchModal isOpen={showQuickSearch} onClose={() => setShowQuickSearch(false)} onSearch={handleQuickSearchResults} />
 
-      {selectedRepairerForProfile && (
-        <RepairerProfileModal
-          isOpen={!!selectedRepairerForProfile}
-          onClose={() => setSelectedRepairerForProfile(null)}
-          repairerId={selectedRepairerForProfile}
-        />
-      )}
+      {selectedRepairerForProfile && <RepairerProfileModal isOpen={!!selectedRepairerForProfile} onClose={() => setSelectedRepairerForProfile(null)} repairerId={selectedRepairerForProfile} />}
 
       {/* TestRepairerProfileButton supprimé - production mode */}
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
