@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from 'next-themes';
 
 // Pages
-import HomePage from '@/pages/Index';
+import HomePage from '@/pages/SimpleIndex';
 import ClientAuthPage from '@/pages/ClientAuthPage';
 import RepairerAuthPage from '@/pages/RepairerAuthPage';
 import AdminPage from '@/pages/AdminPage';

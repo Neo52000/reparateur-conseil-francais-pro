@@ -49,6 +49,7 @@ import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizatio
 import SuppliersManagementTab from '@/components/admin/suppliers/SuppliersManagementTab';
 import FeatureFlagsToggle from '@/components/admin/FeatureFlagsToggle';
 import ModuleDisabledMessage from '@/components/admin/ModuleDisabledMessage';
+import PageBuilderPage from '@/pages/admin/PageBuilderPage';
 import { APP_CONFIG } from '@/config';
 
 const AdminPage = () => {
@@ -153,6 +154,8 @@ const AdminPage = () => {
         return 'Configuration';
       case 'suppliers':
         return APP_CONFIG.features.enableSuppliersDirectory ? 'Annuaire Fournisseurs' : 'Module Désactivé';
+      case 'page-builder':
+        return 'Constructeur de Pages';
       default:
         return 'Dashboard';
     }
@@ -229,6 +232,8 @@ const AdminPage = () => {
           : 'Module fournisseurs temporairement désactivé pour diagnostic';
       case 'static-pages':
         return 'Gestion des pages statiques (mentions légales, CGU, etc.)';
+      case 'page-builder':
+        return 'Créez et modifiez facilement vos pages avec un constructeur visuel simple';
       default:
         return 'Administration de RepairHub';
     }
@@ -414,8 +419,8 @@ const AdminPage = () => {
         );
       case 'system-optimization':
         return <SystemOptimizationPanel />;
-      case 'system-optimization':
-        return <SystemOptimizationPanel />;
+      case 'page-builder':
+        return <PageBuilderPage />;
       default:
         return <AdminDashboardContent activeTab={activeTab} subscriptions={[]} repairers={[]} onViewProfile={() => {}} onRefresh={async () => {}} />;
     }
