@@ -1,3 +1,3 @@
 // Hook de compatibilité temporaire pour éviter les erreurs de build
-// Redirige vers useSimpleAuth
-export { useAuth, SimpleAuthProvider as AuthProvider } from './useSimpleAuth';
+// Redirige vers useStaticAuth
+export { useStaticAuth as useAuth, StaticAuthProvider as AuthProvider } from './useStaticAuth';

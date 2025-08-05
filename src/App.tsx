@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HelmetProvider } from 'react-helmet-async';
-import { SimpleAuthProvider as AuthProvider } from '@/hooks/useSimpleAuth';
+import { StaticAuthProvider as AuthProvider } from '@/hooks/useStaticAuth';
 // import { Toaster } from '@/components/ui/toaster'; // Temporarily disabled
 import { ThemeProvider } from 'next-themes';
 
