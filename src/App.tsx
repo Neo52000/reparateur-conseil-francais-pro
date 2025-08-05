@@ -7,9 +7,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
+import { AuthProvider } from "./hooks/useAuth";
 import { SimpleAuthProvider } from "./hooks/useSimpleAuth";
 import { PlanPreviewProvider } from "./hooks/usePlanPreview";
-import Index from "./pages/CompleteIndex";
+import Index from "./pages/Index";
 import AdminPage from "./pages/AdminPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
@@ -39,23 +40,30 @@ const App = () => {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <SimpleAuthProvider>
-          <BrowserRouter>
-            <AppWithTracking />
-          </BrowserRouter>
-        </SimpleAuthProvider>
+        <AuthProvider>
+          <PlanPreviewProvider>
+            <GlobalStoreProvider>
+              <TooltipProvider>
+                <BrowserRouter>
+                  <AppWithTracking />
+                </BrowserRouter>
+                <Toaster />
+                <Sonner />
+              </TooltipProvider>
+            </GlobalStoreProvider>
+          </PlanPreviewProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </HelmetProvider>
   );
 };
 
 const AppWithTracking = () => {
-  // Temporarily disable visitor tracking to resolve React context issues
-  // useVisitorTracker();
+  useVisitorTracker();
   
   return (
     <>
-      {/* <GlobalVisitorTracker /> */}
+      <GlobalVisitorTracker />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/blog" element={<BlogPage />} />
@@ -72,8 +80,8 @@ const AppWithTracking = () => {
         
             <Route path="/repairer/:id" element={<RepairerProfilePage />} />
             <Route path="/repairer/:id/:slug" element={<RepairerProfilePage />} />
-        <Route path="/client" element={<SimpleClientDashboard />} />
-        <Route path="/admin" element={<SimpleAdminPage />} />
+        <Route path="/client" element={<ClientDashboardPage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="/admin/*" element={<SimpleAdminPage />} />
         <Route path="/suppliers" element={<SuppliersDirectoryPage />} />
         <Route path="/reparation-:serviceType" element={<ServiceRepairPage />} />
