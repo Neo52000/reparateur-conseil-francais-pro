@@ -1,11 +1,11 @@
-// Version ultra-basique pour diagnostiquer React
-function App() {
-  return (
-    <div>
-      <h1>TopRéparateurs.fr</h1>
-      <p>Test basique - Si vous voyez ceci, React fonctionne</p>
-    </div>
-  );
-}
+import React from 'react';
+
+// Version ultra-basique - composant React approprié
+const App: React.FC = () => {
+  return React.createElement('div', {}, [
+    React.createElement('h1', { key: 'title' }, 'TopRéparateurs.fr'),
+    React.createElement('p', { key: 'desc' }, 'Test basique - Si vous voyez ceci, React fonctionne')
+  ]);
+};
 
 export default App;
