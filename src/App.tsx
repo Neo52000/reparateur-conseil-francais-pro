@@ -1,8 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { useAuthStore } from '@/stores/authStore';
-import { supabase } from '@/integrations/supabase/client';
 
 // Pages
 import HomePage from '@/pages/HomePage';
@@ -15,78 +13,7 @@ import SearchPage from '@/pages/SearchPage';
 import RepairerProfilePage from '@/pages/RepairerProfilePage';
 import QuotePage from '@/pages/QuotePage';
 
-// Components
-import LoadingSpinner from '@/components/ui/loading-spinner';
-
 const App: React.FC = () => {
-  const { setAuth, setLoading, loading } = useAuthStore();
-
-  useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Error getting session:', error);
-        setLoading(false);
-        return;
-      }
-
-      if (session?.user) {
-        // Get user profile
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('Error getting profile:', profileError);
-        }
-
-        setAuth(session, profile);
-      } else {
-        setLoading(false);
-      }
-    };
-
-    getInitialSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session);
-        
-        if (session?.user) {
-          // Get user profile
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (profileError) {
-            console.error('Error getting profile:', profileError);
-          }
-
-          setAuth(session, profile);
-        } else {
-          setAuth(null, null);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, [setAuth, setLoading]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
   return (
     <Router>
       <div className="min-h-screen bg-background">
