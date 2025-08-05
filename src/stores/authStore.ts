@@ -24,71 +24,61 @@ interface AuthState {
   canAccessAdmin: boolean;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    subscribeWithSelector((set, get) => ({
-      // État initial
-      user: null,
-      session: null,
-      profile: null,
-      loading: true,
-      
-      // Actions
-      setAuth: (session, profile) => {
-        const state = {
-          session, 
-          user: session?.user ?? null, 
-          profile,
-          loading: false
-        };
-        
-        // Calculer les propriétés dérivées
-        const isAdmin = profile?.email === 'admin@repairhub.fr' || profile?.role === 'admin';
-        
-        set({
-          ...state,
-          isAdmin,
-          canAccessClient: !!state.user,
-          canAccessRepairer: profile?.role === 'repairer' || isAdmin,
-          canAccessAdmin: isAdmin
-        });
-      },
-      
-      setLoading: (loading) => set({ loading }),
-      
-      setProfile: (profile) => {
-        const isAdmin = profile?.email === 'admin@repairhub.fr' || profile?.role === 'admin';
-        set({ 
-          profile,
-          isAdmin,
-          canAccessRepairer: profile?.role === 'repairer' || isAdmin,
-          canAccessAdmin: isAdmin
-        });
-      },
-      
-      clearAuth: () => set({ 
-        user: null, 
-        session: null, 
-        profile: null, 
-        loading: false,
-        isAdmin: false,
-        canAccessClient: false,
-        canAccessRepairer: false,
-        canAccessAdmin: false
-      }),
-      
-      // Propriétés calculées (valeurs par défaut)
-      isAdmin: false,
-      canAccessClient: false,
-      canAccessRepairer: false,
-      canAccessAdmin: false
-    })),
-    {
-      name: 'auth-storage',
-      partialize: (state) => ({ 
-        session: state.session,
-        profile: state.profile 
-      })
-    }
-  )
-);
+// Créer le store sans middleware d'abord pour éviter les erreurs de circular dependency
+export const useAuthStore = create<AuthState>((set, get) => ({
+  // État initial
+  user: null,
+  session: null,
+  profile: null,
+  loading: true,
+  
+  // Actions
+  setAuth: (session, profile) => {
+    const state = {
+      session, 
+      user: session?.user ?? null, 
+      profile,
+      loading: false
+    };
+    
+    // Calculer les propriétés dérivées
+    const isAdmin = profile?.email === 'admin@repairhub.fr' || profile?.role === 'admin';
+    
+    set({
+      ...state,
+      isAdmin,
+      canAccessClient: !!state.user,
+      canAccessRepairer: profile?.role === 'repairer' || isAdmin,
+      canAccessAdmin: isAdmin
+    });
+  },
+  
+  setLoading: (loading) => set({ loading }),
+  
+  setProfile: (profile) => {
+    const isAdmin = profile?.email === 'admin@repairhub.fr' || profile?.role === 'admin';
+    set({ 
+      profile,
+      isAdmin,
+      canAccessRepairer: profile?.role === 'repairer' || isAdmin,
+      canAccessAdmin: isAdmin
+    });
+  },
+  
+  clearAuth: () => set({ 
+    user: null, 
+    session: null, 
+    profile: null, 
+    loading: false,
+    isAdmin: false,
+    canAccessClient: false,
+    canAccessRepairer: false,
+    canAccessAdmin: false
+  }),
+  
+  // Propriétés calculées (valeurs par défaut)
+  isAdmin: false,
+  canAccessClient: false,
+  canAccessRepairer: false,
+  canAccessAdmin: false
+}));

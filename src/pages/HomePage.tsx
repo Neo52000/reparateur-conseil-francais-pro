@@ -7,9 +7,8 @@ import { Search, Star, Shield, Clock, Smartphone, MapPin, Users, Wrench } from '
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  // Temporairement désactivé pour éviter les erreurs de store
-  // const { user, profile } = useAuthStore();
-  const user = null; // Temporaire
+  // Pas de store pour le moment pour éviter les erreurs
+  const user = null;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
