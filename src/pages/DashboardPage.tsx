@@ -1,10 +1,10 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useSimpleAuth';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 
 const DashboardPage: React.FC = () => {
-  const { user, profile, loading } = useAuthStore();
+  const { user, profile, loading } = useAuth();
 
   if (loading) {
     return (

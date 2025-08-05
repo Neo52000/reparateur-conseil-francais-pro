@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
-  // État pour stocker notre valeur
+  // État pour stocker notre valeur avec fallback de sécurité
   const [storedValue, setStoredValue] = useState<T>(() => {
+    // Fallback de sécurité pour éviter les erreurs React
+    if (typeof window === 'undefined') {
+      return initialValue;
+    }
+    
     try {
       // Obtenir de localStorage par clé
       const item = window.localStorage.getItem(key);
@@ -10,7 +15,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
       // Si erreur, retourner la valeur initiale
-      console.log(error);
+      console.warn('LocalStorage error:', error);
       return initialValue;
     }
   });

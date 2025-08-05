@@ -3,26 +3,9 @@ import { useAuthStore } from '@/stores/authStore';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import { useAppStore } from '@/stores/appStore';
 
-// Provider global pour initialiser tous les stores
+// Provider global pour initialiser tous les stores - SIMPLIFIÉ
 export const GlobalStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Synchronisation cross-tab pour l'auth
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'auth-storage' && e.newValue) {
-        try {
-          const { state } = JSON.parse(e.newValue);
-          if (state?.session) {
-            useAuthStore.getState().setAuth(state.session, state.profile);
-          }
-        } catch (error) {
-          console.error('Error syncing auth across tabs:', error);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  // Auth synchronization désactivée temporairement pour diagnostic
 
   // Synchronisation des notifications globales
   useEffect(() => {

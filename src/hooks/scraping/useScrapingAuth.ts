@@ -1,5 +1,5 @@
 
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useSimpleAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export const useScrapingAuth = () => {
