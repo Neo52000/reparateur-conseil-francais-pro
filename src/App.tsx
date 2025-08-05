@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
-import { AuthProvider } from "./hooks/useAuth";
 import { SimpleAuthProvider } from "./hooks/useSimpleAuth";
 import { PlanPreviewProvider } from "./hooks/usePlanPreview";
 import Index from "./pages/Index";
@@ -40,7 +39,7 @@ const App = () => {
   return (
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
+        <SimpleAuthProvider>
           <PlanPreviewProvider>
             <GlobalStoreProvider>
               <TooltipProvider>
@@ -52,7 +51,7 @@ const App = () => {
               </TooltipProvider>
             </GlobalStoreProvider>
           </PlanPreviewProvider>
-        </AuthProvider>
+        </SimpleAuthProvider>
       </QueryClientProvider>
     </HelmetProvider>
   );
