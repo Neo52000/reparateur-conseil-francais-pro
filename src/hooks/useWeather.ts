@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { APP_CONFIG } from '@/config';
 
 interface WeatherForecast {
   datetime: string;
@@ -46,6 +47,16 @@ export const useWeather = () => {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Si le module est désactivé, retourner des valeurs par défaut
+  if (!APP_CONFIG.features.enableWeatherModule) {
+    return {
+      weatherData: null,
+      loading: false,
+      error: "Module météo désactivé",
+      refetch: () => Promise.resolve()
+    };
+  }
 
   const fetchWeatherData = async (endpoint: 'current' | 'forecast' | 'hourly' | 'weekly' | 'alerts' = 'forecast') => {
     setLoading(true);

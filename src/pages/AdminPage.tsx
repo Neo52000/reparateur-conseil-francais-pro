@@ -48,6 +48,7 @@ import { EnhancedEcommerceTester } from '@/components/admin/ecommerce/EnhancedEc
 import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizationPanel';
 import SuppliersManagementTab from '@/components/admin/suppliers/SuppliersManagementTab';
 import FeatureFlagsToggle from '@/components/admin/FeatureFlagsToggle';
+import ModuleDisabledMessage from '@/components/admin/ModuleDisabledMessage';
 import { APP_CONFIG } from '@/config';
 
 const AdminPage = () => {
@@ -274,29 +275,73 @@ const AdminPage = () => {
       case 'advertising':
         return <AdvancedAdvertisingDashboard />;
       case 'advertising-ai':
-        return <AdvertisingAIDashboard />;
+        return APP_CONFIG.features.enableAdvertisingAI ? (
+          <AdvertisingAIDashboard />
+        ) : (
+          <ModuleDisabledMessage module="Publicité IA" description="Module publicité IA désactivé pour diagnostic" />
+        );
       case 'analytics':
         return <AnalyticsDashboard />;
       case 'weather':
-        return <WeatherDashboard />;
+        return APP_CONFIG.features.enableWeatherModule ? (
+          <WeatherDashboard />
+        ) : (
+          <ModuleDisabledMessage module="Météo" description="Module météorologique désactivé pour diagnostic" />
+        );
         case 'scraping':
-          return <RealScrapingDashboard />;
+          return APP_CONFIG.features.enableScrapingModule ? (
+            <RealScrapingDashboard />
+          ) : (
+            <ModuleDisabledMessage module="Scraping" description="Module scraping désactivé pour diagnostic" />
+          );
         case 'automation':
-          return <AutomatedRelaunchDashboard />;
+          return APP_CONFIG.features.enableAutomationModule ? (
+            <AutomatedRelaunchDashboard />
+          ) : (
+            <ModuleDisabledMessage module="Automatisation" description="Module automatisation désactivé pour diagnostic" />
+          );
       case 'monitoring':
-        return <CheckmateMonitoring />;
+        return APP_CONFIG.features.enableMonitoringModule ? (
+          <CheckmateMonitoring />
+        ) : (
+          <ModuleDisabledMessage module="Monitoring" description="Module monitoring désactivé pour diagnostic" />
+        );
       case 'blog':
-        return <BlogManagement />;
+        return APP_CONFIG.features.enableBlogModule ? (
+          <BlogManagement />
+        ) : (
+          <ModuleDisabledMessage module="Blog" description="Module blog & contenu désactivé pour diagnostic" />
+        );
       case 'chatbot':
-        return <ChatbotManagement />;
+        return APP_CONFIG.features.enableChatbotModule ? (
+          <ChatbotManagement />
+        ) : (
+          <ModuleDisabledMessage module="Chatbot" description="Module chatbot IA désactivé pour diagnostic" />
+        );
       case 'pos-admin':
-        return <AdminPOSManagement />;
+        return APP_CONFIG.features.enablePOSModule ? (
+          <AdminPOSManagement />
+        ) : (
+          <ModuleDisabledMessage module="POS" description="Module point de vente désactivé pour diagnostic" />
+        );
       case 'ecommerce-admin':
-        return <EnhancedEcommerceTester />;
+        return APP_CONFIG.features.enableEcommerceModule ? (
+          <EnhancedEcommerceTester />
+        ) : (
+          <ModuleDisabledMessage module="E-commerce" description="Module e-commerce désactivé pour diagnostic" />
+        );
       case 'local-seo':
-        return <LocalSeoManagement />;
+        return APP_CONFIG.features.enableSEOModule ? (
+          <LocalSeoManagement />
+        ) : (
+          <ModuleDisabledMessage module="SEO Local" description="Module SEO local désactivé pour diagnostic" />
+        );
       case 'seo-monitoring':
-        return <SEOMonitoringDashboard />;
+        return APP_CONFIG.features.enableSEOModule ? (
+          <SEOMonitoringDashboard />
+        ) : (
+          <ModuleDisabledMessage module="SEO Monitoring" description="Module SEO monitoring désactivé pour diagnostic" />
+        );
       case 'repair-generator':
         return <RepairContentGenerator />;
       case 'pagespeed-pro':
@@ -338,11 +383,23 @@ const AdminPage = () => {
       case 'features-manager':
         return <ComprehensiveFeaturesManager />;
       case 'plans-tester':
-        return <EnhancedPlanVisualizationTester />;
+        return APP_CONFIG.features.enablePlansTester ? (
+          <EnhancedPlanVisualizationTester />
+        ) : (
+          <ModuleDisabledMessage module="Plans Tester" description="Module test plans désactivé" />
+        );
       case 'dashboard-tester':
-        return <EnhancedDashboardTester />;
+        return APP_CONFIG.features.enableDashboardTester ? (
+          <EnhancedDashboardTester />
+        ) : (
+          <ModuleDisabledMessage module="Dashboard Tester" description="Module test dashboard désactivé" />
+        );
       case 'pos-tester':
-        return <EnhancedPOSTester />;
+        return APP_CONFIG.features.enablePOSTester ? (
+          <EnhancedPOSTester />
+        ) : (
+          <ModuleDisabledMessage module="POS Tester" description="Module test POS désactivé" />
+        );
       case 'configuration':
         return <AdminConfigurationPage />;
       case 'feature-flags':
@@ -353,17 +410,7 @@ const AdminPage = () => {
         return APP_CONFIG.features.enableSuppliersDirectory ? (
           <SuppliersManagementTab />
         ) : (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <h3 className="text-lg font-semibold mb-2">Module Fournisseurs Désactivé</h3>
-              <p className="text-muted-foreground mb-4">
-                Le module d'annuaire fournisseurs est temporairement désactivé pour diagnostic.
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Pour réactiver: Modifiez <code>enableSuppliersDirectory: true</code> dans <code>src/config/index.ts</code>
-              </p>
-            </CardContent>
-          </Card>
+          <ModuleDisabledMessage module="Fournisseurs" description="Module annuaire fournisseurs désactivé pour diagnostic" />
         );
       case 'system-optimization':
         return <SystemOptimizationPanel />;

@@ -41,11 +41,33 @@ export const APP_CONFIG = {
   
   // Features flags par défaut - MODE PRODUCTION
   features: {
+    // Modules Business
+    enableSuppliersDirectory: false, // DÉSACTIVÉ POUR DIAGNOSTIC
+    enableWeatherModule: false,
+    enablePOSModule: true,
+    enableEcommerceModule: true,
+    enableChatbotModule: true,
+    enableBlogModule: true,
+    
+    // Modules Techniques  
+    enableScrapingModule: true,
+    enableAutomationModule: true,
+    enableMonitoringModule: true,
+    enableSEOModule: true,
+    enableAdvertisingAI: true,
+    
+    // Fonctionnalités Core
     enableAdvancedSearch: true,
     enableNotifications: true,
     enableAnalytics: true,
+    
+    // Modules de Test
+    enableDashboardTester: false,
+    enablePOSTester: false,
+    enablePlansTester: false,
+    
+    // Système
     enableDemo: false, // DÉSACTIVÉ DÉFINITIVEMENT POUR LA PRODUCTION
-    enableSuppliersDirectory: false, // DÉSACTIVÉ POUR DIAGNOSTIC
   },
   
   // Configuration de logging
