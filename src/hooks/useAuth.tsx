@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data) {
         // Mise en cache du profil
-        setCachedProfiles(prev => ({ ...prev, [userId]: data }));
+        setCachedProfiles({ ...cachedProfiles, [userId]: data });
         return data;
       }
 
@@ -246,7 +246,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const profileData = await fetchProfile(user.id, user.user_metadata);
       setProfile(profileData);
       // Mettre à jour le cache
-      setCachedProfiles(prev => ({ ...prev, [user.id]: profileData }));
+      setCachedProfiles({ ...cachedProfiles, [user.id]: profileData });
     }
   }, [user?.id, user?.user_metadata, fetchProfile, setCachedProfiles]);
 
@@ -270,10 +270,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-export const useAuthAlternative = (): AuthContextType => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuthAlternative must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

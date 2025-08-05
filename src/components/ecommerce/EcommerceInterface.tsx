@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useModuleAccess } from '@/hooks/useModuleAccess';
 import { ProductsManagement } from './ProductsManagement';
+import CoqueDesigner from './CoqueDesigner';
 import { OrdersManagement } from './OrdersManagement';
 import { CustomersManagement } from './CustomersManagement';
 import { StoreSettings } from './StoreSettings';
@@ -105,7 +106,7 @@ const EcommerceInterface: React.FC<EcommerceInterfaceProps> = ({
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9 lg:w-fit">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-10 lg:w-fit">
             <TabsTrigger value="activation" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
               <span className="hidden sm:inline">Activation</span>
@@ -121,6 +122,10 @@ const EcommerceInterface: React.FC<EcommerceInterfaceProps> = ({
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="w-4 h-4" />
               <span className="hidden sm:inline">Produits</span>
+            </TabsTrigger>
+            <TabsTrigger value="coques" className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Coques</span>
             </TabsTrigger>
             <TabsTrigger value="payment" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -158,6 +163,10 @@ const EcommerceInterface: React.FC<EcommerceInterfaceProps> = ({
 
           <TabsContent value="products" className="space-y-6">
             <ProductsManagement />
+          </TabsContent>
+
+          <TabsContent value="coques" className="space-y-6">
+            <CoqueDesigner />
           </TabsContent>
 
           <TabsContent value="payment" className="space-y-6">
