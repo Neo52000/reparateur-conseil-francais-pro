@@ -1,12 +1,9 @@
-import React from 'react';
+// Version ultra-basique sans même React import
 import { createRoot } from 'react-dom/client';
 import App from './App';
-import './index.css';
 
 const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error('Root element not found');
+if (rootElement) {
+  const root = createRoot(rootElement);
+  root.render(App());
 }
-
-const root = createRoot(rootElement);
-root.render(<App />);
