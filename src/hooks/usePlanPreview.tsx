@@ -1,5 +1,5 @@
 import React, { useState, createContext, useContext, ReactNode } from 'react';
-import { useAuth } from './useAuth';
+import { useAuth } from './useSimpleAuth';
 import { useRepairerSubscriptions } from './useRepairerSubscriptions';
 
 interface PlanPreviewContextType {
