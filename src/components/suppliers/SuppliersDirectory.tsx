@@ -169,7 +169,10 @@ const SuppliersDirectory: React.FC = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-green-600">
-                {suppliers.reduce((sum, s) => sum + s.rating, 0) / suppliers.length || 0}
+                {suppliers.length > 0 
+                  ? (suppliers.map(s => s.rating || 0).reduce((sum, rating) => sum + rating, 0) / suppliers.length).toFixed(1)
+                  : '0.0'
+                }
               </div>
               <p className="text-sm text-muted-foreground">Note moyenne</p>
             </CardContent>

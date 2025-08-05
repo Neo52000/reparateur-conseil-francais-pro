@@ -103,7 +103,7 @@ export const SuppliersDirectoryPage = () => {
                 <p className="text-sm text-muted-foreground">Note moyenne</p>
                 <p className="text-xl font-bold">
                   {suppliers.length > 0 
-                    ? (suppliers.reduce((acc, s) => acc + s.rating, 0) / suppliers.length).toFixed(1)
+                    ? (suppliers.map(s => s.rating || 0).reduce((acc, rating) => acc + rating, 0) / suppliers.length).toFixed(1)
                     : '0.0'
                   }
                 </p>

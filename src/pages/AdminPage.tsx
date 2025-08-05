@@ -47,6 +47,8 @@ import { EnhancedPOSTester } from '@/components/admin/pos/EnhancedPOSTester';
 import { EnhancedEcommerceTester } from '@/components/admin/ecommerce/EnhancedEcommerceTester';
 import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizationPanel';
 import SuppliersManagementTab from '@/components/admin/suppliers/SuppliersManagementTab';
+import FeatureFlagsToggle from '@/components/admin/FeatureFlagsToggle';
+import { APP_CONFIG } from '@/config';
 
 const AdminPage = () => {
   const {
@@ -149,7 +151,7 @@ const AdminPage = () => {
       case 'configuration':
         return 'Configuration';
       case 'suppliers':
-        return 'Annuaire Fournisseurs';
+        return APP_CONFIG.features.enableSuppliersDirectory ? 'Annuaire Fournisseurs' : 'Module Désactivé';
       default:
         return 'Dashboard';
     }
@@ -218,8 +220,12 @@ const AdminPage = () => {
         return 'Interface de test et configuration pour le système de point de vente';
       case 'configuration':
         return 'Configuration générale de l\'application';
+      case 'feature-flags':
+        return 'Gestion des feature flags et modules actifs/inactifs';
       case 'suppliers':
-        return 'Gestion de l\'annuaire des fournisseurs et modération des avis';
+        return APP_CONFIG.features.enableSuppliersDirectory 
+          ? 'Gestion de l\'annuaire des fournisseurs et modération des avis'
+          : 'Module fournisseurs temporairement désactivé pour diagnostic';
       case 'static-pages':
         return 'Gestion des pages statiques (mentions légales, CGU, etc.)';
       default:
@@ -339,10 +345,26 @@ const AdminPage = () => {
         return <EnhancedPOSTester />;
       case 'configuration':
         return <AdminConfigurationPage />;
+      case 'feature-flags':
+        return <FeatureFlagsToggle />;
       case 'static-pages':
         return <StaticPagesManager />;
       case 'suppliers':
-        return <SuppliersManagementTab />;
+        return APP_CONFIG.features.enableSuppliersDirectory ? (
+          <SuppliersManagementTab />
+        ) : (
+          <Card>
+            <CardContent className="p-6 text-center">
+              <h3 className="text-lg font-semibold mb-2">Module Fournisseurs Désactivé</h3>
+              <p className="text-muted-foreground mb-4">
+                Le module d'annuaire fournisseurs est temporairement désactivé pour diagnostic.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Pour réactiver: Modifiez <code>enableSuppliersDirectory: true</code> dans <code>src/config/index.ts</code>
+              </p>
+            </CardContent>
+          </Card>
+        );
       case 'system-optimization':
         return <SystemOptimizationPanel />;
       case 'system-optimization':

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useRepairerSubscriptions } from './useRepairerSubscriptions';
 import { useAuth } from './useAuth';
+import { APP_CONFIG } from '@/config';
 
 export interface Supplier {
   id: string;
@@ -50,6 +51,20 @@ export const useSuppliersDirectory = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Vérifier si le module est activé
+  if (!APP_CONFIG.features.enableSuppliersDirectory) {
+    return {
+      suppliers: [],
+      loading: false,
+      error: null,
+      hasAccess: false,
+      fetchSuppliers: async () => {},
+      fetchSupplierById: async () => null,
+      fetchSupplierReviews: async () => [],
+      createReview: async () => { throw new Error('Module désactivé'); },
+    };
+  }
 
   const hasAccess = () => {
     if (!user) return false;

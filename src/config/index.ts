@@ -45,6 +45,7 @@ export const APP_CONFIG = {
     enableNotifications: true,
     enableAnalytics: true,
     enableDemo: false, // DÉSACTIVÉ DÉFINITIVEMENT POUR LA PRODUCTION
+    enableSuppliersDirectory: false, // DÉSACTIVÉ POUR DIAGNOSTIC
   },
   
   // Configuration de logging
