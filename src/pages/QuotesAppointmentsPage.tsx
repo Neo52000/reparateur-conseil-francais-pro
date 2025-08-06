@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SimpleTabs, SimpleTabsContent, SimpleTabsList, SimpleTabsTrigger } from '@/components/ui/simple-tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SimpleSelect, SimpleSelectContent, SimpleSelectItem, SimpleSelectTrigger, SimpleSelectValue } from '@/components/ui/simple-select';
 import { Calendar, Clock, MapPin, Phone, Star, Plus } from 'lucide-react';
 
 // Mock data
@@ -89,17 +89,17 @@ const QuotesAppointmentsPage: React.FC = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium">Filtrer par statut:</span>
-              <Select value={quotesFilter} onValueChange={setQuotesFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Tous les devis" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous</SelectItem>
-                  <SelectItem value="pending">En attente</SelectItem>
-                  <SelectItem value="accepted">Acceptés</SelectItem>
-                  <SelectItem value="rejected">Refusés</SelectItem>
-                </SelectContent>
-              </Select>
+              <SimpleSelect value={quotesFilter} onValueChange={setQuotesFilter}>
+                <SimpleSelectTrigger className="w-40">
+                  <SimpleSelectValue placeholder="Tous les devis" />
+                </SimpleSelectTrigger>
+                <SimpleSelectContent>
+                  <SimpleSelectItem value="all">Tous</SimpleSelectItem>
+                  <SimpleSelectItem value="pending">En attente</SimpleSelectItem>
+                  <SimpleSelectItem value="accepted">Acceptés</SimpleSelectItem>
+                  <SimpleSelectItem value="rejected">Refusés</SimpleSelectItem>
+                </SimpleSelectContent>
+              </SimpleSelect>
             </div>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
@@ -160,17 +160,17 @@ const QuotesAppointmentsPage: React.FC = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium">Filtrer par statut:</span>
-              <Select value={appointmentsFilter} onValueChange={setAppointmentsFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Tous les RDV" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous</SelectItem>
-                  <SelectItem value="confirmed">Confirmés</SelectItem>
-                  <SelectItem value="completed">Terminés</SelectItem>
-                  <SelectItem value="cancelled">Annulés</SelectItem>
-                </SelectContent>
-              </Select>
+              <SimpleSelect value={appointmentsFilter} onValueChange={setAppointmentsFilter}>
+                <SimpleSelectTrigger className="w-40">
+                  <SimpleSelectValue placeholder="Tous les RDV" />
+                </SimpleSelectTrigger>
+                <SimpleSelectContent>
+                  <SimpleSelectItem value="all">Tous</SimpleSelectItem>
+                  <SimpleSelectItem value="confirmed">Confirmés</SimpleSelectItem>
+                  <SimpleSelectItem value="completed">Terminés</SimpleSelectItem>
+                  <SimpleSelectItem value="cancelled">Annulés</SimpleSelectItem>
+                </SimpleSelectContent>
+              </SimpleSelect>
             </div>
           </div>
 
