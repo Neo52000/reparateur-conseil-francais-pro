@@ -1,10 +1,12 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, Smartphone, Users, MapPin } from 'lucide-react';
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
+  
   return (
     <div className="space-y-12">
       {/* Hero Section */}
@@ -17,18 +19,23 @@ const HomePage: React.FC = () => {
           Trouvez le bon réparateur près de chez vous en quelques clics.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/search">
-            <Button size="lg" className="w-full sm:w-auto">
-              <Search className="w-4 h-4 mr-2" />
-              Trouver un réparateur
-            </Button>
-          </Link>
-          <Link to="/auth?tab=signup&role=repairer">
-            <Button variant="outline" size="lg" className="w-full sm:w-auto">
-              <Users className="w-4 h-4 mr-2" />
-              Devenir réparateur
-            </Button>
-          </Link>
+          <Button 
+            size="lg" 
+            className="w-full sm:w-auto"
+            onClick={() => navigate('/search')}
+          >
+            <Search className="w-4 h-4 mr-2" />
+            Trouver un réparateur
+          </Button>
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="w-full sm:w-auto"
+            onClick={() => navigate('/auth?tab=signup&role=repairer')}
+          >
+            <Users className="w-4 h-4 mr-2" />
+            Devenir réparateur
+          </Button>
         </div>
       </section>
 
@@ -97,11 +104,12 @@ const HomePage: React.FC = () => {
         <p className="text-muted-foreground mb-6">
           Rejoignez des milliers d'utilisateurs qui font confiance à RepairHub
         </p>
-        <Link to="/search">
-          <Button size="lg">
-            Commencer maintenant
-          </Button>
-        </Link>
+        <Button 
+          size="lg"
+          onClick={() => navigate('/search')}
+        >
+          Commencer maintenant
+        </Button>
       </section>
     </div>
   );
