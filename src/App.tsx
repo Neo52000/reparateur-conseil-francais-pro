@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
 import HomePage from '@/pages/HomePage';
 import SearchPage from '@/pages/SearchPage';
@@ -13,6 +14,7 @@ import AdminPage from '@/pages/AdminPage';
 import ProfilePage from '@/pages/ProfilePage';
 import RepairerDashboardPage from '@/pages/RepairerDashboardPage';
 import SettingsPage from '@/pages/SettingsPage';
+import WeatherPage from '@/pages/WeatherPage';
 import './index.css';
 
 const queryClient = new QueryClient();
@@ -29,11 +31,32 @@ const App: React.FC = () => {
                 <Route path="/" element={<Layout />}>
                   <Route index element={<HomePage />} />
                   <Route path="search" element={<SearchPage />} />
-                  <Route path="quotes-appointments" element={<QuotesAppointmentsPage />} />
-                  <Route path="admin" element={<AdminPage />} />
-                  <Route path="profile" element={<ProfilePage />} />
-                  <Route path="repairer-dashboard" element={<RepairerDashboardPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
+                  <Route path="quotes-appointments" element={
+                    <ProtectedRoute>
+                      <QuotesAppointmentsPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="admin" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="profile" element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="repairer-dashboard" element={
+                    <ProtectedRoute requireRepairer>
+                      <RepairerDashboardPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="settings" element={
+                    <ProtectedRoute>
+                      <SettingsPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="weather" element={<WeatherPage />} />
                 </Route>
               </Routes>
             </Router>

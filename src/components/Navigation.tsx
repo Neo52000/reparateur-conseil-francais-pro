@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
-  SimpleDropdownMenu,
-  SimpleDropdownMenuContent,
-  SimpleDropdownMenuItem,
-  SimpleDropdownMenuTrigger,
-} from '@/components/ui/simple-dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/native-dropdown';
+import { Avatar, AvatarFallback } from '@/components/ui/native-avatar';
 import { LogOut, Settings, User, Shield } from 'lucide-react';
 
 const Navigation: React.FC = () => {
@@ -47,8 +47,12 @@ const Navigation: React.FC = () => {
                       Rechercher
                     </Button>
                     
+                    <Button variant="ghost" onClick={() => navigate('/weather')}>
+                      Météo
+                    </Button>
+                    
                     {profile?.role === 'repairer' && (
-                      <Button variant="ghost" onClick={() => navigate('/repairer/dashboard')}>
+                      <Button variant="ghost" onClick={() => navigate('/repairer-dashboard')}>
                         Dashboard
                       </Button>
                     )}
@@ -60,29 +64,29 @@ const Navigation: React.FC = () => {
                       </Button>
                     )}
 
-                    <SimpleDropdownMenu>
-                      <SimpleDropdownMenuTrigger asChild>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                           <Avatar className="h-8 w-8">
                             <AvatarFallback>{getUserInitials()}</AvatarFallback>
                           </Avatar>
                         </Button>
-                      </SimpleDropdownMenuTrigger>
-                      <SimpleDropdownMenuContent className="w-56" align="end">
-                        <SimpleDropdownMenuItem onClick={() => navigate('/profile')}>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56" align="end">
+                        <DropdownMenuItem onClick={() => navigate('/profile')}>
                           <User className="mr-2 h-4 w-4" />
                           <span>Profil</span>
-                        </SimpleDropdownMenuItem>
-                        <SimpleDropdownMenuItem onClick={() => navigate('/settings')}>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/settings')}>
                           <Settings className="mr-2 h-4 w-4" />
                           <span>Paramètres</span>
-                        </SimpleDropdownMenuItem>
-                        <SimpleDropdownMenuItem onClick={handleSignOut}>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleSignOut}>
                           <LogOut className="mr-2 h-4 w-4" />
                           <span>Déconnexion</span>
-                        </SimpleDropdownMenuItem>
-                      </SimpleDropdownMenuContent>
-                    </SimpleDropdownMenu>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </>
                 ) : (
                   <>
