@@ -1,119 +1,135 @@
-import * as React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/native-dropdown';
-import { Avatar, AvatarFallback } from '@/components/ui/native-avatar';
-import { LogOut, Settings, User, Shield } from 'lucide-react';
 
-const Navigation: React.FC = () => {
+import React from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import NotificationSystem from './NotificationSystem';
+import { OfflineIndicator } from '@/components/common/OfflineIndicator';
+import Logo from './Logo';
+import { User, Wrench, Shield } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+const Navigation = () => {
+  const { user, isAdmin, signOut, profile, canAccessClient, canAccessRepairer, canAccessAdmin } = useAuth();
   const navigate = useNavigate();
-  
-  // Safe auth hook usage with fallback
-  let user = null;
-  let profile = null;
-  let signOut = async () => ({ error: null });
-  let loading = true;
-  
-  try {
-    const auth = useAuth();
-    user = auth.user;
-    profile = auth.profile;
-    signOut = auth.signOut;
-    loading = auth.loading;
-  } catch (error) {
-    console.warn('Navigation: Auth context not available:', error);
-  }
+  const location = useLocation();
+  const { toast } = useToast();
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
+    try {
+      console.log('🔄 Initiating sign out from Navigation...');
+      
+      // Toujours effectuer la déconnexion et rediriger
+      await signOut();
+      
+      console.log('✅ Sign out completed, redirecting to home...');
+      toast({
+        title: "Déconnexion réussie",
+        description: "Vous avez été déconnecté avec succès"
+      });
+      
+      // Force redirect to home page
+      navigate('/', { replace: true });
+      
+    } catch (error) {
+      console.error('💥 Exception during sign out:', error);
+      
+      // Même en cas d'erreur, rediriger vers l'accueil
+      toast({
+        title: "Déconnexion effectuée",
+        description: "Vous avez été déconnecté"
+      });
+      
+      navigate('/', { replace: true });
+    }
   };
 
-  const getUserInitials = () => {
-    if (profile?.first_name && profile?.last_name) {
-      return `${profile.first_name[0]}${profile.last_name[0]}`;
-    }
-    return user?.email?.[0]?.toUpperCase() || 'U';
-  };
+  const isClientPath = location.pathname.startsWith('/client');
+  const isRepairerPath = location.pathname.startsWith('/repairer');
+  const isAdminPath = location.pathname.startsWith('/admin');
 
   return (
-    <nav className="border-b bg-card">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between">
-          <button 
-            onClick={() => navigate('/')} 
-            className="text-xl font-bold text-primary cursor-pointer"
-          >
-            RepairHub
-          </button>
+    <nav className="bg-white shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-20">
+          <div className="flex items-center space-x-8">
+            <Link to="/" className="flex items-center">
+              <Logo variant="compact" size="xxl" />
+            </Link>
 
-          <div className="flex items-center space-x-4">
-            {!loading && (
-              <>
-                {user ? (
-                  <>
-                    <Button variant="ghost" onClick={() => navigate('/search')}>
-                      Rechercher
-                    </Button>
-                    
-                    <Button variant="ghost" onClick={() => navigate('/weather')}>
-                      Météo
-                    </Button>
-                    
-                    {profile?.role === 'repairer' && (
-                      <Button variant="ghost" onClick={() => navigate('/repairer-dashboard')}>
-                        Dashboard
-                      </Button>
-                    )}
-                    
-                    {profile?.role === 'admin' && (
-                      <Button variant="ghost" onClick={() => navigate('/admin')}>
-                        <Shield className="w-4 h-4 mr-2" />
-                        Admin
-                      </Button>
-                    )}
+            {/* Navigation générale */}
+            <div className="hidden md:flex space-x-4">
+              <Link to="/blog" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                Blog
+              </Link>
+            </div>
 
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                          <Avatar className="h-8 w-8">
-                            <AvatarFallback>{getUserInitials()}</AvatarFallback>
-                          </Avatar>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-56" align="end">
-                        <DropdownMenuItem onClick={() => navigate('/profile')}>
-                          <User className="mr-2 h-4 w-4" />
-                          <span>Profil</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate('/settings')}>
-                          <Settings className="mr-2 h-4 w-4" />
-                          <span>Paramètres</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleSignOut}>
-                          <LogOut className="mr-2 h-4 w-4" />
-                          <span>Déconnexion</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="ghost" onClick={() => navigate('/auth')}>
-                      Connexion
-                    </Button>
-                    <Button onClick={() => navigate('/auth?tab=signup')}>
-                      S'inscrire
-                    </Button>
-                  </>
+            {/* Navigation pour les utilisateurs connectés avec accès multiple */}
+            {user && (canAccessClient || canAccessRepairer || canAccessAdmin) && (
+              <div className="hidden md:flex space-x-4">
+                {canAccessClient && (
+                  <Link to="/client" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                    <User className="h-4 w-4 mr-1" />
+                    Client
+                    {isAdmin && profile?.role === 'admin' && (
+                      <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-1 rounded">Test</span>
+                    )}
+                  </Link>
                 )}
-              </>
+                
+                {canAccessRepairer && (
+                  <Link to="/repairer" className="text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                    <Wrench className="h-4 w-4 mr-1" />
+                    Réparateur
+                    {isAdmin && profile?.role === 'admin' && (
+                      <span className="ml-1 text-xs bg-orange-100 text-orange-600 px-1 rounded">Test</span>
+                    )}
+                  </Link>
+                )}
+
+                {canAccessAdmin && (
+                  <Link to="/admin" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                    <Shield className="h-4 w-4 mr-1" />
+                    Admin
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <OfflineIndicator />
+            {user && <NotificationSystem />}
+            
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <div className="text-right">
+                  <span className="text-sm text-gray-700">
+                    {profile?.first_name} {profile?.last_name}
+                  </span>
+                  {isAdmin && (
+                    <div className="text-xs text-blue-600 font-medium">Administrateur</div>
+                  )}
+                </div>
+                <Button onClick={handleSignOut} variant="outline">
+                  Déconnexion
+                </Button>
+              </div>
+            ) : (
+              <div className="flex space-x-2">
+                <Link to="/client-auth">
+                  <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+                    <User className="h-4 w-4 mr-2" />
+                    Client
+                  </Button>
+                </Link>
+                <Link to="/repairer-auth">
+                  <Button className="bg-orange-600 hover:bg-orange-700">
+                    <Wrench className="h-4 w-4 mr-2" />
+                    Réparateur
+                  </Button>
+                </Link>
+              </div>
             )}
           </div>
         </div>

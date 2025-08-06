@@ -1,0 +1,272 @@
+
+/* Styles harmonisés pour l'éditeur Markdown et l'aperçu */
+.w-md-editor {
+  background-color: white !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.w-md-editor-text-pre, 
+.w-md-editor-text-input, 
+.w-md-editor-text {
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace !important;
+  padding: 16px !important;
+}
+
+.w-md-editor-preview {
+  background-color: #fafafa !important;
+  padding: 16px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+.w-md-editor-toolbar {
+  border-bottom: 1px solid #e5e7eb !important;
+  background-color: #f9fafb !important;
+  padding: 8px 12px !important;
+}
+
+.w-md-editor-toolbar-child {
+  color: #374151 !important;
+  border-radius: 4px !important;
+  transition: all 0.2s !important;
+}
+
+.w-md-editor-toolbar-child:hover {
+  background-color: #e5e7eb !important;
+  color: #111827 !important;
+}
+
+/* Amélioration des blockquotes - style unifié */
+.w-md-editor-preview blockquote,
+.prose blockquote {
+  border-left: 4px solid #3b82f6 !important;
+  background-color: #eff6ff !important;
+  padding: 12px 16px !important;
+  margin: 16px 0 !important;
+  border-radius: 0 6px 6px 0 !important;
+  font-style: normal !important;
+}
+
+.w-md-editor-preview blockquote p,
+.prose blockquote p {
+  margin: 0 !important;
+  color: #1e40af !important;
+  line-height: 1.5 !important;
+}
+
+/* Callouts spéciaux avec émojis */
+.w-md-editor-preview blockquote:has-text("💡"),
+.prose blockquote:has-text("💡") {
+  border-left-color: #10b981 !important;
+  background-color: #ecfdf5 !important;
+}
+
+.w-md-editor-preview blockquote:has-text("⚠️"),
+.prose blockquote:has-text("⚠️") {
+  border-left-color: #f59e0b !important;
+  background-color: #fffbeb !important;
+}
+
+.w-md-editor-preview blockquote:has-text("❌"),
+.prose blockquote:has-text("❌") {
+  border-left-color: #ef4444 !important;
+  background-color: #fef2f2 !important;
+}
+
+/* Titres harmonisés */
+.w-md-editor-preview h1,
+.w-md-editor-preview h2,
+.w-md-editor-preview h3,
+.w-md-editor-preview h4,
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+  margin-top: 24px !important;
+  margin-bottom: 16px !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+}
+
+.w-md-editor-preview h1,
+.prose h1 {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  padding-bottom: 8px !important;
+}
+
+.w-md-editor-preview h2,
+.prose h2 {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+}
+
+.w-md-editor-preview h3,
+.prose h3 {
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+}
+
+/* Code blocks harmonisés */
+.w-md-editor-preview code,
+.prose code {
+  background-color: #f3f4f6 !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  font-size: 0.875rem !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace !important;
+  color: #374151 !important;
+}
+
+.w-md-editor-preview pre,
+.prose pre {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
+  padding: 16px !important;
+  border-radius: 8px !important;
+  overflow-x: auto !important;
+  margin: 16px 0 !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+.w-md-editor-preview pre code,
+.prose pre code {
+  background-color: transparent !important;
+  padding: 0 !important;
+  color: inherit !important;
+}
+
+/* Tables harmonisées */
+.w-md-editor-preview table,
+.prose table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  margin: 16px 0 !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+}
+
+.w-md-editor-preview th,
+.w-md-editor-preview td,
+.prose th,
+.prose td {
+  border: 1px solid #d1d5db !important;
+  padding: 12px 16px !important;
+  text-align: left !important;
+  vertical-align: top !important;
+}
+
+.w-md-editor-preview th,
+.prose th {
+  background-color: #f9fafb !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+}
+
+.w-md-editor-preview tbody tr:nth-child(even),
+.prose tbody tr:nth-child(even) {
+  background-color: #f9fafb !important;
+}
+
+/* Listes harmonisées */
+.w-md-editor-preview ul,
+.w-md-editor-preview ol,
+.prose ul,
+.prose ol {
+  margin: 16px 0 !important;
+  padding-left: 24px !important;
+}
+
+.w-md-editor-preview li,
+.prose li {
+  margin: 4px 0 !important;
+  line-height: 1.5 !important;
+}
+
+/* Task lists spéciales */
+.w-md-editor-preview .task-list-item,
+.prose .task-list-item {
+  list-style: none !important;
+  margin: 6px 0 !important;
+  padding-left: 0 !important;
+  position: relative !important;
+}
+
+.w-md-editor-preview .task-list-item input,
+.prose .task-list-item input {
+  margin-right: 8px !important;
+  margin-left: -20px !important;
+  transform: scale(1.1) !important;
+}
+
+/* Liens harmonisés */
+.w-md-editor-preview a,
+.prose a {
+  color: #3b82f6 !important;
+  text-decoration: underline !important;
+  text-decoration-color: transparent !important;
+  transition: all 0.2s !important;
+}
+
+.w-md-editor-preview a:hover,
+.prose a:hover {
+  color: #1d4ed8 !important;
+  text-decoration-color: currentColor !important;
+}
+
+/* Images */
+.w-md-editor-preview img,
+.prose img {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  margin: 16px 0 !important;
+}
+
+/* Paragraphes */
+.w-md-editor-preview p,
+.prose p {
+  margin: 16px 0 !important;
+  line-height: 1.6 !important;
+  color: #374151 !important;
+}
+
+/* Séparateurs */
+.w-md-editor-preview hr,
+.prose hr {
+  border: none !important;
+  height: 1px !important;
+  background-color: #e5e7eb !important;
+  margin: 32px 0 !important;
+}
+
+/* Amélioration de la lisibilité pour les petits écrans */
+@media (max-width: 768px) {
+  .w-md-editor-text-pre, 
+  .w-md-editor-text-input, 
+  .w-md-editor-text {
+    font-size: 12px !important;
+    padding: 12px !important;
+  }
+  
+  .w-md-editor-preview {
+    padding: 12px !important;
+  }
+  
+  .w-md-editor-preview h1,
+  .prose h1 {
+    font-size: 1.75rem !important;
+  }
+  
+  .w-md-editor-preview h2,
+  .prose h2 {
+    font-size: 1.375rem !important;
+  }
+}
