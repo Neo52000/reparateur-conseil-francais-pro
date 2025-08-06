@@ -7,6 +7,7 @@ import Layout from '@/components/Layout';
 import HomePage from '@/pages/HomePage';
 import AuthPage from '@/pages/AuthPage';
 import SearchPage from '@/pages/SearchPage';
+import QuotesAppointmentsPage from '@/pages/QuotesAppointmentsPage';
 import './index.css';
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App: React.FC = () => {
               <Route path="/" element={<Layout />}>
                 <Route index element={<HomePage />} />
                 <Route path="search" element={<SearchPage />} />
+                <Route path="quotes-appointments" element={<QuotesAppointmentsPage />} />
               </Route>
             </Routes>
           </Router>
