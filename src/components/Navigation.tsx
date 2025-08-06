@@ -3,11 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  SimpleDropdownMenu,
+  SimpleDropdownMenuContent,
+  SimpleDropdownMenuItem,
+  SimpleDropdownMenuTrigger,
+} from '@/components/ui/simple-dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { LogOut, Settings, User, Shield } from 'lucide-react';
 
@@ -59,29 +59,29 @@ const Navigation: React.FC = () => {
                       </Link>
                     )}
 
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                    <SimpleDropdownMenu>
+                      <SimpleDropdownMenuTrigger asChild>
                         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                           <Avatar className="h-8 w-8">
                             <AvatarFallback>{getUserInitials()}</AvatarFallback>
                           </Avatar>
                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-56" align="end" forceMount>
-                        <DropdownMenuItem onClick={() => navigate('/profile')}>
+                      </SimpleDropdownMenuTrigger>
+                      <SimpleDropdownMenuContent className="w-56" align="end">
+                        <SimpleDropdownMenuItem onClick={() => navigate('/profile')}>
                           <User className="mr-2 h-4 w-4" />
                           <span>Profil</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate('/settings')}>
+                        </SimpleDropdownMenuItem>
+                        <SimpleDropdownMenuItem onClick={() => navigate('/settings')}>
                           <Settings className="mr-2 h-4 w-4" />
                           <span>Paramètres</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleSignOut}>
+                        </SimpleDropdownMenuItem>
+                        <SimpleDropdownMenuItem onClick={handleSignOut}>
                           <LogOut className="mr-2 h-4 w-4" />
                           <span>Déconnexion</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                        </SimpleDropdownMenuItem>
+                      </SimpleDropdownMenuContent>
+                    </SimpleDropdownMenu>
                   </>
                 ) : (
                   <>
