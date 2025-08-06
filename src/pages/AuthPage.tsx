@@ -12,8 +12,19 @@ import { useToast } from '@/hooks/use-toast';
 const AuthPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { signIn, signUp } = useAuth();
   const { toast } = useToast();
+  
+  // Safe auth hook usage with defensive error handling
+  let signIn = async (email: string, password: string) => ({ error: { message: 'Auth not available' } });
+  let signUp = async (email: string, password: string, userData?: any) => ({ error: { message: 'Auth not available' } });
+  
+  try {
+    const auth = useAuth();
+    signIn = auth.signIn;
+    signUp = auth.signUp;
+  } catch (error) {
+    console.error('AuthPage: Failed to load auth context:', error);
+  }
   
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
