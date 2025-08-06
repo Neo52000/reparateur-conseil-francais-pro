@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SimpleTabs, SimpleTabsContent, SimpleTabsList, SimpleTabsTrigger } from '@/components/ui/simple-tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, Clock, MapPin, Phone, Star, Plus } from 'lucide-react';
 
@@ -44,8 +44,8 @@ const mockAppointments = [
 ];
 
 const QuotesAppointmentsPage: React.FC = () => {
-  const [quotesFilter, setQuotesFilter] = useState('all');
-  const [appointmentsFilter, setAppointmentsFilter] = useState('all');
+  const [quotesFilter, setQuotesFilter] = React.useState('all');
+  const [appointmentsFilter, setAppointmentsFilter] = React.useState('all');
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -79,13 +79,13 @@ const QuotesAppointmentsPage: React.FC = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="quotes" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="quotes">Mes Devis</TabsTrigger>
-          <TabsTrigger value="appointments">Mes Rendez-vous</TabsTrigger>
-        </TabsList>
+      <SimpleTabs defaultValue="quotes" className="space-y-4">
+        <SimpleTabsList className="grid w-full grid-cols-2">
+          <SimpleTabsTrigger value="quotes">Mes Devis</SimpleTabsTrigger>
+          <SimpleTabsTrigger value="appointments">Mes Rendez-vous</SimpleTabsTrigger>
+        </SimpleTabsList>
 
-        <TabsContent value="quotes" className="space-y-4">
+        <SimpleTabsContent value="quotes" className="space-y-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium">Filtrer par statut:</span>
@@ -154,9 +154,9 @@ const QuotesAppointmentsPage: React.FC = () => {
               </Card>
             ))}
           </div>
-        </TabsContent>
+        </SimpleTabsContent>
 
-        <TabsContent value="appointments" className="space-y-4">
+        <SimpleTabsContent value="appointments" className="space-y-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium">Filtrer par statut:</span>
@@ -230,8 +230,8 @@ const QuotesAppointmentsPage: React.FC = () => {
               </Card>
             ))}
           </div>
-        </TabsContent>
-      </Tabs>
+        </SimpleTabsContent>
+      </SimpleTabs>
     </div>
   );
 };
