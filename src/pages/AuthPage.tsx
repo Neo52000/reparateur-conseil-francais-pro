@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 
 const AuthPage: React.FC = () => {
@@ -36,6 +35,7 @@ const AuthPage: React.FC = () => {
   });
 
   const defaultTab = searchParams.get('tab') || 'signin';
+  const [activeTab, setActiveTab] = useState(defaultTab);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
@@ -119,13 +119,32 @@ const AuthPage: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue={defaultTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Connexion</TabsTrigger>
-              <TabsTrigger value="signup">Inscription</TabsTrigger>
-            </TabsList>
+          {/* Custom tabs implementation */}
+          <div className="w-full">
+            <div className="grid w-full grid-cols-2 rounded-lg bg-muted p-1 mb-6">
+              <button
+                onClick={() => setActiveTab('signin')}
+                className={`rounded-md px-3 py-2 text-sm font-medium transition-all ${
+                  activeTab === 'signin'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Connexion
+              </button>
+              <button
+                onClick={() => setActiveTab('signup')}
+                className={`rounded-md px-3 py-2 text-sm font-medium transition-all ${
+                  activeTab === 'signup'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Inscription
+              </button>
+            </div>
             
-            <TabsContent value="signin">
+            {activeTab === 'signin' && (
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -153,9 +172,9 @@ const AuthPage: React.FC = () => {
                   {loading ? 'Connexion...' : 'Se connecter'}
                 </Button>
               </form>
-            </TabsContent>
+            )}
             
-            <TabsContent value="signup">
+            {activeTab === 'signup' && (
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -205,8 +224,8 @@ const AuthPage: React.FC = () => {
                   {loading ? 'Inscription...' : 'S\'inscrire'}
                 </Button>
               </form>
-            </TabsContent>
-          </Tabs>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
