@@ -24,8 +24,8 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <Router>
+          <Router>
+            <AuthProvider>
               <Routes>
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/" element={<Layout />}>
@@ -59,8 +59,8 @@ const App: React.FC = () => {
                   <Route path="weather" element={<WeatherPage />} />
                 </Route>
               </Routes>
-            </Router>
-          </AuthProvider>
+            </AuthProvider>
+          </Router>
         </QueryClientProvider>
       </HelmetProvider>
     </ErrorBoundary>

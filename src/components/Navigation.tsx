@@ -12,8 +12,23 @@ import { Avatar, AvatarFallback } from '@/components/ui/native-avatar';
 import { LogOut, Settings, User, Shield } from 'lucide-react';
 
 const Navigation: React.FC = () => {
-  const { user, profile, signOut, loading } = useAuth();
   const navigate = useNavigate();
+  
+  // Safe auth hook usage with fallback
+  let user = null;
+  let profile = null;
+  let signOut = async () => ({ error: null });
+  let loading = true;
+  
+  try {
+    const auth = useAuth();
+    user = auth.user;
+    profile = auth.profile;
+    signOut = auth.signOut;
+    loading = auth.loading;
+  } catch (error) {
+    console.warn('Navigation: Auth context not available:', error);
+  }
 
   const handleSignOut = async () => {
     await signOut();

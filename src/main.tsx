@@ -8,8 +8,21 @@ if (!rootElement) {
 }
 
 const root = createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+
+// Safer rendering with error handling
+try {
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+} catch (error) {
+  console.error('Failed to render app:', error);
+  root.render(
+    <div style={{ padding: '20px', textAlign: 'center' }}>
+      <h1>Erreur de chargement</h1>
+      <p>Une erreur s'est produite lors du chargement de l'application.</p>
+      <button onClick={() => window.location.reload()}>Recharger</button>
+    </div>
+  );
+}
