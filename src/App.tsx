@@ -1,11 +1,10 @@
-import React from 'react';
+import * as React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import Layout from '@/components/Layout';
 import HomePage from '@/pages/HomePage';
-import AuthPage from '@/pages/AuthPage';
 import SearchPage from '@/pages/SearchPage';
 import QuotesAppointmentsPage from '@/pages/QuotesAppointmentsPage';
 import './index.css';
@@ -19,7 +18,7 @@ const App: React.FC = () => {
         <AuthProvider>
           <Router>
             <Routes>
-              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/auth" element={<div>Auth Page - Temporarily Disabled</div>} />
               <Route path="/" element={<Layout />}>
                 <Route index element={<HomePage />} />
                 <Route path="search" element={<SearchPage />} />

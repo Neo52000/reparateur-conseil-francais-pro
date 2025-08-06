@@ -1,7 +1,6 @@
-import React from 'react';
+import * as React from 'react';
 import { Outlet } from 'react-router-dom';
 import Navigation from './Navigation';
-import { Toaster } from '@/components/ui/toaster';
 
 const Layout: React.FC = () => {
   return (
@@ -10,7 +9,6 @@ const Layout: React.FC = () => {
       <main className="container mx-auto px-4 py-8">
         <Outlet />
       </main>
-      <Toaster />
     </div>
   );
 };
