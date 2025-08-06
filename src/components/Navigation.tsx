@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,32 +31,33 @@ const Navigation: React.FC = () => {
     <nav className="border-b bg-card">
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold text-primary">
+          <button 
+            onClick={() => navigate('/')} 
+            className="text-xl font-bold text-primary cursor-pointer"
+          >
             RepairHub
-          </Link>
+          </button>
 
           <div className="flex items-center space-x-4">
             {!loading && (
               <>
                 {user ? (
                   <>
-                    <Link to="/search">
-                      <Button variant="ghost">Rechercher</Button>
-                    </Link>
+                    <Button variant="ghost" onClick={() => navigate('/search')}>
+                      Rechercher
+                    </Button>
                     
                     {profile?.role === 'repairer' && (
-                      <Link to="/repairer/dashboard">
-                        <Button variant="ghost">Dashboard</Button>
-                      </Link>
+                      <Button variant="ghost" onClick={() => navigate('/repairer/dashboard')}>
+                        Dashboard
+                      </Button>
                     )}
                     
                     {profile?.role === 'admin' && (
-                      <Link to="/admin">
-                        <Button variant="ghost">
-                          <Shield className="w-4 h-4 mr-2" />
-                          Admin
-                        </Button>
-                      </Link>
+                      <Button variant="ghost" onClick={() => navigate('/admin')}>
+                        <Shield className="w-4 h-4 mr-2" />
+                        Admin
+                      </Button>
                     )}
 
                     <SimpleDropdownMenu>
@@ -85,12 +86,12 @@ const Navigation: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <Link to="/auth">
-                      <Button variant="ghost">Connexion</Button>
-                    </Link>
-                    <Link to="/auth?tab=signup">
-                      <Button>S'inscrire</Button>
-                    </Link>
+                    <Button variant="ghost" onClick={() => navigate('/auth')}>
+                      Connexion
+                    </Button>
+                    <Button onClick={() => navigate('/auth?tab=signup')}>
+                      S'inscrire
+                    </Button>
                   </>
                 )}
               </>
