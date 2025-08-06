@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -15,8 +14,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireRepairer = false,
   redirectTo = '/auth'
 }) => {
-  const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
+  
+  // Safe auth hook usage with defensive error handling
+  let user = null;
+  let profile = null;
+  let loading = true;
+  
+  try {
+    const { useAuth } = require('@/hooks/useAuth');
+    const auth = useAuth();
+    user = auth.user;
+    profile = auth.profile;
+    loading = auth.loading;
+  } catch (error) {
+    console.error('ProtectedRoute: Failed to load auth context:', error);
+    // Redirect to auth if context fails
+    React.useEffect(() => {
+      navigate(redirectTo);
+    }, [navigate, redirectTo]);
+    return null;
+  }
 
   useEffect(() => {
     if (loading) return;
