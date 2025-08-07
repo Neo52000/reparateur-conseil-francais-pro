@@ -63,9 +63,27 @@ const App = () => {
 const AppWithTracking = () => {
   return (
     <>
+      <GlobalVisitorTracker />
       <Routes>
-        <Route path="/" element={<div>Test React Fix Working</div>} />
-        <Route path="/admin" element={<div>Admin Dashboard - Working</div>} />
+        <Route path="/" element={<Index />} />
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/repairer-dashboard" element={<RepairerDashboardPage />} />
+        <Route path="/client-dashboard" element={<ClientDashboardPage />} />
+        <Route path="/repairer-profile" element={<RepairerProfilePage />} />
+        <Route path="/repairer-plans" element={<RepairerPlans />} />
+        <Route path="/repairer-testimonials" element={<RepairerTestimonials />} />
+        <Route path="/repairer-faq" element={<RepairerFAQ />} />
+        <Route path="/services/repair" element={<ServiceRepairPage />} />
+        <Route path="/local-seo" element={<LocalSeoPage />} />
+        <Route path="/repairer-settings" element={<RepairerSettingsPage />} />
+        <Route path="/repair-tracking" element={<RepairTrackingPage />} />
+        <Route path="/static/:slug" element={<StaticPage />} />
+        <Route path="/repairer-auth" element={<RepairerAuthPage />} />
+        <Route path="/client-auth" element={<ClientAuthPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogArticlePage />} />
+        <Route path="/suppliers-directory" element={<SuppliersDirectoryPage />} />
+        <Route path="/quotes-appointments" element={<QuotesAndAppointments />} />
       </Routes>
     </>
   );
