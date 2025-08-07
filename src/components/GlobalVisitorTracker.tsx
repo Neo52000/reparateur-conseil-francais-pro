@@ -1,11 +1,11 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { useVisitorAnalytics } from '@/hooks/useVisitorAnalytics';
 
 // Composant pour initialiser le tracking automatiquement
-export const GlobalVisitorTracker: React.FC = () => {
+export const GlobalVisitorTracker = () => {
   const { trackVisitor } = useVisitorAnalytics();
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Initialiser le tracking si pas déjà fait
     const hasTrackedSession = sessionStorage.getItem('visitor_session_tracked');
     
