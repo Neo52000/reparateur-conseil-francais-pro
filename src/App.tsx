@@ -48,25 +48,21 @@ const App = () => {
   }, []);
 
   return (
-    <React.StrictMode>
-      <HelmetProvider>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
-            <TooltipProvider>
-              <GlobalStoreProvider>
-                <AuthProvider>
-                  <PlanPreviewProvider>
-                    <Toaster />
-                    <Sonner />
-                    <AppWithTracking />
-                  </PlanPreviewProvider>
-                </AuthProvider>
-              </GlobalStoreProvider>
-            </TooltipProvider>
-          </BrowserRouter>
-        </QueryClientProvider>
-      </HelmetProvider>
-    </React.StrictMode>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <GlobalStoreProvider>
+            <AuthProvider>
+              <PlanPreviewProvider>
+                <Toaster />
+                <Sonner />
+                <AppWithTracking />
+              </PlanPreviewProvider>
+            </AuthProvider>
+          </GlobalStoreProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 };
 
