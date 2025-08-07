@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -48,23 +48,25 @@ const App = () => {
   }, []);
 
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <GlobalStoreProvider>
-          <AuthProvider>
-            <PlanPreviewProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <AppWithTracking />
-                </BrowserRouter>
-              </TooltipProvider>
-            </PlanPreviewProvider>
-          </AuthProvider>
-        </GlobalStoreProvider>
-      </QueryClientProvider>
-    </HelmetProvider>
+    <React.StrictMode>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <TooltipProvider>
+              <GlobalStoreProvider>
+                <AuthProvider>
+                  <PlanPreviewProvider>
+                    <Toaster />
+                    <Sonner />
+                    <AppWithTracking />
+                  </PlanPreviewProvider>
+                </AuthProvider>
+              </GlobalStoreProvider>
+            </TooltipProvider>
+          </BrowserRouter>
+        </QueryClientProvider>
+      </HelmetProvider>
+    </React.StrictMode>
   );
 };
 
