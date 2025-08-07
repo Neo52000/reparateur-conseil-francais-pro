@@ -1,5 +1,5 @@
 
-import React from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode, FC } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from './auth/types';
@@ -20,17 +20,17 @@ interface AuthContextType {
   refreshProfile: () => Promise<void>;
 }
 
-const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   console.log('🔐 AuthProvider: Initializing...');
-  const [user, setUser] = React.useState<User | null>(null);
-  const [session, setSession] = React.useState<Session | null>(null);
-  const [profile, setProfile] = React.useState<Profile | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // Fonction optimisée pour charger le profil avec cache
-  const fetchProfile = React.useCallback(async (userId: string, userMetadata?: any) => {
+  const fetchProfile = useCallback(async (userId: string, userMetadata?: any) => {
     try {
       console.log('🔄 Chargement du profil depuis la base pour:', userId);
       const { data, error } = await supabase
@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []); // Pas de dépendances pour éviter les boucles
 
   // Calcul des permissions optimisé
-  const permissions = React.useMemo(() => {
+  const permissions = useMemo(() => {
     const isAdminEmail = profile?.email === 'admin@repairhub.fr';
     const hasAdminRole = profile?.role === 'admin';
     const isAdmin = isAdminEmail || hasAdminRole;
@@ -85,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, profile]);
 
   // Effet pour gérer l'authentification
-  React.useEffect(() => {
+  useEffect(() => {
     let mounted = true;
     let timeoutId: NodeJS.Timeout;
 
@@ -136,7 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []); // Pas de dépendances pour éviter les boucles
 
-  const signIn = React.useCallback(async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     try {
       setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -156,13 +156,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const signInAdmin = React.useCallback(async (email: string, password: string) => {
+  const signInAdmin = useCallback(async (email: string, password: string) => {
     const result = await signIn(email, password);
     // Vérifier les permissions admin après connexion
     return result;
   }, [signIn]);
 
-  const signUp = React.useCallback(async (email: string, password: string, userData?: any) => {
+  const signUp = useCallback(async (email: string, password: string, userData?: any) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -182,7 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const signOut = React.useCallback(async () => {
+  const signOut = useCallback(async () => {
     try {
       setUser(null);
       setSession(null);
@@ -195,7 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const refreshProfile = React.useCallback(async () => {
+  const refreshProfile = useCallback(async () => {
     if (user?.id) {
       const profileData = await fetchProfile(user.id, user.user_metadata);
       setProfile(profileData);
@@ -230,7 +230,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export const useAuth = (): AuthContextType => {
-  const context = React.useContext(AuthContext);
+  const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
