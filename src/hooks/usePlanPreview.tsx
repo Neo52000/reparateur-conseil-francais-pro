@@ -1,4 +1,4 @@
-import React from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 import { useAuth } from './useAuth';
 import { useRepairerSubscriptions } from './useRepairerSubscriptions';
 
@@ -12,14 +12,14 @@ interface PlanPreviewContextType {
   canPreview: boolean; // Admin ou démo
 }
 
-const PlanPreviewContext = React.createContext<PlanPreviewContextType | undefined>(undefined);
+const PlanPreviewContext = createContext<PlanPreviewContextType | undefined>(undefined);
 
-export const PlanPreviewProvider = ({ children }: { children: React.ReactNode }) => {
+export const PlanPreviewProvider = ({ children }: { children: ReactNode }) => {
   console.log('📋 PlanPreviewProvider: Starting...');
   const { user, profile } = useAuth();
   const { getSubscriptionTier } = useRepairerSubscriptions();
-  const [isPreviewMode, setIsPreviewMode] = React.useState(false);
-  const [previewTier, setPreviewTier] = React.useState<string | null>(null);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [previewTier, setPreviewTier] = useState<string | null>(null);
 
   const actualTier = user ? getSubscriptionTier(user.id) : 'free';
   const canPreview = profile?.role === 'admin' || user?.email === 'demo@demo.fr';
@@ -53,7 +53,7 @@ export const PlanPreviewProvider = ({ children }: { children: React.ReactNode })
 };
 
 export const usePlanPreview = () => {
-  const context = React.useContext(PlanPreviewContext);
+  const context = useContext(PlanPreviewContext);
   if (context === undefined) {
     throw new Error('usePlanPreview must be used within a PlanPreviewProvider');
   }
