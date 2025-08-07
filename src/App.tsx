@@ -1,5 +1,4 @@
 import React from "react";
-import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -36,7 +35,7 @@ import { initializeProductionMode, performProductionHealthCheck } from './config
 const queryClient = new QueryClient();
 
 const App = () => {
-  useEffect(() => {
+  React.useEffect(() => {
     // Initialiser le mode production strict
     const prodConfig = initializeProductionMode();
     
@@ -51,9 +50,17 @@ const App = () => {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<div>Test React Fix</div>} />
-          </Routes>
+          <AuthProvider>
+            <GlobalStoreProvider>
+              <PlanPreviewProvider>
+                <TooltipProvider>
+                  <AppWithTracking />
+                  <Toaster />
+                  <Sonner />
+                </TooltipProvider>
+              </PlanPreviewProvider>
+            </GlobalStoreProvider>
+          </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </HelmetProvider>
@@ -61,12 +68,11 @@ const App = () => {
 };
 
 const AppWithTracking = () => {
-  // Temporairement désactivé pour corriger l'erreur React
-  // useVisitorTracker();
+  useVisitorTracker();
   
   return (
     <>
-      {/* <GlobalVisitorTracker /> */}
+      <GlobalVisitorTracker />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/blog" element={<BlogPage />} />
