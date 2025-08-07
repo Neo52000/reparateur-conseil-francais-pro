@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState, FormEvent } from 'react';
 import { Search, Bell, Settings, User, Globe, Plus, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,16 +13,16 @@ interface AdminTopBarProps {
   onSearch?: (query: string) => void;
   onLogout?: () => void;
 }
-const AdminTopBar: React.FC<AdminTopBarProps> = ({
+const AdminTopBar = ({
   userName = "Admin RepairHub",
   userEmail = "admin@repairhub.fr",
   userAvatar,
   notificationCount = 3,
   onSearch,
   onLogout
-}) => {
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const handleSearch = (e: React.FormEvent) => {
+}: AdminTopBarProps) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     onSearch?.(searchQuery);
   };
