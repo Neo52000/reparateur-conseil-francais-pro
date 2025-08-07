@@ -1,5 +1,4 @@
 // TestRepairerProfileButton supprimé - utilisation des données réelles
-import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
