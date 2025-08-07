@@ -3,7 +3,6 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from './auth/types';
-import { useLocalStorage } from './useLocalStorage';
 
 interface AuthContextType {
   user: User | null;
@@ -29,8 +28,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   
-  // Cache local pour les profils avec localStorage
-  const [cachedProfiles, setCachedProfiles] = useLocalStorage<Record<string, Profile>>('auth_profiles_cache', {});
+  // Cache simple en mémoire pour les profils
+  const [cachedProfiles, setCachedProfiles] = useState<Record<string, Profile>>({});
 
   // Fonction optimisée pour charger le profil avec cache
   const fetchProfile = useCallback(async (userId: string, userMetadata?: any) => {
@@ -80,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: 'user'
       };
     }
-  }, [cachedProfiles, setCachedProfiles]);
+  }, [cachedProfiles]);
 
   // Calcul des permissions optimisé
   const permissions = useMemo(() => {
@@ -214,7 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Mettre à jour le cache
       setCachedProfiles(prev => ({ ...prev, [user.id]: profileData }));
     }
-  }, [user?.id, user?.user_metadata, fetchProfile, setCachedProfiles]);
+  }, [user?.id, user?.user_metadata, fetchProfile]);
 
   const value = {
     user,
