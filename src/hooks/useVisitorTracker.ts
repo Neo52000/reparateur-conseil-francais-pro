@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useVisitorAnalytics } from './useVisitorAnalytics';
 
@@ -35,7 +35,7 @@ export const useVisitorTracker = () => {
   const location = useLocation();
   const { trackVisitor } = useVisitorAnalytics();
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Tracker la visite de page automatiquement
     const trackPageVisit = async () => {
       try {
