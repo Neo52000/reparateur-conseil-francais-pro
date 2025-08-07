@@ -1,5 +1,6 @@
 // TestRepairerProfileButton supprimé - utilisation des données réelles
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
@@ -16,6 +17,7 @@ import ChatWidget from '@/components/chatbot/ChatWidget';
 import { useAuth } from '@/hooks/useAuth';
 import { usePendingAction } from '@/hooks/usePendingAction';
 import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
+
 interface SearchCriteria {
   deviceType: string;
   brand: string;
@@ -24,9 +26,10 @@ interface SearchCriteria {
   city: string;
   postalCode: string;
 }
+
 const Index = () => {
-  const navigate = useNavigate();
   console.log('🏠 Index page rendering');
+  const navigate = useNavigate();
   const {
     user
   } = useAuth();
