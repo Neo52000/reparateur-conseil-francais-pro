@@ -66,15 +66,11 @@ const App = () => {
 };
 
 const AppWithTracking = () => {
-  // Temporairement désactivé pour debugging
-  // useVisitorTracker();
-  
   return (
     <>
-      {/* <GlobalVisitorTracker /> */}
       <Routes>
         <Route path="/" element={<div>Test React Fix Working</div>} />
-        <Route path="/admin" element={<div>Admin Test</div>} />
+        <Route path="/admin" element={<div>Admin Dashboard - Working</div>} />
       </Routes>
     </>
   );
