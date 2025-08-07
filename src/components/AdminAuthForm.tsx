@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import AdminAuthFormContent from '@/components/admin/AdminAuthFormContent';
@@ -24,7 +24,7 @@ const AdminAuthForm = () => {
   /**
    * Gestion de la soumission du formulaire de connexion
    */
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
