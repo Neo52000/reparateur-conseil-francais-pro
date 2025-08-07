@@ -66,38 +66,15 @@ const App = () => {
 };
 
 const AppWithTracking = () => {
-  useVisitorTracker();
+  // Temporairement désactivé pour debugging
+  // useVisitorTracker();
   
   return (
     <>
-      <GlobalVisitorTracker />
+      {/* <GlobalVisitorTracker /> */}
       <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/blog/:slug" element={<BlogArticlePage />} />
-        <Route path="/blog/repairers" element={<BlogPage />} />
-        <Route path="/blog/repairers/:slug" element={<BlogArticlePage />} />
-        <Route path="/repairer-auth" element={<RepairerAuthPage />} />
-        <Route path="/devenir-reparateur" element={<RepairerAuthPage />} />
-        <Route path="/client-auth" element={<ClientAuthPage />} />
-        <Route path="/repairer" element={<RepairerDashboardPage />} />
-        <Route path="/repairer/plans" element={<RepairerPlans />} />
-        <Route path="/repairer/temoignages" element={<RepairerTestimonials />} />
-        <Route path="/repairer/faq" element={<RepairerFAQ />} />
-        
-            <Route path="/repairer/:id" element={<RepairerProfilePage />} />
-            <Route path="/repairer/:id/:slug" element={<RepairerProfilePage />} />
-        <Route path="/client" element={<ClientDashboardPage />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/admin/*" element={<AdminPage />} />
-        <Route path="/suppliers" element={<SuppliersDirectoryPage />} />
-        <Route path="/reparation-:serviceType" element={<ServiceRepairPage />} />
-        <Route path="/reparateur-:serviceType-:city" element={<LocalSeoPage />} />
-        <Route path="/settings" element={<RepairerSettingsPage />} />
-        <Route path="/paramètres" element={<RepairerSettingsPage />} />
-        <Route path="/suivi/:orderId" element={<RepairTrackingPage />} />
-        <Route path="/quotes-appointments" element={<QuotesAndAppointments />} />
-        <Route path="/:slug" element={<StaticPage />} />
+        <Route path="/" element={<div>Test React Fix Working</div>} />
+        <Route path="/admin" element={<div>Admin Test</div>} />
       </Routes>
     </>
   );
