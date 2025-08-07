@@ -53,11 +53,9 @@ const App = () => {
           <AuthProvider>
             <GlobalStoreProvider>
               <PlanPreviewProvider>
-                <TooltipProvider>
-                  <AppWithTracking />
-                  <Toaster />
-                  <Sonner />
-                </TooltipProvider>
+                <AppWithTracking />
+                <Toaster />
+                <Sonner />
               </PlanPreviewProvider>
             </GlobalStoreProvider>
           </AuthProvider>

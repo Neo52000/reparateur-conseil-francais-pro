@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import { useAppStore } from '@/stores/appStore';
@@ -7,7 +7,7 @@ import { useAppStore } from '@/stores/appStore';
 export const GlobalStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   console.log('🏪 GlobalStoreProvider: Initializing...');
   // Synchronisation cross-tab pour l'auth
-  useEffect(() => {
+  React.useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'auth-storage' && e.newValue) {
         try {
@@ -26,7 +26,7 @@ export const GlobalStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   // Synchronisation des notifications globales
-  useEffect(() => {
+  React.useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     
     // Démarrer la subscription après le montage
