@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import React from "react";
 
 interface PostalCodeCity {
   nom: string;
@@ -25,17 +25,17 @@ interface PostalCodeValidationResult {
 }
 
 export const usePostalCodeValidation = (initialQuery: string = '', searchType: 'city' | 'postal' | 'auto' = 'auto') => {
-  const [query, setQuery] = useState(initialQuery);
-  const [result, setResult] = useState<Omit<PostalCodeValidationResult, 'showCitySuggestions' | 'showPostalSuggestions' | 'isCityValid' | 'isPostalValid' | 'setShowCitySuggestions' | 'setShowPostalSuggestions' | 'handleCityInputChange' | 'handlePostalCodeInputChange'>>({
+  const [query, setQuery] = React.useState(initialQuery);
+  const [result, setResult] = React.useState<Omit<PostalCodeValidationResult, 'showCitySuggestions' | 'showPostalSuggestions' | 'isCityValid' | 'isPostalValid' | 'setShowCitySuggestions' | 'setShowPostalSuggestions' | 'handleCityInputChange' | 'handlePostalCodeInputChange'>>({
     cities: [],
     loading: false,
     error: null
   });
 
-  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
-  const [showPostalSuggestions, setShowPostalSuggestions] = useState(false);
-  const [isCityValid, setIsCityValid] = useState(false);
-  const [isPostalValid, setIsPostalValid] = useState(false);
+  const [showCitySuggestions, setShowCitySuggestions] = React.useState(false);
+  const [showPostalSuggestions, setShowPostalSuggestions] = React.useState(false);
+  const [isCityValid, setIsCityValid] = React.useState(false);
+  const [isPostalValid, setIsPostalValid] = React.useState(false);
 
   const detectSearchType = (query: string): 'city' | 'postal' => {
     if (/^\d{5}$/.test(query)) return 'postal';
@@ -43,17 +43,17 @@ export const usePostalCodeValidation = (initialQuery: string = '', searchType: '
     return 'city';
   };
 
-  const handleCityInputChange = useCallback((value: string) => {
+  const handleCityInputChange = React.useCallback((value: string) => {
     setQuery(value);
     setIsCityValid(value.length >= 2);
   }, []);
 
-  const handlePostalCodeInputChange = useCallback((value: string) => {
+  const handlePostalCodeInputChange = React.useCallback((value: string) => {
     setQuery(value);
     setIsPostalValid(/^\d{5}$/.test(value));
   }, []);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = React.useCallback(async () => {
     if (!query || query.length < 2) {
       setResult({ cities: [], loading: false, error: null });
       return;
@@ -109,7 +109,7 @@ export const usePostalCodeValidation = (initialQuery: string = '', searchType: '
     }
   }, [query, searchType]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const timeout = setTimeout(fetchData, 300);
     return () => clearTimeout(timeout);
   }, [fetchData]);
