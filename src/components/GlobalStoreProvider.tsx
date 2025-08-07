@@ -27,21 +27,36 @@ export const GlobalStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Synchronisation des notifications globales
   useEffect(() => {
-    const unsubscribe = useGamificationStore.subscribe(
-      (state) => state.profile?.current_level,
-      (currentLevel, previousLevel) => {
-        if (currentLevel && previousLevel && currentLevel > previousLevel) {
-          useAppStore.getState().addNotification({
-            type: 'success',
-            title: '🎉 Nouveau niveau !',
-            message: `Félicitations ! Vous êtes maintenant niveau ${currentLevel}`,
-            duration: 8000
-          });
-        }
+    let unsubscribe: (() => void) | undefined;
+    
+    // Démarrer la subscription après le montage
+    const startSubscription = () => {
+      try {
+        unsubscribe = useGamificationStore.subscribe(
+          (state) => state.profile?.current_level,
+          (currentLevel, previousLevel) => {
+            if (currentLevel && previousLevel && currentLevel > previousLevel) {
+              useAppStore.getState().addNotification({
+                type: 'success',
+                title: '🎉 Nouveau niveau !',
+                message: `Félicitations ! Vous êtes maintenant niveau ${currentLevel}`,
+                duration: 8000
+              });
+            }
+          }
+        );
+      } catch (error) {
+        console.error('Error setting up gamification subscription:', error);
       }
-    );
+    };
 
-    return unsubscribe;
+    startSubscription();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, []);
 
   console.log('🏪 GlobalStoreProvider: Rendering children...');
