@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAdminAuditIntegration } from '@/hooks/useAdminAuditIntegration';
@@ -20,11 +20,11 @@ interface RepairerTableActionsProps {
   onRefresh: () => void;
 }
 
-const RepairerTableActions: React.FC<RepairerTableActionsProps> = ({ 
+const RepairerTableActions = ({ 
   repairer, 
   onViewProfile, 
   onRefresh 
-}) => {
+}: RepairerTableActionsProps) => {
   const { logRepairerAction } = useAdminAuditIntegration();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);

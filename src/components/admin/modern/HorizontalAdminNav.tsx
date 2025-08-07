@@ -1,4 +1,4 @@
-import React from 'react';
+import { ReactNode } from 'react';
 import { NavLink, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,7 +33,7 @@ import {
 interface NavItem {
   id: string;
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   badge?: string | number;
   isNew?: boolean;
   isPro?: boolean;
@@ -43,7 +43,7 @@ interface HorizontalAdminNavProps {
   className?: string;
 }
 
-const HorizontalAdminNav: React.FC<HorizontalAdminNavProps> = ({ className }) => {
+const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
   const [searchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'dashboard';
 
@@ -181,7 +181,7 @@ const HorizontalAdminNav: React.FC<HorizontalAdminNavProps> = ({ className }) =>
     }
   ];
 
-  const NavButton: React.FC<{ item: NavItem; isActive: boolean }> = ({ item, isActive }) => (
+  const NavButton = ({ item, isActive }: { item: NavItem; isActive: boolean }) => (
     <NavLink to={`/admin?tab=${item.id}`}>
       <Button
         variant={isActive ? "default" : "ghost"}
@@ -228,12 +228,12 @@ const HorizontalAdminNav: React.FC<HorizontalAdminNavProps> = ({ className }) =>
     </NavLink>
   );
 
-  const DropdownNavMenu: React.FC<{ 
+  const DropdownNavMenu = ({ label, items, icon, hasActiveItem }: { 
     label: string; 
     items: NavItem[]; 
-    icon: React.ReactNode;
+    icon: ReactNode;
     hasActiveItem: boolean;
-  }> = ({ label, items, icon, hasActiveItem }) => (
+  }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button

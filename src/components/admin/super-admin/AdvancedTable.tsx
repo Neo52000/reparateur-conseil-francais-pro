@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo, ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +25,7 @@ export interface TableColumn {
   title: string;
   sortable?: boolean;
   filterable?: boolean;
-  render?: (value: any, row: any) => React.ReactNode;
+  render?: (value: any, row: any) => ReactNode;
   width?: string;
 }
 
@@ -48,7 +48,7 @@ interface AdvancedTableProps {
   emptyMessage?: string;
 }
 
-const AdvancedTable: React.FC<AdvancedTableProps> = ({
+const AdvancedTable = ({
   title,
   data,
   columns,
@@ -58,7 +58,7 @@ const AdvancedTable: React.FC<AdvancedTableProps> = ({
   isLoading = false,
   onExport,
   emptyMessage = "Aucune donnée disponible"
-}) => {
+}: AdvancedTableProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{
     key: string;
