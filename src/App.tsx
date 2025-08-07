@@ -51,15 +51,7 @@ const App = () => {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <GlobalStoreProvider>
-            <AuthProvider>
-              <PlanPreviewProvider>
-                <Toaster />
-                <Sonner />
-                <AppWithTracking />
-              </PlanPreviewProvider>
-            </AuthProvider>
-          </GlobalStoreProvider>
+          <AppWithTracking />
         </BrowserRouter>
       </QueryClientProvider>
     </HelmetProvider>
