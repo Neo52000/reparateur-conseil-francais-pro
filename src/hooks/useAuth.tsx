@@ -23,24 +23,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('🔐 AuthProvider: Initializing...');
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Cache simple en mémoire pour les profils
-  const [cachedProfiles, setCachedProfiles] = useState<Record<string, Profile>>({});
 
   // Fonction optimisée pour charger le profil avec cache
   const fetchProfile = useCallback(async (userId: string, userMetadata?: any) => {
     try {
-      // Vérifier d'abord le cache local
-      const cachedProfile = cachedProfiles[userId];
-      if (cachedProfile) {
-        console.log('🎯 Profil trouvé en cache pour:', userId);
-        return cachedProfile;
-      }
-
       console.log('🔄 Chargement du profil depuis la base pour:', userId);
       const { data, error } = await supabase
         .from('profiles')
@@ -54,8 +45,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data) {
-        // Mise en cache du profil
-        setCachedProfiles(prev => ({ ...prev, [userId]: data }));
         return data;
       }
 
@@ -79,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: 'user'
       };
     }
-  }, [cachedProfiles]);
+  }, []); // Pas de dépendances pour éviter les boucles
 
   // Calcul des permissions optimisé
   const permissions = useMemo(() => {
@@ -210,8 +199,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user?.id) {
       const profileData = await fetchProfile(user.id, user.user_metadata);
       setProfile(profileData);
-      // Mettre à jour le cache
-      setCachedProfiles(prev => ({ ...prev, [user.id]: profileData }));
     }
   }, [user?.id, user?.user_metadata, fetchProfile]);
 
@@ -227,6 +214,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     refreshProfile
   };
+
+  console.log('🔐 AuthProvider: Rendering with value:', { 
+    hasUser: !!user, 
+    hasProfile: !!profile, 
+    loading, 
+    permissions 
+  });
 
   return (
     <AuthContext.Provider value={value}>

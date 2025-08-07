@@ -27,7 +27,7 @@ interface SearchCriteria {
 }
 
 const Index = () => {
-  console.log('🏠 Index page rendering');
+  console.log('🏠 Index page: Starting render...');
   const navigate = useNavigate();
   const {
     user
