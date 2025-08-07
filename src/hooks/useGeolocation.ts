@@ -1,13 +1,13 @@
 
-import { useState, useCallback } from 'react';
+import React from 'react';
 import { useMapStore } from '@/stores/mapStore';
 
 export const useGeolocation = () => {
-  const [isLocating, setIsLocating] = useState(false);
-  const [isAutoLocating, setIsAutoLocating] = useState(false);
+  const [isLocating, setIsLocating] = React.useState(false);
+  const [isAutoLocating, setIsAutoLocating] = React.useState(false);
   const { userLocation, setUserLocation } = useMapStore();
 
-  const getUserLocation = useCallback(() => {
+  const getUserLocation = React.useCallback(() => {
     if (!navigator.geolocation) {
       console.error('Geolocation is not supported by this browser.');
       return;
@@ -36,7 +36,7 @@ export const useGeolocation = () => {
     );
   }, [setUserLocation]);
 
-  const getLocationAutomatically = useCallback(() => {
+  const getLocationAutomatically = React.useCallback(() => {
     if (!navigator.geolocation || userLocation) return;
 
     setIsAutoLocating(true);
