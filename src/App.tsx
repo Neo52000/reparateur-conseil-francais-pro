@@ -51,7 +51,9 @@ const App = () => {
     <HelmetProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <AppWithTracking />
+          <Routes>
+            <Route path="/" element={<div>Test React Fix</div>} />
+          </Routes>
         </BrowserRouter>
       </QueryClientProvider>
     </HelmetProvider>
