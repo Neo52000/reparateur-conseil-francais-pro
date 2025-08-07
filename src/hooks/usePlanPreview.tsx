@@ -15,6 +15,7 @@ interface PlanPreviewContextType {
 const PlanPreviewContext = createContext<PlanPreviewContextType | undefined>(undefined);
 
 export const PlanPreviewProvider = ({ children }: { children: ReactNode }) => {
+  console.log('📋 PlanPreviewProvider: Starting...');
   const { user, profile } = useAuth();
   const { getSubscriptionTier } = useRepairerSubscriptions();
   const [isPreviewMode, setIsPreviewMode] = useState(false);
@@ -35,6 +36,7 @@ export const PlanPreviewProvider = ({ children }: { children: ReactNode }) => {
     setPreviewTier(null);
   };
 
+  console.log('📋 PlanPreviewProvider: About to render...');
   return (
     <PlanPreviewContext.Provider value={{
       isPreviewMode,

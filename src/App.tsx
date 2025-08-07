@@ -36,7 +36,10 @@ import { initializeProductionMode, performProductionHealthCheck } from './config
 const queryClient = new QueryClient();
 
 const App = () => {
+  console.log('🚀 App: Starting initialization...');
+  
   useEffect(() => {
+    console.log('🚀 App: useEffect running...');
     // Initialiser le mode production strict
     const prodConfig = initializeProductionMode();
     console.log('🚀 Application démarrée en mode production:', prodConfig);
@@ -46,7 +49,10 @@ const App = () => {
     if (!healthCheck.healthy) {
       console.warn('⚠️ Problèmes détectés lors des vérifications de production');
     }
+    console.log('🚀 App: Initialization complete');
   }, []);
+
+  console.log('🚀 App: About to render JSX...');
 
   return (
     <HelmetProvider>
@@ -58,7 +64,7 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
-                <AppWithTracking />
+                  <AppWithTracking />
                 </BrowserRouter>
               </TooltipProvider>
             </PlanPreviewProvider>
@@ -70,8 +76,10 @@ const App = () => {
 };
 
 const AppWithTracking = () => {
+  console.log('🎯 AppWithTracking: Starting...');
   // Hook de tracking des visiteurs
   useVisitorTracker();
+  console.log('🎯 AppWithTracking: About to render Routes...');
   
   return (
     <>

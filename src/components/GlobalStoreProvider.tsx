@@ -5,6 +5,7 @@ import { useAppStore } from '@/stores/appStore';
 
 // Provider global pour initialiser tous les stores
 export const GlobalStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('🏪 GlobalStoreProvider: Initializing...');
   // Synchronisation cross-tab pour l'auth
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -43,5 +44,6 @@ export const GlobalStoreProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return unsubscribe;
   }, []);
 
+  console.log('🏪 GlobalStoreProvider: Rendering children...');
   return <>{children}</>;
 };
