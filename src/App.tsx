@@ -59,12 +59,12 @@ const App = () => {
 };
 
 const AppWithTracking = () => {
-  // Hook de tracking des visiteurs
-  useVisitorTracker();
+  // Temporairement désactivé pour corriger l'erreur React
+  // useVisitorTracker();
   
   return (
     <>
-      <GlobalVisitorTracker />
+      {/* <GlobalVisitorTracker /> */}
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/blog" element={<BlogPage />} />

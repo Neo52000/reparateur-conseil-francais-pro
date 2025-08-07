@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface VisitorStats {
@@ -23,7 +23,7 @@ export interface VisitorStats {
 }
 
 export const useVisitorAnalytics = () => {
-  const [stats, setStats] = useState<VisitorStats>({
+  const [stats, setStats] = React.useState<VisitorStats>({
     today: 0,
     yesterday: 0,
     thisWeek: 0,
@@ -34,8 +34,8 @@ export const useVisitorAnalytics = () => {
     deviceStats: [],
     trafficSources: []
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
   const trackVisitor = async (pageData: {
     page_path: string;
@@ -188,7 +188,7 @@ export const useVisitorAnalytics = () => {
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     loadAnalytics();
     
     // Actualiser les stats toutes les 5 minutes
