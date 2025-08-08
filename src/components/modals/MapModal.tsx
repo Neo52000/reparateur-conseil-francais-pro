@@ -3,7 +3,7 @@ import React from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
+import MapWithFilters from '@/components/map/MapWithFilters';
 
 interface MapModalProps {
   isOpen: boolean;
@@ -28,10 +28,8 @@ const MapModal: React.FC<MapModalProps> = ({
           </Button>
           
           <div className="w-full h-full">
-            <EnhancedRepairersMap
-              searchFilters={null}
-              onClose={onClose}
-            />
+            {/* Intégration de la nouvelle carte avec filtres */}
+            <MapWithFilters onBack={onClose} />
           </div>
         </div>
       </DialogContent>
