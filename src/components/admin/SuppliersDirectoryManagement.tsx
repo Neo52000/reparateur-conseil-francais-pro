@@ -32,6 +32,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Supplier, SupplierReview } from '@/hooks/useSuppliersDirectory';
 import { toast } from 'sonner';
 
+import type { Database } from '@/integrations/supabase/types';
+type SupplierInsert = Database['public']['Tables']['suppliers_directory']['Insert'];
+
 export const SuppliersDirectoryManagement = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [reviews, setReviews] = useState<SupplierReview[]>([]);
@@ -161,7 +164,7 @@ export const SuppliersDirectoryManagement = () => {
       return;
     }
 
-    const payload: Partial<Supplier> & Record<string, any> = {
+    const payload: SupplierInsert = {
       name: createForm.name.trim(),
       description: createForm.description || null,
       phone: createForm.phone || null,
@@ -176,8 +179,8 @@ export const SuppliersDirectoryManagement = () => {
       review_count: 0,
       specialties: [],
       certifications: [],
-      address: {},
-      delivery_info: {},
+      address: {} as any,
+      delivery_info: {} as any,
     };
 
     try {
@@ -259,7 +262,7 @@ export const SuppliersDirectoryManagement = () => {
       complete: async (results) => {
         try {
           const rows = (results.data as any[]).filter(Boolean);
-          const payloads = rows.map((r) => ({
+          const payloads: SupplierInsert[] = rows.map((r) => ({
             name: (r.name || '').toString().trim(),
             description: (r.description || '').toString().trim() || null,
             phone: (r.phone || '').toString().trim() || null,
@@ -274,9 +277,9 @@ export const SuppliersDirectoryManagement = () => {
             review_count: 0,
             specialties: [],
             certifications: [],
-            address: {},
-            delivery_info: {},
-          })).filter((p) => p.name);
+            address: {} as any,
+            delivery_info: {} as any,
+          }) as SupplierInsert).filter((p) => p.name);
 
           if (payloads.length === 0) {
             toast.error('Aucune ligne valide dans le CSV');
