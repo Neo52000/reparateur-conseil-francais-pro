@@ -28,18 +28,21 @@ import { useVisitorTracker } from "./hooks/useVisitorTracker";
 import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
 // Configuration production
 import { initializeProductionMode, performProductionHealthCheck } from './config/productionSetup';
+import { RuntimeDiagnostics } from "./components/dev/RuntimeDiagnostics";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
-    // Initialiser le mode production strict
-    const prodConfig = initializeProductionMode();
-    
-    // Vérification de santé
-    const healthCheck = performProductionHealthCheck();
-    if (!healthCheck.healthy) {
-      console.warn('⚠️ Problèmes détectés lors des vérifications de production');
+    if (import.meta.env.PROD) {
+      // Initialiser le mode production strict
+      const prodConfig = initializeProductionMode();
+      
+      // Vérification de santé
+      const healthCheck = performProductionHealthCheck();
+      if (!healthCheck.healthy) {
+        console.warn('⚠️ Problèmes détectés lors des vérifications de production');
+      }
     }
   }, []);
 
@@ -64,6 +67,7 @@ const AppWithTracking = () => {
   return (
     <>
       <GlobalVisitorTracker />
+      {import.meta.env.DEV && <RuntimeDiagnostics />}
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/admin" element={<AdminPage />} />

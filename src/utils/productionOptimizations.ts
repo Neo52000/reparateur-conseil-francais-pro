@@ -228,8 +228,10 @@ export class IntelligentCache {
 
 // Initialisation des optimisations
 export const initProductionOptimizations = () => {
-  // Enregistrer le service worker (en développement et production)
-  ServiceWorkerManager.register();
+  // Enregistrer le service worker (production uniquement)
+  if (import.meta.env.PROD) {
+    ServiceWorkerManager.register();
+  }
   
   // Setup lazy loading des images
   ImageOptimizer.setupLazyLoading();

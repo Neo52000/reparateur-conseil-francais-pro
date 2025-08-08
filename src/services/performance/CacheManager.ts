@@ -18,6 +18,11 @@ export class CacheManager {
   }
 
   private async setupServiceWorker(): Promise<void> {
+    // Ne pas enregistrer de SW en développement pour éviter les conflits
+    if (import.meta.env.DEV) {
+      return;
+    }
+    
     if ('serviceWorker' in navigator) {
       try {
         // Créer le Service Worker dynamiquement

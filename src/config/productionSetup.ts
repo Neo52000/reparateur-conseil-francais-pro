@@ -71,11 +71,9 @@ export const initializeProductionMode = () => {
     console.error = console.error; // Garder les erreurs
   }
   
-  // 3. Service Worker pour le cache
-  if (FINAL_PRODUCTION_CONFIG.performance.enableServiceWorker) {
-    navigator.serviceWorker?.register('/sw.js').catch(() => {
-      // Service worker registration failed - not critical
-    });
+  // 3. Service Worker pour le cache (géré centralement)
+  if (import.meta.env.PROD && FINAL_PRODUCTION_CONFIG.performance.enableServiceWorker) {
+    // L'enregistrement du SW est géré dans main.tsx pour éviter les doublons
   }
   
   // 4. Configuration des headers de sécurité (si possible côté client)
