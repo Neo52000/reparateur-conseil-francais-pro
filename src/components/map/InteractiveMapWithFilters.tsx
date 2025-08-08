@@ -83,8 +83,8 @@ const MapController: React.FC<{ repairers: any[], userLocation: [number, number]
 const InteractiveMapWithFilters: React.FC<InteractiveMapWithFiltersProps> = ({ onBack }) => {
   const [filters, setFilters] = useState({
     search: '',
-    service: '',
-    priceRange: '',
+    service: 'all',
+    priceRange: 'all',
     minRating: 0,
     distance: 50,
     openNow: false
@@ -106,7 +106,7 @@ const InteractiveMapWithFilters: React.FC<InteractiveMapWithFiltersProps> = ({ o
       }
 
       // Service filter
-      if (filters.service && !repairer.services.some(service => 
+      if (filters.service && filters.service !== 'all' && !repairer.services.some(service => 
         service.toLowerCase().includes(filters.service.toLowerCase()))) {
         return false;
       }
@@ -185,7 +185,7 @@ const InteractiveMapWithFilters: React.FC<InteractiveMapWithFiltersProps> = ({ o
                       <SelectValue placeholder="Tous les services" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tous les services</SelectItem>
+                      <SelectItem value="all">Tous les services</SelectItem>
                       <SelectItem value="écran">Réparation écran</SelectItem>
                       <SelectItem value="batterie">Changement batterie</SelectItem>
                       <SelectItem value="vitre">Réparation vitre</SelectItem>
@@ -216,7 +216,7 @@ const InteractiveMapWithFilters: React.FC<InteractiveMapWithFiltersProps> = ({ o
                       <SelectValue placeholder="Tous les prix" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tous les prix</SelectItem>
+                      <SelectItem value="all">Tous les prix</SelectItem>
                       <SelectItem value="low">€ - Économique</SelectItem>
                       <SelectItem value="medium">€€ - Moyen</SelectItem>
                       <SelectItem value="high">€€€ - Premium</SelectItem>

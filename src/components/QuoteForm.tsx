@@ -164,7 +164,7 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
               </SelectTrigger>
               <SelectContent>
                 {catalogLoading ? (
-                  <SelectItem value="" disabled>Chargement...</SelectItem>
+                  <SelectItem value="loading" disabled>Chargement...</SelectItem>
                 ) : (
                   brandNames.map((brand) => (
                     <SelectItem key={brand} value={brand}>{brand}</SelectItem>
@@ -196,7 +196,7 @@ const QuoteForm = ({ repairerId, onSuccess }: QuoteFormProps) => {
             </SelectTrigger>
             <SelectContent>
               {catalogLoading ? (
-                <SelectItem value="" disabled>Chargement...</SelectItem>
+                <SelectItem value="loading" disabled>Chargement...</SelectItem>
               ) : (
                 issueTypeNames.map((issue) => (
                   <SelectItem key={issue} value={issue}>{issue}</SelectItem>

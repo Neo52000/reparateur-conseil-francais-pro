@@ -83,13 +83,13 @@ const AuditLogsViewer = () => {
               <label className="text-sm font-medium mb-2 block">Action</label>
               <Select
                 value={filters.action}
-                onValueChange={(value) => handleFilterChange('action', value)}
+                onValueChange={(value) => handleFilterChange('action', value === 'all' ? '' : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Toutes les actions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Toutes</SelectItem>
+                  <SelectItem value="all">Toutes</SelectItem>
                   <SelectItem value="CREATE">Création</SelectItem>
                   <SelectItem value="UPDATE">Modification</SelectItem>
                   <SelectItem value="DELETE">Suppression</SelectItem>
@@ -103,13 +103,13 @@ const AuditLogsViewer = () => {
               <label className="text-sm font-medium mb-2 block">Type de ressource</label>
               <Select
                 value={filters.resourceType}
-                onValueChange={(value) => handleFilterChange('resourceType', value)}
+                onValueChange={(value) => handleFilterChange('resourceType', value === 'all' ? '' : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Tous les types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous</SelectItem>
+                  <SelectItem value="all">Tous</SelectItem>
                   <SelectItem value="user">Utilisateur</SelectItem>
                   <SelectItem value="product">Produit</SelectItem>
                   <SelectItem value="order">Commande</SelectItem>
