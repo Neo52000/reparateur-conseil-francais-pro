@@ -126,6 +126,18 @@ const InteractiveMapWithFilters: React.FC<InteractiveMapWithFiltersProps> = ({ o
     });
   }, [repairers, filters]);
 
+  // Only keep repairers with valid coordinates to avoid Leaflet runtime errors
+  const validRepairers = useMemo(() =>
+    filteredRepairers.filter(r =>
+      typeof r.lat === 'number' &&
+      typeof r.lng === 'number' &&
+      Number.isFinite(r.lat) &&
+      Number.isFinite(r.lng) &&
+      Math.abs(r.lat) <= 90 &&
+      Math.abs(r.lng) <= 180
+    ),
+  [filteredRepairers]);
+
   const handleReservation = (repairer: any) => {
     setSelectedRepairer(repairer);
     setShowReservationForm(true);
@@ -237,9 +249,9 @@ const InteractiveMapWithFilters: React.FC<InteractiveMapWithFiltersProps> = ({ o
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
                   
-                  <MapController repairers={filteredRepairers} userLocation={userLocation} />
+                  <MapController repairers={validRepairers} userLocation={userLocation} />
                   
-                  {filteredRepairers.map((repairer) => (
+                  {validRepairers.map((repairer) => (
                     <Marker
                       key={repairer.id}
                       position={[repairer.lat, repairer.lng]}
