@@ -45,6 +45,7 @@ export const SuppliersDirectoryManagement = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [creating, setCreating] = useState(false);
   const [createForm, setCreateForm] = useState({
     name: '',
     description: '',
@@ -184,6 +185,7 @@ export const SuppliersDirectoryManagement = () => {
     };
 
     try {
+      setCreating(true);
       const { data, error } = await supabase
         .from('suppliers_directory')
         .insert(payload)
@@ -200,9 +202,11 @@ export const SuppliersDirectoryManagement = () => {
           brands_sold: '', product_types: '', status: 'active', is_verified: false
         });
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Create supplier error:', e);
-      toast.error('Impossible d\'ajouter le fournisseur');
+      toast.error(`Impossible d'ajouter le fournisseur: ${e?.message || 'erreur inconnue'}`);
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -664,7 +668,7 @@ export const SuppliersDirectoryManagement = () => {
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>Annuler</Button>
-              <Button onClick={handleCreateSubmit}>Enregistrer</Button>
+              <Button onClick={handleCreateSubmit} disabled={creating}>{creating ? 'Enregistrement…' : 'Enregistrer'}</Button>
             </div>
           </div>
         </DialogContent>
