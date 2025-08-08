@@ -43,21 +43,15 @@ const Index = () => {
 
   if (showResults) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen">
         <Helmet>
-          <title>Résultats de recherche - TopRéparateurs</title>
-          <meta name="description" content="Résultats de recherche pour votre réparation" />
+          <title>Carte des réparateurs - TopRéparateurs</title>
+          <meta name="description" content="Carte interactive des réparateurs près de chez vous avec filtres de recherche." />
+          <link rel="canonical" href="https://topreparateurs.fr/carte" />
         </Helmet>
-        <div className="text-center p-8">
-          <h2 className="text-2xl font-bold mb-4">Carte temporairement indisponible</h2>
-          <p className="text-muted-foreground mb-4">Nous travaillons sur les résultats de recherche.</p>
-          <button 
-            onClick={() => setShowResults(false)}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-          >
-            Retour à l'accueil
-          </button>
-        </div>
+        <main>
+          <MapWithFilters onBack={() => setShowResults(false)} />
+        </main>
       </div>
     );
   }
