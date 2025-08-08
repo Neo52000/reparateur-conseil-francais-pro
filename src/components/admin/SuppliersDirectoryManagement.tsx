@@ -608,6 +608,67 @@ export const SuppliersDirectoryManagement = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter un fournisseur</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="name">Nom</Label>
+                <Input id="name" value={createForm.name} onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })} placeholder="Nom du fournisseur" />
+              </div>
+              <div>
+                <Label htmlFor="website">Site web</Label>
+                <Input id="website" value={createForm.website} onChange={(e) => setCreateForm({ ...createForm, website: e.target.value })} placeholder="https://..." />
+              </div>
+              <div>
+                <Label htmlFor="phone">Téléphone</Label>
+                <Input id="phone" value={createForm.phone} onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })} placeholder="+33..." />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={createForm.email} onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })} placeholder="contact@..." />
+              </div>
+              <div className="md:col-span-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea id="description" value={createForm.description} onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })} placeholder="Présentation du fournisseur" />
+              </div>
+              <div>
+                <Label htmlFor="brands">Marques vendues (séparées par ;)</Label>
+                <Input id="brands" value={createForm.brands_sold} onChange={(e) => setCreateForm({ ...createForm, brands_sold: e.target.value })} placeholder="Apple;Samsung;..." />
+              </div>
+              <div>
+                <Label htmlFor="products">Types de produits (séparés par ;)</Label>
+                <Input id="products" value={createForm.product_types} onChange={(e) => setCreateForm({ ...createForm, product_types: e.target.value })} placeholder="Écrans;Batteries;..." />
+              </div>
+              <div>
+                <Label>Statut</Label>
+                <Select value={createForm.status} onValueChange={(v) => setCreateForm({ ...createForm, status: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Actif</SelectItem>
+                    <SelectItem value="pending">En attente</SelectItem>
+                    <SelectItem value="inactive">Inactif</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox id="verified" checked={createForm.is_verified} onCheckedChange={(v) => setCreateForm({ ...createForm, is_verified: Boolean(v) })} />
+                <Label htmlFor="verified">Certifié</Label>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>Annuler</Button>
+              <Button onClick={handleCreateSubmit}>Enregistrer</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
