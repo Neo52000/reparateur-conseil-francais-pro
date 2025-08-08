@@ -3,6 +3,8 @@ import HeroWithIntegratedSearch from '@/components/sections/HeroWithIntegratedSe
 import BlogSectionHomepage from '@/components/sections/BlogSectionHomepage';
 import QuickStatsSection from '@/components/sections/QuickStatsSection';
 import TrustSection from '@/components/sections/TrustSection';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 
 const Index = () => {
   return (
@@ -17,6 +19,8 @@ const Index = () => {
         <link rel="canonical" href="https://topreparateurs.fr" />
       </Helmet>
 
+      <Navigation />
+
       {/* Ancienne page d'accueil rétablie avec intégration de la nouvelle carte via le modal */}
       <HeroWithIntegratedSearch 
         onQuickSearch={() => {}}
@@ -27,6 +31,7 @@ const Index = () => {
       <QuickStatsSection />
       <TrustSection />
       <BlogSectionHomepage />
+      <Footer />
     </div>
   );
 };
