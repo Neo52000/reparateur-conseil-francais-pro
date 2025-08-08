@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Plus, 
   Edit, 
@@ -39,7 +41,18 @@ export const SuppliersDirectoryManagement = () => {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [createForm, setCreateForm] = useState({
+    name: '',
+    description: '',
+    phone: '',
+    email: '',
+    website: '',
+    brands_sold: '' as string,
+    product_types: '' as string,
+    status: 'active',
+    is_verified: false,
+  });
   useEffect(() => {
     fetchSuppliers();
     fetchReviews();
@@ -134,6 +147,158 @@ export const SuppliersDirectoryManagement = () => {
       console.error('Error updating review status:', error);
       toast.error('Erreur lors de la mise à jour de l\'avis');
     }
+  };
+
+  // Helpers & actions
+  const parseList = (value: string) => value
+    .split(/[;,]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const handleCreateSubmit = async () => {
+    if (!createForm.name.trim()) {
+      toast.error('Le nom du fournisseur est requis');
+      return;
+    }
+
+    const payload: Partial<Supplier> & Record<string, any> = {
+      name: createForm.name.trim(),
+      description: createForm.description || null,
+      phone: createForm.phone || null,
+      email: createForm.email || null,
+      website: createForm.website || null,
+      brands_sold: parseList(createForm.brands_sold || ''),
+      product_types: parseList(createForm.product_types || ''),
+      status: createForm.status,
+      is_verified: createForm.is_verified,
+      is_featured: false,
+      rating: 0,
+      review_count: 0,
+      specialties: [],
+      certifications: [],
+      address: {},
+      delivery_info: {},
+    };
+
+    try {
+      const { data, error } = await supabase
+        .from('suppliers_directory')
+        .insert(payload)
+        .select('*')
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setSuppliers((prev) => [data as Supplier, ...prev]);
+        toast.success('Fournisseur ajouté');
+        setIsCreateModalOpen(false);
+        setCreateForm({
+          name: '', description: '', phone: '', email: '', website: '',
+          brands_sold: '', product_types: '', status: 'active', is_verified: false
+        });
+      }
+    } catch (e) {
+      console.error('Create supplier error:', e);
+      toast.error('Impossible d\'ajouter le fournisseur');
+    }
+  };
+
+  const handleCSVExport = () => {
+    const rows = suppliers.map((s) => ({
+      name: s.name,
+      description: s.description || '',
+      phone: s.phone || '',
+      email: s.email || '',
+      website: s.website || '',
+      brands_sold: Array.isArray(s.brands_sold) ? s.brands_sold.join(';') : '',
+      product_types: Array.isArray(s.product_types) ? s.product_types.join(';') : '',
+      status: s.status,
+      is_verified: s.is_verified ? 'true' : 'false',
+    }));
+    const csv = Papa.unparse(rows);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'suppliers_export.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCSVTemplate = () => {
+    const template = [{
+      name: 'Exemple Fournisseur',
+      description: 'Fournisseur de pièces détachées',
+      phone: '+33 1 23 45 67 89',
+      email: 'contact@exemple.com',
+      website: 'https://exemple.com',
+      brands_sold: 'Apple;Samsung;Xiaomi',
+      product_types: 'Ecrans;Batteries;Coques',
+      status: 'active',
+      is_verified: 'false',
+    }];
+    const csv = Papa.unparse(template);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'modele_fournisseurs.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCSVImportClick = () => fileInputRef.current?.click();
+
+  const handleCSVFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        try {
+          const rows = (results.data as any[]).filter(Boolean);
+          const payloads = rows.map((r) => ({
+            name: (r.name || '').toString().trim(),
+            description: (r.description || '').toString().trim() || null,
+            phone: (r.phone || '').toString().trim() || null,
+            email: (r.email || '').toString().trim() || null,
+            website: (r.website || '').toString().trim() || null,
+            brands_sold: parseList(r.brands_sold || ''),
+            product_types: parseList(r.product_types || ''),
+            status: (r.status || 'active').toString().trim(),
+            is_verified: String(r.is_verified).toLowerCase() === 'true',
+            is_featured: false,
+            rating: 0,
+            review_count: 0,
+            specialties: [],
+            certifications: [],
+            address: {},
+            delivery_info: {},
+          })).filter((p) => p.name);
+
+          if (payloads.length === 0) {
+            toast.error('Aucune ligne valide dans le CSV');
+            return;
+          }
+
+          const { data, error } = await supabase
+            .from('suppliers_directory')
+            .insert(payloads)
+            .select('*');
+
+          if (error) throw error;
+          setSuppliers((prev) => ([...(data as Supplier[]), ...prev]));
+          toast.success(`${payloads.length} fournisseur(s) importé(s)`);
+        } catch (err) {
+          console.error('CSV import error:', err);
+          toast.error('Import CSV échoué');
+        } finally {
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+      }
+    });
   };
 
   const filteredSuppliers = suppliers.filter(supplier => {
@@ -247,10 +412,16 @@ export const SuppliersDirectoryManagement = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button onClick={() => setIsCreateModalOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter un fournisseur
-                </Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={handleCSVTemplate}>Modèle CSV</Button>
+                  <Button variant="outline" onClick={handleCSVExport}>Exporter CSV</Button>
+                  <Button variant="outline" onClick={handleCSVImportClick}>Importer CSV</Button>
+                  <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleCSVFileChange} />
+                  <Button onClick={() => setIsCreateModalOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter un fournisseur
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
