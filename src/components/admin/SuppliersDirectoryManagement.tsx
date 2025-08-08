@@ -186,22 +186,19 @@ export const SuppliersDirectoryManagement = () => {
 
     try {
       setCreating(true);
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('suppliers_directory')
-        .insert(payload)
-        .select('*')
-        .single();
+        .insert(payload);
 
       if (error) throw error;
-      if (data) {
-        setSuppliers((prev) => [data as Supplier, ...prev]);
-        toast.success('Fournisseur ajouté');
-        setIsCreateModalOpen(false);
-        setCreateForm({
-          name: '', description: '', phone: '', email: '', website: '',
-          brands_sold: '', product_types: '', status: 'active', is_verified: false
-        });
-      }
+      // Rafraîchir la liste pour garantir la visibilité malgré les politiques RLS
+      await fetchSuppliers();
+      toast.success('Fournisseur ajouté');
+      setIsCreateModalOpen(false);
+      setCreateForm({
+        name: '', description: '', phone: '', email: '', website: '',
+        brands_sold: '', product_types: '', status: 'active', is_verified: false
+      });
     } catch (e: any) {
       console.error('Create supplier error:', e);
       toast.error(`Impossible d'ajouter le fournisseur: ${e?.message || 'erreur inconnue'}`);
