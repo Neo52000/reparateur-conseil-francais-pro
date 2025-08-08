@@ -12,6 +12,9 @@ import { BlogPost } from '@/types/blog';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import MarkdownRenderer from '@/components/blog/MarkdownRenderer';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
+import { Helmet } from 'react-helmet-async';
 
 const BlogArticlePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -125,8 +128,18 @@ const BlogArticlePage: React.FC = () => {
     return format(new Date(dateString), 'dd MMMM yyyy', { locale: fr });
   };
 
+  const pageTitle = post?.meta_title || post?.title || 'Article du blog - TopRéparateurs';
+  const pageDescription = post?.meta_description || post?.excerpt || 'Conseils et actualités sur la réparation.';
+  const canonicalUrl = `https://topreparateurs.fr/blog/article/${post?.slug || slug}`;
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={canonicalUrl} />
+      </Helmet>
       {/* Header avec navigation */}
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -223,6 +236,7 @@ const BlogArticlePage: React.FC = () => {
           </div>
         </div>
       </article>
+      <Footer />
     </div>
   );
 };

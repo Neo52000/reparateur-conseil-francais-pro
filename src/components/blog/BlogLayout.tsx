@@ -3,6 +3,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
+import { Helmet } from 'react-helmet-async';
 
 interface BlogLayoutProps {
   children: React.ReactNode;
@@ -23,8 +26,14 @@ const BlogLayout: React.FC<BlogLayoutProps> = ({
 }) => {
   return (
     <div className="min-h-screen bg-muted/20">
+      <Navigation />
+      <Helmet>
+        <title>{`${title} | Blog TopRéparateurs`}</title>
+        <meta name="description" content={subtitle} />
+        <link rel="canonical" href="https://topreparateurs.fr/blog" />
+      </Helmet>
       {/* Header avec navigation et image de fond */}
-      <div className="relative bg-background border-b overflow-hidden">
+      <header className="relative bg-background border-b overflow-hidden">
         {/* Image de fond */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
@@ -46,12 +55,13 @@ const BlogLayout: React.FC<BlogLayoutProps> = ({
             <p className="text-xl text-muted-foreground leading-relaxed">{subtitle}</p>
           </div>
         </div>
-      </div>
+        </header>
 
       {/* Contenu */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {children}
       </main>
+      <Footer />
     </div>
   );
 };

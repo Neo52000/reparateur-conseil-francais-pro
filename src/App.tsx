@@ -22,6 +22,7 @@ import RepairerAuthPage from "./pages/RepairerAuthPage";
 import ClientAuthPage from "./pages/ClientAuthPage";
 import BlogPage from "./pages/BlogPage";
 import BlogArticlePage from "./pages/BlogArticlePage";
+import BlogRepairerPage from "./pages/BlogRepairerPage";
 import { SuppliersDirectoryPage } from "./pages/SuppliersDirectoryPage";
 import QuotesAndAppointments from "./pages/QuotesAndAppointments";
 import { useVisitorTracker } from "./hooks/useVisitorTracker";
@@ -86,6 +87,9 @@ const AppWithTracking = () => {
         <Route path="/client-auth" element={<ClientAuthPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogArticlePage />} />
+        <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
+        <Route path="/blog/repairers" element={<BlogRepairerPage />} />
+        <Route path="/blog/repairers/article/:slug" element={<BlogArticlePage />} />
         <Route path="/suppliers-directory" element={<SuppliersDirectoryPage />} />
         <Route path="/quotes-appointments" element={<QuotesAndAppointments />} />
       </Routes>
