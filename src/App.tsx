@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
 import { AuthProvider } from "./hooks/useAuth";
@@ -85,11 +85,17 @@ const AppWithTracking = () => {
         <Route path="/static/:slug" element={<StaticPage />} />
         <Route path="/repairer-auth" element={<RepairerAuthPage />} />
         <Route path="/client-auth" element={<ClientAuthPage />} />
+        {/* Aliases to avoid blank pages */}
+        <Route path="/client" element={<Navigate to="/client-auth" replace />} />
+        <Route path="/repairer" element={<Navigate to="/repairer-auth" replace />} />
+        <Route path="/devenir-reparateur" element={<Navigate to="/repairer-plans" replace />} />
+        {/* Blog */}
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogArticlePage />} />
         <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
         <Route path="/blog/repairers" element={<BlogRepairerPage />} />
         <Route path="/blog/repairers/article/:slug" element={<BlogArticlePage />} />
+        {/* Suppliers & quotes */}
         <Route path="/suppliers-directory" element={<SuppliersDirectoryPage />} />
         <Route path="/quotes-appointments" element={<QuotesAndAppointments />} />
       </Routes>

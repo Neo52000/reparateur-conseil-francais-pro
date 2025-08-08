@@ -24,7 +24,8 @@ import {
   Verified,
   AlertTriangle
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Papa from 'papaparse';
 import { supabase } from '@/integrations/supabase/client';
 import { Supplier, SupplierReview } from '@/hooks/useSuppliersDirectory';
 import { toast } from 'sonner';
