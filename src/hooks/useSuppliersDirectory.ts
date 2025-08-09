@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useRepairerSubscriptions } from './useRepairerSubscriptions';
 import { useAuth } from './useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 export interface Supplier {
   id: string;
@@ -45,13 +47,16 @@ export interface SupplierReview {
 }
 
 export const useSuppliersDirectory = () => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { getSubscriptionTier } = useRepairerSubscriptions();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const hasAccess = () => {
+    // Autoriser les admins, sinon vérifier l'abonnement
+    if (isAdmin) return true;
     if (!user) return false;
     const tier = getSubscriptionTier(user.id);
     return tier === 'premium' || tier === 'enterprise';
@@ -101,6 +106,11 @@ export const useSuppliersDirectory = () => {
     } catch (err) {
       console.error('Error fetching suppliers:', err);
       setError('Erreur lors du chargement des fournisseurs');
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les fournisseurs",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -171,9 +181,98 @@ export const useSuppliersDirectory = () => {
     return data;
   };
 
+  // Nouvelle méthode: création d'un fournisseur dans le directory (admin ou abonnés payants)
+  const createSupplier = async (payload: {
+    name: string;
+    description?: string;
+    brands_sold?: string[];
+    product_types?: string[];
+    website?: string;
+    phone?: string;
+    email?: string;
+    address?: any;
+    specialties?: string[];
+    certifications?: string[];
+    logo_url?: string;
+    featured_image_url?: string;
+    payment_terms?: string;
+    minimum_order?: number | null;
+    delivery_info?: any;
+    is_verified?: boolean;
+    is_featured?: boolean;
+    status?: string;
+  }) => {
+    if (!user && !isAdmin) {
+      toast({
+        title: "Non connecté",
+        description: "Veuillez vous connecter pour créer un fournisseur.",
+        variant: "destructive",
+      });
+      throw new Error('Non authentifié');
+    }
+
+    if (!hasAccess()) {
+      toast({
+        title: "Accès refusé",
+        description: "Fonctionnalité réservée aux abonnés payants ou aux administrateurs.",
+        variant: "destructive",
+      });
+      throw new Error('Accès non autorisé');
+    }
+
+    const insertData = {
+      name: payload.name,
+      description: payload.description || null,
+      brands_sold: payload.brands_sold || [],
+      product_types: payload.product_types || [],
+      website: payload.website || null,
+      phone: payload.phone || null,
+      email: payload.email || null,
+      address: payload.address || {},
+      specialties: payload.specialties || [],
+      certifications: payload.certifications || [],
+      logo_url: payload.logo_url || null,
+      featured_image_url: payload.featured_image_url || null,
+      payment_terms: payload.payment_terms || null,
+      minimum_order: payload.minimum_order ?? null,
+      delivery_info: payload.delivery_info || {},
+      is_verified: !!payload.is_verified,
+      is_featured: !!payload.is_featured,
+      status: payload.status || 'active',
+      // created_by et timestamps gérés par triggers côté DB
+    };
+
+    console.log('[useSuppliersDirectory] Creating supplier:', insertData);
+
+    const { data, error } = await supabase
+      .from('suppliers_directory')
+      .insert(insertData)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('[useSuppliersDirectory] Create supplier error:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le fournisseur",
+        variant: "destructive",
+      });
+      throw error;
+    }
+
+    toast({
+      title: "Succès",
+      description: "Fournisseur créé avec succès",
+    });
+
+    // Recharger la liste
+    await fetchSuppliers();
+    return data as Supplier;
+  };
+
   useEffect(() => {
     fetchSuppliers();
-  }, [user]);
+  }, [user, isAdmin]);
 
   return {
     suppliers,
@@ -184,5 +283,6 @@ export const useSuppliersDirectory = () => {
     fetchSupplierById,
     fetchSupplierReviews,
     createReview,
+    createSupplier,
   };
 };

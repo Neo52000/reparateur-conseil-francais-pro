@@ -1,6 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from './useAuth';
 
 // Types simplifiés pour éviter les problèmes de compilation
 export interface SimpleInventoryItem {
@@ -45,6 +47,7 @@ export const useSimpleInventory = () => {
   const [suppliers, setSuppliers] = useState<SimpleSupplier[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchInventory = async () => {
     try {
@@ -115,6 +118,15 @@ export const useSimpleInventory = () => {
 
   const createProduct = async (product: Partial<SimpleInventoryItem>) => {
     try {
+      if (!user?.id) {
+        toast({
+          title: "Connexion requise",
+          description: "Veuillez vous connecter pour créer un produit.",
+          variant: "destructive",
+        });
+        throw new Error('Utilisateur non connecté');
+      }
+
       console.log('Creating product:', product);
       
       const productData = {
@@ -131,7 +143,7 @@ export const useSimpleInventory = () => {
         is_ecommerce_active: product.is_ecommerce_active || false,
         requires_intervention: product.requires_intervention || false,
         image_url: product.image_url,
-        repairer_id: 'current_user_id' // À remplacer par l'ID réel de l'utilisateur
+        repairer_id: user.id // Utiliser l'ID réel de l'utilisateur
       };
 
       const { data, error } = await supabase
@@ -229,6 +241,15 @@ export const useSimpleInventory = () => {
 
   const createSupplier = async (supplier: Partial<SimpleSupplier>) => {
     try {
+      if (!user?.id) {
+        toast({
+          title: "Connexion requise",
+          description: "Veuillez vous connecter pour créer un fournisseur.",
+          variant: "destructive",
+        });
+        throw new Error('Utilisateur non connecté');
+      }
+
       console.log('Creating supplier:', supplier);
       
       const supplierData = {
@@ -236,7 +257,7 @@ export const useSimpleInventory = () => {
         email: supplier.email,
         phone: supplier.phone,
         is_active: true,
-        repairer_id: 'current_user_id'
+        repairer_id: user.id // Utiliser l'ID réel de l'utilisateur
       };
 
       const { data, error } = await supabase
