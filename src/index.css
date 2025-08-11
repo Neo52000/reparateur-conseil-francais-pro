@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -93,6 +94,13 @@
     
     /* Animation utilities */
     --fade-in: fadeIn 0.5s ease-in-out;
+
+    /* UI tokens for credibility & glow */
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.25);
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.35);
+    --gradient-primary: linear-gradient(135deg, hsl(var(--electric-blue)), hsl(var(--vibrant-orange)));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background) / 1), hsl(var(--background) / 0.92));
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
@@ -141,8 +149,14 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
   }
+  h1, h2, h3 {
+    @apply font-serif tracking-tight text-foreground;
+  }
+  h1 { @apply text-3xl md:text-4xl lg:text-5xl font-semibold; }
+  h2 { @apply text-2xl md:text-3xl lg:text-4xl font-semibold; }
+  h3 { @apply text-xl md:text-2xl lg:text-3xl font-semibold; }
 }
 
 /* Classes utilitaires pour le texte tronqué */

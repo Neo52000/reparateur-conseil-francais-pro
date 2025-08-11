@@ -122,6 +122,11 @@ export default {
 					'info-light': 'hsl(var(--info-light))'
 				}
 			},
+			fontFamily: {
+				sans: ['Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif'],
+				serif: ['Playfair Display', 'ui-serif', 'Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
+				heading: ['Playfair Display', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
