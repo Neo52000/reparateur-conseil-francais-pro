@@ -49,8 +49,8 @@ const Navigation = () => {
   const isAdminPath = location.pathname.startsWith('/admin');
 
   return (
-    <nav className="bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 border-b border-border bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container">
         <div className="flex justify-between h-20">
           <div className="flex items-center space-x-8">
             <Link to="/" className="flex items-center">
@@ -59,7 +59,7 @@ const Navigation = () => {
 
             {/* Navigation générale */}
             <div className="hidden md:flex space-x-4">
-              <Link to="/blog" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+              <Link to="/blog" className="text-foreground/80 hover:text-primary px-3 py-2 rounded-md text-sm font-medium">
                 Blog
               </Link>
             </div>
@@ -68,27 +68,27 @@ const Navigation = () => {
             {user && (canAccessClient || canAccessRepairer || canAccessAdmin) && (
               <div className="hidden md:flex space-x-4">
                 {canAccessClient && (
-                  <Link to="/client" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                  <Link to="/client" className="text-foreground/80 hover:text-primary px-3 py-2 rounded-md text-sm font-medium flex items-center">
                     <User className="h-4 w-4 mr-1" />
                     Client
                     {isAdmin && profile?.role === 'admin' && (
-                      <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-1 rounded">Test</span>
+                      <span className="ml-1 text-xs bg-primary/10 text-primary px-1 rounded">Test</span>
                     )}
                   </Link>
                 )}
                 
                 {canAccessRepairer && (
-                  <Link to="/repairer" className="text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                  <Link to="/repairer" className="text-foreground/80 hover:text-accent px-3 py-2 rounded-md text-sm font-medium flex items-center">
                     <Wrench className="h-4 w-4 mr-1" />
                     Réparateur
                     {isAdmin && profile?.role === 'admin' && (
-                      <span className="ml-1 text-xs bg-orange-100 text-orange-600 px-1 rounded">Test</span>
+                      <span className="ml-1 text-xs bg-accent/10 text-accent px-1 rounded">Test</span>
                     )}
                   </Link>
                 )}
 
                 {canAccessAdmin && (
-                  <Link to="/admin" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium flex items-center">
+                  <Link to="/admin" className="text-foreground/80 hover:text-primary px-3 py-2 rounded-md text-sm font-medium flex items-center">
                     <Shield className="h-4 w-4 mr-1" />
                     Admin
                   </Link>
@@ -104,11 +104,11 @@ const Navigation = () => {
             {user ? (
               <div className="flex items-center space-x-2">
                 <div className="text-right">
-                  <span className="text-sm text-gray-700">
+                  <span className="text-sm text-foreground/80">
                     {profile?.first_name} {profile?.last_name}
                   </span>
                   {isAdmin && (
-                    <div className="text-xs text-blue-600 font-medium">Administrateur</div>
+                    <div className="text-xs text-primary font-medium">Administrateur</div>
                   )}
                 </div>
                 <Button onClick={handleSignOut} variant="outline">
@@ -118,13 +118,13 @@ const Navigation = () => {
             ) : (
               <div className="flex space-x-2">
                 <Link to="/client-auth">
-                  <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+                  <Button variant="soft">
                     <User className="h-4 w-4 mr-2" />
                     Client
                   </Button>
                 </Link>
                 <Link to="/repairer-auth">
-                  <Button className="bg-orange-600 hover:bg-orange-700">
+                  <Button variant="soft">
                     <Wrench className="h-4 w-4 mr-2" />
                     Réparateur
                   </Button>
