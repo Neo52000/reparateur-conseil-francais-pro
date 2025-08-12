@@ -25,6 +25,7 @@ import BlogArticlePage from "./pages/BlogArticlePage";
 import BlogRepairerPage from "./pages/BlogRepairerPage";
 import { SuppliersDirectoryPage } from "./pages/SuppliersDirectoryPage";
 import QuotesAndAppointments from "./pages/QuotesAndAppointments";
+import NotFound from "./pages/NotFound";
 import { useVisitorTracker } from "./hooks/useVisitorTracker";
 import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
 // Configuration production
@@ -72,6 +73,8 @@ const AppWithTracking = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/reparateur-:serviceType-:city" element={<LocalSeoPage />} />
+        <Route path="/404" element={<NotFound />} />
         <Route path="/repairer-dashboard" element={<RepairerDashboardPage />} />
         <Route path="/client-dashboard" element={<ClientDashboardPage />} />
         <Route path="/repairer-profile" element={<RepairerProfilePage />} />
@@ -98,6 +101,8 @@ const AppWithTracking = () => {
         {/* Suppliers & quotes */}
         <Route path="/suppliers-directory" element={<SuppliersDirectoryPage />} />
         <Route path="/quotes-appointments" element={<QuotesAndAppointments />} />
+        {/* 404 fallback */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   );
