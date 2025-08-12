@@ -30,14 +30,23 @@ export const useChatbot = (): UseChatbotReturn => {
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random()}`);
   const { user } = useAuth();
 
+  // Proactivité: démarrage automatique de la conversation
+  useEffect(() => {
+    if (!conversationId && !isLoading) {
+      startConversation();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, isLoading]);
+
   const startConversation = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.functions.invoke('chatbot-conversation', {
+      const { data, error } = await supabase.functions.invoke('chatbot-gpt5', {
         body: {
           action: 'start_conversation',
           session_id: sessionId,
-          user_id: user?.id
+          user_id: user?.id,
+          owner_id: user?.id
         }
       });
 
@@ -48,7 +57,9 @@ export const useChatbot = (): UseChatbotReturn => {
         id: '1',
         content: data.message,
         sender_type: 'bot',
-        timestamp: new Date()
+        timestamp: new Date(),
+        suggestions: data.suggestions,
+        actions: data.actions
       }]);
     } catch (error) {
       console.error('Erreur démarrage conversation:', error);
@@ -72,9 +83,11 @@ export const useChatbot = (): UseChatbotReturn => {
     setIsTyping(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('chatbot-conversation', {
+      const { data, error } = await supabase.functions.invoke('chatbot-gpt5', {
         body: {
           action: 'send_message',
+          user_id: user?.id,
+          owner_id: user?.id,
           message: {
             conversation_id: conversationId,
             content
@@ -101,6 +114,8 @@ export const useChatbot = (): UseChatbotReturn => {
         };
         setMessages(prev => [...prev, botMessage]);
         setIsLoading(false);
+        // Mettre à jour l'ID de conversation si renvoyé
+        if (data.conversation_id) setConversationId(data.conversation_id);
       }, randomDelay);
     } catch (error) {
       console.error('Erreur envoi message:', error);
