@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.import-mobilax-logos]
 verify_jwt = false
+
+[functions."chatbot-gpt5"]
+verify_jwt = false
