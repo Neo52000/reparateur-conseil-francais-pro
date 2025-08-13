@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { detectLanguageClient } from '@/utils/languageDetection';
 import { logConversationEvent } from '@/utils/analyticsLogger';
+import { sendMessageViaRouter, startConversationViaRouter } from '@/services/aiRouter';
 
 interface AIResponse {
   response: string;
@@ -23,17 +24,11 @@ export function useAIProvider() {
     const lang = detectLanguageClient(text, opts?.languageHint);
     const start = Date.now();
     try {
-      const { data, error } = await supabase.functions.invoke('ai-router', {
-        body: {
-          action: 'send_message',
-          text,
-          language_hint: lang,
-          session_id: opts?.sessionId,
-          user_id: user?.id || null
-        }
+      const res = await sendMessageViaRouter(text, {
+        languageHint: lang,
+        sessionId: opts?.sessionId,
+        userId: user?.id || null,
       });
-      if (error) throw error;
-      const res = data as AIResponse;
 
       await logConversationEvent('chat.message', {
         provider: res.provider,
@@ -42,7 +37,7 @@ export function useAIProvider() {
         confidence: res.confidence ?? null
       }, user?.id || undefined);
 
-      return res;
+      return res as AIResponse;
     } finally {
       setLoading(false);
     }
@@ -50,15 +45,12 @@ export function useAIProvider() {
 
   const start = async (opts?: { languageHint?: 'fr' | 'en'; sessionId?: string }) => {
     const lang = opts?.languageHint ?? (typeof navigator !== 'undefined' && navigator.language.startsWith('fr') ? 'fr' : 'en');
-    const { data, error } = await supabase.functions.invoke('ai-router', {
-      body: {
-        action: 'start_conversation',
-        language_hint: lang,
-        session_id: opts?.sessionId
-      }
+    const res = await startConversationViaRouter({
+      languageHint: lang,
+      sessionId: opts?.sessionId,
+      userId: user?.id || null,
     });
-    if (error) throw error;
-    return data as AIResponse & { conversation_id: string };
+    return res as AIResponse & { conversation_id: string };
   };
 
   return { loading, send, start };
