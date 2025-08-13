@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useEmotionalContext } from '@/hooks/useEmotionalContext';
+import { logConversationEvent } from '@/utils/analyticsLogger';
 
 interface ConversationMemory {
   userProfile: {
@@ -191,6 +192,7 @@ export const useAdvancedChatbot = (): UseAdvancedChatbotReturn => {
       // Mettre à jour le contexte émotionnel
       updateEmotionalState(content, 'user');
 
+      const startedAt = Date.now();
       const { data, error } = await supabase.functions.invoke('ai-router', {
         body: {
           action: 'send_message',
@@ -202,6 +204,13 @@ export const useAdvancedChatbot = (): UseAdvancedChatbotReturn => {
       });
 
       if (error) throw error;
+
+      // Log analytics
+      await logConversationEvent('chat.message.advanced', {
+        provider: (data as any)?.provider ?? 'unknown',
+        latency_ms: (data as any)?.latency_ms ?? (Date.now() - startedAt),
+        language: (data as any)?.language ?? (navigator?.language?.startsWith('fr') ? 'fr' : 'en')
+      }, user?.id || undefined);
 
       // Extraire les informations diagnostiques
       extractDiagnosticInfo(content, data);
@@ -253,6 +262,7 @@ export const useAdvancedChatbot = (): UseAdvancedChatbotReturn => {
   const startConversation = async () => {
     try {
       setIsLoading(true);
+      const startedAt = Date.now();
       const { data, error } = await supabase.functions.invoke('ai-router', {
         body: {
           action: 'start_conversation',
@@ -265,7 +275,14 @@ export const useAdvancedChatbot = (): UseAdvancedChatbotReturn => {
       if (error) throw error;
 
       setConversationId(data.conversation_id);
-      
+
+      // Log start event
+      await logConversationEvent('chat.start.advanced', {
+        provider: (data as any)?.provider ?? 'system',
+        latency_ms: (Date.now() - startedAt),
+        language: navigator?.language?.startsWith('fr') ? 'fr' : 'en'
+      }, user?.id || undefined);
+
       const welcomeMessage: AdvancedChatMessage = {
         id: '1',
         content: (data as any)?.message ?? '',
