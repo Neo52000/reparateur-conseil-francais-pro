@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Clock, Star } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 
 export const AdvancedChatbotInterface = () => {
   const {
@@ -55,7 +55,7 @@ export const AdvancedChatbotInterface = () => {
   };
 
   return (
-    <Card className="max-w-2xl mx-auto h-96 flex flex-col">
+    <Card className="max-w-2xl mx-auto h-96 flex flex-col" role="dialog" aria-label="Assistant IA avancé">
       <div className="p-4 border-b">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold">Ben - Assistant IA Avancé</h3>
@@ -70,7 +70,7 @@ export const AdvancedChatbotInterface = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4" role="log" aria-live="polite" aria-relevant="additions">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -84,25 +84,6 @@ export const AdvancedChatbotInterface = () => {
               }`}
             >
               <p className="text-sm">{message.content}</p>
-              
-              {message.diagnosticData && (
-                <div className="mt-2 space-y-1">
-                  {message.diagnosticData.estimatedCost && (
-                    <Badge variant="outline" className="text-xs">
-                      💰 {message.diagnosticData.estimatedCost}
-                    </Badge>
-                  )}
-                  {message.diagnosticData.urgency && (
-                    <Badge 
-                      variant={message.diagnosticData.urgency === 'high' ? 'destructive' : 'secondary'}
-                      className="text-xs"
-                    >
-                      ⚡ {message.diagnosticData.urgency}
-                    </Badge>
-                  )}
-                </div>
-              )}
-
               {message.suggestions && message.suggestions.length > 0 && (
                 <div className="mt-3 space-y-1">
                   {message.suggestions.map((suggestion, index) => (
@@ -118,7 +99,6 @@ export const AdvancedChatbotInterface = () => {
                   ))}
                 </div>
               )}
-
               {message.actions && message.actions.length > 0 && (
                 <div className="mt-3 space-y-1">
                   {message.actions.map((action, index) => (
@@ -140,7 +120,7 @@ export const AdvancedChatbotInterface = () => {
         ))}
 
         {isTyping && (
-          <div className="flex justify-start">
+          <div className="flex justify-start" aria-label="L'assistant est en train d'écrire">
             <div className="bg-muted px-4 py-2 rounded-lg">
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
@@ -159,10 +139,11 @@ export const AdvancedChatbotInterface = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Décrivez votre problème..."
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            aria-label="Entrer votre message"
             disabled={isLoading}
           />
-          <Button onClick={handleSend} disabled={isLoading || !input.trim()}>
+          <Button onClick={handleSend} disabled={isLoading || !input.trim()} aria-label="Envoyer le message">
             Envoyer
           </Button>
         </div>

@@ -191,16 +191,13 @@ export const useAdvancedChatbot = (): UseAdvancedChatbotReturn => {
       // Mettre à jour le contexte émotionnel
       updateEmotionalState(content, 'user');
 
-      const { data, error } = await supabase.functions.invoke('advanced-chatbot', {
+      const { data, error } = await supabase.functions.invoke('ai-router', {
         body: {
           action: 'send_message',
-          message: {
-            conversation_id: conversationId,
-            content,
-            user_location: userLocation,
-            conversation_memory: conversationMemory,
-            emotional_state: emotionalState
-          }
+          text: content,
+          language_hint: navigator?.language?.startsWith('fr') ? 'fr' : 'en',
+          session_id: conversationId,
+          user_id: user?.id || null
         }
       });
 
@@ -224,22 +221,18 @@ export const useAdvancedChatbot = (): UseAdvancedChatbotReturn => {
         setIsTyping(false);
         const botMessage: AdvancedChatMessage = {
           id: (Date.now() + 1).toString(),
-          content: data.response,
+          content: (data as any)?.response ?? '',
           sender_type: 'bot',
           timestamp: new Date(),
-          suggestions: data.suggestions,
-          actions: data.actions,
-          emotionalContext: data.emotional_context,
-          diagnosticData: data.diagnostic_data
+          suggestions: (data as any)?.suggestions,
+          actions: (data as any)?.actions,
+          emotionalContext: undefined,
+          diagnosticData: undefined
         };
-        
         setMessages(prev => [...prev, botMessage]);
-        
-        // Mettre à jour le contexte émotionnel du bot
-        updateEmotionalState(data.response, 'bot', data.metadata);
-        
+        updateEmotionalState((data as any)?.response ?? '', 'bot', (data as any)?.metadata);
         setIsLoading(false);
-      }, randomDelay);
+      }, 800);
 
     } catch (error) {
       console.error('Erreur envoi message avancé:', error);
@@ -260,12 +253,12 @@ export const useAdvancedChatbot = (): UseAdvancedChatbotReturn => {
   const startConversation = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.functions.invoke('advanced-chatbot', {
+      const { data, error } = await supabase.functions.invoke('ai-router', {
         body: {
           action: 'start_conversation',
           session_id: sessionId,
-          user_id: user?.id,
-          user_location: userLocation
+          language_hint: navigator?.language?.startsWith('fr') ? 'fr' : 'en',
+          user_id: user?.id || null
         }
       });
 
@@ -275,11 +268,11 @@ export const useAdvancedChatbot = (): UseAdvancedChatbotReturn => {
       
       const welcomeMessage: AdvancedChatMessage = {
         id: '1',
-        content: data.message,
+        content: (data as any)?.message ?? '',
         sender_type: 'bot',
         timestamp: new Date(),
-        suggestions: data.suggestions,
-        actions: data.actions
+        suggestions: (data as any)?.suggestions,
+        actions: (data as any)?.actions
       };
       
       setMessages([welcomeMessage]);
@@ -303,17 +296,7 @@ export const useAdvancedChatbot = (): UseAdvancedChatbotReturn => {
   const requestLocation = async () => {
     try {
       await getUserLocation();
-      
-      if (conversationId) {
-        // Notifier le chatbot de la localisation
-        await supabase.functions.invoke('advanced-chatbot', {
-          body: {
-            action: 'location_updated',
-            conversation_id: conversationId,
-            user_location: userLocation
-          }
-        });
-      }
+      // no-op: ai-router currently does not track location updates
     } catch (error) {
       console.error('Erreur demande localisation:', error);
     }
@@ -343,15 +326,7 @@ export const useAdvancedChatbot = (): UseAdvancedChatbotReturn => {
     if (!conversationId) return;
 
     try {
-      await supabase.functions.invoke('advanced-chatbot', {
-        body: {
-          action: 'end_conversation',
-          conversation_id: conversationId,
-          final_memory: conversationMemory,
-          satisfaction_score: emotionalState.userSatisfaction
-        }
-      });
-
+      // optional: notify end of conversation if needed
       setConversationId(null);
       setMessages([]);
       setConversationMemory({
