@@ -839,6 +839,20 @@ const ChatbotManagement = () => {
                   className="mt-1"
                 />
               </div>
+
+              <div className="pt-4 border-t">
+                <Button onClick={async () => {
+                  try {
+                    await updateConfig('chatbot_enabled', true);
+                    await updateConfig('maintenance_mode', false);
+                    toast.success('Configuration sauvegardée avec succès');
+                  } catch (error) {
+                    toast.error('Erreur lors de la sauvegarde');
+                  }
+                }} className="w-full">
+                  Enregistrer la configuration
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

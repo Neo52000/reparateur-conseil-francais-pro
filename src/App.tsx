@@ -5,6 +5,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
 import { AuthProvider } from "./hooks/useAuth";
 import { PlanPreviewProvider } from "./hooks/usePlanPreview";
+import ChatbotLayout from "./components/ChatbotLayout";
 import Index from "./pages/Index";
 import AdminPage from "./pages/AdminPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
@@ -67,7 +68,7 @@ const App = () => {
 
 const AppWithTracking = () => {
   return (
-    <>
+    <ChatbotLayout>
       <GlobalVisitorTracker />
       {import.meta.env.DEV && <RuntimeDiagnostics />}
       <Routes>
@@ -104,7 +105,7 @@ const AppWithTracking = () => {
         {/* 404 fallback */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </>
+    </ChatbotLayout>
   );
 };
 
