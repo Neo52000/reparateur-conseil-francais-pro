@@ -53,6 +53,23 @@ const AlexChatWidget: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // Écouter l'événement open-chatbot
+  useEffect(() => {
+    const handleOpenChatbot = () => {
+      setIsOpen(true);
+      if (messages.length === 0) {
+        initializeConversation();
+      }
+      // Focus sur l'input après ouverture
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    };
+
+    window.addEventListener('open-chatbot', handleOpenChatbot);
+    return () => window.removeEventListener('open-chatbot', handleOpenChatbot);
+  }, [messages.length]);
+
   // Scroll automatique vers le bas
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -97,7 +114,7 @@ const AlexChatWidget: React.FC = () => {
     return 'general';
   };
 
-  // Gérer l'envoi de messages
+  // Gérer l'envoi de messages avec useAIProvider
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
@@ -109,47 +126,52 @@ const AlexChatWidget: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageText = inputValue;
     setInputValue('');
     setIsTyping(true);
     setIsLoading(true);
 
-    // Détecter l'intention
-    const intent = detectUserIntent(inputValue);
-    
-    // Mettre à jour le contexte
-    const updatedContext: ConversationContext = {
-      ...conversationContext,
-      previousMessages: [...messages, userMessage],
-      userIntent: intent as ConversationContext['userIntent']
-    };
-    setConversationContext(updatedContext);
-
     try {
-      // Appeler l'API Mistral via notre edge function
-      const { data, error } = await supabase.functions.invoke('alex-chatbot', {
+      // Utiliser le système ai-router via useAIProvider
+      const { data } = await supabase.functions.invoke('ai-router', {
         body: {
-          message: inputValue,
-          context: updatedContext,
-          session_id: `alex_${Date.now()}`
+          action: 'send_message',
+          text: messageText,
+          language_hint: 'fr',
+          session_id: `alex_${Date.now()}`,
+          user_id: null
         }
       });
 
-      if (error) throw error;
-
-      // Immediate Alex response - connect to real AI service
       setIsTyping(false);
       
       const alexResponse: Message = {
         id: `alex-${Date.now()}`,
-        content: data.response,
+        content: data.response || "Désolé, je n'ai pas pu traiter votre demande.",
         sender: 'alex',
         timestamp: new Date(),
         suggestions: data.suggestions,
-        emotion: data.emotion || 'happy'
+        emotion: 'happy'
       };
 
       setMessages(prev => [...prev, alexResponse]);
       setIsLoading(false);
+
+      // Gérer les actions du chatbot
+      if (data.actions) {
+        data.actions.forEach((action: any) => {
+          if (action.type === 'open_booking') {
+            // TODO: Ouvrir le modal de prise de rendez-vous
+            toast({
+              title: "Prise de rendez-vous",
+              description: "Fonctionnalité en cours de développement",
+            });
+          } else if (action.type === 'open_faq') {
+            // TODO: Ouvrir la FAQ
+            window.open('/faq', '_blank');
+          }
+        });
+      }
 
     } catch (error) {
       console.error('Erreur Alex Chatbot:', error);
