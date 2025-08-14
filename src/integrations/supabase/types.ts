@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -12402,10 +12402,10 @@ export type Database = {
     Functions: {
       add_url_to_monitoring: {
         Args: {
+          priority_param?: number
+          reference_id_param?: string
           url_to_monitor: string
           url_type_param: string
-          reference_id_param?: string
-          priority_param?: number
         }
         Returns: string
       }
@@ -12444,7 +12444,7 @@ export type Database = {
         Returns: undefined
       }
       create_admin_user: {
-        Args: { user_email: string; admin_user_id: string }
+        Args: { admin_user_id: string; user_email: string }
         Returns: boolean
       }
       dearmor: {
@@ -12454,8 +12454,8 @@ export type Database = {
       fix_encoding_issues: {
         Args: Record<PropertyKey, never>
         Returns: {
-          fixed_count: number
           details: Json
+          fixed_count: number
         }[]
       }
       gen_random_bytes: {
@@ -12501,32 +12501,32 @@ export type Database = {
       get_admin_subscription_overview: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          repairer_id: string
-          email: string
-          user_id: string
-          first_name: string
-          last_name: string
-          subscription_tier: string
           billing_cycle: string
-          subscribed: boolean
           created_at: string
-          updated_at: string
-          subscription_end: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
           plan_name: string
           price_monthly: number
           price_yearly: number
+          repairer_id: string
+          subscribed: boolean
+          subscription_end: string
+          subscription_tier: string
+          updated_at: string
+          user_id: string
         }[]
       }
       get_connection_stats: {
-        Args: { start_date?: string; end_date?: string }
+        Args: { end_date?: string; start_date?: string }
         Returns: {
-          date: string
-          event_type: string
-          user_role: string
-          event_count: number
-          unique_users: number
           avg_session_duration: number
+          date: string
+          event_count: number
+          event_type: string
+          unique_users: number
+          user_role: string
         }[]
       }
       get_current_user_role: {
@@ -12536,21 +12536,21 @@ export type Database = {
       get_service_performance: {
         Args: Record<PropertyKey, never>
         Returns: {
-          service_type: string
-          total_pages: number
-          avg_views: number
           avg_ctr: number
           avg_seo_score: number
+          avg_views: number
+          service_type: string
+          total_pages: number
         }[]
       }
       get_top_performing_cities: {
         Args: { limit_count?: number }
         Returns: {
-          city: string
-          total_views: number
           avg_ctr: number
-          total_conversions: number
+          city: string
           performance_score: number
+          total_conversions: number
+          total_views: number
         }[]
       }
       has_local_seo_access: {
@@ -12558,7 +12558,7 @@ export type Database = {
         Returns: boolean
       }
       has_module_access: {
-        Args: { user_id: string; module_name: string }
+        Args: { module_name: string; user_id: string }
         Returns: boolean
       }
       has_paid_subscription: {
@@ -12567,18 +12567,18 @@ export type Database = {
       }
       has_pos_permission: {
         Args: {
-          staff_user_id: string
-          repairer_id: string
           permission_name: string
+          repairer_id: string
+          staff_user_id: string
         }
         Returns: boolean
       }
       has_role: {
-        Args: { _user_id: string; _role: string }
+        Args: { _role: string; _user_id: string }
         Returns: boolean
       }
       increment_chatbot_metric: {
-        Args: { metric_name: string; increment_by?: number }
+        Args: { increment_by?: number; metric_name: string }
         Returns: undefined
       }
       increment_clicks: {
