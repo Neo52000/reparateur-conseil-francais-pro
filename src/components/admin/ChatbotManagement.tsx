@@ -843,10 +843,18 @@ const ChatbotManagement = () => {
               <div className="pt-4 border-t">
                 <Button onClick={async () => {
                   try {
-                    await updateConfig('chatbot_enabled', true);
-                    await updateConfig('maintenance_mode', false);
+                    // Sauvegarder toutes les configurations actuelles
+                    const configKeys = ['chatbot_enabled', 'maintenance_mode', 'maintenance_message', 'chatbot_name'];
+                    
+                    for (const key of configKeys) {
+                      if (config[key] !== undefined) {
+                        await updateConfig(key, config[key]);
+                      }
+                    }
+                    
                     toast.success('Configuration sauvegardée avec succès');
                   } catch (error) {
+                    console.error('Erreur sauvegarde:', error);
                     toast.error('Erreur lors de la sauvegarde');
                   }
                 }} className="w-full">
