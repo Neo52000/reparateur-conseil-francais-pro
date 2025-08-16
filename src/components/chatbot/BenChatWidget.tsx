@@ -68,10 +68,30 @@ const BenChatWidget: React.FC = () => {
             acc[item.config_key] = item.config_value;
             return acc;
           }, {} as Record<string, any>);
-          setConfig(configMap);
+          
+          // Valeurs par défaut pour éviter les problèmes
+          const finalConfig = {
+            chatbot_enabled: true,
+            maintenance_mode: false,
+            chatbot_name: 'Ben',
+            maintenance_message: 'Le chatbot est temporairement indisponible pour maintenance.',
+            ...configMap
+          };
+          
+          console.log('🤖 Config chargée:', finalConfig);
+          console.log('🔧 maintenance_mode type:', typeof finalConfig.maintenance_mode, 'value:', finalConfig.maintenance_mode);
+          
+          setConfig(finalConfig);
         }
       } catch (error) {
         console.error('Erreur chargement config chatbot:', error);
+        // Configuration par défaut en cas d'erreur
+        setConfig({
+          chatbot_enabled: true,
+          maintenance_mode: false,
+          chatbot_name: 'Ben',
+          maintenance_message: 'Le chatbot est temporairement indisponible pour maintenance.'
+        });
       }
       setConfigLoading(false);
     };
@@ -277,8 +297,17 @@ const BenChatWidget: React.FC = () => {
     </motion.div>
   );
 
-  // Ne pas afficher le widget si le chatbot est désactivé ou en cours de chargement
-  if (configLoading || config.chatbot_enabled === false) {
+  // Afficher un spinner pendant le chargement
+  if (configLoading) {
+    return (
+      <div className="fixed bottom-6 right-6 z-50 w-14 h-14 flex items-center justify-center bg-primary rounded-full">
+        <Loader2 className="h-6 w-6 text-primary-foreground animate-spin" />
+      </div>
+    );
+  }
+
+  // Ne pas afficher le widget si le chatbot est désactivé
+  if (String(config.chatbot_enabled) === 'false') {
     return null;
   }
 
@@ -370,7 +399,7 @@ const BenChatWidget: React.FC = () => {
                 {/* Messages */}
                 <div className="h-80 overflow-y-auto p-4 space-y-4">
                   {/* Mode maintenance */}
-                  {config.maintenance_mode === true ? (
+                  {String(config.maintenance_mode) === 'true' ? (
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center p-4">
                         <BenAvatar emotion="concerned" size="lg" />
@@ -444,7 +473,7 @@ const BenChatWidget: React.FC = () => {
                 </div>
 
                 {/* Quick Actions - seulement si pas en maintenance */}
-                {config.maintenance_mode !== true && (
+                {String(config.maintenance_mode) !== 'true' && (
                   <div className="p-3 border-t bg-muted/50">
                     <div className="flex gap-2 mb-3">
                       <Button
