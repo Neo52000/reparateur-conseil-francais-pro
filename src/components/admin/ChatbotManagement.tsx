@@ -843,13 +843,17 @@ const ChatbotManagement = () => {
               <div className="pt-4 border-t">
                 <Button onClick={async () => {
                   try {
-                    // Sauvegarder toutes les configurations actuelles
-                    const configKeys = ['chatbot_enabled', 'maintenance_mode', 'maintenance_message', 'chatbot_name'];
+                    // Préparer toutes les configurations à sauvegarder avec des valeurs par défaut
+                    const configsToSave = [
+                      { key: 'chatbot_enabled', value: config.chatbot_enabled ?? true },
+                      { key: 'maintenance_mode', value: config.maintenance_mode ?? false },
+                      { key: 'maintenance_message', value: config.maintenance_message ?? 'Le chatbot est temporairement indisponible pour maintenance.' },
+                      { key: 'chatbot_name', value: config.chatbot_name ?? 'Ben' }
+                    ];
                     
-                    for (const key of configKeys) {
-                      if (config[key] !== undefined) {
-                        await updateConfig(key, config[key]);
-                      }
+                    // Sauvegarder chaque configuration
+                    for (const configItem of configsToSave) {
+                      await updateConfig(configItem.key, configItem.value);
                     }
                     
                     toast.success('Configuration sauvegardée avec succès');

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import AlexChatWidget from './chatbot/AlexChatWidget';
+import BenChatWidget from './chatbot/BenChatWidget';
 import { useProactiveChatTrigger } from '@/hooks/useProactiveChatTrigger';
 
 const ChatbotLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -19,7 +19,7 @@ const ChatbotLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   return (
     <>
       {children}
-      <AlexChatWidget />
+      <BenChatWidget />
     </>
   );
 };
