@@ -349,6 +349,13 @@ export type Database = {
             referencedRelation: "repairer_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "admin_quote_assignments_target_repairer_id_fkey"
+            columns: ["target_repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairer_profiles_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       advanced_targeting_segments: {
@@ -651,6 +658,13 @@ export type Database = {
             columns: ["repairer_id"]
             isOneToOne: false
             referencedRelation: "repairers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_enhancements_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairers_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -2587,6 +2601,13 @@ export type Database = {
             referencedRelation: "repairers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "client_favorites_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairers_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       client_interest_requests: {
@@ -3317,6 +3338,13 @@ export type Database = {
             columns: ["repairer_id"]
             isOneToOne: false
             referencedRelation: "repairers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_quality_metrics_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairers_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -4497,6 +4525,13 @@ export type Database = {
             columns: ["repairer_id"]
             isOneToOne: false
             referencedRelation: "repairers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "geocoding_history_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairers_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -12397,7 +12432,69 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      repairer_profiles_safe: {
+        Row: {
+          business_name: string | null
+          city: string | null
+          created_at: string | null
+          id: string | null
+          repair_types: string[] | null
+        }
+        Insert: {
+          business_name?: string | null
+          city?: string | null
+          created_at?: string | null
+          id?: string | null
+          repair_types?: string[] | null
+        }
+        Update: {
+          business_name?: string | null
+          city?: string | null
+          created_at?: string | null
+          id?: string | null
+          repair_types?: string[] | null
+        }
+        Relationships: []
+      }
+      repairers_safe: {
+        Row: {
+          city: string | null
+          created_at: string | null
+          id: string | null
+          lat: number | null
+          lng: number | null
+          name: string | null
+          postal_code: string | null
+          rating: number | null
+          review_count: number | null
+          specialties: string[] | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string | null
+          id?: string | null
+          lat?: number | null
+          lng?: number | null
+          name?: string | null
+          postal_code?: string | null
+          rating?: number | null
+          review_count?: number | null
+          specialties?: string[] | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string | null
+          id?: string | null
+          lat?: number | null
+          lng?: number | null
+          name?: string | null
+          postal_code?: string | null
+          rating?: number | null
+          review_count?: number | null
+          specialties?: string[] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_url_to_monitoring: {
@@ -12592,6 +12689,15 @@ export type Database = {
       increment_share_count: {
         Args: { post_id: string }
         Returns: undefined
+      }
+      log_security_event: {
+        Args: {
+          action_param: string
+          error_message_param?: string
+          resource_param?: string
+          success_param?: boolean
+        }
+        Returns: string
       }
       normalize_text: {
         Args: { input_text: string }
