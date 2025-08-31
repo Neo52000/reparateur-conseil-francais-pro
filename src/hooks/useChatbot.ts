@@ -41,28 +41,39 @@ export const useChatbot = (): UseChatbotReturn => {
   const startConversation = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase.functions.invoke('chatbot-gpt5', {
+      // Utiliser ai-router qui gère plusieurs fournisseurs d'IA avec fallback
+      const { data, error } = await supabase.functions.invoke('ai-router', {
         body: {
           action: 'start_conversation',
+          text: 'Bonjour, je cherche de l\'aide pour la réparation de mon smartphone',
+          language_hint: 'fr',
           session_id: sessionId,
-          user_id: user?.id,
-          owner_id: user?.id
+          user_id: user?.id
         }
       });
 
       if (error) throw error;
 
-      setConversationId(data.conversation_id);
+      setConversationId(sessionId);
       setMessages([{
         id: '1',
-        content: data.message,
+        content: data.response || "Bonjour ! Je suis là pour vous aider avec vos questions de réparation smartphone. Comment puis-je vous aider ?",
         sender_type: 'bot',
         timestamp: new Date(),
-        suggestions: data.suggestions,
+        suggestions: data.suggestions || ["Demander un devis", "Trouver un réparateur", "Questions générales"],
         actions: data.actions
       }]);
     } catch (error) {
       console.error('Erreur démarrage conversation:', error);
+      // Fallback avec message par défaut
+      setConversationId(sessionId);
+      setMessages([{
+        id: '1',
+        content: "Bonjour ! Je rencontre des difficultés techniques mais je peux quand même vous aider. Souhaitez-vous consulter notre FAQ ou prendre rendez-vous directement ?",
+        sender_type: 'bot',
+        timestamp: new Date(),
+        suggestions: ["Consulter la FAQ", "Prendre rendez-vous", "Trouver un réparateur"]
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -83,15 +94,14 @@ export const useChatbot = (): UseChatbotReturn => {
     setIsTyping(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('chatbot-gpt5', {
+      // Utiliser ai-router avec fallback automatique entre différents fournisseurs
+      const { data, error } = await supabase.functions.invoke('ai-router', {
         body: {
           action: 'send_message',
-          user_id: user?.id,
-          owner_id: user?.id,
-          message: {
-            conversation_id: conversationId,
-            content
-          }
+          text: content,
+          language_hint: 'fr',
+          session_id: conversationId,
+          user_id: user?.id
         }
       });
 
@@ -100,34 +110,32 @@ export const useChatbot = (): UseChatbotReturn => {
       // Délai variable selon la confiance et le type de réponse
       const confidence = data.confidence || 0.7;
       const baseDelay = confidence > 0.8 ? 800 : confidence > 0.6 ? 1200 : 1800;
-      const randomDelay = baseDelay + Math.random() * 500; // Ajouter de la variabilité
+      const randomDelay = baseDelay + Math.random() * 500;
 
       setTimeout(() => {
         setIsTyping(false);
         const botMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
-          content: data.response,
+          content: data.response || "Je ne suis pas sûr de comprendre. Pouvez-vous reformuler ?",
           sender_type: 'bot',
           timestamp: new Date(),
-          suggestions: data.suggestions,
+          suggestions: data.suggestions || ["Reformuler", "Consulter la FAQ", "Prendre rendez-vous"],
           actions: data.actions
         };
         setMessages(prev => [...prev, botMessage]);
         setIsLoading(false);
-        // Mettre à jour l'ID de conversation si renvoyé
-        if (data.conversation_id) setConversationId(data.conversation_id);
       }, randomDelay);
     } catch (error) {
       console.error('Erreur envoi message:', error);
       setIsTyping(false);
       
-      // Message d'erreur plus humain
+      // Fallback intelligent avec options utiles
       const errorMessage: ChatMessage = {
         id: (Date.now() + 2).toString(),
-        content: "Désolé, j'ai eu un petit problème technique 😅 Pouvez-vous répéter votre question ?",
+        content: "Je ne peux pas joindre l'IA pour le moment. Voulez-vous consulter notre FAQ ou prendre rendez-vous ?",
         sender_type: 'bot',
         timestamp: new Date(),
-        suggestions: ["Répéter la question", "Parler à un conseiller", "Recommencer"]
+        suggestions: ["Consulter la FAQ", "Prendre rendez-vous", "Trouver un réparateur", "Recommencer"]
       };
       setMessages(prev => [...prev, errorMessage]);
       setIsLoading(false);
