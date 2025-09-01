@@ -24,7 +24,8 @@ import {
   Settings,
   Globe,
   Layout,
-  Monitor
+  Monitor,
+  Activity
 } from 'lucide-react';
 
 const AdminSidebar: React.FC = () => {
@@ -61,6 +62,7 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=monitoring', icon: Gauge, label: 'Monitoring', tab: 'monitoring', category: 'Technical' },
     { path: '/admin?tab=system-optimization', icon: Zap, label: 'Optimisation Système', tab: 'system-optimization', category: 'Technical' },
     { path: '/admin?tab=chatbot', icon: Bot, label: 'Chatbot IA', tab: 'chatbot', category: 'Technical' },
+    { path: '/admin?tab=system-diagnostics', icon: Activity, label: 'Diagnostics Système', tab: 'system-diagnostics', category: 'Technical' },
     { path: '/admin?tab=documentation', icon: BookOpen, label: 'Documentation', tab: 'documentation', category: 'Technical' },
     { path: '/admin?tab=static-pages', icon: FileText, label: 'Pages Statiques', tab: 'static-pages', category: 'Technical' },
     
