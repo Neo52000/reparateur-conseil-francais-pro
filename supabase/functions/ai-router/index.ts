@@ -23,6 +23,197 @@ function isLowQuality(answer: string): boolean {
   return false;
 }
 
+// Integrated Fallback Chatbot Logic
+interface FallbackResponse {
+  response: string;
+  suggestions: string[];
+  actions?: Array<{
+    type: string;
+    label: string;
+    data?: any;
+  }>;
+  confidence: number;
+}
+
+interface KeywordPattern {
+  keywords: string[];
+  response: string;
+  suggestions: string[];
+  actions?: Array<{
+    type: string;
+    label: string;
+    data?: any;
+  }>;
+}
+
+function createFallbackPatterns(language: 'fr' | 'en'): KeywordPattern[] {
+  if (language === 'fr') {
+    return [
+      {
+        keywords: ['bonjour', 'salut', 'hello', 'bonsoir', 'hey'],
+        response: "Bonjour ! Je suis là pour vous aider avec la réparation de votre smartphone. Comment puis-je vous assister aujourd'hui ?",
+        suggestions: ["Demander un devis", "Trouver un réparateur", "Questions fréquentes"],
+        actions: [
+          { type: 'redirect', label: 'Voir les réparateurs', data: { url: '/repairers' } }
+        ]
+      },
+      {
+        keywords: ['devis', 'prix', 'coût', 'tarif', 'combien', 'estimation'],
+        response: "Pour obtenir un devis personnalisé, j'ai besoin de quelques informations sur votre appareil. Quelle est la marque et le modèle de votre smartphone ?",
+        suggestions: ["iPhone", "Samsung", "Huawei", "Xiaomi", "Autre marque"],
+        actions: [
+          { type: 'form', label: 'Formulaire de devis', data: { form: 'quote' } }
+        ]
+      },
+      {
+        keywords: ['écran', 'cassé', 'fissure', 'noir', 'tactile'],
+        response: "Les problèmes d'écran sont très courants. Selon le modèle, le remplacement d'écran coûte généralement entre 50€ et 200€. Voulez-vous trouver un réparateur près de chez vous ?",
+        suggestions: ["Trouver un réparateur", "Demander un devis", "Conseils préventifs"],
+        actions: [
+          { type: 'location', label: 'Réparateurs à proximité' }
+        ]
+      },
+      {
+        keywords: ['batterie', 'charge', 'autonomie', 'décharge'],
+        response: "Les problèmes de batterie sont fréquents après 2-3 ans d'utilisation. Le changement de batterie coûte généralement entre 30€ et 80€ selon le modèle.",
+        suggestions: ["Changer la batterie", "Conseils d'entretien", "Diagnostic gratuit"],
+        actions: [
+          { type: 'tips', label: 'Conseils batterie' }
+        ]
+      },
+      {
+        keywords: ['réparateur', 'proche', 'près', 'magasin', 'atelier'],
+        response: "Je peux vous aider à trouver des réparateurs qualifiés près de chez vous. Dans quelle ville vous trouvez-vous ?",
+        suggestions: ["Paris", "Lyon", "Marseille", "Toulouse", "Autre ville"],
+        actions: [
+          { type: 'location', label: 'Géolocalisation' },
+          { type: 'redirect', label: 'Carte des réparateurs', data: { url: '/repairers' } }
+        ]
+      },
+      {
+        keywords: ['urgent', 'vite', 'rapide', 'immédiat', 'express'],
+        response: "Pour une réparation urgente, je recommande nos partenaires avec service express. Ils peuvent généralement intervenir dans les 24h.",
+        suggestions: ["Service express", "Réparation à domicile", "Dépannage immédiat"],
+        actions: [
+          { type: 'urgent', label: 'Service express' }
+        ]
+      },
+      {
+        keywords: ['garantie', 'assurance', 'sav', 'remboursement'],
+        response: "Tous nos réparateurs partenaires offrent une garantie sur leurs interventions. La durée varie selon le type de réparation (3 à 12 mois).",
+        suggestions: ["Conditions de garantie", "Faire jouer la garantie", "SAV"],
+        actions: [
+          { type: 'info', label: 'Conditions de garantie' }
+        ]
+      }
+    ];
+  } else {
+    return [
+      {
+        keywords: ['hello', 'hi', 'hey', 'bonjour', 'good morning'],
+        response: "Hello! I'm here to help you with smartphone repairs. How can I assist you today?",
+        suggestions: ["Get a quote", "Find a repairer", "FAQ"],
+        actions: [
+          { type: 'redirect', label: 'View repairers', data: { url: '/repairers' } }
+        ]
+      },
+      {
+        keywords: ['quote', 'price', 'cost', 'estimate', 'how much'],
+        response: "To provide a personalized quote, I need some information about your device. What's the brand and model of your smartphone?",
+        suggestions: ["iPhone", "Samsung", "Huawei", "Xiaomi", "Other brand"],
+        actions: [
+          { type: 'form', label: 'Quote form', data: { form: 'quote' } }
+        ]
+      },
+      {
+        keywords: ['screen', 'broken', 'crack', 'black', 'touch'],
+        response: "Screen problems are very common. Depending on the model, screen replacement usually costs between €50 and €200. Would you like to find a repairer near you?",
+        suggestions: ["Find a repairer", "Get a quote", "Prevention tips"],
+        actions: [
+          { type: 'location', label: 'Nearby repairers' }
+        ]
+      },
+      {
+        keywords: ['battery', 'charge', 'drain', 'power'],
+        response: "Battery problems are common after 2-3 years of use. Battery replacement usually costs between €30 and €80 depending on the model.",
+        suggestions: ["Replace battery", "Maintenance tips", "Free diagnosis"],
+        actions: [
+          { type: 'tips', label: 'Battery tips' }
+        ]
+      },
+      {
+        keywords: ['repairer', 'near', 'close', 'shop', 'store'],
+        response: "I can help you find qualified repairers near you. What city are you in?",
+        suggestions: ["Paris", "Lyon", "Marseille", "Toulouse", "Other city"],
+        actions: [
+          { type: 'location', label: 'Geolocation' },
+          { type: 'redirect', label: 'Repairer map', data: { url: '/repairers' } }
+        ]
+      },
+      {
+        keywords: ['urgent', 'fast', 'quick', 'immediate', 'express'],
+        response: "For urgent repairs, I recommend our partners with express service. They can usually intervene within 24 hours.",
+        suggestions: ["Express service", "Home repair", "Emergency support"],
+        actions: [
+          { type: 'urgent', label: 'Express service' }
+        ]
+      },
+      {
+        keywords: ['warranty', 'guarantee', 'insurance', 'refund'],
+        response: "All our partner repairers offer a warranty on their services. Duration varies by repair type (3 to 12 months).",
+        suggestions: ["Warranty terms", "Claim warranty", "Customer service"],
+        actions: [
+          { type: 'info', label: 'Warranty conditions' }
+        ]
+      }
+    ];
+  }
+}
+
+function analyzeFallbackMessage(message: string, language: 'fr' | 'en'): FallbackResponse {
+  const normalizedMessage = message.toLowerCase().trim();
+  const patterns = createFallbackPatterns(language);
+  
+  // Search for keyword matches
+  for (const pattern of patterns) {
+    const matchedKeywords = pattern.keywords.filter(keyword => 
+      normalizedMessage.includes(keyword.toLowerCase())
+    );
+    
+    if (matchedKeywords.length > 0) {
+      return {
+        response: pattern.response,
+        suggestions: pattern.suggestions,
+        actions: pattern.actions,
+        confidence: Math.min(0.85, matchedKeywords.length / pattern.keywords.length + 0.3)
+      };
+    }
+  }
+  
+  // Default response if no match
+  const defaultResponses = language === 'fr' ? [
+    "Je comprends votre question. Pouvez-vous me donner plus de détails sur votre problème de smartphone ?",
+    "Intéressant ! Pouvez-vous préciser le type de réparation dont vous avez besoin ?",
+    "Je vais vous aider. Quel est exactement le problème avec votre téléphone ?",
+    "D'accord, je vois. Pouvez-vous me dire quelle est la marque et le modèle de votre appareil ?"
+  ] : [
+    "I understand your question. Can you give me more details about your smartphone problem?",
+    "Interesting! Can you specify what type of repair you need?",
+    "I'll help you. What exactly is the problem with your phone?",
+    "I see. Can you tell me the brand and model of your device?"
+  ];
+  
+  const randomResponse = defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+  
+  return {
+    response: randomResponse,
+    suggestions: language === 'fr' 
+      ? ["Demander un devis", "Trouver un réparateur", "Questions fréquentes", "Parler à un conseiller"]
+      : ["Get a quote", "Find a repairer", "FAQ", "Talk to an advisor"],
+    confidence: 0.6
+  };
+}
+
 async function callOpenAICompatible(baseUrl: string, apiKey: string, model: string, systemPrompt: string, userContent: string) {
   const res = await fetch(`${baseUrl.replace(/\/$/, '')}/v1/chat/completions`, {
     method: 'POST',
@@ -196,21 +387,20 @@ serve(async (req) => {
     }
 
     if (!answer) {
-      // Fallback conversational mode
-      const msg = lang === 'fr'
-        ? "Je ne peux pas joindre l'IA pour le moment. Voulez-vous consulter notre FAQ ou prendre rendez-vous ?"
-        : "I can't reach the AI right now. Would you like to see our FAQ or book an appointment?";
-      const actions = [
-        { action: 'open_faq', type: 'link', label: lang === 'fr' ? 'Ouvrir la FAQ' : 'Open FAQ' },
-        { action: 'book_appointment', type: 'booking', label: lang === 'fr' ? 'Prendre rendez-vous' : 'Book appointment' }
-      ];
+      // Use integrated fallback chatbot for intelligent responses
+      console.log('No AI provider available, using intelligent fallback for message:', text);
+      const fallbackResponse = analyzeFallbackMessage(text, lang);
+      
       return new Response(JSON.stringify({
-        response: msg,
-        provider: 'fallback',
+        response: fallbackResponse.response,
+        provider: 'local_chatbot',
         language: lang,
-        confidence: 0.4,
-        suggestions: lang === 'fr' ? ["Obtenir un devis", "Trouver un réparateur"] : ["Get a quote", "Find a repairer"],
-        actions,
+        confidence: fallbackResponse.confidence,
+        suggestions: fallbackResponse.suggestions,
+        actions: fallbackResponse.actions || [
+          { action: 'open_faq', type: 'link', label: lang === 'fr' ? 'Ouvrir la FAQ' : 'Open FAQ' },
+          { action: 'book_appointment', type: 'booking', label: lang === 'fr' ? 'Prendre rendez-vous' : 'Book appointment' }
+        ],
         latency_ms: Date.now() - start
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
