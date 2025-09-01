@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import BenAvatar from './BenAvatar';
+import SystemStatus from './SystemStatus';
 
 interface Message {
   id: string;
@@ -396,6 +397,11 @@ const BenChatWidget: React.FC = () => {
               className="flex flex-col h-full"
             >
               <CardContent className="flex-1 overflow-hidden p-0">
+                {/* System Status */}
+                <div className="p-3 border-b">
+                  <SystemStatus />
+                </div>
+                
                 {/* Messages */}
                 <div className="h-80 overflow-y-auto p-4 space-y-4">
                   {/* Mode maintenance */}
