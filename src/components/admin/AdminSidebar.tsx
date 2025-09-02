@@ -25,7 +25,8 @@ import {
   Globe,
   Layout,
   Monitor,
-  Activity
+  Activity,
+  TrendingUp
 } from 'lucide-react';
 
 const AdminSidebar: React.FC = () => {
@@ -61,8 +62,9 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=automation', icon: Zap, label: 'Relances Automatiques', tab: 'automation', category: 'Technical' },
     { path: '/admin?tab=monitoring', icon: Gauge, label: 'Monitoring', tab: 'monitoring', category: 'Technical' },
     { path: '/admin?tab=system-optimization', icon: Zap, label: 'Optimisation Système', tab: 'system-optimization', category: 'Technical' },
-    { path: '/admin?tab=chatbot', icon: Bot, label: 'Chatbot IA', tab: 'chatbot', category: 'Technical' },
-    { path: '/admin?tab=system-diagnostics', icon: Activity, label: 'Diagnostics Système', tab: 'system-diagnostics', category: 'Technical' },
+     { path: '/admin?tab=chatbot', icon: Bot, label: 'Chatbot IA', tab: 'chatbot', category: 'Technical' },
+     { path: '/admin?tab=system-diagnostics', icon: Activity, label: 'Diagnostics Système', tab: 'system-diagnostics', category: 'Technical' },
+     { path: '/admin?tab=chatbot-performance', icon: TrendingUp, label: 'Performance Chatbot', tab: 'chatbot-performance', category: 'Technical' },
     { path: '/admin?tab=documentation', icon: BookOpen, label: 'Documentation', tab: 'documentation', category: 'Technical' },
     { path: '/admin?tab=static-pages', icon: FileText, label: 'Pages Statiques', tab: 'static-pages', category: 'Technical' },
     

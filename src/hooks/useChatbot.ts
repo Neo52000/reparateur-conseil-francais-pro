@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { fallbackChatbot } from '@/services/fallbackChatbot';
 import { useSystemDiagnostics } from '@/hooks/useSystemDiagnostics';
+import { useChatbotPerformance } from '@/hooks/useChatbotPerformance';
 
 interface ChatMessage {
   id: string;
@@ -32,6 +33,7 @@ export const useChatbot = (): UseChatbotReturn => {
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random()}`);
   const { user } = useAuth();
   const { diagnostics, shouldUseFallback, canUseAI } = useSystemDiagnostics();
+  const { recordMessage } = useChatbotPerformance();
 
   // Proactivité: démarrage automatique de la conversation
   useEffect(() => {
@@ -119,6 +121,8 @@ export const useChatbot = (): UseChatbotReturn => {
     setIsLoading(true);
     setIsTyping(true);
 
+    const startTime = Date.now();
+
     try {
       let botResponse: any = null;
       
@@ -139,6 +143,14 @@ export const useChatbot = (): UseChatbotReturn => {
         if (!error && data?.response) {
           console.log('✅ Réponse IA obtenue');
           botResponse = data;
+          
+          // Enregistrer les métriques de performance
+          recordMessage({
+            responseTime: Date.now() - startTime,
+            provider: data.provider || 'ai-router',
+            success: true,
+            confidence: data.confidence
+          });
         }
       }
       
@@ -146,6 +158,14 @@ export const useChatbot = (): UseChatbotReturn => {
       if (!botResponse) {
         console.log('🔄 Utilisation du chatbot local');
         botResponse = fallbackChatbot.analyzeMessage(content);
+        
+        // Enregistrer les métriques pour le fallback
+        recordMessage({
+          responseTime: Date.now() - startTime,
+          provider: 'local_chatbot',
+          success: true,
+          confidence: botResponse.confidence
+        });
       }
       
       // Délai variable selon la confiance et le mode
@@ -171,6 +191,13 @@ export const useChatbot = (): UseChatbotReturn => {
       console.error('❌ Erreur envoi message:', error);
       setIsTyping(false);
       
+      // Enregistrer l'erreur dans les métriques
+      recordMessage({
+        responseTime: Date.now() - startTime,
+        provider: 'error',
+        success: false
+      });
+      
       // Fallback d'urgence avec le chatbot local
       const fallbackResponse = fallbackChatbot.analyzeMessage(content);
       
@@ -185,7 +212,7 @@ export const useChatbot = (): UseChatbotReturn => {
       setMessages(prev => [...prev, errorMessage]);
       setIsLoading(false);
     }
-  }, [conversationId, canUseAI, shouldUseFallback, user?.id]);
+  }, [conversationId, canUseAI, shouldUseFallback, user?.id, recordMessage]);
 
   const endConversation = async () => {
     if (!conversationId) return;

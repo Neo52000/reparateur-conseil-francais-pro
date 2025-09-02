@@ -46,6 +46,7 @@ import { EnhancedEcommerceTester } from '@/components/admin/ecommerce/EnhancedEc
 import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizationPanel';
 import { SuppliersDirectoryManagement } from '@/components/admin/SuppliersDirectoryManagement';
 import { SystemDiagnosticsPanel } from '@/components/admin/SystemDiagnosticsPanel';
+import ChatbotPerformancePanel from '@/components/admin/ChatbotPerformancePanel';
 
 const AdminPage = () => {
   const {
@@ -137,6 +138,8 @@ const AdminPage = () => {
         return 'Annuaire Fournisseurs';
       case 'system-diagnostics':
         return 'Diagnostics Système';
+      case 'chatbot-performance':
+        return 'Performance Chatbot';
       default:
         return 'Dashboard';
     }
@@ -209,6 +212,8 @@ const AdminPage = () => {
         return 'Gestion des pages statiques (mentions légales, CGU, etc.)';
       case 'system-diagnostics':
         return 'Surveillance en temps réel des services IA et état du chatbot';
+      case 'chatbot-performance':
+        return 'Métriques de performance et analyse du comportement du chatbot IA';
       default:
         return 'Administration de RepairHub';
     }
@@ -332,6 +337,8 @@ const AdminPage = () => {
         return <SystemOptimizationPanel />;
       case 'system-diagnostics':
         return <SystemDiagnosticsPanel />;
+      case 'chatbot-performance':
+        return <ChatbotPerformancePanel />;
       default:
         return <AdminDashboardContent activeTab={activeTab} subscriptions={[]} repairers={[]} onViewProfile={() => {}} onRefresh={async () => {}} />;
     }

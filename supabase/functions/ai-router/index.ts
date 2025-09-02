@@ -319,6 +319,25 @@ serve(async (req) => {
     const body = await req.json();
     const { action, text, language_hint, session_id, user_id } = body || {};
 
+    // Health check endpoint for system diagnostics
+    if (action === 'health_check') {
+      const providersAvailable = [
+        { name: 'OpenAI', available: !!Deno.env.get('OPENAI_API_KEY') },
+        { name: 'Mistral', available: !!Deno.env.get('MISTRAL_API_KEY') },
+        { name: 'DeepSeek', available: !!Deno.env.get('DEEPSEEK_API_KEY') },
+        { name: 'GPT-OSS', available: !!(Deno.env.get('GPT_OSS_BASE_URL') && Deno.env.get('GPT_OSS_API_KEY')) },
+      ].filter(p => p.available);
+
+      return new Response(JSON.stringify({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        providers_configured: providersAvailable.length,
+        providers_available: providersAvailable,
+        fallback_available: true,
+        response_time_ms: Date.now() - new Date().getTime()
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     if (action === 'start_conversation') {
       const lang = (language_hint as 'fr' | 'en') || 'fr';
       const message = lang === 'fr'
@@ -338,7 +357,11 @@ serve(async (req) => {
     }
 
     if (action !== 'send_message') {
-      return new Response(JSON.stringify({ error: 'Unsupported action' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify({ 
+        error: 'Unsupported action', 
+        supported_actions: ['health_check', 'start_conversation', 'send_message'],
+        received_action: action 
+      }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const lang = detectLanguage(text, language_hint);

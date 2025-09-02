@@ -39,7 +39,7 @@ export const useSystemDiagnostics = () => {
       // Test de connectivité basique
       const startTime = Date.now();
       
-      // Tester ai-router
+      // Tester ai-router avec health check
       const { data: routerData, error: routerError } = await supabase.functions.invoke('ai-router', {
         body: {
           action: 'health_check'
@@ -54,24 +54,26 @@ export const useSystemDiagnostics = () => {
       // Vérifier le statut des services AI
       const { data: statusData } = await supabase.functions.invoke('get-ai-status');
       
+      // Router health based on both response and content
+      const routerHealthy = !routerError && routerData?.status === 'healthy';
+      
       const systemStatus: SystemStatus = {
-        aiRouter: routerError ? 'offline' : 'operational',
-        openai: statusData?.statuses?.openai === 'available' ? 'operational' : 'offline',
-        mistral: statusData?.statuses?.mistral === 'available' ? 'operational' : 'offline',
-        deepseek: statusData?.statuses?.deepseek === 'available' ? 'operational' : 'offline',
+        aiRouter: routerHealthy ? 'operational' : 'offline',
+        openai: statusData?.statuses?.openai === 'operational' ? 'operational' : 'offline',
+        mistral: statusData?.statuses?.mistral === 'operational' ? 'operational' : 'offline',
+        deepseek: statusData?.statuses?.deepseek === 'operational' ? 'operational' : 'offline',
         fallback: 'operational',
         lastChecked: new Date()
       };
       
-      // Recommander le mode optimal
+      // Recommander le mode optimal basé sur les services disponibles
       let recommendedMode: 'ai' | 'hybrid' | 'fallback' = 'fallback';
       
-      if (systemStatus.aiRouter === 'operational' && 
-          (systemStatus.openai === 'operational' || 
-           systemStatus.mistral === 'operational' || 
-           systemStatus.deepseek === 'operational')) {
+      const aiServicesAvailable = statusData?.summary?.configured > 0;
+      
+      if (routerHealthy && aiServicesAvailable) {
         recommendedMode = connectionQuality === 'good' ? 'ai' : 'hybrid';
-      } else if (systemStatus.aiRouter === 'operational') {
+      } else if (routerHealthy) {
         recommendedMode = 'hybrid';
       }
       
@@ -86,7 +88,9 @@ export const useSystemDiagnostics = () => {
         aiRouter: systemStatus.aiRouter,
         services: `OpenAI: ${systemStatus.openai}, Mistral: ${systemStatus.mistral}, DeepSeek: ${systemStatus.deepseek}`,
         mode: recommendedMode,
-        connectionQuality
+        connectionQuality,
+        responseTime: `${responseTime}ms`,
+        aiProviders: statusData?.summary?.configured || 0
       });
       
     } catch (error) {
