@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
 import { ArrowLeft, Filter, Star, MapPin, Phone, Mail } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -11,6 +12,7 @@ import { useMapStore } from '@/stores/mapStore';
 import { useRealRepairers } from '@/hooks/useRealRepairers';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { Repairer } from '@/types/repairer';
+import 'leaflet/dist/leaflet.css';
 
 // Type adapter for RealRepairer to Repairer
 interface RealRepairer {
@@ -25,8 +27,6 @@ interface RealRepairer {
   rating?: number;
   services: string[];
 }
-import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
-import 'leaflet/dist/leaflet.css';
 
 interface InteractiveMapWithFiltersProps {
   onBack?: () => void;
