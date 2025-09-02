@@ -20,6 +20,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import BenAvatar from './BenAvatar';
 import SystemStatus from './SystemStatus';
+import ChatModeIndicator from './ChatModeIndicator';
+import { useSystemDiagnostics } from '@/hooks/useSystemDiagnostics';
 
 interface Message {
   id: string;
@@ -55,6 +57,7 @@ const BenChatWidget: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { shouldUseFallback } = useSystemDiagnostics();
 
   // Charger la configuration du chatbot
   useEffect(() => {
@@ -224,12 +227,21 @@ const BenChatWidget: React.FC = () => {
       console.error('Erreur Ben Chatbot:', error);
       setIsTyping(false);
       
+      // Message d'erreur contextuel selon le mode
+      const getErrorMessage = () => {
+        if (shouldUseFallback) {
+          return "Je fonctionne actuellement en mode local intelligent 💡 Je peux toujours vous aider avec les questions courantes sur la réparation de smartphones !";
+        } else {
+          return "J'ai basculé vers mon mode local intelligent 🔄 Je reste disponible pour vous guider dans vos réparations !";
+        }
+      };
+      
       const errorMessage: Message = {
         id: `ben-error-${Date.now()}`,
-        content: "Oups ! J'ai eu un petit problème technique 😅 Mais pas de panique, je suis toujours là ! Pouvez-vous reformuler votre demande ?",
+        content: getErrorMessage(),
         sender: 'ben',
         timestamp: new Date(),
-        suggestions: ["Redemander un devis", "Chercher un réparateur", "Contacter le support"],
+        suggestions: ["Redemander un devis", "Chercher un réparateur", "Questions sur les pannes"],
         emotion: 'empathetic'
       };
       
@@ -362,7 +374,7 @@ const BenChatWidget: React.FC = () => {
               <BenAvatar emotion="happy" size="md" />
               <div>
                 <CardTitle className="text-lg">{config.chatbot_name || 'Ben'}</CardTitle>
-                <p className="text-xs text-primary-foreground/80">Assistant IA • En ligne</p>
+                <ChatModeIndicator />
               </div>
             </div>
             

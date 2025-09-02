@@ -26,65 +26,82 @@ const SystemStatus: React.FC = () => {
 
   const getModeDescription = (mode: string) => {
     switch (mode) {
-      case 'ai': return 'IA complète disponible';
-      case 'hybrid': return 'Mode hybride (IA + fallback)';
-      case 'fallback': return 'Mode fallback local';
-      default: return 'Mode inconnu';
+      case 'ai': return '🤖 IA complète active';
+      case 'hybrid': return '🔄 Mode hybride intelligent';
+      case 'fallback': return '💡 Assistant local intelligent';
+      default: return '❓ Mode inconnu';
+    }
+  };
+
+  const getModeExplanation = (mode: string) => {
+    switch (mode) {
+      case 'ai': return 'Toutes les APIs IA sont opérationnelles';
+      case 'hybrid': return 'Basculement automatique entre IA et mode local';
+      case 'fallback': return 'Réponses intelligentes sans connexion externe';
+      default: return 'État du système indéterminé';
     }
   };
 
   return (
-    <Card className="mb-4">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
+    <Card className="border-l-4 border-l-primary/20">
+      <CardContent className="p-3">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             {diagnostics.isOnline ? (
               <Wifi className="h-4 w-4 text-success" />
             ) : (
-              <WifiOff className="h-4 w-4 text-destructive" />
+              <WifiOff className="h-4 w-4 text-muted-foreground" />
             )}
-            <span className="text-sm font-medium">État du système</span>
+            <span className="text-sm font-medium">Mode de fonctionnement</span>
           </div>
-          <Badge variant={isHealthy ? "default" : "destructive"}>
+          <Badge 
+            variant={isHealthy ? "default" : "secondary"}
+            className="text-xs"
+          >
             {getModeDescription(diagnostics.recommendedMode)}
           </Badge>
         </div>
 
+        <div className="text-xs text-muted-foreground mb-3">
+          {getModeExplanation(diagnostics.recommendedMode)}
+        </div>
+
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="flex items-center justify-between">
-            <span>Routeur IA:</span>
+            <span>Services IA:</span>
             <Badge 
-              className={`${getStatusColor(diagnostics.systemStatus.aiRouter)} flex items-center gap-1 text-xs px-2 py-1`}
+              variant={diagnostics.systemStatus.aiRouter === 'operational' ? 'default' : 'outline'}
+              className="text-xs px-1.5 py-0.5"
             >
-              {getStatusIcon(diagnostics.systemStatus.aiRouter)}
-              {diagnostics.systemStatus.aiRouter}
+              {diagnostics.systemStatus.aiRouter === 'operational' ? '✅' : '❌'}
             </Badge>
           </div>
           
           <div className="flex items-center justify-between">
-            <span>Fallback:</span>
+            <span>Mode local:</span>
             <Badge 
-              className={`${getStatusColor(diagnostics.systemStatus.fallback)} flex items-center gap-1 text-xs px-2 py-1`}
+              variant="default"
+              className="text-xs px-1.5 py-0.5"
             >
-              {getStatusIcon(diagnostics.systemStatus.fallback)}
-              {diagnostics.systemStatus.fallback}
+              ✅ Actif
             </Badge>
           </div>
           
           <div className="flex items-center justify-between">
-            <span>Connexion:</span>
+            <span>Réseau:</span>
             <Badge 
-              variant={diagnostics.connectionQuality === 'good' ? 'default' : 'outline'}
-              className="text-xs px-2 py-1"
+              variant={diagnostics.isOnline ? 'default' : 'destructive'}
+              className="text-xs px-1.5 py-0.5"
             >
-              {diagnostics.connectionQuality}
+              {diagnostics.isOnline ? '🌐 En ligne' : '📴 Hors ligne'}
             </Badge>
           </div>
           
           <div className="flex items-center justify-between">
-            <span>Dernière vérif:</span>
-            <span className="text-muted-foreground">
-              {diagnostics.systemStatus.lastChecked.toLocaleTimeString()}
+            <span>Qualité:</span>
+            <span className="text-muted-foreground text-xs">
+              {diagnostics.connectionQuality === 'good' ? '🟢 Excellente' :
+               diagnostics.connectionQuality === 'fair' ? '🟡 Correcte' : '🔴 Faible'}
             </span>
           </div>
         </div>
