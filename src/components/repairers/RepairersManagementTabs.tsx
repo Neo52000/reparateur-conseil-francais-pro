@@ -6,6 +6,8 @@ import SubscriptionsTable from './SubscriptionsTable';
 import PromoCodesManagement from '../PromoCodesManagement';
 import CategoriesManagement from '../catalog/CategoriesManagement';
 import RepairerSeoManagement from '../admin/RepairerSeoManagement';
+import RepairersDashboard from '../admin/RepairersDashboard';
+import RepairersAnalytics from '../admin/RepairersAnalytics';
 
 interface RepairerData {
   id: string;
@@ -40,6 +42,16 @@ interface SubscriptionData {
 interface RepairersManagementTabsProps {
   repairers: RepairerData[];
   subscriptions: SubscriptionData[];
+  stats: {
+    totalRepairers: number;
+    activeRepairers: number;
+    totalSubscriptions: number;
+    activeSubscriptions: number;
+    monthlyRevenue: number;
+    yearlyRevenue: number;
+    totalRevenue: number;
+    totalInterests: number;
+  };
   onViewProfile: (repairerId: string) => void;
   onRefresh: () => void;
 }
@@ -47,6 +59,7 @@ interface RepairersManagementTabsProps {
 const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
   repairers,
   subscriptions,
+  stats,
   onViewProfile,
   onRefresh
 }) => {
@@ -58,13 +71,22 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-5">
+      <TabsList className="grid w-full grid-cols-7">
+        <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
         <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
+        <TabsTrigger value="analytics">Analytics</TabsTrigger>
         <TabsTrigger value="categories">Catégories</TabsTrigger>
         <TabsTrigger value="seo-local">SEO Local</TabsTrigger>
         <TabsTrigger value="promocodes">Codes Promo</TabsTrigger>
       </TabsList>
+
+      <TabsContent value="dashboard">
+        <RepairersDashboard 
+          stats={stats}
+          repairers={repairers}
+        />
+      </TabsContent>
 
       <TabsContent value="repairers">
         <RepairersTable 
@@ -79,6 +101,13 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
         <SubscriptionsTable 
           subscriptions={subscriptions}
           onRefresh={onRefresh}
+        />
+      </TabsContent>
+
+      <TabsContent value="analytics">
+        <RepairersAnalytics 
+          repairers={repairers}
+          subscriptions={subscriptions}
         />
       </TabsContent>
 

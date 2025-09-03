@@ -5,7 +5,7 @@ import RepairersManagementTabs from '@/components/repairers/RepairersManagementT
 import RepairerProfileModal from '@/components/RepairerProfileModal';
 
 const RepairerList: React.FC = () => {
-  const { subscriptions, repairers, loading, fetchData } = useRepairersData();
+  const { subscriptions, repairers, loading, stats, fetchData } = useRepairersData();
   const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
 
@@ -27,6 +27,7 @@ const RepairerList: React.FC = () => {
       <RepairersManagementTabs
         repairers={repairers}
         subscriptions={subscriptions}
+        stats={stats}
         onViewProfile={handleViewProfile}
         onRefresh={fetchData}
       />
