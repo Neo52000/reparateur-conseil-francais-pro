@@ -5,28 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import LoadingSkeleton from '@/components/ui/LoadingSkeleton';
-import { ArrowLeft, Filter, Star, MapPin, Phone, Mail } from 'lucide-react';
+import { ArrowLeft, Filter, Star, MapPin, Phone } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useMapStore } from '@/stores/mapStore';
-import { useRealRepairers } from '@/hooks/useRealRepairers';
+import { useRealRepairers, type RealRepairer } from '@/hooks/useRealRepairers';
 import { useGeolocation } from '@/hooks/useGeolocation';
-import { Repairer } from '@/types/repairer';
 import 'leaflet/dist/leaflet.css';
-
-// Type adapter for RealRepairer to Repairer
-interface RealRepairer {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  lat: number;
-  lng: number;
-  phone?: string;
-  email?: string;
-  rating?: number;
-  services: string[];
-}
 
 interface InteractiveMapWithFiltersProps {
   onBack?: () => void;
@@ -62,14 +46,14 @@ const createRepairerIcon = (rating?: number) => {
 };
 
 // Map controller to handle bounds and user location
-const MapController: React.FC<{ repairers: any[], userLocation: [number, number] | null }> = ({ repairers, userLocation }) => {
+const MapController: React.FC<{ repairers: RealRepairer[], userLocation: [number, number] | null }> = ({ repairers, userLocation }) => {
   const map = useMap();
 
   useEffect(() => {
     if (repairers.length > 0) {
-      const validRepairers = repairers.filter(r => r.lat && r.lng);
+      const validRepairers = repairers.filter(r => r.lat && r.lng && typeof r.lat === 'number' && typeof r.lng === 'number');
       if (validRepairers.length > 0) {
-        const bounds = L.latLngBounds(validRepairers.map(r => [r.lat, r.lng]));
+        const bounds = L.latLngBounds(validRepairers.map(r => [r.lat!, r.lng!]));
         map.fitBounds(bounds, { padding: [20, 20] });
       }
     } else if (userLocation) {
@@ -90,7 +74,7 @@ const InteractiveMapWithFilters: React.FC<InteractiveMapWithFiltersProps> = ({ o
     openNow: false
   });
 
-  const [selectedRepairer, setSelectedRepairer] = useState<any | null>(null);
+  const [selectedRepairer, setSelectedRepairer] = useState<RealRepairer | null>(null);
   const [showReservationForm, setShowReservationForm] = useState(false);
 
   const { repairers, loading, error } = useRealRepairers();
@@ -106,8 +90,9 @@ const InteractiveMapWithFilters: React.FC<InteractiveMapWithFiltersProps> = ({ o
       }
 
       // Service filter
-      if (filters.service && filters.service !== 'all' && !repairer.services.some(service => 
-        service.toLowerCase().includes(filters.service.toLowerCase()))) {
+      if (filters.service && filters.service !== 'all' && repairer.services && 
+          !repairer.services.some(service => 
+            service.toLowerCase().includes(filters.service.toLowerCase()))) {
         return false;
       }
 
@@ -138,7 +123,7 @@ const InteractiveMapWithFilters: React.FC<InteractiveMapWithFiltersProps> = ({ o
     ),
   [filteredRepairers]);
 
-  const handleReservation = (repairer: any) => {
+  const handleReservation = (repairer: RealRepairer) => {
     setSelectedRepairer(repairer);
     setShowReservationForm(true);
   };
@@ -272,8 +257,8 @@ const InteractiveMapWithFilters: React.FC<InteractiveMapWithFiltersProps> = ({ o
                             </div>
                           )}
                           
-                          <div className="space-y-2 mb-3">
-                            <p className="text-xs"><strong>Services:</strong> {repairer.services.slice(0, 2).join(', ')}</p>
+                           <div className="space-y-2 mb-3">
+                            <p className="text-xs"><strong>Services:</strong> {repairer.services?.slice(0, 2).join(', ') || 'Non spécifié'}</p>
                             {repairer.phone && (
                               <p className="text-xs">
                                 <Phone className="h-3 w-3 inline mr-1" />
