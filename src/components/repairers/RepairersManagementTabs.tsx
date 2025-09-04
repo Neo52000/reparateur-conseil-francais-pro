@@ -8,6 +8,7 @@ import CategoriesManagement from '../catalog/CategoriesManagement';
 import RepairerSeoManagement from '../admin/RepairerSeoManagement';
 import RepairersDashboard from '../admin/RepairersDashboard';
 import RepairersAnalytics from '../admin/RepairersAnalytics';
+import { SuppliersDirectoryManagement } from '../admin/SuppliersDirectoryManagement';
 
 interface RepairerData {
   id: string;
@@ -71,12 +72,13 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-7">
+      <TabsList className="grid w-full grid-cols-8">
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
         <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
         <TabsTrigger value="analytics">Analytics</TabsTrigger>
         <TabsTrigger value="categories">Catégories</TabsTrigger>
+        <TabsTrigger value="suppliers">Fournisseurs</TabsTrigger>
         <TabsTrigger value="seo-local">SEO Local</TabsTrigger>
         <TabsTrigger value="promocodes">Codes Promo</TabsTrigger>
       </TabsList>
@@ -113,6 +115,10 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
 
       <TabsContent value="categories">
         <CategoriesManagement />
+      </TabsContent>
+
+      <TabsContent value="suppliers">
+        <SuppliersDirectoryManagement />
       </TabsContent>
 
       <TabsContent value="seo-local">
