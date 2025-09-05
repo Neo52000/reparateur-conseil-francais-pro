@@ -1,12 +1,12 @@
 import React from 'react';
-import InteractiveMapWithFilters from '@/components/map/InteractiveMapWithFilters';
+import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 
 interface MapWithFiltersProps {
   onBack?: () => void;
 }
 
 const MapWithFilters: React.FC<MapWithFiltersProps> = ({ onBack }) => {
-  return <InteractiveMapWithFilters onBack={onBack} />;
+  return <EnhancedRepairersMap onClose={onBack} />;
 };
 
 export default MapWithFilters;
