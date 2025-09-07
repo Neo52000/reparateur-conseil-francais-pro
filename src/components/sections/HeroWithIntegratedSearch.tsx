@@ -203,9 +203,7 @@ const HeroWithIntegratedSearch: React.FC<HeroWithIntegratedSearchProps> = ({
   }
 
   // Affichage du Hero principal
-  return <div className="relative h-[70vh] bg-cover bg-center" style={{
-    backgroundImage: "url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=75')"
-  }}>
+  return <div className="relative h-[70vh] hero-bg">
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>
       
       <div className="relative z-20 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">

@@ -7,8 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
  */
 const HeroSkeleton: React.FC = () => {
   return (
-    <div className="relative h-[70vh] bg-gradient-to-br from-slate-900 to-slate-800">
-      <div className="absolute inset-0 bg-black/30"></div>
+    <div className="relative h-[70vh] hero-bg">
+      <div className="absolute inset-0 bg-black/50"></div>
       
       <div className="relative z-20 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-4xl text-center space-y-6">
