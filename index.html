@@ -29,16 +29,16 @@
     <meta name="twitter:image" content="https://topreparateurs.fr/logo-icon.svg" />
 
     <!-- Performance Optimizations -->
-    <!-- Truly non-blocking font loading -->
+    <!-- NO synchronous font loading - everything is inlined -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- Critical font files preloaded -->
+    <!-- Critical font files preloaded but NOT loaded synchronously -->
     <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtXK-F2qC0s.woff2" as="font" type="font/woff2" crossorigin>
     
-    <!-- Inline critical font faces to prevent FOUC -->
+    <!-- All fonts completely inlined to prevent ANY render blocking -->
     <style>
       @font-face {
         font-family: 'Inter';
@@ -50,7 +50,21 @@
       @font-face {
         font-family: 'Inter';
         font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Inter';
+        font-style: normal;
         font-weight: 600;
+        font-display: swap;
+        src: url('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 700;
         font-display: swap;
         src: url('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2') format('woff2');
       }
@@ -61,18 +75,14 @@
         font-display: swap;
         src: url('https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtXK-F2qC0s.woff2') format('woff2');
       }
+      @font-face {
+        font-family: 'Playfair Display';
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url('https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtXK-F2qC0s.woff2') format('woff2');
+      }
     </style>
-    
-    <!-- Async load Google Fonts CSS (completely non-blocking) -->
-    <script>
-      // Load fonts asynchronously without blocking render
-      setTimeout(function() {
-        var link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap';
-        document.head.appendChild(link);
-      }, 0);
-    </script>
     
     <!-- Critical CSS inlined for faster rendering -->
     <style>

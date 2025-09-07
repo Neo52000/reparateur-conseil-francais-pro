@@ -8,12 +8,20 @@ import { FontPreloader } from './services/performance/FontPreloader'
 // Initialize font preloading for performance
 const fontPreloader = new FontPreloader();
 
-// Prioritize FCP by deferring non-critical initialization
+// Defer font optimization until after initial render (remove Google Fonts dependency)
 const initializeFonts = () => {
+  // Only initialize custom font handling, no external font requests
   fontPreloader.initialize().then(() => {
-    // Mark fonts as loaded for CSS transitions
     document.documentElement.classList.add('fonts-loaded');
   }).catch(console.error);
+};
+
+// Async load main CSS bundle to prevent render blocking
+const loadMainCSS = () => {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = '/src/index.css';
+  document.head.appendChild(link);
 };
 
 // Handle FCP loader removal when React renders
@@ -33,15 +41,21 @@ const removeFCPLoader = () => {
   }
 };
 
-// Defer font optimization until after initial render
+// Initialize everything without blocking render
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(initializeFonts, 100);
-    setTimeout(removeFCPLoader, 1500); // Increased delay
+    setTimeout(() => {
+      loadMainCSS();
+      initializeFonts();
+    }, 100);
+    setTimeout(removeFCPLoader, 1500);
   });
 } else {
-  setTimeout(initializeFonts, 100);
-  setTimeout(removeFCPLoader, 1500); // Increased delay
+  setTimeout(() => {
+    loadMainCSS();
+    initializeFonts();
+  }, 100);
+  setTimeout(removeFCPLoader, 1500);
 }
 
 // Unregister any existing Service Workers and clear caches in development to avoid stale bundles
