@@ -238,10 +238,10 @@ const HeroWithIntegratedSearch: React.FC<HeroWithIntegratedSearchProps> = ({
               Recherche rapide
             </Button>
 
-            <Button onClick={handlePersonalizedSearchClick} size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-3">
+            <Button onClick={handlePersonalizedSearchClick} size="lg" className="bg-success-button hover:bg-success-button/90 text-success-button-foreground px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-3">
               {user ? <User className="h-6 w-6" /> : <Lock className="h-6 w-6" />}
               Recherche personnalisée
-              {!user && <span className="text-sm opacity-75">(Connexion requise)</span>}
+              {!user && <span className="text-sm text-success-button-foreground/90">(Connexion requise)</span>}
             </Button>
 
             <Button onClick={() => setIsMapModalOpen(true)} size="lg" variant="outline" className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-3">

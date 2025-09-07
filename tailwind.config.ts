@@ -120,6 +120,16 @@ export default {
 					'error-light': 'hsl(var(--error-light))',
 					info: 'hsl(var(--info))',
 					'info-light': 'hsl(var(--info-light))'
+				},
+				'success-button': {
+					DEFAULT: 'hsl(var(--success-button))',
+					foreground: 'hsl(var(--success-button-foreground))',
+					light: 'hsl(var(--success-button-light))'
+				},
+				'info-badge': {
+					DEFAULT: 'hsl(var(--info-badge))',
+					foreground: 'hsl(var(--info-badge-foreground))',
+					light: 'hsl(var(--info-badge-light))'
 				}
 			},
 			fontFamily: {

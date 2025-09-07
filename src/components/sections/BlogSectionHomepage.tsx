@@ -136,7 +136,7 @@ const BlogSectionHomepage: React.FC = () => {
                   <img src={post.featured_image_url} alt={post.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" loading="lazy" />
                 </div>}
               <CardContent className="p-6">
-                {post.category && <span className="inline-block px-3 py-1 text-xs font-semibold text-blue-600 bg-blue-100 rounded-full mb-3">
+                {post.category && <span className="inline-block px-3 py-1 text-xs font-semibold text-info-badge-foreground bg-info-badge-light rounded-full mb-3">
                     {post.category.name}
                   </span>}
                 
