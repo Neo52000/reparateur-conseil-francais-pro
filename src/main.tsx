@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
-import './index.css'
+// CSS is loaded asynchronously to prevent render blocking
 import { registerServiceWorker } from './swRegistration'
 import { FontPreloader } from './services/performance/FontPreloader'
 
