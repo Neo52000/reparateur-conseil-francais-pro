@@ -16,13 +16,29 @@ const initializeFonts = () => {
   }).catch(console.error);
 };
 
+// Handle FCP loader removal when React renders
+const removeFCPLoader = () => {
+  const fcpLoader = document.getElementById('fcp-loader');
+  const root = document.getElementById('root');
+  if (fcpLoader && root && root.children.length > 0) {
+    fcpLoader.style.opacity = '0';
+    setTimeout(() => {
+      if (fcpLoader.parentNode) {
+        fcpLoader.parentNode.removeChild(fcpLoader);
+      }
+    }, 300);
+  }
+};
+
 // Defer font optimization until after initial render
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initializeFonts, 100);
+    setTimeout(removeFCPLoader, 200);
   });
 } else {
   setTimeout(initializeFonts, 100);
+  setTimeout(removeFCPLoader, 200);
 }
 
 // Unregister any existing Service Workers and clear caches in development to avoid stale bundles
@@ -40,8 +56,12 @@ if (import.meta.env.PROD) {
   registerServiceWorker();
 }
 
-createRoot(document.getElementById("root")!).render(
+const root = createRoot(document.getElementById("root")!);
+root.render(
   <StrictMode>
     <App />
   </StrictMode>
-)
+);
+
+// Remove FCP loader after React renders
+setTimeout(removeFCPLoader, 300);

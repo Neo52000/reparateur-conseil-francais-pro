@@ -172,6 +172,88 @@
       /* Hide non-critical content during initial load */
       .defer-load { opacity: 0; transition: opacity 0.3s ease; }
       .defer-load.loaded { opacity: 1; }
+      
+      /* Immediate FCP content styles */
+      .fcp-immediate {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        z-index: 9999;
+        transition: opacity 0.3s ease;
+      }
+      
+      .hero-immediate {
+        width: 100%;
+        height: 70vh;
+        background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80&fm=webp');
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+      }
+      
+      .hero-content {
+        position: relative;
+        z-index: 20;
+        text-align: center;
+        color: white;
+        max-width: 800px;
+        padding: 0 20px;
+      }
+      
+      .hero-title {
+        font-size: clamp(1.8rem, 5vw, 3.5rem);
+        font-weight: 700;
+        margin-bottom: 20px;
+        line-height: 1.1;
+      }
+      
+      .hero-subtitle {
+        font-size: clamp(1rem, 2.5vw, 1.25rem);
+        margin-bottom: 30px;
+        opacity: 0.9;
+      }
+      
+      .hero-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      
+      .btn-skeleton {
+        height: 56px;
+        border-radius: 12px;
+        min-width: 180px;
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+      }
+      
+      .btn-primary-skeleton { background: #2563eb; }
+      .btn-success-skeleton { background: #16a34a; }
+      .btn-outline-skeleton { 
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+      }
+      
+      @media (max-width: 767px) {
+        .hero-buttons { flex-direction: column; align-items: center; }
+        .btn-skeleton { min-width: 280px; }
+      }
     </style>
 
     <!-- Resource hints for critical assets -->
@@ -196,7 +278,37 @@
   </head>
 
   <body>
+    <!-- Immediate FCP content - renders before JS loads -->
+    <div id="fcp-loader" class="fcp-immediate">
+      <div class="hero-immediate">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <h1 class="hero-title">Trouvez un réparateur de smartphone près de chez vous en 2 clics</h1>
+          <p class="hero-subtitle">Les meilleurs réparateurs, les meilleurs délais et les meilleurs avis</p>
+          <div class="hero-buttons">
+            <div class="btn-skeleton btn-primary-skeleton"></div>
+            <div class="btn-skeleton btn-success-skeleton"></div>
+            <div class="btn-skeleton btn-outline-skeleton"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Hide FCP loader when React app loads -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          const fcpLoader = document.getElementById('fcp-loader');
+          const root = document.getElementById('root');
+          if (fcpLoader && root.children.length > 0) {
+            fcpLoader.style.opacity = '0';
+            setTimeout(() => fcpLoader.style.display = 'none', 300);
+          }
+        }, 100);
+      });
+    </script>
   </body>
 </html>
