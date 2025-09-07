@@ -54,7 +54,33 @@
       #root { min-height: 100vh; }
       .font-loading { visibility: hidden; }
       .fonts-loaded .font-loading { visibility: visible; }
+      
+      /* Critical hero styles for instant FCP */
+      .hero-critical {
+        height: 70vh;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      /* Critical navigation styles */
+      .nav-critical {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid #e2e8f0;
+        height: 80px;
+      }
     </style>
+
+    <!-- Resource hints for critical assets -->
+    <link rel="preconnect" href="https://images.unsplash.com">
+    <link rel="dns-prefetch" href="https://images.unsplash.com">
+    <link rel="preload" href="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=75" as="image" media="(min-width: 768px)">
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-NH6F3RVC9G"></script>
