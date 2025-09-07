@@ -250,7 +250,52 @@
       .defer-load { opacity: 0; transition: opacity 0.3s ease; }
       .defer-load.loaded { opacity: 1; }
       
-      /* Immediate FCP content styles */
+      /* Immediate FCP navigation */
+      .fcp-nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid #e2e8f0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+      }
+      
+      .fcp-nav-content {
+        max-width: 1200px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      
+      .fcp-logo {
+        font-family: 'Playfair Display', serif;
+        font-size: 24px;
+        font-weight: 600;
+        color: #2563eb;
+      }
+      
+      .fcp-nav-buttons {
+        display: flex;
+        gap: 12px;
+      }
+      
+      .nav-btn-skeleton {
+        width: 80px;
+        height: 36px;
+        background: #f0f0f0;
+        border-radius: 6px;
+        animation: loading 1.5s infinite;
+      }
+      
+      /* Immediate FCP content styles - enhanced for instant rendering */
       .fcp-immediate {
         position: fixed;
         top: 0;
@@ -261,14 +306,22 @@
         transition: opacity 0.3s ease;
       }
       
-      .hero-immediate {
+      /* Hero with gradient background for instant render */
+      .hero-immediate-gradient {
         width: 100%;
-        height: 70vh;
+        height: 100vh;
+        background: linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%);
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
+        padding-top: 80px; /* Account for nav */
+      }
+      
+      /* Image loads after initial paint */
+      .hero-immediate-gradient.image-loaded {
+        background: transparent;
       }
       
       .hero-image-immediate {
@@ -279,6 +332,7 @@
         height: 100%;
         object-fit: cover;
         object-position: center;
+        z-index: 1;
       }
       
       .hero-overlay {
@@ -288,6 +342,7 @@
         width: 100%;
         height: 100%;
         background: rgba(0, 0, 0, 0.5);
+        z-index: 2;
       }
       
       .hero-content {
@@ -304,12 +359,14 @@
         font-weight: 700;
         margin-bottom: 20px;
         line-height: 1.1;
+        font-family: 'Playfair Display', serif;
       }
       
       .hero-subtitle {
         font-size: clamp(1rem, 2.5vw, 1.25rem);
         margin-bottom: 30px;
         opacity: 0.9;
+        font-family: 'Inter', sans-serif;
       }
       
       .hero-buttons {
@@ -323,13 +380,29 @@
         height: 56px;
         border-radius: 12px;
         min-width: 180px;
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: loading 1.5s infinite;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 16px;
+        animation: none; /* Remove loading animation for buttons with text */
       }
       
-      .btn-primary-skeleton { background: #2563eb; }
-      .btn-success-skeleton { background: #16a34a; }
+      .btn-text {
+        color: white;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+      }
+      
+      .btn-primary-skeleton { 
+        background: #2563eb;
+      }
+      
+      .btn-success-skeleton { 
+        background: #16a34a;
+      }
+      
       .btn-outline-skeleton { 
         background: rgba(255, 255, 255, 0.1);
         border: 2px solid rgba(255, 255, 255, 0.3);
@@ -338,6 +411,7 @@
       @media (max-width: 767px) {
         .hero-buttons { flex-direction: column; align-items: center; }
         .btn-skeleton { min-width: 280px; }
+        .fcp-nav-buttons { display: none; } /* Hide nav buttons on mobile */
       }
     </style>
 
@@ -356,39 +430,69 @@
     <link rel="preload" href="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=75&fm=webp" as="image" media="(min-width: 768px) and (max-width: 1023px)">
     <link rel="preload" href="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=768&q=70&fm=webp" as="image" media="(max-width: 767px)">
 
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NH6F3RVC9G"></script>
+    <!-- Async Google Analytics - prevent render blocking -->
     <script>
+      // Load GA asynchronously after page loads
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-NH6F3RVC9G');
+      
+      // Load GA script after FCP
+      setTimeout(function() {
+        var script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-NH6F3RVC9G';
+        document.head.appendChild(script);
+      }, 1000);
     </script>
   </head>
 
   <body>
-    <!-- Immediate FCP content - renders before JS loads -->
+    <!-- Immediate FCP content - ZERO external dependencies for instant render -->
     <div id="fcp-loader" class="fcp-immediate">
-      <div class="hero-immediate">
-        <!-- LCP-optimized hero image with highest priority -->
-        <img 
-          src="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80&fm=webp"
-          alt="Réparateurs professionnels au travail"
-          class="hero-image-immediate"
-          fetchpriority="high"
-          loading="eager"
-          decoding="sync"
-        />
+      <!-- Navigation placeholder -->
+      <div class="fcp-nav">
+        <div class="fcp-nav-content">
+          <div class="fcp-logo">TopRéparateurs</div>
+          <div class="fcp-nav-buttons">
+            <div class="nav-btn-skeleton"></div>
+            <div class="nav-btn-skeleton"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Hero with gradient background - NO external image dependency -->
+      <div class="hero-immediate-gradient">
         <div class="hero-overlay"></div>
         <div class="hero-content">
           <h1 class="hero-title">Trouvez un réparateur de smartphone près de chez vous en 2 clics</h1>
           <p class="hero-subtitle">Les meilleurs réparateurs, les meilleurs délais et les meilleurs avis</p>
           <div class="hero-buttons">
-            <div class="btn-skeleton btn-primary-skeleton"></div>
-            <div class="btn-skeleton btn-success-skeleton"></div>
-            <div class="btn-skeleton btn-outline-skeleton"></div>
+            <div class="btn-skeleton btn-primary-skeleton">
+              <span class="btn-text">Recherche rapide</span>
+            </div>
+            <div class="btn-skeleton btn-success-skeleton">
+              <span class="btn-text">Recherche personnalisée</span>
+            </div>
+            <div class="btn-skeleton btn-outline-skeleton">
+              <span class="btn-text">Voir la carte</span>
+            </div>
           </div>
         </div>
+        
+        <!-- Load image after initial paint -->
+        <img 
+          id="fcp-hero-image"
+          style="display: none;"
+          src="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80&fm=webp"
+          alt="Réparateurs professionnels au travail"
+          class="hero-image-immediate"
+          fetchpriority="high"
+          loading="eager"
+          decoding="async"
+          onload="this.style.display='block'; this.parentElement.classList.add('image-loaded');"
+        />
       </div>
     </div>
     
