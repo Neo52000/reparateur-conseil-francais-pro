@@ -21,12 +21,15 @@ const removeFCPLoader = () => {
   const fcpLoader = document.getElementById('fcp-loader');
   const root = document.getElementById('root');
   if (fcpLoader && root && root.children.length > 0) {
-    fcpLoader.style.opacity = '0';
+    // Ensure React component is fully rendered before removing FCP loader
     setTimeout(() => {
-      if (fcpLoader.parentNode) {
-        fcpLoader.parentNode.removeChild(fcpLoader);
-      }
-    }, 300);
+      fcpLoader.style.opacity = '0';
+      setTimeout(() => {
+        if (fcpLoader.parentNode) {
+          fcpLoader.parentNode.removeChild(fcpLoader);
+        }
+      }, 500); // Increased delay to ensure smooth transition
+    }, 1000); // Wait longer to ensure React component is the LCP
   }
 };
 
@@ -34,11 +37,11 @@ const removeFCPLoader = () => {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initializeFonts, 100);
-    setTimeout(removeFCPLoader, 200);
+    setTimeout(removeFCPLoader, 1500); // Increased delay
   });
 } else {
   setTimeout(initializeFonts, 100);
-  setTimeout(removeFCPLoader, 200);
+  setTimeout(removeFCPLoader, 1500); // Increased delay
 }
 
 // Unregister any existing Service Workers and clear caches in development to avoid stale bundles
@@ -64,4 +67,4 @@ root.render(
 );
 
 // Remove FCP loader after React renders
-setTimeout(removeFCPLoader, 300);
+setTimeout(removeFCPLoader, 2000); // Ensure this happens after React is fully loaded

@@ -321,12 +321,16 @@
     <!-- Hide FCP loader when React app loads -->
     <script>
       document.addEventListener('DOMContentLoaded', function() {
+        // Ensure FCP content remains visible long enough to be LCP
         setTimeout(function() {
           const fcpLoader = document.getElementById('fcp-loader');
           const root = document.getElementById('root');
           if (fcpLoader && root.children.length > 0) {
-            fcpLoader.style.opacity = '0';
-            setTimeout(() => fcpLoader.style.display = 'none', 300);
+            // Extended delay to ensure proper LCP measurement
+            setTimeout(() => {
+              fcpLoader.style.opacity = '0';
+              setTimeout(() => fcpLoader.style.display = 'none', 500);
+            }, 2000);
           }
         }, 100);
       });

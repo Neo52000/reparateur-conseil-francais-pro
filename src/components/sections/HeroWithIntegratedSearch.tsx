@@ -203,7 +203,22 @@ const HeroWithIntegratedSearch: React.FC<HeroWithIntegratedSearchProps> = ({
   }
 
   // Affichage du Hero principal
-  return <div className="relative h-[70vh] hero-bg">
+  return <div className="relative h-[70vh] overflow-hidden">
+      {/* LCP-optimized hero image - consistent with immediate FCP */}
+      <img 
+        src="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80&fm=webp"
+        alt="Réparateurs professionnels au travail"
+        className="absolute inset-0 w-full h-full object-cover"
+        fetchPriority="high"
+        loading="eager"
+        decoding="sync"
+        sizes="100vw"
+        srcSet="
+          https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=768&q=70&fm=webp 768w,
+          https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=75&fm=webp 1200w,
+          https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80&fm=webp 1920w
+        "
+      />
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>
       
       <div className="relative z-20 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">
