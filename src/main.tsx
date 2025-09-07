@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { registerServiceWorker } from './swRegistration'
+import { FontPreloader } from './services/performance/FontPreloader'
 
 // Unregister any existing Service Workers and clear caches in development to avoid stale bundles
 if (import.meta.env.DEV && 'serviceWorker' in navigator) {
@@ -13,6 +14,13 @@ if (import.meta.env.DEV && 'serviceWorker' in navigator) {
     caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
   }
 }
+
+// Initialize font preloading for performance
+const fontPreloader = new FontPreloader();
+fontPreloader.initialize().then(() => {
+  // Mark fonts as loaded for CSS transitions
+  document.documentElement.classList.add('fonts-loaded');
+}).catch(console.error);
 
 // Register the Service Worker only in production
 if (import.meta.env.PROD) {
