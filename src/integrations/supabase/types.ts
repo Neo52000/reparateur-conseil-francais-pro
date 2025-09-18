@@ -2574,6 +2574,53 @@ export type Database = {
         }
         Relationships: []
       }
+      chorus_pro_submissions: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          invoice_id: string
+          response_data: Json | null
+          retry_count: number | null
+          status: string
+          submission_id: string | null
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          invoice_id: string
+          response_data?: Json | null
+          retry_count?: number | null
+          status?: string
+          submission_id?: string | null
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          invoice_id?: string
+          response_data?: Json | null
+          retry_count?: number | null
+          status?: string
+          submission_id?: string | null
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chorus_pro_submissions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "electronic_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_favorites: {
         Row: {
           client_id: string
@@ -4213,6 +4260,155 @@ export type Database = {
           id?: string
           is_enabled?: boolean
           updated_at?: string
+        }
+        Relationships: []
+      }
+      electronic_credit_notes: {
+        Row: {
+          amount_ht: number
+          amount_ttc: number
+          created_at: string
+          credit_note_number: string
+          id: string
+          original_invoice_id: string
+          reason: string
+          repairer_id: string
+          status: string
+          tva_amount: number
+          updated_at: string
+        }
+        Insert: {
+          amount_ht: number
+          amount_ttc: number
+          created_at?: string
+          credit_note_number: string
+          id?: string
+          original_invoice_id: string
+          reason: string
+          repairer_id: string
+          status?: string
+          tva_amount: number
+          updated_at?: string
+        }
+        Update: {
+          amount_ht?: number
+          amount_ttc?: number
+          created_at?: string
+          credit_note_number?: string
+          id?: string
+          original_invoice_id?: string
+          reason?: string
+          repairer_id?: string
+          status?: string
+          tva_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "electronic_credit_notes_original_invoice_id_fkey"
+            columns: ["original_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "electronic_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      electronic_invoices: {
+        Row: {
+          amount_ht: number
+          amount_ttc: number
+          archived_at: string | null
+          chorus_pro_id: string | null
+          chorus_pro_status: string | null
+          client_id: string
+          created_at: string
+          due_date: string | null
+          electronic_signature: string | null
+          format_type: string
+          id: string
+          invoice_date: string
+          invoice_number: string
+          invoice_type: string
+          legal_archive_hash: string | null
+          naf_code: string | null
+          pdf_path: string | null
+          quote_id: string | null
+          repairer_id: string
+          sent_at: string | null
+          siret_client: string | null
+          siret_repairer: string
+          status: string
+          tva_amount: number
+          tva_number_client: string | null
+          tva_number_repairer: string | null
+          tva_rate: number
+          updated_at: string
+          validated_at: string | null
+          xml_content: string | null
+        }
+        Insert: {
+          amount_ht: number
+          amount_ttc: number
+          archived_at?: string | null
+          chorus_pro_id?: string | null
+          chorus_pro_status?: string | null
+          client_id: string
+          created_at?: string
+          due_date?: string | null
+          electronic_signature?: string | null
+          format_type?: string
+          id?: string
+          invoice_date?: string
+          invoice_number: string
+          invoice_type?: string
+          legal_archive_hash?: string | null
+          naf_code?: string | null
+          pdf_path?: string | null
+          quote_id?: string | null
+          repairer_id: string
+          sent_at?: string | null
+          siret_client?: string | null
+          siret_repairer: string
+          status?: string
+          tva_amount: number
+          tva_number_client?: string | null
+          tva_number_repairer?: string | null
+          tva_rate?: number
+          updated_at?: string
+          validated_at?: string | null
+          xml_content?: string | null
+        }
+        Update: {
+          amount_ht?: number
+          amount_ttc?: number
+          archived_at?: string | null
+          chorus_pro_id?: string | null
+          chorus_pro_status?: string | null
+          client_id?: string
+          created_at?: string
+          due_date?: string | null
+          electronic_signature?: string | null
+          format_type?: string
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          invoice_type?: string
+          legal_archive_hash?: string | null
+          naf_code?: string | null
+          pdf_path?: string | null
+          quote_id?: string | null
+          repairer_id?: string
+          sent_at?: string | null
+          siret_client?: string | null
+          siret_repairer?: string
+          status?: string
+          tva_amount?: number
+          tva_number_client?: string | null
+          tva_number_repairer?: string | null
+          tva_rate?: number
+          updated_at?: string
+          validated_at?: string | null
+          xml_content?: string | null
         }
         Relationships: []
       }
@@ -9798,6 +9994,63 @@ export type Database = {
           },
         ]
       }
+      repairer_legal_info: {
+        Row: {
+          capital_social: number | null
+          created_at: string
+          id: string
+          invoice_prefix: string | null
+          late_penalty_rate: number | null
+          legal_form: string | null
+          legal_mentions: string | null
+          naf_code: string | null
+          next_invoice_number: number | null
+          payment_terms_days: number | null
+          rcs_city: string | null
+          rcs_number: string | null
+          repairer_id: string
+          siret: string
+          tva_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          capital_social?: number | null
+          created_at?: string
+          id?: string
+          invoice_prefix?: string | null
+          late_penalty_rate?: number | null
+          legal_form?: string | null
+          legal_mentions?: string | null
+          naf_code?: string | null
+          next_invoice_number?: number | null
+          payment_terms_days?: number | null
+          rcs_city?: string | null
+          rcs_number?: string | null
+          repairer_id: string
+          siret: string
+          tva_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          capital_social?: number | null
+          created_at?: string
+          id?: string
+          invoice_prefix?: string | null
+          late_penalty_rate?: number | null
+          legal_form?: string | null
+          legal_mentions?: string | null
+          naf_code?: string | null
+          next_invoice_number?: number | null
+          payment_terms_days?: number | null
+          rcs_city?: string | null
+          rcs_number?: string | null
+          repairer_id?: string
+          siret?: string
+          tva_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       repairer_profiles: {
         Row: {
           address: string
@@ -12568,6 +12821,10 @@ export type Database = {
         Returns: string
       }
       generate_certificate_number: {
+        Args: { repairer_uuid: string }
+        Returns: string
+      }
+      generate_invoice_number: {
         Args: { repairer_uuid: string }
         Returns: string
       }
