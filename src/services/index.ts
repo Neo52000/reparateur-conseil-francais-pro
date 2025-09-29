@@ -50,3 +50,7 @@ export { AdminAuditService } from './adminAuditService';
 // Services de documentation
 export { DocumentationPDFService } from './documentationPDFService';
 export { DocumentationManagerService } from './documentationManagerService';
+
+// Services NF203 - Conformité comptable
+export { NF203ChainService } from './nf203ChainService';
+export type { ChainIntegrityReport, ChainEntry, AuditEntry } from './nf203ChainService';
