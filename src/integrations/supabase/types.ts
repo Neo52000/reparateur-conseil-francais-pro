@@ -4412,6 +4412,50 @@ export type Database = {
         }
         Relationships: []
       }
+      electronic_invoices_chain: {
+        Row: {
+          created_at: string
+          current_hash: string
+          id: string
+          invoice_data_snapshot: Json
+          invoice_id: string
+          previous_hash: string | null
+          repairer_id: string
+          sequence_number: number
+          signature: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_hash: string
+          id?: string
+          invoice_data_snapshot: Json
+          invoice_id: string
+          previous_hash?: string | null
+          repairer_id: string
+          sequence_number: number
+          signature?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_hash?: string
+          id?: string
+          invoice_data_snapshot?: Json
+          invoice_id?: string
+          previous_hash?: string | null
+          repairer_id?: string
+          sequence_number?: number
+          signature?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "electronic_invoices_chain_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: true
+            referencedRelation: "electronic_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       electronic_signatures: {
         Row: {
           client_address: string | null
@@ -6136,6 +6180,105 @@ export type Database = {
           status?: string
           subscribed_at?: string
           unsubscribed_at?: string | null
+        }
+        Relationships: []
+      }
+      nf203_audit_trail: {
+        Row: {
+          action: string
+          after_state: Json | null
+          before_state: Json | null
+          changes_summary: string | null
+          compliance_metadata: Json | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          ip_address: unknown | null
+          is_locked: boolean | null
+          session_id: string | null
+          timestamp: string
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+          user_role: string | null
+        }
+        Insert: {
+          action: string
+          after_state?: Json | null
+          before_state?: Json | null
+          changes_summary?: string | null
+          compliance_metadata?: Json | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          ip_address?: unknown | null
+          is_locked?: boolean | null
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          action?: string
+          after_state?: Json | null
+          before_state?: Json | null
+          changes_summary?: string | null
+          compliance_metadata?: Json | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          ip_address?: unknown | null
+          is_locked?: boolean | null
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
+      nf203_timestamps: {
+        Row: {
+          created_at: string
+          document_hash: string
+          document_id: string
+          document_type: string
+          hash_algorithm: string
+          id: string
+          is_qualified: boolean | null
+          timestamp_authority: string | null
+          timestamp_date: string
+          timestamp_token: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_hash: string
+          document_id: string
+          document_type: string
+          hash_algorithm?: string
+          id?: string
+          is_qualified?: boolean | null
+          timestamp_authority?: string | null
+          timestamp_date?: string
+          timestamp_token?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_hash?: string
+          document_id?: string
+          document_type?: string
+          hash_algorithm?: string
+          id?: string
+          is_qualified?: boolean | null
+          timestamp_authority?: string | null
+          timestamp_date?: string
+          timestamp_token?: string | null
         }
         Relationships: []
       }
@@ -12785,6 +12928,10 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_invoice_hash: {
+        Args: { invoice_data: Json }
+        Returns: string
+      }
       can_create_subdomain: {
         Args: { user_id: string }
         Returns: boolean
@@ -12975,6 +13122,16 @@ export type Database = {
       validate_and_use_promo_code: {
         Args: { promo_code_text: string }
         Returns: Json
+      }
+      verify_chain_integrity: {
+        Args: { repairer_uuid: string }
+        Returns: {
+          broken_links: number
+          error_details: string
+          first_error_sequence: number
+          is_valid: boolean
+          total_invoices: number
+        }[]
       }
     }
     Enums: {
