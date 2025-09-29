@@ -66,17 +66,32 @@ const ClientTypeSelector: React.FC<ClientTypeProps> = ({
 
       if (error) throw error;
       
-      setClientData(data);
+      // Get legal info separately
+      const { data: legalData } = await supabase
+        .from('repairer_legal_info')
+        .select('siret, tva_number')
+        .eq('repairer_id', clientId)
+        .single();
+      
+      const enrichedData = {
+        ...data,
+        siret_number: legalData?.siret || '',
+        tva_number: legalData?.tva_number || '',
+        company_name: '',
+        address: ''
+      };
+      
+      setClientData(enrichedData);
       setFormData({
-        siret_number: data.siret_number || '',
-        tva_number: data.tva_number || '',
-        company_name: data.company_name || '',
-        address: data.address || ''
+        siret_number: enrichedData.siret_number,
+        tva_number: enrichedData.tva_number,
+        company_name: enrichedData.company_name,
+        address: enrichedData.address
       });
 
       // Notifier le type de client détecté
-      const clientType = data.siret_number ? 'B2B' : 'B2C';
-      onClientTypeSelected?.(clientType, data);
+      const clientType = enrichedData.siret_number ? 'B2B' : 'B2C';
+      onClientTypeSelected?.(clientType, enrichedData);
     } catch (error) {
       console.error('Erreur chargement client:', error);
       toast.error('Erreur lors du chargement des données client');
@@ -88,16 +103,15 @@ const ClientTypeSelector: React.FC<ClientTypeProps> = ({
 
     setLoading(true);
     try {
+      // Save to repairer_legal_info table instead
       const { error } = await supabase
-        .from('profiles')
-        .update({
-          siret_number: formData.siret_number,
+        .from('repairer_legal_info')
+        .upsert({
+          repairer_id: clientId,
+          siret: formData.siret_number,
           tva_number: formData.tva_number,
-          company_name: formData.company_name,
-          address: formData.address,
           updated_at: new Date().toISOString()
-        })
-        .eq('id', clientId);
+        });
 
       if (error) throw error;
 

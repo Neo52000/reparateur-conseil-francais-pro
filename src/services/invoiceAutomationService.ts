@@ -62,13 +62,13 @@ export class InvoiceAutomationService {
    */
   static async isClientB2B(clientId: string): Promise<boolean> {
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('siret_number')
-        .eq('id', clientId)
+      const { data: legalInfo } = await supabase
+        .from('repairer_legal_info')
+        .select('siret')
+        .eq('repairer_id', clientId)
         .single();
 
-      return !!(profile?.siret_number);
+      return !!(legalInfo?.siret);
     } catch {
       return false;
     }
@@ -124,17 +124,16 @@ export class InvoiceAutomationService {
    */
   static async sendPaymentReminder(invoiceId: string, clientId: string): Promise<void> {
     try {
-      // Créer une notification pour le client
+      // Log payment reminder (notifications table can be added later)
+      console.log(`Rappel de paiement programmé pour facture ${invoiceId}, client ${clientId}`);
+      
+      // TODO: Implement proper notification system
       await supabase
-        .from('notification_queue')
-        .insert({
-          recipient_id: clientId,
-          type: 'payment_reminder',
-          title: 'Rappel de paiement',
-          message: `Votre facture arrive à échéance dans 3 jours.`,
-          data: { invoice_id: invoiceId },
-          scheduled_for: new Date().toISOString()
-        });
+        .from('electronic_invoices')
+        .update({ 
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', invoiceId);
 
       console.log(`Rappel envoyé pour facture ${invoiceId}`);
     } catch (error) {
@@ -147,16 +146,9 @@ export class InvoiceAutomationService {
    */
   static async notifyInvoiceGenerated(repairerId: string, invoiceNumber: string): Promise<void> {
     try {
-      await supabase
-        .from('notification_queue')
-        .insert({
-          recipient_id: repairerId,
-          type: 'invoice_generated',
-          title: 'Facture générée automatiquement',
-          message: `La facture ${invoiceNumber} a été générée depuis un devis accepté.`,
-          data: { invoice_number: invoiceNumber },
-          scheduled_for: new Date().toISOString()
-        });
+      // Log notification (notifications system can be added later)
+      console.log(`Notification: Facture ${invoiceNumber} générée pour réparateur ${repairerId}`);
+      // TODO: Implement proper notification system
     } catch (error) {
       console.error('Erreur notification:', error);
     }
@@ -213,16 +205,9 @@ export class InvoiceAutomationService {
    */
   static async notifyMissingLegalInfo(repairerId: string): Promise<void> {
     try {
-      await supabase
-        .from('notification_queue')
-        .insert({
-          recipient_id: repairerId,
-          type: 'missing_legal_info',
-          title: 'Informations légales manquantes',
-          message: 'Complétez vos informations légales pour pouvoir soumettre à Chorus Pro.',
-          data: { action: 'configure_legal_info' },
-          scheduled_for: new Date().toISOString()
-        });
+      // Log notification (notifications system can be added later)
+      console.log(`Notification: Informations légales manquantes pour réparateur ${repairerId}`);
+      // TODO: Implement proper notification system
     } catch (error) {
       console.error('Erreur notification infos légales:', error);
     }

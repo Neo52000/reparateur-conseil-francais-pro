@@ -74,8 +74,14 @@ const InvoiceWorkflowManager: React.FC<InvoiceWorkflowManagerProps> = ({
       if (error) throw error;
       setQuote(data);
       
-      // Déterminer le type de client
-      const type = data.profiles?.siret_number ? 'B2B' : 'B2C';
+      // Déterminer le type de client via legal info
+      const { data: legalInfo } = await supabase
+        .from('repairer_legal_info')
+        .select('siret')
+        .eq('repairer_id', data.client_id)
+        .single();
+      
+      const type = legalInfo?.siret ? 'B2B' : 'B2C';
       setClientType(type);
     } catch (error) {
       console.error('Erreur chargement devis:', error);
@@ -363,7 +369,5 @@ const InvoiceWorkflowManager: React.FC<InvoiceWorkflowManagerProps> = ({
     </div>
   );
 };
-
-export default InvoiceWorkflowManager;
 
 export default InvoiceWorkflowManager;
