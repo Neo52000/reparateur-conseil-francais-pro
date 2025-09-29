@@ -79,6 +79,11 @@ export { useMonitoringData } from './useMonitoringData';
 // Hooks de profil réparateur
 export { useRepairerProfileSave } from './useRepairerProfileSave';
 export { useRepairerSubscriptions } from './useRepairerSubscriptions';
+export { useRepairerLegalInfo } from './useRepairerLegalInfo';
+
+// Hooks NF203 - Conformité comptable
+export { useNF203Chain } from './useNF203Chain';
+export { useNF203Archives } from './useNF203Archives';
 
 // Hooks de référencement
 export { useReferrals } from './useReferrals';

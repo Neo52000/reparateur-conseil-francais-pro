@@ -43,6 +43,9 @@ import ModulesStore from '@/components/modules/ModulesStore';
 import AIAssistantDashboard from '@/components/ai-assistant/AIAssistantDashboard';
 import GeolocationSeoPhase from '@/components/phase5/GeolocationSeoPhase';
 import QuoteRequestsTabSection from './QuoteRequestsTabSection';
+import { NF203Dashboard } from '@/components/nf203';
+import { useRepairerLegalInfo } from '@/hooks/useRepairerLegalInfo';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Order {
   id: string;
@@ -98,6 +101,9 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
   avgRepairTime,
   dashboardConfig
 }) => {
+  const { user } = useAuth();
+  const { data: legalInfo } = useRepairerLegalInfo(user?.id);
+  
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
       <TabsList className="grid w-full grid-cols-16">
@@ -259,6 +265,12 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 
       <TabsContent value="compliance">
         <div className="space-y-6">
+          {user?.id && legalInfo?.siren && (
+            <NF203Dashboard 
+              repairerId={user.id} 
+              siren={legalInfo.siren} 
+            />
+          )}
           <ComplianceModule />
           <AuditLogsViewer />
         </div>
