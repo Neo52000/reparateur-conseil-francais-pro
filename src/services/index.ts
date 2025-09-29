@@ -56,3 +56,5 @@ export { NF203ChainService } from './nf203ChainService';
 export type { ChainIntegrityReport, ChainEntry, AuditEntry } from './nf203ChainService';
 export { NF203ArchiveService, NF203PeriodService } from './nf203ArchiveService';
 export type { ArchiveRecord, PeriodClosure } from './nf203ArchiveService';
+export { FECExportService } from './fecExportService';
+export type { FECLine, FECExportParams, FECExportResult } from './fecExportService';
