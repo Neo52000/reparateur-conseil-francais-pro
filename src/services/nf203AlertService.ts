@@ -26,7 +26,7 @@ export class NF203AlertService {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as NF203Alert[];
   }
 
   static async getAlertHistory(
@@ -49,7 +49,7 @@ export class NF203AlertService {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data || [];
+    return (data || []) as NF203Alert[];
   }
 
   static async createAlert(params: {
@@ -70,7 +70,7 @@ export class NF203AlertService {
       .single();
 
     if (error) throw error;
-    return data;
+    return data as NF203Alert;
   }
 
   static async acknowledgeAlert(alertId: string, userId: string): Promise<void> {
@@ -108,18 +108,21 @@ export class NF203AlertService {
 
     if (error) throw error;
 
+    // La fonction RPC retourne un array, on prend le premier élément
+    const integrityResult: any = Array.isArray(result) && result.length > 0 ? result[0] : result;
+
     // Si la chaîne est cassée, créer une alerte
-    if (result && !result.is_valid) {
+    if (integrityResult && !integrityResult.is_valid) {
       await this.createAlert({
         repairer_id: repairerId,
         alert_type: 'chain_broken',
         severity: 'critical',
         title: '⚠️ Rupture de chaîne cryptographique détectée',
-        description: result.error_details || 'La chaîne de facturation électronique présente une anomalie.',
+        description: integrityResult.error_details || 'La chaîne de facturation électronique présente une anomalie.',
         metadata: {
-          total_invoices: result.total_invoices,
-          broken_links: result.broken_links,
-          first_error_sequence: result.first_error_sequence
+          total_invoices: integrityResult.total_invoices,
+          broken_links: integrityResult.broken_links,
+          first_error_sequence: integrityResult.first_error_sequence
         }
       });
     }

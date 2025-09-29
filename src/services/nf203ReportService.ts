@@ -144,7 +144,7 @@ export class NF203ReportService {
       .single();
 
     if (error) throw error;
-    return data;
+    return data as ComplianceReport;
   }
 
   static async getReports(repairerId: string): Promise<ComplianceReport[]> {
@@ -155,18 +155,18 @@ export class NF203ReportService {
       .order('generated_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as ComplianceReport[];
   }
 
   static async getReport(reportId: string): Promise<ComplianceReport | null> {
-    const { data, error } = await supabase
+    const { data, error} = await supabase
       .from('nf203_compliance_reports')
       .select('*')
       .eq('id', reportId)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
-    return data;
+    return data as ComplianceReport | null;
   }
 
   static async exportReportToJSON(reportId: string): Promise<string> {

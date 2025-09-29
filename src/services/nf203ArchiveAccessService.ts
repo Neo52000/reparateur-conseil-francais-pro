@@ -48,7 +48,7 @@ export class NF203ArchiveAccessService {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as ArchiveAccessLog[];
   }
 
   static async getAccessReport(
@@ -99,7 +99,7 @@ export class NF203ArchiveAccessService {
       total_accesses: logs?.length || 0,
       by_action: byAction,
       by_user: byUser,
-      recent_logs: logs?.slice(0, 50) || []
+      recent_logs: (logs?.slice(0, 50) || []) as ArchiveAccessLog[]
     };
   }
 
