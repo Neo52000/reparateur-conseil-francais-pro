@@ -26,6 +26,9 @@ import BlogArticlePage from "./pages/BlogArticlePage";
 import BlogRepairerPage from "./pages/BlogRepairerPage";
 import { SuppliersDirectoryPage } from "./pages/SuppliersDirectoryPage";
 import QuotesAndAppointments from "./pages/QuotesAndAppointments";
+import LegalNotice from "./pages/LegalNotice";
+import TermsOfService from "./pages/TermsOfService";
+import TermsOfSale from "./pages/TermsOfSale";
 import NotFound from "./pages/NotFound";
 import { useVisitorTracker } from "./hooks/useVisitorTracker";
 import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
@@ -102,6 +105,10 @@ const AppWithTracking = () => {
         {/* Suppliers & quotes */}
         <Route path="/suppliers-directory" element={<SuppliersDirectoryPage />} />
         <Route path="/quotes-appointments" element={<QuotesAndAppointments />} />
+        {/* Legal pages */}
+        <Route path="/legal-notice" element={<LegalNotice />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/terms-of-sale" element={<TermsOfSale />} />
         {/* 404 fallback */}
         <Route path="*" element={<NotFound />} />
       </Routes>

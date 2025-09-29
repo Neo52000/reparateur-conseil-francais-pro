@@ -267,6 +267,23 @@ const Footer = () => {
               <p className="text-gray-400 text-xs mt-1">
                 Plateforme française de mise en relation - Siret : 12345678901234
               </p>
+              <div className="flex gap-3 justify-center md:justify-end mt-2 text-xs">
+                <Link to="/legal-notice" className="text-gray-400 hover:text-white transition-colors">
+                  Mentions légales
+                </Link>
+                <span className="text-gray-600">•</span>
+                <Link to="/terms" className="text-gray-400 hover:text-white transition-colors">
+                  CGU
+                </Link>
+                <span className="text-gray-600">•</span>
+                <Link to="/terms-of-sale" className="text-gray-400 hover:text-white transition-colors">
+                  CGV
+                </Link>
+                <span className="text-gray-600">•</span>
+                <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">
+                  Confidentialité
+                </Link>
+              </div>
             </div>
           </div>
         </div>
