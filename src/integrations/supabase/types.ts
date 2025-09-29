@@ -346,6 +346,13 @@ export type Database = {
             foreignKeyName: "admin_quote_assignments_target_repairer_id_fkey"
             columns: ["target_repairer_id"]
             isOneToOne: false
+            referencedRelation: "nf203_admin_overview"
+            referencedColumns: ["repairer_id"]
+          },
+          {
+            foreignKeyName: "admin_quote_assignments_target_repairer_id_fkey"
+            columns: ["target_repairer_id"]
+            isOneToOne: false
             referencedRelation: "repairer_profiles"
             referencedColumns: ["id"]
           },
@@ -6183,6 +6190,98 @@ export type Database = {
         }
         Relationships: []
       }
+      nf203_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          created_at: string | null
+          description: string
+          id: string
+          metadata: Json | null
+          repairer_id: string
+          resolved_at: string | null
+          severity: string
+          status: string | null
+          title: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          created_at?: string | null
+          description: string
+          id?: string
+          metadata?: Json | null
+          repairer_id: string
+          resolved_at?: string | null
+          severity: string
+          status?: string | null
+          title: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          metadata?: Json | null
+          repairer_id?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      nf203_archive_access_logs: {
+        Row: {
+          access_reason: string | null
+          action: string
+          archive_id: string
+          created_at: string | null
+          duration_ms: number | null
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          access_reason?: string | null
+          action: string
+          archive_id: string
+          created_at?: string | null
+          duration_ms?: number | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          access_reason?: string | null
+          action?: string
+          archive_id?: string
+          created_at?: string | null
+          duration_ms?: number | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nf203_archive_access_logs_archive_id_fkey"
+            columns: ["archive_id"]
+            isOneToOne: false
+            referencedRelation: "nf203_archives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nf203_archives: {
         Row: {
           archive_date: string
@@ -6303,6 +6402,69 @@ export type Database = {
         }
         Relationships: []
       }
+      nf203_compliance_reports: {
+        Row: {
+          alerts_count: number | null
+          archives_created: number | null
+          chain_integrity_checks: Json | null
+          chained_invoices: number | null
+          compliance_rate: number | null
+          created_at: string | null
+          fec_exports: number | null
+          generated_at: string | null
+          id: string
+          pdf_path: string | null
+          period_end: string
+          period_start: string
+          periods_closed: number | null
+          repairer_id: string
+          report_data: Json
+          report_type: string
+          sent_at: string | null
+          total_invoices: number | null
+        }
+        Insert: {
+          alerts_count?: number | null
+          archives_created?: number | null
+          chain_integrity_checks?: Json | null
+          chained_invoices?: number | null
+          compliance_rate?: number | null
+          created_at?: string | null
+          fec_exports?: number | null
+          generated_at?: string | null
+          id?: string
+          pdf_path?: string | null
+          period_end: string
+          period_start: string
+          periods_closed?: number | null
+          repairer_id: string
+          report_data?: Json
+          report_type: string
+          sent_at?: string | null
+          total_invoices?: number | null
+        }
+        Update: {
+          alerts_count?: number | null
+          archives_created?: number | null
+          chain_integrity_checks?: Json | null
+          chained_invoices?: number | null
+          compliance_rate?: number | null
+          created_at?: string | null
+          fec_exports?: number | null
+          generated_at?: string | null
+          id?: string
+          pdf_path?: string | null
+          period_end?: string
+          period_start?: string
+          periods_closed?: number | null
+          repairer_id?: string
+          report_data?: Json
+          report_type?: string
+          sent_at?: string | null
+          total_invoices?: number | null
+        }
+        Relationships: []
+      }
       nf203_period_closures: {
         Row: {
           closed_by: string | null
@@ -6360,6 +6522,51 @@ export type Database = {
           total_ht?: number
           total_ttc?: number
           total_tva?: number
+        }
+        Relationships: []
+      }
+      nf203_scheduled_exports: {
+        Row: {
+          auto_download: boolean | null
+          created_at: string | null
+          email_notification: boolean | null
+          export_type: string
+          frequency: string
+          id: string
+          is_active: boolean | null
+          last_execution: string | null
+          next_execution: string | null
+          repairer_id: string
+          storage_path: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          auto_download?: boolean | null
+          created_at?: string | null
+          email_notification?: boolean | null
+          export_type: string
+          frequency: string
+          id?: string
+          is_active?: boolean | null
+          last_execution?: string | null
+          next_execution?: string | null
+          repairer_id: string
+          storage_path?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          auto_download?: boolean | null
+          created_at?: string | null
+          email_notification?: boolean | null
+          export_type?: string
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          last_execution?: string | null
+          next_execution?: string | null
+          repairer_id?: string
+          storage_path?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -12948,6 +13155,24 @@ export type Database = {
       }
     }
     Views: {
+      nf203_admin_overview: {
+        Row: {
+          active_alerts: number | null
+          archives_count: number | null
+          chained_invoices: number | null
+          closures_count: number | null
+          compliance_rate: number | null
+          critical_alerts: number | null
+          last_archive_date: string | null
+          last_closure: string | null
+          last_invoice_date: string | null
+          repairer_city: string | null
+          repairer_id: string | null
+          repairer_name: string | null
+          total_invoices: number | null
+        }
+        Relationships: []
+      }
       repairer_profiles_safe: {
         Row: {
           business_name: string | null
