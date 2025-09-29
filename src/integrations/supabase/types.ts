@@ -6183,6 +6183,66 @@ export type Database = {
         }
         Relationships: []
       }
+      nf203_archives: {
+        Row: {
+          archive_date: string
+          archive_format: string
+          archive_status: string
+          created_at: string | null
+          deletion_date: string | null
+          document_id: string
+          document_type: string
+          file_hash: string
+          file_path: string | null
+          file_size: number
+          file_url: string | null
+          id: string
+          legal_hold: boolean | null
+          metadata: Json | null
+          repairer_id: string
+          retention_period: number
+          updated_at: string | null
+        }
+        Insert: {
+          archive_date?: string
+          archive_format: string
+          archive_status?: string
+          created_at?: string | null
+          deletion_date?: string | null
+          document_id: string
+          document_type: string
+          file_hash: string
+          file_path?: string | null
+          file_size: number
+          file_url?: string | null
+          id?: string
+          legal_hold?: boolean | null
+          metadata?: Json | null
+          repairer_id: string
+          retention_period?: number
+          updated_at?: string | null
+        }
+        Update: {
+          archive_date?: string
+          archive_format?: string
+          archive_status?: string
+          created_at?: string | null
+          deletion_date?: string | null
+          document_id?: string
+          document_type?: string
+          file_hash?: string
+          file_path?: string | null
+          file_size?: number
+          file_url?: string | null
+          id?: string
+          legal_hold?: boolean | null
+          metadata?: Json | null
+          repairer_id?: string
+          retention_period?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       nf203_audit_trail: {
         Row: {
           action: string
@@ -6240,6 +6300,66 @@ export type Database = {
           user_email?: string | null
           user_id?: string | null
           user_role?: string | null
+        }
+        Relationships: []
+      }
+      nf203_period_closures: {
+        Row: {
+          closed_by: string | null
+          closure_date: string
+          closure_hash: string
+          compliance_report: Json | null
+          created_at: string | null
+          fec_export_path: string | null
+          fec_generated_at: string | null
+          id: string
+          invoice_count: number
+          is_locked: boolean
+          period_end: string
+          period_start: string
+          period_type: string
+          repairer_id: string
+          total_ht: number
+          total_ttc: number
+          total_tva: number
+        }
+        Insert: {
+          closed_by?: string | null
+          closure_date?: string
+          closure_hash: string
+          compliance_report?: Json | null
+          created_at?: string | null
+          fec_export_path?: string | null
+          fec_generated_at?: string | null
+          id?: string
+          invoice_count?: number
+          is_locked?: boolean
+          period_end: string
+          period_start: string
+          period_type: string
+          repairer_id: string
+          total_ht?: number
+          total_ttc?: number
+          total_tva?: number
+        }
+        Update: {
+          closed_by?: string | null
+          closure_date?: string
+          closure_hash?: string
+          compliance_report?: Json | null
+          created_at?: string | null
+          fec_export_path?: string | null
+          fec_generated_at?: string | null
+          id?: string
+          invoice_count?: number
+          is_locked?: boolean
+          period_end?: string
+          period_start?: string
+          period_type?: string
+          repairer_id?: string
+          total_ht?: number
+          total_ttc?: number
+          total_tva?: number
         }
         Relationships: []
       }
@@ -12932,6 +13052,14 @@ export type Database = {
         Args: { invoice_data: Json }
         Returns: string
       }
+      calculate_period_hash: {
+        Args: { end_date: string; repairer_uuid: string; start_date: string }
+        Returns: string
+      }
+      can_close_period: {
+        Args: { end_date: string; repairer_uuid: string; start_date: string }
+        Returns: Json
+      }
       can_create_subdomain: {
         Args: { user_id: string }
         Returns: boolean
@@ -12939,6 +13067,15 @@ export type Database = {
       cleanup_old_rate_limits: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      close_accounting_period: {
+        Args: {
+          end_date: string
+          period_type_param: string
+          repairer_uuid: string
+          start_date: string
+        }
+        Returns: string
       }
       create_admin_user: {
         Args: { admin_user_id: string; user_email: string }
