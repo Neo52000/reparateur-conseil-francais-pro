@@ -13,11 +13,19 @@ serve(async (req) => {
 
   try {
     const { invoice_id } = await req.json();
+    
+    if (!invoice_id) {
+      throw new Error('ID de facture requis');
+    }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Configuration Supabase manquante');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     console.log('Submitting to Chorus Pro:', invoice_id);
 
@@ -71,13 +79,18 @@ serve(async (req) => {
     }
 
     // Mettre à jour le statut de la facture
-    await supabase
+    const { error: invoiceUpdateError } = await supabase
       .from('electronic_invoices')
       .update({
         chorus_pro_status: chorusProResult.success ? 'submitted' : 'rejected',
-        chorus_pro_id: chorusProResult.submission_id
+        chorus_pro_id: chorusProResult.submission_id,
+        updated_at: new Date().toISOString()
       })
       .eq('id', invoice_id);
+      
+    if (invoiceUpdateError) {
+      console.warn('Erreur mise à jour facture:', invoiceUpdateError);
+    }
 
     return new Response(
       JSON.stringify({ 

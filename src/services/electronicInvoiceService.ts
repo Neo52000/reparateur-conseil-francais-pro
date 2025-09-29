@@ -194,13 +194,17 @@ export class ElectronicInvoiceService {
    */
   static async getLegalInfo(repairerId: string): Promise<LegalInfo | null> {
     try {
+      if (!repairerId) {
+        throw new Error('ID du réparateur requis');
+      }
+
       const { data, error } = await supabase
         .from('repairer_legal_info')
         .select('*')
         .eq('repairer_id', repairerId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
       return data;
     } catch (error) {
       console.error('Erreur récupération infos légales:', error);
@@ -213,12 +217,16 @@ export class ElectronicInvoiceService {
    */
   static async submitToChorusPro(invoiceId: string): Promise<boolean> {
     try {
+      if (!invoiceId) {
+        throw new Error('ID de facture requis');
+      }
+
       const { data, error } = await supabase.functions.invoke('submit-chorus-pro', {
         body: { invoice_id: invoiceId }
       });
 
       if (error) throw error;
-      return data.success;
+      return data?.success || false;
     } catch (error) {
       console.error('Erreur soumission Chorus Pro:', error);
       return false;
@@ -230,11 +238,20 @@ export class ElectronicInvoiceService {
    */
   static async generateFacturX(invoiceId: string): Promise<{ pdf_url: string; xml_content: string }> {
     try {
+      if (!invoiceId) {
+        throw new Error('ID de facture requis');
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-factur-x', {
         body: { invoice_id: invoiceId }
       });
 
       if (error) throw error;
+      
+      if (!data || !data.pdf_url || !data.xml_content) {
+        throw new Error('Données de réponse invalides');
+      }
+      
       return data;
     } catch (error) {
       console.error('Erreur génération Factur-X:', error);

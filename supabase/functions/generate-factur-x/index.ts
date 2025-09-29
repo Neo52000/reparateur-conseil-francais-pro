@@ -13,11 +13,19 @@ serve(async (req) => {
 
   try {
     const { invoice_id } = await req.json();
+    
+    if (!invoice_id) {
+      throw new Error('ID de facture requis');
+    }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Configuration Supabase manquante');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     console.log('Generating Factur-X for invoice:', invoice_id);
 
@@ -53,25 +61,42 @@ serve(async (req) => {
     const pdfContent = await generateInvoicePDF(invoice, repairer);
 
     // Stocker le PDF dans Supabase Storage
-    const fileName = `invoice_${invoice.invoice_number}.pdf`;
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('invoices')
-      .upload(fileName, pdfContent, {
-        contentType: 'application/pdf',
-        upsert: true
-      });
+    // Note: Le bucket 'invoices' doit être créé dans Supabase Storage
+    const fileName = `invoice_${invoice.invoice_number}_${Date.now()}.pdf`;
+    
+    let pdfUrl = '';
+    try {
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('invoices')
+        .upload(fileName, pdfContent, {
+          contentType: 'application/pdf',
+          upsert: true
+        });
 
-    if (uploadError) {
-      throw uploadError;
+      if (uploadError) {
+        console.warn('Erreur upload storage:', uploadError);
+        // Continue sans stocker le PDF si le bucket n'existe pas
+        pdfUrl = 'data:application/pdf;base64,' + btoa(String.fromCharCode(...pdfContent));
+      } else {
+        // Obtenir l'URL publique du PDF
+        const { data: urlData } = supabase.storage
+          .from('invoices')
+          .getPublicUrl(uploadData.path);
+        pdfUrl = urlData.publicUrl;
+      }
+    } catch (storageError) {
+      console.warn('Storage non disponible, génération inline:', storageError);
+      pdfUrl = 'data:application/pdf;base64,' + btoa(String.fromCharCode(...pdfContent));
     }
 
-    // Mettre à jour la facture avec le contenu XML et le chemin PDF
+    // Mettre à jour la facture avec le contenu XML
     const { error: updateError } = await supabase
       .from('electronic_invoices')
       .update({
         xml_content: xmlContent,
-        pdf_path: uploadData.path,
-        status: 'sent'
+        pdf_path: pdfUrl.includes('http') ? pdfUrl.split('/').pop() : null,
+        status: 'sent',
+        updated_at: new Date().toISOString()
       })
       .eq('id', invoice_id);
 
@@ -79,15 +104,10 @@ serve(async (req) => {
       throw updateError;
     }
 
-    // Obtenir l'URL publique du PDF
-    const { data: urlData } = supabase.storage
-      .from('invoices')
-      .getPublicUrl(uploadData.path);
-
     return new Response(
       JSON.stringify({ 
         success: true, 
-        pdf_url: urlData.publicUrl,
+        pdf_url: pdfUrl,
         xml_content: xmlContent
       }),
       { 
