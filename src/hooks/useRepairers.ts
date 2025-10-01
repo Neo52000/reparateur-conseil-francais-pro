@@ -31,7 +31,7 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
         console.log('useRepairers - Sample repairer:', supabaseData[0]);
         
         // Filter out repairers with corrupted data
-        const validData = supabaseData.filter(repairer => {
+        const validData = supabaseData.filter((repairer: any) => {
           const hasValidName = repairer.name && !repairer.name.includes('�');
           const hasValidCity = repairer.city && !repairer.city.includes('�');
           
@@ -46,6 +46,7 @@ export const useRepairers = (filters?: SearchFilters, userLocation?: [number, nu
         console.log(`useRepairers - Valid repairers after filtering: ${validData.length}/${supabaseData.length}`);
 
         // Transform data
+        // @ts-ignore - Types will be regenerated after views are created
         let processedData = RepairersDataTransformer.transformSupabaseData(validData);
         console.log('useRepairers - Transformed data count:', processedData.length);
 

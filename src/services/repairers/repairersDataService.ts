@@ -1,20 +1,21 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { SearchFilters } from '@/types/searchFilters';
+import { SecureDataAccess } from '@/services/secureDataAccess';
 
 export class RepairersDataService {
   /**
    * Fetch repairers from database with optional filters
-   * Includes fallback coordinates for repairers without valid coordinates
+   * Uses secure views for public access, full table for admins
    */
   static async fetchRepairers(filters?: SearchFilters) {
     try {
       console.log('🔍 RepairersDataService: Fetching repairers with filters:', filters);
       
-      let query = supabase
-        .from('repairers')
-        .select('*');
-        // Remove verification filter to show all repairers including Nancy ones
+      // Utiliser l'accès sécurisé automatique
+      const table = await SecureDataAccess.getRepairersTable();
+      // @ts-ignore - Vue créée dynamiquement, types seront regénérés
+      let query = supabase.from(table).select('*');
 
       // Apply filters if provided
       if (filters?.services && filters.services.length > 0) {
@@ -66,9 +67,9 @@ export class RepairersDataService {
    */
   static async getTotalCount(): Promise<number> {
     try {
-      const { count, error } = await supabase
-        .from('repairers')
-        .select('*', { count: 'exact', head: true });
+      const table = await SecureDataAccess.getRepairersTable();
+      // @ts-ignore - Vue créée dynamiquement, types seront regénérés
+      const { count, error } = await supabase.from(table).select('*', { count: 'exact', head: true });
 
       if (error) throw error;
       return count || 0;
@@ -83,10 +84,12 @@ export class RepairersDataService {
    */
   static async getStats() {
     try {
+      const table = await SecureDataAccess.getRepairersTable();
+      // @ts-ignore - Vue créée dynamiquement, types seront regénérés
       const [totalResult, verifiedResult, withProperCoordsResult] = await Promise.all([
-        supabase.from('repairers').select('*', { count: 'exact', head: true }),
-        supabase.from('repairers').select('*', { count: 'exact', head: true }).eq('is_verified', true),
-        supabase.from('repairers').select('*', { count: 'exact', head: true })
+        supabase.from(table).select('*', { count: 'exact', head: true }),
+        supabase.from(table).select('*', { count: 'exact', head: true }).eq('is_verified', true),
+        supabase.from(table).select('*', { count: 'exact', head: true })
           .not('lat', 'is', null)
           .not('lng', 'is', null)
       ]);

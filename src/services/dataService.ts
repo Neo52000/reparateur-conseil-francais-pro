@@ -1,23 +1,28 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Repairer } from '@/types/repairer';
+import { SecureDataAccess } from '@/services/secureDataAccess';
 
 /**
  * Service de données en production - uniquement données réelles
+ * Utilise l'accès sécurisé automatique
  */
 export class DataService {
 
   /**
    * Récupère uniquement les réparateurs réels (mode production)
+   * Utilise les vues sécurisées pour le public
    */
   static async getRepairers(): Promise<Repairer[]> {
     console.log('🔄 DataService - Récupération réparateurs en mode production');
     
-    // Récupérer uniquement les données réelles, exclure toutes les données de démonstration
+    // Utiliser l'accès sécurisé automatique
+    const table = await SecureDataAccess.getRepairersTable();
+    // @ts-ignore - Vue créée dynamiquement, types seront regénérés
     const { data: realData, error } = await supabase
-      .from('repairers')
+      .from(table)
       .select('*')
-      .neq('source', 'demo') // Exclure explicitement les données de démo
+      .neq('source', 'demo')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -27,7 +32,7 @@ export class DataService {
     console.log('📊 DataService - Données réelles récupérées:', realData?.length || 0);
 
     // Transformer les données de la base pour correspondre au type Repairer
-    const transformedRealData: Repairer[] = (realData || []).map(item => ({
+    const transformedRealData: Repairer[] = (realData || []).map((item: any) => ({
       ...item,
       business_status: item.business_status || 'active',
       pappers_verified: item.pappers_verified || false,
@@ -67,6 +72,7 @@ export class DataService {
 
   /**
    * Vérifie l'intégrité des données en mode production
+   * Note: Cette fonction nécessite un accès admin
    */
   static async auditDataIntegrity(): Promise<{
     demoModeEnabled: boolean;
@@ -76,19 +82,27 @@ export class DataService {
   }> {
     const allRepairers = await this.getRepairers();
     
-    const realDataCount = allRepairers.length; // Toutes les données sont réelles en production
-    const demoDataCount = 0; // Aucune donnée de démo en production
+    const realDataCount = allRepairers.length;
+    const demoDataCount = 0;
     
     const inconsistencies: string[] = [];
     
-    // Vérifier qu'aucune donnée de démo n'est présente
-    const { data: demoData } = await supabase
-      .from('repairers')
-      .select('id')
-      .eq('source', 'demo');
-    
-    if (demoData && demoData.length > 0) {
-      inconsistencies.push(`ERREUR: ${demoData.length} données de démo trouvées en mode production`);
+    // Note: Vérification des données de démo nécessite accès admin
+    // Utiliser la table complète uniquement pour les admins
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: demoData } = await supabase
+          .from('repairers')
+          .select('id')
+          .eq('source', 'demo');
+        
+        if (demoData && demoData.length > 0) {
+          inconsistencies.push(`ERREUR: ${demoData.length} données de démo trouvées en mode production`);
+        }
+      }
+    } catch (error) {
+      console.warn('Audit data integrity - limited access:', error);
     }
 
     return {

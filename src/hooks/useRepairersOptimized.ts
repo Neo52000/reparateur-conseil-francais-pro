@@ -39,13 +39,14 @@ export const useRepairersOptimized = (filters?: SearchFilters, userLocation?: [n
       }
 
       // Filter out corrupted data
-      const validData = supabaseData.filter(repairer => {
+      const validData = supabaseData.filter((repairer: any) => {
         const hasValidName = repairer.name && !repairer.name.includes('�');
         const hasValidCity = repairer.city && !repairer.city.includes('�');
         return hasValidName && hasValidCity;
       });
 
       // Transform data
+      // @ts-ignore - Types will be regenerated after views are created
       let processedData = RepairersDataTransformer.transformSupabaseData(validData);
 
       // Apply distance filter if user location is available
