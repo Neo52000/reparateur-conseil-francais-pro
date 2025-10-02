@@ -18,8 +18,8 @@ export class DataService {
     
     // Utiliser l'accès sécurisé automatique
     const table = await SecureDataAccess.getRepairersTable();
-    // @ts-ignore - Vue créée dynamiquement, types seront regénérés
-    const { data: realData, error } = await supabase
+    
+    const { data: realData, error } = await (supabase as any)
       .from(table)
       .select('*')
       .neq('source', 'demo')

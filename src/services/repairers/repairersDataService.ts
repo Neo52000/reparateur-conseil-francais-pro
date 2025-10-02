@@ -14,8 +14,8 @@ export class RepairersDataService {
       
       // Utiliser l'accès sécurisé automatique
       const table = await SecureDataAccess.getRepairersTable();
-      // @ts-ignore - Vue créée dynamiquement, types seront regénérés
-      let query = supabase.from(table).select('*');
+      
+      let query = (supabase as any).from(table).select('*');
 
       // Apply filters if provided
       if (filters?.services && filters.services.length > 0) {
@@ -68,8 +68,8 @@ export class RepairersDataService {
   static async getTotalCount(): Promise<number> {
     try {
       const table = await SecureDataAccess.getRepairersTable();
-      // @ts-ignore - Vue créée dynamiquement, types seront regénérés
-      const { count, error } = await supabase.from(table).select('*', { count: 'exact', head: true });
+      
+      const { count, error } = await (supabase as any).from(table).select('*', { count: 'exact', head: true });
 
       if (error) throw error;
       return count || 0;
@@ -85,11 +85,12 @@ export class RepairersDataService {
   static async getStats() {
     try {
       const table = await SecureDataAccess.getRepairersTable();
-      // @ts-ignore - Vue créée dynamiquement, types seront regénérés
+      
+      const supabaseAny = supabase as any;
       const [totalResult, verifiedResult, withProperCoordsResult] = await Promise.all([
-        supabase.from(table).select('*', { count: 'exact', head: true }),
-        supabase.from(table).select('*', { count: 'exact', head: true }).eq('is_verified', true),
-        supabase.from(table).select('*', { count: 'exact', head: true })
+        supabaseAny.from(table).select('*', { count: 'exact', head: true }),
+        supabaseAny.from(table).select('*', { count: 'exact', head: true }).eq('is_verified', true),
+        supabaseAny.from(table).select('*', { count: 'exact', head: true })
           .not('lat', 'is', null)
           .not('lng', 'is', null)
       ]);

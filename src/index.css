@@ -103,11 +103,19 @@
     --fade-in: fadeIn 0.5s ease-in-out;
 
     /* UI tokens for credibility & glow */
-    --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.25);
-    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.35);
+    --shadow-elegant: 0 10px 40px -15px hsl(var(--primary) / 0.3);
+    --shadow-glow: 0 0 50px hsl(var(--primary) / 0.4);
+    --shadow-premium: 0 20px 60px -15px hsl(var(--primary) / 0.35);
     --gradient-primary: linear-gradient(135deg, hsl(var(--electric-blue)), hsl(var(--vibrant-orange)));
-    --gradient-subtle: linear-gradient(180deg, hsl(var(--background) / 1), hsl(var(--background) / 0.92));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background) / 1), hsl(var(--background) / 0.95));
+    --gradient-glass: linear-gradient(135deg, hsl(var(--background) / 0.8), hsl(var(--background) / 0.6));
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    /* Glassmorphism */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --glass-blur: blur(10px);
   }
 
   .dark {
@@ -166,13 +174,17 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    font-size: 16px;
+    line-height: 1.7;
   }
   h1, h2, h3 {
     @apply font-serif tracking-tight text-foreground;
+    letter-spacing: -0.02em;
   }
-  h1 { @apply text-3xl md:text-4xl lg:text-5xl font-semibold; }
-  h2 { @apply text-2xl md:text-3xl lg:text-4xl font-semibold; }
-  h3 { @apply text-xl md:text-2xl lg:text-3xl font-semibold; }
+  h1 { @apply text-3xl md:text-4xl lg:text-5xl font-bold leading-tight; }
+  h2 { @apply text-2xl md:text-3xl lg:text-4xl font-bold leading-tight; }
+  h3 { @apply text-xl md:text-2xl lg:text-3xl font-semibold leading-snug; }
+  p { @apply leading-relaxed mb-4; }
 }
 
 /* Classes utilitaires pour le texte tronqué */
@@ -221,11 +233,24 @@
   }
 
   .hover-glow {
-    transition: box-shadow 0.3s ease-out;
+    transition: box-shadow 0.3s ease-out, transform 0.3s ease-out;
   }
 
   .hover-glow:hover {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.4), 0 0 60px hsl(var(--primary) / 0.2);
+    transform: translateY(-2px);
+  }
+  
+  /* Glassmorphism utility */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+  }
+  
+  /* Premium shadow */
+  .shadow-premium {
+    box-shadow: var(--shadow-premium);
   }
 
   .button-press {
