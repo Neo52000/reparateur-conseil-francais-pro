@@ -14,8 +14,11 @@ import RepairerProfilePage from "./pages/RepairerProfilePage";
 import RepairerPlans from "./pages/RepairerPlans";
 import RepairerTestimonials from "./pages/RepairerTestimonials";
 import RepairerFAQ from "./pages/RepairerFAQ";
-import ServiceRepairPage from "./pages/services/ServiceRepairPage";
-import LocalSeoPage from "./pages/LocalSeoPage";
+import SmartphoneRepairPage from "./pages/services/SmartphoneRepairPage";
+import TabletRepairPage from "./pages/services/TabletRepairPage";
+import ComputerRepairPage from "./pages/services/ComputerRepairPage";
+import ConsoleRepairPage from "./pages/services/ConsoleRepairPage";
+import LocalSeoPage from "./components/LocalSeoPage";
 import RepairerSettingsPage from "./pages/RepairerSettingsPage";
 import RepairTrackingPage from "./pages/RepairTrackingPage";
 import StaticPage from "./pages/StaticPage";
@@ -85,7 +88,10 @@ const AppWithTracking = () => {
         <Route path="/repairer-plans" element={<RepairerPlans />} />
         <Route path="/repairer-testimonials" element={<RepairerTestimonials />} />
         <Route path="/repairer-faq" element={<RepairerFAQ />} />
-        <Route path="/services/repair" element={<ServiceRepairPage />} />
+        <Route path="/reparation-smartphone" element={<SmartphoneRepairPage />} />
+        <Route path="/reparation-tablette" element={<TabletRepairPage />} />
+        <Route path="/reparation-ordinateur" element={<ComputerRepairPage />} />
+        <Route path="/reparation-console" element={<ConsoleRepairPage />} />
         <Route path="/local-seo" element={<LocalSeoPage />} />
         <Route path="/repairer-settings" element={<RepairerSettingsPage />} />
         <Route path="/repair-tracking" element={<RepairTrackingPage />} />
