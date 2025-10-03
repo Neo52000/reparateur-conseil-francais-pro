@@ -28,9 +28,9 @@ const ComputerRepairPage = () => {
 
       <Navigation />
 
-      <main className="min-h-screen">
-        <section className="relative bg-gradient-to-br from-primary/10 via-background to-secondary/10 py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="min-h-screen w-full">
+        <section className="relative bg-gradient-to-br from-primary/10 via-background to-secondary/10 py-12 sm:py-20 w-full">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

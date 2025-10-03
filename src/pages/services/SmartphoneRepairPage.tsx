@@ -30,10 +30,10 @@ const SmartphoneRepairPage = () => {
 
       <Navigation />
 
-      <main className="min-h-screen">
+      <main className="min-h-screen w-full">
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-primary/10 via-background to-secondary/10 py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="relative bg-gradient-to-br from-primary/10 via-background to-secondary/10 py-12 sm:py-20 w-full">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -43,13 +43,13 @@ const SmartphoneRepairPage = () => {
                 <Smartphone className="h-3 w-3 mr-1" />
                 Service Professionnel
               </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">
                 Réparation Smartphone Rapide et Fiable
               </h1>
-              <p className="text-xl text-muted-foreground mb-8">
+              <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8">
                 Trouvez le meilleur réparateur près de chez vous. Devis gratuit, intervention rapide, garantie incluse.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                 <Link to="/">
                   <Button size="lg" className="button-lift">
                     Trouver un réparateur
@@ -90,8 +90,8 @@ const SmartphoneRepairPage = () => {
         </section>
 
         {/* Common Issues */}
-        <section className="py-16 bg-background">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-12 sm:py-16 bg-background w-full">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">Problèmes les Plus Courants</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -124,8 +124,8 @@ const SmartphoneRepairPage = () => {
         </section>
 
         {/* Brands */}
-        <section className="py-16 bg-muted/30">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-12 sm:py-16 bg-muted/30 w-full">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">Toutes Marques Réparées</h2>
               <p className="text-muted-foreground">
@@ -144,8 +144,8 @@ const SmartphoneRepairPage = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 bg-gradient-to-r from-primary to-primary/80 text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <section className="py-12 sm:py-16 bg-gradient-to-r from-primary to-primary/80 text-white w-full">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl text-center">
             <h2 className="text-3xl font-bold mb-4">Besoin d'une Réparation ?</h2>
             <p className="text-xl mb-8 opacity-90">
               Trouvez un réparateur près de chez vous en quelques clics

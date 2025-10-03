@@ -11523,6 +11523,63 @@ export type Database = {
         }
         Relationships: []
       }
+      static_service_pages: {
+        Row: {
+          ai_generated: boolean | null
+          ai_model: string | null
+          content: Json
+          created_at: string | null
+          created_by: string | null
+          cta_link: string | null
+          cta_text: string | null
+          generation_prompt: string | null
+          hero_subtitle: string | null
+          hero_title: string
+          id: string
+          is_published: boolean | null
+          meta_description: string | null
+          slug: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          ai_model?: string | null
+          content?: Json
+          created_at?: string | null
+          created_by?: string | null
+          cta_link?: string | null
+          cta_text?: string | null
+          generation_prompt?: string | null
+          hero_subtitle?: string | null
+          hero_title: string
+          id?: string
+          is_published?: boolean | null
+          meta_description?: string | null
+          slug: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          ai_generated?: boolean | null
+          ai_model?: string | null
+          content?: Json
+          created_at?: string | null
+          created_by?: string | null
+          cta_link?: string | null
+          cta_text?: string | null
+          generation_prompt?: string | null
+          hero_subtitle?: string | null
+          hero_title?: string
+          id?: string
+          is_published?: boolean | null
+          meta_description?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       status_pages: {
         Row: {
           created_at: string
