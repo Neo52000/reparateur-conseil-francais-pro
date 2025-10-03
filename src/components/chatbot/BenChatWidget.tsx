@@ -330,7 +330,7 @@ const BenChatWidget: React.FC = () => {
       <motion.div
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="fixed bottom-6 right-6 z-50"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999]"
       >
         <Button
           onClick={() => {
@@ -339,19 +339,19 @@ const BenChatWidget: React.FC = () => {
               initializeConversation();
             }
           }}
-          className="h-14 w-14 rounded-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300"
+          className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300"
           size="lg"
         >
-          <MessageCircle className="h-6 w-6" />
+          <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
         </Button>
         
         {/* Notification badge */}
         <motion.div
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ repeat: Infinity, duration: 2 }}
-          className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center"
+          className="absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 bg-red-500 rounded-full flex items-center justify-center"
         >
-          <Heart className="h-2 w-2 text-white" />
+          <Heart className="h-1.5 w-1.5 sm:h-2 sm:w-2 text-white" />
         </motion.div>
       </motion.div>
     );
@@ -362,8 +362,8 @@ const BenChatWidget: React.FC = () => {
       initial={{ scale: 0.8, opacity: 0, y: 50 }}
       animate={{ scale: 1, opacity: 1, y: 0 }}
       exit={{ scale: 0.8, opacity: 0, y: 50 }}
-      className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${
-        isMinimized ? 'w-80 h-16' : 'w-80 h-[500px]'
+      className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999] max-w-[calc(100vw-2rem)] ${
+        isMinimized ? 'w-72 sm:w-80 h-16' : 'w-72 sm:w-80 h-[500px] max-h-[calc(100vh-6rem)]'
       }`}
     >
       <Card className="w-full h-full shadow-2xl border-0 bg-background/95 backdrop-blur-sm">
