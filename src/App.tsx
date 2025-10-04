@@ -116,9 +116,14 @@ const AppWithTracking = () => {
         <Route path="/quotes-appointments" element={<QuotesAndAppointments />} />
         {/* Legal pages */}
         <Route path="/legal-notice" element={<LegalNotice />} />
+        <Route path="/mentions-legales" element={<Navigate to="/legal-notice" replace />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/conditions-generales" element={<Navigate to="/terms" replace />} />
         <Route path="/terms-of-sale" element={<TermsOfSale />} />
+        <Route path="/cgv" element={<Navigate to="/terms-of-sale" replace />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/politique-confidentialite" element={<Navigate to="/privacy" replace />} />
+        <Route path="/confidentialite" element={<Navigate to="/privacy" replace />} />
         {/* 404 fallback */}
         <Route path="*" element={<NotFound />} />
       </Routes>
