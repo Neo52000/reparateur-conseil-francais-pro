@@ -74,7 +74,7 @@ const PrivacyNotice: React.FC = () => {
               </p>
               
               <div className="flex flex-wrap gap-4 text-xs">
-                <Link to="/privacy-policy" className="text-blue-600 hover:underline">
+                <Link to="/privacy" className="text-blue-600 hover:underline">
                   📋 Politique de confidentialité complète
                 </Link>
                 <Link to="/terms" className="text-blue-600 hover:underline">

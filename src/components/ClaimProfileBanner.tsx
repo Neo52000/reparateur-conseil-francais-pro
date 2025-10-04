@@ -20,7 +20,7 @@ const ClaimProfileBanner: React.FC<ClaimProfileBannerProps> = ({ businessName })
             Bénéficiez de nos services premium à partir de 9,90€/mois et gérez votre profil
           </p>
         </div>
-        <Link to="/subscription-plans">
+        <Link to="/repairer-plans">
           <Button 
             size="sm" 
             className="bg-blue-600 hover:bg-blue-700 text-white whitespace-nowrap"

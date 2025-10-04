@@ -64,7 +64,7 @@ const CookieBanner = () => {
                   <p className="text-xs text-gray-500">
                     En continuant votre navigation, vous acceptez l'utilisation de cookies. 
                     Consultez notre{' '}
-                    <Link to="/privacy-policy" className="text-blue-600 hover:underline">
+                    <Link to="/privacy" className="text-blue-600 hover:underline">
                       politique de confidentialité
                     </Link>{' '}
                     pour plus d'informations.
