@@ -32,6 +32,7 @@ import QuotesAndAppointments from "./pages/QuotesAndAppointments";
 import LegalNotice from "./pages/LegalNotice";
 import TermsOfService from "./pages/TermsOfService";
 import TermsOfSale from "./pages/TermsOfSale";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import NotFound from "./pages/NotFound";
 import { useVisitorTracker } from "./hooks/useVisitorTracker";
 import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
@@ -117,6 +118,7 @@ const AppWithTracking = () => {
         <Route path="/legal-notice" element={<LegalNotice />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/terms-of-sale" element={<TermsOfSale />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         {/* 404 fallback */}
         <Route path="*" element={<NotFound />} />
       </Routes>
