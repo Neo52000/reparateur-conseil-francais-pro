@@ -112,21 +112,25 @@ export const useAdvertising = (placement: AdPlacement) => {
         console.error('❌ Error incrementing impressions:', rpcError);
       }
 
-      // Enregistrer l'impression détaillée
-      const { error: insertError } = await supabase
-        .from('ad_impressions')
-        .insert({
-          banner_id: bannerId,
-          user_id: user?.id,
-          placement,
-          ip_address: null,
-          user_agent: navigator.userAgent
-        });
+      // Enregistrer l'impression détaillée (requires authentication)
+      if (user?.id) {
+        const { error: insertError } = await supabase
+          .from('ad_impressions')
+          .insert({
+            banner_id: bannerId,
+            user_id: user.id,
+            placement,
+            ip_address: null,
+            user_agent: navigator.userAgent
+          });
 
-      if (insertError) {
-        console.error('❌ Error inserting impression:', insertError);
+        if (insertError) {
+          console.error('❌ Error inserting impression:', insertError);
+        } else {
+          console.log('✅ Impression tracked successfully');
+        }
       } else {
-        console.log('✅ Impression tracked successfully');
+        console.log('ℹ️ Skipping detailed impression tracking - user not authenticated');
       }
     } catch (error) {
       console.error('💥 Error tracking impression:', error);
@@ -144,21 +148,25 @@ export const useAdvertising = (placement: AdPlacement) => {
         console.error('❌ Error incrementing clicks:', rpcError);
       }
 
-      // Enregistrer le clic détaillé
-      const { error: insertError } = await supabase
-        .from('ad_clicks')
-        .insert({
-          banner_id: bannerId,
-          user_id: user?.id,
-          placement,
-          ip_address: null,
-          user_agent: navigator.userAgent
-        });
+      // Enregistrer le clic détaillé (requires authentication)
+      if (user?.id) {
+        const { error: insertError } = await supabase
+          .from('ad_clicks')
+          .insert({
+            banner_id: bannerId,
+            user_id: user.id,
+            placement,
+            ip_address: null,
+            user_agent: navigator.userAgent
+          });
 
-      if (insertError) {
-        console.error('❌ Error inserting click:', insertError);
+        if (insertError) {
+          console.error('❌ Error inserting click:', insertError);
+        } else {
+          console.log('✅ Click tracked successfully');
+        }
       } else {
-        console.log('✅ Click tracked successfully');
+        console.log('ℹ️ Skipping detailed click tracking - user not authenticated');
       }
     } catch (error) {
       console.error('💥 Error tracking click:', error);

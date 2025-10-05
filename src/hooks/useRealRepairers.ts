@@ -44,7 +44,7 @@ export const useRealRepairers = () => {
       }
 
       // Récupérer les réparateurs existants
-      const { data: existingRepairers, error: repairersError } = await supabase
+      const { data: existingRepairers, error: repairersError} = await supabase
         .from('repairers')
         .select('*')
         .order('created_at', { ascending: false })

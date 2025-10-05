@@ -174,6 +174,12 @@ export const useEnhancedAdvertising = (placement: AdPlacement, userProfile?: Use
       } else {
         console.log('✅ Targeted impression tracked successfully');
       }
+
+      if (insertError) {
+        console.error('❌ Error inserting impression:', insertError);
+      } else {
+        console.log('✅ Targeted impression tracked successfully');
+      }
     } catch (error) {
       console.error('💥 Error tracking impression:', error);
     }
@@ -198,6 +204,12 @@ export const useEnhancedAdvertising = (placement: AdPlacement, userProfile?: Use
           ip_address: null,
           user_agent: navigator.userAgent
         });
+
+      if (insertError) {
+        console.error('❌ Error inserting click:', insertError);
+      } else {
+        console.log('✅ Targeted click tracked successfully');
+      }
 
       if (insertError) {
         console.error('❌ Error inserting click:', insertError);
