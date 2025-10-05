@@ -13,13 +13,60 @@ serve(async (req) => {
   }
 
   try {
+    // SECURITY: Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { payment_intent_id, quote_id } = await req.json();
 
-    // Initialiser Supabase
-    const supabase = createClient(
+    // Input validation
+    if (!payment_intent_id || typeof payment_intent_id !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid payment_intent_id' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!quote_id || typeof quote_id !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid quote_id' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // AUTHORIZATION: Check if user is admin or repairer for this quote
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    const { data: roleData } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single();
+
+    const isAdmin = roleData?.role === 'admin';
 
     // Initialiser Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
@@ -28,15 +75,29 @@ serve(async (req) => {
 
     console.log('Releasing funds for payment:', payment_intent_id);
 
-    // Vérifier que le travail est validé
-    const { data: quote, error: quoteError } = await supabase
+    // Vérifier que le travail est validé et permissions
+    const { data: quote, error: quoteError } = await supabaseAdmin
       .from('quotes_with_timeline')
-      .select('status, repair_validated')
+      .select('status, repair_validated, repairer_id')
       .eq('id', quote_id)
       .single();
 
     if (quoteError || !quote) {
       throw new Error('Quote not found');
+    }
+
+    // Check authorization
+    const { data: repairerProfile } = await supabaseAdmin
+      .from('repairer_profiles')
+      .select('user_id')
+      .eq('id', quote.repairer_id)
+      .single();
+
+    if (!isAdmin && (!repairerProfile || repairerProfile.user_id !== user.id)) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden - You do not have permission to release these funds' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     if (quote.status !== 'completed' || !quote.repair_validated) {
@@ -47,7 +108,7 @@ serve(async (req) => {
     const paymentIntent = await stripe.paymentIntents.capture(payment_intent_id);
 
     // Mettre à jour le statut du paiement
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('payments')
       .update({ 
         status: 'succeeded',
@@ -55,6 +116,15 @@ serve(async (req) => {
         released_at: new Date().toISOString()
       })
       .eq('payment_intent_id', payment_intent_id);
+
+    // Audit log
+    await supabaseAdmin.from('audit_logs').insert({
+      user_id: user.id,
+      action: 'release_funds',
+      resource_type: 'payment',
+      resource_id: payment_intent_id,
+      new_values: { status: 'succeeded', funds_released: true, quote_id }
+    });
 
     if (error) {
       throw error;

@@ -52,11 +52,12 @@ export const useAuthStore = create<AuthState>()(
         loading: false 
       }),
       
-      // Computed values (getters)
-      get isAdmin() {
-        const { profile } = get();
-        return profile?.email === 'admin@repairhub.fr' || profile?.role === 'admin';
-      },
+  // Computed values (getters) - NEVER check roles from client-side storage
+  get isAdmin() {
+    // Role checks must be done server-side via RLS and has_role() function
+    // This is only for UI display purposes and should not be trusted for authorization
+    return false; // Always verify on server-side
+  },
       
       get canAccessClient() {
         const { user } = get();

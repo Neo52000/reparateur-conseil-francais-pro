@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import DOMPurify from 'dompurify';
 import { 
   Archive, 
   Search, 
@@ -429,7 +430,13 @@ const ReceiptArchiveManager: React.FC<ReceiptArchiveManagerProps> = ({ repairerI
 
               {/* Aperçu du ticket */}
               <div className="border rounded-lg p-4 bg-white">
-                <div dangerouslySetInnerHTML={{ __html: selectedArchive.receipt_html }} />
+                <div dangerouslySetInnerHTML={{ 
+                  __html: DOMPurify.sanitize(selectedArchive.receipt_html, {
+                    ALLOWED_TAGS: ['div', 'p', 'span', 'strong', 'em', 'br', 'table', 'tr', 'td', 'th', 'thead', 'tbody'],
+                    ALLOWED_ATTR: ['class', 'style'],
+                    ALLOW_DATA_ATTR: false
+                  })
+                }} />
               </div>
             </div>
           )}

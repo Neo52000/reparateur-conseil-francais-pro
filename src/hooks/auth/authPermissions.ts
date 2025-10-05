@@ -2,39 +2,19 @@
 import { Profile } from './types';
 
 /**
- * Hook pour calculer les permissions basées sur le profil utilisateur
+ * DEPRECATED: Do not use client-side role checks for authorization
+ * Use useAuthRoles hook instead which fetches from server-side user_roles table
+ * 
+ * This hook is kept for backward compatibility but should not be used for security decisions
  */
 export const useAuthPermissions = (profile: Profile | null) => {
-  console.log('🔍 useAuthPermissions - Calculating permissions for profile:', {
-    hasProfile: !!profile,
-    profileRole: profile?.role,
-    profileEmail: profile?.email
-  });
-
-  // Vérification basée uniquement sur le rôle en base de données
-  const hasAdminRole = profile?.role === 'admin';
+  console.warn('⚠️ useAuthPermissions is deprecated - use useAuthRoles for secure role checking');
   
-  console.log('🔍 useAuthPermissions - Admin checks:', {
-    hasAdminRole,
-    profileRole: profile?.role
-  });
-
-  const isAdmin = hasAdminRole;
-  const canAccessClient = !!profile && (profile.role === 'user' || profile.role === 'admin');
-  const canAccessRepairer = !!profile && (profile.role === 'repairer' || profile.role === 'admin');
-  const canAccessAdmin = isAdmin;
-
-  console.log('🔍 useAuthPermissions - Final permissions:', {
-    isAdmin,
-    canAccessClient,
-    canAccessRepairer,
-    canAccessAdmin
-  });
-
+  // Return minimal permissions - real checks must be done server-side
   return {
-    isAdmin,
-    canAccessClient,
-    canAccessRepairer,
-    canAccessAdmin
+    isAdmin: false, // Always verify server-side
+    canAccessClient: !!profile,
+    canAccessRepairer: false, // Always verify server-side
+    canAccessAdmin: false // Always verify server-side
   };
 };

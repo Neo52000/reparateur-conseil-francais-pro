@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import DOMPurify from 'dompurify';
 
 interface StaticPageData {
   id: string;
@@ -20,6 +21,16 @@ const StaticPage = () => {
   const [pageData, setPageData] = useState<StaticPageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // SECURITY: Sanitize HTML content to prevent XSS
+  const sanitizedContent = useMemo(() => {
+    if (!pageData?.content) return '';
+    return DOMPurify.sanitize(pageData.content, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote', 'code', 'pre', 'img', 'div', 'span'],
+      ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel'],
+      ALLOW_DATA_ATTR: false
+    });
+  }, [pageData?.content]);
 
   useEffect(() => {
     if (!slug) return;
@@ -106,7 +117,7 @@ const StaticPage = () => {
               <CardContent className="pt-6">
                 <div 
                   className="prose prose-lg max-w-none text-foreground"
-                  dangerouslySetInnerHTML={{ __html: pageData.content }}
+                  dangerouslySetInnerHTML={{ __html: sanitizedContent }}
                 />
                 
                 <div className="mt-8 pt-6 border-t border-border text-sm text-muted-foreground">

@@ -14,13 +14,58 @@ serve(async (req) => {
   }
 
   try {
+    // SECURITY: Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { payment_intent_id } = await req.json();
 
-    // Initialiser Supabase
-    const supabase = createClient(
+    // Input validation
+    if (!payment_intent_id || typeof payment_intent_id !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid payment_intent_id' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // AUTHORIZATION: Only admin can confirm payments
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    const { data: roleData } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single();
+
+    if (roleData?.role !== 'admin') {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden - Admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Initialiser Stripe
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
@@ -31,7 +76,7 @@ serve(async (req) => {
     const paymentIntent = await stripe.paymentIntents.capture(payment_intent_id);
 
     // Mettre à jour le statut du paiement
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('payments')
       .update({ 
         status: 'succeeded',
@@ -39,6 +84,15 @@ serve(async (req) => {
         funds_released: true
       })
       .eq('payment_intent_id', payment_intent_id);
+
+    // Audit log
+    await supabaseAdmin.from('audit_logs').insert({
+      user_id: user.id,
+      action: 'confirm_payment',
+      resource_type: 'payment',
+      resource_id: payment_intent_id,
+      new_values: { status: 'succeeded', funds_released: true }
+    });
 
     if (error) {
       throw error;
