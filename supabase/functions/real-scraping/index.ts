@@ -168,9 +168,9 @@ serve(async (req) => {
 
 async function scrapeGoogleMaps(city: string, category: string, maxResults: number, apiKey: string): Promise<ScrapingResult[]> {
   console.log('🗺️ Scraping Google Maps...')
-  
+
   const query = `réparation ${category} ${city}`
-  
+
   try {
     const response = await fetch('https://google.serper.dev/places', {
       method: 'POST',
@@ -188,11 +188,22 @@ async function scrapeGoogleMaps(city: string, category: string, maxResults: numb
     })
 
     if (!response.ok) {
+      console.error('Google Maps API error status:', response.status)
+      // Fallback si le plan Serper ne permet pas l'endpoint Places (403)
+      if (response.status === 403) {
+        console.warn('⚠️ Places non autorisé par la clé Serper. Fallback vers recherche classique.')
+        return await serperSearchFallback(query, city, maxResults)
+      }
       throw new Error(`Google Maps API error: ${response.status}`)
     }
 
     const data = await response.json()
     const places = data.places || []
+
+    if (places.length === 0) {
+      console.warn('Aucun résultat Places. Fallback vers recherche classique.')
+      return await serperSearchFallback(query, city, maxResults)
+    }
 
     return places.map((place: any) => ({
       name: place.title || 'N/A',
@@ -212,10 +223,15 @@ async function scrapeGoogleMaps(city: string, category: string, maxResults: numb
       quality_score: calculateQualityScore(place),
       confidence: 0.8
     }))
-    
+
   } catch (error) {
     console.error('Google Maps scraping error:', error)
-    return []
+    try {
+      // Dernier recours: fallback via recherche standard
+      return await serperSearchFallback(query, city, maxResults)
+    } catch (_) {
+      return []
+    }
   }
 }
 
@@ -277,6 +293,56 @@ function extractServices(description: string): string[] {
   })
   
   return services
+}
+
+// Fallback lorsque l'API Serper Places renvoie 403 ou aucun résultat
+async function serperSearchFallback(query: string, city: string, maxResults: number): Promise<ScrapingResult[]> {
+  console.log('🔁 Fallback Serper search (organic results)...')
+  try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+    const { data, error } = await supabase.functions.invoke('serper-search', {
+      body: {
+        query,
+        type: 'search',
+        country: 'fr',
+        lang: 'fr',
+        num: Math.min(maxResults, 20),
+        location: city + ', France'
+      }
+    })
+
+    if (error || !data?.success) {
+      console.warn('Fallback search failed:', error || data)
+      return []
+    }
+
+    const items = (data.results || data.organic || []) as Array<any>
+
+    return items.map((item: any) => ({
+      name: item.title || 'N/A',
+      business_name: item.title || 'N/A',
+      address: '',
+      city,
+      postal_code: '',
+      phone: '',
+      website: item.link || '',
+      rating: undefined,
+      review_count: undefined,
+      description: item.snippet || '',
+      services: extractServices(item.snippet || ''),
+      lat: undefined,
+      lng: undefined,
+      source: 'google_search_fallback',
+      quality_score: Math.min(100, (item.link ? 35 : 20) + (item.snippet ? 10 : 0)),
+      confidence: 0.4,
+    }))
+  } catch (e) {
+    console.error('Fallback search error:', e)
+    return []
+  }
 }
 
 function calculateQualityScore(place: any): number {
