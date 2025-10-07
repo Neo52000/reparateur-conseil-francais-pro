@@ -39,7 +39,25 @@ serve(async (req) => {
   }
 
   try {
-    const { city, category, source, maxResults = 20 } = await req.json() as ScrapingTarget;
+    const body = await req.json();
+    
+    // Support both formats: direct params or targets array
+    let city: string, category: string, source: string, maxResults: number;
+    
+    if (body.targets && Array.isArray(body.targets) && body.targets.length > 0) {
+      // New format with targets array
+      const target = body.targets[0];
+      city = target.city;
+      category = target.category;
+      source = target.source;
+      maxResults = target.maxResults || 20;
+    } else {
+      // Old format with direct params
+      city = body.city;
+      category = body.category;
+      source = body.source;
+      maxResults = body.maxResults || 20;
+    }
     
     console.log('🚀 Starting real scraping:', { city, category, source, maxResults });
 

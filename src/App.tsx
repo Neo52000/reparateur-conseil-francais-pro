@@ -37,6 +37,7 @@ import NotFound from "./pages/NotFound";
 import { useVisitorTracker } from "./hooks/useVisitorTracker";
 import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
 import StaticPagesManagerPage from "./pages/admin/StaticPagesManagerPage";
+import AdminImportPage from "./components/admin/AdminImportPage";
 // Configuration production
 import { initializeProductionMode, performProductionHealthCheck } from './config/productionSetup';
 import { RuntimeDiagnostics } from "./components/dev/RuntimeDiagnostics";
@@ -82,6 +83,8 @@ const AppWithTracking = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin/import" element={<AdminImportPage />} />
+        <Route path="/admin/import/*" element={<AdminImportPage />} />
         <Route path="/admin/static-pages" element={<StaticPagesManagerPage />} />
         <Route path="/reparateur-:serviceType-:city" element={<LocalSeoPage />} />
         <Route path="/404" element={<NotFound />} />
