@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+import { create, verify } from 'https://deno.land/x/djwt@v2.8/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -48,25 +50,53 @@ serve(async (req) => {
 
     console.log('🔐 QualiRépar v3 Auth attempt for:', Username);
 
-    // Vérifier les credentials dans la base
+    // Récupérer l'utilisateur par username
     const { data: authData, error: authError } = await supabase
       .from('qualirepar_auth_credentials')
       .select('*')
       .eq('username', Username)
-      .eq('password', Password) // In production, use proper hashing
       .eq('is_active', true)
       .single();
 
     if (authError || !authData) {
-      console.error('❌ Auth failed:', authError);
+      console.error('❌ Auth failed: User not found');
       return new Response(
         JSON.stringify({ error: 'Invalid credentials' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Générer un token JWT-like (simplified for demo)
+    // Vérifier le mot de passe haché avec bcrypt
+    const passwordMatch = await bcrypt.compare(Password, authData.password_hash);
+    
+    if (!passwordMatch) {
+      console.error('❌ Auth failed: Invalid password');
+      return new Response(
+        JSON.stringify({ error: 'Invalid credentials' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Générer un vrai JWT signé
+    const jwtSecret = Deno.env.get('QUALIREPAR_JWT_SECRET');
+    if (!jwtSecret) {
+      console.error('❌ JWT secret not configured');
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(jwtSecret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign", "verify"]
+    );
+
     const tokenPayload = {
+      sub: authData.user_id,
       username: Username,
       userId: authData.user_id,
       isIntermediary: authData.is_intermediary || false,
@@ -74,7 +104,7 @@ serve(async (req) => {
       exp: Math.floor(Date.now() / 1000) + 3600 // 1 hour
     };
 
-    const token = btoa(JSON.stringify(tokenPayload));
+    const token = await create({ alg: "HS256", typ: "JWT" }, tokenPayload, key);
 
     // Récupérer les réparateurs autorisés
     const { data: allowedRepairers, error: repairersError } = await supabase

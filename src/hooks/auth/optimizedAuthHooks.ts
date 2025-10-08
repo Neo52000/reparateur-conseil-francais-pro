@@ -8,9 +8,9 @@ import type { Profile } from './types';
  */
 export const useOptimizedPermissions = (user: User | null, profile: Profile | null) => {
   return useMemo(() => {
-    const isAdminEmail = profile?.email === 'admin@repairhub.fr';
+    // SECURITY: Never check roles client-side - always verify server-side via user_roles table
     const hasAdminRole = profile?.role === 'admin';
-    const isAdmin = isAdminEmail || hasAdminRole;
+    const isAdmin = hasAdminRole;
     
     return {
       isAdmin,
