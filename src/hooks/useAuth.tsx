@@ -71,10 +71,10 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   }, []); // Pas de dépendances pour éviter les boucles
 
   // Calcul des permissions optimisé
+  // SECURITY: Only use server-side role checks. Never trust client-side role determination.
   const permissions = useMemo(() => {
-    const isAdminEmail = profile?.email === 'admin@repairhub.fr';
     const hasAdminRole = profile?.role === 'admin';
-    const isAdmin = isAdminEmail || hasAdminRole;
+    const isAdmin = hasAdminRole;
     
     return {
       isAdmin,

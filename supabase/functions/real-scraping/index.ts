@@ -1,10 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0'
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
+
+// SECURITY: Input validation schema to prevent injection attacks
+const ScrapingInputSchema = z.object({
+  city: z.string().trim().min(1).max(100).regex(/^[a-zA-ZÀ-ÿ\s\-']+$/, 'Invalid city name'),
+  category: z.string().trim().min(1).max(50).regex(/^[a-zA-Z0-9À-ÿ\s\-]+$/, 'Invalid category'),
+  source: z.enum(['google_maps', 'pages_jaunes', 'local_directories']),
+  maxResults: z.number().int().min(1).max(100).optional().default(20)
+})
+
+const ScrapingTargetSchema = z.object({
+  targets: z.array(ScrapingInputSchema).min(1).max(10)
+})
 
 interface ScrapingTarget {
   city: string;
@@ -39,27 +52,35 @@ serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
+    const rawBody = await req.json();
     
-    // Support both formats: direct params or targets array
-    let city: string, category: string, source: string, maxResults: number;
-    
-    if (body.targets && Array.isArray(body.targets) && body.targets.length > 0) {
-      // New format with targets array
-      const target = body.targets[0];
-      city = target.city;
-      category = target.category;
-      source = target.source;
-      maxResults = target.maxResults || 20;
-    } else {
-      // Old format with direct params
-      city = body.city;
-      category = body.category;
-      source = body.source;
-      maxResults = body.maxResults || 20;
+    // SECURITY: Validate and sanitize all user inputs
+    let validatedInput;
+    try {
+      if (rawBody.targets && Array.isArray(rawBody.targets)) {
+        const validated = ScrapingTargetSchema.parse(rawBody);
+        validatedInput = validated.targets[0];
+      } else {
+        validatedInput = ScrapingInputSchema.parse({
+          city: rawBody.city,
+          category: rawBody.category,
+          source: rawBody.source,
+          maxResults: rawBody.maxResults
+        });
+      }
+    } catch (validationError) {
+      console.error('❌ Input validation failed');
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Invalid input parameters. Please check city, category, and source values.' 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
     
-    console.log('🚀 Starting real scraping:', { city, category, source, maxResults });
+    const { city, category, source, maxResults } = validatedInput;
+    console.log('🚀 Starting real scraping (validated):', { city, category, source, maxResults });
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -188,13 +209,13 @@ async function scrapeGoogleMaps(city: string, category: string, maxResults: numb
     })
 
     if (!response.ok) {
-      console.error('Google Maps API error status:', response.status)
-      // Fallback si le plan Serper ne permet pas l'endpoint Places (403)
+      // SECURITY: Sanitize error messages - never expose API keys or sensitive details
+      console.error('API call failed with status:', response.status)
       if (response.status === 403) {
-        console.warn('⚠️ Places non autorisé par la clé Serper. Fallback vers recherche classique.')
+        console.warn('⚠️ API endpoint not authorized. Using fallback.')
         return await serperSearchFallback(query, city, maxResults)
       }
-      throw new Error(`Google Maps API error: ${response.status}`)
+      throw new Error(`External API error: ${response.status}`)
     }
 
     const data = await response.json()
@@ -225,9 +246,9 @@ async function scrapeGoogleMaps(city: string, category: string, maxResults: numb
     }))
 
   } catch (error) {
-    console.error('Google Maps scraping error:', error)
+    // SECURITY: Sanitize error logs - never log sensitive data or API keys
+    console.error('Scraping failed:', error instanceof Error ? error.message : 'Unknown error')
     try {
-      // Dernier recours: fallback via recherche standard
       return await serperSearchFallback(query, city, maxResults)
     } catch (_) {
       return []
