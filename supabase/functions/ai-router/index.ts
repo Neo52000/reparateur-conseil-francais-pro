@@ -214,6 +214,37 @@ function analyzeFallbackMessage(message: string, language: 'fr' | 'en'): Fallbac
   };
 }
 
+async function callLovableAI(userContent: string, systemPrompt: string) {
+  const apiKey = Deno.env.get('LOVABLE_API_KEY');
+  if (!apiKey) throw new Error('LOVABLE_API_KEY missing');
+  console.log('Calling Lovable AI with Gemini...');
+  const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent }
+      ],
+      temperature: 0.5,
+      max_tokens: 500
+    })
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error(`Lovable AI error: ${res.status} - ${errText}`);
+    throw new Error(`Lovable AI error: ${res.status}`);
+  }
+  const json = await res.json();
+  const text = json?.choices?.[0]?.message?.content ?? '';
+  console.log('Lovable AI response received');
+  return { text };
+}
+
 async function callOpenAICompatible(baseUrl: string, apiKey: string, model: string, systemPrompt: string, userContent: string) {
   const res = await fetch(`${baseUrl.replace(/\/$/, '')}/v1/chat/completions`, {
     method: 'POST',
@@ -322,10 +353,11 @@ serve(async (req) => {
     // Health check endpoint for system diagnostics
     if (action === 'health_check') {
       const providersAvailable = [
-        { name: 'OpenAI', available: !!Deno.env.get('OPENAI_API_KEY') },
-        { name: 'Mistral', available: !!Deno.env.get('MISTRAL_API_KEY') },
-        { name: 'DeepSeek', available: !!Deno.env.get('DEEPSEEK_API_KEY') },
-        { name: 'GPT-OSS', available: !!(Deno.env.get('GPT_OSS_BASE_URL') && Deno.env.get('GPT_OSS_API_KEY')) },
+        { name: 'Lovable AI (Gemini)', available: !!Deno.env.get('LOVABLE_API_KEY'), priority: 1 },
+        { name: 'OpenAI', available: !!Deno.env.get('OPENAI_API_KEY'), priority: 3 },
+        { name: 'Mistral', available: !!Deno.env.get('MISTRAL_API_KEY'), priority: 4 },
+        { name: 'DeepSeek', available: !!Deno.env.get('DEEPSEEK_API_KEY'), priority: 5 },
+        { name: 'GPT-OSS', available: !!(Deno.env.get('GPT_OSS_BASE_URL') && Deno.env.get('GPT_OSS_API_KEY')), priority: 2 },
       ].filter(p => p.available);
 
       return new Response(JSON.stringify({
@@ -373,6 +405,11 @@ serve(async (req) => {
       name: string;
       fn: () => Promise<{ text: string }>;
     }> = [];
+
+    // Lovable AI (Gemini) as first priority - FREE until Oct 13, 2025
+    if (Deno.env.get('LOVABLE_API_KEY')) {
+      providers.push({ name: 'lovable-ai', fn: () => callLovableAI(text, systemPrompt) });
+    }
 
     const gptOssUrl = Deno.env.get('GPT_OSS_BASE_URL');
     const gptOssKey = Deno.env.get('GPT_OSS_API_KEY');
