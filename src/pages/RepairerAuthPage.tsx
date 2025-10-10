@@ -139,11 +139,11 @@ const RepairerAuthPage = () => {
               
               <div className="mt-6 text-center text-sm text-gray-600">
                 En vous inscrivant, vous acceptez nos{' '}
-                <Link to="/conditions-generales" className="text-orange-600 hover:underline">
+                <Link to="/terms" className="text-orange-600 hover:underline">
                   conditions générales
                 </Link>{' '}
                 et notre{' '}
-                <Link to="/politique-confidentialite" className="text-orange-600 hover:underline">
+                <Link to="/privacy" className="text-orange-600 hover:underline">
                   politique de confidentialité
                 </Link>
               </div>
