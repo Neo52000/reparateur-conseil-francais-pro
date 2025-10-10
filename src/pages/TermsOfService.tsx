@@ -1,5 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { FileText, UserCheck, Shield, AlertCircle } from 'lucide-react';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 
 const TermsOfService = () => {
   return (
@@ -8,6 +10,7 @@ const TermsOfService = () => {
         <title>CGU | TopRéparateurs.fr</title>
       </Helmet>
       <div className="min-h-screen bg-background">
+        <Navigation />
         <div className="container mx-auto px-4 py-12 max-w-4xl">
           <h1 className="text-4xl font-bold mb-8">Conditions Générales d'Utilisation</h1>
           <section className="bg-card p-6 rounded-lg border mb-6">
@@ -17,6 +20,7 @@ const TermsOfService = () => {
             </p>
           </section>
         </div>
+        <Footer />
       </div>
     </>
   );

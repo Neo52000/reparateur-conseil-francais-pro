@@ -1,5 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { Building2, Mail, Phone, FileText, Shield } from 'lucide-react';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 
 const LegalNotice = () => {
   return (
@@ -10,6 +12,7 @@ const LegalNotice = () => {
       </Helmet>
 
       <div className="min-h-screen bg-background">
+        <Navigation />
         <div className="container mx-auto px-4 py-12 max-w-4xl">
           <h1 className="text-4xl font-bold mb-8">Mentions Légales</h1>
 
@@ -180,6 +183,7 @@ const LegalNotice = () => {
             </section>
           </div>
         </div>
+        <Footer />
       </div>
     </>
   );

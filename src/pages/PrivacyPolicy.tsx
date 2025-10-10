@@ -1,5 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { Shield, Eye, Lock, Database, Cookie, UserCheck, Mail } from 'lucide-react';
+import Navigation from '@/components/Navigation';
+import Footer from '@/components/Footer';
 
 const PrivacyPolicy = () => {
   return (
@@ -12,6 +14,7 @@ const PrivacyPolicy = () => {
         />
       </Helmet>
       <div className="min-h-screen bg-background">
+        <Navigation />
         <div className="container mx-auto px-4 py-12 max-w-4xl">
           <div className="mb-8">
             <h1 className="text-4xl font-bold mb-4">Politique de Confidentialité</h1>
@@ -232,6 +235,7 @@ const PrivacyPolicy = () => {
             </div>
           </section>
         </div>
+        <Footer />
       </div>
     </>
   );
