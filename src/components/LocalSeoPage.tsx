@@ -23,15 +23,23 @@ import Footer from '@/components/Footer';
 
 const LocalSeoPage = () => {
   const { serviceType, city, slug: routeSlug } = useParams<{ serviceType: string, city: string, slug: string }>();
+  
+  console.log('🔍 [LocalSeoPage] Params récupérés:', { serviceType, city, routeSlug });
+  
   const slug = routeSlug || (serviceType && city ? `reparateur-${serviceType}-${city}` : '');
+  
+  console.log('🔍 [LocalSeoPage] Slug construit:', slug);
+  
   const [page, setPage] = useState<LocalSeoPageType | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    console.log('🔄 [LocalSeoPage] useEffect déclenché avec slug:', slug);
     if (slug) {
       loadPage(slug);
     } else {
+      console.warn('⚠️ [LocalSeoPage] Pas de slug, redirection vers 404');
       setNotFound(true);
       setLoading(false);
     }
