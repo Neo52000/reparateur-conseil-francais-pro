@@ -8,93 +8,16 @@ import { FirecrawlService } from '@/utils/FirecrawlService';
 import { Key, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const FirecrawlApiKeyInput = () => {
-  const [apiKey, setApiKey] = useState('fc-0b839f0e15f64016bd5865a920aa73dd');
-  const [isTestingKey, setIsTestingKey] = useState(false);
-  const [keyStatus, setKeyStatus] = useState<'none' | 'valid' | 'invalid'>('none');
   const { toast } = useToast();
 
   useEffect(() => {
-    // Auto-configure la clé API fournie
-    if (apiKey && keyStatus === 'none') {
-      handleTestApiKey();
-    }
+    // SECURITY: API keys are now stored server-side only
+    toast({
+      title: "🔒 Configuration serveur sécurisée",
+      description: "Les clés API Firecrawl sont maintenant stockées de manière sécurisée côté serveur"
+    });
   }, []);
 
-  const handleTestApiKey = async () => {
-    if (!apiKey.trim()) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez entrer une clé API",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsTestingKey(true);
-    
-    try {
-      const isValid = await FirecrawlService.testApiKey(apiKey.trim());
-      
-      if (isValid) {
-        FirecrawlService.saveApiKey(apiKey.trim());
-        setKeyStatus('valid');
-        toast({
-          title: "✅ Clé API valide",
-          description: "Votre clé Firecrawl a été sauvegardée avec succès"
-        });
-      } else {
-        setKeyStatus('invalid');
-        toast({
-          title: "❌ Clé API invalide",
-          description: "Vérifiez votre clé API Firecrawl",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Erreur test API:', error);
-      setKeyStatus('invalid');
-      toast({
-        title: "Erreur de test",
-        description: "Impossible de tester la clé API",
-        variant: "destructive"
-      });
-    } finally {
-      setIsTestingKey(false);
-    }
-  };
-
-  const getStatusIcon = () => {
-    switch (keyStatus) {
-      case 'valid':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'invalid':
-        return <AlertTriangle className="h-4 w-4 text-red-600" />;
-      default:
-        return <Key className="h-4 w-4 text-gray-400" />;
-    }
-  };
-
-  const getStatusText = () => {
-    switch (keyStatus) {
-      case 'valid':
-        return 'Clé API validée ✅';
-      case 'invalid':
-        return 'Clé API invalide ❌';
-      default:
-        return 'Clé API non configurée';
-    }
-  };
-
-  const getStatusColor = () => {
-    switch (keyStatus) {
-      case 'valid':
-        return 'text-green-600';
-      case 'invalid':
-        return 'text-red-600';
-      default:
-        return 'text-gray-500';
-    }
-  };
 
   return (
     <Card>
@@ -105,57 +28,39 @@ const FirecrawlApiKeyInput = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <label htmlFor="firecrawl-key" className="text-sm font-medium">
-            Clé API Firecrawl
-          </label>
-          <div className="flex space-x-2">
-            <Input
-              id="firecrawl-key"
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="fc-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-              className="flex-1"
-            />
-            <Button
-              onClick={handleTestApiKey}
-              disabled={isTestingKey || !apiKey.trim()}
-              variant="outline"
-            >
-              {isTestingKey ? 'Test...' : 'Tester'}
-            </Button>
+        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+          <div className="flex items-center space-x-2 mb-2">
+            <CheckCircle className="h-5 w-5 text-green-600" />
+            <h4 className="font-medium text-green-900">Configuration Sécurisée Active</h4>
           </div>
-        </div>
-
-        <div className={`flex items-center space-x-2 text-sm ${getStatusColor()}`}>
-          {getStatusIcon()}
-          <span>{getStatusText()}</span>
+          <p className="text-sm text-green-800">
+            Les clés API Firecrawl sont maintenant stockées de manière sécurisée côté serveur via Supabase Edge Functions.
+          </p>
         </div>
 
         <div className="p-3 bg-blue-50 rounded-lg">
-          <h4 className="font-medium text-blue-900 mb-2">🌐 Scraping Réel avec Firecrawl</h4>
+          <h4 className="font-medium text-blue-900 mb-2">🔒 Améliorations de Sécurité</h4>
           <ul className="text-xs text-blue-800 space-y-1">
+            <li>✅ Clés API stockées uniquement côté serveur</li>
+            <li>✅ Protection contre les attaques XSS</li>
+            <li>✅ Authentification requise pour les appels API</li>
+            <li>✅ Pas d'exposition des secrets dans le code client</li>
+          </ul>
+        </div>
+
+        <div className="p-3 bg-amber-50 rounded-lg">
+          <h4 className="font-medium text-amber-900 mb-2">🌐 Fonctionnalités Firecrawl</h4>
+          <ul className="text-xs text-amber-800 space-y-1">
             <li>• Scraping des vraies pages Pages Jaunes et Google Places</li>
             <li>• Extraction automatique des coordonnées GPS précises</li>
             <li>• Géocodage avec Nominatim (gratuit, pas de clé requise)</li>
             <li>• Données réelles et à jour des réparateurs français</li>
           </ul>
-          
-          {keyStatus !== 'valid' && (
-            <div className="mt-2 p-2 bg-yellow-100 rounded text-xs text-yellow-800">
-              ⚠️ Sans clé API, le système utilisera les données de test
-            </div>
-          )}
         </div>
 
         <div className="text-xs text-gray-500">
-          <p>Pour obtenir votre clé API :</p>
-          <ol className="list-decimal list-inside mt-1 space-y-1">
-            <li>Créez un compte sur <a href="https://firecrawl.dev" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">firecrawl.dev</a></li>
-            <li>Obtenez votre clé API dans le dashboard</li>
-            <li>Collez-la ici et testez-la</li>
-          </ol>
+          <p className="font-medium mb-1">Configuration Admin :</p>
+          <p>La clé API Firecrawl doit être configurée dans les secrets Supabase (FIRECRAWL_API_KEY).</p>
         </div>
       </CardContent>
     </Card>

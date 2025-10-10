@@ -1,5 +1,8 @@
 project_id = "nbugpbakfkyvvjzgfjmw"
 
+[functions.firecrawl-proxy]
+verify_jwt = true
+
 [functions.scrape-repairers]
 verify_jwt = false
 
