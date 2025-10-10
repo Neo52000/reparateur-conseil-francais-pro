@@ -127,16 +127,16 @@ export default function FooterManager() {
           content: "Toutes nos mentions légales et politiques.",
           links: [{
             title: "Mentions légales",
-            url: "/mentions-legales"
+            url: "/legal-notice"
           }, {
             title: "Politique de confidentialité",
-            url: "/politique-confidentialite"
+            url: "/privacy"
           }, {
             title: "CGU",
-            url: "/cgu"
+            url: "/terms"
           }, {
             title: "CGV",
-            url: "/cgv"
+            url: "/terms-of-sale"
           }]
         }
       };
