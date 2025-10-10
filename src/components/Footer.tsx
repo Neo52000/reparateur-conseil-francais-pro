@@ -1,13 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, Facebook, Linkedin, Twitter, MessageCircle, UserPlus, Clock, Shield, Star, Users, Smartphone, Laptop, Tablet, Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFooterConfig } from '@/hooks/useFooterConfig';
+import { supabase } from '@/integrations/supabase/client';
+
 const Footer = () => {
   const {
     sections,
     loading
   } = useFooterConfig();
+  
+  const [availableCities, setAvailableCities] = useState<Array<{ city: string; slug: string }>>([]);
+
+  useEffect(() => {
+    const loadCities = async () => {
+      const { data, error } = await supabase
+        .from('local_seo_pages')
+        .select('city, slug')
+        .eq('is_published', true)
+        .order('city');
+      
+      if (!error && data) {
+        setAvailableCities(data);
+      }
+    };
+    loadCities();
+  }, []);
   const handleWhatsApp = () => {
     const message = encodeURIComponent('Bonjour, je souhaite des informations sur vos services de réparation.');
     window.open(`https://wa.me/33745062162?text=${message}`, '_blank');
@@ -188,49 +207,23 @@ const Footer = () => {
               {/* Liens villes principales - optimisés SEO */}
               <nav aria-label="Réparateurs par ville">
                 <div className="flex flex-wrap justify-center gap-3 text-sm">
-                  {[{
-                  city: 'Paris',
-                  slug: 'paris'
-                }, {
-                  city: 'Lyon',
-                  slug: 'lyon'
-                }, {
-                  city: 'Marseille',
-                  slug: 'marseille'
-                }, {
-                  city: 'Toulouse',
-                  slug: 'toulouse'
-                }, {
-                  city: 'Nice',
-                  slug: 'nice'
-                }, {
-                  city: 'Nantes',
-                  slug: 'nantes'
-                }, {
-                  city: 'Strasbourg',
-                  slug: 'strasbourg'
-                }, {
-                  city: 'Montpellier',
-                  slug: 'montpellier'
-                }, {
-                  city: 'Bordeaux',
-                  slug: 'bordeaux'
-                }, {
-                  city: 'Lille',
-                  slug: 'lille'
-                }, {
-                  city: 'Rennes',
-                  slug: 'rennes'
-                }, {
-                  city: 'Reims',
-                  slug: 'reims'
-                }].map((location, index, array) => <div key={location.slug} className="inline-flex items-center">
-                       <Link to={`/reparateur-smartphone-${location.slug}`} className="text-gray-300 hover:text-white transition-colors px-3 py-1 rounded-md hover:bg-gray-800" aria-label={`Réparateurs smartphone à ${location.city}`}>
-                         <MapPin className="inline h-3 w-3 mr-1" />
-                         {location.city}
-                       </Link>
-                       {index < array.length - 1 && <span className="text-gray-500 ml-3">•</span>}
-                     </div>)}
+                  {availableCities.length > 0 ? (
+                    availableCities.map((location, index, array) => (
+                      <div key={location.slug} className="inline-flex items-center">
+                        <Link 
+                          to={`/${location.slug}`} 
+                          className="text-gray-300 hover:text-white transition-colors px-3 py-1 rounded-md hover:bg-gray-800" 
+                          aria-label={`Réparateurs smartphone à ${location.city}`}
+                        >
+                          <MapPin className="inline h-3 w-3 mr-1" />
+                          {location.city}
+                        </Link>
+                        {index < array.length - 1 && <span className="text-gray-500 ml-3">•</span>}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-400 text-sm">Chargement des villes...</p>
+                  )}
                 </div>
               </nav>
               
