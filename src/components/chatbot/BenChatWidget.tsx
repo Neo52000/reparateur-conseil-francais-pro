@@ -313,7 +313,10 @@ const BenChatWidget: React.FC = () => {
   // Afficher un spinner pendant le chargement
   if (configLoading) {
     return (
-      <div className="fixed bottom-6 right-6 z-50 w-14 h-14 flex items-center justify-center bg-primary rounded-full">
+      <div 
+        className="fixed bottom-6 right-6 z-[9999] w-14 h-14 flex items-center justify-center bg-primary rounded-full"
+        style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem' }}
+      >
         <Loader2 className="h-6 w-6 text-primary-foreground animate-spin" />
       </div>
     );
@@ -328,9 +331,11 @@ const BenChatWidget: React.FC = () => {
   if (!isOpen) {
     return (
       <motion.div
-        initial={{ scale: 0, opacity: 0 }}
+        initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.2 }}
         className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999]"
+        style={{ position: 'fixed', bottom: '1rem', right: '1rem' }}
       >
         <Button
           onClick={() => {
@@ -359,12 +364,14 @@ const BenChatWidget: React.FC = () => {
 
   return (
     <motion.div
-      initial={{ scale: 0.8, opacity: 0, y: 50 }}
-      animate={{ scale: 1, opacity: 1, y: 0 }}
-      exit={{ scale: 0.8, opacity: 0, y: 50 }}
+      initial={{ scale: 0.95, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0.95, opacity: 0 }}
+      transition={{ duration: 0.2 }}
       className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999] max-w-[calc(100vw-2rem)] ${
         isMinimized ? 'w-72 sm:w-80 h-16' : 'w-72 sm:w-80 h-[500px] max-h-[calc(100vh-6rem)]'
       }`}
+      style={{ position: 'fixed', bottom: '1rem', right: '1rem' }}
     >
       <Card className="w-full h-full shadow-2xl border-0 bg-background/95 backdrop-blur-sm">
         {/* Header */}
