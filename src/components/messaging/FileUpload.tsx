@@ -112,22 +112,26 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
         // Si messageId existe, enregistrer dans la DB
         if (messageId) {
-          const { data, error: dbError } = await supabase
-            .from('message_attachments' as any)
-            .insert({
-              message_id: messageId,
-              file_name: file.name,
-              file_type: getFileType(file.type),
-              file_size: file.size,
-              storage_path: filePath,
-              thumbnail_path: thumbnailUrl,
-              mime_type: file.type
-            } as any)
-            .select()
-            .single();
+          try {
+            const { data, error: dbError }: any = await supabase
+              .from('message_attachments' as any)
+              .insert({
+                message_id: messageId,
+                file_name: file.name,
+                file_type: getFileType(file.type),
+                file_size: file.size,
+                storage_path: filePath,
+                thumbnail_path: thumbnailUrl,
+                mime_type: file.type
+              } as any)
+              .select()
+              .single();
 
-          if (!dbError && data) {
-            uploadedFile.id = data.id;
+            if (!dbError && data) {
+              uploadedFile.id = data.id;
+            }
+          } catch (dbErr) {
+            console.error('DB insert error:', dbErr);
           }
         }
 
