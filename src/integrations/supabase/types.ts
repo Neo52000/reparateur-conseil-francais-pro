@@ -139,7 +139,7 @@ export type Database = {
           created_at: string
           id: string
           impression_id: string | null
-          ip_address: unknown | null
+          ip_address: unknown
           placement: string
           user_agent: string | null
           user_id: string | null
@@ -149,7 +149,7 @@ export type Database = {
           created_at?: string
           id?: string
           impression_id?: string | null
-          ip_address?: unknown | null
+          ip_address?: unknown
           placement: string
           user_agent?: string | null
           user_id?: string | null
@@ -159,7 +159,7 @@ export type Database = {
           created_at?: string
           id?: string
           impression_id?: string | null
-          ip_address?: unknown | null
+          ip_address?: unknown
           placement?: string
           user_agent?: string | null
           user_id?: string | null
@@ -186,7 +186,7 @@ export type Database = {
           banner_id: string
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           placement: string
           user_agent: string | null
           user_id: string | null
@@ -195,7 +195,7 @@ export type Database = {
           banner_id: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           placement: string
           user_agent?: string | null
           user_id?: string | null
@@ -204,7 +204,7 @@ export type Database = {
           banner_id?: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           placement?: string
           user_agent?: string | null
           user_id?: string | null
@@ -258,7 +258,7 @@ export type Database = {
           before_data: Json | null
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           resource_id: string | null
           resource_type: string
           session_id: string | null
@@ -274,7 +274,7 @@ export type Database = {
           before_data?: Json | null
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           resource_id?: string | null
           resource_type: string
           session_id?: string | null
@@ -290,7 +290,7 @@ export type Database = {
           before_data?: Json | null
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           resource_id?: string | null
           resource_type?: string
           session_id?: string | null
@@ -1251,7 +1251,7 @@ export type Database = {
           action: string
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_values: Json | null
           old_values: Json | null
           repairer_id: string | null
@@ -1265,7 +1265,7 @@ export type Database = {
           action: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           repairer_id?: string | null
@@ -1279,7 +1279,7 @@ export type Database = {
           action?: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           repairer_id?: string | null
@@ -2894,7 +2894,7 @@ export type Database = {
           device_info: Json | null
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           location_info: Json | null
           session_duration: number | null
           session_id: string
@@ -2907,7 +2907,7 @@ export type Database = {
           device_info?: Json | null
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           location_info?: Json | null
           session_duration?: number | null
           session_id: string
@@ -2920,7 +2920,7 @@ export type Database = {
           device_info?: Json | null
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           location_info?: Json | null
           session_duration?: number | null
           session_id?: string
@@ -2959,33 +2959,56 @@ export type Database = {
       }
       conversations: {
         Row: {
+          appointment_id: string | null
           client_id: string
           created_at: string
           id: string
+          is_archived: boolean | null
+          last_message_at: string | null
           quote_id: string | null
           repairer_id: string
           status: string
+          unread_count_client: number | null
+          unread_count_repairer: number | null
           updated_at: string
         }
         Insert: {
+          appointment_id?: string | null
           client_id: string
           created_at?: string
           id?: string
+          is_archived?: boolean | null
+          last_message_at?: string | null
           quote_id?: string | null
           repairer_id: string
           status?: string
+          unread_count_client?: number | null
+          unread_count_repairer?: number | null
           updated_at?: string
         }
         Update: {
+          appointment_id?: string | null
           client_id?: string
           created_at?: string
           id?: string
+          is_archived?: boolean | null
+          last_message_at?: string | null
           quote_id?: string | null
           repairer_id?: string
           status?: string
+          unread_count_client?: number | null
+          unread_count_repairer?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "conversations_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crm_activities: {
         Row: {
@@ -3450,7 +3473,7 @@ export type Database = {
           action_type: string
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_values: Json | null
           old_values: Json | null
           resource_id: string | null
@@ -3463,7 +3486,7 @@ export type Database = {
           action_type: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           resource_id?: string | null
@@ -3476,7 +3499,7 @@ export type Database = {
           action_type?: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           resource_id?: string | null
@@ -5814,6 +5837,42 @@ export type Database = {
         }
         Relationships: []
       }
+      message_attachments: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string
+          id: string
+          message_id: string
+          mime_type: string | null
+          storage_path: string
+          thumbnail_path: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          id?: string
+          message_id: string
+          mime_type?: string | null
+          storage_path: string
+          thumbnail_path?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          message_id?: string
+          mime_type?: string | null
+          storage_path?: string
+          thumbnail_path?: string | null
+        }
+        Relationships: []
+      }
       module_data_migrations: {
         Row: {
           completed_at: string | null
@@ -6243,7 +6302,7 @@ export type Database = {
           created_at: string | null
           duration_ms: number | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           user_agent: string | null
           user_id: string
@@ -6255,7 +6314,7 @@ export type Database = {
           created_at?: string | null
           duration_ms?: number | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           user_agent?: string | null
           user_id: string
@@ -6267,7 +6326,7 @@ export type Database = {
           created_at?: string | null
           duration_ms?: number | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           user_agent?: string | null
           user_id?: string
@@ -6353,7 +6412,7 @@ export type Database = {
           entity_id: string
           entity_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_locked: boolean | null
           session_id: string | null
           timestamp: string
@@ -6372,7 +6431,7 @@ export type Database = {
           entity_id: string
           entity_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_locked?: boolean | null
           session_id?: string | null
           timestamp?: string
@@ -6391,7 +6450,7 @@ export type Database = {
           entity_id?: string
           entity_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_locked?: boolean | null
           session_id?: string | null
           timestamp?: string
@@ -6616,7 +6675,7 @@ export type Database = {
           created_at: string
           details: Json | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           repairer_id: string
           status: string
           transaction_id: string
@@ -6628,7 +6687,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           repairer_id: string
           status: string
           transaction_id: string
@@ -6640,7 +6699,7 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           repairer_id?: string
           status?: string
           transaction_id?: string
@@ -7218,6 +7277,50 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      payment_holds: {
+        Row: {
+          amount: number
+          created_at: string | null
+          held_at: string | null
+          hold_reason: string | null
+          id: string
+          payment_id: string | null
+          release_at: string | null
+          released_at: string | null
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          held_at?: string | null
+          hold_reason?: string | null
+          id?: string
+          payment_id?: string | null
+          release_at?: string | null
+          released_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          held_at?: string | null
+          hold_reason?: string | null
+          id?: string
+          payment_id?: string | null
+          release_at?: string | null
+          released_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_holds_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
@@ -8206,7 +8309,7 @@ export type Database = {
           event_data: Json | null
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           referrer: string | null
           repairer_id: string
           session_id: string | null
@@ -8218,7 +8321,7 @@ export type Database = {
           event_data?: Json | null
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           referrer?: string | null
           repairer_id: string
           session_id?: string | null
@@ -8230,7 +8333,7 @@ export type Database = {
           event_data?: Json | null
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           referrer?: string | null
           repairer_id?: string
           session_id?: string | null
@@ -9486,6 +9589,47 @@ export type Database = {
           status?: string | null
         }
         Relationships: []
+      }
+      refunds: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          payment_id: string | null
+          processed_at: string | null
+          reason: string | null
+          status: string | null
+          stripe_refund_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          payment_id?: string | null
+          processed_at?: string | null
+          reason?: string | null
+          status?: string | null
+          stripe_refund_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          payment_id?: string | null
+          processed_at?: string | null
+          reason?: string | null
+          status?: string | null
+          stripe_refund_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refunds_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       relaunch_campaign_logs: {
         Row: {
@@ -11269,7 +11413,7 @@ export type Database = {
           created_at: string | null
           error_message: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           resource: string | null
           success: boolean
@@ -11281,7 +11425,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource?: string | null
           success: boolean
@@ -11293,7 +11437,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource?: string | null
           success?: boolean
@@ -12869,7 +13013,7 @@ export type Database = {
           event_data: Json
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           page_url: string | null
           referrer: string | null
           session_id: string | null
@@ -12881,7 +13025,7 @@ export type Database = {
           event_data?: Json
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           page_url?: string | null
           referrer?: string | null
           session_id?: string | null
@@ -12893,7 +13037,7 @@ export type Database = {
           event_data?: Json
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           page_url?: string | null
           referrer?: string | null
           session_id?: string | null
@@ -13304,10 +13448,6 @@ export type Database = {
         }
         Returns: string
       }
-      armor: {
-        Args: { "": string }
-        Returns: string
-      }
       assign_free_plan_to_repairer: {
         Args: { user_email: string; user_id: string }
         Returns: string
@@ -13330,10 +13470,7 @@ export type Database = {
         }
         Returns: number
       }
-      calculate_invoice_hash: {
-        Args: { invoice_data: Json }
-        Returns: string
-      }
+      calculate_invoice_hash: { Args: { invoice_data: Json }; Returns: string }
       calculate_period_hash: {
         Args: { end_date: string; repairer_uuid: string; start_date: string }
         Returns: string
@@ -13342,14 +13479,8 @@ export type Database = {
         Args: { end_date: string; repairer_uuid: string; start_date: string }
         Returns: Json
       }
-      can_create_subdomain: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
-      cleanup_old_rate_limits: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      can_create_subdomain: { Args: { user_id: string }; Returns: boolean }
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
       close_accounting_period: {
         Args: {
           end_date: string
@@ -13363,29 +13494,16 @@ export type Database = {
         Args: { admin_user_id: string; user_email: string }
         Returns: boolean
       }
-      dearmor: {
-        Args: { "": string }
-        Returns: string
-      }
+      dearmor: { Args: { "": string }; Returns: string }
       fix_encoding_issues: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           details: Json
           fixed_count: number
         }[]
       }
-      gen_random_bytes: {
-        Args: { "": number }
-        Returns: string
-      }
-      gen_random_uuid: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      gen_salt: {
-        Args: { "": string }
-        Returns: string
-      }
+      gen_random_uuid: { Args: never; Returns: string }
+      gen_salt: { Args: { "": string }; Returns: string }
       generate_certificate_number: {
         Args: { repairer_uuid: string }
         Returns: string
@@ -13394,10 +13512,7 @@ export type Database = {
         Args: { repairer_uuid: string }
         Returns: string
       }
-      generate_order_number: {
-        Args: { repairer_id: string }
-        Returns: string
-      }
+      generate_order_number: { Args: { repairer_id: string }; Returns: string }
       generate_pos_customer_number: {
         Args: { repairer_id: string }
         Returns: string
@@ -13414,12 +13529,9 @@ export type Database = {
         Args: { repairer_id: string }
         Returns: string
       }
-      generate_unique_id: {
-        Args: { prefix?: string }
-        Returns: string
-      }
+      generate_unique_id: { Args: { prefix?: string }; Returns: string }
       get_admin_subscription_overview: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           billing_cycle: string
           created_at: string
@@ -13449,12 +13561,9 @@ export type Database = {
           user_role: string
         }[]
       }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_user_role: { Args: never; Returns: string }
       get_service_performance: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avg_ctr: number
           avg_seo_score: number
@@ -13473,10 +13582,7 @@ export type Database = {
           total_views: number
         }[]
       }
-      has_local_seo_access: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      has_local_seo_access: { Args: { user_id: string }; Returns: boolean }
       has_module_access: {
         Args: { module_name: string; user_id: string }
         Returns: boolean
@@ -13493,26 +13599,14 @@ export type Database = {
         }
         Returns: boolean
       }
-      has_role: {
-        Args: { _role: string; _user_id: string }
-        Returns: boolean
-      }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       increment_chatbot_metric: {
         Args: { increment_by?: number; metric_name: string }
         Returns: undefined
       }
-      increment_clicks: {
-        Args: { banner_id: string }
-        Returns: undefined
-      }
-      increment_impressions: {
-        Args: { banner_id: string }
-        Returns: undefined
-      }
-      increment_share_count: {
-        Args: { post_id: string }
-        Returns: undefined
-      }
+      increment_clicks: { Args: { banner_id: string }; Returns: undefined }
+      increment_impressions: { Args: { banner_id: string }; Returns: undefined }
+      increment_share_count: { Args: { post_id: string }; Returns: undefined }
       log_security_event: {
         Args: {
           action_param: string
@@ -13522,22 +13616,12 @@ export type Database = {
         }
         Returns: string
       }
-      normalize_text: {
-        Args: { input_text: string }
-        Returns: string
-      }
+      normalize_text: { Args: { input_text: string }; Returns: string }
       pgp_armor_headers: {
         Args: { "": string }
         Returns: Record<string, unknown>[]
       }
-      pgp_key_id: {
-        Args: { "": string }
-        Returns: string
-      }
-      refresh_seo_page_content: {
-        Args: { page_id: string }
-        Returns: boolean
-      }
+      refresh_seo_page_content: { Args: { page_id: string }; Returns: boolean }
       validate_and_use_promo_code: {
         Args: { promo_code_text: string }
         Returns: Json
