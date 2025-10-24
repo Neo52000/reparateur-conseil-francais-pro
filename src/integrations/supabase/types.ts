@@ -300,6 +300,54 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_metrics_snapshot: {
+        Row: {
+          active_repairers: number | null
+          avg_quote_value: number | null
+          conversion_rate: number | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          snapshot_date: string
+          total_appointments: number | null
+          total_commissions: number | null
+          total_quotes: number | null
+          total_repairers: number | null
+          total_revenue: number | null
+          total_users: number | null
+        }
+        Insert: {
+          active_repairers?: number | null
+          avg_quote_value?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          snapshot_date?: string
+          total_appointments?: number | null
+          total_commissions?: number | null
+          total_quotes?: number | null
+          total_repairers?: number | null
+          total_revenue?: number | null
+          total_users?: number | null
+        }
+        Update: {
+          active_repairers?: number | null
+          avg_quote_value?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          snapshot_date?: string
+          total_appointments?: number | null
+          total_commissions?: number | null
+          total_quotes?: number | null
+          total_repairers?: number | null
+          total_revenue?: number | null
+          total_users?: number | null
+        }
+        Relationships: []
+      }
       admin_quote_assignments: {
         Row: {
           assigned_at: string | null
@@ -2813,6 +2861,42 @@ export type Database = {
           siret?: string | null
           status?: string
           verification_date?: string
+        }
+        Relationships: []
+      }
+      commission_tiers: {
+        Row: {
+          commission_rate: number
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          max_monthly_revenue: number | null
+          min_monthly_revenue: number
+          tier_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          commission_rate: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_monthly_revenue?: number | null
+          min_monthly_revenue?: number
+          tier_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          commission_rate?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_monthly_revenue?: number | null
+          min_monthly_revenue?: number
+          tier_name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -8533,6 +8617,51 @@ export type Database = {
           },
         ]
       }
+      push_notifications: {
+        Row: {
+          body: string
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          is_read: boolean | null
+          metadata: Json | null
+          read_at: string | null
+          sent_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_read?: boolean | null
+          metadata?: Json | null
+          read_at?: string | null
+          sent_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_read?: boolean | null
+          metadata?: Json | null
+          read_at?: string | null
+          sent_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       qualirepar_api_logs: {
         Row: {
           api_endpoint: string
@@ -11905,6 +12034,39 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_webhooks: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          event_type: string
+          id: string
+          payload: Json
+          processed: boolean | null
+          processed_at: string | null
+          stripe_event_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload: Json
+          processed?: boolean | null
+          processed_at?: string | null
+          stripe_event_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed?: boolean | null
+          processed_at?: string | null
+          stripe_event_id?: string
+        }
+        Relationships: []
+      }
       subdomains: {
         Row: {
           created_at: string
@@ -12648,6 +12810,63 @@ export type Database = {
           start_time?: string
         }
         Relationships: []
+      }
+      transaction_commissions: {
+        Row: {
+          commission_amount: number
+          commission_rate: number
+          created_at: string | null
+          id: string
+          paid_at: string | null
+          payment_date: string | null
+          payment_id: string | null
+          repairer_id: string
+          status: string | null
+          tier_applied: string | null
+          transaction_amount: number
+        }
+        Insert: {
+          commission_amount: number
+          commission_rate: number
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_date?: string | null
+          payment_id?: string | null
+          repairer_id: string
+          status?: string | null
+          tier_applied?: string | null
+          transaction_amount: number
+        }
+        Update: {
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_date?: string | null
+          payment_id?: string | null
+          repairer_id?: string
+          status?: string | null
+          tier_applied?: string | null
+          transaction_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_commissions_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transaction_commissions_tier_applied_fkey"
+            columns: ["tier_applied"]
+            isOneToOne: false
+            referencedRelation: "commission_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ui_ab_tests: {
         Row: {
@@ -13475,6 +13694,15 @@ export type Database = {
         Args: { end_date: string; repairer_uuid: string; start_date: string }
         Returns: string
       }
+      calculate_repairer_commission: {
+        Args: { repairer_uuid: string; transaction_amount: number }
+        Returns: {
+          commission_amount: number
+          commission_rate: number
+          tier_id: string
+          tier_name: string
+        }[]
+      }
       can_close_period: {
         Args: { end_date: string; repairer_uuid: string; start_date: string }
         Returns: Json
@@ -13621,6 +13849,7 @@ export type Database = {
         Args: { "": string }
         Returns: Record<string, unknown>[]
       }
+      refresh_admin_metrics: { Args: never; Returns: undefined }
       refresh_seo_page_content: { Args: { page_id: string }; Returns: boolean }
       validate_and_use_promo_code: {
         Args: { promo_code_text: string }
