@@ -1,5 +1,43 @@
 # 🔒 Implémentation Sécurité & Conformité - TopRéparateurs.fr
 
+## 🎯 Corrections de Sécurité Critiques (25 Octobre 2025)
+
+### ✅ APPLIQUÉES AVEC SUCCÈS
+
+#### 1. Protection Contre l'Injection de Schéma
+**Problème corrigé :** 4 fonctions SECURITY DEFINER sans `search_path` fixe
+**Fonctions sécurisées :**
+- ✅ `calculate_repairer_commission()` - search_path ajouté
+- ✅ `has_shopify_ecommerce_access()` - search_path ajouté  
+- ✅ `has_shopify_pos_access()` - search_path ajouté
+- ✅ `refresh_admin_metrics()` - search_path ajouté
+
+**Impact :** Prévention des attaques par injection de schéma PostgreSQL
+
+#### 2. Politiques RLS Complétées
+**Problème corrigé :** 3 tables avec RLS activé mais sans politiques
+**Tables sécurisées :**
+- ✅ `message_attachments` - 3 politiques ajoutées (view, insert, admin)
+- ✅ `payment_holds` - 2 politiques ajoutées (repairer view, admin full)
+- ✅ `refunds` - 3 politiques ajoutées (user view, admin manage, user request)
+
+**Impact :** Protection complète des données sensibles avec isolation par utilisateur
+
+#### 3. Logs Sécurisés
+**Problème corrigé :** Exposition de métadonnées sur les clés API
+**Fichiers nettoyés :**
+- ✅ `generate-landing-content/index.ts` - Logs API key supprimés
+- ✅ `generate-landing-suggestions/index.ts` - Logs API key supprimés
+
+**Impact :** Réduction de la surface d'attaque, prévention des attaques par force brute
+
+#### 4. Audit Trail
+- ✅ Migration loguée dans `admin_audit_logs`
+- ✅ Traçabilité complète des modifications
+- ✅ Niveau de sévérité : CRITIQUE
+
+---
+
 ## ✅ Phase 1 : Sécurité Critique (COMPLÉTÉ)
 
 ### 1.1 RLS Policies Strictes
