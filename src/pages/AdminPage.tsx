@@ -21,8 +21,6 @@ import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdver
 import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement';
 import SubdomainsManagement from '@/components/admin/SubdomainsManagement';
 import LandingPagesManagement from '@/components/admin/landing-pages/LandingPagesManagement';
-import AdminPOSManagement from '@/components/admin/AdminPOSManagement';
-import AdminEcommerceManagement from '@/components/admin/AdminEcommerceManagement';
 import LocalSeoManagement from '@/components/admin/LocalSeoManagement';
 import SEOMonitoringDashboard from '@/components/admin/SEOMonitoringDashboard';
 import RepairContentGenerator from '@/components/blog/admin/RepairContentGenerator';
@@ -41,8 +39,6 @@ import RealTimeQuotesManager from '@/components/admin/quotes/RealTimeQuotesManag
 import CatalogManagement from '@/components/admin/catalog/CatalogManagement';
 import { EnhancedPlanVisualizationTester } from '@/components/admin/plans/EnhancedPlanVisualizationTester';
 import { EnhancedDashboardTester } from '@/components/admin/dashboard/EnhancedDashboardTester';
-import { EnhancedPOSTester } from '@/components/admin/pos/EnhancedPOSTester';
-import { EnhancedEcommerceTester } from '@/components/admin/ecommerce/EnhancedEcommerceTester';
 import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizationPanel';
 import { SuppliersDirectoryManagement } from '@/components/admin/SuppliersDirectoryManagement';
 import { SystemDiagnosticsPanel } from '@/components/admin/SystemDiagnosticsPanel';
@@ -114,10 +110,6 @@ const AdminPage = () => {
         return 'Blog & Contenu';
       case 'chatbot':
         return 'Chatbot';
-      case 'pos-admin':
-        return 'Administration POS';
-      case 'ecommerce-admin':
-        return 'E-commerce';
       case 'local-seo':
         return 'SEO Local';
       case 'seo-monitoring':
@@ -136,8 +128,6 @@ const AdminPage = () => {
         return 'Test Interface Plans';
       case 'dashboard-tester':
         return 'Test Interface Réparateur';
-      case 'pos-tester':
-        return 'Test Interface POS';
       case 'configuration':
         return 'Configuration';
       case 'suppliers':
@@ -198,10 +188,6 @@ const AdminPage = () => {
         return 'Gestion du contenu éditorial';
       case 'chatbot':
         return 'Administration et configuration de l\'assistant intelligent';
-      case 'pos-admin':
-        return 'Administration des systèmes POS';
-      case 'ecommerce-admin':
-        return 'Administration des boutiques e-commerce';
       case 'local-seo':
         return 'Génération automatique de pages SEO locales optimisées';
       case 'seo-monitoring':
@@ -220,8 +206,6 @@ const AdminPage = () => {
         return 'Interface de test et configuration pour l\'affichage des plans réparateurs';
       case 'dashboard-tester':
         return 'Interface de test et configuration pour le tableau de bord réparateur';
-      case 'pos-tester':
-        return 'Interface de test et configuration pour le système de point de vente';
       case 'configuration':
         return 'Configuration générale de l\'application';
       case 'suppliers':
@@ -303,10 +287,6 @@ const AdminPage = () => {
         return <BlogManagement />;
       case 'chatbot':
         return <ChatbotManagement />;
-      case 'pos-admin':
-        return <AdminPOSManagement />;
-      case 'ecommerce-admin':
-        return <EnhancedEcommerceTester />;
       case 'local-seo':
         return <LocalSeoManagement />;
       case 'seo-monitoring':
@@ -355,8 +335,6 @@ const AdminPage = () => {
         return <EnhancedPlanVisualizationTester />;
       case 'dashboard-tester':
         return <EnhancedDashboardTester />;
-      case 'pos-tester':
-        return <EnhancedPOSTester />;
       case 'configuration':
         return <AdminConfigurationPage />;
       case 'static-pages':

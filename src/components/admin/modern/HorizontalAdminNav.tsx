@@ -18,8 +18,11 @@ import {
   Settings,
   TestTube,
   ChevronDown,
-  CreditCard,
-  Store
+  Store,
+  ShoppingBag,
+  Euro,
+  TrendingUp,
+  Settings2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -123,26 +126,51 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
     }
   ];
 
-  // Navigation items pour les interfaces (dropdown)
-  const interfacesItems: NavItem[] = [
+  // Navigation items pour Shopify (dropdown)
+  const shopifyItems: NavItem[] = [
     {
-      id: 'pos-admin',
-      label: 'Administration POS',
-      icon: <CreditCard className="w-4 h-4" />,
-    },
-    {
-      id: 'ecommerce-admin',
-      label: 'E-commerce',
+      id: 'shopify-dashboard',
+      label: 'Dashboard Shopify',
       icon: <Store className="w-4 h-4" />,
+      isNew: true
     },
+    {
+      id: 'shopify-stores',
+      label: 'Boutiques',
+      icon: <ShoppingBag className="w-4 h-4" />,
+      isNew: true
+    },
+    {
+      id: 'shopify-orders',
+      label: 'Commandes',
+      icon: <Package className="w-4 h-4" />,
+      isNew: true
+    },
+    {
+      id: 'shopify-commissions',
+      label: 'Commissions',
+      icon: <Euro className="w-4 h-4" />,
+      isNew: true
+    },
+    {
+      id: 'shopify-analytics',
+      label: 'Analytics',
+      icon: <TrendingUp className="w-4 h-4" />,
+      isNew: true
+    },
+    {
+      id: 'shopify-settings',
+      label: 'Configuration',
+      icon: <Settings2 className="w-4 h-4" />,
+      isNew: true
+    }
+  ];
+
+  // Navigation items pour les tests (dropdown)
+  const testersItems: NavItem[] = [
     {
       id: 'dashboard-tester',
       label: 'Test Dashboard',
-      icon: <TestTube className="w-4 h-4" />,
-    },
-    {
-      id: 'pos-tester',
-      label: 'Test POS',
       icon: <TestTube className="w-4 h-4" />,
     },
     {
@@ -304,10 +332,17 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
         />
         
         <DropdownNavMenu 
-          label="Interfaces"
+          label="Shopify"
+          icon={<Store className="w-4 h-4" />}
+          items={shopifyItems}
+          hasActiveItem={shopifyItems.some(item => item.id === activeTab)}
+        />
+        
+        <DropdownNavMenu 
+          label="Tests"
           icon={<TestTube className="w-4 h-4" />}
-          items={interfacesItems}
-          hasActiveItem={interfacesItems.some(item => item.id === activeTab)}
+          items={testersItems}
+          hasActiveItem={testersItems.some(item => item.id === activeTab)}
         />
         
         <DropdownNavMenu 
