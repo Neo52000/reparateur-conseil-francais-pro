@@ -11644,6 +11644,363 @@ export type Database = {
         }
         Relationships: []
       }
+      shopify_order_commissions: {
+        Row: {
+          commission_amount: number
+          commission_rate: number
+          commission_status: string | null
+          created_at: string | null
+          customer_email: string | null
+          id: string
+          order_currency: string | null
+          order_fulfillment_status: string | null
+          order_items: Json | null
+          order_total_amount: number
+          paid_at: string | null
+          payment_method: string | null
+          platform_fee: number
+          repairer_id: string
+          repairer_net_amount: number
+          shopify_order_id: number
+          shopify_order_name: string | null
+          shopify_order_number: string | null
+          store_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          commission_amount: number
+          commission_rate: number
+          commission_status?: string | null
+          created_at?: string | null
+          customer_email?: string | null
+          id?: string
+          order_currency?: string | null
+          order_fulfillment_status?: string | null
+          order_items?: Json | null
+          order_total_amount: number
+          paid_at?: string | null
+          payment_method?: string | null
+          platform_fee: number
+          repairer_id: string
+          repairer_net_amount: number
+          shopify_order_id: number
+          shopify_order_name?: string | null
+          shopify_order_number?: string | null
+          store_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          commission_amount?: number
+          commission_rate?: number
+          commission_status?: string | null
+          created_at?: string | null
+          customer_email?: string | null
+          id?: string
+          order_currency?: string | null
+          order_fulfillment_status?: string | null
+          order_items?: Json | null
+          order_total_amount?: number
+          paid_at?: string | null
+          payment_method?: string | null
+          platform_fee?: number
+          repairer_id?: string
+          repairer_net_amount?: number
+          shopify_order_id?: number
+          shopify_order_name?: string | null
+          shopify_order_number?: string | null
+          store_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_order_commissions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "admin_shopify_stores_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_order_commissions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "shopify_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_pos_locations: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          has_pos_hardware: boolean | null
+          id: string
+          is_active: boolean | null
+          is_primary: boolean | null
+          location_name: string
+          pos_device_id: string | null
+          pos_device_name: string | null
+          province: string | null
+          repairer_id: string
+          shopify_location_id: number
+          store_id: string
+          updated_at: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          has_pos_hardware?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          is_primary?: boolean | null
+          location_name: string
+          pos_device_id?: string | null
+          pos_device_name?: string | null
+          province?: string | null
+          repairer_id: string
+          shopify_location_id: number
+          store_id: string
+          updated_at?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          has_pos_hardware?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          is_primary?: boolean | null
+          location_name?: string
+          pos_device_id?: string | null
+          pos_device_name?: string | null
+          province?: string | null
+          repairer_id?: string
+          shopify_location_id?: number
+          store_id?: string
+          updated_at?: string | null
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_pos_locations_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "admin_shopify_stores_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_pos_locations_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "shopify_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_stores: {
+        Row: {
+          access_token: string | null
+          auto_sync_inventory: boolean | null
+          auto_sync_orders: boolean | null
+          claimed_at: string | null
+          commission_rate: number | null
+          created_at: string | null
+          id: string
+          is_development_store: boolean | null
+          last_sync_at: string | null
+          onboarding_step: number | null
+          repairer_id: string
+          setup_completed: boolean | null
+          shop_domain: string
+          shopify_plan_display_name: string | null
+          shopify_plan_name: string | null
+          shopify_store_id: number | null
+          store_currency: string | null
+          store_email: string | null
+          store_name: string | null
+          store_status: string
+          store_timezone: string | null
+          storefront_access_token: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          auto_sync_inventory?: boolean | null
+          auto_sync_orders?: boolean | null
+          claimed_at?: string | null
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          is_development_store?: boolean | null
+          last_sync_at?: string | null
+          onboarding_step?: number | null
+          repairer_id: string
+          setup_completed?: boolean | null
+          shop_domain: string
+          shopify_plan_display_name?: string | null
+          shopify_plan_name?: string | null
+          shopify_store_id?: number | null
+          store_currency?: string | null
+          store_email?: string | null
+          store_name?: string | null
+          store_status?: string
+          store_timezone?: string | null
+          storefront_access_token?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          auto_sync_inventory?: boolean | null
+          auto_sync_orders?: boolean | null
+          claimed_at?: string | null
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          is_development_store?: boolean | null
+          last_sync_at?: string | null
+          onboarding_step?: number | null
+          repairer_id?: string
+          setup_completed?: boolean | null
+          shop_domain?: string
+          shopify_plan_display_name?: string | null
+          shopify_plan_name?: string | null
+          shopify_store_id?: number | null
+          store_currency?: string | null
+          store_email?: string | null
+          store_name?: string | null
+          store_status?: string
+          store_timezone?: string | null
+          storefront_access_token?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      shopify_sync_logs: {
+        Row: {
+          completed_at: string | null
+          error_details: Json | null
+          id: string
+          items_failed: number | null
+          items_processed: number | null
+          items_synced: number | null
+          started_at: string | null
+          store_id: string
+          sync_direction: string
+          sync_status: string | null
+          sync_summary: Json | null
+          sync_type: string
+        }
+        Insert: {
+          completed_at?: string | null
+          error_details?: Json | null
+          id?: string
+          items_failed?: number | null
+          items_processed?: number | null
+          items_synced?: number | null
+          started_at?: string | null
+          store_id: string
+          sync_direction: string
+          sync_status?: string | null
+          sync_summary?: Json | null
+          sync_type: string
+        }
+        Update: {
+          completed_at?: string | null
+          error_details?: Json | null
+          id?: string
+          items_failed?: number | null
+          items_processed?: number | null
+          items_synced?: number | null
+          started_at?: string | null
+          store_id?: string
+          sync_direction?: string
+          sync_status?: string | null
+          sync_summary?: Json | null
+          sync_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_sync_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "admin_shopify_stores_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_sync_logs_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "shopify_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shopify_webhooks: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          headers: Json | null
+          id: string
+          payload: Json
+          processed_at: string | null
+          processing_status: string | null
+          retry_count: number | null
+          store_id: string
+          webhook_id: string | null
+          webhook_topic: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          headers?: Json | null
+          id?: string
+          payload: Json
+          processed_at?: string | null
+          processing_status?: string | null
+          retry_count?: number | null
+          store_id: string
+          webhook_id?: string | null
+          webhook_topic: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          headers?: Json | null
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          processing_status?: string | null
+          retry_count?: number | null
+          store_id?: string
+          webhook_id?: string | null
+          webhook_topic?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopify_webhooks_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "admin_shopify_stores_overview"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopify_webhooks_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "shopify_stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shopping_cart: {
         Row: {
           added_at: string | null
@@ -13575,6 +13932,24 @@ export type Database = {
       }
     }
     Views: {
+      admin_shopify_stores_overview: {
+        Row: {
+          claimed_at: string | null
+          commission_rate: number | null
+          created_at: string | null
+          id: string | null
+          repairer_email: string | null
+          repairer_id: string | null
+          repairer_name: string | null
+          shop_domain: string | null
+          store_name: string | null
+          store_status: string | null
+          total_commissions: number | null
+          total_orders: number | null
+          total_revenue: number | null
+        }
+        Relationships: []
+      }
       nf203_admin_overview: {
         Row: {
           active_alerts: number | null
@@ -13703,6 +14078,14 @@ export type Database = {
           tier_name: string
         }[]
       }
+      calculate_shopify_commission: {
+        Args: { commission_rate_param: number; order_total: number }
+        Returns: {
+          commission_amount: number
+          platform_fee: number
+          repairer_net_amount: number
+        }[]
+      }
       can_close_period: {
         Args: { end_date: string; repairer_uuid: string; start_date: string }
         Returns: Json
@@ -13828,6 +14211,11 @@ export type Database = {
         Returns: boolean
       }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      has_shopify_ecommerce_access: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
+      has_shopify_pos_access: { Args: { user_id: string }; Returns: boolean }
       increment_chatbot_metric: {
         Args: { increment_by?: number; metric_name: string }
         Returns: undefined
@@ -13851,6 +14239,22 @@ export type Database = {
       }
       refresh_admin_metrics: { Args: never; Returns: undefined }
       refresh_seo_page_content: { Args: { page_id: string }; Returns: boolean }
+      uuid_generate_v1: { Args: never; Returns: string }
+      uuid_generate_v1mc: { Args: never; Returns: string }
+      uuid_generate_v3: {
+        Args: { name: string; namespace: string }
+        Returns: string
+      }
+      uuid_generate_v4: { Args: never; Returns: string }
+      uuid_generate_v5: {
+        Args: { name: string; namespace: string }
+        Returns: string
+      }
+      uuid_nil: { Args: never; Returns: string }
+      uuid_ns_dns: { Args: never; Returns: string }
+      uuid_ns_oid: { Args: never; Returns: string }
+      uuid_ns_url: { Args: never; Returns: string }
+      uuid_ns_x500: { Args: never; Returns: string }
       validate_and_use_promo_code: {
         Args: { promo_code_text: string }
         Returns: Json
