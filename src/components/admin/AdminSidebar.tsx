@@ -26,7 +26,12 @@ import {
   Layout,
   Monitor,
   Activity,
-  TrendingUp
+  TrendingUp,
+  Store,
+  ShoppingBag,
+  Package,
+  Euro,
+  Settings2
 } from 'lucide-react';
 
 const AdminSidebar: React.FC = () => {
@@ -56,6 +61,14 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=landing-pages', icon: Layout, label: 'Landing Pages', tab: 'landing-pages', category: 'Content & Marketing' },
     { path: '/admin?tab=advertising-ai', icon: Megaphone, label: 'Publicité IA', tab: 'advertising-ai', category: 'Content & Marketing' },
     { path: '/admin?tab=promocodes', icon: Tag, label: 'Codes promo', tab: 'promocodes', category: 'Content & Marketing' },
+    
+    // Shopify Management
+    { path: '/admin?tab=shopify-dashboard', icon: Store, label: 'Dashboard Shopify', tab: 'shopify-dashboard', category: 'Shopify Management' },
+    { path: '/admin?tab=shopify-stores', icon: ShoppingBag, label: 'Boutiques Réparateurs', tab: 'shopify-stores', category: 'Shopify Management' },
+    { path: '/admin?tab=shopify-orders', icon: Package, label: 'Commandes Globales', tab: 'shopify-orders', category: 'Shopify Management' },
+    { path: '/admin?tab=shopify-commissions', icon: Euro, label: 'Commissions & Payouts', tab: 'shopify-commissions', category: 'Shopify Management' },
+    { path: '/admin?tab=shopify-analytics', icon: TrendingUp, label: 'Analytics Shopify', tab: 'shopify-analytics', category: 'Shopify Management' },
+    { path: '/admin?tab=shopify-settings', icon: Settings2, label: 'Configuration API', tab: 'shopify-settings', category: 'Shopify Management' },
     
     // Technical
     { path: '/admin?tab=scraping', icon: Database, label: 'Scraping Réel', tab: 'scraping', category: 'Technical' },

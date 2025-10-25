@@ -47,6 +47,12 @@ import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizatio
 import { SuppliersDirectoryManagement } from '@/components/admin/SuppliersDirectoryManagement';
 import { SystemDiagnosticsPanel } from '@/components/admin/SystemDiagnosticsPanel';
 import ChatbotPerformancePanel from '@/components/admin/ChatbotPerformancePanel';
+import AdminShopifyDashboard from '@/components/shopify/admin/AdminShopifyDashboard';
+import ShopifyStoresManager from '@/components/shopify/admin/ShopifyStoresManager';
+import ShopifyGlobalOrders from '@/components/shopify/admin/ShopifyGlobalOrders';
+import ShopifyCommissionsManager from '@/components/shopify/admin/ShopifyCommissionsManager';
+import ShopifyGlobalAnalytics from '@/components/shopify/admin/ShopifyGlobalAnalytics';
+import ShopifyAdminSettings from '@/components/shopify/admin/ShopifyAdminSettings';
 
 const AdminPage = () => {
   const {
@@ -140,6 +146,18 @@ const AdminPage = () => {
         return 'Diagnostics Système';
       case 'chatbot-performance':
         return 'Performance Chatbot';
+      case 'shopify-dashboard':
+        return 'Dashboard Shopify';
+      case 'shopify-stores':
+        return 'Boutiques Réparateurs';
+      case 'shopify-orders':
+        return 'Commandes Globales';
+      case 'shopify-commissions':
+        return 'Commissions & Payouts';
+      case 'shopify-analytics':
+        return 'Analytics Shopify';
+      case 'shopify-settings':
+        return 'Configuration Shopify';
       default:
         return 'Dashboard';
     }
@@ -214,6 +232,18 @@ const AdminPage = () => {
         return 'Surveillance en temps réel des services IA et état du chatbot';
       case 'chatbot-performance':
         return 'Métriques de performance et analyse du comportement du chatbot IA';
+      case 'shopify-dashboard':
+        return 'Vue d\'ensemble des boutiques e-commerce réparateurs';
+      case 'shopify-stores':
+        return 'Gestion et modération de toutes les boutiques Shopify';
+      case 'shopify-orders':
+        return 'Toutes les commandes Shopify de la plateforme';
+      case 'shopify-commissions':
+        return 'Gestion des commissions et paiements réparateurs';
+      case 'shopify-analytics':
+        return 'Analyses avancées et métriques e-commerce';
+      case 'shopify-settings':
+        return 'Paramètres API et configuration globale Shopify';
       default:
         return 'Administration de RepairHub';
     }
@@ -339,6 +369,18 @@ const AdminPage = () => {
         return <SystemDiagnosticsPanel />;
       case 'chatbot-performance':
         return <ChatbotPerformancePanel />;
+      case 'shopify-dashboard':
+        return <AdminShopifyDashboard />;
+      case 'shopify-stores':
+        return <ShopifyStoresManager />;
+      case 'shopify-orders':
+        return <ShopifyGlobalOrders />;
+      case 'shopify-commissions':
+        return <ShopifyCommissionsManager />;
+      case 'shopify-analytics':
+        return <ShopifyGlobalAnalytics />;
+      case 'shopify-settings':
+        return <ShopifyAdminSettings />;
       default:
         return <AdminDashboardContent activeTab={activeTab} subscriptions={[]} repairers={[]} onViewProfile={() => {}} onRefresh={async () => {}} />;
     }
