@@ -54,7 +54,7 @@ const Navigation = () => {
         <div className="flex justify-between h-20">
           <div className="flex items-center space-x-8">
             <Link to="/" className="flex items-center">
-              <Logo variant="compact" size="md" />
+              <Logo variant="compact" size="xl" />
             </Link>
 
             {/* Navigation générale */}
