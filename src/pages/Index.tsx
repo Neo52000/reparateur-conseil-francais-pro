@@ -27,7 +27,7 @@ const Index = () => {
         <Navigation />
       </header>
 
-      <main className="space-y-16 md:space-y-24">
+      <main className="space-y-20 md:space-y-32">
         {/* Hero principal avec chargement optimisé */}
         <Suspense fallback={<HeroSkeleton />}>
           <HeroWithIntegratedSearch 
@@ -37,7 +37,7 @@ const Index = () => {
         </Suspense>
 
         {/* Sections en conteneur aéré - chargement différé */}
-        <section className="container mx-auto px-4 md:px-6 lg:px-8">
+        <section className="container mx-auto px-4 md:px-8 lg:px-10">
           <Suspense fallback={
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[...Array(3)].map((_, i) => (
@@ -49,9 +49,9 @@ const Index = () => {
           </Suspense>
         </section>
 
-        <section className="container mx-auto px-4 md:px-6 lg:px-8">
+        <section className="container mx-auto px-4 md:px-8 lg:px-10">
           <Suspense fallback={
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="h-40 bg-muted animate-pulse rounded-lg" />
               ))}
@@ -61,9 +61,9 @@ const Index = () => {
           </Suspense>
         </section>
 
-        <section className="container mx-auto px-4 md:px-6 lg:px-8">
+        <section className="container mx-auto px-4 md:px-8 lg:px-10">
           <Suspense fallback={
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div className="h-8 w-64 bg-muted animate-pulse rounded" />
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[...Array(3)].map((_, i) => (

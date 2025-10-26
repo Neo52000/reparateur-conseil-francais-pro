@@ -22,6 +22,7 @@ const buttonVariants = cva(
         premium: "bg-gradient-to-r from-electric-blue to-vibrant-orange text-white font-semibold shadow-[var(--shadow-premium)] hover:shadow-[var(--shadow-glow)] hover:scale-[1.02] hover:-translate-y-1",
         glass: "bg-[var(--glass-bg)] backdrop-blur-[var(--glass-blur)] border border-[var(--glass-border)] hover:bg-white/80 dark:hover:bg-white/10 hover:-translate-y-0.5",
         success: "bg-success-button text-success-button-foreground hover:bg-success-button/90 shadow-[var(--shadow-button)] hover:shadow-[var(--shadow-button-hover)] hover:-translate-y-0.5",
+        modern: "bg-gray-900 text-white font-semibold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border-2 border-gray-800 hover:border-gray-700 dark:bg-gray-100 dark:text-gray-900 dark:border-gray-200 dark:hover:border-gray-300",
       },
       size: {
         default: "h-10 px-4 py-2",
