@@ -5714,19 +5714,23 @@ export type Database = {
           content_paragraph_2: string
           created_at: string
           cta_text: string
+          faq: Json | null
           generated_by_ai: boolean | null
           generation_prompt: string | null
           h1_title: string
+          hero_image_url: string | null
           id: string
           is_published: boolean
           last_updated_content: string | null
           map_embed_url: string | null
           meta_description: string
+          og_image_url: string | null
           page_views: number | null
           repairer_count: number | null
           sample_testimonials: Json | null
           seo_score: number | null
           service_type: string
+          services: Json | null
           slug: string
           title: string
           updated_at: string
@@ -5741,19 +5745,23 @@ export type Database = {
           content_paragraph_2: string
           created_at?: string
           cta_text: string
+          faq?: Json | null
           generated_by_ai?: boolean | null
           generation_prompt?: string | null
           h1_title: string
+          hero_image_url?: string | null
           id?: string
           is_published?: boolean
           last_updated_content?: string | null
           map_embed_url?: string | null
           meta_description: string
+          og_image_url?: string | null
           page_views?: number | null
           repairer_count?: number | null
           sample_testimonials?: Json | null
           seo_score?: number | null
           service_type: string
+          services?: Json | null
           slug: string
           title: string
           updated_at?: string
@@ -5768,19 +5776,23 @@ export type Database = {
           content_paragraph_2?: string
           created_at?: string
           cta_text?: string
+          faq?: Json | null
           generated_by_ai?: boolean | null
           generation_prompt?: string | null
           h1_title?: string
+          hero_image_url?: string | null
           id?: string
           is_published?: boolean
           last_updated_content?: string | null
           map_embed_url?: string | null
           meta_description?: string
+          og_image_url?: string | null
           page_views?: number | null
           repairer_count?: number | null
           sample_testimonials?: Json | null
           seo_score?: number | null
           service_type?: string
+          services?: Json | null
           slug?: string
           title?: string
           updated_at?: string
@@ -11240,13 +11252,16 @@ export type Database = {
           email: string | null
           enhanced_at: string | null
           enhancement_status: string | null
+          geocoded_at: string | null
           geocoding_accuracy: string | null
           geocoding_source: string | null
           id: string
           is_open: boolean | null
           is_verified: boolean | null
           lat: number | null
+          latitude: number | null
           lng: number | null
+          longitude: number | null
           mistral_enhanced: boolean | null
           mistral_enhancement_data: Json | null
           name: string
@@ -11292,13 +11307,16 @@ export type Database = {
           email?: string | null
           enhanced_at?: string | null
           enhancement_status?: string | null
+          geocoded_at?: string | null
           geocoding_accuracy?: string | null
           geocoding_source?: string | null
           id?: string
           is_open?: boolean | null
           is_verified?: boolean | null
           lat?: number | null
+          latitude?: number | null
           lng?: number | null
+          longitude?: number | null
           mistral_enhanced?: boolean | null
           mistral_enhancement_data?: Json | null
           name: string
@@ -11344,13 +11362,16 @@ export type Database = {
           email?: string | null
           enhanced_at?: string | null
           enhancement_status?: string | null
+          geocoded_at?: string | null
           geocoding_accuracy?: string | null
           geocoding_source?: string | null
           id?: string
           is_open?: boolean | null
           is_verified?: boolean | null
           lat?: number | null
+          latitude?: number | null
           lng?: number | null
+          longitude?: number | null
           mistral_enhanced?: boolean | null
           mistral_enhancement_data?: Json | null
           name?: string

@@ -87,6 +87,7 @@ const AppWithTracking = () => {
         <Route path="/admin/import/*" element={<AdminImportPage />} />
         <Route path="/admin/static-pages" element={<StaticPagesManagerPage />} />
         <Route path="/reparateur-:serviceType-:city" element={<LocalSeoPage />} />
+        <Route path="/modern-reparateur-:serviceType-:city" element={<ModernLocalSeoPage />} />
         <Route path="/404" element={<NotFound />} />
         <Route path="/repairer-dashboard" element={<RepairerDashboardPage />} />
         <Route path="/client-dashboard" element={<ClientDashboardPage />} />
