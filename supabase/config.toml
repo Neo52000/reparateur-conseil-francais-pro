@@ -26,3 +26,18 @@ verify_jwt = false
 
 [functions."chatbot-gpt5"]
 verify_jwt = false
+
+[functions.chatbot-lovable]
+verify_jwt = false
+
+[functions.ai-enhanced-scraping]
+verify_jwt = false
+
+[functions.ai-dynamic-pricing]
+verify_jwt = false
+
+[functions.ai-fraud-detection]
+verify_jwt = false
+
+[functions.ai-analytics-dashboard]
+verify_jwt = false

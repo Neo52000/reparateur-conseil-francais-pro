@@ -616,6 +616,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_analytics: {
+        Row: {
+          cost_estimate: number | null
+          created_at: string | null
+          error_message: string | null
+          function_name: string
+          id: string
+          latency_ms: number | null
+          model: string
+          provider: string
+          success: boolean | null
+        }
+        Insert: {
+          cost_estimate?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          function_name: string
+          id?: string
+          latency_ms?: number | null
+          model: string
+          provider: string
+          success?: boolean | null
+        }
+        Update: {
+          cost_estimate?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          function_name?: string
+          id?: string
+          latency_ms?: number | null
+          model?: string
+          provider?: string
+          success?: boolean | null
+        }
+        Relationships: []
+      }
       ai_campaign_templates: {
         Row: {
           ai_model: string | null
@@ -3011,6 +3047,42 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
           user_role?: string | null
+        }
+        Relationships: []
+      }
+      conversation_memory: {
+        Row: {
+          context: Json
+          created_at: string | null
+          expires_at: string | null
+          history: Json
+          id: string
+          metadata: Json | null
+          session_id: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context?: Json
+          created_at?: string | null
+          expires_at?: string | null
+          history?: Json
+          id?: string
+          metadata?: Json | null
+          session_id: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context?: Json
+          created_at?: string | null
+          expires_at?: string | null
+          history?: Json
+          id?: string
+          metadata?: Json | null
+          session_id?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -11148,6 +11220,12 @@ export type Database = {
       repairers: {
         Row: {
           address: string
+          ai_analyzed_at: string | null
+          ai_price_competitiveness: number | null
+          ai_quality_score: number | null
+          ai_red_flags: string[] | null
+          ai_reliability_score: number | null
+          ai_specialties: string[] | null
           auto_detected_category: string | null
           business_category_id: string | null
           business_status: string | null
@@ -11194,6 +11272,12 @@ export type Database = {
         }
         Insert: {
           address: string
+          ai_analyzed_at?: string | null
+          ai_price_competitiveness?: number | null
+          ai_quality_score?: number | null
+          ai_red_flags?: string[] | null
+          ai_reliability_score?: number | null
+          ai_specialties?: string[] | null
           auto_detected_category?: string | null
           business_category_id?: string | null
           business_status?: string | null
@@ -11240,6 +11324,12 @@ export type Database = {
         }
         Update: {
           address?: string
+          ai_analyzed_at?: string | null
+          ai_price_competitiveness?: number | null
+          ai_quality_score?: number | null
+          ai_red_flags?: string[] | null
+          ai_reliability_score?: number | null
+          ai_specialties?: string[] | null
           auto_detected_category?: string | null
           business_category_id?: string | null
           business_status?: string | null
@@ -14091,6 +14181,7 @@ export type Database = {
         Returns: Json
       }
       can_create_subdomain: { Args: { user_id: string }; Returns: boolean }
+      cleanup_expired_conversations: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       close_accounting_period: {
         Args: {
