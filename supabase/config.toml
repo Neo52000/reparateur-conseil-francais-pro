@@ -41,3 +41,12 @@ verify_jwt = false
 
 [functions.ai-analytics-dashboard]
 verify_jwt = false
+
+[functions.blog-ai-generator]
+verify_jwt = true
+
+[functions.blog-auto-publish]
+verify_jwt = false
+
+[functions.blog-image-generator]
+verify_jwt = true

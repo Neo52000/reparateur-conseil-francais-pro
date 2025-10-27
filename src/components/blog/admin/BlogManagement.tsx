@@ -3,19 +3,36 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, FileText, Settings, Users, BarChart3, Newspaper } from 'lucide-react';
+import { Plus, FileText, Settings, Users, BarChart3, Newspaper, Sparkles } from 'lucide-react';
 import BlogPostsManager from './BlogPostsManager';
 import BlogCategoriesManager from './BlogCategoriesManager';
 import BlogTemplatesManager from './BlogTemplatesManager';
 import BlogAnalytics from './BlogAnalytics';
 import BlogSettings from './BlogSettings';
 import BlogNewsTracker from './BlogNewsTracker';
+import BlogAIGenerator from './BlogAIGenerator';
+import { BlogPost } from '@/types/blog';
 
 const BlogManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState('posts');
   const [showNewArticleEditor, setShowNewArticleEditor] = useState(false);
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
+  const [generatedPost, setGeneratedPost] = useState<BlogPost | null>(null);
 
   const handleNewArticleClick = () => {
+    setActiveTab('posts');
+    setShowNewArticleEditor(true);
+    setGeneratedPost(null);
+  };
+
+  const handleAIGeneratorClick = () => {
+    setActiveTab('ai-generator');
+    setShowAIGenerator(true);
+  };
+
+  const handleArticleGenerated = (post: BlogPost) => {
+    setGeneratedPost(post);
+    setShowAIGenerator(false);
     setActiveTab('posts');
     setShowNewArticleEditor(true);
   };
@@ -27,17 +44,27 @@ const BlogManagement: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900">Gestion du Blog</h2>
           <p className="text-gray-600">Gérez vos articles, catégories et templates de génération IA</p>
         </div>
-        <Button onClick={handleNewArticleClick}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouvel article
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleAIGeneratorClick}>
+            <Sparkles className="h-4 w-4 mr-2" />
+            Générer avec IA
+          </Button>
+          <Button onClick={handleNewArticleClick}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvel article
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="posts" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Articles
+          </TabsTrigger>
+          <TabsTrigger value="ai-generator" className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            Générateur IA
           </TabsTrigger>
           <TabsTrigger value="categories" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -65,7 +92,12 @@ const BlogManagement: React.FC = () => {
           <BlogPostsManager 
             forceShowEditor={showNewArticleEditor}
             onEditorStateChange={setShowNewArticleEditor}
+            editingPost={generatedPost}
           />
+        </TabsContent>
+
+        <TabsContent value="ai-generator" className="space-y-4">
+          <BlogAIGenerator onArticleGenerated={handleArticleGenerated} />
         </TabsContent>
 
         <TabsContent value="categories" className="space-y-4">

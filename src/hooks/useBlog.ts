@@ -4,6 +4,7 @@ import { useBlogCategories } from './blog/useBlogCategories';
 import { useBlogComments } from './blog/useBlogComments';
 import { useBlogNewsletter } from './blog/useBlogNewsletter';
 import { useBlogSocial } from './blog/useBlogSocial';
+import { useBlogAIGenerator } from './blog/useBlogAIGenerator';
 
 export const useBlog = () => {
   const { loading, fetchPosts, fetchPostBySlug, savePost, deletePost, checkSlugExists } = useBlogPosts();
@@ -11,6 +12,7 @@ export const useBlog = () => {
   const { fetchComments, addComment } = useBlogComments();
   const { subscribeToNewsletter } = useBlogNewsletter();
   const { trackSocialShare } = useBlogSocial();
+  const { generating, generateArticle, generateImage } = useBlogAIGenerator();
 
   return {
     loading,
@@ -23,6 +25,10 @@ export const useBlog = () => {
     addComment,
     subscribeToNewsletter,
     trackSocialShare,
-    checkSlugExists
+    checkSlugExists,
+    generating,
+    generateArticle,
+    generateImage
   };
 };
+

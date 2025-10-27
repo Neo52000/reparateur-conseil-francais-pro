@@ -17,11 +17,13 @@ import BlogPreviewModal from '../BlogPreviewModal';
 interface BlogPostsManagerProps {
   forceShowEditor?: boolean;
   onEditorStateChange?: (show: boolean) => void;
+  editingPost?: BlogPost | null;
 }
 
 const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({ 
   forceShowEditor = false, 
-  onEditorStateChange 
+  onEditorStateChange,
+  editingPost = null
 }) => {
   const { fetchPosts, fetchCategories, deletePost, loading } = useBlog();
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -37,9 +39,9 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
   useEffect(() => {
     if (forceShowEditor) {
       setShowEditor(true);
-      setSelectedPost(null);
+      setSelectedPost(editingPost);
     }
-  }, [forceShowEditor]);
+  }, [forceShowEditor, editingPost]);
 
   useEffect(() => {
     loadPosts();
