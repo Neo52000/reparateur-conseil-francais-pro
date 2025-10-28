@@ -46,7 +46,7 @@ const BlogAIGenerator: React.FC<BlogAIGeneratorProps> = ({ onArticleGenerated })
 
     const post = await generateArticle({
       topic,
-      category_id: categoryId || undefined,
+      category_id: categoryId && categoryId !== 'none' ? categoryId : undefined,
       keywords: keywordsArray.length > 0 ? keywordsArray : undefined,
       target_audience: targetAudience,
       tone,
@@ -103,7 +103,7 @@ const BlogAIGenerator: React.FC<BlogAIGeneratorProps> = ({ onArticleGenerated })
                 <SelectValue placeholder="Sélectionner..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Aucune catégorie</SelectItem>
+                <SelectItem value="none">Aucune catégorie</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>
                     {cat.name}
