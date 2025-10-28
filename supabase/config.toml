@@ -50,3 +50,12 @@ verify_jwt = false
 
 [functions.blog-image-generator]
 verify_jwt = true
+
+[functions.generate-local-seo-v3]
+verify_jwt = false
+
+[functions.geocode-repairers]
+verify_jwt = false
+
+[functions.batch-generate-local-seo]
+verify_jwt = false

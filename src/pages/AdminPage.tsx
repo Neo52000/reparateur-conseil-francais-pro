@@ -37,6 +37,7 @@ import { CheckmateMonitoring } from '@/components/admin/monitoring/CheckmateMoni
 import StaticPagesManager from '@/components/admin/StaticPagesManager';
 import RealTimeQuotesManager from '@/components/admin/quotes/RealTimeQuotesManager';
 import CatalogManagement from '@/components/admin/catalog/CatalogManagement';
+import SeoToolsPanel from '@/components/admin/SeoToolsPanel';
 import { EnhancedPlanVisualizationTester } from '@/components/admin/plans/EnhancedPlanVisualizationTester';
 import { EnhancedDashboardTester } from '@/components/admin/dashboard/EnhancedDashboardTester';
 import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizationPanel';
@@ -112,6 +113,8 @@ const AdminPage = () => {
         return 'Chatbot';
       case 'local-seo':
         return 'SEO Local';
+      case 'seo-tools':
+        return 'Outils SEO';
       case 'seo-monitoring':
         return 'Monitoring SEO';
       case 'repair-generator':
@@ -190,6 +193,8 @@ const AdminPage = () => {
         return 'Administration et configuration de l\'assistant intelligent';
       case 'local-seo':
         return 'Génération automatique de pages SEO locales optimisées';
+      case 'seo-tools':
+        return 'Outils de maintenance et régénération du contenu SEO';
       case 'seo-monitoring':
         return 'Monitoring SEO et surveillance technique en temps réel';
       case 'repair-generator':
@@ -289,6 +294,8 @@ const AdminPage = () => {
         return <ChatbotManagement />;
       case 'local-seo':
         return <LocalSeoManagement />;
+      case 'seo-tools':
+        return <SeoToolsPanel />;
       case 'seo-monitoring':
         return <SEOMonitoringDashboard />;
       case 'repair-generator':

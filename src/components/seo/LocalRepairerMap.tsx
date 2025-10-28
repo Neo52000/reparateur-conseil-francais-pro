@@ -25,7 +25,13 @@ export default function LocalRepairerMap({ city, repairers }: LocalRepairerMapPr
   useEffect(() => {
     if (!mapContainer.current || repairers.length === 0 || map.current) return;
 
-    const MAPBOX_TOKEN = 'pk.eyJ1IjoiZXhhbXBsZSIsImEiOiJjbGV4YW1wbGUifQ.example';
+    const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || '';
+    
+    if (!MAPBOX_TOKEN) {
+      console.error('⚠️ Token Mapbox non configuré (VITE_MAPBOX_PUBLIC_TOKEN)');
+      return;
+    }
+    
     mapboxgl.accessToken = MAPBOX_TOKEN;
 
     const centerLat = repairers.reduce((sum, r) => sum + r.latitude, 0) / repairers.length;
