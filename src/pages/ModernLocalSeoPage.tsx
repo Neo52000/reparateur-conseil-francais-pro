@@ -143,7 +143,7 @@ export default function ModernLocalSeoPage() {
 
           {/* Testimonials */}
           {seoPage.sample_testimonials && Array.isArray(seoPage.sample_testimonials) && seoPage.sample_testimonials.length > 0 && (
-            <TestimonialsSection testimonials={seoPage.sample_testimonials} city={seoPage.city} />
+            <TestimonialsSection testimonials={seoPage.sample_testimonials as any[]} city={seoPage.city} />
           )}
 
           {/* Map Section */}
@@ -156,7 +156,7 @@ export default function ModernLocalSeoPage() {
 
           {/* FAQ Section */}
           {seoPage.faq && Array.isArray(seoPage.faq) && seoPage.faq.length > 0 && (
-            <FaqAccordion faq={seoPage.faq} city={seoPage.city} />
+            <FaqAccordion faq={seoPage.faq as any} city={seoPage.city} />
           )}
         </div>
 

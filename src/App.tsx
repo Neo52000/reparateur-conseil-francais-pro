@@ -19,6 +19,7 @@ import TabletRepairPage from "./pages/services/TabletRepairPage";
 import ComputerRepairPage from "./pages/services/ComputerRepairPage";
 import ConsoleRepairPage from "./pages/services/ConsoleRepairPage";
 import LocalSeoPage from "./components/LocalSeoPage";
+import ModernLocalSeoPage from "./pages/ModernLocalSeoPage";
 import RepairerSettingsPage from "./pages/RepairerSettingsPage";
 import RepairTrackingPage from "./pages/RepairTrackingPage";
 import StaticPage from "./pages/StaticPage";
