@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, Suspense, lazy } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
@@ -19,7 +19,7 @@ import TabletRepairPage from "./pages/services/TabletRepairPage";
 import ComputerRepairPage from "./pages/services/ComputerRepairPage";
 import ConsoleRepairPage from "./pages/services/ConsoleRepairPage";
 import LocalSeoPage from "./components/LocalSeoPage";
-import ModernLocalSeoPage from "./pages/ModernLocalSeoPage";
+
 import RepairerSettingsPage from "./pages/RepairerSettingsPage";
 import RepairTrackingPage from "./pages/RepairTrackingPage";
 import StaticPage from "./pages/StaticPage";
@@ -42,6 +42,8 @@ import AdminImportPage from "./components/admin/AdminImportPage";
 // Configuration production
 import { initializeProductionMode, performProductionHealthCheck } from './config/productionSetup';
 import { RuntimeDiagnostics } from "./components/dev/RuntimeDiagnostics";
+
+const ModernLocalSeoPageLazy = lazy(() => import("./pages/ModernLocalSeoPage"));
 
 const queryClient = new QueryClient();
 
@@ -81,14 +83,15 @@ const AppWithTracking = () => {
     <ChatbotLayout>
       <GlobalVisitorTracker />
       {import.meta.env.DEV && <RuntimeDiagnostics />}
-      <Routes>
+      <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" /></div>}>
+        <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/admin/import" element={<AdminImportPage />} />
         <Route path="/admin/import/*" element={<AdminImportPage />} />
         <Route path="/admin/static-pages" element={<StaticPagesManagerPage />} />
         <Route path="/reparateur-:serviceType-:city" element={<LocalSeoPage />} />
-        <Route path="/modern-reparateur-:serviceType-:city" element={<ModernLocalSeoPage />} />
+        <Route path="/modern-reparateur-:serviceType-:city" element={<ModernLocalSeoPageLazy />} />
         <Route path="/404" element={<NotFound />} />
         <Route path="/repairer-dashboard" element={<RepairerDashboardPage />} />
         <Route path="/client-dashboard" element={<ClientDashboardPage />} />
@@ -131,7 +134,8 @@ const AppWithTracking = () => {
         <Route path="/confidentialite" element={<Navigate to="/privacy" replace />} />
         {/* 404 fallback */}
         <Route path="*" element={<NotFound />} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </ChatbotLayout>
   );
 };
