@@ -38,6 +38,7 @@ import StaticPagesManager from '@/components/admin/StaticPagesManager';
 import RealTimeQuotesManager from '@/components/admin/quotes/RealTimeQuotesManager';
 import CatalogManagement from '@/components/admin/catalog/CatalogManagement';
 import SeoToolsPanel from '@/components/admin/SeoToolsPanel';
+import RepairerSeoPanel from '@/components/admin/RepairerSeoPanel';
 import { EnhancedPlanVisualizationTester } from '@/components/admin/plans/EnhancedPlanVisualizationTester';
 import { EnhancedDashboardTester } from '@/components/admin/dashboard/EnhancedDashboardTester';
 import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizationPanel';
@@ -298,6 +299,8 @@ const AdminPage = () => {
         return <LocalSeoManagement />;
       case 'seo-tools':
         return <SeoToolsPanel />;
+      case 'repairer-seo':
+        return <RepairerSeoPanel />;
       case 'seo-monitoring':
         return <SEOMonitoringDashboard />;
       case 'repair-generator':

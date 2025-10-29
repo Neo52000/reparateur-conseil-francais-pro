@@ -22,7 +22,8 @@ import {
   ShoppingBag,
   Euro,
   TrendingUp,
-  Settings2
+  Settings2,
+  FileText
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -163,6 +164,36 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
       label: 'Configuration',
       icon: <Settings2 className="w-4 h-4" />,
       isNew: true
+    }
+  ];
+
+  // Navigation items pour le SEO (dropdown)
+  const seoItems: NavItem[] = [
+    {
+      id: 'local-seo',
+      label: 'SEO Local',
+      icon: <Search className="w-4 h-4" />,
+    },
+    {
+      id: 'repairer-seo',
+      label: 'Pages SEO Réparateurs',
+      icon: <FileText className="w-4 h-4" />,
+      isNew: true
+    },
+    {
+      id: 'seo-tools',
+      label: 'Outils SEO',
+      icon: <Settings className="w-4 h-4" />,
+    },
+    {
+      id: 'seo-monitoring',
+      label: 'Monitoring SEO',
+      icon: <BarChart3 className="w-4 h-4" />,
+    },
+    {
+      id: 'repair-generator',
+      label: 'Générateur Contenu',
+      icon: <Bot className="w-4 h-4" />,
     }
   ];
 
@@ -329,6 +360,13 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
           icon={<Settings className="w-4 h-4" />}
           items={toolsItems}
           hasActiveItem={toolsItems.some(item => item.id === activeTab)}
+        />
+        
+        <DropdownNavMenu 
+          label="SEO"
+          icon={<Search className="w-4 h-4" />}
+          items={seoItems}
+          hasActiveItem={seoItems.some(item => item.id === activeTab)}
         />
         
         <DropdownNavMenu 
