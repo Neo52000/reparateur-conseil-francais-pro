@@ -10998,6 +10998,84 @@ export type Database = {
         }
         Relationships: []
       }
+      repairer_seo_pages: {
+        Row: {
+          created_at: string
+          google_indexed_at: string | null
+          h1_title: string
+          id: string
+          intro_paragraph: string
+          is_published: boolean
+          last_generated_at: string
+          meta_description: string
+          page_views: number
+          repairer_id: string
+          services_description: string
+          sitemap_submitted_at: string | null
+          slug: string
+          structured_data: Json
+          title: string
+          updated_at: string
+          url_path: string
+          why_choose_us: string
+        }
+        Insert: {
+          created_at?: string
+          google_indexed_at?: string | null
+          h1_title: string
+          id?: string
+          intro_paragraph: string
+          is_published?: boolean
+          last_generated_at?: string
+          meta_description: string
+          page_views?: number
+          repairer_id: string
+          services_description: string
+          sitemap_submitted_at?: string | null
+          slug: string
+          structured_data: Json
+          title: string
+          updated_at?: string
+          url_path: string
+          why_choose_us: string
+        }
+        Update: {
+          created_at?: string
+          google_indexed_at?: string | null
+          h1_title?: string
+          id?: string
+          intro_paragraph?: string
+          is_published?: boolean
+          last_generated_at?: string
+          meta_description?: string
+          page_views?: number
+          repairer_id?: string
+          services_description?: string
+          sitemap_submitted_at?: string | null
+          slug?: string
+          structured_data?: Json
+          title?: string
+          updated_at?: string
+          url_path?: string
+          why_choose_us?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repairer_seo_pages_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repairer_seo_pages_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairers_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       repairer_services: {
         Row: {
           base_price: number | null

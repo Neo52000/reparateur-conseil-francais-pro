@@ -115,6 +115,8 @@ const AdminPage = () => {
         return 'SEO Local';
       case 'seo-tools':
         return 'Outils SEO';
+      case 'repairer-seo':
+        return 'Pages SEO Réparateurs';
       case 'seo-monitoring':
         return 'Monitoring SEO';
       case 'repair-generator':

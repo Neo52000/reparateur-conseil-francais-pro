@@ -62,6 +62,25 @@ serve(async (req) => {
               stripe_subscription_id: session.subscription,
               updated_at: new Date().toISOString(),
             });
+
+          // Générer automatiquement une page SEO pour le réparateur payant
+          if (tierMap[plan?.name] && tierMap[plan?.name] !== 'free' && repairer_id) {
+            console.log(`🚀 Génération automatique de la page SEO pour le réparateur ${repairer_id}`);
+            try {
+              const { data: seoResult } = await supabase.functions.invoke('generate-repairer-seo-page', {
+                body: { repairer_id }
+              });
+              
+              if (seoResult?.success) {
+                console.log(`✅ Page SEO créée avec succès: ${seoResult.url_path}`);
+                // TODO: Déclencher l'indexation Google ici si nécessaire
+              } else {
+                console.error('❌ Échec génération page SEO:', seoResult?.error);
+              }
+            } catch (seoError) {
+              console.error('❌ Erreur lors de la génération de la page SEO:', seoError);
+            }
+          }
         }
         break;
 

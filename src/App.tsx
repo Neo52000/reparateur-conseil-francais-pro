@@ -19,6 +19,7 @@ import TabletRepairPage from "./pages/services/TabletRepairPage";
 import ComputerRepairPage from "./pages/services/ComputerRepairPage";
 import ConsoleRepairPage from "./pages/services/ConsoleRepairPage";
 import LocalSeoPage from "./components/LocalSeoPage";
+import RepairerSeoPage from "./pages/RepairerSeoPage";
 
 import RepairerSettingsPage from "./pages/RepairerSettingsPage";
 import RepairTrackingPage from "./pages/RepairTrackingPage";
@@ -92,6 +93,8 @@ const AppWithTracking = () => {
         <Route path="/admin/static-pages" element={<StaticPagesManagerPage />} />
         <Route path="/reparateur-:serviceType-:city" element={<LocalSeoPage />} />
         <Route path="/modern-reparateur-:serviceType-:city" element={<ModernLocalSeoPageLazy />} />
+        {/* Pages SEO individuelles des réparateurs */}
+        <Route path="/:city/:repairerName" element={<RepairerSeoPage />} />
         <Route path="/404" element={<NotFound />} />
         <Route path="/repairer-dashboard" element={<RepairerDashboardPage />} />
         <Route path="/client-dashboard" element={<ClientDashboardPage />} />
