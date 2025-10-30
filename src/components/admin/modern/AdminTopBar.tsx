@@ -26,25 +26,25 @@ const AdminTopBar = ({
     e.preventDefault();
     onSearch?.(searchQuery);
   };
-  return <header className="h-8 bg-wp-header border-b border-wp-header/20 sticky top-0 z-50 shadow-sm">
-      <div className="h-full px-4 flex items-center justify-between">
+  return <header className="h-12 sm:h-10 md:h-8 bg-wp-header border-b border-wp-header/20 sticky top-0 z-50 shadow-sm">
+      <div className="h-full px-2 sm:px-3 md:px-4 flex items-center justify-between gap-2">
         {/* Left side - Logo & Quick Actions */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-wp-accent rounded-full flex items-center justify-center">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0 flex-shrink">
+          <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+            <div className="w-5 h-5 sm:w-6 sm:h-6 bg-wp-accent rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-xs font-bold text-white">R</span>
             </div>
-            <span className="text-wp-header-foreground font-medium text-sm hidden sm:inline">TopRéparateurs.fr
+            <span className="text-wp-header-foreground font-medium text-xs sm:text-sm hidden md:inline truncate">TopRéparateurs.fr
           </span>
           </div>
 
           {/* Quick Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-7 px-2 text-xs">
+          <nav className="hidden lg:flex items-center gap-1">
+            <Button variant="ghost" size="sm" className="text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-6 sm:h-7 px-2 text-xs">
               <Plus className="w-3 h-3 mr-1" />
               Nouveau
             </Button>
-            <Button variant="ghost" size="sm" className="text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-7 px-2 text-xs">
+            <Button variant="ghost" size="sm" className="text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-6 sm:h-7 px-2 text-xs">
               <Globe className="w-3 h-3 mr-1" />
               Visiter
             </Button>
@@ -52,21 +52,21 @@ const AdminTopBar = ({
         </div>
 
         {/* Center - Search */}
-        <div className="flex-1 max-w-md mx-4">
+        <div className="flex-1 max-w-md mx-1 sm:mx-2 md:mx-4 hidden sm:block">
           <form onSubmit={handleSearch} className="relative">
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-wp-header-foreground/40 w-3 h-3" />
-            <Input placeholder="Rechercher dans l'admin..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-7 h-6 bg-wp-header-foreground/10 border-wp-header-foreground/20 text-wp-header-foreground placeholder:text-wp-header-foreground/40 text-xs focus:bg-wp-header-foreground/20" />
+            <Input placeholder="Rechercher..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-7 h-7 sm:h-6 bg-wp-header-foreground/10 border-wp-header-foreground/20 text-wp-header-foreground placeholder:text-wp-header-foreground/40 text-xs focus:bg-wp-header-foreground/20" />
           </form>
         </div>
 
         {/* Right side - User Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           {/* Notifications */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="relative text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-7 w-7 p-0">
+              <Button variant="ghost" size="sm" className="relative text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-7 sm:h-7 w-7 sm:w-7 p-0">
                 <Bell className="w-3 h-3" />
-                {notificationCount > 0 && <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center p-0 text-[10px] bg-admin-red">
+                {notificationCount > 0 && <Badge variant="destructive" className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 sm:h-4 sm:w-4 flex items-center justify-center p-0 text-[9px] sm:text-[10px] bg-admin-red">
                     {notificationCount}
                   </Badge>}
               </Button>
@@ -95,13 +95,13 @@ const AdminTopBar = ({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="flex items-center gap-1 text-wp-header-foreground/70 hover:text-wp-header-foreground hover:bg-wp-header-foreground/10 h-7 px-1">
-                <Avatar className="w-5 h-5">
+                <Avatar className="w-5 h-5 sm:w-5 sm:h-5">
                   <AvatarImage src={userAvatar} />
-                  <AvatarFallback className="text-[10px] bg-wp-accent text-white">
+                  <AvatarFallback className="text-[9px] sm:text-[10px] bg-wp-accent text-white">
                     {userName.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-xs hidden sm:inline max-w-20 truncate">{userName}</span>
+                <span className="text-xs hidden md:inline max-w-16 lg:max-w-20 truncate">{userName}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">

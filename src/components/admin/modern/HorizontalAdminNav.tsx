@@ -256,39 +256,39 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
         variant={isActive ? "default" : "ghost"}
         size="sm"
         className={`
-          relative gap-2 h-9 px-3
+          relative gap-2 h-9 px-2 sm:px-3
           ${isActive ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-muted text-muted-foreground hover:text-foreground'}
           transition-all duration-200
         `}
       >
         {item.icon}
-        <span className="font-medium">{item.label}</span>
+        <span className="font-medium hidden sm:inline">{item.label}</span>
         
-        {/* Badge */}
+        {/* Badge - hidden on mobile */}
         {item.badge && (
           <Badge 
             variant="secondary" 
-            className="ml-1 h-5 px-1.5 text-xs bg-admin-orange text-white"
+            className="ml-1 h-5 px-1.5 text-xs bg-admin-orange text-white hidden sm:inline-flex absolute sm:relative -top-1 -right-1 sm:top-auto sm:right-auto"
           >
             {item.badge}
           </Badge>
         )}
         
-        {/* New indicator */}
+        {/* New indicator - hidden on mobile */}
         {item.isNew && (
           <Badge 
             variant="secondary" 
-            className="ml-1 h-5 px-1.5 text-xs bg-admin-green text-white"
+            className="ml-1 h-5 px-1.5 text-xs bg-admin-green text-white hidden sm:inline-flex"
           >
             NEW
           </Badge>
         )}
         
-        {/* Pro indicator */}
+        {/* Pro indicator - hidden on mobile */}
         {item.isPro && (
           <Badge 
             variant="secondary" 
-            className="ml-1 h-5 px-1.5 text-xs bg-admin-purple text-white"
+            className="ml-1 h-5 px-1.5 text-xs bg-admin-purple text-white hidden sm:inline-flex"
           >
             PRO
           </Badge>
@@ -309,13 +309,13 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
           variant={hasActiveItem ? "default" : "ghost"}
           size="sm"
           className={`
-            gap-2 h-9 px-3
+            gap-1 sm:gap-2 h-9 px-2 sm:px-3
             ${hasActiveItem ? 'bg-primary text-primary-foreground shadow-sm' : 'hover:bg-muted text-muted-foreground hover:text-foreground'}
             transition-all duration-200
           `}
         >
           {icon}
-          <span className="font-medium">{label}</span>
+          <span className="font-medium hidden sm:inline">{label}</span>
           <ChevronDown className="w-3 h-3" />
         </Button>
       </DropdownMenuTrigger>
@@ -351,8 +351,8 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
   );
 
   return (
-    <nav className={`bg-card border-b border-border/60 px-6 py-3 ${className}`}>
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+    <nav className={`bg-card border-b border-border/60 px-2 sm:px-4 lg:px-6 py-2 sm:py-3 ${className}`}>
+      <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-hide pb-1 sm:pb-0">
         {/* Navigation principale */}
         {mainNavItems.map((item) => (
           <NavButton 
@@ -400,18 +400,18 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
           hasActiveItem={configItems.some(item => item.id === activeTab)}
         />
 
-        <div className="h-6 w-px bg-border mx-2" />
+        <div className="h-6 w-px bg-border mx-1 sm:mx-2 hidden sm:block" />
         
         {/* Lien direct vers la documentation */}
         <a href="/documentation" target="_blank" rel="noopener noreferrer">
           <Button
             variant="ghost"
             size="sm"
-            className="gap-2 h-9 px-3 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200"
+            className="gap-1 sm:gap-2 h-9 px-2 sm:px-3 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200"
           >
             <FileText className="w-4 h-4" />
-            <span className="font-medium">Documentation</span>
-            <Badge className="ml-1 h-5 px-1.5 text-xs bg-admin-green text-white">
+            <span className="font-medium hidden sm:inline">Documentation</span>
+            <Badge className="ml-1 h-5 px-1.5 text-xs bg-admin-green text-white hidden sm:inline-flex">
               NEW
             </Badge>
           </Button>
