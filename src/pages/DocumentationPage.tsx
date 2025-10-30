@@ -1,13 +1,33 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, BookOpen, Database, Download, Eye } from 'lucide-react';
+import { FileText, BookOpen, Database, Download, Eye, RefreshCw } from 'lucide-react';
 import { useDocumentationManager } from '@/hooks/useDocumentationManager';
 import { Helmet } from 'react-helmet-async';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 const DocumentationPage: React.FC = () => {
-  const { generating, generatePDF, previewDocument } = useDocumentationManager();
+  const { generating, generatePDF, previewDocument, generateAllPDFs, checkForChanges } = useDocumentationManager();
+
+  const handleUpdateAll = async () => {
+    try {
+      toast.info('Vérification des mises à jour...');
+      const changes = await checkForChanges();
+      const needsUpdate = changes.filter(c => c.needs_update);
+      
+      if (needsUpdate.length === 0) {
+        toast.success('Tous les documents sont déjà à jour');
+        return;
+      }
+      
+      toast.info(`Mise à jour de ${needsUpdate.length} document(s)...`);
+      await generateAllPDFs();
+      toast.success('Documents mis à jour avec succès');
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
 
   const documents = [
     {
@@ -59,9 +79,19 @@ const DocumentationPage: React.FC = () => {
             <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
               Documentation TopRéparateurs.fr
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-6">
               Accédez à toute la documentation du projet : spécifications produit, guides utilisateurs et documentation technique
             </p>
+            <Button
+              onClick={handleUpdateAll}
+              disabled={generating}
+              variant="outline"
+              size="lg"
+              className="gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${generating ? 'animate-spin' : ''}`} />
+              Mettre à jour tous les PDFs
+            </Button>
           </div>
 
           {/* Documents Grid */}

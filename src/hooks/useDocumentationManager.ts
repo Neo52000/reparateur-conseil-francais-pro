@@ -20,7 +20,7 @@ export interface DocumentationManagerHook {
   generateAllPDFs: () => Promise<void>;
   enableAutoUpdate: () => void;
   disableAutoUpdate: () => void;
-  checkForChanges: () => Promise<void>;
+  checkForChanges: () => Promise<DocumentationChange[]>;
   getVersionHistory: (docType: 'prd' | 'user-guide' | 'technical') => Promise<void>;
   downloadVersion: (version: DocumentationVersion) => Promise<void>;
   previewDocument: (docType: 'prd' | 'user-guide' | 'technical') => Promise<void>;
@@ -140,10 +140,13 @@ export const useDocumentationManager = (): DocumentationManagerHook => {
           description: `${needsUpdate.length} document(s) ont été modifié(s).`,
         });
       }
+      
+      return detectedChanges;
     } catch (error) {
       console.error('Erreur vérification changements:', error);
       setError('Impossible de vérifier les documents');
       setDocumentsExists(false);
+      return [];
     }
   }, [toast]);
 
@@ -257,11 +260,11 @@ export const useDocumentationManager = (): DocumentationManagerHook => {
 
 // Fonction utilitaire pour récupérer le contenu des documents
 async function fetchDocumentContent(docType: 'prd' | 'user-guide' | 'technical'): Promise<string> {
-  const docPaths = {
-    'prd': '/docs/PRD.md',
-    'user-guide': '/docs/user-guide.md',
-    'technical': '/docs/README.md'
-  };
+const docPaths = {
+  'prd': '/docs/PRD.md',
+  'user-guide': '/docs/GUIDE_UTILISATEUR.md', 
+  'technical': '/docs/DOCUMENTATION_TECHNIQUE.md'
+};
 
   const response = await fetch(docPaths[docType]);
   if (!response.ok) {

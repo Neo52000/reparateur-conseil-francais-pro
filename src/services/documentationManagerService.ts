@@ -163,8 +163,8 @@ export class DocumentationManagerService {
   private static async fetchDocumentContent(docType: 'prd' | 'user-guide' | 'technical'): Promise<string> {
     const docPaths = {
       'prd': '/docs/PRD.md',
-      'user-guide': '/docs/user-guide.md', 
-      'technical': '/docs/README.md'
+      'user-guide': '/docs/GUIDE_UTILISATEUR.md', 
+      'technical': '/docs/DOCUMENTATION_TECHNIQUE.md'
     };
 
     try {
