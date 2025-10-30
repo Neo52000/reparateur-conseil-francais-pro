@@ -120,6 +120,18 @@ const BenChatWidget: React.FC = () => {
     return () => window.removeEventListener('open-chatbot', handleOpenChatbot);
   }, [messages.length]);
 
+  // Minimiser automatiquement le chatbot quand la page est en arrière-plan
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isOpen) {
+        setIsOpen(false);
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isOpen]);
+
   // Scroll automatique vers le bas
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -298,8 +310,8 @@ const BenChatWidget: React.FC = () => {
       <div className="flex gap-1">
         <span>{config.chatbot_name || 'Ben'} réfléchit</span>
         <motion.div
-          animate={{ opacity: [1, 0.5, 1] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
+          animate={{ opacity: [1, 0.6, 1] }}
+          transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
           className="flex gap-1"
         >
           <div className="w-1 h-1 bg-primary rounded-full" />
@@ -334,7 +346,7 @@ const BenChatWidget: React.FC = () => {
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.2 }}
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999]"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50"
         style={{ position: 'fixed', bottom: '1rem', right: '1rem' }}
       >
         <Button
@@ -352,8 +364,8 @@ const BenChatWidget: React.FC = () => {
         
         {/* Notification badge */}
         <motion.div
-          animate={{ scale: [1, 1.2, 1] }}
-          transition={{ repeat: Infinity, duration: 2 }}
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ repeat: 3, duration: 2, repeatType: "reverse" }}
           className="absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 bg-red-500 rounded-full flex items-center justify-center"
         >
           <Heart className="h-1.5 w-1.5 sm:h-2 sm:w-2 text-white" />
@@ -368,7 +380,7 @@ const BenChatWidget: React.FC = () => {
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0.95, opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[9999] max-w-[calc(100vw-2rem)] ${
+      className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 max-w-[calc(100vw-2rem)] ${
         isMinimized ? 'w-72 sm:w-80 h-16' : 'w-72 sm:w-80 h-[500px] max-h-[calc(100vh-6rem)]'
       }`}
       style={{ position: 'fixed', bottom: '1rem', right: '1rem' }}
