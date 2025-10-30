@@ -44,25 +44,22 @@ export const BlogAutomationSettings = () => {
 
   const loadConfig = async () => {
     try {
-      const { data, error }: any = await supabase
-        .rpc('get_blog_automation_config' as any)
+      const { data, error } = await supabase
+        .from('blog_automation_config')
+        .select('id, enabled, auto_publish, schedule_time, schedule_day, ai_model, last_run_at, next_run_at, prompt_template, created_at, updated_at')
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (error) {
         // Check if it's a permission error (code 42501)
-        if (error.code === '42501' || error.message?.includes('permission denied')) {
+        if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('Access denied')) {
           setIsPermissionError(true);
           toast({
             title: "Accès réservé aux administrateurs",
             description: "Seuls les administrateurs peuvent accéder à l'automatisation du blog.",
             variant: "destructive"
           });
-          return;
-        }
-        
-        // If function doesn't exist, it means migration wasn't run
-        if (error.message?.includes('function') && error.message?.includes('does not exist')) {
-          console.error('RPC function does not exist - migration required');
           return;
         }
         
