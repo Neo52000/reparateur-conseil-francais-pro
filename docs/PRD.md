@@ -39,6 +39,9 @@ Devenir la référence française pour la réparation de smartphones, en créant
 4. **Facturation** et suivi financier
 5. **Analytics** et statistiques de performance
 6. **Formation** et support technique
+7. **Page SEO locale automatique** : Mini-site optimisé Google (plans payants)
+8. **Structured Data** : Référencement LocalBusiness automatique
+9. **QR Code avis Google** : Génération automatique pour vitrine
 
 ### Administration
 1. **Validation** des réparateurs
@@ -136,7 +139,15 @@ Devenir la référence française pour la réparation de smartphones, en créant
 - Codes promo et promotions
 - Système de scraping massif
 
-### Q1 2025 (En cours)
+### Q1 2025 ✅ Terminé
+- **Pages SEO automatisées réparateurs** : Génération automatique de pages locales SEO pour chaque réparateur payant
+- **Système de paiement Stripe** : Abonnements et webhooks intégrés
+- **Panel admin SEO avancé** : Gestion centralisée des pages SEO par réparateur
+- **Structured Data Schema.org** : Implémentation LocalBusiness pour tous les réparateurs
+- **Indexation automatique Google** : Mise à jour sitemap et notification Google Search Console
+- **Génération batch SEO** : Création en masse de pages pour tous les réparateurs payants
+
+### Q2 2025 (En cours)
 - **API publique v1** : Documentation et SDK
 - **App mobile PWA** : Application progressive web
 - **Marketplace pièces** : Commande de pièces détachées
