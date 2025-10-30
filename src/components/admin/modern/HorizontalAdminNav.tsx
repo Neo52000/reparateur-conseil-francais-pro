@@ -127,6 +127,16 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
     }
   ];
 
+  // Documentation (lien externe)
+  const documentationItems = [
+    {
+      id: 'documentation',
+      label: 'Documentation & PDFs',
+      icon: <FileText className="w-4 h-4" />,
+      isNew: true
+    }
+  ];
+
   // Navigation items pour Shopify (dropdown)
   const shopifyItems: NavItem[] = [
     {
@@ -389,6 +399,23 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
           items={configItems}
           hasActiveItem={configItems.some(item => item.id === activeTab)}
         />
+
+        <div className="h-6 w-px bg-border mx-2" />
+        
+        {/* Lien direct vers la documentation */}
+        <a href="/documentation" target="_blank" rel="noopener noreferrer">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2 h-9 px-3 hover:bg-muted text-muted-foreground hover:text-foreground transition-all duration-200"
+          >
+            <FileText className="w-4 h-4" />
+            <span className="font-medium">Documentation</span>
+            <Badge className="ml-1 h-5 px-1.5 text-xs bg-admin-green text-white">
+              NEW
+            </Badge>
+          </Button>
+        </a>
       </div>
     </nav>
   );
