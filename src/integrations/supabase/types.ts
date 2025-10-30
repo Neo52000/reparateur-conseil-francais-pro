@@ -1455,6 +1455,59 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_automation_config: {
+        Row: {
+          ai_model: string | null
+          auto_publish: boolean | null
+          category_id: string | null
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          last_run_at: string | null
+          next_run_at: string | null
+          prompt_template: string | null
+          schedule_day: number | null
+          schedule_time: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_model?: string | null
+          auto_publish?: boolean | null
+          category_id?: string | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          last_run_at?: string | null
+          next_run_at?: string | null
+          prompt_template?: string | null
+          schedule_day?: number | null
+          schedule_time?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_model?: string | null
+          auto_publish?: boolean | null
+          category_id?: string | null
+          created_at?: string | null
+          enabled?: boolean | null
+          id?: string
+          last_run_at?: string | null
+          next_run_at?: string | null
+          prompt_template?: string | null
+          schedule_day?: number | null
+          schedule_time?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_automation_config_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "blog_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_categories: {
         Row: {
           created_at: string
@@ -14139,6 +14192,19 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_automation_cron_history: {
+        Row: {
+          duration_seconds: number | null
+          end_time: string | null
+          jobid: number | null
+          jobname: string | null
+          return_message: string | null
+          runid: number | null
+          start_time: string | null
+          status: string | null
+        }
+        Relationships: []
+      }
       nf203_admin_overview: {
         Row: {
           active_alerts: number | null
@@ -14349,6 +14415,17 @@ export type Database = {
           subscription_tier: string
           updated_at: string
           user_id: string
+        }[]
+      }
+      get_blog_automation_status: {
+        Args: never
+        Returns: {
+          enabled: boolean
+          last_error: string
+          last_run: string
+          last_status: string
+          next_run: string
+          schedule: string
         }[]
       }
       get_connection_stats: {
