@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Clock, Calendar, Zap, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Clock, Calendar, Zap, FileText, AlertCircle, CheckCircle2, ChevronDown, ExternalLink, ShieldAlert } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface AutomationConfig {
   id: string;
@@ -36,6 +37,9 @@ export const BlogAutomationSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [isPermissionError, setIsPermissionError] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [initializing, setInitializing] = useState(false);
 
   const loadConfig = async () => {
     try {
@@ -44,8 +48,9 @@ export const BlogAutomationSettings = () => {
         .single();
 
       if (error) {
-        // Check if it's a permission error
-        if (error.code === '42501' || error.message?.includes('Permission denied')) {
+        // Check if it's a permission error (code 42501)
+        if (error.code === '42501' || error.message?.includes('permission denied')) {
+          setIsPermissionError(true);
           toast({
             title: "Accès réservé aux administrateurs",
             description: "Seuls les administrateurs peuvent accéder à l'automatisation du blog.",
@@ -53,15 +58,23 @@ export const BlogAutomationSettings = () => {
           });
           return;
         }
+        
+        // If function doesn't exist, it means migration wasn't run
+        if (error.message?.includes('function') && error.message?.includes('does not exist')) {
+          console.error('RPC function does not exist - migration required');
+          return;
+        }
+        
         throw error;
       }
       
+      // Data can be null if no config exists yet
       setConfig(data);
     } catch (error: any) {
       console.error('Error loading automation config:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger la configuration. Vérifiez que la migration SQL a été exécutée.",
+        description: "Impossible de charger la configuration.",
         variant: "destructive"
       });
     }
@@ -134,6 +147,43 @@ export const BlogAutomationSettings = () => {
     }
   };
 
+  const handleInitializeConfig = async () => {
+    setInitializing(true);
+    try {
+      // Insert default configuration
+      const { data, error } = await supabase
+        .from('blog_automation_config' as any)
+        .insert({
+          enabled: false,
+          auto_publish: false,
+          schedule_time: '08:00',
+          schedule_day: 1, // Monday
+          ai_model: 'google/gemini-2.5-flash',
+          prompt_template: 'Génère un article d\'actualité sur les dernières nouvelles de la réparation de smartphones et mobiles en France.'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Configuration initialisée",
+        description: "La configuration par défaut a été créée avec succès.",
+      });
+
+      await loadConfig();
+    } catch (error: any) {
+      console.error('Error initializing config:', error);
+      toast({
+        title: "Erreur d'initialisation",
+        description: error.message || "Impossible d'initialiser la configuration",
+        variant: "destructive"
+      });
+    } finally {
+      setInitializing(false);
+    }
+  };
+
   const handleTestNow = async () => {
     setTesting(true);
     try {
@@ -157,7 +207,7 @@ export const BlogAutomationSettings = () => {
       console.error('Test error:', error);
       toast({
         title: "Erreur de test",
-        description: error.message || "Le test a échoué",
+        description: error.message || "Le test a échoué. Vérifiez que LOVABLE_API_KEY est configuré.",
         variant: "destructive"
       });
     } finally {
@@ -176,25 +226,115 @@ export const BlogAutomationSettings = () => {
     );
   }
 
+  // Permission denied - show clear message
+  if (isPermissionError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldAlert className="h-5 w-5 text-destructive" />
+            Accès Restreint
+          </CardTitle>
+          <CardDescription>
+            Cette fonctionnalité est réservée aux administrateurs
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <ShieldAlert className="h-4 w-4" />
+            <AlertTitle>Accès Refusé</AlertTitle>
+            <AlertDescription>
+              Seuls les utilisateurs avec le rôle <strong>admin</strong> peuvent accéder à la configuration de l'automatisation du blog.
+              <br /><br />
+              Si vous devriez avoir accès à cette fonctionnalité, contactez un administrateur système.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // No config found - allow initialization
   if (!config) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Automatisation Hebdomadaire</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="h-5 w-5" />
+            Automatisation Hebdomadaire
+          </CardTitle>
           <CardDescription>
-            Configuration non disponible. Veuillez exécuter la migration SQL dans{' '}
-            <code className="text-sm bg-muted px-1 py-0.5 rounded">
-              supabase/manual-migrations/blog_automation_setup.sql
-            </code>
+            Configuration de la génération automatique d'articles
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <Alert>
             <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Aucune configuration trouvée</AlertTitle>
             <AlertDescription>
-              Pour activer l'automatisation, exécutez le fichier SQL de migration dans le SQL Editor de Supabase.
+              La table de configuration existe mais aucun enregistrement n'a été créé.
+              Cliquez sur le bouton ci-dessous pour initialiser la configuration par défaut.
             </AlertDescription>
           </Alert>
+
+          <Button 
+            onClick={handleInitializeConfig}
+            disabled={initializing}
+            className="w-full"
+          >
+            <Zap className="mr-2 h-4 w-4" />
+            {initializing ? 'Initialisation...' : 'Initialiser la configuration'}
+          </Button>
+
+          <Collapsible open={showHelp} onOpenChange={setShowHelp}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full">
+                <ChevronDown className={`mr-2 h-4 w-4 transition-transform ${showHelp ? 'rotate-180' : ''}`} />
+                Aide et vérification
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 pt-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="space-y-2">
+                  <p><strong>Prérequis :</strong></p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>Extensions <code>pg_cron</code> et <code>pg_net</code> activées dans Supabase</li>
+                    <li>Edge Function <code>weekly-blog-automation</code> déployée</li>
+                    <li>Secret <code>LOVABLE_API_KEY</code> configuré pour les tests</li>
+                  </ul>
+                  <p className="pt-2">
+                    <a 
+                      href="https://github.com/yourusername/yourrepo/blob/main/docs/BLOG_AUTOMATION.md"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      Consulter la documentation complète
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </p>
+                </AlertDescription>
+              </Alert>
+
+              {cronStatus && (
+                <Alert className={cronStatus.last_status === 'succeeded' ? 'border-green-500' : ''}>
+                  <CheckCircle2 className="h-4 w-4" />
+                  <AlertTitle>Statut du Cron Job</AlertTitle>
+                  <AlertDescription className="space-y-1 text-sm">
+                    <p><strong>État :</strong> {cronStatus.enabled ? '✅ Actif' : '❌ Inactif'}</p>
+                    <p><strong>Schedule :</strong> {cronStatus.schedule}</p>
+                    {cronStatus.last_run && (
+                      <p><strong>Dernière exécution :</strong> {new Date(cronStatus.last_run).toLocaleString('fr-FR')}</p>
+                    )}
+                    {cronStatus.next_run && (
+                      <p><strong>Prochaine exécution :</strong> {new Date(cronStatus.next_run).toLocaleString('fr-FR')}</p>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
         </CardContent>
       </Card>
     );
@@ -223,12 +363,15 @@ export const BlogAutomationSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Cron Status Alert */}
           {cronStatus && (
             <Alert className={cronStatus.last_status === 'succeeded' ? 'border-green-500' : ''}>
               <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Statut du Cron Job</AlertTitle>
               <AlertDescription>
-                <div className="space-y-1">
-                  <p><strong>Statut :</strong> {cronStatus.enabled ? 'Actif' : 'Inactif'}</p>
+                <div className="space-y-1 text-sm">
+                  <p><strong>État :</strong> {cronStatus.enabled ? '✅ Actif' : '❌ Inactif'}</p>
+                  <p><strong>Schedule :</strong> {cronStatus.schedule}</p>
                   {cronStatus.last_run && (
                     <p><strong>Dernière exécution :</strong> {new Date(cronStatus.last_run).toLocaleString('fr-FR')}</p>
                   )}
@@ -238,10 +381,48 @@ export const BlogAutomationSettings = () => {
                   {cronStatus.last_status && (
                     <p><strong>Dernier statut :</strong> {cronStatus.last_status}</p>
                   )}
+                  {cronStatus.last_error && (
+                    <p className="text-destructive"><strong>Dernière erreur :</strong> {cronStatus.last_error}</p>
+                  )}
                 </div>
               </AlertDescription>
             </Alert>
           )}
+
+          {/* Help Section */}
+          <Collapsible open={showHelp} onOpenChange={setShowHelp}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" size="sm" className="w-full">
+                <ChevronDown className={`mr-2 h-4 w-4 transition-transform ${showHelp ? 'rotate-180' : ''}`} />
+                Aide et documentation
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="space-y-2 text-sm">
+                  <p><strong>Configuration requise :</strong></p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Extensions <code className="text-xs">pg_cron</code> et <code className="text-xs">pg_net</code> activées</li>
+                    <li>Edge Function <code className="text-xs">weekly-blog-automation</code> déployée</li>
+                    <li>Secret <code className="text-xs">LOVABLE_API_KEY</code> configuré (pour les tests)</li>
+                    <li>Catégorie blog <strong>actualites-reparation</strong> existante</li>
+                  </ul>
+                  <p className="pt-2">
+                    <a 
+                      href="https://github.com/yourusername/yourrepo/blob/main/docs/BLOG_AUTOMATION.md"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      📚 Documentation complète de l'automatisation
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </p>
+                </AlertDescription>
+              </Alert>
+            </CollapsibleContent>
+          </Collapsible>
 
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
