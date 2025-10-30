@@ -73,9 +73,8 @@ horizontal format 16:9, high quality, attention-grabbing but professional.`;
     const aiData = await aiResponse.json();
     console.log('AI Response:', JSON.stringify(aiData, null, 2));
 
-    // Extraire l'URL de l'image générée
-    // Note: La structure exacte peut varier selon la réponse de l'API
-    const imageUrl = aiData.choices?.[0]?.message?.content;
+    // Extraire l'image générée (base64 data URL)
+    const imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageUrl) {
       throw new Error('No image URL in AI response');

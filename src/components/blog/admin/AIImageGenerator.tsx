@@ -41,7 +41,7 @@ const AIImageGenerator: React.FC<AIImageGeneratorProps> = ({
 
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-blog-image', {
+      const { data, error } = await supabase.functions.invoke('blog-image-generator', {
         body: {
           prompt: `${prompt}. Style: ${style}. High quality, professional, clean, modern design.`,
           size,
@@ -51,8 +51,9 @@ const AIImageGenerator: React.FC<AIImageGeneratorProps> = ({
 
       if (error) throw error;
 
-      if (data?.imageUrl) {
-        setGeneratedImages(prev => [data.imageUrl, ...prev]);
+      const image = data?.image_url || data?.imageUrl;
+      if (image) {
+        setGeneratedImages(prev => [image, ...prev]);
         toast({
           title: "Succès",
           description: "Image générée avec succès !"
@@ -62,7 +63,7 @@ const AIImageGenerator: React.FC<AIImageGeneratorProps> = ({
       console.error('Erreur génération image:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de générer l'image. Vérifiez votre clé API OpenAI.",
+        description: "Impossible de générer l'image. Service IA indisponible.",
         variant: "destructive"
       });
     } finally {

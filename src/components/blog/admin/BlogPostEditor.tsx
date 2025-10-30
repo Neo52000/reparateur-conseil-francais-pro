@@ -174,7 +174,7 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
       
       const optimizedPrompt = `Create a professional blog header image for an article titled "${formData.title}"${categoryContext}. Modern, clean design, technology related, smartphone repair, professional service`;
 
-      const { data, error } = await supabase.functions.invoke('generate-blog-image', {
+      const { data, error } = await supabase.functions.invoke('blog-image-generator', {
         body: {
           prompt: optimizedPrompt,
           size: '1792x1024',
@@ -189,8 +189,9 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
         throw error;
       }
 
-      if (data?.imageUrl) {
-        setFormData(prev => ({ ...prev, featured_image_url: data.imageUrl }));
+      const img = data?.image_url || data?.imageUrl;
+      if (img) {
+        setFormData(prev => ({ ...prev, featured_image_url: img }));
         toast({
           title: "Succès",
           description: "Image générée automatiquement et ajoutée à l'article !"
