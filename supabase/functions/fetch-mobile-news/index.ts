@@ -121,7 +121,7 @@ async function fetchWithPerplexity(prompt: string): Promise<string> {
   if (!response.ok) {
     const errorText = await response.text();
     console.error('❌ Perplexity API error:', response.status, errorText);
-    throw new Error(`Perplexity API error: ${response.status}`);
+    throw new Error(`Perplexity API error: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
