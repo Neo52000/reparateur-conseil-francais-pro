@@ -78,11 +78,14 @@ async function generateWithPerplexity(prompt: string): Promise<string> {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'llama-3.1-sonar-small-128k-online',
+      model: 'sonar',
       messages: [
         {
-          role: 'system',
+          role: 'user',
           content: `Tu es un expert rédacteur pour un blog de réparation de smartphones. 
+          
+          ${prompt}
+          
           Génère un article de blog professionnel en français avec des informations actualisées et précises.
           Structure ton article ainsi :
           1. Un titre accrocheur
@@ -93,20 +96,8 @@ async function generateWithPerplexity(prompt: string): Promise<string> {
           TITRE: [titre ici]
           EXTRAIT: [extrait ici]
           CONTENU: [contenu ici]`
-        },
-        {
-          role: 'user',
-          content: prompt
         }
-      ],
-      temperature: 0.2,
-      top_p: 0.9,
-      max_tokens: 2000,
-      return_images: false,
-      return_related_questions: false,
-      search_recency_filter: 'month',
-      frequency_penalty: 1,
-      presence_penalty: 0
+      ]
     }),
   });
 
