@@ -14420,25 +14420,18 @@ export type Database = {
       get_blog_automation_config: {
         Args: never
         Returns: {
-          ai_model: string | null
-          auto_publish: boolean | null
-          category_id: string | null
-          created_at: string | null
-          enabled: boolean | null
+          ai_model: string
+          auto_publish: boolean
+          created_at: string
+          enabled: boolean
           id: string
-          last_run_at: string | null
-          next_run_at: string | null
-          prompt_template: string | null
-          schedule_day: number | null
-          schedule_time: string | null
-          updated_at: string | null
-        }
-        SetofOptions: {
-          from: "*"
-          to: "blog_automation_config"
-          isOneToOne: true
-          isSetofReturn: false
-        }
+          last_run_at: string
+          next_run_at: string
+          prompt_template: string
+          schedule_day: number
+          schedule_time: string
+          updated_at: string
+        }[]
       }
       get_blog_automation_status: {
         Args: never
