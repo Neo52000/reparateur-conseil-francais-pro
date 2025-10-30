@@ -38,6 +38,7 @@ const HeroWithIntegratedSearch: React.FC<HeroWithIntegratedSearchProps> = ({
   // État pour les modales de recherche rapide
   const [isLocationSearchModalOpen, setIsLocationSearchModalOpen] = useState(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [mapSearchFilters, setMapSearchFilters] = useState<any>(null);
 
   // État pour la recherche personnalisée
   const [showPersonalizedSearch, setShowPersonalizedSearch] = useState(false);
@@ -66,6 +67,13 @@ const HeroWithIntegratedSearch: React.FC<HeroWithIntegratedSearchProps> = ({
     component: LocationStep
   }];
   const handleLocationSearch = (searchCriteria: SearchCriteria) => {
+    // Ouvrir la carte avec les filtres de localisation
+    setMapSearchFilters({
+      city: searchCriteria.city,
+      postalCode: searchCriteria.postalCode
+    });
+    setIsLocationSearchModalOpen(false);
+    setIsMapModalOpen(true);
     onQuickSearch(searchCriteria);
   };
   const handlePersonalizedSearchClick = () => {
@@ -261,7 +269,14 @@ const HeroWithIntegratedSearch: React.FC<HeroWithIntegratedSearchProps> = ({
 
       <LocationSearchModal isOpen={isLocationSearchModalOpen} onClose={() => setIsLocationSearchModalOpen(false)} onSearch={handleLocationSearch} />
 
-      <MapModal isOpen={isMapModalOpen} onClose={() => setIsMapModalOpen(false)} />
+      <MapModal 
+        isOpen={isMapModalOpen} 
+        onClose={() => {
+          setIsMapModalOpen(false);
+          setMapSearchFilters(null);
+        }}
+        searchFilters={mapSearchFilters}
+      />
     </div>;
 };
 export default HeroWithIntegratedSearch;

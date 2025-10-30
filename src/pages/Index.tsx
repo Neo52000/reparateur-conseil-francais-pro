@@ -31,8 +31,12 @@ const Index = () => {
         {/* Hero principal avec chargement optimisé */}
         <Suspense fallback={<HeroSkeleton />}>
           <HeroWithIntegratedSearch 
-            onQuickSearch={() => {}}
-            onMapSearch={() => {}}
+            onQuickSearch={(criteria) => {
+              console.log('Recherche rapide avec:', criteria);
+            }}
+            onMapSearch={() => {
+              console.log('Ouverture de la carte');
+            }}
           />
         </Suspense>
 

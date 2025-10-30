@@ -3,10 +3,11 @@ import EnhancedRepairersMap from '@/components/search/EnhancedRepairersMap';
 
 interface MapWithFiltersProps {
   onBack?: () => void;
+  searchFilters?: any;
 }
 
-const MapWithFilters: React.FC<MapWithFiltersProps> = ({ onBack }) => {
-  return <EnhancedRepairersMap onClose={onBack} />;
+const MapWithFilters: React.FC<MapWithFiltersProps> = ({ onBack, searchFilters }) => {
+  return <EnhancedRepairersMap onClose={onBack} searchFilters={searchFilters} />;
 };
 
 export default MapWithFilters;

@@ -8,11 +8,13 @@ import MapWithFilters from '@/components/map/MapWithFilters';
 interface MapModalProps {
   isOpen: boolean;
   onClose: () => void;
+  searchFilters?: any;
 }
 
 const MapModal: React.FC<MapModalProps> = ({
   isOpen,
-  onClose
+  onClose,
+  searchFilters
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -29,7 +31,7 @@ const MapModal: React.FC<MapModalProps> = ({
           
           <div className="w-full h-full">
             {/* Intégration de la nouvelle carte avec filtres */}
-            <MapWithFilters onBack={onClose} />
+            <MapWithFilters onBack={onClose} searchFilters={searchFilters} />
           </div>
         </div>
       </DialogContent>
