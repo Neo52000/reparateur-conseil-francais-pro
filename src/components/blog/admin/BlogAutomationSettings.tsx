@@ -3,12 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Clock, Calendar, Zap, FileText, AlertCircle, CheckCircle2, ChevronDown, ExternalLink, ShieldAlert } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { WeekdayPicker } from './WeekdayPicker';
+import { TimePicker } from './TimePicker';
 
 interface AutomationConfig {
   id: string;
@@ -340,15 +341,24 @@ export const BlogAutomationSettings = () => {
     );
   }
 
-  const weekDays = [
-    { value: 0, label: 'Dimanche' },
-    { value: 1, label: 'Lundi' },
-    { value: 2, label: 'Mardi' },
-    { value: 3, label: 'Mercredi' },
-    { value: 4, label: 'Jeudi' },
-    { value: 5, label: 'Vendredi' },
-    { value: 6, label: 'Samedi' }
-  ];
+  const getNextScheduleText = (day: number, time: string) => {
+    const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+    const dayName = days[day];
+    
+    const now = new Date();
+    const targetDay = day;
+    const [hours, minutes] = time.split(':').map(Number);
+    
+    const nextDate = new Date(now);
+    nextDate.setDate(now.getDate() + ((targetDay + 7 - now.getDay()) % 7 || 7));
+    nextDate.setHours(hours, minutes, 0, 0);
+    
+    if (nextDate < now) {
+      nextDate.setDate(nextDate.getDate() + 7);
+    }
+    
+    return `${dayName} ${nextDate.toLocaleDateString('fr-FR')} à ${time}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -456,51 +466,40 @@ export const BlogAutomationSettings = () => {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="schedule_day" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Jour de la semaine
-            </Label>
-            <Select
-              value={config.schedule_day.toString()}
-              onValueChange={(value) => setConfig({ ...config, schedule_day: parseInt(value) })}
-            >
-              <SelectTrigger id="schedule_day">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {weekDays.map(day => (
-                  <SelectItem key={day.value} value={day.value.toString()}>
-                    {day.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="space-y-4 rounded-lg border p-4 bg-muted/30">
+            <div className="flex items-center gap-2 mb-4">
+              <Calendar className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold">Planification hebdomadaire</h3>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Jour de publication</Label>
+              <WeekdayPicker 
+                value={config.schedule_day}
+                onChange={(day) => setConfig({ ...config, schedule_day: day })}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="schedule_time" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              Heure de publication
-            </Label>
-            <Select
-              value={config.schedule_time}
-              onValueChange={(value) => setConfig({ ...config, schedule_time: value })}
-            >
-              <SelectTrigger id="schedule_time">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 24 }, (_, i) => {
-                  const hour = i.toString().padStart(2, '0');
-                  return (
-                    <SelectItem key={hour} value={`${hour}:00`}>
-                      {hour}:00
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Heure de publication
+              </Label>
+              <TimePicker
+                value={config.schedule_time}
+                onChange={(time) => setConfig({ ...config, schedule_time: time })}
+              />
+            </div>
+
+            <div className="mt-4 p-3 rounded-md bg-primary/10 border border-primary/20">
+              <p className="text-sm font-medium flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                Prochaine génération prévue :
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {getNextScheduleText(config.schedule_day, config.schedule_time)}
+              </p>
+            </div>
           </div>
 
           <div className="flex gap-2 pt-4">
