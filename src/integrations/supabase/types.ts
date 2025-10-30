@@ -14432,12 +14432,12 @@ export type Database = {
           schedule_day: number | null
           schedule_time: string | null
           updated_at: string | null
-        }[]
+        }
         SetofOptions: {
           from: "*"
           to: "blog_automation_config"
-          isOneToOne: false
-          isSetofReturn: true
+          isOneToOne: true
+          isSetofReturn: false
         }
       }
       get_blog_automation_status: {
