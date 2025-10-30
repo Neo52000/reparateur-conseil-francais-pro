@@ -1,8 +1,5 @@
 project_id = "nbugpbakfkyvvjzgfjmw"
 
-[functions.firecrawl-proxy]
-verify_jwt = true
-
 [functions.scrape-repairers]
 verify_jwt = true
 
@@ -12,37 +9,19 @@ verify_jwt = true
 [functions.modern-scraping]
 verify_jwt = false
 
-[functions.serper-search]
-verify_jwt = false
-
 [functions.csv-intelligent-import]
 verify_jwt = false
 
 [functions.generate-catalog-ads]
 verify_jwt = false
 
-[functions.scrape-cashandrepair]
-verify_jwt = false
-
 [functions.import-mobilax-logos]
-verify_jwt = false
-
-[functions."chatbot-gpt5"]
 verify_jwt = false
 
 [functions.chatbot-lovable]
 verify_jwt = false
 
-[functions.ai-enhanced-scraping]
-verify_jwt = false
-
-[functions.ai-dynamic-pricing]
-verify_jwt = false
-
 [functions.ai-fraud-detection]
-verify_jwt = false
-
-[functions.ai-analytics-dashboard]
 verify_jwt = false
 
 [functions.blog-ai-generator]

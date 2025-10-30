@@ -488,7 +488,95 @@ serve(async (req) => {
   }
 
   try {
-    const { searchTerm, location, source, maxResults, testMode } = await req.json();
+    const body = await req.json();
+    
+    // Détecter si c'est une requête proxy Firecrawl (opération, url, options)
+    // ou une requête de scraping orchestré (searchTerm, location, source)
+    const isProxyRequest = body.operation && body.url;
+    
+    if (isProxyRequest) {
+      // Mode PROXY: Requête générique vers Firecrawl API
+      return await handleFirecrawlProxy(body);
+    } else {
+      // Mode SCRAPING ORCHESTRÉ: Workflow complet
+      return await handleOrchestredScraping(body);
+    }
+  } catch (error) {
+    console.error('❌ Erreur modern-scraping:', error);
+    
+    return new Response(JSON.stringify({
+      success: false,
+      error: error.message,
+      details: error.stack
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});
+
+// Handler pour les requêtes proxy Firecrawl
+async function handleFirecrawlProxy(body: any) {
+  const { operation, url, options } = body;
+  
+  const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
+  if (!firecrawlApiKey) {
+    console.error('❌ FIRECRAWL_API_KEY not configured');
+    return new Response(
+      JSON.stringify({ success: false, error: 'Firecrawl API key not configured' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  if (!operation || !url) {
+    return new Response(
+      JSON.stringify({ success: false, error: 'Missing required parameters' }),
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Map operation to Firecrawl endpoint
+  const endpoint = operation === 'crawl' ? '/v1/crawl' : '/v1/scrape';
+  const firecrawlUrl = `https://api.firecrawl.dev${endpoint}`;
+
+  console.log(`🔥 Proxy Firecrawl ${operation} for URL:`, url);
+
+  const firecrawlResponse = await fetch(firecrawlUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${firecrawlApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      url,
+      ...options
+    }),
+  });
+
+  const responseData = await firecrawlResponse.json();
+
+  if (!firecrawlResponse.ok) {
+    console.error('❌ Firecrawl API error:', responseData);
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        error: responseData.error || 'Firecrawl API request failed' 
+      }),
+      { status: firecrawlResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  console.log('✅ Firecrawl proxy request successful');
+
+  return new Response(
+    JSON.stringify({ success: true, data: responseData }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
+}
+
+// Handler pour le scraping orchestré
+async function handleOrchestredScraping(body: any) {
+  const { searchTerm, location, source, maxResults, testMode } = body;
 
     console.log(`🚀 Scraping modernisé: ${searchTerm} à ${location} (source: ${source})`);
 
@@ -585,17 +673,4 @@ serve(async (req) => {
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-
-  } catch (error) {
-    console.error('❌ Erreur scraping modernisé:', error);
-    
-    return new Response(JSON.stringify({
-      success: false,
-      error: error.message,
-      details: error.stack
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-});
+}

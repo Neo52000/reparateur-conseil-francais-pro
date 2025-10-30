@@ -24,7 +24,7 @@ export class FirecrawlService {
 
   private static async callFirecrawlProxy(operation: string, url: string, options: any): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
-      const { data, error } = await supabase.functions.invoke('firecrawl-proxy', {
+      const { data, error } = await supabase.functions.invoke('modern-scraping', {
         body: { operation, url, options }
       });
 
