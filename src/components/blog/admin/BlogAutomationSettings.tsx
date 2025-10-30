@@ -46,7 +46,7 @@ export const BlogAutomationSettings = () => {
     try {
       const { data, error }: any = await supabase
         .rpc('get_blog_automation_config' as any)
-        .single();
+        .maybeSingle();
 
       if (error) {
         // Check if it's a permission error (code 42501)
