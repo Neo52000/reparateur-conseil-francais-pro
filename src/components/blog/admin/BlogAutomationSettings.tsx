@@ -40,17 +40,28 @@ export const BlogAutomationSettings = () => {
   const loadConfig = async () => {
     try {
       const { data, error }: any = await supabase
-        .from('blog_automation_config' as any)
-        .select('*')
-        .maybeSingle();
+        .rpc('get_blog_automation_config' as any)
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        // Check if it's a permission error
+        if (error.code === '42501' || error.message?.includes('Permission denied')) {
+          toast({
+            title: "Accès réservé aux administrateurs",
+            description: "Seuls les administrateurs peuvent accéder à l'automatisation du blog.",
+            variant: "destructive"
+          });
+          return;
+        }
+        throw error;
+      }
+      
       setConfig(data);
     } catch (error: any) {
       console.error('Error loading automation config:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de charger la configuration. Exécutez d'abord la migration SQL.",
+        description: "Impossible de charger la configuration. Vérifiez que la migration SQL a été exécutée.",
         variant: "destructive"
       });
     }
@@ -58,17 +69,23 @@ export const BlogAutomationSettings = () => {
 
   const loadCronStatus = async () => {
     try {
-      // Simplified status since RPC function is not in schema cache yet
+      const { data, error }: any = await supabase
+        .rpc('get_blog_automation_status' as any)
+        .single();
+
+      if (error) throw error;
+      setCronStatus(data);
+    } catch (error: any) {
+      console.error('Error loading cron status:', error);
+      // Fallback status if RPC fails
       setCronStatus({
         enabled: true,
         schedule: '0 8 * * 1',
         last_run: null,
         next_run: null,
-        last_status: 'pending',
+        last_status: 'unknown',
         last_error: null
       });
-    } catch (error: any) {
-      console.error('Error loading cron status:', error);
     }
   };
 

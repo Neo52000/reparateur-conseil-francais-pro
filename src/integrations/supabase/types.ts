@@ -14417,6 +14417,29 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_blog_automation_config: {
+        Args: never
+        Returns: {
+          ai_model: string | null
+          auto_publish: boolean | null
+          category_id: string | null
+          created_at: string | null
+          enabled: boolean | null
+          id: string
+          last_run_at: string | null
+          next_run_at: string | null
+          prompt_template: string | null
+          schedule_day: number | null
+          schedule_time: string | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "blog_automation_config"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_blog_automation_status: {
         Args: never
         Returns: {

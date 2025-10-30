@@ -13,8 +13,12 @@ import BlogNewsTracker from './BlogNewsTracker';
 import BlogAIGenerator from './BlogAIGenerator';
 import { BlogAutomationSettings } from './BlogAutomationSettings';
 import { BlogPost } from '@/types/blog';
+import { useAuth } from '@/hooks/useAuth';
+import { useAuthRoles } from '@/hooks/auth/useAuthRoles';
 
 const BlogManagement: React.FC = () => {
+  const { user } = useAuth();
+  const { isAdmin } = useAuthRoles(user?.id);
   const [activeTab, setActiveTab] = useState('posts');
   const [showNewArticleEditor, setShowNewArticleEditor] = useState(false);
   const [showAIGenerator, setShowAIGenerator] = useState(false);
@@ -58,7 +62,7 @@ const BlogManagement: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-8' : 'grid-cols-7'}`}>
           <TabsTrigger value="posts" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Articles
@@ -83,10 +87,12 @@ const BlogManagement: React.FC = () => {
             <BarChart3 className="h-4 w-4" />
             Analytics
           </TabsTrigger>
-          <TabsTrigger value="automation" className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            Auto
-          </TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="automation" className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Auto
+            </TabsTrigger>
+          )}
           <TabsTrigger value="settings" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Réglages
@@ -121,9 +127,11 @@ const BlogManagement: React.FC = () => {
           <BlogAnalytics />
         </TabsContent>
 
-        <TabsContent value="automation" className="space-y-4">
-          <BlogAutomationSettings />
-        </TabsContent>
+        {isAdmin && (
+          <TabsContent value="automation" className="space-y-4">
+            <BlogAutomationSettings />
+          </TabsContent>
+        )}
 
         <TabsContent value="settings" className="space-y-4">
           <BlogSettings />
