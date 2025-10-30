@@ -25,12 +25,104 @@ serve(async (req) => {
   }
 
   try {
+    // ✅ SÉCURITÉ: Vérification de l'authentification
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('❌ Tentative d\'envoi de notification non authentifiée');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Créer un client Supabase avec le token utilisateur
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Vérifier que l'utilisateur est authentifié
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      console.error('❌ Token invalide:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const notification: NotificationRequest = await req.json();
+
+    // ✅ SÉCURITÉ: Validation stricte du userId destinataire
+    if (!notification.userId || typeof notification.userId !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Bad Request: Valid userId required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Vérifier le rôle de l'utilisateur
+    const { data: roleData } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single();
+
+    const isAdmin = roleData?.role === 'admin';
+
+    // ✅ SÉCURITÉ: Vérifier l'autorisation d'envoi
+    if (!isAdmin && notification.userId !== user.id) {
+      // Si pas admin et qu'on envoie à quelqu'un d'autre,
+      // vérifier qu'il s'agit d'une relation client/réparateur valide
+      const { data: relationship } = await supabaseClient
+        .from('quote_requests')
+        .select('id')
+        .or(`client_id.eq.${notification.userId},repairer_id.eq.${user.id}`)
+        .or(`client_id.eq.${user.id},repairer_id.eq.${notification.userId}`)
+        .maybeSingle();
+
+      if (!relationship) {
+        console.error('❌ Tentative d\'envoi non autorisé:', {
+          from: user.id,
+          to: notification.userId
+        });
+        return new Response(
+          JSON.stringify({ 
+            error: 'Forbidden: Cannot send notification to this user' 
+          }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // ✅ SÉCURITÉ: Rate limiting (100 notifications/heure)
+    const oneHourAgo = new Date(Date.now() - 3600000).toISOString();
+    const { count } = await supabaseClient
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('sender_id', user.id)
+      .gte('sent_at', oneHourAgo);
+
+    if (count && count >= 100) {
+      console.warn('⚠️ Rate limit atteint pour:', user.id);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded: max 100 notifications per hour' 
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`✅ Envoi autorisé (${isAdmin ? 'admin' : 'user'}):`, user.email);
+
+    // Client admin pour les opérations de notification
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const notification: NotificationRequest = await req.json();
     const results = [];
 
     console.log("📢 Envoi de notification:", {
@@ -45,6 +137,7 @@ serve(async (req) => {
       .from('notifications')
       .insert({
         user_id: notification.userId,
+        sender_id: user.id,
         type: notification.type,
         title: notification.title,
         message: notification.message,
@@ -52,6 +145,21 @@ serve(async (req) => {
         sent_at: new Date().toISOString(),
         channels_used: notification.channels
       });
+
+    // 🔒 Log de sécurité
+    await supabase
+      .from('admin_audit_logs')
+      .insert({
+        user_id: user.id,
+        action: 'notification_sent',
+        resource: `notification/${notification.type}`,
+        details: { 
+          recipient: notification.userId, 
+          channels: notification.channels 
+        }
+      })
+      .then(() => console.log('🔒 Audit log créé'))
+      .catch(err => console.warn('⚠️ Erreur audit log:', err));
 
     if (dbError) {
       console.error("Erreur sauvegarde notification:", dbError);

@@ -13,6 +13,53 @@ serve(async (req) => {
   }
 
   try {
+    // ✅ SÉCURITÉ: Vérification de l'authentification
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('❌ Tentative d\'accès non authentifiée au scraping');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Créer un client Supabase avec le token utilisateur
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Vérifier que l'utilisateur est authentifié
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      console.error('❌ Token invalide:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ✅ SÉCURITÉ: Vérification du rôle admin
+    const { data: roleData, error: roleError } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .eq('is_active', true)
+      .single();
+
+    if (roleError || !roleData) {
+      console.error('❌ Accès refusé: utilisateur non-admin', { userId: user.id });
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: Admin access required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`✅ Accès autorisé pour l'admin: ${user.email}`);
+
+    // Client admin pour les opérations de scraping
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -28,12 +75,25 @@ serve(async (req) => {
       console.warn('⚠️ Clé API Firecrawl manquante - utilisation des données de test');
     }
 
+    // 🔒 Log de sécurité: tracer l'action admin
+    await supabase
+      .from('admin_audit_logs')
+      .insert({
+        user_id: user.id,
+        action: 'scraping_initiated',
+        resource: `scrape-repairers/${source}`,
+        details: { source, testMode, departmentCode, useRealScraping }
+      })
+      .then(() => console.log('🔒 Audit log créé'))
+      .catch(err => console.warn('⚠️ Erreur audit log:', err));
+
     const { data: logData, error: logError } = await supabase
       .from('scraping_logs')
       .insert({
         source,
         status: 'running',
-        started_at: new Date().toISOString()
+        started_at: new Date().toISOString(),
+        initiated_by: user.id
       })
       .select()
       .single()

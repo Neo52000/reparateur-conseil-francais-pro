@@ -4,7 +4,10 @@ project_id = "nbugpbakfkyvvjzgfjmw"
 verify_jwt = true
 
 [functions.scrape-repairers]
-verify_jwt = false
+verify_jwt = true
+
+[functions.send-notification]
+verify_jwt = true
 
 [functions.modern-scraping]
 verify_jwt = false
