@@ -20,6 +20,7 @@ import ComputerRepairPage from "./pages/services/ComputerRepairPage";
 import ConsoleRepairPage from "./pages/services/ConsoleRepairPage";
 import LocalSeoPage from "./components/LocalSeoPage";
 import RepairerSeoPage from "./pages/RepairerSeoPage";
+import DocumentationPage from "./pages/DocumentationPage";
 
 import RepairerSettingsPage from "./pages/RepairerSettingsPage";
 import RepairTrackingPage from "./pages/RepairTrackingPage";
@@ -135,6 +136,8 @@ const AppWithTracking = () => {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/politique-confidentialite" element={<Navigate to="/privacy" replace />} />
         <Route path="/confidentialite" element={<Navigate to="/privacy" replace />} />
+        {/* Documentation */}
+        <Route path="/documentation" element={<DocumentationPage />} />
         {/* 404 fallback */}
         <Route path="*" element={<NotFound />} />
         </Routes>
