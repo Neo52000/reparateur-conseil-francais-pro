@@ -98,9 +98,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           model: 'sonar',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3,
-          max_tokens: 500
+          messages: [{ role: 'user', content: prompt }]
         }),
       });
 

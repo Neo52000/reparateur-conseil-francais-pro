@@ -97,11 +97,12 @@ async function fetchWithPerplexity(prompt: string): Promise<string> {
       model: 'sonar',
       messages: [
         {
-          role: 'system',
+          role: 'user',
           content: `Tu es un expert en actualités technologiques spécialisé dans la téléphonie mobile et les réparations. 
-          Recherche et présente les actualités récentes de manière structurée.
           
-          Format de réponse JSON :
+          ${prompt}
+          
+          Réponds au format JSON suivant :
           {
             "news": [
               {
@@ -112,20 +113,8 @@ async function fetchWithPerplexity(prompt: string): Promise<string> {
               }
             ]
           }`
-        },
-        {
-          role: 'user',
-          content: prompt
         }
-      ],
-      temperature: 0.2,
-      top_p: 0.9,
-      max_tokens: 2000,
-      return_images: false,
-      return_related_questions: false,
-      search_recency_filter: 'week',
-      frequency_penalty: 1,
-      presence_penalty: 0
+      ]
     }),
   });
 
