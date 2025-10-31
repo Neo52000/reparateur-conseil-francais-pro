@@ -13,9 +13,9 @@ const BenAvatar: React.FC<BenAvatarProps> = ({
   size = 'md' 
 }) => {
   const sizeClasses = {
-    sm: 'w-8 h-8',
-    md: 'w-12 h-12',
-    lg: 'w-16 h-16'
+    sm: 'w-8 h-8 min-w-8 min-h-8 max-w-8 max-h-8',
+    md: 'w-12 h-12 min-w-12 min-h-12 max-w-12 max-h-12',
+    lg: 'w-16 h-16 min-w-16 min-h-16 max-w-16 max-h-16'
   };
 
   const getEmotionFilter = () => {
@@ -53,7 +53,7 @@ const BenAvatar: React.FC<BenAvatarProps> = ({
         <motion.img
           src="/lovable-uploads/164a3771-b3c7-4352-b20e-1dce63910ff3.png"
           alt="Ben - Assistant IA"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover max-w-full max-h-full"
           onError={(e) => {
             // Fallback en cas d'erreur de chargement
             e.currentTarget.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiM2MzY2RjEiLz4KPHN2ZyB4PSIxNiIgeT0iMTYiIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMTIgMTJDMTQuNzYxNCAxMiAxNyA5Ljc2MTQyIDE3IDdDMTcgNC4yMzg1OCAxNC43NjE0IDIgMTIgMkM5LjIzODU4IDIgNyA0LjIzODU4IDcgN0M3IDkuNzYxNDIgOS4yMzg1OCAxMiAxMiAxMloiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xMiAxNEM5IDEzLjUgNiAxNS41IDYgMTlIMThDMTggMTUuNSAxNSAxMy41IDEyIDE0WiIgZmlsbD0id2hpdGUiLz4KPHN2Zz4KPHN2Zz4=";
