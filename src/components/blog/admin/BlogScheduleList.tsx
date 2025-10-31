@@ -26,7 +26,7 @@ export const BlogScheduleList = () => {
       // Load schedules directly from table (RLS policies will enforce admin access)
       const { data: schedulesData, error: schedulesError } = await supabase
         .from('blog_automation_schedules')
-        .select('*, category:blog_categories(id, name, slug, icon)')
+        .select('*')
         .order('schedule_day', { ascending: true })
         .order('schedule_time', { ascending: true });
 
@@ -91,7 +91,7 @@ export const BlogScheduleList = () => {
       const { data, error } = await supabase
         .from('blog_automation_schedules')
         .insert(newSchedule)
-        .select('*, category:blog_categories(id, name, slug, icon)')
+        .select('*')
         .single();
 
       console.log('📝 Create response:', { data, error });
@@ -136,7 +136,7 @@ export const BlogScheduleList = () => {
         .from('blog_automation_schedules')
         .update(updatedSchedule)
         .eq('id', updatedSchedule.id)
-        .select('*, category:blog_categories(id, name, slug, icon)')
+        .select('*')
         .single();
 
       if (error) {
