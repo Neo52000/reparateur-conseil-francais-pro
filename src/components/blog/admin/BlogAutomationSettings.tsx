@@ -1,86 +1,41 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Clock, Calendar, Zap, FileText, AlertCircle, CheckCircle2, ChevronDown, ExternalLink, ShieldAlert } from 'lucide-react';
+import { Zap, AlertCircle, CheckCircle2, ChevronDown, ExternalLink, ShieldAlert } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { WeekdayPicker } from './WeekdayPicker';
-import { TimePicker } from './TimePicker';
-
-interface AutomationConfig {
-  id: string;
-  enabled: boolean;
-  auto_publish: boolean;
-  schedule_time: string;
-  schedule_day: number;
-  ai_model: string;
-  last_run_at: string | null;
-  next_run_at: string | null;
-}
-
-interface CronStatus {
-  enabled: boolean;
-  schedule: string;
-  last_run: string | null;
-  next_run: string | null;
-  last_status: string | null;
-  last_error: string | null;
-}
+import { BlogScheduleList } from './BlogScheduleList';
+import { CronStatus } from '@/types/blogAutomation';
 
 export const BlogAutomationSettings = () => {
   const { toast } = useToast();
-  const [config, setConfig] = useState<AutomationConfig | null>(null);
   const [cronStatus, setCronStatus] = useState<CronStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [isPermissionError, setIsPermissionError] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const [initializing, setInitializing] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
 
-  const loadConfig = async () => {
+  const checkAccess = async () => {
     try {
-      // 🔍 DEBUG: Afficher l'utilisateur actuel
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('🔍 DEBUG - Current user_id:', user?.id);
-      console.log('🔍 DEBUG - Expected admin user_id:', '2eb236c5-7566-42a0-995d-c7d5716adfcf');
-      console.log('🔍 DEBUG - Admin email:', 'reine.elie@gmail.com');
-      
-      const { data, error } = await supabase
-        .from('blog_automation_config')
-        .select('id, enabled, auto_publish, schedule_time, schedule_day, ai_model, last_run_at, next_run_at, prompt_template, created_at, updated_at')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      // Check if user has admin access by trying to read schedules
+      const { error } = await supabase
+        .from('blog_automation_schedules')
+        .select('id')
+        .limit(1);
 
-      if (error) {
-        // Check if it's a permission error (code 42501)
-        if (error.code === '42501' || error.message?.includes('permission denied') || error.message?.includes('Access denied')) {
-          setIsPermissionError(true);
-          toast({
-            title: "Accès réservé aux administrateurs",
-            description: "Seuls les administrateurs peuvent accéder à l'automatisation du blog.",
-            variant: "destructive"
-          });
-          return;
-        }
-        
-        throw error;
+      if (error && (error.code === '42501' || error.message?.includes('permission denied'))) {
+        setHasAccess(false);
+        return false;
       }
       
-      // Data can be null if no config exists yet
-      setConfig(data);
+      setHasAccess(true);
+      return true;
     } catch (error: any) {
-      console.error('Error loading automation config:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger la configuration.",
-        variant: "destructive"
-      });
+      console.error('Error checking access:', error);
+      setHasAccess(false);
+      return false;
     }
   };
 
@@ -109,84 +64,14 @@ export const BlogAutomationSettings = () => {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      await Promise.all([loadConfig(), loadCronStatus()]);
+      const access = await checkAccess();
+      if (access) {
+        await loadCronStatus();
+      }
       setLoading(false);
     };
     load();
   }, []);
-
-  const handleSave = async () => {
-    if (!config) return;
-
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('blog_automation_config' as any)
-        .update({
-          enabled: config.enabled,
-          auto_publish: config.auto_publish,
-          schedule_time: config.schedule_time,
-          schedule_day: config.schedule_day,
-          ai_model: config.ai_model
-        })
-        .eq('id', config.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Succès",
-        description: "Configuration sauvegardée"
-      });
-
-      await loadConfig();
-    } catch (error: any) {
-      console.error('Error saving config:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder la configuration",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleInitializeConfig = async () => {
-    setInitializing(true);
-    try {
-      // Insert default configuration
-      const { data, error } = await supabase
-        .from('blog_automation_config' as any)
-        .insert({
-          enabled: false,
-          auto_publish: false,
-          schedule_time: '08:00',
-          schedule_day: 1, // Monday
-          ai_model: 'google/gemini-2.5-flash',
-          prompt_template: 'Génère un article d\'actualité sur les dernières nouvelles de la réparation de smartphones et mobiles en France.'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast({
-        title: "Configuration initialisée",
-        description: "La configuration par défaut a été créée avec succès.",
-      });
-
-      await loadConfig();
-    } catch (error: any) {
-      console.error('Error initializing config:', error);
-      toast({
-        title: "Erreur d'initialisation",
-        description: error.message || "Impossible d'initialiser la configuration",
-        variant: "destructive"
-      });
-    } finally {
-      setInitializing(false);
-    }
-  };
 
   const handleTestNow = async () => {
     setTesting(true);
@@ -197,21 +82,21 @@ export const BlogAutomationSettings = () => {
 
       if (error) throw error;
 
-      if (data.success) {
+      if (data?.success) {
         toast({
           title: "Test réussi",
-          description: `Article créé : ${data.article.title}`,
+          description: `Article créé : ${data.article?.title || 'Article de test'}`,
         });
         
-        await Promise.all([loadConfig(), loadCronStatus()]);
+        await loadCronStatus();
       } else {
-        throw new Error(data.error || 'Test failed');
+        throw new Error(data?.error || 'Test failed');
       }
     } catch (error: any) {
       console.error('Test error:', error);
       toast({
         title: "Erreur de test",
-        description: error.message || "Le test a échoué. Vérifiez que LOVABLE_API_KEY est configuré.",
+        description: error.message || "Le test a échoué.",
         variant: "destructive"
       });
     } finally {
@@ -223,7 +108,7 @@ export const BlogAutomationSettings = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Automatisation Hebdomadaire</CardTitle>
+          <CardTitle>Automatisation des Articles</CardTitle>
           <CardDescription>Chargement...</CardDescription>
         </CardHeader>
       </Card>
@@ -231,7 +116,7 @@ export const BlogAutomationSettings = () => {
   }
 
   // Permission denied - show clear message
-  if (isPermissionError) {
+  if (!hasAccess) {
     return (
       <Card>
         <CardHeader>
@@ -258,121 +143,16 @@ export const BlogAutomationSettings = () => {
     );
   }
 
-  // No config found - allow initialization
-  if (!config) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            Automatisation Hebdomadaire
-          </CardTitle>
-          <CardDescription>
-            Configuration de la génération automatique d'articles
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Aucune configuration trouvée</AlertTitle>
-            <AlertDescription>
-              La table de configuration existe mais aucun enregistrement n'a été créé.
-              Cliquez sur le bouton ci-dessous pour initialiser la configuration par défaut.
-            </AlertDescription>
-          </Alert>
-
-          <Button 
-            onClick={handleInitializeConfig}
-            disabled={initializing}
-            className="w-full"
-          >
-            <Zap className="mr-2 h-4 w-4" />
-            {initializing ? 'Initialisation...' : 'Initialiser la configuration'}
-          </Button>
-
-          <Collapsible open={showHelp} onOpenChange={setShowHelp}>
-            <CollapsibleTrigger asChild>
-              <Button variant="outline" className="w-full">
-                <ChevronDown className={`mr-2 h-4 w-4 transition-transform ${showHelp ? 'rotate-180' : ''}`} />
-                Aide et vérification
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-4 pt-4">
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="space-y-2">
-                  <p><strong>Prérequis :</strong></p>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>Extensions <code>pg_cron</code> et <code>pg_net</code> activées dans Supabase</li>
-                    <li>Edge Function <code>weekly-blog-automation</code> déployée</li>
-                    <li>Secret <code>LOVABLE_API_KEY</code> configuré pour les tests</li>
-                  </ul>
-                  <p className="pt-2">
-                    <a 
-                      href="https://github.com/yourusername/yourrepo/blob/main/docs/BLOG_AUTOMATION.md"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline inline-flex items-center gap-1"
-                    >
-                      Consulter la documentation complète
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </p>
-                </AlertDescription>
-              </Alert>
-
-              {cronStatus && (
-                <Alert className={cronStatus.last_status === 'succeeded' ? 'border-green-500' : ''}>
-                  <CheckCircle2 className="h-4 w-4" />
-                  <AlertTitle>Statut du Cron Job</AlertTitle>
-                  <AlertDescription className="space-y-1 text-sm">
-                    <p><strong>État :</strong> {cronStatus.enabled ? '✅ Actif' : '❌ Inactif'}</p>
-                    <p><strong>Schedule :</strong> {cronStatus.schedule}</p>
-                    {cronStatus.last_run && (
-                      <p><strong>Dernière exécution :</strong> {new Date(cronStatus.last_run).toLocaleString('fr-FR')}</p>
-                    )}
-                    {cronStatus.next_run && (
-                      <p><strong>Prochaine exécution :</strong> {new Date(cronStatus.next_run).toLocaleString('fr-FR')}</p>
-                    )}
-                  </AlertDescription>
-                </Alert>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const getNextScheduleText = (day: number, time: string) => {
-    const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-    const dayName = days[day];
-    
-    const now = new Date();
-    const targetDay = day;
-    const [hours, minutes] = time.split(':').map(Number);
-    
-    const nextDate = new Date(now);
-    nextDate.setDate(now.getDate() + ((targetDay + 7 - now.getDay()) % 7 || 7));
-    nextDate.setHours(hours, minutes, 0, 0);
-    
-    if (nextDate < now) {
-      nextDate.setDate(nextDate.getDate() + 7);
-    }
-    
-    return `${dayName} ${nextDate.toLocaleDateString('fr-FR')} à ${time}`;
-  };
-
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5" />
-            Automatisation Hebdomadaire
+            Automatisation des Articles de Blog
           </CardTitle>
           <CardDescription>
-            Génération automatique d'articles d'actualités chaque semaine
+            Configurez plusieurs planifications automatiques avec des catégories et horaires différents
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -418,8 +198,7 @@ export const BlogAutomationSettings = () => {
                   <ul className="list-disc list-inside space-y-1">
                     <li>Extensions <code className="text-xs">pg_cron</code> et <code className="text-xs">pg_net</code> activées</li>
                     <li>Edge Function <code className="text-xs">weekly-blog-automation</code> déployée</li>
-                    <li>Secret <code className="text-xs">LOVABLE_API_KEY</code> configuré (pour les tests)</li>
-                    <li>Catégorie blog <strong>actualites-reparation</strong> existante</li>
+                    <li>Secret <code className="text-xs">LOVABLE_API_KEY</code> configuré</li>
                   </ul>
                   <p className="pt-2">
                     <a 
@@ -428,7 +207,7 @@ export const BlogAutomationSettings = () => {
                       rel="noopener noreferrer"
                       className="text-primary hover:underline inline-flex items-center gap-1"
                     >
-                      📚 Documentation complète de l'automatisation
+                      📚 Documentation complète
                       <ExternalLink className="h-3 w-3" />
                     </a>
                   </p>
@@ -437,93 +216,19 @@ export const BlogAutomationSettings = () => {
             </CollapsibleContent>
           </Collapsible>
 
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="enabled" className="text-base">
-                Activer l'automatisation
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Génération automatique d'articles d'actualités
-              </p>
-            </div>
-            <Switch
-              id="enabled"
-              checked={config.enabled}
-              onCheckedChange={(checked) => setConfig({ ...config, enabled: checked })}
-            />
-          </div>
+          {/* Schedules List */}
+          <BlogScheduleList />
 
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="auto_publish" className="text-base">
-                Publication automatique
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Publier directement ou créer en brouillon pour validation
-              </p>
-            </div>
-            <Switch
-              id="auto_publish"
-              checked={config.auto_publish}
-              onCheckedChange={(checked) => setConfig({ ...config, auto_publish: checked })}
-            />
-          </div>
-
-          <div className="space-y-4 rounded-lg border p-4 bg-muted/30">
-            <div className="flex items-center gap-2 mb-4">
-              <Calendar className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold">Planification hebdomadaire</h3>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Jour de publication</Label>
-              <WeekdayPicker 
-                value={config.schedule_day}
-                onChange={(day) => setConfig({ ...config, schedule_day: day })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Heure de publication
-              </Label>
-              <TimePicker
-                value={config.schedule_time}
-                onChange={(time) => setConfig({ ...config, schedule_time: time })}
-              />
-            </div>
-
-            <div className="mt-4 p-3 rounded-md bg-primary/10 border border-primary/20">
-              <p className="text-sm font-medium flex items-center gap-2">
-                <Zap className="h-4 w-4" />
-                Prochaine génération prévue :
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                {getNextScheduleText(config.schedule_day, config.schedule_time)}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex-1"
-            >
-              <CheckCircle2 className="mr-2 h-4 w-4" />
-              {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-            </Button>
-            <Button
-              onClick={handleTestNow}
-              disabled={testing}
-              variant="outline"
-              className="flex-1"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              {testing ? 'Test en cours...' : 'Tester maintenant'}
-            </Button>
-          </div>
+          {/* Test Button */}
+          <Button
+            onClick={handleTestNow}
+            disabled={testing}
+            variant="outline"
+            className="w-full"
+          >
+            <Zap className="mr-2 h-4 w-4" />
+            {testing ? 'Test en cours...' : 'Tester une génération maintenant'}
+          </Button>
         </CardContent>
       </Card>
     </div>

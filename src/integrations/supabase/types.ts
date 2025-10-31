@@ -1508,6 +1508,59 @@ export type Database = {
           },
         ]
       }
+      blog_automation_schedules: {
+        Row: {
+          ai_model: string
+          auto_publish: boolean
+          category_id: string | null
+          created_at: string
+          enabled: boolean
+          id: string
+          last_run_at: string | null
+          name: string
+          prompt_template: string | null
+          schedule_day: number
+          schedule_time: string
+          updated_at: string
+        }
+        Insert: {
+          ai_model?: string
+          auto_publish?: boolean
+          category_id?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_run_at?: string | null
+          name: string
+          prompt_template?: string | null
+          schedule_day: number
+          schedule_time?: string
+          updated_at?: string
+        }
+        Update: {
+          ai_model?: string
+          auto_publish?: boolean
+          category_id?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_run_at?: string | null
+          name?: string
+          prompt_template?: string | null
+          schedule_day?: number
+          schedule_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_automation_schedules_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "blog_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_categories: {
         Row: {
           created_at: string
