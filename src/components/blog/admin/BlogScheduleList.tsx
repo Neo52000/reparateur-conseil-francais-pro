@@ -134,9 +134,20 @@ export const BlogScheduleList = () => {
         throw new Error('L\'heure doit être au format HH:mm (ex: 08:00)');
       }
 
+      const updatePayload = {
+        name: updatedSchedule.name,
+        enabled: updatedSchedule.enabled,
+        category_id: updatedSchedule.category_id,
+        schedule_day: updatedSchedule.schedule_day,
+        schedule_time: updatedSchedule.schedule_time,
+        auto_publish: updatedSchedule.auto_publish,
+        ai_model: updatedSchedule.ai_model,
+        prompt_template: updatedSchedule.prompt_template
+      };
+
       const { data, error } = await supabase
         .from('blog_automation_schedules')
-        .update(updatedSchedule)
+        .update(updatePayload)
         .eq('id', updatedSchedule.id)
         .select('*')
         .single();
