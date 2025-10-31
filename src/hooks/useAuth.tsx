@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Profile } from './auth/types';
+import { useAuthRoles } from './auth/useAuthRoles';
 
 interface AuthContextType {
   user: User | null;
@@ -70,19 +71,18 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }
   }, []); // Pas de dépendances pour éviter les boucles
 
+  // SECURITY: Use server-side roles from user_roles table via useAuthRoles hook
+  const { roles, loading: rolesLoading, isAdmin, canAccessRepairer, canAccessClient, canAccessAdmin } = useAuthRoles(user?.id);
+
   // Calcul des permissions optimisé
-  // SECURITY: Only use server-side role checks. Never trust client-side role determination.
   const permissions = useMemo(() => {
-    const hasAdminRole = profile?.role === 'admin';
-    const isAdmin = hasAdminRole;
-    
     return {
       isAdmin,
-      canAccessClient: !!user,
-      canAccessRepairer: profile?.role === 'repairer' || isAdmin,
-      canAccessAdmin: isAdmin
+      canAccessClient,
+      canAccessRepairer,
+      canAccessAdmin
     };
-  }, [user, profile]);
+  }, [isAdmin, canAccessClient, canAccessRepairer, canAccessAdmin]);
 
   // Effet pour gérer l'authentification
   useEffect(() => {

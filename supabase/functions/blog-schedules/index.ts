@@ -6,18 +6,34 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-function decodeJWTPayload(token: string | null) {
+async function checkAdminRole(supabase: any, authHeader: string | null): Promise<boolean> {
   try {
-    if (!token) return null;
+    if (!authHeader?.startsWith("Bearer ")) return false;
+    
+    const token = authHeader.slice(7);
     const parts = token.split(".");
-    if (parts.length !== 3) return null;
-    const payload = parts[1]
-      .replace(/-/g, "+")
-      .replace(/_/g, "/");
-    const decoded = atob(payload);
-    return JSON.parse(decoded);
-  } catch (_e) {
-    return null;
+    if (parts.length !== 3) return false;
+    
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    const userId = payload?.sub;
+    
+    if (!userId) return false;
+    
+    // SECURITY: Use server-side has_role() function instead of trusting JWT metadata
+    const { data, error } = await supabase.rpc('has_role', {
+      _user_id: userId,
+      _role: 'admin'
+    });
+    
+    if (error) {
+      console.error("❌ has_role RPC error:", error);
+      return false;
+    }
+    
+    return Boolean(data);
+  } catch (e) {
+    console.error("❌ Admin check error:", e);
+    return false;
   }
 }
 
@@ -31,25 +47,19 @@ serve(async (req) => {
   const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
   try {
+    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
     const authHeader = req.headers.get("Authorization");
-    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
 
-    // Require a valid user session (verify_jwt=true will already enforce validity)
-    const payload = decodeJWTPayload(token);
-    const isAdmin = Boolean(
-      payload?.user_metadata?.role === "admin" ||
-      payload?.role === "admin" ||
-      payload?.app_metadata?.role === "admin"
-    );
+    // SECURITY: Check admin role using server-side has_role() function
+    const isAdmin = await checkAdminRole(supabase, authHeader);
 
     if (!isAdmin) {
+      console.log("❌ Access denied: user is not admin");
       return new Response(
         JSON.stringify({ success: false, error: "forbidden", message: "Admin required" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
     // We always expect a JSON body with an action
     const body = await req.json().catch(() => ({}));

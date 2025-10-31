@@ -1,29 +1,12 @@
 import { useEffect, ReactNode, FC } from 'react';
-import { useAuthStore } from '@/stores/authStore';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import { useAppStore } from '@/stores/appStore';
 
 // Provider global pour initialiser tous les stores
 export const GlobalStoreProvider: FC<{ children: ReactNode }> = ({ children }) => {
   console.log('🏪 GlobalStoreProvider: Initializing...');
-  // Synchronisation cross-tab pour l'auth
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'auth-storage' && e.newValue) {
-        try {
-          const { state } = JSON.parse(e.newValue);
-          if (state?.session) {
-            useAuthStore.getState().setAuth(state.session, state.profile);
-          }
-        } catch (error) {
-          console.error('Error syncing auth across tabs:', error);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  
+  // Note: Auth synchronization is now handled by Supabase client directly via useAuth hook
 
   // Synchronisation des notifications globales
   useEffect(() => {
