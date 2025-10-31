@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.generate-repairer-seo-page]
 verify_jwt = false
+
+[functions.blog-schedules]
+verify_jwt = true

@@ -19,17 +19,15 @@ export const BlogAutomationSettings = () => {
 
   const checkAccess = async () => {
     try {
-      // Check if user has admin access by trying to read schedules
-      const { error } = await supabase
-        .from('blog_automation_schedules')
-        .select('id')
-        .limit(1);
+      // Try via Edge Function (enforces admin on backend)
+      const { error } = await supabase.functions.invoke('blog-schedules', {
+        body: { action: 'list' }
+      });
 
-      if (error && (error.code === '42501' || error.message?.includes('permission denied'))) {
+      if (error) {
         setHasAccess(false);
         return false;
       }
-      
       setHasAccess(true);
       return true;
     } catch (error: any) {

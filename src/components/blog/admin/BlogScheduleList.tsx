@@ -23,17 +23,14 @@ export const BlogScheduleList = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Load schedules
-      const { data: schedulesData, error: schedulesError } = await supabase
-        .from('blog_automation_schedules')
-        .select(`
-          *,
-          category:blog_categories(id, name, slug, icon)
-        `)
-        .order('schedule_day', { ascending: true })
-        .order('schedule_time', { ascending: true });
+      // Load schedules via Edge Function (admin-protected)
+      const { data: schedulesResp, error: schedulesError } = await supabase
+        .functions.invoke('blog-schedules', { body: { action: 'list' } });
 
       if (schedulesError) throw schedulesError;
+
+      const schedulesList = (schedulesResp as any)?.schedules || [];
+      setSchedules(schedulesList);
 
       // Load categories
       const { data: categoriesData, error: categoriesError } = await supabase
@@ -44,7 +41,6 @@ export const BlogScheduleList = () => {
 
       if (categoriesError) throw categoriesError;
 
-      setSchedules(schedulesData || []);
       setCategories(categoriesData || []);
     } catch (error: any) {
       console.error('Error loading data:', error);
@@ -71,18 +67,14 @@ export const BlogScheduleList = () => {
         prompt_template: null
       };
 
-      const { data, error } = await supabase
-        .from('blog_automation_schedules')
-        .insert(newSchedule)
-        .select(`
-          *,
-          category:blog_categories(id, name, slug, icon)
-        `)
-        .single();
+      const { data, error } = await supabase.functions.invoke('blog-schedules', {
+        body: { action: 'create', payload: newSchedule }
+      });
 
       if (error) throw error;
 
-      setSchedules([...schedules, data]);
+      const created = (data as any)?.schedule;
+      setSchedules([...schedules, created]);
       toast({
         title: "Planification créée",
         description: "Configurez les détails de votre nouvelle planification"
@@ -100,21 +92,15 @@ export const BlogScheduleList = () => {
   const handleUpdateSchedule = async (updatedSchedule: BlogAutomationSchedule) => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('blog_automation_schedules')
-        .update({
-          name: updatedSchedule.name,
-          enabled: updatedSchedule.enabled,
-          category_id: updatedSchedule.category_id,
-          schedule_day: updatedSchedule.schedule_day,
-          schedule_time: updatedSchedule.schedule_time,
-          auto_publish: updatedSchedule.auto_publish
-        })
-        .eq('id', updatedSchedule.id);
+      const { data, error } = await supabase.functions.invoke('blog-schedules', {
+        body: { action: 'update', id: updatedSchedule.id, payload: updatedSchedule }
+      });
 
       if (error) throw error;
 
-      setSchedules(schedules.map(s => s.id === updatedSchedule.id ? updatedSchedule : s));
+      const saved = (data as any)?.schedule ?? updatedSchedule;
+      setSchedules(schedules.map(s => s.id === updatedSchedule.id ? saved : s));
+      
       
       toast({
         title: "Sauvegardé",
@@ -134,10 +120,9 @@ export const BlogScheduleList = () => {
 
   const handleDeleteSchedule = async (scheduleId: string) => {
     try {
-      const { error } = await supabase
-        .from('blog_automation_schedules')
-        .delete()
-        .eq('id', scheduleId);
+      const { error } = await supabase.functions.invoke('blog-schedules', {
+        body: { action: 'delete', id: scheduleId }
+      });
 
       if (error) throw error;
 
