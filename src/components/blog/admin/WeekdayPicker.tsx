@@ -34,7 +34,7 @@ export const WeekdayPicker = ({ value, onChange }: WeekdayPickerProps) => {
                 {day.short}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent className="z-50">
               <p>{day.full}</p>
             </TooltipContent>
           </Tooltip>

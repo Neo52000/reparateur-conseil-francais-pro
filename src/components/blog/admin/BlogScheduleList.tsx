@@ -33,7 +33,8 @@ export const BlogScheduleList = () => {
       console.log('📋 Schedules loaded:', { schedulesData, schedulesError });
 
       if (schedulesError) {
-        if (schedulesError.code === 'PGRST301' || schedulesError.message.includes('permission')) {
+        const msg = typeof schedulesError?.message === 'string' ? schedulesError.message : '';
+        if (schedulesError?.code === 'PGRST301' || msg.includes('permission')) {
           throw new Error('Accès refusé - Vous devez être administrateur');
         }
         throw schedulesError;
@@ -97,7 +98,8 @@ export const BlogScheduleList = () => {
       console.log('📝 Create response:', { data, error });
 
       if (error) {
-        if (error.code === 'PGRST301' || error.message.includes('permission')) {
+        const msg = typeof error?.message === 'string' ? error.message : '';
+        if (error?.code === 'PGRST301' || msg.includes('permission')) {
           throw new Error('Accès refusé - Vous devez être administrateur');
         }
         throw error;
@@ -140,7 +142,8 @@ export const BlogScheduleList = () => {
         .single();
 
       if (error) {
-        if (error.code === 'PGRST301' || error.message.includes('permission')) {
+        const msg = typeof error?.message === 'string' ? error.message : '';
+        if (error?.code === 'PGRST301' || msg.includes('permission')) {
           throw new Error('Accès refusé - Vous devez être administrateur');
         }
         throw error;
@@ -173,7 +176,8 @@ export const BlogScheduleList = () => {
         .eq('id', scheduleId);
 
       if (error) {
-        if (error.code === 'PGRST301' || error.message.includes('permission')) {
+        const msg = typeof error?.message === 'string' ? error.message : '';
+        if (error?.code === 'PGRST301' || msg.includes('permission')) {
           throw new Error('Accès refusé - Vous devez être administrateur');
         }
         throw error;

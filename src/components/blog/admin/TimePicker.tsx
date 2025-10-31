@@ -63,7 +63,7 @@ export const TimePicker = ({ value, onChange }: TimePickerProps) => {
           {value}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="start">
+      <PopoverContent className="z-50 w-80 p-0 bg-popover" align="start">
         <div className="p-4 space-y-4">
           {/* Quick suggestions */}
           <div className="space-y-2">

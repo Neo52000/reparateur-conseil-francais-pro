@@ -70,7 +70,7 @@ export const BlogScheduleCard = ({ schedule, categories, onUpdate, onDelete }: B
                 )}
               </SelectValue>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-50">
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   <span className="flex items-center gap-2">
