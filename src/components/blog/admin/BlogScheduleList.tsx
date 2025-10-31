@@ -27,9 +27,12 @@ export const BlogScheduleList = () => {
       const { data: schedulesResp, error: schedulesError } = await supabase
         .functions.invoke('blog-schedules', { body: { action: 'list' } });
 
+      console.log('📋 blog-schedules response:', { schedulesResp, schedulesError });
+
       if (schedulesError) throw schedulesError;
 
       const schedulesList = (schedulesResp as any)?.schedules || [];
+      console.log('✅ Schedules loaded:', schedulesList.length);
       setSchedules(schedulesList);
 
       // Load categories
@@ -43,10 +46,16 @@ export const BlogScheduleList = () => {
 
       setCategories(categoriesData || []);
     } catch (error: any) {
-      console.error('Error loading data:', error);
+      console.error('❌ Error loading data:', error);
+      
+      let errorMsg = "Impossible de charger les planifications";
+      if (error?.message?.includes('forbidden') || error?.message?.includes('Admin required')) {
+        errorMsg = "Accès refusé. Seuls les administrateurs peuvent gérer les planifications.";
+      }
+      
       toast({
         title: "Erreur",
-        description: "Impossible de charger les planifications",
+        description: errorMsg,
         variant: "destructive"
       });
     } finally {
@@ -67,9 +76,12 @@ export const BlogScheduleList = () => {
         prompt_template: null
       };
 
+      console.log('➕ Creating schedule:', newSchedule);
       const { data, error } = await supabase.functions.invoke('blog-schedules', {
         body: { action: 'create', payload: newSchedule }
       });
+
+      console.log('📝 Create response:', { data, error });
 
       if (error) throw error;
 
@@ -80,10 +92,16 @@ export const BlogScheduleList = () => {
         description: "Configurez les détails de votre nouvelle planification"
       });
     } catch (error: any) {
-      console.error('Error adding schedule:', error);
+      console.error('❌ Error adding schedule:', error);
+      
+      let errorMsg = "Impossible de créer la planification";
+      if (error?.message?.includes('forbidden') || error?.message?.includes('Admin required')) {
+        errorMsg = "Accès refusé. Vous devez être administrateur.";
+      }
+      
       toast({
         title: "Erreur",
-        description: "Impossible de créer la planification",
+        description: errorMsg,
         variant: "destructive"
       });
     }
@@ -107,10 +125,16 @@ export const BlogScheduleList = () => {
         description: "Planification mise à jour avec succès"
       });
     } catch (error: any) {
-      console.error('Error updating schedule:', error);
+      console.error('❌ Error updating schedule:', error);
+      
+      let errorMsg = "Impossible de sauvegarder la planification";
+      if (error?.message?.includes('forbidden') || error?.message?.includes('Admin required')) {
+        errorMsg = "Accès refusé. Vous devez être administrateur.";
+      }
+      
       toast({
         title: "Erreur",
-        description: "Impossible de sauvegarder la planification",
+        description: errorMsg,
         variant: "destructive"
       });
     } finally {
@@ -133,10 +157,16 @@ export const BlogScheduleList = () => {
         description: "Planification supprimée avec succès"
       });
     } catch (error: any) {
-      console.error('Error deleting schedule:', error);
+      console.error('❌ Error deleting schedule:', error);
+      
+      let errorMsg = "Impossible de supprimer la planification";
+      if (error?.message?.includes('forbidden') || error?.message?.includes('Admin required')) {
+        errorMsg = "Accès refusé. Vous devez être administrateur.";
+      }
+      
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer la planification",
+        description: errorMsg,
         variant: "destructive"
       });
     }

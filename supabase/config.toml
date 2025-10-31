@@ -33,9 +33,6 @@ verify_jwt = false
 [functions.blog-image-generator]
 verify_jwt = true
 
-[functions.weekly-blog-automation]
-verify_jwt = false
-
 [functions.generate-local-seo-v3]
 verify_jwt = false
 

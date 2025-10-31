@@ -57,13 +57,18 @@ serve(async (req) => {
 
     // LIST
     if (action === "list") {
+      console.log("📋 LIST schedules request");
       const { data, error } = await supabase
         .from("blog_automation_schedules")
         .select("*, category:blog_categories(id, name, slug, icon)")
         .order("schedule_day", { ascending: true })
         .order("schedule_time", { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error("❌ LIST error:", error);
+        throw error;
+      }
+      console.log(`✅ LIST success: ${data?.length || 0} schedules`);
       return new Response(
         JSON.stringify({ success: true, schedules: data ?? [] }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -72,6 +77,7 @@ serve(async (req) => {
 
     // CREATE
     if (action === "create") {
+      console.log("➕ CREATE schedule request:", body?.payload);
       const nowDefaults = {
         name: "Nouvelle planification",
         enabled: true,
@@ -91,7 +97,10 @@ serve(async (req) => {
         .select("id")
         .single();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error("❌ CREATE insert error:", insertError);
+        throw insertError;
+      }
 
       const { data: row, error: fetchError } = await supabase
         .from("blog_automation_schedules")
@@ -99,8 +108,12 @@ serve(async (req) => {
         .eq("id", inserted.id)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error("❌ CREATE fetch error:", fetchError);
+        throw fetchError;
+      }
 
+      console.log("✅ CREATE success:", row?.id);
       return new Response(
         JSON.stringify({ success: true, schedule: row }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
