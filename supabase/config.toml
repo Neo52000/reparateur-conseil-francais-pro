@@ -12,15 +12,6 @@ verify_jwt = false
 [functions.csv-intelligent-import]
 verify_jwt = false
 
-[functions.generate-catalog-ads]
-verify_jwt = false
-
-[functions.import-mobilax-logos]
-verify_jwt = false
-
-[functions.chatbot-lovable]
-verify_jwt = false
-
 [functions.ai-fraud-detection]
 verify_jwt = false
 

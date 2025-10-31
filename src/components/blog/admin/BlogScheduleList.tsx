@@ -23,17 +23,24 @@ export const BlogScheduleList = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Load schedules via Edge Function (admin-protected)
-      const { data: schedulesResp, error: schedulesError } = await supabase
-        .functions.invoke('blog-schedules', { body: { action: 'list' } });
+      // Load schedules directly from table (RLS policies will enforce admin access)
+      const { data: schedulesData, error: schedulesError } = await supabase
+        .from('blog_automation_schedules')
+        .select('*, category:blog_categories(id, name, slug, icon)')
+        .order('schedule_day', { ascending: true })
+        .order('schedule_time', { ascending: true });
 
-      console.log('📋 blog-schedules response:', { schedulesResp, schedulesError });
+      console.log('📋 Schedules loaded:', { schedulesData, schedulesError });
 
-      if (schedulesError) throw schedulesError;
+      if (schedulesError) {
+        if (schedulesError.code === 'PGRST301' || schedulesError.message.includes('permission')) {
+          throw new Error('Accès refusé - Vous devez être administrateur');
+        }
+        throw schedulesError;
+      }
 
-      const schedulesList = (schedulesResp as any)?.schedules || [];
-      console.log('✅ Schedules loaded:', schedulesList.length);
-      setSchedules(schedulesList);
+      console.log('✅ Schedules loaded:', schedulesData?.length || 0);
+      setSchedules(schedulesData || []);
 
       // Load categories
       const { data: categoriesData, error: categoriesError } = await supabase
@@ -48,14 +55,9 @@ export const BlogScheduleList = () => {
     } catch (error: any) {
       console.error('❌ Error loading data:', error);
       
-      let errorMsg = "Impossible de charger les planifications";
-      if (error?.message?.includes('forbidden') || error?.message?.includes('Admin required')) {
-        errorMsg = "Accès refusé. Seuls les administrateurs peuvent gérer les planifications.";
-      }
-      
       toast({
         title: "Erreur",
-        description: errorMsg,
+        description: error.message || "Impossible de charger les planifications",
         variant: "destructive"
       });
     } finally {
@@ -77,16 +79,22 @@ export const BlogScheduleList = () => {
       };
 
       console.log('➕ Creating schedule:', newSchedule);
-      const { data, error } = await supabase.functions.invoke('blog-schedules', {
-        body: { action: 'create', payload: newSchedule }
-      });
+      const { data, error } = await supabase
+        .from('blog_automation_schedules')
+        .insert(newSchedule)
+        .select('*, category:blog_categories(id, name, slug, icon)')
+        .single();
 
       console.log('📝 Create response:', { data, error });
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST301' || error.message.includes('permission')) {
+          throw new Error('Accès refusé - Vous devez être administrateur');
+        }
+        throw error;
+      }
 
-      const created = (data as any)?.schedule;
-      setSchedules([...schedules, created]);
+      setSchedules([...schedules, data]);
       toast({
         title: "Planification créée",
         description: "Configurez les détails de votre nouvelle planification"
@@ -94,14 +102,9 @@ export const BlogScheduleList = () => {
     } catch (error: any) {
       console.error('❌ Error adding schedule:', error);
       
-      let errorMsg = "Impossible de créer la planification";
-      if (error?.message?.includes('forbidden') || error?.message?.includes('Admin required')) {
-        errorMsg = "Accès refusé. Vous devez être administrateur.";
-      }
-      
       toast({
         title: "Erreur",
-        description: errorMsg,
+        description: error.message || "Impossible de créer la planification",
         variant: "destructive"
       });
     }
@@ -110,15 +113,21 @@ export const BlogScheduleList = () => {
   const handleUpdateSchedule = async (updatedSchedule: BlogAutomationSchedule) => {
     setSaving(true);
     try {
-      const { data, error } = await supabase.functions.invoke('blog-schedules', {
-        body: { action: 'update', id: updatedSchedule.id, payload: updatedSchedule }
-      });
+      const { data, error } = await supabase
+        .from('blog_automation_schedules')
+        .update(updatedSchedule)
+        .eq('id', updatedSchedule.id)
+        .select('*, category:blog_categories(id, name, slug, icon)')
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST301' || error.message.includes('permission')) {
+          throw new Error('Accès refusé - Vous devez être administrateur');
+        }
+        throw error;
+      }
 
-      const saved = (data as any)?.schedule ?? updatedSchedule;
-      setSchedules(schedules.map(s => s.id === updatedSchedule.id ? saved : s));
-      
+      setSchedules(schedules.map(s => s.id === updatedSchedule.id ? data : s));
       
       toast({
         title: "Sauvegardé",
@@ -127,14 +136,9 @@ export const BlogScheduleList = () => {
     } catch (error: any) {
       console.error('❌ Error updating schedule:', error);
       
-      let errorMsg = "Impossible de sauvegarder la planification";
-      if (error?.message?.includes('forbidden') || error?.message?.includes('Admin required')) {
-        errorMsg = "Accès refusé. Vous devez être administrateur.";
-      }
-      
       toast({
         title: "Erreur",
-        description: errorMsg,
+        description: error.message || "Impossible de sauvegarder la planification",
         variant: "destructive"
       });
     } finally {
@@ -144,11 +148,17 @@ export const BlogScheduleList = () => {
 
   const handleDeleteSchedule = async (scheduleId: string) => {
     try {
-      const { error } = await supabase.functions.invoke('blog-schedules', {
-        body: { action: 'delete', id: scheduleId }
-      });
+      const { error } = await supabase
+        .from('blog_automation_schedules')
+        .delete()
+        .eq('id', scheduleId);
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST301' || error.message.includes('permission')) {
+          throw new Error('Accès refusé - Vous devez être administrateur');
+        }
+        throw error;
+      }
 
       setSchedules(schedules.filter(s => s.id !== scheduleId));
       
@@ -159,14 +169,9 @@ export const BlogScheduleList = () => {
     } catch (error: any) {
       console.error('❌ Error deleting schedule:', error);
       
-      let errorMsg = "Impossible de supprimer la planification";
-      if (error?.message?.includes('forbidden') || error?.message?.includes('Admin required')) {
-        errorMsg = "Accès refusé. Vous devez être administrateur.";
-      }
-      
       toast({
         title: "Erreur",
-        description: errorMsg,
+        description: error.message || "Impossible de supprimer la planification",
         variant: "destructive"
       });
     }

@@ -8,34 +8,15 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { BlogScheduleList } from './BlogScheduleList';
 import { CronStatus } from '@/types/blogAutomation';
+import { useAuth } from '@/hooks/useAuth';
 
 export const BlogAutomationSettings = () => {
   const { toast } = useToast();
+  const { isAdmin, loading: authLoading } = useAuth();
   const [cronStatus, setCronStatus] = useState<CronStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [testing, setTesting] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const [hasAccess, setHasAccess] = useState(false);
-
-  const checkAccess = async () => {
-    try {
-      // Try via Edge Function (enforces admin on backend)
-      const { error } = await supabase.functions.invoke('blog-schedules', {
-        body: { action: 'list' }
-      });
-
-      if (error) {
-        setHasAccess(false);
-        return false;
-      }
-      setHasAccess(true);
-      return true;
-    } catch (error: any) {
-      console.error('Error checking access:', error);
-      setHasAccess(false);
-      return false;
-    }
-  };
 
   const loadCronStatus = async () => {
     try {
@@ -61,15 +42,16 @@ export const BlogAutomationSettings = () => {
 
   useEffect(() => {
     const load = async () => {
+      if (authLoading) return;
+      
       setLoading(true);
-      const access = await checkAccess();
-      if (access) {
+      if (isAdmin) {
         await loadCronStatus();
       }
       setLoading(false);
     };
     load();
-  }, []);
+  }, [isAdmin, authLoading]);
 
   const handleTestNow = async () => {
     setTesting(true);
@@ -102,7 +84,7 @@ export const BlogAutomationSettings = () => {
     }
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <Card>
         <CardHeader>
@@ -114,7 +96,7 @@ export const BlogAutomationSettings = () => {
   }
 
   // Permission denied - show clear message
-  if (!hasAccess) {
+  if (!isAdmin) {
     return (
       <Card>
         <CardHeader>
