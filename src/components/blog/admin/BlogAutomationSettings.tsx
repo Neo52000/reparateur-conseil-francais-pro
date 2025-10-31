@@ -44,6 +44,12 @@ export const BlogAutomationSettings = () => {
 
   const loadConfig = async () => {
     try {
+      // 🔍 DEBUG: Afficher l'utilisateur actuel
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('🔍 DEBUG - Current user_id:', user?.id);
+      console.log('🔍 DEBUG - Expected admin user_id:', '2eb236c5-7566-42a0-995d-c7d5716adfcf');
+      console.log('🔍 DEBUG - Admin email:', 'reine.elie@gmail.com');
+      
       const { data, error } = await supabase
         .from('blog_automation_config')
         .select('id, enabled, auto_publish, schedule_time, schedule_day, ai_model, last_run_at, next_run_at, prompt_template, created_at, updated_at')
