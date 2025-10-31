@@ -227,15 +227,15 @@ const HeroWithIntegratedSearch: React.FC<HeroWithIntegratedSearchProps> = ({
           https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80&fm=webp 1920w
         "
       />
-      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
       
       <div className="relative z-20 flex flex-col justify-center items-center h-full text-white px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-4xl text-center">
-          <h1 className="text-3xl md:text-5xl font-bold mb-4 text-slate-50">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
             Trouvez un réparateur de smartphone près de chez vous en 2 clics
           </h1>
           
-          <p className="text-lg md:text-xl mb-8 text-white/90 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl mb-8 text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] max-w-2xl mx-auto">
             Les meilleurs réparateurs, les meilleurs délais et les meilleurs avis 
             Partout en France
           </p>
