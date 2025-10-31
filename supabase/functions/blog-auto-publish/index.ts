@@ -11,82 +11,215 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+  const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const now = new Date().toISOString();
+    // Try to parse body. If none provided, default to auto-publish mode
+    const body = await req.json().catch(() => ({}));
+    const { test_mode = false, action, schedule_id, category_id, auto_publish = false, ai_model } = body || {};
 
-    // Récupérer tous les articles programmés dont l'heure est passée
+    // If asked to generate (test mode), branch to AI generation flow
+    if (test_mode === true || action === 'generate') {
+      if (!LOVABLE_API_KEY) {
+        return new Response(JSON.stringify({ success: false, error: 'LOVABLE_API_KEY not configured' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Load schedule or fallback to first enabled
+      let schedule: any = null;
+      if (schedule_id) {
+        const { data, error } = await supabase
+          .from('blog_automation_schedules')
+          .select('*')
+          .eq('id', schedule_id)
+          .maybeSingle();
+        if (error) throw error;
+        schedule = data;
+      } else {
+        const { data, error } = await supabase
+          .from('blog_automation_schedules')
+          .select('*')
+          .eq('enabled', true)
+          .order('schedule_day', { ascending: true })
+          .order('schedule_time', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (error) throw error;
+        schedule = data;
+      }
+
+      // Resolve category
+      let chosenCategoryId: string | null = null;
+      if (schedule?.category_id) chosenCategoryId = schedule.category_id;
+      else if (category_id) chosenCategoryId = category_id;
+      else {
+        const { data: cat } = await supabase
+          .from('blog_categories')
+          .select('id, slug')
+          .in('slug', ['actualites-reparation', 'actualites'])
+          .order('display_order', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        chosenCategoryId = cat?.id ?? null;
+      }
+
+      const model = schedule?.ai_model || ai_model || 'google/gemini-2.5-flash';
+      const promptTemplate: string = schedule?.prompt_template || `
+Tu es un rédacteur technique français spécialisé en réparation de smartphones et mobilité. 
+Rédige un article utile, clair, factuel et SEO-friendly (H1 + H2/H3, puces, mots-clés). 
+Inclure : contexte marché/actu, conseils pratiques, points d’attention réparateurs. 
+Ton pédagogique, neutre, concret. Longueur cible 900-1200 mots.
+Titre et méta description (150-160 caractères) en tête :
+META_TITLE: <titre>\nMETA_DESCRIPTION: <description>
+`;
+
+      // Call Lovable AI gateway
+      const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: 'Tu es un assistant de rédaction pour un blog français de réparation de smartphones.' },
+            { role: 'user', content: promptTemplate },
+          ],
+          stream: false,
+        }),
+      });
+
+      if (!aiResp.ok) {
+        if (aiResp.status === 429) {
+          return new Response(JSON.stringify({ success: false, error: 'Rate limits exceeded, please try again later.' }), {
+            status: 429,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        if (aiResp.status === 402) {
+          return new Response(JSON.stringify({ success: false, error: 'Payment required, please add funds to Lovable AI.' }), {
+            status: 402,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        const errText = await aiResp.text();
+        console.error('AI gateway error:', aiResp.status, errText);
+        return new Response(JSON.stringify({ success: false, error: 'AI gateway error' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const aiJson = await aiResp.json();
+      const content: string = aiJson?.choices?.[0]?.message?.content || '';
+
+      // Parse meta
+      let metaTitle = '';
+      let metaDescription = '';
+      let cleaned = content;
+      const tMatch = content.match(/META_TITLE:\s*(.*)/i);
+      const dMatch = content.match(/META_DESCRIPTION:\s*(.*)/i);
+      if (tMatch) metaTitle = tMatch[1].trim();
+      if (dMatch) metaDescription = dMatch[1].trim();
+      cleaned = content.replace(/META_TITLE:.*\n?/i, '').replace(/META_DESCRIPTION:.*\n?/i, '').trim();
+
+      const firstH1 = cleaned.match(/^#\s+(.+)$/m)?.[1];
+      const title = metaTitle || firstH1 || 'Actualités de la réparation : mise à jour';
+      const slugBase = title.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-').slice(0, 60);
+      const slug = `${slugBase}-${Date.now()}`;
+
+      const publicationStatus = (auto_publish || schedule?.auto_publish) ? 'published' : 'pending';
+      const now = new Date().toISOString();
+
+      const { data: post, error: insertError } = await supabase
+        .from('blog_posts')
+        .insert({
+          title,
+          slug,
+          excerpt: metaDescription || undefined,
+          content: cleaned,
+          featured_image_url: null,
+          author_id: null,
+          category_id: chosenCategoryId,
+          visibility: 'public',
+          status: publicationStatus,
+          ai_generated: true,
+          ai_model: model,
+          generation_prompt: promptTemplate,
+          meta_title: metaTitle || undefined,
+          meta_description: metaDescription || undefined,
+          keywords: [],
+          published_at: publicationStatus === 'published' ? now : null,
+          scheduled_at: null,
+          view_count: 0,
+          comment_count: 0,
+          share_count: 0,
+        })
+        .select('*')
+        .single();
+
+      if (insertError) throw insertError;
+
+      if (schedule?.id) {
+        await supabase
+          .from('blog_automation_schedules')
+          .update({ last_run_at: now })
+          .eq('id', schedule.id);
+      }
+
+      return new Response(JSON.stringify({ success: true, article: post }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Default behavior: auto-publish scheduled posts
+    const nowIso = new Date().toISOString();
+
     const { data: scheduledPosts, error: fetchError } = await supabase
       .from('blog_posts')
       .select('id, title, scheduled_at')
       .eq('status', 'scheduled')
-      .lte('scheduled_at', now);
+      .lte('scheduled_at', nowIso);
 
-    if (fetchError) {
-      throw fetchError;
-    }
+    if (fetchError) throw fetchError;
 
     if (!scheduledPosts || scheduledPosts.length === 0) {
-      console.log('No posts to publish');
       return new Response(
-        JSON.stringify({ 
-          success: true, 
-          published_count: 0,
-          message: 'No posts to publish'
-        }),
+        JSON.stringify({ success: true, published_count: 0, message: 'No posts to publish' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Found ${scheduledPosts.length} posts to publish`);
-
-    // Publier tous les articles
     const { data: updatedPosts, error: updateError } = await supabase
       .from('blog_posts')
-      .update({
-        status: 'published',
-        published_at: now
-      })
+      .update({ status: 'published', published_at: nowIso })
       .in('id', scheduledPosts.map(p => p.id))
       .select();
 
-    if (updateError) {
-      throw updateError;
-    }
-
-    console.log(`Successfully published ${updatedPosts?.length || 0} posts`);
-
-    // TODO: Envoyer notifications/emails aux abonnés newsletter
-    // TODO: Partager automatiquement sur réseaux sociaux si configuré
+    if (updateError) throw updateError;
 
     return new Response(
       JSON.stringify({
         success: true,
         published_count: updatedPosts?.length || 0,
-        published_posts: updatedPosts?.map(p => ({
-          id: p.id,
-          title: p.title,
-          published_at: p.published_at
-        }))
+        published_posts: updatedPosts?.map(p => ({ id: p.id, title: p.title, published_at: p.published_at }))
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('Error in blog-auto-publish:', error);
-    return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Unknown error',
-        success: false
-      }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error', success: false }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
   }
 });

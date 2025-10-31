@@ -76,7 +76,7 @@ export const BlogAutomationSettings = () => {
   const handleTestNow = async () => {
     setTesting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('weekly-blog-automation', {
+      const { data, error } = await supabase.functions.invoke('blog-auto-publish', {
         body: { auto_publish: false, test_mode: true }
       });
 
