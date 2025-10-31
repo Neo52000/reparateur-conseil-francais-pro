@@ -66,17 +66,26 @@ export const BlogScheduleList = () => {
   };
 
   const handleAddSchedule = async () => {
+    setSaving(true);
     try {
       const newSchedule = {
         name: 'Nouvelle planification',
         enabled: true,
         category_id: null,
-        schedule_day: 1, // Monday
-        schedule_time: '08:00',
+        schedule_day: 1, // Monday (0-6)
+        schedule_time: '08:00', // HH:mm format
         auto_publish: false,
         ai_model: 'google/gemini-2.5-flash',
         prompt_template: null
       };
+
+      // Validate before insert
+      if (newSchedule.schedule_day < 0 || newSchedule.schedule_day > 6) {
+        throw new Error('Le jour doit être entre 0 (dimanche) et 6 (samedi)');
+      }
+      if (!/^\d{2}:\d{2}$/.test(newSchedule.schedule_time)) {
+        throw new Error('L\'heure doit être au format HH:mm');
+      }
 
       console.log('➕ Creating schedule:', newSchedule);
       const { data, error } = await supabase
@@ -96,7 +105,7 @@ export const BlogScheduleList = () => {
 
       setSchedules([...schedules, data]);
       toast({
-        title: "Planification créée",
+        title: "✅ Planification créée",
         description: "Configurez les détails de votre nouvelle planification"
       });
     } catch (error: any) {
@@ -107,12 +116,22 @@ export const BlogScheduleList = () => {
         description: error.message || "Impossible de créer la planification",
         variant: "destructive"
       });
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleUpdateSchedule = async (updatedSchedule: BlogAutomationSchedule) => {
     setSaving(true);
     try {
+      // Validate fields
+      if (updatedSchedule.schedule_day < 0 || updatedSchedule.schedule_day > 6) {
+        throw new Error('Le jour doit être entre 0 (dimanche) et 6 (samedi)');
+      }
+      if (!/^\d{2}:\d{2}$/.test(updatedSchedule.schedule_time)) {
+        throw new Error('L\'heure doit être au format HH:mm (ex: 08:00)');
+      }
+
       const { data, error } = await supabase
         .from('blog_automation_schedules')
         .update(updatedSchedule)
@@ -130,7 +149,7 @@ export const BlogScheduleList = () => {
       setSchedules(schedules.map(s => s.id === updatedSchedule.id ? data : s));
       
       toast({
-        title: "Sauvegardé",
+        title: "✅ Sauvegardé",
         description: "Planification mise à jour avec succès"
       });
     } catch (error: any) {

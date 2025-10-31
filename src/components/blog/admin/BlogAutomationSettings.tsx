@@ -56,21 +56,29 @@ export const BlogAutomationSettings = () => {
   const handleTestNow = async () => {
     setTesting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('blog-auto-publish', {
-        body: { auto_publish: false, test_mode: true }
+      // Call blog-ai-generator directly (simpler and more reliable)
+      const { data, error } = await supabase.functions.invoke('blog-ai-generator', {
+        body: {
+          topic: 'Actualités de la réparation mobile',
+          target_audience: 'public',
+          tone: 'professionnel',
+          auto_publish: false, // Create as draft for review
+          keywords: ['réparation', 'smartphone', 'mobile']
+        }
       });
 
       if (error) throw error;
 
-      if (data?.success) {
+      if (data?.id) {
         toast({
-          title: "Test réussi",
-          description: `Article créé : ${data.article?.title || 'Article de test'}`,
+          title: "Test réussi ✅",
+          description: `Article créé : ${data.title}`,
         });
         
-        await loadCronStatus();
+        // Redirect to blog posts list
+        window.location.href = '/admin?tab=blog-posts';
       } else {
-        throw new Error(data?.error || 'Test failed');
+        throw new Error('Article non créé');
       }
     } catch (error: any) {
       console.error('Test error:', error);
