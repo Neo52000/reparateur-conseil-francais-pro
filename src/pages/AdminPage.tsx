@@ -17,6 +17,7 @@ import BlogManagement from '@/components/blog/admin/BlogManagement';
 import ChatbotManagement from '@/components/admin/ChatbotManagement';
 import AdminAuthForm from '@/components/AdminAuthForm';
 import { useAuth } from '@/hooks/useAuth';
+import { AdminReauthGate } from '@/components/admin/security/AdminReauthGate';
 import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdvertisingDashboard';
 import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement';
 import SubdomainsManagement from '@/components/admin/SubdomainsManagement';
@@ -376,13 +377,15 @@ const AdminPage = () => {
     }
   };
   return (
-    <div className="min-h-screen bg-background">
-      <AdminTopBar userName={user?.email || 'Admin'} />
-      <HorizontalAdminNav />
-      <main className="p-6">
-        {renderContent()}
-      </main>
-    </div>
+    <AdminReauthGate>
+      <div className="min-h-screen bg-background">
+        <AdminTopBar userName={user?.email || 'Admin'} />
+        <HorizontalAdminNav />
+        <main className="p-6">
+          {renderContent()}
+        </main>
+      </div>
+    </AdminReauthGate>
   );
 };
 export default AdminPage;

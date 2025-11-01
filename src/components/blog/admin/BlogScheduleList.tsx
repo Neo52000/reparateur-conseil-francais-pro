@@ -23,27 +23,30 @@ export const BlogScheduleList = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Load schedules directly from table (RLS policies will enforce admin access)
-      const { data: schedulesData, error: schedulesError } = await supabase
-        .from('blog_automation_schedules')
-        .select('*')
-        .order('schedule_day', { ascending: true })
-        .order('schedule_time', { ascending: true });
+      console.log('🔄 Loading blog schedules via Edge Function...');
 
-      console.log('📋 Schedules loaded:', { schedulesData, schedulesError });
+      // Load schedules via Edge Function
+      const { data: schedulesResponse, error: schedulesError } = await supabase.functions.invoke('blog-schedules', {
+        body: { action: 'list' }
+      });
 
       if (schedulesError) {
-        const msg = typeof schedulesError?.message === 'string' ? schedulesError.message : '';
-        if (schedulesError?.code === 'PGRST301' || msg.includes('permission')) {
-          throw new Error('Accès refusé - Vous devez être administrateur');
-        }
-        throw schedulesError;
+        console.error('❌ Error loading schedules:', schedulesError);
+        throw new Error('Erreur lors du chargement des planifications');
       }
 
-      console.log('✅ Schedules loaded:', schedulesData?.length || 0);
-      setSchedules(schedulesData || []);
+      if (!schedulesResponse?.success) {
+        console.error('❌ Edge function error:', schedulesResponse);
+        if (schedulesResponse?.error === 'forbidden') {
+          throw new Error('Accès refusé - connexion admin requise');
+        }
+        throw new Error(schedulesResponse?.message || 'Erreur lors du chargement');
+      }
 
-      // Load categories
+      console.log('✅ Schedules loaded:', schedulesResponse.schedules?.length || 0);
+      setSchedules(schedulesResponse.schedules || []);
+
+      // Load categories directly (read access)
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('blog_categories')
         .select('*')
@@ -88,24 +91,25 @@ export const BlogScheduleList = () => {
         throw new Error('L\'heure doit être au format HH:mm');
       }
 
-      console.log('➕ Creating schedule:', newSchedule);
-      const { data, error } = await supabase
-        .from('blog_automation_schedules')
-        .insert(newSchedule)
-        .select('*')
-        .single();
-
-      console.log('📝 Create response:', { data, error });
+      console.log('➕ Creating schedule via Edge Function:', newSchedule);
+      const { data: response, error } = await supabase.functions.invoke('blog-schedules', {
+        body: { action: 'create', payload: newSchedule }
+      });
 
       if (error) {
-        const msg = typeof error?.message === 'string' ? error.message : '';
-        if (error?.code === 'PGRST301' || msg.includes('permission')) {
-          throw new Error('Accès refusé - Vous devez être administrateur');
-        }
-        throw error;
+        console.error('❌ Error creating schedule:', error);
+        throw new Error('Erreur lors de la création');
       }
 
-      setSchedules([...schedules, data]);
+      if (!response?.success) {
+        console.error('❌ Edge function error:', response);
+        if (response?.error === 'forbidden') {
+          throw new Error('Accès refusé - connexion admin requise');
+        }
+        throw new Error(response?.message || 'Erreur lors de la création');
+      }
+
+      setSchedules([...schedules, response.schedule]);
       toast({
         title: "✅ Planification créée",
         description: "Configurez les détails de votre nouvelle planification"
@@ -145,22 +149,25 @@ export const BlogScheduleList = () => {
         prompt_template: updatedSchedule.prompt_template
       };
 
-      const { data, error } = await supabase
-        .from('blog_automation_schedules')
-        .update(updatePayload)
-        .eq('id', updatedSchedule.id)
-        .select('*')
-        .single();
+      console.log('💾 Updating schedule via Edge Function:', updatedSchedule.id, updatePayload);
+      const { data: response, error } = await supabase.functions.invoke('blog-schedules', {
+        body: { action: 'update', id: updatedSchedule.id, payload: updatePayload }
+      });
 
       if (error) {
-        const msg = typeof error?.message === 'string' ? error.message : '';
-        if (error?.code === 'PGRST301' || msg.includes('permission')) {
-          throw new Error('Accès refusé - Vous devez être administrateur');
-        }
-        throw error;
+        console.error('❌ Error updating schedule:', error);
+        throw new Error('Erreur lors de la mise à jour');
       }
 
-      setSchedules(schedules.map(s => s.id === updatedSchedule.id ? data : s));
+      if (!response?.success) {
+        console.error('❌ Edge function error:', response);
+        if (response?.error === 'forbidden') {
+          throw new Error('Accès refusé - connexion admin requise');
+        }
+        throw new Error(response?.message || 'Erreur lors de la mise à jour');
+      }
+
+      setSchedules(schedules.map(s => s.id === updatedSchedule.id ? response.schedule : s));
       
       toast({
         title: "✅ Sauvegardé",
@@ -181,17 +188,22 @@ export const BlogScheduleList = () => {
 
   const handleDeleteSchedule = async (scheduleId: string) => {
     try {
-      const { error } = await supabase
-        .from('blog_automation_schedules')
-        .delete()
-        .eq('id', scheduleId);
+      console.log('🗑️ Deleting schedule via Edge Function:', scheduleId);
+      const { data: response, error } = await supabase.functions.invoke('blog-schedules', {
+        body: { action: 'delete', id: scheduleId }
+      });
 
       if (error) {
-        const msg = typeof error?.message === 'string' ? error.message : '';
-        if (error?.code === 'PGRST301' || msg.includes('permission')) {
-          throw new Error('Accès refusé - Vous devez être administrateur');
+        console.error('❌ Error deleting schedule:', error);
+        throw new Error('Erreur lors de la suppression');
+      }
+
+      if (!response?.success) {
+        console.error('❌ Edge function error:', response);
+        if (response?.error === 'forbidden') {
+          throw new Error('Accès refusé - connexion admin requise');
         }
-        throw error;
+        throw new Error(response?.message || 'Erreur lors de la suppression');
       }
 
       setSchedules(schedules.filter(s => s.id !== scheduleId));
