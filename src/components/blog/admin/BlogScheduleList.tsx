@@ -25,26 +25,30 @@ export const BlogScheduleList = () => {
     try {
       console.log('🔄 Loading blog schedules via Edge Function...');
 
-      // Load schedules via Edge Function
+      // Try via Edge Function first
       const { data: schedulesResponse, error: schedulesError } = await supabase.functions.invoke('blog-schedules', {
         body: { action: 'list' }
       });
 
-      if (schedulesError) {
-        console.error('❌ Error loading schedules:', schedulesError);
-        throw new Error('Erreur lors du chargement des planifications');
+      let loadedSchedules: BlogAutomationSchedule[] = [];
+
+      if (!schedulesError && schedulesResponse?.success) {
+        console.log('✅ Schedules loaded via Edge Function:', schedulesResponse.schedules?.length || 0);
+        loadedSchedules = schedulesResponse.schedules || [];
+      } else {
+        // Fallback to direct DB (RLS allows admin)
+        console.warn('⚠️ Edge Function unavailable, falling back to direct DB select', schedulesError || schedulesResponse);
+        const { data: schedulesData, error: schedulesDirectError } = await supabase
+          .from('blog_automation_schedules')
+          .select('*, category:blog_categories(id, name, slug, icon)')
+          .order('schedule_day', { ascending: true })
+          .order('schedule_time', { ascending: true });
+
+        if (schedulesDirectError) throw schedulesDirectError;
+        loadedSchedules = schedulesData || [];
       }
 
-      if (!schedulesResponse?.success) {
-        console.error('❌ Edge function error:', schedulesResponse);
-        if (schedulesResponse?.error === 'forbidden') {
-          throw new Error('Accès refusé - connexion admin requise');
-        }
-        throw new Error(schedulesResponse?.message || 'Erreur lors du chargement');
-      }
-
-      console.log('✅ Schedules loaded:', schedulesResponse.schedules?.length || 0);
-      setSchedules(schedulesResponse.schedules || []);
+      setSchedules(loadedSchedules);
 
       // Load categories directly (read access)
       const { data: categoriesData, error: categoriesError } = await supabase
@@ -58,11 +62,10 @@ export const BlogScheduleList = () => {
       setCategories(categoriesData || []);
     } catch (error: any) {
       console.error('❌ Error loading data:', error);
-      
       toast({
-        title: "Erreur",
-        description: error.message || "Impossible de charger les planifications",
-        variant: "destructive"
+        title: 'Erreur',
+        description: error.message || 'Impossible de charger les planifications',
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);
@@ -96,23 +99,37 @@ export const BlogScheduleList = () => {
         body: { action: 'create', payload: newSchedule }
       });
 
-      if (error) {
-        console.error('❌ Error creating schedule:', error);
-        throw new Error('Erreur lors de la création');
-      }
-
-      if (!response?.success) {
-        console.error('❌ Edge function error:', response);
+      if (error || !response?.success) {
         if (response?.error === 'forbidden') {
           throw new Error('Accès refusé - connexion admin requise');
         }
-        throw new Error(response?.message || 'Erreur lors de la création');
+        console.warn('⚠️ Edge Function create failed, fallback to direct insert', error || response);
+
+        // Fallback: direct insert (RLS admin policy)
+        const { data: inserted, error: insertError } = await supabase
+          .from('blog_automation_schedules')
+          .insert(newSchedule)
+          .select('id')
+          .single();
+
+        if (insertError) throw insertError;
+
+        const { data: row, error: fetchError } = await supabase
+          .from('blog_automation_schedules')
+          .select('*, category:blog_categories(id, name, slug, icon)')
+          .eq('id', inserted.id)
+          .maybeSingle();
+
+        if (fetchError) throw fetchError;
+
+        setSchedules([...schedules, row as any]);
+      } else {
+        setSchedules([...schedules, response.schedule]);
       }
 
-      setSchedules([...schedules, response.schedule]);
       toast({
-        title: "✅ Planification créée",
-        description: "Configurez les détails de votre nouvelle planification"
+        title: '✅ Planification créée',
+        description: 'Configurez les détails de votre nouvelle planification'
       });
     } catch (error: any) {
       console.error('❌ Error adding schedule:', error);
@@ -154,24 +171,38 @@ export const BlogScheduleList = () => {
         body: { action: 'update', id: updatedSchedule.id, payload: updatePayload }
       });
 
-      if (error) {
-        console.error('❌ Error updating schedule:', error);
-        throw new Error('Erreur lors de la mise à jour');
-      }
+      let savedSchedule: BlogAutomationSchedule | null = null;
 
-      if (!response?.success) {
-        console.error('❌ Edge function error:', response);
+      if (error || !response?.success) {
         if (response?.error === 'forbidden') {
           throw new Error('Accès refusé - connexion admin requise');
         }
-        throw new Error(response?.message || 'Erreur lors de la mise à jour');
+        console.warn('⚠️ Edge Function update failed, fallback to direct update', error || response);
+
+        const { error: updateError } = await supabase
+          .from('blog_automation_schedules')
+          .update(updatePayload)
+          .eq('id', updatedSchedule.id);
+
+        if (updateError) throw updateError;
+
+        const { data: row, error: fetchError } = await supabase
+          .from('blog_automation_schedules')
+          .select('*, category:blog_categories(id, name, slug, icon)')
+          .eq('id', updatedSchedule.id)
+          .maybeSingle();
+
+        if (fetchError) throw fetchError;
+        savedSchedule = row as any;
+      } else {
+        savedSchedule = response.schedule as any;
       }
 
-      setSchedules(schedules.map(s => s.id === updatedSchedule.id ? response.schedule : s));
+      setSchedules(schedules.map(s => s.id === updatedSchedule.id ? savedSchedule! : s));
       
       toast({
-        title: "✅ Sauvegardé",
-        description: "Planification mise à jour avec succès"
+        title: '✅ Sauvegardé',
+        description: 'Planification mise à jour avec succès'
       });
     } catch (error: any) {
       console.error('❌ Error updating schedule:', error);
@@ -193,24 +224,25 @@ export const BlogScheduleList = () => {
         body: { action: 'delete', id: scheduleId }
       });
 
-      if (error) {
-        console.error('❌ Error deleting schedule:', error);
-        throw new Error('Erreur lors de la suppression');
-      }
-
-      if (!response?.success) {
-        console.error('❌ Edge function error:', response);
+      if (error || !response?.success) {
         if (response?.error === 'forbidden') {
           throw new Error('Accès refusé - connexion admin requise');
         }
-        throw new Error(response?.message || 'Erreur lors de la suppression');
+        console.warn('⚠️ Edge Function delete failed, fallback to direct delete', error || response);
+
+        const { error: delError } = await supabase
+          .from('blog_automation_schedules')
+          .delete()
+          .eq('id', scheduleId);
+
+        if (delError) throw delError;
       }
 
       setSchedules(schedules.filter(s => s.id !== scheduleId));
       
       toast({
-        title: "Supprimée",
-        description: "Planification supprimée avec succès"
+        title: 'Supprimée',
+        description: 'Planification supprimée avec succès'
       });
     } catch (error: any) {
       console.error('❌ Error deleting schedule:', error);
