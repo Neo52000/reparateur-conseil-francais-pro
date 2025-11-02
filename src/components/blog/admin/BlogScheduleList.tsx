@@ -40,7 +40,7 @@ export const BlogScheduleList = () => {
         console.warn('⚠️ Edge Function unavailable, falling back to direct DB select', schedulesError || schedulesResponse);
         const { data: schedulesData, error: schedulesDirectError } = await supabase
           .from('blog_automation_schedules')
-          .select('*, category:blog_categories(id, name, slug, icon)')
+          .select('*')
           .order('schedule_day', { ascending: true })
           .order('schedule_time', { ascending: true });
 
@@ -109,15 +109,19 @@ export const BlogScheduleList = () => {
         const { data: inserted, error: insertError } = await supabase
           .from('blog_automation_schedules')
           .insert(newSchedule)
-          .select('id')
-          .single();
+          .select('id');
 
         if (insertError) throw insertError;
 
+        const insertedId = (inserted as any)?.[0]?.id;
+        if (!insertedId) {
+          throw new Error('Insertion réussie mais identifiant introuvable');
+        }
+
         const { data: row, error: fetchError } = await supabase
           .from('blog_automation_schedules')
-          .select('*, category:blog_categories(id, name, slug, icon)')
-          .eq('id', inserted.id)
+          .select('*')
+          .eq('id', insertedId)
           .maybeSingle();
 
         if (fetchError) throw fetchError;
@@ -188,7 +192,7 @@ export const BlogScheduleList = () => {
 
         const { data: row, error: fetchError } = await supabase
           .from('blog_automation_schedules')
-          .select('*, category:blog_categories(id, name, slug, icon)')
+          .select('*')
           .eq('id', updatedSchedule.id)
           .maybeSingle();
 
