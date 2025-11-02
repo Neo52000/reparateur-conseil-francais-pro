@@ -1,17 +1,16 @@
-
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, FileText, Settings, BarChart3 } from 'lucide-react';
+import { FC } from 'react';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { BookOpen } from 'lucide-react';
 import BlogManagement from './BlogManagement';
 
-const BlogAdmin: React.FC = () => {
+export const BlogAdmin: FC = () => {
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <BookOpen className="h-6 w-6 text-blue-600" />
+            <div className="p-2 bg-info-badge-light rounded-lg">
+              <BookOpen className="h-6 w-6 text-info-badge" />
             </div>
             <div>
               <CardTitle>Administration du Blog</CardTitle>

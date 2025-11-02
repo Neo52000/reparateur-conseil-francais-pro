@@ -1,8 +1,9 @@
 import { Helmet } from 'react-helmet-async';
-import React, { Suspense, lazy } from 'react';
+import { Suspense, lazy } from 'react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import HeroSkeleton from '@/components/sections/HeroSkeleton';
+import { StatsGridSkeleton, CardsGridSkeleton, BlogGridSkeleton } from '@/components/sections/LoadingSkeleton';
 
 // Lazy load non-critical components for better FCP
 const HeroWithIntegratedSearch = lazy(() => import('@/components/sections/HeroWithIntegratedSearch'));
@@ -31,51 +32,26 @@ const Index = () => {
         {/* Hero principal avec chargement optimisé */}
         <Suspense fallback={<HeroSkeleton />}>
           <HeroWithIntegratedSearch 
-            onQuickSearch={(criteria) => {
-              console.log('Recherche rapide avec:', criteria);
-            }}
-            onMapSearch={() => {
-              console.log('Ouverture de la carte');
-            }}
+            onQuickSearch={() => {}}
+            onMapSearch={() => {}}
           />
         </Suspense>
 
         {/* Sections en conteneur aéré - chargement différé */}
         <section className="container mx-auto px-4 md:px-8 lg:px-10">
-          <Suspense fallback={
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
-              ))}
-            </div>
-          }>
+          <Suspense fallback={<StatsGridSkeleton />}>
             <QuickStatsSection />
           </Suspense>
         </section>
 
         <section className="container mx-auto px-4 md:px-8 lg:px-10">
-          <Suspense fallback={
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-40 bg-muted animate-pulse rounded-lg" />
-              ))}
-            </div>
-          }>
+          <Suspense fallback={<CardsGridSkeleton />}>
             <TrustSection />
           </Suspense>
         </section>
 
         <section className="container mx-auto px-4 md:px-8 lg:px-10">
-          <Suspense fallback={
-            <div className="space-y-8">
-              <div className="h-8 w-64 bg-muted animate-pulse rounded" />
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-64 bg-muted animate-pulse rounded-lg" />
-                ))}
-              </div>
-            </div>
-          }>
+          <Suspense fallback={<BlogGridSkeleton />}>
             <BlogSectionHomepage />
           </Suspense>
         </section>
