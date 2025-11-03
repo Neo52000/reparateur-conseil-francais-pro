@@ -50,7 +50,7 @@ const AdminSidebar: React.FC = () => {
 
   const menuItems: MenuItemType[] = [
     // Core
-    { path: '/admin', icon: LayoutDashboard, label: 'Dashboard', tab: 'dashboard', category: 'Core' },
+    { path: '/admin?tab=dashboard', icon: LayoutDashboard, label: 'Dashboard', tab: 'dashboard', category: 'Core' },
     { path: '/admin?tab=subscriptions', icon: CreditCard, label: 'Abonnements', tab: 'subscriptions', category: 'Core' },
     { path: '/admin?tab=repairers', icon: Users, label: 'Réparateurs', tab: 'repairers', category: 'Core' },
     { path: '/admin?tab=quotes', icon: FileText, label: 'Gestion Devis', tab: 'quotes', category: 'Core' },

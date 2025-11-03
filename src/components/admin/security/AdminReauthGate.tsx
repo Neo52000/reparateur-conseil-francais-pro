@@ -10,9 +10,10 @@ import { toast } from 'sonner';
 
 interface AdminReauthGateProps {
   children: React.ReactNode;
+  onVerified?: () => void;
 }
 
-export const AdminReauthGate = ({ children }: AdminReauthGateProps) => {
+export const AdminReauthGate = ({ children, onVerified }: AdminReauthGateProps) => {
   const { user } = useAuth();
   const [verified, setVerified] = useState(false);
   const [password, setPassword] = useState('');
@@ -58,6 +59,7 @@ export const AdminReauthGate = ({ children }: AdminReauthGateProps) => {
       console.log('✅ Ré-authentification admin réussie');
       toast.success('Accès admin vérifié');
       setVerified(true);
+      onVerified?.();
     } catch (err) {
       console.error('❌ Erreur ré-authentification:', err);
       setError('Erreur lors de la vérification');

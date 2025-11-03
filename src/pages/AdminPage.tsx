@@ -1,5 +1,5 @@
-import React from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminDashboardContent from '@/components/admin/AdminDashboardContent';
@@ -60,8 +60,51 @@ const AdminPage = () => {
     isAdmin,
     loading
   } = useAuth();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const activeTab = searchParams.get('tab') || 'dashboard';
+
+  // List of valid tabs
+  const validTabs = [
+    'dashboard', 'subscriptions', 'subdomains', 'landing-pages', 'repairers', 'quotes',
+    'catalog', 'interest', 'promocodes', 'advertising', 'advertising-ai', 'analytics',
+    'scraping', 'automation', 'monitoring', 'blog', 'chatbot', 'local-seo', 'seo-tools',
+    'repairer-seo', 'seo-monitoring', 'repair-generator', 'pagespeed-pro', 'performance',
+    'documentation', 'features-manager', 'plans-tester', 'dashboard-tester', 'configuration',
+    'suppliers', 'static-pages', 'system-diagnostics', 'system-optimization', 'chatbot-performance',
+    'shopify-dashboard', 'shopify-stores', 'shopify-orders', 'shopify-commissions',
+    'shopify-analytics', 'shopify-settings'
+  ];
+
+  // Restore tab from sessionStorage if missing
+  useEffect(() => {
+    const currentTab = searchParams.get('tab');
+    
+    if (!currentTab) {
+      const lastTab = sessionStorage.getItem('lastAdminTab') || 'dashboard';
+      setSearchParams({ tab: lastTab }, { replace: true });
+    } else if (!validTabs.includes(currentTab)) {
+      // Invalid tab, redirect to dashboard
+      setSearchParams({ tab: 'dashboard' }, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  // Persist current tab to sessionStorage
+  useEffect(() => {
+    if (activeTab && validTabs.includes(activeTab)) {
+      sessionStorage.setItem('lastAdminTab', activeTab);
+    }
+  }, [activeTab]);
+
+  // Callback after re-authentication to restore tab
+  const handleVerified = () => {
+    const lastTab = sessionStorage.getItem('lastAdminTab');
+    const currentTab = searchParams.get('tab');
+    
+    if (!currentTab && lastTab) {
+      setSearchParams({ tab: lastTab }, { replace: true });
+    }
+  };
 
   // Si on est en cours de chargement, afficher un loading optimisé
   if (loading) {
@@ -377,7 +420,7 @@ const AdminPage = () => {
     }
   };
   return (
-    <AdminReauthGate>
+    <AdminReauthGate onVerified={handleVerified}>
       <div className="min-h-screen bg-background">
         <AdminTopBar userName={user?.email || 'Admin'} />
         <HorizontalAdminNav />
