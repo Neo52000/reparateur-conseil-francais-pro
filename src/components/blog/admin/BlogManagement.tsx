@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,10 +20,43 @@ import { useAuthRoles } from '@/hooks/auth/useAuthRoles';
 const BlogManagement: React.FC = () => {
   const { user } = useAuth();
   const { isAdmin } = useAuthRoles(user?.id);
-  const [activeTab, setActiveTab] = useState('posts');
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Valid blog sub-tabs
+  const validBlogTabs = ['posts', 'ai-generator', 'categories', 'templates', 'news', 'analytics', 'automation', 'settings'];
+  
+  // Get blogTab from URL or sessionStorage
+  const urlBlogTab = searchParams.get('blogTab');
+  const storedBlogTab = sessionStorage.getItem('lastBlogTab') || 'posts';
+  const initialTab = validBlogTabs.includes(urlBlogTab || '') ? urlBlogTab : storedBlogTab;
+  
+  const [activeTab, setActiveTab] = useState(initialTab || 'posts');
   const [showNewArticleEditor, setShowNewArticleEditor] = useState(false);
   const [showAIGenerator, setShowAIGenerator] = useState(false);
   const [generatedPost, setGeneratedPost] = useState<BlogPost | null>(null);
+
+  // Initialize URL with blogTab if missing
+  useEffect(() => {
+    if (!urlBlogTab || !validBlogTabs.includes(urlBlogTab)) {
+      setSearchParams(prev => {
+        prev.set('tab', 'blog');
+        prev.set('blogTab', activeTab);
+        return prev;
+      }, { replace: true });
+    }
+  }, []);
+
+  // Sync activeTab with URL and sessionStorage
+  useEffect(() => {
+    if (validBlogTabs.includes(activeTab)) {
+      sessionStorage.setItem('lastBlogTab', activeTab);
+      setSearchParams(prev => {
+        prev.set('tab', 'blog');
+        prev.set('blogTab', activeTab);
+        return prev;
+      }, { replace: true });
+    }
+  }, [activeTab]);
 
   const handleNewArticleClick = () => {
     setActiveTab('posts');

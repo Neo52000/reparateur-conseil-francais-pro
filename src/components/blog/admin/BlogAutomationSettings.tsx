@@ -76,7 +76,7 @@ export const BlogAutomationSettings = () => {
         });
         
         // Redirect to blog posts list
-        window.location.href = '/admin?tab=blog';
+        window.location.href = '/admin?tab=blog&blogTab=posts';
       } else {
         throw new Error('Article non créé');
       }
