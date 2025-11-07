@@ -23,32 +23,18 @@ export const BlogScheduleList = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      console.log('🔄 Loading blog schedules via Edge Function...');
+      console.log('🔄 Loading blog schedules from database...');
 
-      // Try via Edge Function first
-      const { data: schedulesResponse, error: schedulesError } = await supabase.functions.invoke('blog-schedules', {
-        body: { action: 'list' }
-      });
+      // Direct DB access (RLS allows admin)
+      const { data: schedulesData, error: schedulesError } = await supabase
+        .from('blog_automation_schedules')
+        .select('*')
+        .order('schedule_day', { ascending: true })
+        .order('schedule_time', { ascending: true });
 
-      let loadedSchedules: BlogAutomationSchedule[] = [];
+      if (schedulesError) throw schedulesError;
 
-      if (!schedulesError && schedulesResponse?.success) {
-        console.log('✅ Schedules loaded via Edge Function:', schedulesResponse.schedules?.length || 0);
-        loadedSchedules = schedulesResponse.schedules || [];
-      } else {
-        // Fallback to direct DB (RLS allows admin)
-        console.warn('⚠️ Edge Function unavailable, falling back to direct DB select', schedulesError || schedulesResponse);
-        const { data: schedulesData, error: schedulesDirectError } = await supabase
-          .from('blog_automation_schedules')
-          .select('*')
-          .order('schedule_day', { ascending: true })
-          .order('schedule_time', { ascending: true });
-
-        if (schedulesDirectError) throw schedulesDirectError;
-        loadedSchedules = schedulesData || [];
-      }
-
-      setSchedules(loadedSchedules);
+      setSchedules(schedulesData || []);
 
       // Load categories directly (read access)
       const { data: categoriesData, error: categoriesError } = await supabase
@@ -94,42 +80,19 @@ export const BlogScheduleList = () => {
         throw new Error('L\'heure doit être au format HH:mm');
       }
 
-      console.log('➕ Creating schedule via Edge Function:', newSchedule);
-      const { data: response, error } = await supabase.functions.invoke('blog-schedules', {
-        body: { action: 'create', payload: newSchedule }
-      });
+      console.log('➕ Creating schedule:', newSchedule);
+      
+      // Direct insert (RLS admin policy)
+      const { data: inserted, error: insertError } = await supabase
+        .from('blog_automation_schedules')
+        .insert(newSchedule)
+        .select('*')
+        .single();
 
-      if (error || !response?.success) {
-        if (response?.error === 'forbidden') {
-          throw new Error('Accès refusé - connexion admin requise');
-        }
-        console.warn('⚠️ Edge Function create failed, fallback to direct insert', error || response);
+      if (insertError) throw insertError;
+      if (!inserted) throw new Error('Insertion réussie mais données introuvables');
 
-        // Fallback: direct insert (RLS admin policy)
-        const { data: inserted, error: insertError } = await supabase
-          .from('blog_automation_schedules')
-          .insert(newSchedule)
-          .select('id');
-
-        if (insertError) throw insertError;
-
-        const insertedId = (inserted as any)?.[0]?.id;
-        if (!insertedId) {
-          throw new Error('Insertion réussie mais identifiant introuvable');
-        }
-
-        const { data: row, error: fetchError } = await supabase
-          .from('blog_automation_schedules')
-          .select('*')
-          .eq('id', insertedId)
-          .maybeSingle();
-
-        if (fetchError) throw fetchError;
-
-        setSchedules([...schedules, row as any]);
-      } else {
-        setSchedules([...schedules, response.schedule]);
-      }
+      setSchedules([...schedules, inserted]);
 
       toast({
         title: '✅ Planification créée',
@@ -170,39 +133,20 @@ export const BlogScheduleList = () => {
         prompt_template: updatedSchedule.prompt_template
       };
 
-      console.log('💾 Updating schedule via Edge Function:', updatedSchedule.id, updatePayload);
-      const { data: response, error } = await supabase.functions.invoke('blog-schedules', {
-        body: { action: 'update', id: updatedSchedule.id, payload: updatePayload }
-      });
+      console.log('💾 Updating schedule:', updatedSchedule.id, updatePayload);
+      
+      // Direct update (RLS admin policy)
+      const { data: updated, error: updateError } = await supabase
+        .from('blog_automation_schedules')
+        .update(updatePayload)
+        .eq('id', updatedSchedule.id)
+        .select('*')
+        .single();
 
-      let savedSchedule: BlogAutomationSchedule | null = null;
+      if (updateError) throw updateError;
+      if (!updated) throw new Error('Mise à jour réussie mais données introuvables');
 
-      if (error || !response?.success) {
-        if (response?.error === 'forbidden') {
-          throw new Error('Accès refusé - connexion admin requise');
-        }
-        console.warn('⚠️ Edge Function update failed, fallback to direct update', error || response);
-
-        const { error: updateError } = await supabase
-          .from('blog_automation_schedules')
-          .update(updatePayload)
-          .eq('id', updatedSchedule.id);
-
-        if (updateError) throw updateError;
-
-        const { data: row, error: fetchError } = await supabase
-          .from('blog_automation_schedules')
-          .select('*')
-          .eq('id', updatedSchedule.id)
-          .maybeSingle();
-
-        if (fetchError) throw fetchError;
-        savedSchedule = row as any;
-      } else {
-        savedSchedule = response.schedule as any;
-      }
-
-      setSchedules(schedules.map(s => s.id === updatedSchedule.id ? savedSchedule! : s));
+      setSchedules(schedules.map(s => s.id === updatedSchedule.id ? updated : s));
       
       toast({
         title: '✅ Sauvegardé',
@@ -223,24 +167,15 @@ export const BlogScheduleList = () => {
 
   const handleDeleteSchedule = async (scheduleId: string) => {
     try {
-      console.log('🗑️ Deleting schedule via Edge Function:', scheduleId);
-      const { data: response, error } = await supabase.functions.invoke('blog-schedules', {
-        body: { action: 'delete', id: scheduleId }
-      });
+      console.log('🗑️ Deleting schedule:', scheduleId);
+      
+      // Direct delete (RLS admin policy)
+      const { error: deleteError } = await supabase
+        .from('blog_automation_schedules')
+        .delete()
+        .eq('id', scheduleId);
 
-      if (error || !response?.success) {
-        if (response?.error === 'forbidden') {
-          throw new Error('Accès refusé - connexion admin requise');
-        }
-        console.warn('⚠️ Edge Function delete failed, fallback to direct delete', error || response);
-
-        const { error: delError } = await supabase
-          .from('blog_automation_schedules')
-          .delete()
-          .eq('id', scheduleId);
-
-        if (delError) throw delError;
-      }
+      if (deleteError) throw deleteError;
 
       setSchedules(schedules.filter(s => s.id !== scheduleId));
       
