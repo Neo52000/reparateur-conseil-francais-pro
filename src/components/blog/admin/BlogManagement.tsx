@@ -25,22 +25,31 @@ const BlogManagement: React.FC = () => {
   // Valid blog sub-tabs
   const validBlogTabs = ['posts', 'ai-generator', 'categories', 'templates', 'news', 'analytics', 'automation', 'settings'];
   
+  // Mapping pour supporter les variantes françaises
+  const normalizeBlogTab = (tab: string | null): string => {
+    if (!tab) return 'posts';
+    if (tab === 'automatisation') return 'automation';
+    return validBlogTabs.includes(tab) ? tab : 'posts';
+  };
+  
   // Get blogTab from URL or sessionStorage
   const urlBlogTab = searchParams.get('blogTab');
   const storedBlogTab = sessionStorage.getItem('lastBlogTab') || 'posts';
-  const initialTab = validBlogTabs.includes(urlBlogTab || '') ? urlBlogTab : storedBlogTab;
+  const normalizedUrlTab = normalizeBlogTab(urlBlogTab);
+  const initialTab = urlBlogTab && validBlogTabs.includes(normalizedUrlTab) ? normalizedUrlTab : normalizeBlogTab(storedBlogTab);
   
   const [activeTab, setActiveTab] = useState(initialTab || 'posts');
   const [showNewArticleEditor, setShowNewArticleEditor] = useState(false);
   const [showAIGenerator, setShowAIGenerator] = useState(false);
   const [generatedPost, setGeneratedPost] = useState<BlogPost | null>(null);
 
-  // Initialize URL with blogTab if missing
+  // Initialize URL with blogTab if missing or normalize it
   useEffect(() => {
-    if (!urlBlogTab || !validBlogTabs.includes(urlBlogTab)) {
+    const normalized = normalizeBlogTab(urlBlogTab);
+    if (!urlBlogTab || !validBlogTabs.includes(normalized) || urlBlogTab !== normalized) {
       setSearchParams(prev => {
         prev.set('tab', 'blog');
-        prev.set('blogTab', activeTab);
+        prev.set('blogTab', normalized);
         return prev;
       }, { replace: true });
     }
