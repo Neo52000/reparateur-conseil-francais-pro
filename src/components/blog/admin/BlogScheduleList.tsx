@@ -82,17 +82,22 @@ export const BlogScheduleList = () => {
 
       console.log('➕ Creating schedule:', newSchedule);
       
-      // Direct insert (RLS admin policy)
-      const { data: inserted, error: insertError } = await supabase
+      // Direct insert (RLS admin policy) with fallback when SELECT is blocked by RLS
+      const { data: insertedRows, error: insertError } = await supabase
         .from('blog_automation_schedules')
         .insert(newSchedule)
-        .select('*')
-        .single();
+        .select('*');
 
       if (insertError) throw insertError;
-      if (!inserted) throw new Error('Insertion réussie mais données introuvables');
 
-      setSchedules([...schedules, inserted]);
+      const inserted = Array.isArray(insertedRows) ? insertedRows[0] : undefined;
+
+      if (inserted) {
+        setSchedules([...schedules, inserted as BlogAutomationSchedule]);
+      } else {
+        // If RLS prevents returning the inserted row, reload the list
+        await loadData();
+      }
 
       toast({
         title: '✅ Planification créée',
@@ -135,18 +140,22 @@ export const BlogScheduleList = () => {
 
       console.log('💾 Updating schedule:', updatedSchedule.id, updatePayload);
       
-      // Direct update (RLS admin policy)
-      const { data: updated, error: updateError } = await supabase
+      // Direct update (RLS admin policy) with fallback when SELECT is blocked by RLS
+      const { data: updatedRows, error: updateError } = await supabase
         .from('blog_automation_schedules')
         .update(updatePayload)
         .eq('id', updatedSchedule.id)
-        .select('*')
-        .single();
+        .select('*');
 
       if (updateError) throw updateError;
-      if (!updated) throw new Error('Mise à jour réussie mais données introuvables');
 
-      setSchedules(schedules.map(s => s.id === updatedSchedule.id ? updated : s));
+      const updated = Array.isArray(updatedRows) ? updatedRows[0] : undefined;
+
+      if (updated) {
+        setSchedules(schedules.map(s => s.id === updatedSchedule.id ? (updated as BlogAutomationSchedule) : s));
+      } else {
+        await loadData();
+      }
       
       toast({
         title: '✅ Sauvegardé',
