@@ -27,8 +27,7 @@ export const BlogAutomationSettings = () => {
       if (error) throw error;
       setCronStatus(data);
     } catch (error: any) {
-      console.error('Error loading cron status:', error);
-      // Fallback status if RPC fails
+      // Silent fallback: RPC function may not exist yet
       setCronStatus({
         enabled: true,
         schedule: '0 8 * * 1',
