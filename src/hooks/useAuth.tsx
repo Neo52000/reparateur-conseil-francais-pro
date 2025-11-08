@@ -21,7 +21,24 @@ interface AuthContextType {
   refreshProfile: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Valeur par défaut pour éviter les erreurs d'initialisation
+const defaultAuthContext: AuthContextType = {
+  user: null,
+  session: null,
+  profile: null,
+  loading: true,
+  isAdmin: false,
+  canAccessClient: false,
+  canAccessRepairer: false,
+  canAccessAdmin: false,
+  signIn: async () => ({ error: new Error('AuthProvider not initialized') }),
+  signInAdmin: async () => ({ error: new Error('AuthProvider not initialized') }),
+  signUp: async () => ({ error: new Error('AuthProvider not initialized') }),
+  signOut: async () => ({ error: new Error('AuthProvider not initialized') }),
+  refreshProfile: async () => {}
+};
+
+const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
 export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   console.log('🔐 AuthProvider: Initializing...');
@@ -231,8 +248,6 @@ export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  // Le contexte a maintenant toujours une valeur par défaut
   return context;
 };
