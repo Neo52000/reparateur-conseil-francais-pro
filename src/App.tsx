@@ -5,6 +5,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { GlobalStoreProvider } from "./components/GlobalStoreProvider";
 import { AuthProvider } from "./hooks/useAuth";
 import { PlanPreviewProvider } from "./hooks/usePlanPreview";
+import ErrorBoundary from "./components/ErrorBoundary";
 import ChatbotLayout from "./components/ChatbotLayout";
 import Index from "./pages/Index";
 import AdminPage from "./pages/AdminPage";
@@ -64,19 +65,21 @@ const App = () => {
   }, []);
 
   return (
-    <HelmetProvider>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <GlobalStoreProvider>
-              <PlanPreviewProvider>
-                <AppWithTracking />
-              </PlanPreviewProvider>
-            </GlobalStoreProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </HelmetProvider>
+    <ErrorBoundary>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AuthProvider>
+              <GlobalStoreProvider>
+                <PlanPreviewProvider>
+                  <AppWithTracking />
+                </PlanPreviewProvider>
+              </GlobalStoreProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </QueryClientProvider>
+      </HelmetProvider>
+    </ErrorBoundary>
   );
 };
 

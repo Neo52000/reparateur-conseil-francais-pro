@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -26,11 +26,25 @@ class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('🚨 Error caught by ErrorBoundary:', error, errorInfo);
     
+    // Log error to monitoring in production
+    if (import.meta.env.PROD) {
+      console.error('Production error details:', {
+        message: error.message,
+        stack: error.stack,
+        componentStack: errorInfo.componentStack
+      });
+    }
+    
     this.setState({
       error,
       errorInfo
     });
   }
+
+  private handleGoHome = () => {
+    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    window.location.href = '/';
+  };
 
   private handleReload = () => {
     window.location.reload();
@@ -65,10 +79,18 @@ class ErrorBoundary extends Component<Props, State> {
               {process.env.NODE_ENV === 'development' && this.state.error && (
                 <div className="mt-4 p-4 bg-muted rounded-md">
                   <h4 className="font-semibold text-sm mb-2">Détails de l'erreur (développement) :</h4>
-                  <pre className="text-xs text-muted-foreground overflow-auto">
+                  <pre className="text-xs text-muted-foreground overflow-auto max-h-48">
                     {this.state.error.message}
-                    {this.state.errorInfo?.componentStack}
+                    {this.state.error.stack && `\n\n${this.state.error.stack}`}
                   </pre>
+                  {this.state.errorInfo?.componentStack && (
+                    <details className="mt-2">
+                      <summary className="cursor-pointer text-xs font-semibold">Component Stack</summary>
+                      <pre className="text-xs text-muted-foreground overflow-auto max-h-32 mt-1">
+                        {this.state.errorInfo.componentStack}
+                      </pre>
+                    </details>
+                  )}
                 </div>
               )}
               
@@ -82,12 +104,26 @@ class ErrorBoundary extends Component<Props, State> {
                   Réessayer
                 </Button>
                 <Button 
+                  onClick={this.handleGoHome} 
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <Home className="h-4 w-4 mr-2" />
+                  Accueil
+                </Button>
+                <Button 
                   onClick={this.handleReload} 
                   className="flex-1"
                 >
-                  Recharger la page
+                  Recharger
                 </Button>
               </div>
+              
+              {import.meta.env.PROD && (
+                <p className="text-xs text-muted-foreground text-center pt-2">
+                  Si le problème persiste, contactez le support technique
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
