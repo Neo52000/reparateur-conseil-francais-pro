@@ -45,6 +45,7 @@ import AdminImportPage from "./components/admin/AdminImportPage";
 // Configuration production
 import { initializeProductionMode, performProductionHealthCheck } from './config/productionSetup';
 import { RuntimeDiagnostics } from "./components/dev/RuntimeDiagnostics";
+import { initializeSentry } from './config/sentry';
 
 const ModernLocalSeoPageLazy = lazy(() => import("./pages/ModernLocalSeoPage"));
 
@@ -52,6 +53,9 @@ const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
+    // Initialiser Sentry en premier
+    initializeSentry();
+    
     if (import.meta.env.PROD) {
       // Initialiser le mode production strict
       const prodConfig = initializeProductionMode();
