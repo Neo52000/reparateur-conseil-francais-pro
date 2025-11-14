@@ -46,6 +46,7 @@ import AdminImportPage from "./components/admin/AdminImportPage";
 import { initializeProductionMode, performProductionHealthCheck } from './config/productionSetup';
 import { RuntimeDiagnostics } from "./components/dev/RuntimeDiagnostics";
 import { initializeSentry } from './config/sentry';
+import { MobileBottomNav } from './components/navigation/MobileBottomNav';
 
 const ModernLocalSeoPageLazy = lazy(() => import("./pages/ModernLocalSeoPage"));
 
@@ -149,6 +150,9 @@ const AppWithTracking = () => {
         <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
     </ChatbotLayout>
   );
 };
