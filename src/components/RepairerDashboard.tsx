@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +22,6 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useUpgradeModal } from '@/hooks/useUpgradeModal';
-import { supabase } from '@/integrations/supabase/client';
 import UpgradeModal from '@/components/UpgradeModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 import OverviewTabSection from "./repairer-dashboard/OverviewTabSection";
@@ -33,86 +32,17 @@ import AnalyticsTabSection from "./repairer-dashboard/AnalyticsTabSection";
 import BillingTabSection from "./repairer-dashboard/BillingTabSection";
 import ProfileTabSection from "./repairer-dashboard/ProfileTabSection";
 import PricingTabSection from "./repairer-dashboard/PricingTabSection";
+import { RepairerOnboardingTour } from "./repairer-dashboard/RepairerOnboardingTour";
+import { useRepairerPlan } from '@/hooks/useRepairerPlan';
 
 const RepairerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [currentPlan, setCurrentPlan] = useState('free');
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const { currentPlan } = useRepairerPlan();
   
   // Hook pour gérer le popup d'upgrade
   const { shouldShowModal, isModalOpen, closeModal } = useUpgradeModal(user?.email || null);
-
-  // Récupérer le plan d'abonnement actuel avec requêtes séquentielles
-  useEffect(() => {
-    const fetchCurrentPlan = async () => {
-      if (!user?.id) return;
-      
-      try {
-        console.log('🔄 RepairerDashboard - Fetching subscription for user:', user.id);
-        console.log('🔄 RepairerDashboard - User email:', user.email);
-        
-        // Première tentative : chercher par user_id
-        let { data, error } = await supabase
-          .from('repairer_subscriptions')
-          .select('subscription_tier, subscribed, email, billing_cycle')
-          .eq('user_id', user.id)
-          .eq('subscribed', true)
-          .maybeSingle();
-
-        if (error) {
-          console.error('❌ RepairerDashboard - Error fetching by user_id:', error);
-        } else if (data) {
-          console.log('✅ RepairerDashboard - Found subscription by user_id:', data);
-          setCurrentPlan(data.subscription_tier || 'free');
-          return;
-        }
-
-        // Deuxième tentative : chercher par repairer_id (string)
-        const { data: data2, error: error2 } = await supabase
-          .from('repairer_subscriptions')
-          .select('subscription_tier, subscribed, email, billing_cycle')
-          .eq('repairer_id', user.id.toString())
-          .eq('subscribed', true)
-          .maybeSingle();
-
-        if (error2) {
-          console.error('❌ RepairerDashboard - Error fetching by repairer_id:', error2);
-        } else if (data2) {
-          console.log('✅ RepairerDashboard - Found subscription by repairer_id:', data2);
-          setCurrentPlan(data2.subscription_tier || 'free');
-          return;
-        }
-
-        // Troisième tentative : chercher par email
-        if (user.email) {
-          const { data: data3, error: error3 } = await supabase
-            .from('repairer_subscriptions')
-            .select('subscription_tier, subscribed, email, billing_cycle')
-            .eq('email', user.email)
-            .eq('subscribed', true)
-            .maybeSingle();
-
-          if (error3) {
-            console.error('❌ RepairerDashboard - Error fetching by email:', error3);
-          } else if (data3) {
-            console.log('✅ RepairerDashboard - Found subscription by email:', data3);
-            setCurrentPlan(data3.subscription_tier || 'free');
-            return;
-          }
-        }
-
-        console.log('⚠️ RepairerDashboard - No active subscription found, defaulting to free');
-        setCurrentPlan('free');
-        
-      } catch (error) {
-        console.error('❌ RepairerDashboard - Exception fetching subscription:', error);
-        setCurrentPlan('free');
-      }
-    };
-
-    fetchCurrentPlan();
-  }, [user?.id, user?.email]);
 
   // Données mockées pour la démo
   const repairerData = {
@@ -225,7 +155,9 @@ const RepairerDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
+      <RepairerOnboardingTour />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Upgrade Modal */}
         {shouldShowModal && user?.email && (
@@ -350,15 +282,15 @@ const RepairerDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
-            <TabsTrigger value="overview">Aperçu</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-8" data-tour="dashboard-tabs">
+            <TabsTrigger value="overview" data-tour="overview-tab">Aperçu</TabsTrigger>
             <TabsTrigger value="orders">Commandes</TabsTrigger>
             <TabsTrigger value="calendar">Planning</TabsTrigger>
             <TabsTrigger value="inventory">Stock</TabsTrigger>
             <TabsTrigger value="pricing">Tarifs</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="analytics" data-tour="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="billing">Facturation</TabsTrigger>
-            <TabsTrigger value="profile">Profil</TabsTrigger>
+            <TabsTrigger value="profile" data-tour="profile-progress">Profil</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
