@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, Star, Trash2, Phone, MapPin } from 'lucide-react';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
+import { ClientFavoritesEmpty } from './ClientFavoritesEmpty';
 
 const ClientFavoritesTab: React.FC = () => {
   const { favorites, loading, removeFromFavorites } = useFavorites();
@@ -44,13 +44,7 @@ const ClientFavoritesTab: React.FC = () => {
       </CardHeader>
       <CardContent>
         {favorites.length === 0 ? (
-          <div className="text-center py-8">
-            <Heart className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-            <p className="text-gray-500 mb-2">Aucun réparateur favori</p>
-            <p className="text-sm text-gray-400">
-              Explorez notre réseau et ajoutez vos réparateurs préférés
-            </p>
-          </div>
+          <ClientFavoritesEmpty />
         ) : (
           <div className="space-y-4">
             {favorites.map((favorite) => (

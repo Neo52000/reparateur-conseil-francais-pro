@@ -14,6 +14,7 @@ import RepairTypeStep from '@/components/search/steps/RepairTypeStep';
 import LocationStep from '@/components/search/steps/LocationStep';
 import SearchResultsWithPricing from '@/components/search/SearchResultsWithPricing';
 import { SearchStepData } from '@/components/search/AdvancedProductSearch';
+import { PredictiveSearchInput } from '@/components/search/PredictiveSearchInput';
 interface SearchCriteria {
   deviceType: string;
   brand: string;

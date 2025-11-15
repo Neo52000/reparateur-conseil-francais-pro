@@ -7,8 +7,11 @@ import ClientFavoritesTab from './ClientFavoritesTab';
 import ClientMessagingTab from './ClientMessagingTab';
 import ClientReviewsTab from './ClientReviewsTab';
 import ClientAppointmentsTab from './ClientAppointmentsTab';
-import QuoteForm from '../QuoteForm';
+import { ClientQuotesTab } from './ClientQuotesTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useOnboardingTour } from '@/hooks/useOnboardingTour';
+import { OnboardingTourTooltip } from '@/components/onboarding/OnboardingTourTooltip';
+import { AnimatePresence } from 'framer-motion';
 
 const ClientEnhancedDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -24,6 +27,20 @@ const ClientEnhancedDashboard: React.FC = () => {
     appointments: [],
     favorites: []
   });
+
+  const onboarding = useOnboardingTour({ 
+    role: 'client', 
+    userId: user?.id 
+  });
+
+  useEffect(() => {
+    if (user && !onboarding.hasCompletedTour && !dashboardLoading) {
+      const timer = setTimeout(() => {
+        onboarding.startTour();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [user, onboarding.hasCompletedTour, dashboardLoading]);
 
   useEffect(() => {
     if (user) {
@@ -71,14 +88,32 @@ const ClientEnhancedDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
+      <AnimatePresence>
+        {onboarding.isActive && (
+          <OnboardingTourTooltip
+            title={onboarding.steps[onboarding.currentStep].title}
+            description={onboarding.steps[onboarding.currentStep].description}
+            currentStep={onboarding.currentStep}
+            totalSteps={onboarding.totalSteps}
+            target={onboarding.steps[onboarding.currentStep].target}
+            placement={onboarding.steps[onboarding.currentStep].placement}
+            onNext={onboarding.nextStep}
+            onPrevious={onboarding.previousStep}
+            onSkip={onboarding.skipTour}
+            isFirstStep={onboarding.isFirstStep}
+            isLastStep={onboarding.isLastStep}
+          />
+        )}
+      </AnimatePresence>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ClientDashboardHeader 
           firstName={user?.user_metadata?.first_name || user?.email?.split('@')[0] || ''}
         />
 
         <Tabs defaultValue="overview" className="mt-8">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-6" data-tour="dashboard-tabs">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
             <TabsTrigger value="appointments">Rendez-vous</TabsTrigger>
             <TabsTrigger value="quotes">Devis</TabsTrigger>
@@ -99,7 +134,7 @@ const ClientEnhancedDashboard: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="quotes" className="mt-6">
-            <QuoteForm onSuccess={() => console.log('Quote requested')} />
+            <ClientQuotesTab />
           </TabsContent>
 
           <TabsContent value="messaging" className="mt-6">
