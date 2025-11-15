@@ -11,6 +11,7 @@ import { ClientQuotesTab } from './ClientQuotesTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useOnboardingTour } from '@/hooks/useOnboardingTour';
 import { OnboardingTourTooltip } from '@/components/onboarding/OnboardingTourTooltip';
+import { SavedSearchFilters } from '@/components/search/SavedSearchFilters';
 import { AnimatePresence } from 'framer-motion';
 
 const ClientEnhancedDashboard: React.FC = () => {
@@ -123,10 +124,13 @@ const ClientEnhancedDashboard: React.FC = () => {
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
-            <ClientDashboardOverview
-              stats={clientData.stats}
-              appointments={clientData.appointments}
-            />
+            <div className="space-y-6">
+              <ClientDashboardOverview
+                stats={clientData.stats}
+                appointments={clientData.appointments}
+              />
+              <SavedSearchFilters userId={user?.id} />
+            </div>
           </TabsContent>
 
           <TabsContent value="appointments" className="mt-6">
