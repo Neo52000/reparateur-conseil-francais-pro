@@ -4,6 +4,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import BlogWidget from "./BlogWidget";
+import { RepairerStatsCards } from "./RepairerStatsCards";
+import { RevenueChart } from "./RevenueChart";
 
 interface Order {
   id: string;
@@ -28,10 +30,24 @@ interface OverviewTabSectionProps {
   appointments: Appointment[];
 }
 
-const OverviewTabSection: React.FC<OverviewTabSectionProps> = ({ orders, appointments }) => (
-  <div className="space-y-6">
-    {/* Première ligne - Commandes et Rendez-vous */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+const OverviewTabSection: React.FC<OverviewTabSectionProps> = ({ orders, appointments }) => {
+  const mockStats = {
+    monthlyRevenue: 3450,
+    pendingOrders: orders.length,
+    completedThisMonth: 24,
+    avgRating: 4.9,
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Stats cards avec animations */}
+      <RepairerStatsCards stats={mockStats} />
+
+      {/* Revenue chart */}
+      <RevenueChart />
+
+      {/* Première ligne - Commandes et Rendez-vous */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
           <CardTitle>Commandes récentes</CardTitle>
@@ -97,7 +113,8 @@ const OverviewTabSection: React.FC<OverviewTabSectionProps> = ({ orders, appoint
         {/* Espace réservé pour un futur widget */}
       </div>
     </div>
-  </div>
-);
+    </div>
+  );
+};
 
 export default OverviewTabSection;
