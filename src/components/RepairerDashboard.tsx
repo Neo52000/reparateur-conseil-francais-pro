@@ -34,6 +34,8 @@ import ProfileTabSection from "./repairer-dashboard/ProfileTabSection";
 import PricingTabSection from "./repairer-dashboard/PricingTabSection";
 import { RepairerOnboardingTour } from "./repairer-dashboard/RepairerOnboardingTour";
 import { useRepairerPlan } from '@/hooks/useRepairerPlan';
+import { MessageThread } from './messaging/MessageThread';
+import { RepairTimeline } from './repair/RepairTimeline';
 
 const RepairerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -282,10 +284,12 @@ const RepairerDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8" data-tour="dashboard-tabs">
+          <TabsList className="grid w-full grid-cols-10" data-tour="dashboard-tabs">
             <TabsTrigger value="overview" data-tour="overview-tab">Aperçu</TabsTrigger>
             <TabsTrigger value="orders">Commandes</TabsTrigger>
             <TabsTrigger value="calendar">Planning</TabsTrigger>
+            <TabsTrigger value="messages">Messages</TabsTrigger>
+            <TabsTrigger value="repairs">Réparations</TabsTrigger>
             <TabsTrigger value="inventory">Stock</TabsTrigger>
             <TabsTrigger value="pricing">Tarifs</TabsTrigger>
             <TabsTrigger value="analytics" data-tour="analytics">Analytics</TabsTrigger>
@@ -306,6 +310,25 @@ const RepairerDashboard = () => {
 
           <TabsContent value="calendar">
             <CalendarTabSection />
+          </TabsContent>
+
+          <TabsContent value="messages">
+            <div className="grid gap-6">
+              <MessageThread
+                threadId="thread_456"
+                recipientName="Client"
+                recipientId="client_123"
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="repairs">
+            <div className="grid gap-6">
+              <RepairTimeline
+                repairId="repair_456"
+                currentStatus="in_progress"
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="inventory">

@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, Clock, CheckCircle, XCircle, Eye, MessageSquare, Search } from 'lucide-react';
 import { EnhancedEmptyState } from '@/components/ui/enhanced-empty-state';
+import { QuoteDetailModal } from '@/components/quote/QuoteDetailModal';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,6 +15,12 @@ interface Quote {
   device_brand: string;
   device_model: string;
   issue_description: string;
+  issue_type: string;
+  estimated_price?: number;
+  estimated_duration?: string;
+  repairer_notes?: string;
+  repairer_id: string;
+  repairer_name?: string;
   created_at: string;
 }
 
@@ -21,6 +28,7 @@ export const ClientQuotesTab: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -117,20 +125,36 @@ export const ClientQuotesTab: React.FC = () => {
               <span className="text-xs text-muted-foreground">
                 Demandé le {new Date(quote.created_at).toLocaleDateString('fr-FR')}
               </span>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Eye className="h-4 w-4 mr-1" />
-                  Voir
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <MessageSquare className="h-4 w-4 mr-1" />
-                  Contacter
-                </Button>
-              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setSelectedQuote(quote)}
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                Voir détails
+              </Button>
             </div>
           </CardContent>
         </Card>
       ))}
+      
+      {selectedQuote && (
+        <QuoteDetailModal
+          quote={selectedQuote}
+          isOpen={!!selectedQuote}
+          onClose={() => setSelectedQuote(null)}
+          onAccept={(quoteId) => {
+            setQuotes(quotes.map(q => 
+              q.id === quoteId ? { ...q, status: 'accepted' } : q
+            ));
+          }}
+          onReject={(quoteId) => {
+            setQuotes(quotes.map(q => 
+              q.id === quoteId ? { ...q, status: 'rejected' } : q
+            ));
+          }}
+        />
+      )}
     </div>
   );
 };
