@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useOnboardingTour } from '@/hooks/useOnboardingTour';
 import { OnboardingTourTooltip } from '@/components/onboarding/OnboardingTourTooltip';
 import { SavedSearchFilters } from '@/components/search/SavedSearchFilters';
+import { RepairTimeline } from '@/components/repair/RepairTimeline';
+import { MessageThread } from '@/components/messaging/MessageThread';
 import { AnimatePresence } from 'framer-motion';
 
 const ClientEnhancedDashboard: React.FC = () => {
@@ -151,6 +153,23 @@ const ClientEnhancedDashboard: React.FC = () => {
 
           <TabsContent value="favorites" className="mt-6">
             <ClientFavoritesTab />
+          </TabsContent>
+
+          <TabsContent value="repairs" className="mt-6">
+            <div className="grid gap-6">
+              <RepairTimeline
+                repairId="repair_123"
+                currentStatus="in_progress"
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="messages" className="mt-6">
+            <MessageThread
+              threadId="thread_123"
+              recipientName="TechRepair Pro"
+              recipientId="repairer_123"
+            />
           </TabsContent>
         </Tabs>
       </div>

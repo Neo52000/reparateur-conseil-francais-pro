@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { usePendingAction } from '@/hooks/usePendingAction';
 
+// Re-export MultiStepQuoteForm for easy access
+export { MultiStepQuoteForm } from '@/components/quote/MultiStepQuoteForm';
+
 export const useQuoteAndAppointment = () => {
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
