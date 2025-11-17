@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useAuth } from '@/hooks/useAuth';
+import { messageSchema } from '@/lib/validations/quote';
+import { enhancedToast } from '@/components/ui/enhanced-toast';
 
 interface Message {
   id: string;
@@ -80,23 +82,36 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
   }, [messages]);
 
   const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
+    try {
+      // Validation avec zod
+      const validatedData = messageSchema.parse({
+        content: newMessage,
+        recipientId: recipientId
+      });
 
-    const message: Message = {
-      id: Date.now().toString(),
-      sender_id: user?.id || '',
-      sender_name: 'Vous',
-      content: newMessage,
-      created_at: new Date().toISOString(),
-      read: false
-    };
+      const message: Message = {
+        id: Date.now().toString(),
+        sender_id: user?.id || '',
+        sender_name: 'Vous',
+        content: validatedData.content,
+        created_at: new Date().toISOString(),
+        read: false
+      };
 
-    setMessages([...messages, message]);
-    setNewMessage('');
+      setMessages([...messages, message]);
+      setNewMessage('');
 
-    // Simulate typing indicator
-    setIsTyping(true);
-    setTimeout(() => setIsTyping(false), 2000);
+      // Simulate typing indicator
+      setIsTyping(true);
+      setTimeout(() => setIsTyping(false), 2000);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        enhancedToast.error({
+          title: 'Message invalide',
+          description: error.errors[0]?.message || 'Le message est trop long',
+        });
+      }
+    }
   };
 
   const formatMessageTime = (date: string) => {

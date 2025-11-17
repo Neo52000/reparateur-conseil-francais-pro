@@ -9,6 +9,9 @@ import { IssueDescriptionStep } from './steps/IssueDescriptionStep';
 import { PhotoUploadStep } from './steps/PhotoUploadStep';
 import { ContactInfoStep } from './steps/ContactInfoStep';
 import { enhancedToast } from '@/components/ui/enhanced-toast';
+import { quoteRequestSchema } from '@/lib/validations/quote';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface QuoteFormData {
   deviceBrand: string;
@@ -29,10 +32,14 @@ const steps = [
   { id: 4, title: 'Contact', component: ContactInfoStep },
 ];
 
-export const MultiStepQuoteForm: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
+export const MultiStepQuoteForm: React.FC<{ 
+  repairerId?: string;
+  onSuccess?: () => void;
+}> = ({ repairerId, onSuccess }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Partial<QuoteFormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
 
   const progress = ((currentStep + 1) / steps.length) * 100;
   const CurrentStepComponent = steps[currentStep].component;
@@ -55,9 +62,39 @@ export const MultiStepQuoteForm: React.FC<{ onSuccess?: () => void }> = ({ onSuc
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    
     try {
-      // Simuler l'envoi
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Validation avec zod
+      const validatedData = quoteRequestSchema.parse({
+        deviceBrand: formData.deviceBrand,
+        deviceModel: formData.deviceModel,
+        issueType: formData.issueType,
+        issueDescription: formData.issueDescription,
+        contactName: formData.contactName,
+        contactEmail: formData.contactEmail,
+        contactPhone: formData.contactPhone,
+        preferredContact: formData.preferredContact
+      });
+
+      // Insertion en base de données
+      const { data, error } = await supabase
+        .from('quotes_with_timeline')
+        .insert({
+          client_id: user?.id,
+          repairer_id: repairerId,
+          device_brand: validatedData.deviceBrand,
+          device_model: validatedData.deviceModel,
+          repair_type: validatedData.issueType,
+          issue_description: validatedData.issueDescription,
+          client_name: validatedData.contactName,
+          client_email: validatedData.contactEmail,
+          client_phone: validatedData.contactPhone,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
       
       enhancedToast.success({
         title: 'Demande de devis envoyée !',
@@ -65,11 +102,20 @@ export const MultiStepQuoteForm: React.FC<{ onSuccess?: () => void }> = ({ onSuc
       });
 
       onSuccess?.();
-    } catch (error) {
-      enhancedToast.error({
-        title: 'Erreur',
-        description: 'Impossible d\'envoyer la demande',
-      });
+    } catch (error: any) {
+      console.error('Quote submission error:', error);
+      
+      if (error.name === 'ZodError') {
+        enhancedToast.error({
+          title: 'Données invalides',
+          description: error.errors[0]?.message || 'Veuillez vérifier vos informations',
+        });
+      } else {
+        enhancedToast.error({
+          title: 'Erreur',
+          description: 'Impossible d\'envoyer la demande',
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }

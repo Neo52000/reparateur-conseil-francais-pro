@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Lock, CreditCard, Shield, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { enhancedToast } from '@/components/ui/enhanced-toast';
+import { paymentSchema } from '@/lib/validations/quote';
 
 interface PaymentDetails {
   amount: number;
@@ -83,34 +84,42 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation basique
-    if (!cardNumber || !expiry || !cvc || !cardholderName) {
-      enhancedToast.error({
-        title: 'Champs manquants',
-        description: 'Veuillez remplir tous les champs',
-      });
-      return;
-    }
-
     setIsProcessing(true);
 
     try {
-      // Simulation du paiement
+      // Validation avec zod
+      const validatedData = paymentSchema.parse({
+        cardholderName,
+        cardNumber,
+        expiry,
+        cvc
+      });
+      
+      // Simulation du paiement (en production, utilisez Stripe API)
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const mockPaymentId = `pay_${Date.now()}`;
       
       enhancedToast.success({
         title: 'Paiement réussi !',
-        description: `${paymentDetails.total}€ ont été débités`,
+        description: `${paymentDetails.total}€ ont été sécurisés`,
       });
 
       onPaymentSuccess(mockPaymentId);
-    } catch (error) {
-      enhancedToast.error({
-        title: 'Erreur de paiement',
-        description: 'Une erreur est survenue lors du paiement',
-      });
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      
+      if (error.name === 'ZodError') {
+        enhancedToast.error({
+          title: 'Informations invalides',
+          description: error.errors[0]?.message || 'Veuillez vérifier vos informations',
+        });
+      } else {
+        enhancedToast.error({
+          title: 'Erreur de paiement',
+          description: 'Une erreur est survenue lors du paiement',
+        });
+      }
     } finally {
       setIsProcessing(false);
     }

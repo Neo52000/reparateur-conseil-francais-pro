@@ -10,7 +10,7 @@ import QuoteForm from './QuoteForm';
 import ChatInterface from './ChatInterface';
 import ClientStatsCards from './client-dashboard/ClientStatsCards';
 import ClientProfileTab from './client-dashboard/ClientProfileTab';
-import ClientRepairsTab from './client-dashboard/ClientRepairsTab';
+import { ClientRepairsTab } from './client-dashboard/ClientRepairsTab';
 import ClientAppointmentsTab from './client-dashboard/ClientAppointmentsTab';
 import ClientFavoritesTab from './client-dashboard/ClientFavoritesTab';
 import ClientLoyaltyTab from './client-dashboard/ClientLoyaltyTab';
@@ -157,7 +157,7 @@ const ClientDashboard = () => {
           </TabsContent>
 
           <TabsContent value="repairs">
-            <ClientRepairsTab repairs={clientData.recentRepairs} />
+            <ClientRepairsTab />
           </TabsContent>
 
           <TabsContent value="appointments">
