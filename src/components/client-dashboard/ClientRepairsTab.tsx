@@ -1,54 +1,119 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { RepairTimeline } from '@/components/repair/RepairTimeline';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { EnhancedEmptyState } from '@/components/ui/enhanced-empty-state';
+import { Wrench, MessageSquare, Eye } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Repair {
   id: string;
-  device: string;
-  issue: string;
-  repairer: string;
-  date: string;
+  device_brand: string;
+  device_model: string;
   status: string;
-  rating: number;
+  created_at: string;
+  repairer_name?: string;
 }
 
-interface ClientRepairsTabProps {
-  repairs: Repair[];
-}
+export const ClientRepairsTab: React.FC = () => {
+  const { user } = useAuth();
+  const [repairs, setRepairs] = useState<Repair[]>([]);
+  const [selectedRepair, setSelectedRepair] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-const ClientRepairsTab: React.FC<ClientRepairsTabProps> = ({ repairs }) => {
+  useEffect(() => {
+    if (user) {
+      loadRepairs();
+    }
+  }, [user]);
+
+  const loadRepairs = async () => {
+    try {
+      // Charger les réparations depuis la base (pour l'instant vide)
+      setRepairs([]);
+    } catch (error) {
+      console.error('Erreur chargement réparations:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (repairs.length === 0) {
+    return (
+      <EnhancedEmptyState
+        icon={Wrench}
+        title="Aucune réparation en cours"
+        description="Vos réparations acceptées apparaîtront ici avec un suivi en temps réel"
+        suggestions={[
+          'Suivez l\'avancement de vos réparations étape par étape',
+          'Recevez des notifications à chaque changement de statut',
+          'Contactez le réparateur directement depuis cette page'
+        ]}
+      />
+    );
+  }
+
+  if (selectedRepair) {
+    return (
+      <div className="space-y-4">
+        <Button variant="outline" onClick={() => setSelectedRepair(null)}>
+          ← Retour aux réparations
+        </Button>
+        <RepairTimeline
+          repairId={selectedRepair}
+          currentStatus="in_progress"
+        />
+      </div>
+    );
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Historique des réparations</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {repairs.map((repair) => (
-            <div key={repair.id} className="flex items-center justify-between p-4 border rounded-lg">
+    <div className="space-y-4">
+      {repairs.map((repair) => (
+        <Card key={repair.id} className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <div className="flex items-start justify-between">
               <div>
-                <h3 className="font-semibold">{repair.device}</h3>
-                <p className="text-sm text-gray-600">{repair.issue} • {repair.repairer}</p>
-                <p className="text-sm text-gray-500">{repair.date}</p>
+                <CardTitle className="text-lg">
+                  {repair.device_brand} {repair.device_model}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {repair.repairer_name}
+                </p>
               </div>
-              <div className="text-right">
-                <Badge variant={repair.status === 'Terminé' ? 'default' : 'secondary'}>
-                  {repair.status}
-                </Badge>
-                <div className="flex items-center mt-1">
-                  {[...Array(repair.rating)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-              </div>
+              <Badge variant="outline" className="bg-status-info/10 text-status-info">
+                En cours
+              </Badge>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedRepair(repair.id)}
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                Voir le suivi
+              </Button>
+              <Button variant="ghost" size="sm">
+                <MessageSquare className="h-4 w-4 mr-1" />
+                Contacter
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 };
-
-export default ClientRepairsTab;
