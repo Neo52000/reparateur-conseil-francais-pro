@@ -321,9 +321,8 @@ const RepairerDashboard = () => {
           <TabsContent value="messages">
             <div className="grid gap-6">
               <MessageThread
-                threadId="thread_456"
-                recipientName="Client"
-                recipientId="client_123"
+                quoteId="demo_quote_id"
+                senderType="repairer"
               />
             </div>
           </TabsContent>
@@ -331,8 +330,7 @@ const RepairerDashboard = () => {
           <TabsContent value="repairs">
             <div className="grid gap-6">
               <RepairTimeline
-                repairId="repair_456"
-                currentStatus="in_progress"
+                quoteId="demo_quote_id"
               />
             </div>
           </TabsContent>
