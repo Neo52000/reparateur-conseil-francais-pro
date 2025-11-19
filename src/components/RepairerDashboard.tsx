@@ -36,6 +36,7 @@ import { RepairerOnboardingTour } from "./repairer-dashboard/RepairerOnboardingT
 import { useRepairerPlan } from '@/hooks/useRepairerPlan';
 import { MessageThread } from './messaging/MessageThread';
 import { RepairTimeline } from './repair/RepairTimeline';
+import { RepairerQuotesTab } from './repairer-dashboard/RepairerQuotesTab';
 
 const RepairerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -284,8 +285,9 @@ const RepairerDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10" data-tour="dashboard-tabs">
+          <TabsList className="grid w-full grid-cols-11" data-tour="dashboard-tabs">
             <TabsTrigger value="overview" data-tour="overview-tab">Aperçu</TabsTrigger>
+            <TabsTrigger value="quotes">Devis</TabsTrigger>
             <TabsTrigger value="orders">Commandes</TabsTrigger>
             <TabsTrigger value="calendar">Planning</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
@@ -302,6 +304,10 @@ const RepairerDashboard = () => {
               orders={repairerData.orders}
               appointments={repairerData.appointments}
             />
+          </TabsContent>
+
+          <TabsContent value="quotes">
+            <RepairerQuotesTab />
           </TabsContent>
 
           <TabsContent value="orders">

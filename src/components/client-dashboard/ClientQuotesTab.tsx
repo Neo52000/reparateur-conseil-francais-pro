@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, Clock, CheckCircle, XCircle, Eye, MessageSquare, Search } from 'lucide-react';
-import { EnhancedEmptyState } from '@/components/ui/enhanced-empty-state';
+import { EnhancedEmptyState } from '@/components/shared/EnhancedEmptyState';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { QuoteDetailModal } from '@/components/quote/QuoteDetailModal';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -75,7 +76,7 @@ export const ClientQuotesTab: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
@@ -86,16 +87,8 @@ export const ClientQuotesTab: React.FC = () => {
         icon={FileText}
         title="Aucun devis pour le moment"
         description="Commencez par rechercher un réparateur et demandez votre premier devis gratuit"
-        primaryAction={{
-          label: 'Rechercher un réparateur',
-          onClick: () => navigate('/search'),
-          icon: Search
-        }}
-        suggestions={[
-          'Les devis sont gratuits et sans engagement',
-          'Comparez plusieurs réparateurs pour le meilleur prix',
-          'Recevez une réponse en moins de 24h'
-        ]}
+        actionLabel="Rechercher un réparateur"
+        onAction={() => navigate('/search')}
       />
     );
   }
