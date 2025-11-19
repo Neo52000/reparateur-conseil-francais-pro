@@ -9567,6 +9567,50 @@ export type Database = {
           },
         ]
       }
+      quote_messages: {
+        Row: {
+          attachments: Json | null
+          created_at: string
+          id: string
+          message_text: string
+          quote_id: string
+          read_at: string | null
+          sender_id: string
+          sender_type: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json | null
+          created_at?: string
+          id?: string
+          message_text: string
+          quote_id: string
+          read_at?: string | null
+          sender_id: string
+          sender_type: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json | null
+          created_at?: string
+          id?: string
+          message_text?: string
+          quote_id?: string
+          read_at?: string | null
+          sender_id?: string
+          sender_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_messages_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_requests: {
         Row: {
           client_id: string
@@ -10447,6 +10491,103 @@ export type Database = {
           },
         ]
       }
+      repair_reviews: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          helpful_count: number | null
+          id: string
+          images: Json | null
+          payment_id: string | null
+          price_rating: number | null
+          professionalism_rating: number | null
+          quality_rating: number | null
+          quote_id: string
+          rating: number
+          repairer_id: string
+          repairer_response: string | null
+          repairer_response_at: string | null
+          response_time_rating: number | null
+          review_text: string | null
+          review_title: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          verified_purchase: boolean | null
+          would_recommend: boolean | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          images?: Json | null
+          payment_id?: string | null
+          price_rating?: number | null
+          professionalism_rating?: number | null
+          quality_rating?: number | null
+          quote_id: string
+          rating: number
+          repairer_id: string
+          repairer_response?: string | null
+          repairer_response_at?: string | null
+          response_time_rating?: number | null
+          review_text?: string | null
+          review_title?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          verified_purchase?: boolean | null
+          would_recommend?: boolean | null
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          images?: Json | null
+          payment_id?: string | null
+          price_rating?: number | null
+          professionalism_rating?: number | null
+          quality_rating?: number | null
+          quote_id?: string
+          rating?: number
+          repairer_id?: string
+          repairer_response?: string | null
+          repairer_response_at?: string | null
+          response_time_rating?: number | null
+          review_text?: string | null
+          review_title?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          verified_purchase?: boolean | null
+          would_recommend?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_reviews_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_with_quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_reviews_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_reviews_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       repair_steps: {
         Row: {
           assigned_to: string | null
@@ -10505,6 +10646,57 @@ export type Database = {
             columns: ["repair_order_id"]
             isOneToOne: false
             referencedRelation: "repair_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repair_timeline_events: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          created_by: string | null
+          event_data: Json | null
+          event_description: string | null
+          event_title: string
+          event_type: string
+          id: string
+          quote_id: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_data?: Json | null
+          event_description?: string | null
+          event_title: string
+          event_type: string
+          id?: string
+          quote_id: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          event_data?: Json | null
+          event_description?: string | null
+          event_title?: string
+          event_type?: string
+          id?: string
+          quote_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_timeline_events_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments_with_quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_timeline_events_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
             referencedColumns: ["id"]
           },
         ]
