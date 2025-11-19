@@ -1,19 +1,19 @@
-
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import ClientEnhancedDashboard from '@/components/client-dashboard/ClientEnhancedDashboard';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 
 const ClientDashboardPage = () => {
   const { user, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement...</p>
+          <LoadingSpinner size="lg" className="mx-auto mb-4" />
+          <p className="text-muted-foreground">Chargement...</p>
         </div>
       </div>
     );
@@ -24,7 +24,7 @@ const ClientDashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navigation />
       <ClientEnhancedDashboard />
     </div>
