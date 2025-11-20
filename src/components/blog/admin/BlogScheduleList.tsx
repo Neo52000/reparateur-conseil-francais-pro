@@ -8,6 +8,7 @@ import { BlogAutomationSchedule } from '@/types/blogAutomation';
 import { BlogCategory } from '@/types/blog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { getBlogErrorMessage } from '@/hooks/blog/utils/errorHandler';
 
 export const BlogScheduleList = () => {
   const { toast } = useToast();
@@ -105,10 +106,21 @@ export const BlogScheduleList = () => {
       });
     } catch (error: any) {
       console.error('❌ Error adding schedule:', error);
+      console.error('❌ Error details:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint
+      });
+      
+      const errorMessage = getBlogErrorMessage(error);
+      console.error('❌ Mapped error message:', errorMessage);
       
       toast({
-        title: "Erreur",
-        description: error.message || "Impossible de créer la planification",
+        title: "Erreur lors de l'ajout",
+        description: errorMessage.includes('permission') 
+          ? `Permissions insuffisantes. Vérifiez que vous êtes admin. (${errorMessage})`
+          : errorMessage || "Impossible de créer la planification",
         variant: "destructive"
       });
     } finally {
@@ -163,10 +175,19 @@ export const BlogScheduleList = () => {
       });
     } catch (error: any) {
       console.error('❌ Error updating schedule:', error);
+      console.error('❌ Error details:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details
+      });
+      
+      const errorMessage = getBlogErrorMessage(error);
       
       toast({
-        title: "Erreur",
-        description: error.message || "Impossible de sauvegarder la planification",
+        title: "Erreur de mise à jour",
+        description: errorMessage.includes('permission')
+          ? `Permissions insuffisantes. (${errorMessage})`
+          : errorMessage || "Impossible de sauvegarder la planification",
         variant: "destructive"
       });
     } finally {
@@ -194,10 +215,19 @@ export const BlogScheduleList = () => {
       });
     } catch (error: any) {
       console.error('❌ Error deleting schedule:', error);
+      console.error('❌ Error details:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details
+      });
+      
+      const errorMessage = getBlogErrorMessage(error);
       
       toast({
-        title: "Erreur",
-        description: error.message || "Impossible de supprimer la planification",
+        title: "Erreur de suppression",
+        description: errorMessage.includes('permission')
+          ? `Permissions insuffisantes. (${errorMessage})`
+          : errorMessage || "Impossible de supprimer la planification",
         variant: "destructive"
       });
     }
