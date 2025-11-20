@@ -112,9 +112,9 @@ export const QuoteDetailModal: React.FC<QuoteDetailModalProps> = ({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-3xl">
           <MessageThread
-            threadId={quote.id}
+            quoteId={quote.id}
+            senderType="client"
             recipientName={quote.repairer_name || 'Réparateur'}
-            recipientId={quote.repairer_id}
             onClose={() => setShowMessaging(false)}
           />
         </DialogContent>
