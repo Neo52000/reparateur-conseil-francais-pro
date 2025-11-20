@@ -161,9 +161,9 @@ const ClientEnhancedDashboard: React.FC = () => {
 
           <TabsContent value="messages" className="mt-6">
             <MessageThread
-              threadId="thread_123"
+              quoteId="quote_demo"
+              senderType="client"
               recipientName="TechRepair Pro"
-              recipientId="repairer_123"
             />
           </TabsContent>
         </Tabs>

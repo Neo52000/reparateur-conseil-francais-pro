@@ -5,6 +5,7 @@ import { CheckCircle2, Circle, Clock, AlertCircle, Package, Wrench, Truck } from
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useRepairTimeline } from '@/hooks/useRepairTimeline';
 
 interface TimelineStep {
   id: string;
@@ -17,9 +18,7 @@ interface TimelineStep {
 }
 
 interface RepairTimelineProps {
-  repairId: string;
-  currentStatus: string;
-  steps?: TimelineStep[];
+  quoteId: string;
 }
 
 const defaultSteps: TimelineStep[] = [
@@ -74,10 +73,9 @@ const defaultSteps: TimelineStep[] = [
 ];
 
 export const RepairTimeline: React.FC<RepairTimelineProps> = ({
-  repairId,
-  currentStatus,
-  steps = defaultSteps
+  quoteId
 }) => {
+  const { events, loading } = useRepairTimeline(quoteId);
   const getStatusIcon = (status: TimelineStep['status']) => {
     switch (status) {
       case 'completed':
@@ -122,82 +120,66 @@ export const RepairTimeline: React.FC<RepairTimelineProps> = ({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Suivi de réparation</CardTitle>
-          <Badge variant="outline">#{repairId.slice(0, 8)}</Badge>
+          <Badge variant="outline">#{quoteId.slice(0, 8)}</Badge>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-6">
-          {steps.map((step, index) => {
-            const StepIcon = step.icon;
-            const isLast = index === steps.length - 1;
-            
-            return (
-              <motion.div
-                key={step.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="relative"
-              >
-                <div className="flex gap-4">
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : events.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            Aucun événement pour le moment
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {events.map((event, index) => {
+              const isLastEvent = index === events.length - 1;
+
+              return (
+                <motion.div
+                  key={event.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="relative flex gap-4"
+                >
                   {/* Timeline line */}
-                  {!isLast && (
-                    <div className="absolute left-5 top-12 bottom-0 w-0.5 bg-border" />
+                  {!isLastEvent && (
+                    <div className="absolute left-5 top-12 w-0.5 h-full bg-border" />
                   )}
 
                   {/* Icon */}
-                  <div className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 ${
-                    step.status === 'completed' ? 'border-status-success bg-status-success/10' :
-                    step.status === 'in_progress' ? 'border-status-info bg-status-info/10' :
-                    'border-border bg-background'
-                  }`}>
-                    <StepIcon className={`h-5 w-5 ${
-                      step.status === 'completed' ? 'text-status-success' :
-                      step.status === 'in_progress' ? 'text-status-info' :
-                      'text-muted-foreground'
-                    }`} />
-                    {step.status === 'in_progress' && (
-                      <motion.div
-                        className="absolute inset-0 rounded-full border-2 border-status-info"
-                        animate={{ scale: [1, 1.2, 1], opacity: [1, 0, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      />
-                    )}
+                  <div className="relative z-10 flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary">
+                    <CheckCircle2 className="h-5 w-5" />
                   </div>
 
                   {/* Content */}
-                  <div className="flex-1 pb-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold">{step.title}</h4>
-                          {getStatusBadge(step.status)}
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {step.description}
-                        </p>
-                        <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                          {step.timestamp && (
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {format(new Date(step.timestamp), 'dd MMM à HH:mm', { locale: fr })}
-                            </div>
-                          )}
-                          {step.estimatedTime && step.status !== 'completed' && (
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              Durée estimée : {step.estimatedTime}
-                            </div>
-                          )}
-                        </div>
+                  <div className="flex-1 pb-8">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-1">{event.event_title}</h4>
+                        {event.event_description && (
+                          <p className="text-sm text-muted-foreground">{event.event_description}</p>
+                        )}
                       </div>
+                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                        {event.event_type}
+                      </Badge>
+                    </div>
+
+                    {/* Timestamp */}
+                    <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      <span>{format(new Date(event.created_at), 'PPp', { locale: fr })}</span>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

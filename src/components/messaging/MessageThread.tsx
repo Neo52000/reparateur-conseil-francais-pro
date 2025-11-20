@@ -11,99 +11,54 @@ import { fr } from 'date-fns/locale';
 import { useAuth } from '@/hooks/useAuth';
 import { messageSchema } from '@/lib/validations/quote';
 import { enhancedToast } from '@/components/ui/enhanced-toast';
+import { useMessages } from '@/hooks/useMessages';
 
 interface Message {
   id: string;
   sender_id: string;
-  sender_name: string;
-  sender_avatar?: string;
-  content: string;
+  sender_type: string;
+  message_text: string;
+  attachments: any;
+  read_at: string | null;
   created_at: string;
-  attachments?: Array<{ url: string; type: string; name: string }>;
-  read: boolean;
 }
 
 interface MessageThreadProps {
-  threadId: string;
+  quoteId: string;
+  senderType: 'client' | 'repairer';
   recipientName: string;
   recipientAvatar?: string;
-  recipientId: string;
   onClose?: () => void;
 }
 
 export const MessageThread: React.FC<MessageThreadProps> = ({
-  threadId,
+  quoteId,
+  senderType,
   recipientName,
   recipientAvatar,
-  recipientId,
   onClose
 }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  const { messages, loading, sending, sendMessage } = useMessages(quoteId);
 
-  // Mock messages for demo
-  useEffect(() => {
-    const mockMessages: Message[] = [
-      {
-        id: '1',
-        sender_id: recipientId,
-        sender_name: recipientName,
-        sender_avatar: recipientAvatar,
-        content: 'Bonjour ! J\'ai bien reçu votre demande de devis.',
-        created_at: new Date(Date.now() - 3600000).toISOString(),
-        read: true
-      },
-      {
-        id: '2',
-        sender_id: user?.id || '',
-        sender_name: 'Vous',
-        content: 'Merci ! Quel est le délai estimé ?',
-        created_at: new Date(Date.now() - 3000000).toISOString(),
-        read: true
-      },
-      {
-        id: '3',
-        sender_id: recipientId,
-        sender_name: recipientName,
-        sender_avatar: recipientAvatar,
-        content: 'Je peux vous proposer un rendez-vous demain matin. La réparation prendra environ 2 heures.',
-        created_at: new Date(Date.now() - 1800000).toISOString(),
-        read: true
-      }
-    ];
-    setMessages(mockMessages);
-  }, [recipientId, recipientName, recipientAvatar, user?.id]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || sending) return;
+    
     try {
-      // Validation avec zod
       const validatedData = messageSchema.parse({
         content: newMessage,
-        recipientId: recipientId
+        recipientId: user?.id || ''
       });
 
-      const message: Message = {
-        id: Date.now().toString(),
-        sender_id: user?.id || '',
-        sender_name: 'Vous',
-        content: validatedData.content,
-        created_at: new Date().toISOString(),
-        read: false
-      };
-
-      setMessages([...messages, message]);
+      await sendMessage(validatedData.content, senderType);
       setNewMessage('');
-
-      // Simulate typing indicator
-      setIsTyping(true);
-      setTimeout(() => setIsTyping(false), 2000);
     } catch (error: any) {
       if (error.name === 'ZodError') {
         enhancedToast.error({
@@ -152,62 +107,42 @@ export const MessageThread: React.FC<MessageThreadProps> = ({
 
       <CardContent className="flex-1 overflow-hidden p-4">
         <ScrollArea className="h-full pr-4">
-          <div className="space-y-4">
-            <AnimatePresence>
-              {messages.map((message) => {
-                const isOwnMessage = message.sender_id === user?.id;
-                return (
-                  <motion.div
-                    key={message.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : ''}`}
-                  >
-                    {!isOwnMessage && (
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={message.sender_avatar} />
-                        <AvatarFallback>{message.sender_name[0]}</AvatarFallback>
-                      </Avatar>
-                    )}
-                    <div className={`flex flex-col gap-1 max-w-[70%] ${isOwnMessage ? 'items-end' : ''}`}>
-                      <div
-                        className={`rounded-2xl px-4 py-2 ${
-                          isOwnMessage
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
-                        }`}
-                      >
-                        <p className="text-sm">{message.content}</p>
-                      </div>
-                      <span className="text-xs text-muted-foreground px-2">
-                        {formatMessageTime(message.created_at)}
-                      </span>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-
-            {isTyping && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex gap-3"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={recipientAvatar} />
-                  <AvatarFallback>{recipientName[0]}</AvatarFallback>
-                </Avatar>
-                <div className="bg-muted rounded-2xl px-4 py-2">
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                  </div>
-                </div>
-              </motion.div>
-            )}
-            <div ref={scrollRef} />
+            <div className="space-y-4">
+              <AnimatePresence>
+                {messages.map((message) => {
+                 const isOwnMessage = message.sender_id === user?.id;
+                 return (
+                   <motion.div
+                     key={message.id}
+                     initial={{ opacity: 0, y: 10 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     className={`flex gap-3 ${isOwnMessage ? 'flex-row-reverse' : ''}`}
+                   >
+                     {!isOwnMessage && (
+                       <Avatar className="h-8 w-8">
+                         <AvatarImage src={recipientAvatar} />
+                         <AvatarFallback>{recipientName[0]}</AvatarFallback>
+                       </Avatar>
+                     )}
+                     <div className={`flex flex-col gap-1 max-w-[70%] ${isOwnMessage ? 'items-end' : ''}`}>
+                       <div
+                         className={`rounded-2xl px-4 py-2 ${
+                           isOwnMessage
+                             ? 'bg-primary text-primary-foreground'
+                             : 'bg-muted'
+                         }`}
+                       >
+                         <p className="text-sm">{message.message_text}</p>
+                       </div>
+                       <span className="text-xs text-muted-foreground px-2">
+                         {formatMessageTime(message.created_at)}
+                       </span>
+                     </div>
+                   </motion.div>
+                 );
+               })}
+             </AnimatePresence>
+             <div ref={scrollRef} />
           </div>
         </ScrollArea>
       </CardContent>

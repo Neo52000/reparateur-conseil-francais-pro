@@ -323,6 +323,7 @@ const RepairerDashboard = () => {
               <MessageThread
                 quoteId="demo_quote_id"
                 senderType="repairer"
+                recipientName="Client Demo"
               />
             </div>
           </TabsContent>

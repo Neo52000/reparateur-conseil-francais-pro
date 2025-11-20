@@ -70,8 +70,7 @@ export const ClientRepairsTab: React.FC = () => {
           ← Retour aux réparations
         </Button>
         <RepairTimeline
-          repairId={selectedRepair}
-          currentStatus="in_progress"
+          quoteId={selectedRepair}
         />
       </div>
     );
