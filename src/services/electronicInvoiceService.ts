@@ -24,13 +24,19 @@ export interface ElectronicInvoice {
   invoice_number: string;
   repairer_id: string;
   client_id: string;
-  status: string; // Database returns string, will be cast
+  status: string;
   chorus_pro_status?: string;
   amount_ht: number;
   amount_ttc: number;
+  tva_rate?: number;
   tva_amount: number;
   invoice_date: string;
   due_date?: string;
+  client_name?: string;
+  client_siret?: string;
+  quote_id?: string;
+  factur_x_pdf_path?: string;
+  factur_x_xml_path?: string;
   created_at: string;
   updated_at: string;
 }
