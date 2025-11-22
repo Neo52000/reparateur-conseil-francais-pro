@@ -24,20 +24,29 @@ export const BlogScheduleList = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      console.log('🔄 Loading blog schedules from database...');
+      console.log('🔄 Loading blog schedules via Edge Function...');
 
-      // Direct DB access (RLS allows admin)
-      const { data: schedulesData, error: schedulesError } = await supabase
-        .from('blog_automation_schedules')
-        .select('*')
-        .order('schedule_day', { ascending: true })
-        .order('schedule_time', { ascending: true });
+      // Verify session first
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Session expirée",
+          description: "Veuillez vous reconnecter",
+          variant: "destructive"
+        });
+        return;
+      }
 
-      if (schedulesError) throw schedulesError;
+      // Use Edge Function to fetch schedules (bypasses RLS issues)
+      const { data, error } = await supabase.functions.invoke('blog-schedules', {
+        body: { action: 'list' }
+      });
 
-      setSchedules(schedulesData || []);
+      if (error) throw error;
 
-      // Load categories directly (read access)
+      setSchedules(data?.schedules || []);
+
+      // Load categories directly (public read access, no RLS issue)
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('blog_categories')
         .select('*')
@@ -47,6 +56,8 @@ export const BlogScheduleList = () => {
       if (categoriesError) throw categoriesError;
 
       setCategories(categoriesData || []);
+      
+      console.log('✅ Loaded', data?.schedules?.length || 0, 'schedules');
     } catch (error: any) {
       console.error('❌ Error loading data:', error);
       toast({
@@ -62,6 +73,17 @@ export const BlogScheduleList = () => {
   const handleAddSchedule = async () => {
     setSaving(true);
     try {
+      // Refresh session and verify authentication
+      const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
+      if (sessionError || !session) {
+        toast({ 
+          title: "Session expirée", 
+          description: "Veuillez vous reconnecter",
+          variant: "destructive" 
+        });
+        return;
+      }
+
       const newSchedule = {
         name: 'Nouvelle planification',
         enabled: true,
@@ -69,7 +91,7 @@ export const BlogScheduleList = () => {
         schedule_day: 1, // Monday (0-6)
         schedule_time: '08:00', // HH:mm format
         auto_publish: false,
-        ai_model: 'google/gemini-2.5-flash',
+        ai_model: 'mistral-large-latest',
         prompt_template: null
       };
 
@@ -81,29 +103,25 @@ export const BlogScheduleList = () => {
         throw new Error('L\'heure doit être au format HH:mm');
       }
 
-      console.log('➕ Creating schedule:', newSchedule);
+      console.log('➕ Creating schedule via Edge Function:', newSchedule);
       
-      // Direct insert (RLS admin policy) with fallback when SELECT is blocked by RLS
-      const { data: insertedRows, error: insertError } = await supabase
-        .from('blog_automation_schedules')
-        .insert(newSchedule)
-        .select('*');
+      // Use Edge Function (bypasses RLS, uses service role key)
+      const { data, error } = await supabase.functions.invoke('blog-schedules', {
+        body: {
+          action: 'create',
+          payload: newSchedule
+        }
+      });
 
-      if (insertError) throw insertError;
-
-      const inserted = Array.isArray(insertedRows) ? insertedRows[0] : undefined;
-
-      if (inserted) {
-        setSchedules([...schedules, inserted as BlogAutomationSchedule]);
-      } else {
-        // If RLS prevents returning the inserted row, reload the list
-        await loadData();
-      }
+      if (error) throw error;
 
       toast({
         title: '✅ Planification créée',
         description: 'Configurez les détails de votre nouvelle planification'
       });
+
+      // Reload data to get the new schedule
+      await loadData();
     } catch (error: any) {
       console.error('❌ Error adding schedule:', error);
       console.error('❌ Error details:', {
@@ -131,6 +149,17 @@ export const BlogScheduleList = () => {
   const handleUpdateSchedule = async (updatedSchedule: BlogAutomationSchedule) => {
     setSaving(true);
     try {
+      // Refresh session before sensitive operation
+      const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
+      if (sessionError || !session) {
+        toast({ 
+          title: "Session expirée", 
+          description: "Veuillez vous reconnecter",
+          variant: "destructive" 
+        });
+        return;
+      }
+
       // Validate fields
       if (updatedSchedule.schedule_day < 0 || updatedSchedule.schedule_day > 6) {
         throw new Error('Le jour doit être entre 0 (dimanche) et 6 (samedi)');
@@ -150,29 +179,26 @@ export const BlogScheduleList = () => {
         prompt_template: updatedSchedule.prompt_template
       };
 
-      console.log('💾 Updating schedule:', updatedSchedule.id, updatePayload);
+      console.log('💾 Updating schedule via Edge Function:', updatedSchedule.id, updatePayload);
       
-      // Direct update (RLS admin policy) with fallback when SELECT is blocked by RLS
-      const { data: updatedRows, error: updateError } = await supabase
-        .from('blog_automation_schedules')
-        .update(updatePayload)
-        .eq('id', updatedSchedule.id)
-        .select('*');
+      // Use Edge Function (bypasses RLS)
+      const { data, error } = await supabase.functions.invoke('blog-schedules', {
+        body: {
+          action: 'update',
+          id: updatedSchedule.id,
+          payload: updatePayload
+        }
+      });
 
-      if (updateError) throw updateError;
+      if (error) throw error;
 
-      const updated = Array.isArray(updatedRows) ? updatedRows[0] : undefined;
-
-      if (updated) {
-        setSchedules(schedules.map(s => s.id === updatedSchedule.id ? (updated as BlogAutomationSchedule) : s));
-      } else {
-        await loadData();
-      }
-      
       toast({
         title: '✅ Sauvegardé',
         description: 'Planification mise à jour avec succès'
       });
+
+      // Reload to get fresh data
+      await loadData();
     } catch (error: any) {
       console.error('❌ Error updating schedule:', error);
       console.error('❌ Error details:', {
@@ -197,15 +223,28 @@ export const BlogScheduleList = () => {
 
   const handleDeleteSchedule = async (scheduleId: string) => {
     try {
-      console.log('🗑️ Deleting schedule:', scheduleId);
-      
-      // Direct delete (RLS admin policy)
-      const { error: deleteError } = await supabase
-        .from('blog_automation_schedules')
-        .delete()
-        .eq('id', scheduleId);
+      // Refresh session before sensitive operation
+      const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
+      if (sessionError || !session) {
+        toast({ 
+          title: "Session expirée", 
+          description: "Veuillez vous reconnecter",
+          variant: "destructive" 
+        });
+        return;
+      }
 
-      if (deleteError) throw deleteError;
+      console.log('🗑️ Deleting schedule via Edge Function:', scheduleId);
+      
+      // Use Edge Function (bypasses RLS)
+      const { data, error } = await supabase.functions.invoke('blog-schedules', {
+        body: {
+          action: 'delete',
+          id: scheduleId
+        }
+      });
+
+      if (error) throw error;
 
       setSchedules(schedules.filter(s => s.id !== scheduleId));
       
