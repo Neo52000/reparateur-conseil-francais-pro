@@ -3,24 +3,39 @@ import { Button } from '@/components/ui/button';
 
 const ModernHeader = () => {
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-border">
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
       <div className="container mx-auto px-6 lg:px-10">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-primary font-heading">
-              TopRéparateurs
+            <span className="text-xl font-bold text-emerald-600 font-heading">
+              topreparateurs.fr
             </span>
           </Link>
 
+          {/* Navigation centrale */}
+          <nav className="hidden md:flex items-center gap-8">
+            <Link to="/reparateur" className="text-gray-600 hover:text-emerald-600 transition-colors">
+              Réparateur
+            </Link>
+            <Link to="/reparations" className="text-gray-600 hover:text-emerald-600 transition-colors">
+              Réparations
+            </Link>
+            <Link to="/parliers" className="text-gray-600 hover:text-emerald-600 transition-colors">
+              Parliers
+            </Link>
+            <Link to="/login" className="text-gray-600 hover:text-emerald-600 transition-colors">
+              Log in
+            </Link>
+          </nav>
+
           {/* CTA */}
           <Button 
-            variant="outline" 
             asChild
-            className="border-2 hover:bg-primary hover:text-white hover:border-primary transition-all"
+            className="bg-emerald-500 hover:bg-emerald-600 text-white"
           >
             <Link to="/inscription-pro">
-              Espace Pro
+              S'inscrire
             </Link>
           </Button>
         </div>

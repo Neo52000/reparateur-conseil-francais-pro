@@ -3,40 +3,40 @@ import { ShieldCheck, Clock, Wrench } from 'lucide-react';
 const trustFeatures = [
   {
     icon: ShieldCheck,
-    title: 'Certifié & Vérifié',
-    description: 'Tous nos réparateurs sont vérifiés et certifiés pour garantir la qualité de service',
+    title: 'Réparateurs certifiés',
+    description: 'Rien que des réparateurs certifiés et vérifiés',
   },
   {
     icon: Clock,
     title: 'Réparation Express',
-    description: 'Intervention rapide avec des délais de réparation optimisés selon vos besoins',
+    description: 'Réparation Express artificiellement assistée',
   },
   {
     icon: Wrench,
     title: 'Garantie incluse',
-    description: 'Toutes les réparations sont garanties pour votre tranquillité d\'esprit',
+    description: 'Garantie incluse et calculs vous certifiés',
   },
 ];
 
 const TrustSignals = () => {
   return (
-    <section className="py-20 bg-white">
+    <section className="py-12 bg-white border-y border-gray-100">
       <div className="container mx-auto px-6 lg:px-10">
-        <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
+        <div className="grid md:grid-cols-3 gap-8">
           {trustFeatures.map((feature, index) => {
             const Icon = feature.icon;
             return (
               <div
                 key={index}
-                className="text-center space-y-4 p-8 rounded-2xl hover:bg-muted/50 transition-colors"
+                className="text-center"
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10">
-                  <Icon className="w-8 h-8 text-primary" />
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-50 mb-3">
+                  <Icon className="w-6 h-6 text-emerald-600" />
                 </div>
-                <h3 className="text-xl font-bold text-foreground font-heading">
+                <h3 className="text-base font-semibold text-gray-900 mb-1">
                   {feature.title}
                 </h3>
-                <p className="text-muted-foreground leading-relaxed">
+                <p className="text-sm text-gray-500">
                   {feature.description}
                 </p>
               </div>

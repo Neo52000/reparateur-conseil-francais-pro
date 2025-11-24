@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Phone, Star } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/lib/supabase';
 
 interface Repairer {
@@ -43,100 +45,88 @@ const RepairerResultsGrid = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-6 lg:px-10">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground font-heading mb-4">
-              Réparateurs recommandés
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Card key={i} className="p-6 animate-pulse">
-                <div className="h-6 bg-muted rounded w-3/4 mb-4" />
-                <div className="h-4 bg-muted rounded w-full mb-2" />
-                <div className="h-4 bg-muted rounded w-2/3" />
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section className="py-20 bg-muted/30">
+    <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-6 lg:px-10">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground font-heading mb-4">
-            Réparateurs recommandés
+        <div className="mb-12 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 font-heading mb-4">
+            Réparateurs disponibles
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Découvrez notre sélection de professionnels certifiés près de chez vous
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+            Découvrez nos réparateurs certifiés près de chez vous
           </p>
         </div>
 
-        {/* Grid de cartes */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {repairers.map((repairer) => (
-            <Card
-              key={repairer.id}
-              className="p-6 hover:shadow-lg hover:scale-105 transition-all duration-300 rounded-xl border border-border bg-white"
-            >
-              <div className="space-y-4">
-                {/* Header */}
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-bold text-lg text-foreground mb-2 font-heading">
-                      {repairer.name}
-                    </h3>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-                      <MapPin className="w-4 h-4" />
-                      <span>{repairer.city}</span>
+        {loading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="p-6 space-y-4">
+                <div className="flex gap-4">
+                  <Skeleton className="w-20 h-20 rounded-lg" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-10 w-full mt-2" />
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {repairers.map((repairer) => (
+                <Card 
+                  key={repairer.id}
+                  className="p-6 hover:shadow-xl transition-all duration-300 rounded-xl bg-white border-gray-200"
+                >
+                  <div className="flex gap-4">
+                    {/* Avatar */}
+                    <Avatar className="w-20 h-20 rounded-lg">
+                      <AvatarImage src="/placeholder-repairer.jpg" alt={repairer.name} />
+                      <AvatarFallback className="bg-emerald-100 text-emerald-700 text-lg rounded-lg font-semibold">
+                        {repairer.name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-lg text-gray-900 mb-1 truncate">
+                        {repairer.name}
+                      </h3>
+                      <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+                        {repairer.address}, {repairer.city}
+                      </p>
+
+                      {/* Bouton d'appel */}
+                      <Button
+                        onClick={() => window.open(`tel:${repairer.phone}`, '_self')}
+                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white gap-2"
+                        size="sm"
+                      >
+                        <Phone className="w-4 h-4" />
+                        Appeler
+                      </Button>
                     </div>
                   </div>
-                  
-                  {repairer.rating && (
-                    <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-semibold">{repairer.rating}</span>
-                    </div>
-                  )}
-                </div>
+                </Card>
+              ))}
+            </div>
 
-                {/* Adresse */}
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {repairer.address}
-                </p>
-
-                {/* CTA */}
-                <Button
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg flex items-center justify-center gap-2 shadow-md"
-                  onClick={() => window.open(`tel:${repairer.phone}`, '_self')}
+            {/* CTA */}
+            {repairers.length > 0 && (
+              <div className="text-center">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="border-2 border-gray-300 text-gray-700 hover:bg-gray-100"
+                  onClick={() => window.location.href = '/search'}
                 >
-                  <Phone className="w-4 h-4" />
-                  Appeler
+                  Voir tous les réparateurs
                 </Button>
               </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* CTA pour voir plus */}
-        {repairers.length > 0 && (
-          <div className="text-center mt-12">
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-2 hover:bg-primary hover:text-white hover:border-primary transition-all"
-              onClick={() => window.location.href = '/search'}
-            >
-              Voir tous les réparateurs
-            </Button>
-          </div>
+            )}
+          </>
         )}
       </div>
     </section>
