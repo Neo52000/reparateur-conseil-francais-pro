@@ -96,6 +96,12 @@ const AppWithTracking = () => {
       <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" /></div>}>
         <Routes>
         <Route path="/" element={<Index />} />
+        {/* Navigation routes */}
+        <Route path="/reparateur" element={<Navigate to="/repairer-auth" replace />} />
+        <Route path="/reparations" element={<Navigate to="/reparation-smartphone" replace />} />
+        <Route path="/particuliers" element={<Navigate to="/client-auth" replace />} />
+        <Route path="/login" element={<Navigate to="/client-auth" replace />} />
+        <Route path="/connexion" element={<Navigate to="/client-auth" replace />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/admin/import" element={<AdminImportPage />} />
         <Route path="/admin/import/*" element={<AdminImportPage />} />
