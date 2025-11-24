@@ -7,7 +7,7 @@ import ModernFooter from '@/components/modern/ModernFooter';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       <Helmet>
         <title>TopRéparateurs - Trouvez le meilleur réparateur près de chez vous</title>
         <meta 
