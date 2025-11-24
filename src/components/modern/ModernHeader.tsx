@@ -21,11 +21,11 @@ const ModernHeader = () => {
             <Link to="/reparations" className="text-gray-600 hover:text-emerald-600 transition-colors">
               Réparations
             </Link>
-            <Link to="/parliers" className="text-gray-600 hover:text-emerald-600 transition-colors">
-              Parliers
+            <Link to="/particuliers" className="text-gray-600 hover:text-emerald-600 transition-colors">
+              Particuliers
             </Link>
             <Link to="/login" className="text-gray-600 hover:text-emerald-600 transition-colors">
-              Log in
+              Connexion
             </Link>
           </nav>
 
