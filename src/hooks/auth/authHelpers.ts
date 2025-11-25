@@ -9,8 +9,8 @@ export const createTemporaryProfile = (session: Session): Profile => {
     id: session.user.id,
     email: session.user.email!,
     first_name: session.user.user_metadata?.first_name || 'Utilisateur',
-    last_name: session.user.user_metadata?.last_name || '',
-    role: session.user.user_metadata?.role || 'user'
+    last_name: session.user.user_metadata?.last_name || ''
+    // Note: role removed - managed in user_roles table
   };
 };
 
@@ -22,14 +22,11 @@ export const createProfileFromMetadata = async (session: Session): Promise<Profi
 
   console.log('📝 Creating profile from user metadata:', session.user.user_metadata);
   
-  // Utiliser le rôle depuis les métadonnées utilisateur ou 'user' par défaut
-  const role = session.user.user_metadata?.role || 'user';
-  
   const userData = {
     email: session.user.email!,
     first_name: session.user.user_metadata?.first_name || 'Utilisateur',
-    last_name: session.user.user_metadata?.last_name || '',
-    role: role
+    last_name: session.user.user_metadata?.last_name || ''
+    // Note: role removed - managed in user_roles table
   };
 
   try {

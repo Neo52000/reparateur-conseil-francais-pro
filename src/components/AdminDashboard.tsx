@@ -72,10 +72,12 @@ const AdminDashboard = () => {
     const fetchStats = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .neq('role', 'admin');
+        // Compter les réparateurs via user_roles (sécurisé)
+        const { count, error } = await supabase
+          .from('user_roles')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'repairer')
+          .eq('is_active', true);
 
         if (error) {
           console.error('Error fetching stats:', error);
@@ -83,7 +85,7 @@ const AdminDashboard = () => {
           return;
         }
 
-        const repairerCount = data ? data.length : 0;
+        const repairerCount = count || 0;
         setStats({ repairerCount });
       } catch (error) {
         console.error('Error fetching stats:', error);

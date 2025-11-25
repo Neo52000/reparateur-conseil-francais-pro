@@ -1,10 +1,9 @@
-
 export interface Profile {
   id: string;
   email: string;
   first_name: string | null;
   last_name: string | null;
-  role: string | null;
+  // Note: role removed - use user_roles table for secure role checks
 }
 
 export interface UserSignUpData {

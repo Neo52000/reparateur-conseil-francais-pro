@@ -71,7 +71,7 @@ const Navigation = () => {
                   <Link to="/client" className="text-foreground/80 hover:text-primary px-3 py-2 rounded-md text-sm font-medium flex items-center">
                     <User className="h-4 w-4 mr-1" />
                     Client
-                    {isAdmin && profile?.role === 'admin' && (
+                    {isAdmin && (
                       <span className="ml-1 text-xs bg-primary/10 text-primary px-1 rounded">Test</span>
                     )}
                   </Link>
@@ -81,7 +81,7 @@ const Navigation = () => {
                   <Link to="/repairer" className="text-foreground/80 hover:text-accent px-3 py-2 rounded-md text-sm font-medium flex items-center">
                     <Wrench className="h-4 w-4 mr-1" />
                     Réparateur
-                    {isAdmin && profile?.role === 'admin' && (
+                    {isAdmin && (
                       <span className="ml-1 text-xs bg-accent/10 text-accent px-1 rounded">Test</span>
                     )}
                   </Link>

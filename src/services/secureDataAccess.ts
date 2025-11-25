@@ -9,18 +9,21 @@ import { supabase } from '@/integrations/supabase/client';
 export class SecureDataAccess {
   /**
    * Détermine si l'utilisateur actuel a accès aux données complètes
+   * SÉCURITÉ: Vérifie depuis user_roles au lieu de profiles
    */
   private static async hasFullAccess(userId?: string): Promise<boolean> {
     if (!userId) return false;
 
-    // Vérifier si l'utilisateur est admin
-    const { data: profile } = await supabase
-      .from('profiles')
+    // Vérifier si l'utilisateur est admin via user_roles (sécurisé)
+    const { data: userRole } = await supabase
+      .from('user_roles')
       .select('role')
-      .eq('id', userId)
+      .eq('user_id', userId)
+      .eq('role', 'admin')
+      .eq('is_active', true)
       .single();
 
-    return profile?.role === 'admin';
+    return !!userRole;
   }
 
   /**

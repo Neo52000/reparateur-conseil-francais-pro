@@ -8623,7 +8623,6 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
-          role: string | null
           updated_at: string
         }
         Insert: {
@@ -8632,7 +8631,6 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
-          role?: string | null
           updated_at?: string
         }
         Update: {
@@ -8641,7 +8639,6 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
-          role?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -14437,6 +14434,26 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_subscription_overview: {
+        Row: {
+          billing_cycle: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          id: string | null
+          last_name: string | null
+          plan_name: string | null
+          price_monthly: number | null
+          price_yearly: number | null
+          repairer_id: string | null
+          subscribed: boolean | null
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       blog_automation_cron_history: {
         Row: {
           duration_seconds: number | null
@@ -14545,6 +14562,16 @@ export type Database = {
       assign_free_plan_to_repairer: {
         Args: { user_email: string; user_id: string }
         Returns: string
+      }
+      audit_user_roles: {
+        Args: never
+        Returns: {
+          email: string
+          has_profile: boolean
+          roles: string[]
+          status: string
+          user_id: string
+        }[]
       }
       auto_archive_certificate: {
         Args: { certificate_id: string }
@@ -14721,6 +14748,7 @@ export type Database = {
           total_views: number
         }[]
       }
+      has_admin_role: { Args: { user_id: string }; Returns: boolean }
       has_local_seo_access: { Args: { user_id: string }; Returns: boolean }
       has_module_access: {
         Args: { module_name: string; user_id: string }
