@@ -32,8 +32,8 @@ export const profileService = {
         id: userId,
         email: userData.email!,
         first_name: userData.first_name || 'Utilisateur',
-        last_name: userData.last_name || '',
-        role: userData.role || 'user'
+        last_name: userData.last_name || ''
+        // Note: role removed - managed in user_roles table
       };
 
       const { data, error } = await supabase
@@ -59,8 +59,8 @@ export const profileService = {
         id: userId,
         email: userData.email!,
         first_name: userData.first_name || 'Utilisateur',
-        last_name: userData.last_name || '',
-        role: userData.role || 'user'
+        last_name: userData.last_name || ''
+        // Note: role removed - managed in user_roles table
       };
 
       const { data, error } = await supabase

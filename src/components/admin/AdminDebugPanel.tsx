@@ -36,7 +36,7 @@ const AdminDebugPanel: React.FC<AdminDebugPanelProps> = ({
           <div className="text-sm space-y-2">
             <p><strong>Utilisateur:</strong> {user.email}</p>
             <p><strong>Profil chargé:</strong> {profile ? 'Oui' : 'Non'}</p>
-            <p><strong>Rôle:</strong> {profile?.role || 'Non défini'}</p>
+            <p><strong>Admin (via user_roles):</strong> {isAdmin ? 'Oui' : 'Non'}</p>
             <p><strong>Admin:</strong> {isAdmin ? 'Oui' : 'Non'}</p>
           </div>
           

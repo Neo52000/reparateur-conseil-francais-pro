@@ -33,7 +33,6 @@ const AdminAuthForm = () => {
     logger.debug('Current auth state before login:', {
       hasUser: !!user,
       hasProfile: !!profile,
-      profileRole: profile?.role,
       isAdmin,
       authLoading
     });

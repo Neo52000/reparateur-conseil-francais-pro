@@ -22,7 +22,8 @@ export const PlanPreviewProvider = ({ children }: { children: ReactNode }) => {
   const [previewTier, setPreviewTier] = useState<string | null>(null);
 
   const actualTier = user ? getSubscriptionTier(user.id) : 'free';
-  const canPreview = profile?.role === 'admin' || user?.email === 'demo@demo.fr';
+  const { isAdmin } = useAuth();
+  const canPreview = isAdmin || user?.email === 'demo@demo.fr';
   const activeTier = isPreviewMode && previewTier ? previewTier : actualTier;
 
   const startPreview = (tier: string) => {

@@ -3,7 +3,7 @@ export interface Profile {
   email: string;
   first_name?: string;
   last_name?: string;
-  role?: string;
+  // Note: role removed - use user_roles table for secure role checks
   created_at?: string;
   updated_at?: string;
 }

@@ -62,8 +62,8 @@ export const useAuthActions = (
             const profileData = await fetchOrCreateProfile(newSession);
             console.log('👤 Admin profile fetched:', {
               hasProfile: !!profileData,
-              role: profileData?.role,
               email: profileData?.email
+              // Note: role checks now via useAuthRoles
             });
             setProfile(profileData);
           }

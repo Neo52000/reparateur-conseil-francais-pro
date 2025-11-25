@@ -5,15 +5,14 @@ import { useAuth } from '@/hooks/useAuth';
 import RepairerAuthForm from '@/components/RepairerAuthForm';
 
 const RepairerAuth = () => {
-  const { user, loading, profile } = useAuth();
+  const { user, loading, profile, canAccessRepairer } = useAuth();
   const navigate = useNavigate();
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     console.log('🔧 RepairerAuth - Auth state:', { 
       user: !!user, 
-      loading, 
-      profileRole: profile?.role, 
+      loading,
       userEmail: user?.email 
     });
     
@@ -23,21 +22,15 @@ const RepairerAuth = () => {
     }
     
     if (user && profile) {
-      console.log('✅ RepairerAuth - User authenticated with profile, checking role...');
+      console.log('✅ RepairerAuth - User authenticated, checking access via user_roles...');
       
-      // Vérifier si l'utilisateur peut accéder à l'interface réparateur  
-      if (profile.role === 'repairer' || profile.role === 'admin') {
+      if (canAccessRepairer) {
         console.log('✅ RepairerAuth - User has repairer access, redirecting to dashboard');
         setIsRedirecting(true);
-        // Immediate redirect using navigation
         navigate('/repairer', { replace: true });
       } else {
-        console.log('❌ RepairerAuth - User does not have repairer access, redirecting based on role');
-        if (profile.role === 'client') {
-          navigate('/client', { replace: true });
-        } else {
-          navigate('/', { replace: true });
-        }
+        console.log('❌ RepairerAuth - User does not have repairer access');
+        navigate('/', { replace: true });
       }
     }
   }, [user, loading, profile, navigate]);
