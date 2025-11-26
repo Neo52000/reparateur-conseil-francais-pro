@@ -22,23 +22,49 @@ serve(async (req) => {
   }
 
   try {
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-    );
-
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('Missing authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Authentication required', success: false }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
+    // Créer un client Supabase avec le token utilisateur
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
     );
 
+    // Vérifier que l'utilisateur est authentifié
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      throw new Error('Unauthorized');
+      console.error('❌ Token invalide:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Invalid token', success: false }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    // ✅ SÉCURITÉ: Vérification du rôle admin
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .eq('is_active', true)
+      .single();
+
+    if (roleError || !roleData) {
+      console.error('❌ Accès refusé: utilisateur non-admin', { userId: user.id });
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: Admin access required', success: false }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`✅ Accès autorisé pour l'admin: ${user.email}`);
 
     const requestData: GenerateArticleRequest = await req.json();
     const { topic, category_id, keywords, target_audience, tone, auto_publish, scheduled_at } = requestData;
