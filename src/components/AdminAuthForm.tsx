@@ -109,7 +109,6 @@ const AdminAuthForm = () => {
     userEmail: user?.email,
     isAdmin,
     authLoading,
-    profileRole: profile?.role,
     profileEmail: profile?.email
   });
 

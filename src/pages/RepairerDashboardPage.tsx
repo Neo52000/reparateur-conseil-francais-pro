@@ -13,9 +13,9 @@ const RepairerDashboardPage = () => {
     console.log('🔧 RepairerDashboardPage - Auth state:', {
       hasUser: !!user,
       hasProfile: !!profile,
-      profileRole: profile?.role,
-      userEmail: user?.email,
+      isAdmin,
       canAccessRepairer,
+      userEmail: user?.email,
       loading
     });
 
@@ -38,12 +38,8 @@ const RepairerDashboardPage = () => {
 
     // Vérifier l'accès réparateur
     if (!canAccessRepairer) {
-      console.log('❌ RepairerDashboardPage - No repairer access, redirecting based on role');
-      if (profile?.role === 'client') {
-        navigate('/client');
-      } else {
-        navigate('/');
-      }
+      console.log('❌ RepairerDashboardPage - No repairer access, redirecting to home');
+      navigate('/');
       return;
     }
 
@@ -68,7 +64,7 @@ const RepairerDashboardPage = () => {
   return (
     <div>
       {/* Bandeau admin pour indiquer le mode test */}
-      {isAdmin && profile?.role === 'admin' && (
+      {isAdmin && (
         <div className="bg-orange-100 border-b border-orange-300 p-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center">

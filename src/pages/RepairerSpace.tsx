@@ -12,8 +12,7 @@ const RepairerSpace = () => {
     console.log('RepairerSpace - Auth state:', { 
       user: !!user, 
       loading, 
-      canAccessRepairer, 
-      profileRole: profile?.role,
+      canAccessRepairer,
       profileExists: !!profile 
     });
     
@@ -36,13 +35,8 @@ const RepairerSpace = () => {
 
     // Vérifier l'accès réparateur
     if (!canAccessRepairer) {
-      console.log('RepairerSpace - No repairer access, redirecting based on role');
-      if (profile?.role === 'client') {
-        navigate('/client', { replace: true });
-      } else {
-        console.log('RepairerSpace - Unknown role, redirecting to repairer auth');
-        navigate('/repairer-auth', { replace: true });
-      }
+      console.log('RepairerSpace - No repairer access, redirecting to repairer auth');
+      navigate('/repairer-auth', { replace: true });
       return;
     }
 
