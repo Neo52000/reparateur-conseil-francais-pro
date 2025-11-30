@@ -45,6 +45,7 @@ export { useScrapingOperations } from './scraping/useScrapingOperations';
 export { useBlog } from './useBlog';
 export { useBlogPosts } from './blog/useBlogPosts';
 export { useBlogCategories } from './blog/useBlogCategories';
+export { useBlogPrompts } from './blog/useBlogPrompts';
 
 // Hooks de publicité
 export { useAdvertising } from './useAdvertising';

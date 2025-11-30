@@ -76,6 +76,8 @@ serve(async (req) => {
 
     // Récupérer la catégorie si fournie
     let categoryName = '';
+    let customPrompt = '';
+    
     if (category_id) {
       const { data: category } = await supabase
         .from('blog_categories')
@@ -83,6 +85,32 @@ serve(async (req) => {
         .eq('id', category_id)
         .single();
       categoryName = category?.name || '';
+
+      // Récupérer le prompt personnalisé pour cette catégorie
+      const { data: template } = await supabase
+        .from('blog_generation_templates')
+        .select('prompt_template, ai_model')
+        .eq('category_id', category_id)
+        .eq('is_active', true)
+        .single();
+
+      if (template) {
+        customPrompt = template.prompt_template;
+        console.log('✅ Prompt personnalisé trouvé pour la catégorie:', categoryName);
+      }
+    }
+
+    // Remplacer les variables dynamiques dans le prompt
+    const currentDate = new Date();
+    const season = ['hiver', 'printemps', 'été', 'automne'][Math.floor((currentDate.getMonth() % 12) / 3)];
+    
+    if (customPrompt) {
+      customPrompt = customPrompt
+        .replace(/\{categorie\}/g, categoryName)
+        .replace(/\{date\}/g, currentDate.toLocaleDateString('fr-FR'))
+        .replace(/\{saison\}/g, season)
+        .replace(/\{ton\}/g, tone || 'professionnel')
+        .replace(/\{longueur\}/g, '600-800');
     }
 
     // Construire le prompt système
@@ -90,9 +118,11 @@ serve(async (req) => {
 Ton objectif est de créer des articles optimisés SEO, informatifs et engageants.
 Audience cible: ${target_audience === 'repairers' ? 'professionnels réparateurs' : target_audience === 'public' ? 'grand public' : 'mixte (public et professionnels)'}
 Ton: ${tone || 'professionnel'}
-${categoryName ? `Catégorie: ${categoryName}` : ''}`;
+${categoryName ? `Catégorie: ${categoryName}` : ''}
+Saison actuelle: ${season}`;
 
-    const userPrompt = `Crée un article de blog complet sur le sujet suivant: ${topic || 'Les dernières tendances en réparation de smartphones'}
+    // Utiliser le prompt personnalisé ou le prompt par défaut
+    const userPrompt = customPrompt || `Crée un article de blog complet sur le sujet suivant: ${topic || 'Les dernières tendances en réparation de smartphones'}
 ${keywords?.length ? `Mots-clés à inclure naturellement: ${keywords.join(', ')}` : ''}
 
 L'article doit:
@@ -105,6 +135,8 @@ L'article doit:
 - Un meta_title optimisé SEO (50-60 caractères)
 - Une meta_description engageante (150-160 caractères)
 - 5-7 mots-clés pertinents pour le SEO`;
+
+    console.log('📝 Prompt utilisé:', customPrompt ? 'Personnalisé' : 'Par défaut');
 
     // Appel à Lovable AI avec Tool Calling pour structure garantie
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
