@@ -22,12 +22,13 @@ import OverviewTabSection from "./OverviewTabSection";
 import EnhancedOverviewTab from "./EnhancedOverviewTab";
 import EnhancedDashboard from '@/components/dashboard/EnhancedDashboard';
 import OrdersTabSection from "./OrdersTabSection";
-import CalendarTabSection from "./CalendarTabSection";
+import RepairerAppointmentsCalendar from "./RepairerAppointmentsCalendar";
 import InventoryTabSection from "./InventoryTabSection";
 import AnalyticsTabSection from "./AnalyticsTabSection";
-import BillingTabSection from "./BillingTabSection";
+import ElectronicBillingSection from "./ElectronicBillingSection";
 import ProfileTabSection from "./ProfileTabSection";
 import PricingTabSection from "./PricingTabSection";
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import DayView from "./calendar/DayView";
 import AdvancedAnalytics from "./analytics/AdvancedAnalytics";
 import AdvertisingDashboard from '@/components/advertising/AdvertisingDashboard';
@@ -194,7 +195,17 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 
       <TabsContent value="calendar">
         <div className="space-y-6">
-          <CalendarTabSection />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Planning des rendez-vous
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RepairerAppointmentsCalendar />
+            </CardContent>
+          </Card>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <DayView
               selectedDate={new Date()}
@@ -277,7 +288,7 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
       </TabsContent>
 
       <TabsContent value="billing">
-        <BillingTabSection />
+        <ElectronicBillingSection />
       </TabsContent>
 
       <TabsContent value="profile">

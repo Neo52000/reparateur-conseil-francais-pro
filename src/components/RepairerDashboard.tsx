@@ -26,10 +26,10 @@ import UpgradeModal from '@/components/UpgradeModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
 import OverviewTabSection from "./repairer-dashboard/OverviewTabSection";
 import OrdersTabSection from "./repairer-dashboard/OrdersTabSection";
-import CalendarTabSection from "./repairer-dashboard/CalendarTabSection";
+import RepairerAppointmentsCalendar from "./repairer-dashboard/RepairerAppointmentsCalendar";
 import InventoryTabSection from "./repairer-dashboard/InventoryTabSection";
 import AnalyticsTabSection from "./repairer-dashboard/AnalyticsTabSection";
-import BillingTabSection from "./repairer-dashboard/BillingTabSection";
+import ElectronicBillingSection from "./repairer-dashboard/ElectronicBillingSection";
 import ProfileTabSection from "./repairer-dashboard/ProfileTabSection";
 import PricingTabSection from "./repairer-dashboard/PricingTabSection";
 import { RepairerOnboardingTour } from "./repairer-dashboard/RepairerOnboardingTour";
@@ -315,7 +315,17 @@ const RepairerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="calendar">
-            <CalendarTabSection />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Planning des rendez-vous
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RepairerAppointmentsCalendar />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="messages">
@@ -349,7 +359,7 @@ const RepairerDashboard = () => {
           </TabsContent>
 
           <TabsContent value="billing">
-            <BillingTabSection />
+            <ElectronicBillingSection />
           </TabsContent>
 
           <TabsContent value="profile">
