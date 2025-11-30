@@ -75,16 +75,10 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
       id: 'analytics',
       label: 'Analytics',
       icon: <BarChart3 className="w-4 h-4" />,
-    },
-    {
-      id: 'advertising-ai',
-      label: 'Pub IA',
-      icon: <Megaphone className="w-4 h-4" />,
-      isNew: true
     }
   ];
 
-  // Navigation items pour les outils (dropdown)
+  // Navigation items pour les outils (dropdown) - TODO: Réactiver selon plan Supabase
   const toolsItems: NavItem[] = [
     {
       id: 'catalog',
@@ -108,12 +102,12 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
     },
     {
       id: 'scraping',
-      label: 'Scraping',
+      label: 'Scraping (Bientôt)',
       icon: <Search className="w-4 h-4" />,
     },
     {
       id: 'automation',
-      label: 'Automation',
+      label: 'Automation (Bientôt)',
       icon: <Zap className="w-4 h-4" />,
     },
     {
@@ -208,19 +202,8 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
     }
   ];
 
-  // Navigation items pour les tests (dropdown)
-  const testersItems: NavItem[] = [
-    {
-      id: 'dashboard-tester',
-      label: 'Test Dashboard',
-      icon: <TestTube className="w-4 h-4" />,
-    },
-    {
-      id: 'plans-tester',
-      label: 'Test Plans',
-      icon: <TestTube className="w-4 h-4" />,
-    }
-  ];
+  // Navigation items pour les tests (dropdown) - SUPPRIMÉ pour réduire les fonctions
+  const testersItems: NavItem[] = [];
 
   // Navigation items pour la configuration (dropdown)
   const configItems: NavItem[] = [
@@ -392,12 +375,7 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
           hasActiveItem={shopifyItems.some(item => item.id === activeTab)}
         />
         
-        <DropdownNavMenu 
-          label="Tests"
-          icon={<TestTube className="w-4 h-4" />}
-          items={testersItems}
-          hasActiveItem={testersItems.some(item => item.id === activeTab)}
-        />
+        {/* Tests menu supprimé pour réduire les fonctions */}
         
         <DropdownNavMenu 
           label="Config"
