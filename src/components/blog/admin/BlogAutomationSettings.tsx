@@ -7,8 +7,10 @@ import { Zap, AlertCircle, CheckCircle2, ChevronDown, ExternalLink, ShieldAlert 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { BlogScheduleList } from './BlogScheduleList';
+import { BlogPromptsByCategory } from './BlogPromptsByCategory';
 import { CronStatus } from '@/types/blogAutomation';
 import { useAuth } from '@/hooks/useAuth';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const BlogAutomationSettings = () => {
   const { toast } = useToast();
@@ -203,8 +205,19 @@ export const BlogAutomationSettings = () => {
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Schedules List */}
-          <BlogScheduleList />
+          {/* Tabs for Schedules and Prompts */}
+          <Tabs defaultValue="schedules" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="schedules">Planifications</TabsTrigger>
+              <TabsTrigger value="prompts">Prompts par catégorie</TabsTrigger>
+            </TabsList>
+            <TabsContent value="schedules" className="space-y-4 pt-4">
+              <BlogScheduleList />
+            </TabsContent>
+            <TabsContent value="prompts" className="space-y-4 pt-4">
+              <BlogPromptsByCategory />
+            </TabsContent>
+          </Tabs>
 
           {/* Test Button */}
           <Button
