@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { MapPin, Phone, Mail, Globe, Clock, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import DOMPurify from 'dompurify';
 import NotFound from './NotFound';
 
 interface RepairerSeoPageData {
@@ -154,7 +155,7 @@ const RepairerSeoPage = () => {
               <Card className="p-6">
                 <div 
                   className="prose prose-lg max-w-none"
-                  dangerouslySetInnerHTML={{ __html: pageData.intro_paragraph }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(pageData.intro_paragraph) }}
                 />
               </Card>
 
@@ -162,7 +163,7 @@ const RepairerSeoPage = () => {
               <Card className="p-6">
                 <div 
                   className="prose prose-lg max-w-none"
-                  dangerouslySetInnerHTML={{ __html: pageData.services_description }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(pageData.services_description) }}
                 />
               </Card>
 
@@ -170,7 +171,7 @@ const RepairerSeoPage = () => {
               <Card className="p-6">
                 <div 
                   className="prose prose-lg max-w-none"
-                  dangerouslySetInnerHTML={{ __html: pageData.why_choose_us }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(pageData.why_choose_us) }}
                 />
               </Card>
             </div>

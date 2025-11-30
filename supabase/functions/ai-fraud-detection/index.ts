@@ -6,19 +6,62 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+async function checkAdminRole(supabase: any, authHeader: string | null): Promise<boolean> {
+  try {
+    if (!authHeader?.startsWith("Bearer ")) return false;
+    
+    const token = authHeader.slice(7);
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+    
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    const userId = payload?.sub;
+    
+    if (!userId) return false;
+    
+    // SECURITY: Use server-side has_role() function instead of trusting JWT metadata
+    const { data, error } = await supabase.rpc('has_role', {
+      _user_id: userId,
+      _role: 'admin'
+    });
+    
+    if (error) {
+      console.error("❌ has_role RPC error:", error);
+      return false;
+    }
+    
+    return Boolean(data);
+  } catch (e) {
+    console.error("❌ Admin check error:", e);
+    return false;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { repairerId, mode = 'single' } = await req.json();
-    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
     
     const supabase = createClient(supabaseUrl, supabaseKey);
+    const authHeader = req.headers.get("Authorization");
+
+    // SECURITY: Check admin role using server-side has_role() function
+    const isAdmin = await checkAdminRole(supabase, authHeader);
+
+    if (!isAdmin) {
+      console.log("❌ Access denied: user is not admin");
+      return new Response(
+        JSON.stringify({ success: false, error: "forbidden", message: "Admin required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { repairerId, mode = 'single' } = await req.json();
     const startTime = Date.now();
 
     let repairersToAnalyze = [];
