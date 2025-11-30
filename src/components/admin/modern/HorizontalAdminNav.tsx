@@ -41,6 +41,7 @@ interface NavItem {
   badge?: string | number;
   isNew?: boolean;
   isPro?: boolean;
+  disabled?: boolean;
 }
 
 interface HorizontalAdminNavProps {
@@ -97,12 +98,12 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
     },
     {
       id: 'promocodes',
-      label: 'Codes Promo',
+      label: 'Codes Promo (Bientôt)',
       icon: <Tag className="w-4 h-4" />,
     },
     {
       id: 'suppliers',
-      label: 'Annuaire Fournisseurs',
+      label: 'Annuaire Fournisseurs (Bientôt)',
       icon: <Store className="w-4 h-4" />,
     },
     {
@@ -122,7 +123,7 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
     },
     {
       id: 'chatbot',
-      label: 'Chatbot',
+      label: 'Chatbot (Bientôt)',
       icon: <Bot className="w-4 h-4" />,
     }
   ];
@@ -137,41 +138,41 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
     }
   ];
 
-  // Navigation items pour Shopify (dropdown)
+  // Navigation items pour Shopify (dropdown) - TODO: Réactiver quand plan Supabase upgradé
   const shopifyItems: NavItem[] = [
     {
       id: 'shopify-dashboard',
-      label: 'Dashboard Shopify',
+      label: 'Dashboard Shopify (Bientôt)',
       icon: <Store className="w-4 h-4" />,
       isNew: true
     },
     {
       id: 'shopify-stores',
-      label: 'Boutiques',
+      label: 'Boutiques (Bientôt)',
       icon: <ShoppingBag className="w-4 h-4" />,
       isNew: true
     },
     {
       id: 'shopify-orders',
-      label: 'Commandes',
+      label: 'Commandes (Bientôt)',
       icon: <Package className="w-4 h-4" />,
       isNew: true
     },
     {
       id: 'shopify-commissions',
-      label: 'Commissions',
+      label: 'Commissions (Bientôt)',
       icon: <Euro className="w-4 h-4" />,
       isNew: true
     },
     {
       id: 'shopify-analytics',
-      label: 'Analytics',
+      label: 'Analytics (Bientôt)',
       icon: <TrendingUp className="w-4 h-4" />,
       isNew: true
     },
     {
       id: 'shopify-settings',
-      label: 'Configuration',
+      label: 'Configuration (Bientôt)',
       icon: <Settings2 className="w-4 h-4" />,
       isNew: true
     }
@@ -322,30 +323,35 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
       <DropdownMenuContent align="start" className="w-64">
         <DropdownMenuLabel>{label}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {items.map((item) => (
-          <DropdownMenuItem key={item.id} asChild>
-            <NavLink 
-              to={`/admin?tab=${item.id}`}
-              className={`
-                flex items-center gap-3 px-3 py-2 w-full cursor-pointer
-                ${activeTab === item.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'}
-              `}
-            >
-              {item.icon}
-              <span className="flex-1">{item.label}</span>
-              {item.badge && (
-                <Badge variant="secondary" className="h-5 px-1.5 text-xs">
-                  {item.badge}
-                </Badge>
-              )}
-              {item.isNew && (
-                <Badge className="h-5 px-1.5 text-xs bg-admin-green text-white">
-                  NEW
-                </Badge>
-              )}
-            </NavLink>
-          </DropdownMenuItem>
-        ))}
+        {items.map((item) => {
+          const isDisabled = item.label.includes('(Bientôt)');
+          return (
+            <DropdownMenuItem key={item.id} asChild disabled={isDisabled}>
+              <NavLink 
+                to={isDisabled ? '#' : `/admin?tab=${item.id}`}
+                onClick={(e) => isDisabled && e.preventDefault()}
+                className={`
+                  flex items-center gap-3 px-3 py-2 w-full
+                  ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                  ${activeTab === item.id ? 'bg-primary/10 text-primary' : 'hover:bg-muted/50'}
+                `}
+              >
+                {item.icon}
+                <span className="flex-1">{item.label}</span>
+                {item.badge && (
+                  <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                    {item.badge}
+                  </Badge>
+                )}
+                {item.isNew && (
+                  <Badge className="h-5 px-1.5 text-xs bg-admin-green text-white">
+                    NEW
+                  </Badge>
+                )}
+              </NavLink>
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );
