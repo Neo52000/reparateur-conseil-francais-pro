@@ -1,13 +1,7 @@
 project_id = "nbugpbakfkyvvjzgfjmw"
 
-[functions.scrape-repairers]
-verify_jwt = true
-
 [functions.send-notification]
 verify_jwt = true
-
-[functions.modern-scraping]
-verify_jwt = false
 
 [functions.csv-intelligent-import]
 verify_jwt = false
