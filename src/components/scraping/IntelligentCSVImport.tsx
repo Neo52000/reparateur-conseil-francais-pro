@@ -162,82 +162,54 @@ const IntelligentCSVImport: React.FC<IntelligentCSVImportProps> = ({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          <Sparkles className="h-5 w-5 mr-2 text-purple-600" />
-          Import Intelligent - Données Allier
+          <Sparkles className="h-5 w-5 mr-2 text-muted-foreground" />
+          Import Intelligent - Fonction à venir
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Alert>
-          <Database className="h-4 w-4" />
+        <Alert className="bg-muted/50">
+          <AlertCircle className="h-4 w-4 text-muted-foreground" />
           <AlertDescription>
-            <strong>Import optimisé pour {selectedCategory.name}</strong><br />
-            11 réparateurs de l'Allier (03) avec amélioration IA automatique et géocodage.
+            <strong>Fonction temporairement désactivée</strong><br />
+            L'import intelligent CSV est désactivé pour optimiser le plan Supabase gratuit. Cette fonctionnalité sera réactivée prochainement.
           </AlertDescription>
         </Alert>
 
-        {!importing && !result && (
-          <div className="space-y-4">
-            {/* Aperçu des données */}
-            <div>
-              <h4 className="font-semibold mb-2">Aperçu des données à importer</h4>
-              <div className="border rounded-lg overflow-hidden">
-                <div className="overflow-x-auto max-h-48">
-                  <table className="w-full text-xs">
-                    <thead className="bg-muted">
-                      <tr>
-                        <th className="p-2 text-left font-medium">Nom</th>
-                        <th className="p-2 text-left font-medium">Adresse</th>
-                        <th className="p-2 text-left font-medium">Ville</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {testData.slice(0, 5).map((item, index) => (
-                        <tr key={index} className="border-t">
-                          <td className="p-2">{item.name}</td>
-                          <td className="p-2">{item.address}</td>
-                          <td className="p-2">{item.postalCity}</td>
-                        </tr>
-                      ))}
-                      {testData.length > 5 && (
-                        <tr className="border-t">
-                          <td colSpan={3} className="p-2 text-center text-muted-foreground">
-                            ... et {testData.length - 5} autres
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+        <div className="space-y-4 opacity-50">
+          <div>
+            <h4 className="font-semibold mb-2 text-muted-foreground">Aperçu (non disponible)</h4>
+            <div className="border rounded-lg overflow-hidden bg-muted/30">
+              <div className="p-8 text-center text-muted-foreground">
+                <Database className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Fonctionnalité temporairement indisponible</p>
               </div>
             </div>
-
-            {/* Fonctionnalités incluses */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="flex items-center space-x-2 p-3 bg-blue-50 rounded-lg">
-                <Sparkles className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium">IA Enhancement</span>
-              </div>
-              <div className="flex items-center space-x-2 p-3 bg-green-50 rounded-lg">
-                <MapPin className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium">Géocodage Auto</span>
-              </div>
-              <div className="flex items-center space-x-2 p-3 bg-purple-50 rounded-lg">
-                <Zap className="h-4 w-4 text-purple-600" />
-                <span className="text-sm font-medium">Parse Intelligent</span>
-              </div>
-            </div>
-
-            <Button 
-              onClick={handleQuickImport}
-              disabled={importing}
-              className="w-full bg-purple-600 hover:bg-purple-700"
-              size="lg"
-            >
-              <Database className="h-4 w-4 mr-2" />
-              Importer les 11 réparateurs de l'Allier
-            </Button>
           </div>
-        )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
+              <Sparkles className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">IA Enhancement</span>
+            </div>
+            <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">Géocodage Auto</span>
+            </div>
+            <div className="flex items-center space-x-2 p-3 bg-muted/30 rounded-lg">
+              <Zap className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-muted-foreground">Parse Intelligent</span>
+            </div>
+          </div>
+
+          <Button 
+            disabled
+            className="w-full bg-muted text-muted-foreground cursor-not-allowed"
+            size="lg"
+          >
+            <Database className="h-4 w-4 mr-2" />
+            Import désactivé (Bientôt disponible)
+          </Button>
+        </div>
 
         {/* Progress pendant l'import */}
         {importing && (

@@ -226,11 +226,19 @@ const EnhancedImportExportSection: React.FC<EnhancedImportExportSectionProps> = 
         </TabsList>
 
         <TabsContent value="import" className="space-y-4">
-          <Card>
+          <Alert className="bg-muted/50">
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+            <AlertDescription>
+              <strong>Import intelligent temporairement désactivé</strong><br />
+              Cette fonctionnalité est désactivée pour optimiser le plan Supabase gratuit. Elle sera réactivée prochainement.
+            </AlertDescription>
+          </Alert>
+          
+          <Card className="opacity-50">
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Upload className="h-5 w-5 mr-2 text-admin-blue" />
-                Import CSV avec Aperçu
+              <CardTitle className="flex items-center text-muted-foreground">
+                <Upload className="h-5 w-5 mr-2" />
+                Import CSV avec Aperçu (Désactivé)
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -251,16 +259,17 @@ const EnhancedImportExportSection: React.FC<EnhancedImportExportSectionProps> = 
                     </div>
 
                     <div>
-                      <Label htmlFor="csv-file">Fichier CSV</Label>
+                      <Label htmlFor="csv-file" className="text-muted-foreground">Fichier CSV</Label>
                       <Input
                         id="csv-file"
                         type="file"
                         accept=".csv"
                         onChange={handleFileUpload}
                         className="mt-1"
+                        disabled
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        Formats supportés: .csv avec séparateurs variés (détection automatique)
+                        Import intelligent temporairement désactivé
                       </p>
                     </div>
 

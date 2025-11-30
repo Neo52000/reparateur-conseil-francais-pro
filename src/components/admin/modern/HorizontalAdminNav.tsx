@@ -94,21 +94,25 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
       id: 'promocodes',
       label: 'Codes Promo (Bientôt)',
       icon: <Tag className="w-4 h-4" />,
+      disabled: true,
     },
     {
       id: 'suppliers',
       label: 'Annuaire Fournisseurs (Bientôt)',
       icon: <Store className="w-4 h-4" />,
+      disabled: true,
     },
     {
       id: 'scraping',
       label: 'Scraping (Bientôt)',
       icon: <Search className="w-4 h-4" />,
+      disabled: true,
     },
     {
       id: 'automation',
       label: 'Automation (Bientôt)',
       icon: <Zap className="w-4 h-4" />,
+      disabled: true,
     },
     {
       id: 'blog',
@@ -119,6 +123,7 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
       id: 'chatbot',
       label: 'Chatbot (Bientôt)',
       icon: <Bot className="w-4 h-4" />,
+      disabled: true,
     }
   ];
 
@@ -138,37 +143,43 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
       id: 'shopify-dashboard',
       label: 'Dashboard Shopify (Bientôt)',
       icon: <Store className="w-4 h-4" />,
-      isNew: true
+      isNew: true,
+      disabled: true,
     },
     {
       id: 'shopify-stores',
       label: 'Boutiques (Bientôt)',
       icon: <ShoppingBag className="w-4 h-4" />,
-      isNew: true
+      isNew: true,
+      disabled: true,
     },
     {
       id: 'shopify-orders',
       label: 'Commandes (Bientôt)',
       icon: <Package className="w-4 h-4" />,
-      isNew: true
+      isNew: true,
+      disabled: true,
     },
     {
       id: 'shopify-commissions',
       label: 'Commissions (Bientôt)',
       icon: <Euro className="w-4 h-4" />,
-      isNew: true
+      isNew: true,
+      disabled: true,
     },
     {
       id: 'shopify-analytics',
       label: 'Analytics (Bientôt)',
       icon: <TrendingUp className="w-4 h-4" />,
-      isNew: true
+      isNew: true,
+      disabled: true,
     },
     {
       id: 'shopify-settings',
       label: 'Configuration (Bientôt)',
       icon: <Settings2 className="w-4 h-4" />,
-      isNew: true
+      isNew: true,
+      disabled: true,
     }
   ];
 
