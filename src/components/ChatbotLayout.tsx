@@ -19,7 +19,8 @@ const ChatbotLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   return (
     <>
       {children}
-      <BenChatWidget />
+      {/* TODO: Réactiver quand plan Supabase upgradé - Chatbot désactivé temporairement */}
+      {/* <BenChatWidget /> */}
     </>
   );
 };

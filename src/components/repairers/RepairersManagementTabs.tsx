@@ -78,9 +78,13 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
         <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
         <TabsTrigger value="analytics">Analytics</TabsTrigger>
         <TabsTrigger value="categories">Catégories</TabsTrigger>
-        <TabsTrigger value="suppliers">Fournisseurs</TabsTrigger>
+        <TabsTrigger value="suppliers" disabled className="opacity-50 cursor-not-allowed">
+          Fournisseurs (Bientôt)
+        </TabsTrigger>
         <TabsTrigger value="seo-local">SEO Local</TabsTrigger>
-        <TabsTrigger value="promocodes">Codes Promo</TabsTrigger>
+        <TabsTrigger value="promocodes" disabled className="opacity-50 cursor-not-allowed">
+          Codes Promo (Bientôt)
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="dashboard">

@@ -359,6 +359,7 @@ const ImportExportSection: React.FC<ImportExportSectionProps> = ({
                 </div>
               )}
 
+              {/* TODO: Réactiver quand plan Supabase upgradé */}
               <div className="flex space-x-2">
                 <Button 
                   onClick={() => setImportStep('upload')}
@@ -368,11 +369,12 @@ const ImportExportSection: React.FC<ImportExportSectionProps> = ({
                 </Button>
                 <Button 
                   onClick={executeImport}
-                  disabled={isLoading}
-                  className="bg-admin-blue hover:bg-admin-blue/90"
+                  disabled={true}
+                  className="bg-admin-blue hover:bg-admin-blue/90 opacity-50 cursor-not-allowed"
+                  title="Fonction disponible prochainement"
                 >
                   <Database className="h-4 w-4 mr-2" />
-                  Importer avec IA
+                  Importer avec IA (Bientôt)
                 </Button>
               </div>
             </>
