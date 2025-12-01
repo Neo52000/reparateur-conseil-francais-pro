@@ -295,6 +295,44 @@ L'article doit:
       throw insertError;
     }
 
+    // Générer automatiquement une image pour l'article
+    console.log('🖼️ Generating image for article...');
+    try {
+      const imagePrompt = `Professional blog header for article: "${articleData.title}". Modern smartphone repair, technology, professional service. Clean design, realistic style.`;
+      
+      const imageResponse = await fetch(`${SUPABASE_URL}/functions/v1/blog-image-generator`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SERVICE_ROLE}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          prompt: imagePrompt,
+          style: 'realistic',
+          size: '1792x1024'
+        })
+      });
+
+      if (imageResponse.ok) {
+        const imageData = await imageResponse.json();
+        const imageUrl = imageData?.image_url || imageData?.imageUrl;
+        
+        if (imageUrl) {
+          // Mettre à jour l'article avec l'image
+          await supabase
+            .from('blog_posts')
+            .update({ featured_image_url: imageUrl })
+            .eq('id', newPost.id);
+          
+          newPost.featured_image_url = imageUrl;
+          console.log('✅ Image generated and attached to article');
+        }
+      }
+    } catch (imgError) {
+      console.error('⚠️ Image generation failed (non-blocking):', imgError);
+      // Continue sans image - non bloquant
+    }
+
     return new Response(
       JSON.stringify({
         success: true,

@@ -11,6 +11,7 @@ import { BlogPromptsByCategory } from './BlogPromptsByCategory';
 import { CronStatus } from '@/types/blogAutomation';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export const BlogAutomationSettings = () => {
   const { toast } = useToast();
@@ -19,6 +20,8 @@ export const BlogAutomationSettings = () => {
   const [loading, setLoading] = useState(true);
   const [testing, setTesting] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [categories, setCategories] = useState<any[]>([]);
 
   const loadCronStatus = async () => {
     try {
@@ -48,6 +51,13 @@ export const BlogAutomationSettings = () => {
       setLoading(true);
       if (isAdmin) {
         await loadCronStatus();
+        // Charger les catégories pour le test
+        const { data } = await supabase
+          .from('blog_categories')
+          .select('*')
+          .eq('is_active', true)
+          .order('display_order');
+        setCategories(data || []);
       }
       setLoading(false);
     };
@@ -61,6 +71,7 @@ export const BlogAutomationSettings = () => {
       const { data, error } = await supabase.functions.invoke('blog-ai-generator', {
         body: {
           topic: 'Actualités de la réparation mobile',
+          category_id: selectedCategory || undefined,
           target_audience: 'public',
           tone: 'professionnel',
           auto_publish: false, // Create as draft for review
@@ -218,6 +229,22 @@ export const BlogAutomationSettings = () => {
               <BlogPromptsByCategory />
             </TabsContent>
           </Tabs>
+
+          {/* Category Selection for Test */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Catégorie (optionnelle)</label>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner une catégorie" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Aucune catégorie</SelectItem>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Test Button */}
           <Button
