@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Eye, Edit, Trash2, Plus, Search, Filter, ExternalLink } from 'lucide-react';
+import { Eye, Edit, Trash2, Plus, Search, Filter, ExternalLink, ImagePlus } from 'lucide-react';
 import { useBlog } from '@/hooks/useBlog';
 import { useBlogPosts } from '@/hooks/blog/useBlogPosts';
 import { BlogPost, BlogCategory } from '@/types/blog';
@@ -15,6 +15,7 @@ import { fr } from 'date-fns/locale';
 import BlogPostEditor from './BlogPostEditor';
 import BlogPreviewModal from '../BlogPreviewModal';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface BlogPostsManagerProps {
   forceShowEditor?: boolean;
@@ -39,6 +40,7 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
   const [showEditor, setShowEditor] = useState(false);
   const [previewPost, setPreviewPost] = useState<BlogPost | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [regeneratingImages, setRegeneratingImages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (forceShowEditor) {
@@ -127,6 +129,47 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
       archived: 'Archivé'
     };
     return labels[status as keyof typeof labels] || status;
+  };
+
+  const handleRegenerateImage = async (post: BlogPost) => {
+    setRegeneratingImages(prev => new Set(prev).add(post.id));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('blog-image-generator', {
+        body: {
+          prompt: `Professional blog header for article: "${post.title}". Modern smartphone repair, technology, professional service. Clean design, realistic style.`,
+          style: 'realistic',
+          size: '1792x1024'
+        }
+      });
+
+      if (error) throw error;
+
+      const imageUrl = data?.image_url;
+      if (imageUrl) {
+        await savePost({ ...post, featured_image_url: imageUrl }, true);
+        toast({
+          title: "Image régénérée",
+          description: "L'image de l'article a été mise à jour avec succès"
+        });
+        loadPosts();
+      } else {
+        throw new Error('No image URL returned');
+      }
+    } catch (error) {
+      console.error('Error regenerating image:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de régénérer l'image",
+        variant: "destructive"
+      });
+    } finally {
+      setRegeneratingImages(prev => {
+        const next = new Set(prev);
+        next.delete(post.id);
+        return next;
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -270,6 +313,15 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
                   <TableCell>{post.view_count}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRegenerateImage(post)}
+                        disabled={regeneratingImages.has(post.id)}
+                        title="Régénérer l'image"
+                      >
+                        <ImagePlus className={`h-4 w-4 ${regeneratingImages.has(post.id) ? 'animate-pulse' : ''}`} />
+                      </Button>
                       <Button 
                         variant="ghost" 
                         size="icon"

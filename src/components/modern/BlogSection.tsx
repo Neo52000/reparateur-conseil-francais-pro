@@ -79,8 +79,11 @@ const BlogSection = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-                    <span className="text-4xl">📱</span>
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-500/20 to-blue-500/20">
+                    <div className="text-center space-y-2">
+                      <div className="text-5xl animate-pulse">📱</div>
+                      <span className="text-sm text-muted-foreground font-medium">Image à venir</span>
+                    </div>
                   </div>
                 )}
               </div>

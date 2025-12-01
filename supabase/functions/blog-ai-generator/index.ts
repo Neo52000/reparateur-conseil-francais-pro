@@ -250,39 +250,62 @@ L'article doit:
       let updatedContent = articleData.content;
       
       for (const placeholder of articleData.image_placeholders) {
-        try {
-          console.log(`  → Generating image for placeholder: ${placeholder.placeholder}`);
-          
-          const imageResponse = await fetch(`${SUPABASE_URL}/functions/v1/blog-image-generator`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${SERVICE_ROLE}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-              prompt: placeholder.description,
-              style: 'modern'
-            })
-          });
-          
-          if (imageResponse.ok) {
-            const imageData = await imageResponse.json();
-            const imageUrl = imageData?.image_url || imageData?.imageUrl;
+        let inlineImageUrl: string | null = null;
+        
+        // Retry jusqu'à 2 fois pour chaque image inline
+        for (let attempt = 1; attempt <= 2 && !inlineImageUrl; attempt++) {
+          try {
+            console.log(`  → Generating ${placeholder.placeholder} (attempt ${attempt}/2)`);
             
-            if (imageUrl) {
-              // Remplacer le placeholder par l'image Markdown
-              updatedContent = updatedContent.replace(
-                placeholder.placeholder, 
-                `![${placeholder.description}](${imageUrl})`
-              );
-              console.log(`  ✅ Image generated and inserted for ${placeholder.placeholder}`);
+            const imageResponse = await fetch(`${SUPABASE_URL}/functions/v1/blog-image-generator`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${SERVICE_ROLE}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ 
+                prompt: placeholder.description,
+                style: 'modern'
+              })
+            });
+            
+            if (imageResponse.ok) {
+              const imageData = await imageResponse.json();
+              inlineImageUrl = imageData?.image_url || imageData?.imageUrl;
+              
+              if (inlineImageUrl) {
+                console.log(`  ✅ ${placeholder.placeholder} generated`);
+              } else {
+                console.error(`  ⚠️ No URL in response for ${placeholder.placeholder} (attempt ${attempt})`);
+              }
+            } else {
+              const errorText = await imageResponse.text();
+              console.error(`  ⚠️ Failed for ${placeholder.placeholder} (attempt ${attempt}):`, imageResponse.status, errorText);
             }
-          } else {
-            console.error(`  ⚠️ Image generation failed for ${placeholder.placeholder}:`, await imageResponse.text());
+          } catch (imgError) {
+            console.error(`  ⚠️ Error for ${placeholder.placeholder} (attempt ${attempt}):`, imgError);
           }
-        } catch (imgError) {
-          console.error(`  ⚠️ Error generating image for ${placeholder.placeholder}:`, imgError);
-          // Continue avec les autres images
+          
+          // Pause entre les tentatives
+          if (!inlineImageUrl && attempt < 2) {
+            await new Promise(r => setTimeout(r, 1500));
+          }
+        }
+        
+        // Si image générée ou utiliser placeholder
+        if (inlineImageUrl) {
+          updatedContent = updatedContent.replace(
+            placeholder.placeholder, 
+            `![${placeholder.description}](${inlineImageUrl})`
+          );
+        } else {
+          // Utiliser une image placeholder si échec
+          const fallbackImage = 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=1200&h=800&fit=crop&q=80';
+          updatedContent = updatedContent.replace(
+            placeholder.placeholder, 
+            `![${placeholder.description}](${fallbackImage})`
+          );
+          console.log(`  ⚠️ Using fallback for ${placeholder.placeholder}`);
         }
       }
       
@@ -356,42 +379,71 @@ L'article doit:
       throw insertError;
     }
 
-    // Générer automatiquement une image pour l'article
-    console.log('🖼️ Generating image for article...');
-    try {
-      const imagePrompt = `Professional blog header for article: "${articleData.title}". Modern smartphone repair, technology, professional service. Clean design, realistic style.`;
-      
-      const imageResponse = await fetch(`${SUPABASE_URL}/functions/v1/blog-image-generator`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SERVICE_ROLE}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          prompt: imagePrompt,
-          style: 'realistic',
-          size: '1792x1024'
-        })
-      });
-
-      if (imageResponse.ok) {
-        const imageData = await imageResponse.json();
-        const imageUrl = imageData?.image_url || imageData?.imageUrl;
+    // Générer automatiquement une image pour l'article avec retry
+    console.log('🖼️ Generating featured image for article...');
+    let featuredImageUrl: string | null = null;
+    
+    const imagePrompt = `Professional blog header for article: "${articleData.title}". Modern smartphone repair, technology, professional service. Clean design, realistic style.`;
+    
+    // Retry jusqu'à 2 fois si l'image échoue
+    for (let attempt = 1; attempt <= 2 && !featuredImageUrl; attempt++) {
+      try {
+        console.log(`  → Attempt ${attempt}/2 for featured image`);
         
-        if (imageUrl) {
-          // Mettre à jour l'article avec l'image
-          await supabase
-            .from('blog_posts')
-            .update({ featured_image_url: imageUrl })
-            .eq('id', newPost.id);
+        const imageResponse = await fetch(`${SUPABASE_URL}/functions/v1/blog-image-generator`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${SERVICE_ROLE}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            prompt: imagePrompt,
+            style: 'realistic',
+            size: '1792x1024'
+          })
+        });
+
+        if (imageResponse.ok) {
+          const imageData = await imageResponse.json();
+          featuredImageUrl = imageData?.image_url || imageData?.imageUrl;
           
-          newPost.featured_image_url = imageUrl;
-          console.log('✅ Image generated and attached to article');
+          if (featuredImageUrl) {
+            console.log(`  ✅ Featured image generated successfully`);
+          } else {
+            console.error(`  ⚠️ No image URL in response (attempt ${attempt})`);
+          }
+        } else {
+          const errorText = await imageResponse.text();
+          console.error(`  ⚠️ Image generation failed (attempt ${attempt}):`, imageResponse.status, errorText);
         }
+      } catch (imgError) {
+        console.error(`  ⚠️ Error generating featured image (attempt ${attempt}):`, imgError);
       }
-    } catch (imgError) {
-      console.error('⚠️ Image generation failed (non-blocking):', imgError);
-      // Continue sans image - non bloquant
+      
+      // Pause entre les tentatives
+      if (!featuredImageUrl && attempt < 2) {
+        console.log('  ⏳ Waiting 2s before retry...');
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+    
+    // Si échec après retries, utiliser une image placeholder
+    if (!featuredImageUrl) {
+      featuredImageUrl = 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=1792&h=1024&fit=crop&q=80';
+      console.log('  ⚠️ Using fallback placeholder image');
+    }
+    
+    // Mettre à jour l'article avec l'image (générée ou placeholder)
+    try {
+      await supabase
+        .from('blog_posts')
+        .update({ featured_image_url: featuredImageUrl })
+        .eq('id', newPost.id);
+      
+      newPost.featured_image_url = featuredImageUrl;
+      console.log('✅ Featured image attached to article');
+    } catch (updateError) {
+      console.error('⚠️ Failed to update article with image:', updateError);
     }
 
     return new Response(
