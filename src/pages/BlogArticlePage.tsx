@@ -200,48 +200,50 @@ const BlogArticlePage: React.FC = () => {
             </div>
           )}
 
-          <div className="p-8">
+          <div className="p-6 sm:p-10 lg:p-12">
             {/* Métadonnées */}
-            <div className="flex flex-wrap items-center gap-4 mb-6">
+            <div className="flex flex-wrap items-center gap-4 mb-8 pb-6 border-b border-border/40">
               {post.category && (
-                <Badge variant="outline">{post.category.name}</Badge>
+                <Badge variant="outline" className="text-sm">{post.category.name}</Badge>
               )}
-              <div className="flex items-center text-sm text-gray-500 space-x-4">
-                <div className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  {formatDate(post.published_at || post.created_at)}
+              <div className="flex items-center text-sm text-muted-foreground space-x-4 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4" />
+                  <span>{formatDate(post.published_at || post.created_at)}</span>
                 </div>
                 {post.author && (
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-1" />
-                    {post.author.first_name} {post.author.last_name}
+                  <div className="flex items-center gap-1.5">
+                    <User className="h-4 w-4" />
+                    <span>{post.author.first_name} {post.author.last_name}</span>
                   </div>
                 )}
-                <div className="flex items-center">
-                  <Eye className="h-4 w-4 mr-1" />
-                  {post.view_count} vues
+                <div className="flex items-center gap-1.5">
+                  <Eye className="h-4 w-4" />
+                  <span>{post.view_count} vues</span>
                 </div>
-                <div className="flex items-center">
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                  {post.comment_count} commentaires
+                <div className="flex items-center gap-1.5">
+                  <MessageCircle className="h-4 w-4" />
+                  <span>{post.comment_count} commentaires</span>
                 </div>
               </div>
             </div>
 
             {/* Titre */}
-            <h1 className="text-4xl font-bold text-gray-900 mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6 leading-tight">
               {post.title}
             </h1>
 
             {/* Extrait */}
             {post.excerpt && (
-              <div className="text-xl text-gray-600 mb-8 leading-relaxed">
+              <div className="text-xl sm:text-2xl text-muted-foreground mb-12 leading-relaxed font-light border-l-4 border-primary pl-6 py-2">
                 {post.excerpt}
               </div>
             )}
 
             {/* Contenu */}
-            <MarkdownRenderer content={post.content} />
+            <div className="prose-custom">
+              <MarkdownRenderer content={post.content} />
+            </div>
           </div>
         </div>
       </article>

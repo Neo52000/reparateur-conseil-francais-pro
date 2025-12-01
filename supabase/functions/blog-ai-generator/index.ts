@@ -142,13 +142,37 @@ L'article doit:
 - Un slug URL-friendly
 - Un extrait captivant (150-160 caractères)
 - Un contenu structuré en Markdown avec titres H2/H3
-- **IMPORTANT: Inclure 2-3 placeholders d'images** dans le contenu au format {{IMAGE_1}}, {{IMAGE_2}}, etc.
-  Chaque placeholder doit avoir une description détaillée pour la génération d'image
-- Des paragraphes courts et faciles à lire
-- Des conseils pratiques et actionnables
+- **IMPORTANT: Inclure exactement 2-3 placeholders d'images** dans le contenu:
+  * Format: {{IMAGE_1}}, {{IMAGE_2}}, {{IMAGE_3}}
+  * Positionner les placeholders entre les sections naturellement
+  * Chaque placeholder doit avoir une description détaillée et spécifique
+  * Exemple: "{{IMAGE_1}} - Photo d'un technicien réparant l'écran d'un iPhone dans un atelier moderne"
+- Des paragraphes courts et faciles à lire (3-4 lignes max par paragraphe)
+- Des listes à puces pour les conseils pratiques
+- Des conseils actionnables et concrets
 - Un meta_title optimisé SEO (50-60 caractères)
 - Une meta_description engageante (150-160 caractères)
-- 5-7 mots-clés pertinents pour le SEO`;
+- 5-7 mots-clés pertinents pour le SEO
+
+STRUCTURE RECOMMANDÉE:
+## Introduction (avec {{IMAGE_1}})
+Paragraphes d'introduction...
+
+## Section principale 1
+Contenu...
+
+{{IMAGE_2}}
+
+## Section principale 2
+Contenu...
+
+## Conseils pratiques (avec liste à puces)
+- Conseil 1
+- Conseil 2
+
+{{IMAGE_3}}
+
+## Conclusion`;
 
     console.log('📝 Prompt utilisé:', customPrompt ? 'Personnalisé' : 'Par défaut');
 

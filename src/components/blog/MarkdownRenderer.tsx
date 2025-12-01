@@ -26,33 +26,33 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className 
         rehypePlugins={[rehypeHighlight]}
         components={{
           h1: ({ children }) => (
-            <h1 className="text-3xl font-bold text-foreground mb-6 mt-8 first:mt-0">{children}</h1>
+            <h1 className="text-4xl font-bold text-foreground mb-8 mt-12 first:mt-0 leading-tight">{children}</h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-2xl font-semibold text-foreground mb-4 mt-8">{children}</h2>
+            <h2 className="text-3xl font-semibold text-foreground mb-6 mt-12 pt-4 border-t border-border/40 leading-tight">{children}</h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-xl font-medium text-foreground mb-3 mt-6">{children}</h3>
+            <h3 className="text-2xl font-medium text-foreground mb-4 mt-8 leading-snug">{children}</h3>
           ),
           h4: ({ children }) => (
-            <h4 className="text-lg font-medium text-foreground mb-2 mt-4">{children}</h4>
+            <h4 className="text-xl font-medium text-foreground mb-3 mt-6">{children}</h4>
           ),
           p: ({ children }) => (
-            <p className="text-foreground mb-4 leading-relaxed">{children}</p>
+            <p className="text-foreground/90 mb-6 leading-relaxed text-lg">{children}</p>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-primary/30 pl-6 py-2 mb-6 bg-muted/50 italic text-muted-foreground">
+            <blockquote className="border-l-4 border-primary pl-6 py-4 my-8 bg-primary/5 rounded-r-lg italic text-foreground/80">
               {children}
             </blockquote>
           ),
           ul: ({ children }) => (
-            <ul className="list-disc pl-6 mb-6 space-y-2">{children}</ul>
+            <ul className="list-none pl-0 mb-8 space-y-3">{children}</ul>
           ),
           ol: ({ children }) => (
-            <ol className="list-decimal pl-6 mb-6 space-y-2">{children}</ol>
+            <ol className="list-decimal pl-6 mb-8 space-y-3">{children}</ol>
           ),
           li: ({ children }) => (
-            <li className="text-foreground leading-relaxed">{children}</li>
+            <li className="text-foreground/90 leading-relaxed text-lg pl-6 relative before:content-['→'] before:absolute before:left-0 before:text-primary before:font-bold">{children}</li>
           ),
           code: ({ children, className, ...props }) => {
             const match = /language-(\w+)/.exec(className || '');
@@ -99,27 +99,32 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className 
             </a>
           ),
           img: ({ src, alt }) => (
-            <div className="my-6">
+            <figure className="my-10 -mx-4 sm:-mx-8">
               <img 
                 src={src} 
                 alt={alt || 'Image'} 
-                className="max-w-full h-auto rounded-lg shadow-sm"
+                className="w-full h-auto rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
                 loading="lazy"
                 onError={(e) => {
                   console.error('Image failed to load:', src);
                   e.currentTarget.style.display = 'none';
                 }}
               />
-            </div>
+              {alt && (
+                <figcaption className="text-center text-sm text-muted-foreground mt-3 italic px-4 sm:px-8">
+                  {alt}
+                </figcaption>
+              )}
+            </figure>
           ),
           hr: () => (
             <hr className="border-border my-8" />
           ),
           strong: ({ children }) => (
-            <strong className="font-semibold text-foreground">{children}</strong>
+            <strong className="font-bold text-foreground">{children}</strong>
           ),
           em: ({ children }) => (
-            <em className="italic text-foreground">{children}</em>
+            <em className="italic text-foreground/90">{children}</em>
           ),
           // Support des tâches GitHub Flavored Markdown
           input: ({ type, checked, ...props }) => (
