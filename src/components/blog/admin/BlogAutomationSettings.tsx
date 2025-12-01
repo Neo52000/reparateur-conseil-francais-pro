@@ -250,6 +250,42 @@ export const BlogAutomationSettings = () => {
             </CollapsibleContent>
           </Collapsible>
 
+          {/* Moderation Statistics */}
+          <Card className="bg-muted/50">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" />
+                Modération automatique activée
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground mb-3">
+                Tous les articles générés par IA sont automatiquement analysés et modérés avant publication.
+              </p>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2 border rounded-lg">
+                  <div className="text-xs text-muted-foreground">Analysés</div>
+                  <div className="text-lg font-semibold">✓</div>
+                </div>
+                <div className="p-2 border rounded-lg">
+                  <div className="text-xs text-muted-foreground">Qualité SEO</div>
+                  <div className="text-lg font-semibold">✓</div>
+                </div>
+                <div className="p-2 border rounded-lg">
+                  <div className="text-xs text-muted-foreground">Sécurité</div>
+                  <div className="text-lg font-semibold">✓</div>
+                </div>
+              </div>
+              <Alert className="mt-3">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  Les articles avec un score &lt; 60/100 sont mis en attente de validation manuelle. 
+                  Consultez l'onglet "Modération" pour voir la file d'attente.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+
           {/* Tabs for Schedules and Prompts */}
           <Tabs defaultValue="schedules" className="w-full">
             <TabsList className="grid w-full grid-cols-2">

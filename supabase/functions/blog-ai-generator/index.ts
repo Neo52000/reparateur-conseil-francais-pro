@@ -540,16 +540,50 @@ L'article doit:
       console.error('⚠️ Failed to update article with image:', updateError);
     }
 
+    // Modération automatique de l'article généré
+    console.log('🔍 Running automatic moderation...');
+    let moderationResult = null;
+    try {
+      const moderationResponse = await fetch(`${SUPABASE_URL}/functions/v1/blog-ai-moderation`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SERVICE_ROLE}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ post_id: newPost.id })
+      });
+
+      if (moderationResponse.ok) {
+        const moderationData = await moderationResponse.json();
+        moderationResult = moderationData.moderation;
+        console.log(`✅ Moderation completed - Score: ${moderationResult?.score}/100, Status: ${moderationResult?.status}`);
+        
+        // Mettre à jour le statut si la modération a changé le statut
+        if (moderationData.new_status !== newPost.status) {
+          newPost.status = moderationData.new_status;
+          console.log(`  → Article status updated to: ${moderationData.new_status}`);
+        }
+      } else {
+        console.error('⚠️ Moderation failed:', await moderationResponse.text());
+      }
+    } catch (moderationError) {
+      console.error('⚠️ Moderation error:', moderationError);
+      // Continue même si la modération échoue
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         post: newPost,
         ai_model: usedProvider,
+        moderation: moderationResult,
         message: auto_publish 
-          ? 'Article généré et publié avec succès' 
+          ? 'Article généré, modéré et publié avec succès' 
           : scheduled_at 
-          ? 'Article généré et programmé avec succès'
-          : 'Article généré en brouillon'
+          ? 'Article généré, modéré et programmé avec succès'
+          : moderationResult?.status === 'approved'
+          ? 'Article généré et approuvé automatiquement'
+          : 'Article généré et en attente de validation'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
