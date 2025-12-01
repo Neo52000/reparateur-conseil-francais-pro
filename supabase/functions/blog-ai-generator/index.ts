@@ -78,8 +78,12 @@ serve(async (req) => {
     const { topic, category_id, keywords, target_audience, tone, auto_publish, scheduled_at } = requestData;
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    const MISTRAL_API_KEY = Deno.env.get('CLE_API_MISTRAL');
+
+    // Vérifier qu'au moins une clé API est disponible
+    if (!LOVABLE_API_KEY && !OPENAI_API_KEY && !MISTRAL_API_KEY) {
+      throw new Error('Aucune clé API IA configurée (LOVABLE_API_KEY, OPENAI_API_KEY ou CLE_API_MISTRAL requis)');
     }
 
     // Récupérer la catégorie si fournie
@@ -215,91 +219,102 @@ L'article doit:
             articleData = JSON.parse(toolCall.function.arguments);
             usedProvider = 'Lovable AI (Gemini)';
             console.log('✅ Lovable AI succeeded');
+          } else {
+            console.log('⚠️ Lovable AI: No tool call in response');
           }
-        } else if (aiResponse.status === 402) {
-          console.log('⚠️ Lovable AI: No credits, trying fallback...');
-        } else if (aiResponse.status === 429) {
-          console.log('⚠️ Lovable AI: Rate limited, trying fallback...');
+        } else {
+          const errorText = await aiResponse.text();
+          console.log(`⚠️ Lovable AI failed (${aiResponse.status}):`, errorText);
         }
       } catch (error) {
-        console.log('⚠️ Lovable AI failed:', error.message);
+        console.log('⚠️ Lovable AI exception:', error.message);
       }
+    } else {
+      console.log('⚠️ LOVABLE_API_KEY not set, skipping Lovable AI...');
     }
 
     // 2️⃣ Fallback OpenAI
-    if (!articleData) {
-      const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-      if (OPENAI_API_KEY) {
-        try {
-          console.log('🔹 Trying OpenAI...');
-          const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${OPENAI_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'gpt-4o-mini',
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt }
-              ],
-              tools: [toolDefinition],
-              tool_choice: { type: 'function', function: { name: 'create_blog_article' } }
-            })
-          });
+    if (!articleData && OPENAI_API_KEY) {
+      try {
+        console.log('🔹 Trying OpenAI (GPT-4o-mini)...');
+        const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            tools: [toolDefinition],
+            tool_choice: { type: 'function', function: { name: 'create_blog_article' } }
+          })
+        });
 
-          if (aiResponse.ok) {
-            aiData = await aiResponse.json();
-            const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
-            if (toolCall) {
-              articleData = JSON.parse(toolCall.function.arguments);
-              usedProvider = 'OpenAI (GPT-4o-mini)';
-              console.log('✅ OpenAI succeeded');
-            }
+        if (aiResponse.ok) {
+          aiData = await aiResponse.json();
+          const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
+          if (toolCall) {
+            articleData = JSON.parse(toolCall.function.arguments);
+            usedProvider = 'OpenAI (GPT-4o-mini)';
+            console.log('✅ OpenAI succeeded');
+          } else {
+            console.log('⚠️ OpenAI: No tool call in response');
           }
-        } catch (error) {
-          console.log('⚠️ OpenAI failed:', error.message);
+        } else {
+          const errorText = await aiResponse.text();
+          console.log(`⚠️ OpenAI failed (${aiResponse.status}):`, errorText);
         }
+      } catch (error) {
+        console.log('⚠️ OpenAI exception:', error.message);
       }
+    } else if (!articleData && !OPENAI_API_KEY) {
+      console.log('⚠️ OPENAI_API_KEY not set, skipping OpenAI...');
     }
 
     // 3️⃣ Fallback Mistral
-    if (!articleData) {
-      const MISTRAL_API_KEY = Deno.env.get('CLE_API_MISTRAL');
-      if (MISTRAL_API_KEY) {
-        try {
-          console.log('🔹 Trying Mistral...');
-          const aiResponse = await fetch('https://api.mistral.ai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${MISTRAL_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'mistral-large-latest',
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt }
-              ],
-              tools: [toolDefinition],
-              tool_choice: 'any'
-            })
-          });
+    if (!articleData && MISTRAL_API_KEY) {
+      try {
+        console.log('🔹 Trying Mistral (Large)...');
+        const aiResponse = await fetch('https://api.mistral.ai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'mistral-large-latest',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            tools: [toolDefinition],
+            tool_choice: 'any'
+          })
+        });
 
-          if (aiResponse.ok) {
-            aiData = await aiResponse.json();
-            const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
-            if (toolCall) {
-              articleData = JSON.parse(toolCall.function.arguments);
-              usedProvider = 'Mistral (Large)';
-              console.log('✅ Mistral succeeded');
-            }
+        if (aiResponse.ok) {
+          aiData = await aiResponse.json();
+          const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
+          if (toolCall) {
+            articleData = JSON.parse(toolCall.function.arguments);
+            usedProvider = 'Mistral (Large)';
+            console.log('✅ Mistral succeeded');
+          } else {
+            console.log('⚠️ Mistral: No tool call in response');
           }
-        } catch (error) {
-          console.log('⚠️ Mistral failed:', error.message);
+        } else {
+          const errorText = await aiResponse.text();
+          console.log(`⚠️ Mistral failed (${aiResponse.status}):`, errorText);
         }
+      } catch (error) {
+        console.log('⚠️ Mistral exception:', error.message);
       }
+    } else if (!articleData && !MISTRAL_API_KEY) {
+      console.log('⚠️ CLE_API_MISTRAL not set, skipping Mistral...');
     }
 
     if (!articleData) {
