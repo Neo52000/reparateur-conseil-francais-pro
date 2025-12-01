@@ -12,6 +12,7 @@ import { useDocumentationManager } from '@/hooks/useDocumentationManager';
 import { useBlogSettings } from '@/hooks/useBlogSettings';
 import ApiKeysStatus from './ApiKeysStatus';
 import AIContentAssistant from './AIContentAssistant';
+import BlogHeaderImageManager from './BlogHeaderImageManager';
 
 const BlogSettings: React.FC = () => {
   const { generateAllPDFs, generating, autoUpdateEnabled, changes } = useDocumentationManager();
@@ -44,6 +45,8 @@ const BlogSettings: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <BlogHeaderImageManager />
+      
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Paramètres du Blog</h2>

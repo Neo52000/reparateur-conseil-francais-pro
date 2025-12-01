@@ -19,6 +19,7 @@ export interface BlogSettings {
   ai_auto_generate: boolean;
   ai_default_model: string;
   ai_content_length: string;
+  header_image_url?: string;
 }
 
 export class BlogSettingsService {
