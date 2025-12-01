@@ -16,7 +16,7 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.blog-update-images]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-repairer-seo-page]
 verify_jwt = false
