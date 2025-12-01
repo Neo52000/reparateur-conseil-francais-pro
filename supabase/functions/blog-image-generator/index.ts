@@ -100,52 +100,93 @@ horizontal format 16:9, high quality, attention-grabbing but professional.`;
 
     console.log('Generating image with prompt:', enhancedPrompt);
 
-    // Utiliser Lovable AI (Gemini 2.5 Flash Image Preview) pour générer l'image
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          { 
-            role: 'user', 
-            content: enhancedPrompt
+    // 🔄 SYSTÈME DE FALLBACK IA: Lovable AI → OpenAI DALL-E → Unsplash
+    let imageUrl: string | null = null;
+    let usedProvider = '';
+
+    // 1️⃣ Essayer Lovable AI (Gemini Image)
+    if (LOVABLE_API_KEY) {
+      try {
+        console.log('🔹 Trying Lovable AI (Gemini Image)...');
+        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash-image-preview',
+            messages: [{ role: 'user', content: enhancedPrompt }],
+            max_tokens: 1024
+          })
+        });
+
+        if (aiResponse.ok) {
+          const aiData = await aiResponse.json();
+          imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+          if (imageUrl) {
+            usedProvider = 'Lovable AI (Gemini)';
+            console.log('✅ Lovable AI succeeded');
           }
-        ],
-        max_tokens: 1024
-      })
-    });
-
-    if (!aiResponse.ok) {
-      if (aiResponse.status === 429) {
-        throw new Error('Rate limit exceeded. Please try again later.');
+        } else if (aiResponse.status === 402) {
+          console.log('⚠️ Lovable AI: No credits, trying fallback...');
+        } else if (aiResponse.status === 429) {
+          console.log('⚠️ Lovable AI: Rate limited, trying fallback...');
+        }
+      } catch (error) {
+        console.log('⚠️ Lovable AI failed:', error.message);
       }
-      if (aiResponse.status === 402) {
-        throw new Error('Payment required. Please add credits to your Lovable AI workspace.');
-      }
-      const errorText = await aiResponse.text();
-      console.error('Lovable AI error:', aiResponse.status, errorText);
-      throw new Error('Image generation failed');
     }
 
-    const aiData = await aiResponse.json();
-    console.log('AI Response:', JSON.stringify(aiData, null, 2));
-
-    // Extraire l'image générée (base64 data URL)
-    const imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
+    // 2️⃣ Fallback OpenAI DALL-E
     if (!imageUrl) {
-      throw new Error('No image URL in AI response');
+      const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+      if (OPENAI_API_KEY) {
+        try {
+          console.log('🔹 Trying OpenAI DALL-E...');
+          const aiResponse = await fetch('https://api.openai.com/v1/images/generations', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${OPENAI_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-image-1',
+              prompt: enhancedPrompt,
+              n: 1,
+              size: '1792x1024',
+              quality: 'high'
+            })
+          });
+
+          if (aiResponse.ok) {
+            const aiData = await aiResponse.json();
+            imageUrl = aiData.data?.[0]?.url;
+            if (imageUrl) {
+              usedProvider = 'OpenAI (DALL-E)';
+              console.log('✅ OpenAI DALL-E succeeded');
+            }
+          }
+        } catch (error) {
+          console.log('⚠️ OpenAI DALL-E failed:', error.message);
+        }
+      }
     }
+
+    // 3️⃣ Fallback Unsplash placeholder
+    if (!imageUrl) {
+      imageUrl = 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=1792&h=1024&fit=crop&q=80';
+      usedProvider = 'Unsplash (Placeholder)';
+      console.log('⚠️ Using Unsplash placeholder image');
+    }
+
+    console.log(`✅ Image générée avec: ${usedProvider}`);
 
     return new Response(
       JSON.stringify({
         success: true,
         image_url: imageUrl,
-        model: 'google/gemini-2.5-flash-image-preview',
+        provider: usedProvider,
         style
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

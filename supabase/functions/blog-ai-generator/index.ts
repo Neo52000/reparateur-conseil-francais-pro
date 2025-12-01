@@ -148,100 +148,165 @@ L'article doit:
 
     console.log('📝 Prompt utilisé:', customPrompt ? 'Personnalisé' : 'Par défaut');
 
-    // Appel à Lovable AI avec Tool Calling pour structure garantie
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        tools: [{
-          type: 'function',
-          function: {
-            name: 'create_blog_article',
-            description: 'Generate a complete blog article with all required fields',
-            parameters: {
-              type: 'object',
-              properties: {
-                title: { 
-                  type: 'string', 
-                  description: 'Article title (50-60 chars)' 
+    // 🔄 SYSTÈME DE FALLBACK IA: Lovable AI → OpenAI → Mistral
+    let aiData: any = null;
+    let articleData: any = null;
+    let usedProvider = '';
+
+    const toolDefinition = {
+      type: 'function',
+      function: {
+        name: 'create_blog_article',
+        description: 'Generate a complete blog article with all required fields',
+        parameters: {
+          type: 'object',
+          properties: {
+            title: { type: 'string', description: 'Article title (50-60 chars)' },
+            slug: { type: 'string', description: 'URL-friendly slug (lowercase, hyphens)' },
+            excerpt: { type: 'string', description: 'Short excerpt (150-160 chars)' },
+            content: { type: 'string', description: 'Full article content in Markdown format with H2/H3 headings' },
+            meta_title: { type: 'string', description: 'SEO meta title (50-60 chars)' },
+            meta_description: { type: 'string', description: 'SEO meta description (150-160 chars)' },
+            keywords: { type: 'array', items: { type: 'string' }, description: 'Array of 5-7 SEO keywords' },
+            image_placeholders: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  placeholder: { type: 'string', description: 'Placeholder format: {{IMAGE_1}}, {{IMAGE_2}}, etc.' },
+                  description: { type: 'string', description: 'Detailed description of the image to generate' }
                 },
-                slug: { 
-                  type: 'string', 
-                  description: 'URL-friendly slug (lowercase, hyphens)' 
-                },
-                excerpt: { 
-                  type: 'string', 
-                  description: 'Short excerpt (150-160 chars)' 
-                },
-                content: { 
-                  type: 'string', 
-                  description: 'Full article content in Markdown format with H2/H3 headings' 
-                },
-                meta_title: { 
-                  type: 'string', 
-                  description: 'SEO meta title (50-60 chars)' 
-                },
-                meta_description: { 
-                  type: 'string', 
-                  description: 'SEO meta description (150-160 chars)' 
-                },
-                keywords: { 
-                  type: 'array', 
-                  items: { type: 'string' },
-                  description: 'Array of 5-7 SEO keywords' 
-                },
-                image_placeholders: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      placeholder: { type: 'string', description: 'Placeholder format: {{IMAGE_1}}, {{IMAGE_2}}, etc.' },
-                      description: { type: 'string', description: 'Detailed description of the image to generate' }
-                    },
-                    required: ['placeholder', 'description']
-                  },
-                  description: 'List of 2-3 image placeholders to insert in the content with their descriptions'
-                }
+                required: ['placeholder', 'description']
               },
-              required: ['title', 'slug', 'excerpt', 'content', 'meta_title', 'meta_description', 'keywords', 'image_placeholders'],
-              additionalProperties: false
+              description: 'List of 2-3 image placeholders to insert in the content with their descriptions'
+            }
+          },
+          required: ['title', 'slug', 'excerpt', 'content', 'meta_title', 'meta_description', 'keywords', 'image_placeholders'],
+          additionalProperties: false
+        }
+      }
+    };
+
+    // 1️⃣ Essayer Lovable AI (Gemini)
+    if (LOVABLE_API_KEY) {
+      try {
+        console.log('🔹 Trying Lovable AI (Gemini)...');
+        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            tools: [toolDefinition],
+            tool_choice: { type: 'function', function: { name: 'create_blog_article' } }
+          })
+        });
+
+        if (aiResponse.ok) {
+          aiData = await aiResponse.json();
+          const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
+          if (toolCall) {
+            articleData = JSON.parse(toolCall.function.arguments);
+            usedProvider = 'Lovable AI (Gemini)';
+            console.log('✅ Lovable AI succeeded');
+          }
+        } else if (aiResponse.status === 402) {
+          console.log('⚠️ Lovable AI: No credits, trying fallback...');
+        } else if (aiResponse.status === 429) {
+          console.log('⚠️ Lovable AI: Rate limited, trying fallback...');
+        }
+      } catch (error) {
+        console.log('⚠️ Lovable AI failed:', error.message);
+      }
+    }
+
+    // 2️⃣ Fallback OpenAI
+    if (!articleData) {
+      const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+      if (OPENAI_API_KEY) {
+        try {
+          console.log('🔹 Trying OpenAI...');
+          const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${OPENAI_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+              ],
+              tools: [toolDefinition],
+              tool_choice: { type: 'function', function: { name: 'create_blog_article' } }
+            })
+          });
+
+          if (aiResponse.ok) {
+            aiData = await aiResponse.json();
+            const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
+            if (toolCall) {
+              articleData = JSON.parse(toolCall.function.arguments);
+              usedProvider = 'OpenAI (GPT-4o-mini)';
+              console.log('✅ OpenAI succeeded');
             }
           }
-        }],
-        tool_choice: { type: 'function', function: { name: 'create_blog_article' } }
-      })
-    });
-
-    if (!aiResponse.ok) {
-      if (aiResponse.status === 429) {
-        throw new Error('Rate limit exceeded. Please try again later.');
+        } catch (error) {
+          console.log('⚠️ OpenAI failed:', error.message);
+        }
       }
-      if (aiResponse.status === 402) {
-        throw new Error('Payment required. Please add credits to your Lovable AI workspace.');
-      }
-      const errorText = await aiResponse.text();
-      console.error('Lovable AI error:', aiResponse.status, errorText);
-      throw new Error('AI generation failed');
     }
 
-    const aiData = await aiResponse.json();
-    console.log('AI Response:', JSON.stringify(aiData, null, 2));
+    // 3️⃣ Fallback Mistral
+    if (!articleData) {
+      const MISTRAL_API_KEY = Deno.env.get('CLE_API_MISTRAL');
+      if (MISTRAL_API_KEY) {
+        try {
+          console.log('🔹 Trying Mistral...');
+          const aiResponse = await fetch('https://api.mistral.ai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'mistral-large-latest',
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+              ],
+              tools: [toolDefinition],
+              tool_choice: 'any'
+            })
+          });
 
-    // Extraire les données du tool call
-    const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
-    if (!toolCall) {
-      throw new Error('No tool call in AI response');
+          if (aiResponse.ok) {
+            aiData = await aiResponse.json();
+            const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
+            if (toolCall) {
+              articleData = JSON.parse(toolCall.function.arguments);
+              usedProvider = 'Mistral (Large)';
+              console.log('✅ Mistral succeeded');
+            }
+          }
+        } catch (error) {
+          console.log('⚠️ Mistral failed:', error.message);
+        }
+      }
     }
 
-    const articleData = JSON.parse(toolCall.function.arguments);
+    if (!articleData) {
+      throw new Error('Aucune API IA disponible. Vérifiez vos clés API et crédits.');
+    }
+
+    console.log(`✅ Article généré avec: ${usedProvider}`);
 
     // 🖼️ GÉNÉRATION DES IMAGES INLINE
     if (articleData.image_placeholders && Array.isArray(articleData.image_placeholders) && articleData.image_placeholders.length > 0) {
@@ -316,10 +381,10 @@ L'article doit:
     // Enregistrer l'analytics
     await supabase.from('ai_analytics').insert({
       function_name: 'blog-ai-generator',
-      model_used: 'google/gemini-2.5-flash',
-      prompt_tokens: aiData.usage?.prompt_tokens || 0,
-      completion_tokens: aiData.usage?.completion_tokens || 0,
-      total_cost: 0, // Gratuit jusqu'au 13 octobre 2025
+      model_used: usedProvider,
+      prompt_tokens: aiData?.usage?.prompt_tokens || 0,
+      completion_tokens: aiData?.usage?.completion_tokens || 0,
+      total_cost: 0,
       response_time_ms: 0,
       success: true
     });
@@ -363,7 +428,7 @@ L'article doit:
         visibility: target_audience || 'public',
         status,
         ai_generated: true,
-        ai_model: 'google/gemini-2.5-flash',
+        ai_model: usedProvider,
         generation_prompt: userPrompt,
         published_at: auto_publish ? new Date().toISOString() : null,
         scheduled_at: scheduled_at || null,
@@ -450,7 +515,7 @@ L'article doit:
       JSON.stringify({
         success: true,
         post: newPost,
-        ai_model: 'google/gemini-2.5-flash',
+        ai_model: usedProvider,
         message: auto_publish 
           ? 'Article généré et publié avec succès' 
           : scheduled_at 
