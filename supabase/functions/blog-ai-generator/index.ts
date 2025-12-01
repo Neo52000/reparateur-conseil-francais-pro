@@ -195,6 +195,8 @@ L'article doit:
     if (LOVABLE_API_KEY) {
       try {
         console.log('🔹 Trying Lovable AI (Gemini)...');
+        console.log('   LOVABLE_API_KEY present:', LOVABLE_API_KEY ? 'Yes' : 'No');
+        console.log('   LOVABLE_API_KEY length:', LOVABLE_API_KEY?.length || 0);
         const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -214,6 +216,7 @@ L'article doit:
 
         if (aiResponse.ok) {
           aiData = await aiResponse.json();
+          console.log('   Response status: 200 OK');
           const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
           if (toolCall) {
             articleData = JSON.parse(toolCall.function.arguments);
@@ -224,7 +227,12 @@ L'article doit:
           }
         } else {
           const errorText = await aiResponse.text();
-          console.log(`⚠️ Lovable AI failed (${aiResponse.status}):`, errorText);
+          console.log(`⚠️ Lovable AI failed (${aiResponse.status}): ${errorText.substring(0, 200)}`);
+          if (aiResponse.status === 402) {
+            console.log('   → No credits available');
+          } else if (aiResponse.status === 429) {
+            console.log('   → Rate limited');
+          }
         }
       } catch (error) {
         console.log('⚠️ Lovable AI exception:', error.message);
@@ -237,6 +245,8 @@ L'article doit:
     if (!articleData && OPENAI_API_KEY) {
       try {
         console.log('🔹 Trying OpenAI (GPT-4o-mini)...');
+        console.log('   OPENAI_API_KEY present:', OPENAI_API_KEY ? 'Yes' : 'No');
+        console.log('   OPENAI_API_KEY length:', OPENAI_API_KEY?.length || 0);
         const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -256,6 +266,7 @@ L'article doit:
 
         if (aiResponse.ok) {
           aiData = await aiResponse.json();
+          console.log('   Response status: 200 OK');
           const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
           if (toolCall) {
             articleData = JSON.parse(toolCall.function.arguments);
@@ -266,7 +277,7 @@ L'article doit:
           }
         } else {
           const errorText = await aiResponse.text();
-          console.log(`⚠️ OpenAI failed (${aiResponse.status}):`, errorText);
+          console.log(`⚠️ OpenAI failed (${aiResponse.status}): ${errorText.substring(0, 200)}`);
         }
       } catch (error) {
         console.log('⚠️ OpenAI exception:', error.message);
@@ -279,6 +290,8 @@ L'article doit:
     if (!articleData && MISTRAL_API_KEY) {
       try {
         console.log('🔹 Trying Mistral (Large)...');
+        console.log('   CLE_API_MISTRAL present:', MISTRAL_API_KEY ? 'Yes' : 'No');
+        console.log('   CLE_API_MISTRAL length:', MISTRAL_API_KEY?.length || 0);
         const aiResponse = await fetch('https://api.mistral.ai/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -298,6 +311,7 @@ L'article doit:
 
         if (aiResponse.ok) {
           aiData = await aiResponse.json();
+          console.log('   Response status: 200 OK');
           const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
           if (toolCall) {
             articleData = JSON.parse(toolCall.function.arguments);
@@ -308,7 +322,7 @@ L'article doit:
           }
         } else {
           const errorText = await aiResponse.text();
-          console.log(`⚠️ Mistral failed (${aiResponse.status}):`, errorText);
+          console.log(`⚠️ Mistral failed (${aiResponse.status}): ${errorText.substring(0, 200)}`);
         }
       } catch (error) {
         console.log('⚠️ Mistral exception:', error.message);
