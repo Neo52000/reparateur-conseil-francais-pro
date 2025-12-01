@@ -80,46 +80,55 @@ const BlogArticlePage: React.FC = () => {
     loadPost();
   }, [slug, fetchPostBySlug]);
 
-  if (loading) {
+  // Show loading state while fetching, but not "not found" error
+  if (loading || (!post && !notFound)) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded mb-4"></div>
-            <div className="h-64 bg-gray-200 rounded mb-8"></div>
-            <div className="space-y-4">
-              <div className="h-4 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="py-12">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded mb-4"></div>
+              <div className="h-64 bg-gray-200 rounded mb-8"></div>
+              <div className="space-y-4">
+                <div className="h-4 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
             </div>
           </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   if (notFound || !post) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Article non trouvé</h1>
-          <p className="text-lg text-gray-600 mb-8">
-            L'article que vous recherchez n'existe pas ou a été supprimé.
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link to="/">
-              <Button>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Retour à l'accueil
-              </Button>
-            </Link>
-            <Link to="/blog">
-              <Button variant="outline">
-                Retour au blog
-              </Button>
-            </Link>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation />
+        <div className="py-12">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Article non trouvé</h1>
+            <p className="text-lg text-gray-600 mb-8">
+              L'article que vous recherchez n'existe pas ou a été supprimé.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Link to="/">
+                <Button>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Retour à l'accueil
+                </Button>
+              </Link>
+              <Link to="/blog">
+                <Button variant="outline">
+                  Retour au blog
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
+        <Footer />
       </div>
     );
   }
