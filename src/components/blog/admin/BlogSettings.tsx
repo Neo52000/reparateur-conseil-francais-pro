@@ -11,6 +11,7 @@ import { Save, Mail, Bell, Globe, Shield, FileText, Download, RotateCcw } from '
 import { useDocumentationManager } from '@/hooks/useDocumentationManager';
 import { useBlogSettings } from '@/hooks/useBlogSettings';
 import ApiKeysStatus from './ApiKeysStatus';
+import AIContentAssistant from './AIContentAssistant';
 
 const BlogSettings: React.FC = () => {
   const { generateAllPDFs, generating, autoUpdateEnabled, changes } = useDocumentationManager();
@@ -185,7 +186,16 @@ const BlogSettings: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="default_meta_description">Description meta par défaut</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="default_meta_description">Description meta par défaut</Label>
+                <AIContentAssistant
+                  fieldLabel="Description meta SEO"
+                  fieldType="short"
+                  placeholder="Ex: Écris une meta description pour un blog de réparation de smartphones"
+                  systemContext="Vous êtes un expert SEO. Générez des meta descriptions optimisées pour le référencement."
+                  onContentGenerated={(content) => updateSetting('default_meta_description', content)}
+                />
+              </div>
               <Textarea
                 id="default_meta_description"
                 value={settings.default_meta_description}
@@ -236,7 +246,16 @@ const BlogSettings: React.FC = () => {
             </div>
             
             <div>
-              <Label htmlFor="newsletter_welcome_subject">Sujet de bienvenue</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="newsletter_welcome_subject">Sujet de bienvenue</Label>
+                <AIContentAssistant
+                  fieldLabel="Sujet de bienvenue newsletter"
+                  fieldType="short"
+                  placeholder="Ex: Crée un sujet accrocheur pour un email de bienvenue"
+                  systemContext="Vous êtes un expert en email marketing. Générez des sujets d'emails engageants."
+                  onContentGenerated={(content) => updateSetting('newsletter_welcome_subject', content)}
+                />
+              </div>
               <Input
                 id="newsletter_welcome_subject"
                 value={settings.newsletter_welcome_subject}
@@ -245,7 +264,16 @@ const BlogSettings: React.FC = () => {
             </div>
             
             <div>
-              <Label htmlFor="newsletter_welcome_content">Contenu de bienvenue</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="newsletter_welcome_content">Contenu de bienvenue</Label>
+                <AIContentAssistant
+                  fieldLabel="Contenu de bienvenue newsletter"
+                  fieldType="long"
+                  placeholder="Ex: Rédige un message de bienvenue chaleureux pour nos nouveaux abonnés"
+                  systemContext="Vous êtes un expert en email marketing. Générez des messages de bienvenue engageants et professionnels."
+                  onContentGenerated={(content) => updateSetting('newsletter_welcome_content', content)}
+                />
+              </div>
               <Textarea
                 id="newsletter_welcome_content"
                 value={settings.newsletter_welcome_content}
