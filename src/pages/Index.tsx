@@ -3,6 +3,7 @@ import ModernHeader from '@/components/modern/ModernHeader';
 import ModernHero from '@/components/modern/ModernHero';
 import TrustSignals from '@/components/modern/TrustSignals';
 import RepairerResultsGrid from '@/components/modern/RepairerResultsGrid';
+import BlogSection from '@/components/modern/BlogSection';
 import ModernFooter from '@/components/modern/ModernFooter';
 
 const Index = () => {
@@ -113,6 +114,9 @@ const Index = () => {
 
         {/* Résultats réparateurs en grille */}
         <RepairerResultsGrid />
+
+        {/* Section Blog */}
+        <BlogSection />
       </main>
 
       {/* Footer simple */}
