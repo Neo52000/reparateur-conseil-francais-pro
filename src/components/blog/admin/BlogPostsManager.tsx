@@ -8,11 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Eye, Edit, Trash2, Plus, Search, Filter, ExternalLink } from 'lucide-react';
 import { useBlog } from '@/hooks/useBlog';
+import { useBlogPosts } from '@/hooks/blog/useBlogPosts';
 import { BlogPost, BlogCategory } from '@/types/blog';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import BlogPostEditor from './BlogPostEditor';
 import BlogPreviewModal from '../BlogPreviewModal';
+import { useToast } from '@/hooks/use-toast';
 
 interface BlogPostsManagerProps {
   forceShowEditor?: boolean;
@@ -26,6 +28,8 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
   editingPost = null
 }) => {
   const { fetchPosts, fetchCategories, deletePost, loading } = useBlog();
+  const { savePost } = useBlogPosts();
+  const { toast } = useToast();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -93,6 +97,36 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
       setPreviewPost(post);
       setShowPreview(true);
     }
+  };
+
+  const handleStatusChange = async (postId: string, newStatus: 'draft' | 'pending' | 'scheduled' | 'published' | 'archived') => {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+
+    const result = await savePost({
+      ...post,
+      status: newStatus,
+      published_at: newStatus === 'published' ? new Date().toISOString() : post.published_at
+    }, true);
+
+    if (result) {
+      toast({
+        title: "Statut mis à jour",
+        description: `L'article est maintenant "${getStatusLabel(newStatus)}"`
+      });
+      loadPosts();
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels = {
+      draft: 'Brouillon',
+      pending: 'En attente',
+      scheduled: 'Programmé',
+      published: 'Publié',
+      archived: 'Archivé'
+    };
+    return labels[status as keyof typeof labels] || status;
   };
 
   const getStatusBadge = (status: string) => {
@@ -211,7 +245,21 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
                     {post.category?.name || 'Non catégorisé'}
                   </TableCell>
                   <TableCell>
-                    {getStatusBadge(post.status)}
+                    <Select 
+                      value={post.status} 
+                      onValueChange={(value: any) => handleStatusChange(post.id, value)}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">Brouillon</SelectItem>
+                        <SelectItem value="pending">En attente</SelectItem>
+                        <SelectItem value="scheduled">Programmé</SelectItem>
+                        <SelectItem value="published">Publié</SelectItem>
+                        <SelectItem value="archived">Archivé</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell>
                     {getVisibilityBadge(post.visibility)}
