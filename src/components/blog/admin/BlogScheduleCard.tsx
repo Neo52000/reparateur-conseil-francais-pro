@@ -109,8 +109,8 @@ export const BlogScheduleCard = ({ schedule, categories, onUpdate, onDelete }: B
             Catégorie d'article
           </Label>
           <Select
-            value={schedule.category_id || undefined}
-            onValueChange={(value) => onUpdate({ ...schedule, category_id: value })}
+            value={schedule.category_id || "none"}
+            onValueChange={(value) => onUpdate({ ...schedule, category_id: value === "none" ? null : value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Sélectionner une catégorie">
@@ -123,6 +123,7 @@ export const BlogScheduleCard = ({ schedule, categories, onUpdate, onDelete }: B
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="z-50">
+              <SelectItem value="none">Aucune catégorie (toutes)</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   <span className="flex items-center gap-2">
