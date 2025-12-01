@@ -98,7 +98,10 @@ const BlogAIGenerator: React.FC<BlogAIGeneratorProps> = ({ onArticleGenerated })
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="category">Catégorie</Label>
-            <Select value={categoryId} onValueChange={setCategoryId}>
+            <Select 
+              value={categoryId || "none"} 
+              onValueChange={(value) => setCategoryId(value === "none" ? "" : value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner..." />
               </SelectTrigger>
