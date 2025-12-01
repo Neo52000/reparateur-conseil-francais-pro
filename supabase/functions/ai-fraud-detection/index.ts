@@ -114,88 +114,142 @@ Fournis une analyse de risque détaillée.`
         }
       ];
 
-      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${lovableApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages,
-          tools: [
-            {
-              type: 'function',
-              function: {
-                name: 'analyze_fraud_risk',
-                description: 'Analyze fraud risk for a repairer',
-                parameters: {
-                  type: 'object',
-                  properties: {
-                    risk_score: { 
-                      type: 'number',
-                      minimum: 0,
-                      maximum: 100,
-                      description: 'Risk score (0 = safe, 100 = very suspicious)' 
-                    },
-                    risk_level: { 
-                      type: 'string',
-                      enum: ['low', 'medium', 'high', 'critical'],
-                      description: 'Overall risk level' 
-                    },
-                    red_flags: { 
-                      type: 'array',
-                      items: { type: 'string' },
-                      description: 'Specific suspicious elements detected' 
-                    },
-                    suspicious_patterns: { 
-                      type: 'array',
-                      items: { type: 'string' },
-                      description: 'Patterns that match fraud indicators' 
-                    },
-                    verification_recommendations: { 
-                      type: 'array',
-                      items: { type: 'string' },
-                      description: 'Actions to verify legitimacy' 
-                    },
-                    requires_manual_review: { 
-                      type: 'boolean',
-                      description: 'Whether manual review is needed' 
-                    },
-                    confidence_score: { 
-                      type: 'number',
-                      minimum: 0,
-                      maximum: 100,
-                      description: 'Confidence in fraud analysis' 
-                    },
-                    analysis_summary: { 
-                      type: 'string',
-                      description: 'Brief summary of fraud analysis' 
-                    }
-                  },
-                  required: ['risk_score', 'risk_level', 'requires_manual_review', 'confidence_score']
-                }
+      // 🔄 SYSTÈME DE FALLBACK IA: Lovable AI → OpenAI → Mistral
+      let fraudAnalysis: any = null;
+      let usedProvider = '';
+
+      const toolDefinition = {
+        type: 'function',
+        function: {
+          name: 'analyze_fraud_risk',
+          description: 'Analyze fraud risk for a repairer',
+          parameters: {
+            type: 'object',
+            properties: {
+              risk_score: { type: 'number', minimum: 0, maximum: 100, description: 'Risk score (0 = safe, 100 = very suspicious)' },
+              risk_level: { type: 'string', enum: ['low', 'medium', 'high', 'critical'], description: 'Overall risk level' },
+              red_flags: { type: 'array', items: { type: 'string' }, description: 'Specific suspicious elements detected' },
+              suspicious_patterns: { type: 'array', items: { type: 'string' }, description: 'Patterns that match fraud indicators' },
+              verification_recommendations: { type: 'array', items: { type: 'string' }, description: 'Actions to verify legitimacy' },
+              requires_manual_review: { type: 'boolean', description: 'Whether manual review is needed' },
+              confidence_score: { type: 'number', minimum: 0, maximum: 100, description: 'Confidence in fraud analysis' },
+              analysis_summary: { type: 'string', description: 'Brief summary of fraud analysis' }
+            },
+            required: ['risk_score', 'risk_level', 'requires_manual_review', 'confidence_score']
+          }
+        }
+      };
+
+      // 1️⃣ Essayer Lovable AI
+      if (lovableApiKey) {
+        try {
+          console.log(`🔹 [${repairer.id}] Trying Lovable AI...`);
+          const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${lovableApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash',
+              messages,
+              tools: [toolDefinition],
+              tool_choice: { type: 'function', function: { name: 'analyze_fraud_risk' } }
+            }),
+          });
+
+          if (aiResponse.ok) {
+            const aiData = await aiResponse.json();
+            const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
+            if (toolCall) {
+              fraudAnalysis = JSON.parse(toolCall.function.arguments);
+              usedProvider = 'Lovable AI';
+              console.log(`✅ [${repairer.id}] Lovable AI succeeded`);
+            }
+          } else if (aiResponse.status === 402) {
+            console.log(`⚠️ [${repairer.id}] Lovable AI: No credits, trying fallback...`);
+          } else if (aiResponse.status === 429) {
+            console.log(`⚠️ [${repairer.id}] Lovable AI: Rate limited, trying fallback...`);
+          }
+        } catch (error) {
+          console.log(`⚠️ [${repairer.id}] Lovable AI failed:`, error.message);
+        }
+      }
+
+      // 2️⃣ Fallback OpenAI
+      if (!fraudAnalysis) {
+        const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+        if (OPENAI_API_KEY) {
+          try {
+            console.log(`🔹 [${repairer.id}] Trying OpenAI...`);
+            const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                messages,
+                tools: [toolDefinition],
+                tool_choice: { type: 'function', function: { name: 'analyze_fraud_risk' } }
+              })
+            });
+
+            if (aiResponse.ok) {
+              const aiData = await aiResponse.json();
+              const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
+              if (toolCall) {
+                fraudAnalysis = JSON.parse(toolCall.function.arguments);
+                usedProvider = 'OpenAI';
+                console.log(`✅ [${repairer.id}] OpenAI succeeded`);
               }
             }
-          ],
-          tool_choice: { type: 'function', function: { name: 'analyze_fraud_risk' } }
-        }),
-      });
-
-      if (!aiResponse.ok) {
-        console.error(`AI error for repairer ${repairer.id}`);
-        continue;
+          } catch (error) {
+            console.log(`⚠️ [${repairer.id}] OpenAI failed:`, error.message);
+          }
+        }
       }
 
-      const aiData = await aiResponse.json();
-      const toolCall = aiData.choices[0].message.tool_calls?.[0];
-      
-      if (!toolCall) {
-        console.error(`No tool call for repairer ${repairer.id}`);
-        continue;
+      // 3️⃣ Fallback Mistral
+      if (!fraudAnalysis) {
+        const MISTRAL_API_KEY = Deno.env.get('CLE_API_MISTRAL');
+        if (MISTRAL_API_KEY) {
+          try {
+            console.log(`🔹 [${repairer.id}] Trying Mistral...`);
+            const aiResponse = await fetch('https://api.mistral.ai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: 'mistral-large-latest',
+                messages,
+                tools: [toolDefinition],
+                tool_choice: 'any'
+              })
+            });
+
+            if (aiResponse.ok) {
+              const aiData = await aiResponse.json();
+              const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
+              if (toolCall) {
+                fraudAnalysis = JSON.parse(toolCall.function.arguments);
+                usedProvider = 'Mistral';
+                console.log(`✅ [${repairer.id}] Mistral succeeded`);
+              }
+            }
+          } catch (error) {
+            console.log(`⚠️ [${repairer.id}] Mistral failed:`, error.message);
+          }
+        }
       }
 
-      const fraudAnalysis = JSON.parse(toolCall.function.arguments);
+      if (!fraudAnalysis) {
+        console.error(`❌ [${repairer.id}] All AI providers failed`);
+        continue;
+      }
       
       // Update repairer with fraud analysis
       await supabase
@@ -222,8 +276,8 @@ Fournis une analyse de risque détaillée.`
     // Log analytics
     const latency = Date.now() - startTime;
     await supabase.from('ai_analytics').insert({
-      provider: 'lovable',
-      model: 'google/gemini-2.5-flash',
+      provider: 'ai-fallback-system',
+      model: 'lovable/openai/mistral',
       function_name: 'ai-fraud-detection',
       latency_ms: latency,
       success: true
@@ -237,7 +291,7 @@ Fournis une analyse de risque détaillée.`
         requires_review_count: results.filter(r => r.requires_manual_review).length,
         results: results,
         latency_ms: latency,
-        model: 'gemini-2.5-flash'
+        model: 'AI Fallback System'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

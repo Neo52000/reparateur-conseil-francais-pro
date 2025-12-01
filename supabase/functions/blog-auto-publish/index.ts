@@ -123,46 +123,129 @@ Titre et méta description (150-160 caractères) en tête :
 META_TITLE: <titre>\nMETA_DESCRIPTION: <description>
 `;
 
-      // Call Lovable AI gateway
-      const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: 'Tu es un assistant de rédaction pour un blog français de réparation de smartphones.' },
-            { role: 'user', content: promptTemplate },
-          ],
-          stream: false,
-        }),
-      });
+      // 🔄 SYSTÈME DE FALLBACK IA: Lovable AI → OpenAI → Mistral
+      let content = '';
+      let usedProvider = '';
 
-      if (!aiResp.ok) {
-        if (aiResp.status === 429) {
-          return new Response(JSON.stringify({ success: false, error: 'Rate limits exceeded, please try again later.' }), {
-            status: 429,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      const systemMessage = 'Tu es un assistant de rédaction pour un blog français de réparation de smartphones.';
+
+      // 1️⃣ Essayer Lovable AI
+      if (LOVABLE_API_KEY) {
+        try {
+          console.log('🔹 Trying Lovable AI...');
+          const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: 'system', content: systemMessage },
+                { role: 'user', content: promptTemplate },
+              ],
+              stream: false,
+            }),
           });
+
+          if (aiResp.ok) {
+            const aiJson = await aiResp.json();
+            content = aiJson?.choices?.[0]?.message?.content || '';
+            if (content) {
+              usedProvider = 'Lovable AI (Gemini)';
+              console.log('✅ Lovable AI succeeded');
+            }
+          } else if (aiResp.status === 402) {
+            console.log('⚠️ Lovable AI: No credits, trying fallback...');
+          } else if (aiResp.status === 429) {
+            console.log('⚠️ Lovable AI: Rate limited, trying fallback...');
+          }
+        } catch (error) {
+          console.log('⚠️ Lovable AI failed:', error.message);
         }
-        if (aiResp.status === 402) {
-          return new Response(JSON.stringify({ success: false, error: 'Payment required, please add funds to Lovable AI.' }), {
-            status: 402,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
+      }
+
+      // 2️⃣ Fallback OpenAI
+      if (!content) {
+        const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+        if (OPENAI_API_KEY) {
+          try {
+            console.log('🔹 Trying OpenAI...');
+            const aiResp = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                messages: [
+                  { role: 'system', content: systemMessage },
+                  { role: 'user', content: promptTemplate }
+                ],
+                temperature: 0.7
+              })
+            });
+
+            if (aiResp.ok) {
+              const aiJson = await aiResp.json();
+              content = aiJson?.choices?.[0]?.message?.content || '';
+              if (content) {
+                usedProvider = 'OpenAI (GPT-4o-mini)';
+                console.log('✅ OpenAI succeeded');
+              }
+            }
+          } catch (error) {
+            console.log('⚠️ OpenAI failed:', error.message);
+          }
         }
-        const errText = await aiResp.text();
-        console.error('AI gateway error:', aiResp.status, errText);
-        return new Response(JSON.stringify({ success: false, error: 'AI gateway error' }), {
+      }
+
+      // 3️⃣ Fallback Mistral
+      if (!content) {
+        const MISTRAL_API_KEY = Deno.env.get('CLE_API_MISTRAL');
+        if (MISTRAL_API_KEY) {
+          try {
+            console.log('🔹 Trying Mistral...');
+            const aiResp = await fetch('https://api.mistral.ai/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: 'mistral-small-latest',
+                messages: [
+                  { role: 'system', content: systemMessage },
+                  { role: 'user', content: promptTemplate }
+                ],
+                temperature: 0.7
+              })
+            });
+
+            if (aiResp.ok) {
+              const aiJson = await aiResp.json();
+              content = aiJson?.choices?.[0]?.message?.content || '';
+              if (content) {
+                usedProvider = 'Mistral';
+                console.log('✅ Mistral succeeded');
+              }
+            }
+          } catch (error) {
+            console.log('⚠️ Mistral failed:', error.message);
+          }
+        }
+      }
+
+      if (!content) {
+        return new Response(JSON.stringify({ success: false, error: 'Aucune API IA disponible. Vérifiez vos clés API et crédits.' }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      const aiJson = await aiResp.json();
-      const content: string = aiJson?.choices?.[0]?.message?.content || '';
+      console.log(`✅ Article généré avec: ${usedProvider}`);
 
       // Parse meta
       let metaTitle = '';
