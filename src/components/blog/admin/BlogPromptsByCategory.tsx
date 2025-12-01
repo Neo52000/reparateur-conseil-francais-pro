@@ -21,7 +21,7 @@ export const BlogPromptsByCategory = () => {
   const [showHelp, setShowHelp] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    category_id: '',
+    category_id: 'all',
     prompt_template: '',
     ai_model: 'google/gemini-2.5-flash',
     visibility: 'public',
@@ -45,7 +45,7 @@ export const BlogPromptsByCategory = () => {
     setEditingId(prompt.id);
     setFormData({
       name: prompt.name,
-      category_id: prompt.category_id || '',
+      category_id: prompt.category_id || 'all',
       prompt_template: prompt.prompt_template,
       ai_model: prompt.ai_model || 'google/gemini-2.5-flash',
       visibility: prompt.visibility,
@@ -57,14 +57,14 @@ export const BlogPromptsByCategory = () => {
     const success = await savePrompt({
       ...(editingId ? { id: editingId } : {}),
       ...formData,
-      category_id: formData.category_id || null
+      category_id: formData.category_id === 'all' ? null : formData.category_id
     });
 
     if (success) {
       setEditingId(null);
       setFormData({
         name: '',
-        category_id: '',
+        category_id: 'all',
         prompt_template: '',
         ai_model: 'google/gemini-2.5-flash',
         visibility: 'public',
@@ -87,7 +87,7 @@ export const BlogPromptsByCategory = () => {
     setEditingId(null);
     setFormData({
       name: '',
-      category_id: '',
+      category_id: 'all',
       prompt_template: '',
       ai_model: 'google/gemini-2.5-flash',
       visibility: 'public',
@@ -166,7 +166,7 @@ export const BlogPromptsByCategory = () => {
                   <SelectValue placeholder="Sélectionner une catégorie..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous les articles</SelectItem>
+                  <SelectItem value="all">Tous les articles</SelectItem>
                   {categories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
                       {cat.name}
