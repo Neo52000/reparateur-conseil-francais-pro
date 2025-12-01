@@ -140,7 +140,46 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
 
   const handleSlugConflictOverwrite = async () => {
     setShowSlugConflict(false);
-    await handleSave(true);
+
+    // 🧠 Cas 1 : édition d'un article existant → on réutilise simplement handleSave avec skip check
+    if (post?.id) {
+      await handleSave(true);
+      return;
+    }
+
+    // 🧠 Cas 2 : création d'un nouvel article avec un slug déjà existant →
+    // on va REPRENDRE l'article existant (update) au lieu de faire un insert
+    try {
+      const { data: existingPost, error } = await supabase
+        .from('blog_posts')
+        .select('id')
+        .eq('slug', formData.slug)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!existingPost?.id) {
+        // Si pour une raison quelconque on ne trouve pas l'article, on retombe sur le flux normal
+        await handleSave(true);
+        return;
+      }
+
+      const postData = {
+        ...formData,
+        id: existingPost.id,
+      } as any;
+
+      const result = await savePost(postData, true);
+      if (result) {
+        onSave();
+      }
+    } catch (error) {
+      console.error('Erreur lors de l’écrasement de l’article existant par slug:', error);
+      toast({
+        title: 'Erreur',
+        description: "Impossible d'écraser l'article existant.",
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleSlugConflictNewSlug = async (newSlug: string) => {
