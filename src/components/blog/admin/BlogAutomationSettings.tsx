@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Zap, AlertCircle, CheckCircle2, ChevronDown, ExternalLink, ShieldAlert } from 'lucide-react';
+import { Zap, AlertCircle, CheckCircle2, ChevronDown, ExternalLink, ShieldAlert, ImagePlus } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { BlogScheduleList } from './BlogScheduleList';
@@ -19,6 +19,7 @@ export const BlogAutomationSettings = () => {
   const [cronStatus, setCronStatus] = useState<CronStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [testing, setTesting] = useState(false);
+  const [updatingImages, setUpdatingImages] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [categories, setCategories] = useState<any[]>([]);
@@ -101,6 +102,39 @@ export const BlogAutomationSettings = () => {
       });
     } finally {
       setTesting(false);
+    }
+  };
+
+  const handleUpdateImages = async () => {
+    setUpdatingImages(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('blog-update-images', {
+        body: {}
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "Mise à jour réussie ✅",
+          description: `${data.updated_count}/${data.total_articles} articles mis à jour avec des images`,
+        });
+        
+        if (data.errors && data.errors.length > 0) {
+          console.warn('Errors during update:', data.errors);
+        }
+      } else {
+        throw new Error(data?.error || 'La mise à jour a échoué');
+      }
+    } catch (error: any) {
+      console.error('Update images error:', error);
+      toast({
+        title: "Erreur de mise à jour",
+        description: error.message || "La mise à jour des images a échoué.",
+        variant: "destructive"
+      });
+    } finally {
+      setUpdatingImages(false);
     }
   };
 
@@ -255,6 +289,17 @@ export const BlogAutomationSettings = () => {
           >
             <Zap className="mr-2 h-4 w-4" />
             {testing ? 'Test en cours...' : 'Tester une génération maintenant'}
+          </Button>
+
+          {/* Update Images Button */}
+          <Button
+            onClick={handleUpdateImages}
+            disabled={updatingImages}
+            variant="secondary"
+            className="w-full"
+          >
+            <ImagePlus className="mr-2 h-4 w-4" />
+            {updatingImages ? 'Mise à jour en cours...' : '🖼️ Ajouter images aux articles existants'}
           </Button>
         </CardContent>
       </Card>
