@@ -71,7 +71,7 @@ export const BlogAutomationSettings = () => {
       const { data, error } = await supabase.functions.invoke('blog-ai-generator', {
         body: {
           topic: 'Actualités de la réparation mobile',
-          category_id: selectedCategory || undefined,
+          category_id: selectedCategory && selectedCategory !== 'none' ? selectedCategory : undefined,
           target_audience: 'public',
           tone: 'professionnel',
           auto_publish: false, // Create as draft for review
@@ -238,7 +238,7 @@ export const BlogAutomationSettings = () => {
                 <SelectValue placeholder="Sélectionner une catégorie" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Aucune catégorie</SelectItem>
+                <SelectItem value="none">Aucune catégorie</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                 ))}
