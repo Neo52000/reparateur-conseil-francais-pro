@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useBlog } from '@/hooks/useBlog';
 import { BlogPost, BlogCategory } from '@/types/blog';
 import { useToast } from '@/hooks/use-toast';
@@ -24,6 +24,7 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
   const [showImageGenerator, setShowImageGenerator] = useState(false);
   const [showSlugConflict, setShowSlugConflict] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const originalSlugRef = useRef<string | null>(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -38,6 +39,8 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
     meta_description: '',
     keywords: [] as string[],
     ai_generated: false,
+    ai_model: '',
+    generation_prompt: '',
     view_count: 0,
     comment_count: 0,
     share_count: 0
@@ -46,22 +49,28 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
   useEffect(() => {
     loadCategories();
     if (post) {
+      // Stocker le slug original une seule fois au montage
+      if (originalSlugRef.current === null) {
+        originalSlugRef.current = post.slug;
+      }
       setFormData({
-        title: post.title,
-        slug: post.slug,
+        title: post.title || '',
+        slug: post.slug || '',
         excerpt: post.excerpt || '',
-        content: post.content,
+        content: post.content || '',
         category_id: post.category_id || '',
-        visibility: post.visibility,
-        status: post.status,
-        featured_image_url: post.featured_image_url || '',
+        visibility: post.visibility || 'public',
+        status: post.status || 'draft',
         meta_title: post.meta_title || '',
         meta_description: post.meta_description || '',
-        keywords: post.keywords || [],
-        ai_generated: post.ai_generated,
-        view_count: post.view_count,
-        comment_count: post.comment_count,
-        share_count: post.share_count
+        keywords: Array.isArray(post.keywords) ? post.keywords : [],
+        featured_image_url: post.featured_image_url || '',
+        ai_generated: post.ai_generated || false,
+        ai_model: post.ai_model || '',
+        generation_prompt: post.generation_prompt || '',
+        view_count: post.view_count || 0,
+        comment_count: post.comment_count || 0,
+        share_count: post.share_count || 0
       });
     }
   }, [post]);
@@ -107,9 +116,9 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
       return;
     }
 
-    // Si c'est un article existant avec le même slug, pas besoin de vérifier les conflits
+    // Utiliser le slug original stable pour la comparaison
     const isExistingPost = !!post?.id;
-    const slugUnchanged = isExistingPost && post.slug === formData.slug;
+    const slugUnchanged = isExistingPost && originalSlugRef.current === formData.slug;
     const shouldSkipSlugCheck = slugUnchanged || overwriteExisting;
 
     const postData = {
