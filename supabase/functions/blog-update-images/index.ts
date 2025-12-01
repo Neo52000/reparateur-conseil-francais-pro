@@ -21,12 +21,21 @@ async function checkAdminRole(authHeader: string): Promise<boolean> {
     return false;
   }
 
-  const { data: roleData } = await supabase.rpc('has_role', {
-    user_id: user.id,
-    role_name: 'admin'
-  });
+  // Query user_roles table directly with service role
+  const { data: roleData, error: roleError } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', user.id)
+    .eq('role', 'admin')
+    .eq('is_active', true)
+    .single();
 
-  return roleData === true;
+  if (roleError) {
+    console.error('Role check error:', roleError);
+    return false;
+  }
+
+  return roleData !== null;
 }
 
 serve(async (req) => {
