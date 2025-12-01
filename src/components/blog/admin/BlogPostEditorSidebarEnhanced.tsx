@@ -86,11 +86,15 @@ const BlogPostEditorSidebarEnhanced: React.FC<BlogPostEditorSidebarEnhancedProps
 
           <div>
             <Label htmlFor="category">Catégorie</Label>
-            <Select value={categoryId} onValueChange={onCategoryChange}>
+            <Select 
+              value={categoryId || "none"} 
+              onValueChange={(value) => onCategoryChange(value === "none" ? "" : value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner une catégorie" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="none">Aucune catégorie</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>
                     {category.name}
