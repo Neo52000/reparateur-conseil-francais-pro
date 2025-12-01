@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { Helmet } from 'react-helmet-async';
+import { useBlogHeaderImage } from '@/hooks/blog/useBlogHeaderImage';
 
 interface BlogLayoutProps {
   children: React.ReactNode;
@@ -24,6 +25,10 @@ const BlogLayout: React.FC<BlogLayoutProps> = ({
   backButtonUrl = "/",
   backButtonText = "Retour à l'accueil"
 }) => {
+  const { headerImageUrl } = useBlogHeaderImage();
+  
+  const defaultHeaderImage = 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80';
+  
   return (
     <div className="min-h-screen bg-muted/20">
       <Navigation />
@@ -36,11 +41,14 @@ const BlogLayout: React.FC<BlogLayoutProps> = ({
       <header className="relative bg-background border-b overflow-hidden">
         {/* Image de fond */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')`
+            backgroundImage: `url('${headerImageUrl || defaultHeaderImage}')`
           }}
         />
+        {/* Overlay dégradé émeraude */}
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent" />
+        
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {showBackButton && (
             <Link to={backButtonUrl}>
