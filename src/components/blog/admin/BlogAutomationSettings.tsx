@@ -70,16 +70,16 @@ export const BlogAutomationSettings = () => {
 
       if (error) throw error;
 
-      if (data?.id) {
+      if (data?.success && data?.post?.id) {
         toast({
           title: "Test réussi ✅",
-          description: `Article créé : ${data.title}`,
+          description: `Article créé : ${data.post.title}`,
         });
         
         // Redirect to blog posts list
         window.location.href = '/admin?tab=blog&blogTab=posts';
       } else {
-        throw new Error('Article non créé');
+        throw new Error(data?.error || 'Article non créé');
       }
     } catch (error: any) {
       console.error('Test error:', error);
