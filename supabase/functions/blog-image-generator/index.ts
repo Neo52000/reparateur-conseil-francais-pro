@@ -27,41 +27,55 @@ serve(async (req) => {
       );
     }
 
-    // Créer un client Supabase avec le token utilisateur
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    // Vérifier que l'utilisateur est authentifié
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      console.error('❌ Token invalide:', authError);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized: Invalid token', success: false }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    // 🔐 AUTHENTIFICATION HYBRIDE: Support JWT utilisateur + SERVICE_ROLE
+    const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+    
+    let isServiceRole = false;
+    let userId = null;
+    
+    // Mode 1: SERVICE_ROLE (appels internes depuis blog-ai-generator)
+    if (token === SERVICE_ROLE) {
+      console.log('✅ Accès autorisé via SERVICE_ROLE (appel interne)');
+      isServiceRole = true;
+    } else {
+      // Mode 2: JWT utilisateur (appels frontend)
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        { global: { headers: { Authorization: authHeader } } }
       );
+
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.error('❌ Token invalide:', authError);
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized: Invalid token', success: false }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      userId = user.id;
+
+      // Vérifier le rôle admin pour les appels utilisateur
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .eq('is_active', true)
+        .single();
+
+      if (roleError || !roleData) {
+        console.error('❌ Accès refusé: utilisateur non-admin', { userId: user.id });
+        return new Response(
+          JSON.stringify({ error: 'Forbidden: Admin access required', success: false }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log(`✅ Accès autorisé pour l'admin: ${user.email}`);
     }
-
-    // ✅ SÉCURITÉ: Vérification du rôle admin
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .eq('is_active', true)
-      .single();
-
-    if (roleError || !roleData) {
-      console.error('❌ Accès refusé: utilisateur non-admin', { userId: user.id });
-      return new Response(
-        JSON.stringify({ error: 'Forbidden: Admin access required', success: false }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`✅ Accès autorisé pour l'admin: ${user.email}`);
 
     const { prompt, style = 'modern' }: ImageGenerationRequest = await req.json();
 
