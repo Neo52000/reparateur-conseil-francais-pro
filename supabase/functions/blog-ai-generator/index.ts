@@ -243,11 +243,32 @@ L'article doit:
     // Créer l'article dans la base de données
     const status = auto_publish ? 'published' : (scheduled_at ? 'scheduled' : 'draft');
     
+    // Vérifier et générer un slug unique si nécessaire
+    let uniqueSlug = articleData.slug;
+    let slugCounter = 1;
+    
+    while (true) {
+      const { data: existingPost } = await supabase
+        .from('blog_posts')
+        .select('id')
+        .eq('slug', uniqueSlug)
+        .maybeSingle();
+      
+      if (!existingPost) break;
+      
+      // Slug existe déjà, ajouter un suffixe numérique
+      slugCounter++;
+      uniqueSlug = `${articleData.slug}-${slugCounter}`;
+      console.log(`⚠️ Slug conflict detected, trying: ${uniqueSlug}`);
+    }
+    
+    console.log(`✅ Using unique slug: ${uniqueSlug}`);
+    
     const { data: newPost, error: insertError } = await supabase
       .from('blog_posts')
       .insert({
         title: articleData.title,
-        slug: articleData.slug,
+        slug: uniqueSlug,
         excerpt: articleData.excerpt,
         content: articleData.content,
         meta_title: articleData.meta_title,
