@@ -138,6 +138,8 @@ L'article doit:
 - Un slug URL-friendly
 - Un extrait captivant (150-160 caractères)
 - Un contenu structuré en Markdown avec titres H2/H3
+- **IMPORTANT: Inclure 2-3 placeholders d'images** dans le contenu au format {{IMAGE_1}}, {{IMAGE_2}}, etc.
+  Chaque placeholder doit avoir une description détaillée pour la génération d'image
 - Des paragraphes courts et faciles à lire
 - Des conseils pratiques et actionnables
 - Un meta_title optimisé SEO (50-60 caractères)
@@ -195,9 +197,21 @@ L'article doit:
                   type: 'array', 
                   items: { type: 'string' },
                   description: 'Array of 5-7 SEO keywords' 
+                },
+                image_placeholders: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      placeholder: { type: 'string', description: 'Placeholder format: {{IMAGE_1}}, {{IMAGE_2}}, etc.' },
+                      description: { type: 'string', description: 'Detailed description of the image to generate' }
+                    },
+                    required: ['placeholder', 'description']
+                  },
+                  description: 'List of 2-3 image placeholders to insert in the content with their descriptions'
                 }
               },
-              required: ['title', 'slug', 'excerpt', 'content', 'meta_title', 'meta_description', 'keywords'],
+              required: ['title', 'slug', 'excerpt', 'content', 'meta_title', 'meta_description', 'keywords', 'image_placeholders'],
               additionalProperties: false
             }
           }
@@ -228,6 +242,53 @@ L'article doit:
     }
 
     const articleData = JSON.parse(toolCall.function.arguments);
+
+    // 🖼️ GÉNÉRATION DES IMAGES INLINE
+    if (articleData.image_placeholders && Array.isArray(articleData.image_placeholders) && articleData.image_placeholders.length > 0) {
+      console.log(`🖼️ Generating ${articleData.image_placeholders.length} inline images...`);
+      
+      let updatedContent = articleData.content;
+      
+      for (const placeholder of articleData.image_placeholders) {
+        try {
+          console.log(`  → Generating image for placeholder: ${placeholder.placeholder}`);
+          
+          const imageResponse = await fetch(`${SUPABASE_URL}/functions/v1/blog-image-generator`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${SERVICE_ROLE}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              prompt: placeholder.description,
+              style: 'modern'
+            })
+          });
+          
+          if (imageResponse.ok) {
+            const imageData = await imageResponse.json();
+            const imageUrl = imageData?.image_url || imageData?.imageUrl;
+            
+            if (imageUrl) {
+              // Remplacer le placeholder par l'image Markdown
+              updatedContent = updatedContent.replace(
+                placeholder.placeholder, 
+                `![${placeholder.description}](${imageUrl})`
+              );
+              console.log(`  ✅ Image generated and inserted for ${placeholder.placeholder}`);
+            }
+          } else {
+            console.error(`  ⚠️ Image generation failed for ${placeholder.placeholder}:`, await imageResponse.text());
+          }
+        } catch (imgError) {
+          console.error(`  ⚠️ Error generating image for ${placeholder.placeholder}:`, imgError);
+          // Continue avec les autres images
+        }
+      }
+      
+      articleData.content = updatedContent;
+      console.log('✅ All inline images processed');
+    }
 
     // Enregistrer l'analytics
     await supabase.from('ai_analytics').insert({
