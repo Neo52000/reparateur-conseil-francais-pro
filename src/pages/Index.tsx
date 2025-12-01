@@ -1,10 +1,10 @@
 import { Helmet } from 'react-helmet-async';
-import ModernHeader from '@/components/modern/ModernHeader';
+import Navigation from '@/components/Navigation';
 import ModernHero from '@/components/modern/ModernHero';
 import TrustSignals from '@/components/modern/TrustSignals';
 import RepairerResultsGrid from '@/components/modern/RepairerResultsGrid';
 import BlogSection from '@/components/modern/BlogSection';
-import ModernFooter from '@/components/modern/ModernFooter';
+import Footer from '@/components/Footer';
 
 const Index = () => {
   return (
@@ -103,7 +103,7 @@ const Index = () => {
       </Helmet>
 
       {/* Header minimaliste sticky */}
-      <ModernHeader />
+      <Navigation />
 
       <main>
         {/* Hero avec glassmorphism search */}
@@ -120,7 +120,7 @@ const Index = () => {
       </main>
 
       {/* Footer simple */}
-      <ModernFooter />
+      <Footer />
     </div>
   );
 };
