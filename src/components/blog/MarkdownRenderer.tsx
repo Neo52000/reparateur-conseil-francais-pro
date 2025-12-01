@@ -99,11 +99,18 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className 
             </a>
           ),
           img: ({ src, alt }) => (
-            <img 
-              src={src} 
-              alt={alt} 
-              className="max-w-full h-auto rounded-lg shadow-sm mb-6"
-            />
+            <div className="my-6">
+              <img 
+                src={src} 
+                alt={alt || 'Image'} 
+                className="max-w-full h-auto rounded-lg shadow-sm"
+                loading="lazy"
+                onError={(e) => {
+                  console.error('Image failed to load:', src);
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
           ),
           hr: () => (
             <hr className="border-border my-8" />
