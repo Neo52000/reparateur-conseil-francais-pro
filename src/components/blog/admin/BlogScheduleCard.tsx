@@ -14,6 +14,7 @@ import { PromptVariablesHelper } from './PromptVariablesHelper';
 import { BlogAutomationSchedule } from '@/types/blogAutomation';
 import { BlogCategory } from '@/types/blog';
 import { useBlogPrompts } from '@/hooks/blog/useBlogPrompts';
+import { CategoryIcon } from '../CategoryIcon';
 
 const getNextExecutionDates = (scheduleDay: number, scheduleTime: string, count: number = 3): Date[] => {
   const dates: Date[] = [];
@@ -51,6 +52,9 @@ export const BlogScheduleCard = ({ schedule, categories, onUpdate, onDelete }: B
   const nextDates = getNextExecutionDates(schedule.schedule_day, schedule.schedule_time);
   const { fetchPrompts } = useBlogPrompts();
   
+  const weekdays = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+  const weekdayName = weekdays[schedule.schedule_day];
+  
   const [showPromptEditor, setShowPromptEditor] = useState(false);
   const [showVariablesHelp, setShowVariablesHelp] = useState(false);
   const [availableTemplates, setAvailableTemplates] = useState<any[]>([]);
@@ -76,7 +80,27 @@ export const BlogScheduleCard = ({ schedule, categories, onUpdate, onDelete }: B
     <Card className="relative">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
+          <div className="flex-1 space-y-2">
+            {/* Visual Summary */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span className="font-medium">{weekdayName} {schedule.schedule_time}</span>
+              {selectedCategory && (
+                <>
+                  <span>•</span>
+                  <CategoryIcon icon={selectedCategory.icon} />
+                  <span>{selectedCategory.name}</span>
+                </>
+              )}
+              {!selectedCategory && (
+                <>
+                  <span>•</span>
+                  <span className="text-xs italic">Toutes catégories</span>
+                </>
+              )}
+            </div>
+            
+            {/* Editable Name */}
             <Input
               value={schedule.name}
               onChange={(e) => onUpdate({ ...schedule, name: e.target.value })}
@@ -116,7 +140,7 @@ export const BlogScheduleCard = ({ schedule, categories, onUpdate, onDelete }: B
               <SelectValue placeholder="Sélectionner une catégorie">
                 {selectedCategory && (
                   <span className="flex items-center gap-2">
-                    {selectedCategory.icon && <span>{selectedCategory.icon}</span>}
+                    <CategoryIcon icon={selectedCategory.icon} />
                     {selectedCategory.name}
                   </span>
                 )}
@@ -127,7 +151,7 @@ export const BlogScheduleCard = ({ schedule, categories, onUpdate, onDelete }: B
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   <span className="flex items-center gap-2">
-                    {category.icon && <span>{category.icon}</span>}
+                    <CategoryIcon icon={category.icon} />
                     {category.name}
                   </span>
                 </SelectItem>
