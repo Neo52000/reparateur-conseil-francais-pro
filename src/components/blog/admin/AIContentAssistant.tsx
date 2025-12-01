@@ -64,7 +64,9 @@ const AIContentAssistant: React.FC<AIContentAssistantProps> = ({
         setPrompt('');
         toast({
           title: "✨ Contenu généré",
-          description: "Le contenu a été généré avec succès"
+          description: data.provider 
+            ? `Généré avec ${data.provider}` 
+            : "Le contenu a été généré avec succès"
         });
       } else {
         throw new Error('Aucun contenu généré');
