@@ -8,6 +8,37 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
+async function checkAdminRole(supabase: any, authHeader: string | null): Promise<string | null> {
+  try {
+    if (!authHeader?.startsWith("Bearer ")) return null;
+    
+    const token = authHeader.slice(7);
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    const userId = payload?.sub;
+    
+    if (!userId) return null;
+    
+    // SECURITY: Use server-side has_role() function instead of trusting JWT metadata
+    const { data, error } = await supabase.rpc('has_role', {
+      _user_id: userId,
+      _role: 'admin'
+    });
+    
+    if (error) {
+      console.error("❌ has_role RPC error:", error);
+      return null;
+    }
+    
+    return data ? userId : null;
+  } catch (e) {
+    console.error("❌ Admin check error:", e);
+    return null;
+  }
+}
+
 interface GenerateArticleRequest {
   topic?: string;
   category_id?: string;
@@ -23,50 +54,25 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+  const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
+    const authHeader = req.headers.get("Authorization");
+
+    // SECURITY: Check admin role using server-side has_role() function
+    const userId = await checkAdminRole(supabase, authHeader);
+
+    if (!userId) {
+      console.log("❌ Access denied: user is not admin");
       return new Response(
-        JSON.stringify({ error: 'Unauthorized: Authentication required', success: false }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: "forbidden", message: "Admin required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Créer un client Supabase avec le token utilisateur
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    // Vérifier que l'utilisateur est authentifié
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      console.error('❌ Token invalide:', authError);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized: Invalid token', success: false }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // ✅ SÉCURITÉ: Vérification du rôle admin
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .eq('is_active', true)
-      .single();
-
-    if (roleError || !roleData) {
-      console.error('❌ Accès refusé: utilisateur non-admin', { userId: user.id });
-      return new Response(
-        JSON.stringify({ error: 'Forbidden: Admin access required', success: false }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`✅ Accès autorisé pour l'admin: ${user.email}`);
+    console.log(`✅ Access authorized for admin user: ${userId}`);
 
     const requestData: GenerateArticleRequest = await req.json();
     const { topic, category_id, keywords, target_audience, tone, auto_publish, scheduled_at } = requestData;
@@ -248,7 +254,7 @@ L'article doit:
         meta_description: articleData.meta_description,
         keywords: articleData.keywords,
         category_id: category_id || null,
-        author_id: user.id,
+        author_id: userId,
         visibility: target_audience || 'public',
         status,
         ai_generated: true,
