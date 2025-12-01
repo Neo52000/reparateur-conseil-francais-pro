@@ -107,13 +107,18 @@ const BlogPostEditor: React.FC<BlogPostEditorProps> = ({ post, onSave, onCancel 
       return;
     }
 
+    // Si c'est un article existant avec le même slug, pas besoin de vérifier les conflits
+    const isExistingPost = !!post?.id;
+    const slugUnchanged = isExistingPost && post.slug === formData.slug;
+    const shouldSkipSlugCheck = slugUnchanged || overwriteExisting;
+
     const postData = {
       ...formData,
       id: post?.id
     };
 
     try {
-      const result = await savePost(postData, overwriteExisting);
+      const result = await savePost(postData, shouldSkipSlugCheck);
       if (result) {
         onSave();
       }
