@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { BlogPost } from '@/types/blog';
-import { cleanBlogPostsData, cleanBlogPostData } from '../utils/postDataCleaner';
+import { cleanBlogPostsData, cleanBlogPostData, preparePostForSave } from '../utils/postDataCleaner';
 
 export const fetchPosts = async (filters?: {
   visibility?: string;
@@ -98,15 +98,18 @@ export const savePost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'updat
   }
 
   if (post.id) {
-    // Mise à jour
+    // Mise à jour - nettoyer les données avant l'UPDATE
+    const cleanedPost = preparePostForSave(post);
+    
     const { data, error } = await supabase
       .from('blog_posts')
-      .update({
-        ...post,
-        updated_at: new Date().toISOString()
-      })
+      .update(cleanedPost as any)
       .eq('id', post.id)
-      .select()
+      .select(`
+        *,
+        category:blog_categories(*),
+        author:profiles(first_name, last_name, email)
+      `)
       .single();
 
     if (error) {
@@ -116,15 +119,17 @@ export const savePost = async (post: Omit<BlogPost, 'id' | 'created_at' | 'updat
 
     return cleanBlogPostData(data);
   } else {
-    // Création
+    // Création - nettoyer les données avant l'INSERT
+    const cleanedPost = preparePostForSave(post);
+    
     const { data, error } = await supabase
       .from('blog_posts')
-      .insert({
-        ...post,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
+      .insert(cleanedPost as any)
+      .select(`
+        *,
+        category:blog_categories(*),
+        author:profiles(first_name, last_name, email)
+      `)
       .single();
 
     if (error) {
