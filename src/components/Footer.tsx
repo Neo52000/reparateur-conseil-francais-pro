@@ -276,6 +276,11 @@ const Footer = () => {
                 <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">
                   Confidentialité
                 </Link>
+                <span className="text-gray-600">•</span>
+                <Link to="/mes-donnees" className="text-gray-400 hover:text-white transition-colors flex items-center">
+                  <Shield className="h-3 w-3 mr-1" />
+                  Mes données
+                </Link>
               </div>
             </div>
           </div>
