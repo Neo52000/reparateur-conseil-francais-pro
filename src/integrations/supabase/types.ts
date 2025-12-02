@@ -14106,6 +14106,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_consents: {
+        Row: {
+          consent_type: string
+          consented: boolean
+          created_at: string | null
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          consent_type: string
+          consented: boolean
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          consent_type?: string
+          consented?: boolean
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_interaction_history: {
         Row: {
           created_at: string

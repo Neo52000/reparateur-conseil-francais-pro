@@ -176,6 +176,10 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
           <BarChart3 className="h-4 w-4" />
           Géo & SEO
         </TabsTrigger>
+        <TabsTrigger value="data" className="flex items-center gap-2">
+          <Shield className="h-4 w-4" />
+          Mes données
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview">
@@ -297,6 +301,27 @@ const RepairerDashboardTabs: React.FC<RepairerDashboardTabsProps> = ({
 
       <TabsContent value="geolocation-seo">
         <GeolocationSeoPhase />
+      </TabsContent>
+
+      <TabsContent value="data">
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                Gestion des données personnelles (RGPD)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Accédez à vos droits RGPD et gérez vos préférences de confidentialité.
+              </p>
+              <a href="/mes-donnees" className="text-primary hover:underline">
+                Accéder au centre de gestion des données →
+              </a>
+            </CardContent>
+          </Card>
+        </div>
       </TabsContent>
     </Tabs>
   );

@@ -35,8 +35,10 @@ import { SuppliersDirectoryPage } from "./pages/SuppliersDirectoryPage";
 import QuotesAndAppointments from "./pages/QuotesAndAppointments";
 import LegalNotice from "./pages/LegalNotice";
 import TermsOfService from "./pages/TermsOfService";
+import CookiesPolicy from "./pages/CookiesPolicy";
 import TermsOfSale from "./pages/TermsOfSale";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import MyDataPage from "./pages/MyDataPage";
 import NotFound from "./pages/NotFound";
 import { useVisitorTracker } from "./hooks/useVisitorTracker";
 import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
@@ -150,6 +152,8 @@ const AppWithTracking = () => {
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/politique-confidentialite" element={<Navigate to="/privacy" replace />} />
         <Route path="/confidentialite" element={<Navigate to="/privacy" replace />} />
+        <Route path="/cookies" element={<CookiesPolicy />} />
+        <Route path="/mes-donnees" element={<MyDataPage />} />
         {/* Documentation */}
         <Route path="/documentation" element={<DocumentationPage />} />
         {/* 404 fallback */}

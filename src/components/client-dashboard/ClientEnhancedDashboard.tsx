@@ -15,6 +15,7 @@ import { SavedSearchFilters } from '@/components/search/SavedSearchFilters';
 import { ClientRepairsTab } from './ClientRepairsTab';
 import { MessageThread } from '@/components/messaging/MessageThread';
 import { AnimatePresence } from 'framer-motion';
+import DataAccessRequest from '@/components/gdpr/DataAccessRequest';
 
 const ClientEnhancedDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -116,13 +117,14 @@ const ClientEnhancedDashboard: React.FC = () => {
         />
 
         <Tabs defaultValue="overview" className="mt-8">
-          <TabsList className="grid w-full grid-cols-6" data-tour="dashboard-tabs">
+          <TabsList className="grid w-full grid-cols-7" data-tour="dashboard-tabs">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
             <TabsTrigger value="appointments">Rendez-vous</TabsTrigger>
             <TabsTrigger value="quotes">Devis</TabsTrigger>
             <TabsTrigger value="messaging">Messages</TabsTrigger>
             <TabsTrigger value="reviews">Mes avis</TabsTrigger>
             <TabsTrigger value="favorites">Favoris</TabsTrigger>
+            <TabsTrigger value="data">Mes données</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
@@ -165,6 +167,12 @@ const ClientEnhancedDashboard: React.FC = () => {
               senderType="client"
               recipientName="TechRepair Pro"
             />
+          </TabsContent>
+
+          <TabsContent value="data" className="mt-6">
+            <div className="space-y-6">
+              <DataAccessRequest />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
