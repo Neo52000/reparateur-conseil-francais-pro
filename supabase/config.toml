@@ -1,5 +1,14 @@
 project_id = "nbugpbakfkyvvjzgfjmw"
 
+[functions.scrape-repairers]
+verify_jwt = false
+
+[functions.stop-scraping]
+verify_jwt = false
+
+[functions.validate-scraping]
+verify_jwt = false
+
 [functions.blog-scheduler-cron]
 verify_jwt = false
 

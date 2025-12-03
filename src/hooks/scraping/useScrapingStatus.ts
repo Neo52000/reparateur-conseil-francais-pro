@@ -21,9 +21,9 @@ export const useScrapingStatus = () => {
   // Récupérer le dernier log
   const latestLog = logs.length > 0 ? logs[0] : undefined;
 
-  const handleStartScraping = async (source: string, testMode: boolean = false, departmentCode: string | null = null) => {
+  const handleStartScraping = async (departmentCode: string, testMode: boolean = false) => {
     try {
-      const result = await originalStartScraping(source, testMode, departmentCode);
+      const result = await originalStartScraping(departmentCode, testMode);
       // Forcer un refresh immédiat pour détecter le nouveau scraping
       setTimeout(() => {
         console.log('🔄 Refresh automatique après démarrage du scraping');
