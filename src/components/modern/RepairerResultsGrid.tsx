@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Phone } from 'lucide-react';
+import { Phone, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/lib/supabase';
+import RepairerProfileModal from '@/components/RepairerProfileModal';
 
 interface Repairer {
   id: string;
@@ -20,6 +21,7 @@ interface Repairer {
 const RepairerResultsGrid = () => {
   const [repairers, setRepairers] = useState<Repairer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
 
   useEffect(() => {
     loadRepairers();
@@ -78,7 +80,8 @@ const RepairerResultsGrid = () => {
               {repairers.map((repairer) => (
                 <Card 
                   key={repairer.id}
-                  className="p-6 hover:shadow-xl transition-all duration-300 rounded-xl bg-white border-gray-200"
+                  className="p-6 hover:shadow-xl transition-all duration-300 rounded-xl bg-white border-gray-200 cursor-pointer"
+                  onClick={() => setSelectedRepairerId(repairer.id)}
                 >
                   <div className="flex gap-4">
                     {/* Avatar */}
@@ -98,15 +101,32 @@ const RepairerResultsGrid = () => {
                         {repairer.address}, {repairer.city}
                       </p>
 
-                      {/* Bouton d'appel */}
-                      <Button
-                        onClick={() => window.open(`tel:${repairer.phone}`, '_self')}
-                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-white gap-2"
-                        size="sm"
-                      >
-                        <Phone className="w-4 h-4" />
-                        Appeler
-                      </Button>
+                      {/* Boutons d'action */}
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedRepairerId(repairer.id);
+                          }}
+                          variant="outline"
+                          className="flex-1 gap-2"
+                          size="sm"
+                        >
+                          <User className="w-4 h-4" />
+                          Voir
+                        </Button>
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`tel:${repairer.phone}`, '_self');
+                          }}
+                          className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white gap-2"
+                          size="sm"
+                        >
+                          <Phone className="w-4 h-4" />
+                          Appeler
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </Card>
@@ -129,6 +149,13 @@ const RepairerResultsGrid = () => {
           </>
         )}
       </div>
+
+      {/* Modal profil réparateur */}
+      <RepairerProfileModal
+        repairerId={selectedRepairerId || ''}
+        isOpen={!!selectedRepairerId}
+        onClose={() => setSelectedRepairerId(null)}
+      />
     </section>
   );
 };

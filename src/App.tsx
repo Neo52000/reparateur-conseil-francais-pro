@@ -8,6 +8,7 @@ import { PlanPreviewProvider } from "./hooks/usePlanPreview";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ChatbotLayout from "./components/ChatbotLayout";
 import Index from "./pages/Index";
+import SearchPage from "./components/search/SearchPage";
 import AdminPage from "./pages/AdminPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
@@ -98,6 +99,7 @@ const AppWithTracking = () => {
       <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" /></div>}>
         <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/search" element={<SearchPage />} />
         {/* Navigation routes */}
         <Route path="/reparateur" element={<Navigate to="/repairer-auth" replace />} />
         <Route path="/reparations" element={<Navigate to="/reparation-smartphone" replace />} />
