@@ -28,10 +28,10 @@ const MassiveScrapingControl = () => {
     );
   }
 
-  const handleMassiveScraping = async (source: string, isTest: boolean) => {
-    console.log('🚀 Starting massive scraping:', { source, isTest, selectedDepartment });
-    // Corriger l'ordre des paramètres: source, testMode, departmentCode
-    await startScraping(source, isTest, selectedDepartment);
+  const handleMassiveScraping = async (_source: string, isTest: boolean) => {
+    console.log('🚀 Starting massive scraping:', { isTest, selectedDepartment });
+    // Nouveau format: departmentCode, testMode
+    await startScraping(selectedDepartment || '75', isTest);
   };
 
   const handleStopScraping = async () => {

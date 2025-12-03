@@ -38,9 +38,9 @@ export const useScrapingOperations = () => {
     }
   };
 
-  const startScraping = async (source: string, testMode: boolean = false, departmentCode: string | null = null) => {
+  const startScraping = async (departmentCode: string, testMode: boolean = false) => {
     try {
-      console.log(`🚀 Démarrage du scraping ${testMode ? 'TEST' : 'MASSIF'} pour: ${source}${departmentCode ? ` - Département: ${departmentCode}` : ''}`);
+      console.log(`🚀 Démarrage du scraping ${testMode ? 'TEST' : 'COMPLET'} pour département: ${departmentCode}`);
       
       const connectionOk = await testSupabaseConnection();
       if (!connectionOk) {
@@ -49,9 +49,9 @@ export const useScrapingOperations = () => {
 
       const { data, error } = await supabase.functions.invoke('scrape-repairers', {
         body: { 
-          source, 
-          testMode,
-          departmentCode 
+          department_code: departmentCode,
+          test_mode: testMode,
+          source: 'serper'
         }
       });
 
@@ -61,17 +61,8 @@ export const useScrapingOperations = () => {
       }
 
       console.log('✅ Réponse Edge Function:', data);
-
-      const scrapingType = testMode ? "🧪 Test" : "🚀 Scraping MASSIF";
-      const locationText = departmentCode ? ` (Département ${departmentCode})` : " (Toute la France)";
-
-      toast({
-        title: `${scrapingType} démarré`,
-        description: `${scrapingType} de ${source}${locationText} lancé. ${data?.classification_method ? `Méthode: ${data.classification_method}` : ''}`,
-      });
-
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('💥 Erreur start scraping:', error);
       
       toast({
@@ -88,7 +79,6 @@ export const useScrapingOperations = () => {
     try {
       console.log('🛑 Demande d\'arrêt du scraping...');
       
-      // D'abord vérifier s'il y a des scraping en cours
       const { data: runningLogs, error: fetchError } = await supabase
         .from('scraping_logs')
         .select('*')
@@ -124,7 +114,7 @@ export const useScrapingOperations = () => {
       });
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('💥 Erreur stop scraping:', error);
       
       toast({
@@ -137,8 +127,47 @@ export const useScrapingOperations = () => {
     }
   };
 
+  const validateScraping = async (logId: string, selectedIds: number[], results: any[]) => {
+    try {
+      console.log(`✅ Validation de ${selectedIds.length} réparateurs...`);
+
+      const { data, error } = await supabase.functions.invoke('validate-scraping', {
+        body: {
+          log_id: logId,
+          selected_ids: selectedIds,
+          results
+        }
+      });
+
+      if (error) {
+        console.error('❌ Erreur validation:', error);
+        throw error;
+      }
+
+      console.log('✅ Validation réussie:', data);
+
+      toast({
+        title: "✅ Validation réussie",
+        description: `${data?.items_added || 0} ajoutés, ${data?.items_updated || 0} mis à jour`,
+      });
+
+      return data;
+    } catch (error: any) {
+      console.error('💥 Erreur validation:', error);
+      
+      toast({
+        title: "❌ Erreur de validation",
+        description: error.message || "Impossible de valider les résultats",
+        variant: "destructive"
+      });
+      
+      throw error;
+    }
+  };
+
   return {
     startScraping,
-    stopScraping
+    stopScraping,
+    validateScraping
   };
 };
