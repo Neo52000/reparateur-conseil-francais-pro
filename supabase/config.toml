@@ -15,9 +15,6 @@ verify_jwt = false
 [functions.send-notification]
 verify_jwt = true
 
-[functions.ai-fraud-detection]
-verify_jwt = false
-
 [functions.ai-content-helper]
 verify_jwt = true
 
@@ -30,18 +27,30 @@ verify_jwt = false
 [functions.blog-image-generator]
 verify_jwt = true
 
-[functions.blog-update-images]
-verify_jwt = true
-
 [functions.generate-repairer-seo-page]
 verify_jwt = false
 
 [functions.blog-schedules]
 verify_jwt = false
 
-[functions.blog-ai-moderation]
-verify_jwt = true
+# TODO: Réactiver plus tard - Fonctions désactivées pour optimisation
+# [functions.blog-ai-moderation]
+# verify_jwt = true
 
-# TODO: Réactiver plus tard
+# [functions.blog-update-images]
+# verify_jwt = true
+
+# [functions.fetch-mobile-news]
+# verify_jwt = false
+
+# [functions.generate-fec-export]
+# verify_jwt = false
+
+# [functions.ai-fraud-detection]
+# verify_jwt = false
+
+# [functions.save-electronic-signature]
+# verify_jwt = false
+
 # [functions.generate-static-page-content]
 # verify_jwt = false

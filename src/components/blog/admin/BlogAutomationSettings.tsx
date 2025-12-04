@@ -105,37 +105,13 @@ export const BlogAutomationSettings = () => {
     }
   };
 
+  // TODO: Réactiver quand blog-update-images sera actif
   const handleUpdateImages = async () => {
-    setUpdatingImages(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('blog-update-images', {
-        body: {}
-      });
-
-      if (error) throw error;
-
-      if (data?.success) {
-        toast({
-          title: "Mise à jour réussie ✅",
-          description: `${data.updated_count}/${data.total_articles} articles mis à jour avec des images`,
-        });
-        
-        if (data.errors && data.errors.length > 0) {
-          console.warn('Errors during update:', data.errors);
-        }
-      } else {
-        throw new Error(data?.error || 'La mise à jour a échoué');
-      }
-    } catch (error: any) {
-      console.error('Update images error:', error);
-      toast({
-        title: "Erreur de mise à jour",
-        description: error.message || "La mise à jour des images a échoué.",
-        variant: "destructive"
-      });
-    } finally {
-      setUpdatingImages(false);
-    }
+    toast({
+      title: "Fonction désactivée",
+      description: "Cette fonctionnalité sera disponible prochainement.",
+      variant: "default"
+    });
   };
 
   if (loading || authLoading) {
@@ -327,15 +303,15 @@ export const BlogAutomationSettings = () => {
             {testing ? 'Test en cours...' : 'Tester une génération maintenant'}
           </Button>
 
-          {/* Update Images Button */}
+          {/* Update Images Button - Disabled */}
           <Button
             onClick={handleUpdateImages}
-            disabled={updatingImages}
+            disabled={true}
             variant="secondary"
-            className="w-full"
+            className="w-full opacity-50"
           >
             <ImagePlus className="mr-2 h-4 w-4" />
-            {updatingImages ? 'Mise à jour en cours...' : '🖼️ Ajouter images aux articles existants'}
+            🖼️ Ajouter images aux articles (Bientôt)
           </Button>
         </CardContent>
       </Card>
