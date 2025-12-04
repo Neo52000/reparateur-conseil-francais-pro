@@ -41,3 +41,7 @@ verify_jwt = false
 
 [functions.blog-ai-moderation]
 verify_jwt = true
+
+# TODO: Réactiver plus tard
+# [functions.generate-static-page-content]
+# verify_jwt = false
