@@ -46,32 +46,13 @@ export const BlogModerationQueue = () => {
     }
   };
 
+  // TODO: Réactiver quand blog-ai-moderation sera actif
   const runModeration = async (postId: string) => {
-    setModerating(postId);
-    try {
-      const { data, error } = await supabase.functions.invoke('blog-ai-moderation', {
-        body: { post_id: postId }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Modération effectuée",
-        description: data.message || "Article analysé avec succès",
-      });
-
-      // Recharger la liste
-      await loadPendingPosts();
-    } catch (error: any) {
-      console.error('Moderation error:', error);
-      toast({
-        title: "Erreur de modération",
-        description: error.message || "La modération a échoué",
-        variant: "destructive"
-      });
-    } finally {
-      setModerating(null);
-    }
+    toast({
+      title: "Fonction désactivée",
+      description: "L'analyse IA automatique sera disponible prochainement. Vous pouvez approuver ou rejeter manuellement.",
+      variant: "default"
+    });
   };
 
   const approvePost = async (postId: string) => {
@@ -225,19 +206,12 @@ export const BlogModerationQueue = () => {
                     size="sm"
                     variant="secondary"
                     onClick={() => runModeration(post.id)}
-                    disabled={moderating === post.id}
+                    disabled={true}
+                    className="opacity-50"
+                    title="Fonction temporairement désactivée"
                   >
-                    {moderating === post.id ? (
-                      <>
-                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current mr-1" />
-                        Analyse...
-                      </>
-                    ) : (
-                      <>
-                        <AlertTriangle className="h-4 w-4 mr-1" />
-                        Analyser
-                      </>
-                    )}
+                    <AlertTriangle className="h-4 w-4 mr-1" />
+                    Analyser (Bientôt)
                   </Button>
 
                   <div className="flex gap-2">
