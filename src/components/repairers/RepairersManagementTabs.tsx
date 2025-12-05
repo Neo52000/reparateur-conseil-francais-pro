@@ -3,7 +3,6 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RepairersTable from './RepairersTable';
 import SubscriptionsTable from './SubscriptionsTable';
-import PromoCodesManagement from '../PromoCodesManagement';
 import CategoriesManagement from '../catalog/CategoriesManagement';
 import RepairerSeoManagement from '../admin/RepairerSeoManagement';
 import RepairersDashboard from '../admin/RepairersDashboard';
@@ -82,9 +81,6 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
           Fournisseurs (Bientôt)
         </TabsTrigger>
         <TabsTrigger value="seo-local">SEO Local</TabsTrigger>
-        <TabsTrigger value="promocodes" disabled className="opacity-50 cursor-not-allowed">
-          Codes Promo (Bientôt)
-        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="dashboard">
@@ -127,10 +123,6 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
 
       <TabsContent value="seo-local">
         <RepairerSeoManagement />
-      </TabsContent>
-
-      <TabsContent value="promocodes">
-        <PromoCodesManagement />
       </TabsContent>
     </Tabs>
   );

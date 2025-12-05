@@ -10,7 +10,6 @@ import QuickActions from '@/components/admin/modern/QuickActions';
 import RecentActivity from '@/components/admin/modern/RecentActivity';
 import RepairerList from '@/components/admin/RepairerList';
 import ClientInterestManagement from '@/components/ClientInterestManagement';
-import PromoCodesManagement from '@/components/PromoCodesManagement';
 import RealScrapingDashboard from '@/components/admin/scraping/RealScrapingDashboard';
 import AutomatedRelaunchDashboard from '@/components/admin/automation/AutomatedRelaunchDashboard';
 import BlogManagement from '@/components/blog/admin/BlogManagement';
@@ -69,7 +68,7 @@ const AdminPage = () => {
   // List of valid tabs
   const validTabs = [
     'dashboard', 'subscriptions', 'subdomains', 'landing-pages', 'repairers', 'quotes',
-    'catalog', 'interest', 'promocodes', 'advertising', 'advertising-ai', 'analytics',
+    'catalog', 'interest', 'advertising', 'advertising-ai', 'analytics',
     'scraping', 'automation', 'monitoring', 'blog', 'chatbot', 'local-seo', 'seo-tools',
     'repairer-seo', 'seo-monitoring', 'repair-generator', 'pagespeed-pro', 'performance',
     'documentation', 'features-manager', 'plans-tester', 'dashboard-tester', 'configuration',
@@ -140,8 +139,6 @@ const AdminPage = () => {
         return 'Catalogue Produits';
       case 'interest':
         return 'Demandes d\'intérêt';
-      case 'promocodes':
-        return 'Codes Promo';
       case 'advertising':
         return 'Publicités';
       case 'advertising-ai':
@@ -222,8 +219,6 @@ const AdminPage = () => {
         return 'Gestion du catalogue de la recherche en 5 étapes (types, marques, modèles, réparations)';
       case 'interest':
         return 'Demandes d\'intérêt clients';
-      case 'promocodes':
-        return 'Codes de réduction et promotions';
       case 'advertising':
         return 'Bannières publicitaires';
       case 'advertising-ai':
@@ -329,8 +324,6 @@ const AdminPage = () => {
         return <CatalogManagement />;
       case 'interest':
         return <ClientInterestManagement />;
-      case 'promocodes':
-        return <PromoCodesManagement />;
       case 'advertising':
         return <AdvancedAdvertisingDashboard />;
       case 'advertising-ai':

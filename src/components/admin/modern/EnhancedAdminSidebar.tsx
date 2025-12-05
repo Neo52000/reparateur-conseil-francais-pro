@@ -74,7 +74,6 @@ const EnhancedAdminSidebar: React.FC<EnhancedAdminSidebarProps> = ({ onCollapse 
       label: 'Catalogue',
       children: [
         { path: '/admin?tab=catalog', icon: Package, label: 'Produits & Services' },
-        { path: '/admin?tab=promocodes', icon: Star, label: 'Codes promo' },
       ]
     },
     {
