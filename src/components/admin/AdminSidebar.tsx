@@ -70,7 +70,6 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=subdomains', icon: Globe, label: 'Sous-domaines', tab: 'subdomains', category: 'Content & Marketing' },
     { path: '/admin?tab=landing-pages', icon: Layout, label: 'Landing Pages', tab: 'landing-pages', category: 'Content & Marketing' },
     { path: '/admin?tab=advertising-ai', icon: Megaphone, label: 'Publicité IA', tab: 'advertising-ai', category: 'Content & Marketing' },
-    { path: '/admin?tab=promocodes', icon: Tag, label: 'Codes promo', tab: 'promocodes', category: 'Content & Marketing' },
     
     // Shopify Management
   { path: '/admin?tab=shopify-dashboard', icon: Store, label: 'Dashboard Shopify', tab: 'shopify-dashboard', category: 'Shopify Management', isNew: true },
