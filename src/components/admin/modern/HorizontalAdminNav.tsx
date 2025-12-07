@@ -104,9 +104,9 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
     },
     {
       id: 'scraping',
-      label: 'Scraping (Bientôt)',
+      label: 'Scraping',
       icon: <Search className="w-4 h-4" />,
-      disabled: true,
+      isNew: true,
     },
     {
       id: 'automation',
