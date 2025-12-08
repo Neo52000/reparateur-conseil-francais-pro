@@ -252,11 +252,10 @@ const RealScrapingDashboard: React.FC = () => {
     setCurrentLogId(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('scrape-repairers', {
+      const { data, error } = await supabase.functions.invoke('ai-scrape-repairers', {
         body: {
           department_code: selectedDepartment,
-          test_mode: testMode,
-          source: 'serper'
+          test_mode: testMode
         }
       });
 
@@ -395,12 +394,12 @@ const RealScrapingDashboard: React.FC = () => {
       {/* Configuration du scraping */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            Scraping de réparateurs
+            Génération de réparateurs avec l'IA
           </CardTitle>
           <CardDescription>
-            Collecte automatisée via Serper API avec prévisualisation avant insertion
+            Génération automatisée via Lovable AI avec prévisualisation avant insertion
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -452,14 +451,14 @@ const RealScrapingDashboard: React.FC = () => {
           <Button 
             onClick={startScraping}
             disabled={loading || isScrapingActive}
-            className="w-full md:w-auto"
+            className="w-full md:w-auto bg-primary hover:bg-primary/90"
           >
             {loading ? (
               <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <Play className="h-4 w-4 mr-2" />
             )}
-            Lancer le scraping
+            🤖 Générer avec l'IA
           </Button>
 
           {isScrapingActive && (

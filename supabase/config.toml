@@ -1,9 +1,6 @@
 project_id = "nbugpbakfkyvvjzgfjmw"
 
-[functions.scrape-repairers]
-verify_jwt = false
-
-[functions.stop-scraping]
+[functions.ai-scrape-repairers]
 verify_jwt = false
 
 [functions.validate-scraping]
