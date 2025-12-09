@@ -65,13 +65,12 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Créer un log de scraping
+    // Créer un log de scraping (sans department_code pour compatibilité)
     const { data: logData, error: logError } = await supabase
       .from('scraping_logs')
       .insert({
-        source: 'lovable-ai',
+        source: `lovable-ai-${department_code}`,
         status: 'running',
-        department_code,
         items_scraped: 0,
         items_added: 0,
         items_updated: 0,
