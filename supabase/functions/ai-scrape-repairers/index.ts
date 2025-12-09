@@ -33,19 +33,147 @@ const DEPARTMENT_NAMES: Record<string, string> = {
   '971': 'Guadeloupe', '972': 'Martinique', '973': 'Guyane', '974': 'La Réunion', '976': 'Mayotte',
 };
 
+// Fonction pour appeler Lovable AI
+async function callLovableAI(prompt: string, systemPrompt: string): Promise<{ success: boolean; content?: string; error?: string }> {
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  if (!LOVABLE_API_KEY) {
+    return { success: false, error: 'LOVABLE_API_KEY non configurée' };
+  }
+
+  console.log('🤖 Tentative avec Lovable AI...');
+  
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt }
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ Erreur Lovable AI:', response.status, errorText);
+    return { success: false, error: `Lovable AI error: ${response.status}` };
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  return content ? { success: true, content } : { success: false, error: 'Réponse vide' };
+}
+
+// Fonction pour appeler OpenAI
+async function callOpenAI(prompt: string, systemPrompt: string): Promise<{ success: boolean; content?: string; error?: string }> {
+  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+  if (!OPENAI_API_KEY) {
+    return { success: false, error: 'OPENAI_API_KEY non configurée' };
+  }
+
+  console.log('🤖 Tentative avec OpenAI...');
+  
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: 4000,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ Erreur OpenAI:', response.status, errorText);
+    return { success: false, error: `OpenAI error: ${response.status}` };
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  return content ? { success: true, content } : { success: false, error: 'Réponse vide' };
+}
+
+// Fonction pour appeler Mistral
+async function callMistral(prompt: string, systemPrompt: string): Promise<{ success: boolean; content?: string; error?: string }> {
+  const MISTRAL_API_KEY = Deno.env.get('CLE_API_MISTRAL');
+  if (!MISTRAL_API_KEY) {
+    return { success: false, error: 'CLE_API_MISTRAL non configurée' };
+  }
+
+  console.log('🤖 Tentative avec Mistral...');
+  
+  const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${MISTRAL_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'mistral-small-latest',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: 4000,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ Erreur Mistral:', response.status, errorText);
+    return { success: false, error: `Mistral error: ${response.status}` };
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  return content ? { success: true, content } : { success: false, error: 'Réponse vide' };
+}
+
+// Fonction avec fallback automatique
+async function callAIWithFallback(prompt: string, systemPrompt: string): Promise<{ success: boolean; content?: string; provider?: string; error?: string }> {
+  // Essai 1: Lovable AI
+  let result = await callLovableAI(prompt, systemPrompt);
+  if (result.success) {
+    return { ...result, provider: 'lovable-ai' };
+  }
+  console.log('⚠️ Lovable AI échec, tentative OpenAI...');
+
+  // Essai 2: OpenAI
+  result = await callOpenAI(prompt, systemPrompt);
+  if (result.success) {
+    return { ...result, provider: 'openai' };
+  }
+  console.log('⚠️ OpenAI échec, tentative Mistral...');
+
+  // Essai 3: Mistral
+  result = await callMistral(prompt, systemPrompt);
+  if (result.success) {
+    return { ...result, provider: 'mistral' };
+  }
+
+  return { success: false, error: 'Tous les providers AI ont échoué' };
+}
+
 serve(async (req) => {
   console.log('🚀 ai-scrape-repairers function called');
-  console.log('📥 Request method:', req.method);
   
   if (req.method === 'OPTIONS') {
-    console.log('👋 Handling CORS preflight request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const body = await req.json();
-    console.log('📦 Request body:', JSON.stringify(body));
-    
     const { department_code, test_mode = false } = body;
     
     if (!department_code) {
@@ -65,11 +193,11 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Créer un log de scraping (sans department_code pour compatibilité)
+    // Créer un log de scraping
     const { data: logData, error: logError } = await supabase
       .from('scraping_logs')
       .insert({
-        source: `lovable-ai-${department_code}`,
+        source: `ai-generation-${department_code}`,
         status: 'running',
         items_scraped: 0,
         items_added: 0,
@@ -84,9 +212,10 @@ serve(async (req) => {
     }
 
     const logId = logData.id;
-    console.log(`📝 Log créé: ${logId}`);
 
-    // Prompt optimisé pour générer des réparateurs
+    // Prompts
+    const systemPrompt = 'Tu es un assistant qui génère uniquement du JSON valide sans aucun texte supplémentaire. Ne mets jamais de balises markdown comme ```json. Retourne directement le tableau JSON.';
+    
     const prompt = `Tu es un expert en réparation de smartphones en France. Génère une liste de ${count} boutiques de réparation de téléphones réalistes pour le département ${departmentName} (${department_code}).
 
 IMPORTANT: Génère des données réalistes avec des noms d'entreprises crédibles, des adresses complètes avec numéros de rue, et des numéros de téléphone valides au format français.
@@ -104,68 +233,27 @@ Pour chaque réparateur, fournis EXACTEMENT ce format JSON:
 
 RETOURNE UNIQUEMENT un tableau JSON valide avec ${count} éléments, sans texte avant ou après, sans balises markdown.`;
 
-    // Appel à Lovable AI Gateway
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY non configurée');
-    }
+    // Appel AI avec fallback
+    const aiResult = await callAIWithFallback(prompt, systemPrompt);
 
-    console.log('🤖 Appel à Lovable AI...');
-    
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'Tu es un assistant qui génère uniquement du JSON valide sans aucun texte supplémentaire. Ne mets jamais de balises markdown comme ```json. Retourne directement le tableau JSON.'
-          },
-          { role: 'user', content: prompt }
-        ],
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('❌ Erreur Lovable AI:', aiResponse.status, errorText);
-      
-      // Mettre à jour le log en échec
+    if (!aiResult.success) {
       await supabase
         .from('scraping_logs')
-        .update({ status: 'failed', error_message: `AI Error: ${aiResponse.status}`, completed_at: new Date().toISOString() })
+        .update({ status: 'failed', error_message: aiResult.error, completed_at: new Date().toISOString() })
         .eq('id', logId);
       
-      throw new Error(`Lovable AI error: ${aiResponse.status}`);
+      throw new Error(aiResult.error);
     }
 
-    const aiData = await aiResponse.json();
-    const content = aiData.choices?.[0]?.message?.content;
+    console.log(`✅ Réponse reçue de ${aiResult.provider}`);
 
-    if (!content) {
-      throw new Error('Réponse IA vide');
-    }
-
-    console.log('📥 Réponse IA reçue, parsing...');
-
-    // Parser le JSON (nettoyer si nécessaire)
+    // Parser le JSON
     let repairers = [];
     try {
-      // Nettoyer la réponse des balises markdown potentielles
-      let cleanContent = content.trim();
-      if (cleanContent.startsWith('```json')) {
-        cleanContent = cleanContent.slice(7);
-      }
-      if (cleanContent.startsWith('```')) {
-        cleanContent = cleanContent.slice(3);
-      }
-      if (cleanContent.endsWith('```')) {
-        cleanContent = cleanContent.slice(0, -3);
-      }
+      let cleanContent = aiResult.content!.trim();
+      if (cleanContent.startsWith('```json')) cleanContent = cleanContent.slice(7);
+      if (cleanContent.startsWith('```')) cleanContent = cleanContent.slice(3);
+      if (cleanContent.endsWith('```')) cleanContent = cleanContent.slice(0, -3);
       cleanContent = cleanContent.trim();
       
       repairers = JSON.parse(cleanContent);
@@ -174,7 +262,7 @@ RETOURNE UNIQUEMENT un tableau JSON valide avec ${count} éléments, sans texte 
         throw new Error('La réponse n\'est pas un tableau');
       }
     } catch (parseError) {
-      console.error('❌ Erreur parsing JSON:', parseError, 'Content:', content.substring(0, 500));
+      console.error('❌ Erreur parsing JSON:', parseError);
       
       await supabase
         .from('scraping_logs')
@@ -184,7 +272,7 @@ RETOURNE UNIQUEMENT un tableau JSON valide avec ${count} éléments, sans texte 
       throw new Error('Impossible de parser la réponse IA');
     }
 
-    // Enrichir les résultats avec les métadonnées
+    // Enrichir les résultats
     const enrichedResults = repairers.map((r: any, index: number) => ({
       name: r.name || `Réparateur ${index + 1}`,
       address: r.address || '',
@@ -195,11 +283,11 @@ RETOURNE UNIQUEMENT un tableau JSON valide avec ${count} éléments, sans texte 
       website: r.website || '',
       services: r.services || ['Réparation smartphone'],
       description: r.description || '',
-      source: 'lovable-ai',
+      source: aiResult.provider,
       logo_url: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(r.name || 'R')}`,
     }));
 
-    console.log(`✅ ${enrichedResults.length} réparateurs générés`);
+    console.log(`✅ ${enrichedResults.length} réparateurs générés via ${aiResult.provider}`);
 
     // Mettre à jour le log
     await supabase
@@ -217,7 +305,7 @@ RETOURNE UNIQUEMENT un tableau JSON valide avec ${count} éléments, sans texte 
         results: enrichedResults,
         total_found: enrichedResults.length,
         log_id: logId,
-        provider: 'lovable-ai'
+        provider: aiResult.provider
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
