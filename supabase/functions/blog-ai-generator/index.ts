@@ -61,18 +61,29 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
     const authHeader = req.headers.get("Authorization");
 
-    // SECURITY: Check admin role using server-side has_role() function
-    const userId = await checkAdminRole(supabase, authHeader);
+    // 🔐 HYBRID AUTHENTICATION: Accept SERVICE_ROLE_KEY for internal calls OR verify admin JWT for external calls
+    let isInternalCall = false;
+    let userId: string | null = null;
 
-    if (!userId) {
-      console.log("❌ Access denied: user is not admin");
-      return new Response(
-        JSON.stringify({ success: false, error: "forbidden", message: "Admin required" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Check if this is an internal service-to-service call using SERVICE_ROLE_KEY
+    if (authHeader === `Bearer ${SERVICE_ROLE}`) {
+      console.log("✅ Internal service call detected (SERVICE_ROLE_KEY) - skipping admin check");
+      isInternalCall = true;
+      userId = "internal-service";
+    } else {
+      // External call - verify admin role
+      userId = await checkAdminRole(supabase, authHeader);
+      
+      if (!userId) {
+        console.log("❌ Access denied: user is not admin");
+        return new Response(
+          JSON.stringify({ success: false, error: "forbidden", message: "Admin required" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
-    console.log(`✅ Access authorized for admin user: ${userId}`);
+    console.log(`✅ Access authorized: ${isInternalCall ? 'Internal service call' : `Admin user ${userId}`}`);
 
     const requestData: GenerateArticleRequest = await req.json();
     const { topic, category_id, keywords, target_audience, tone, auto_publish, scheduled_at } = requestData;

@@ -34,12 +34,19 @@ const DEPARTMENT_NAMES: Record<string, string> = {
 };
 
 serve(async (req) => {
+  console.log('🚀 ai-scrape-repairers function called');
+  console.log('📥 Request method:', req.method);
+  
   if (req.method === 'OPTIONS') {
+    console.log('👋 Handling CORS preflight request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { department_code, test_mode = false } = await req.json();
+    const body = await req.json();
+    console.log('📦 Request body:', JSON.stringify(body));
+    
+    const { department_code, test_mode = false } = body;
     
     if (!department_code) {
       return new Response(
