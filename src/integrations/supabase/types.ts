@@ -11901,6 +11901,7 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string
+          department_code: string | null
           error_message: string | null
           id: string
           items_added: number | null
@@ -11916,6 +11917,7 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           created_at?: string
+          department_code?: string | null
           error_message?: string | null
           id?: string
           items_added?: number | null
@@ -11931,6 +11933,7 @@ export type Database = {
         Update: {
           completed_at?: string | null
           created_at?: string
+          department_code?: string | null
           error_message?: string | null
           id?: string
           items_added?: number | null
