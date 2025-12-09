@@ -125,29 +125,37 @@ Deno.serve(async (req) => {
       console.log(`🚀 Executing schedule: ${schedule.name} (ID: ${schedule.id})`);
 
       try {
-        // Appeler blog-ai-generator avec les paramètres de la planification
-        const { data: generatedPost, error: generateError } = await supabase.functions.invoke(
-          'blog-ai-generator',
-          {
-            body: {
-              category_id: schedule.category_id,
-              auto_publish: schedule.auto_publish,
-              ai_model: schedule.ai_model || 'google/gemini-2.5-flash',
-              prompt_template: schedule.prompt_template,
-            },
-          }
-        );
+        // Appeler blog-ai-generator avec fetch direct et SERVICE_ROLE_KEY pour éviter les problèmes d'authentification
+        console.log(`📡 Calling blog-ai-generator with SERVICE_ROLE_KEY...`);
+        
+        const response = await fetch(`${supabaseUrl}/functions/v1/blog-ai-generator`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            category_id: schedule.category_id,
+            auto_publish: schedule.auto_publish,
+            ai_model: schedule.ai_model || 'google/gemini-2.5-flash',
+            prompt_template: schedule.prompt_template,
+          }),
+        });
 
-        if (generateError) {
-          console.error(`❌ Error generating article for schedule ${schedule.id}:`, generateError);
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`❌ Error generating article for schedule ${schedule.id}: ${response.status} - ${errorText}`);
           results.push({
             schedule_id: schedule.id,
             schedule_name: schedule.name,
             success: false,
-            error: generateError.message,
+            error: `HTTP ${response.status}: ${errorText.substring(0, 200)}`,
           });
           continue;
         }
+
+        const generatedPost = await response.json();
+        console.log(`✅ blog-ai-generator response received for schedule ${schedule.name}`);
 
         console.log(`✅ Article generated successfully for schedule ${schedule.name}`);
 
