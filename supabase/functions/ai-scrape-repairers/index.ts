@@ -33,8 +33,32 @@ const DEPARTMENT_NAMES: Record<string, string> = {
   '971': 'Guadeloupe', '972': 'Martinique', '973': 'Guyane', '974': 'La Réunion', '976': 'Mayotte',
 };
 
+// Arrondissements de Paris
+const PARIS_ARRONDISSEMENTS = [
+  { code: '75001', name: 'Paris 1er', zone: 'centre' },
+  { code: '75002', name: 'Paris 2e', zone: 'centre' },
+  { code: '75003', name: 'Paris 3e', zone: 'centre' },
+  { code: '75004', name: 'Paris 4e', zone: 'centre' },
+  { code: '75005', name: 'Paris 5e', zone: 'rive gauche' },
+  { code: '75006', name: 'Paris 6e', zone: 'rive gauche' },
+  { code: '75007', name: 'Paris 7e', zone: 'rive gauche' },
+  { code: '75008', name: 'Paris 8e', zone: 'ouest' },
+  { code: '75009', name: 'Paris 9e', zone: 'nord' },
+  { code: '75010', name: 'Paris 10e', zone: 'nord-est' },
+  { code: '75011', name: 'Paris 11e', zone: 'est' },
+  { code: '75012', name: 'Paris 12e', zone: 'sud-est' },
+  { code: '75013', name: 'Paris 13e', zone: 'sud' },
+  { code: '75014', name: 'Paris 14e', zone: 'sud' },
+  { code: '75015', name: 'Paris 15e', zone: 'sud-ouest' },
+  { code: '75016', name: 'Paris 16e', zone: 'ouest' },
+  { code: '75017', name: 'Paris 17e', zone: 'nord-ouest' },
+  { code: '75018', name: 'Paris 18e', zone: 'nord' },
+  { code: '75019', name: 'Paris 19e', zone: 'nord-est' },
+  { code: '75020', name: 'Paris 20e', zone: 'est' },
+];
+
 // Fonction pour appeler Lovable AI
-async function callLovableAI(prompt: string, systemPrompt: string): Promise<{ success: boolean; content?: string; error?: string }> {
+async function callLovableAI(prompt: string, systemPrompt: string, maxTokens: number = 8000): Promise<{ success: boolean; content?: string; error?: string }> {
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
   if (!LOVABLE_API_KEY) {
     return { success: false, error: 'LOVABLE_API_KEY non configurée' };
@@ -69,7 +93,7 @@ async function callLovableAI(prompt: string, systemPrompt: string): Promise<{ su
 }
 
 // Fonction pour appeler OpenAI
-async function callOpenAI(prompt: string, systemPrompt: string): Promise<{ success: boolean; content?: string; error?: string }> {
+async function callOpenAI(prompt: string, systemPrompt: string, maxTokens: number = 8000): Promise<{ success: boolean; content?: string; error?: string }> {
   const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
   if (!OPENAI_API_KEY) {
     return { success: false, error: 'OPENAI_API_KEY non configurée' };
@@ -89,7 +113,7 @@ async function callOpenAI(prompt: string, systemPrompt: string): Promise<{ succe
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt }
       ],
-      max_tokens: 4000,
+      max_tokens: maxTokens,
     }),
   });
 
@@ -105,7 +129,7 @@ async function callOpenAI(prompt: string, systemPrompt: string): Promise<{ succe
 }
 
 // Fonction pour appeler Mistral
-async function callMistral(prompt: string, systemPrompt: string): Promise<{ success: boolean; content?: string; error?: string }> {
+async function callMistral(prompt: string, systemPrompt: string, maxTokens: number = 8000): Promise<{ success: boolean; content?: string; error?: string }> {
   const MISTRAL_API_KEY = Deno.env.get('CLE_API_MISTRAL');
   if (!MISTRAL_API_KEY) {
     return { success: false, error: 'CLE_API_MISTRAL non configurée' };
@@ -125,7 +149,7 @@ async function callMistral(prompt: string, systemPrompt: string): Promise<{ succ
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt }
       ],
-      max_tokens: 4000,
+      max_tokens: maxTokens,
     }),
   });
 
@@ -141,28 +165,71 @@ async function callMistral(prompt: string, systemPrompt: string): Promise<{ succ
 }
 
 // Fonction avec fallback automatique
-async function callAIWithFallback(prompt: string, systemPrompt: string): Promise<{ success: boolean; content?: string; provider?: string; error?: string }> {
+async function callAIWithFallback(prompt: string, systemPrompt: string, maxTokens: number = 8000): Promise<{ success: boolean; content?: string; provider?: string; error?: string }> {
   // Essai 1: Lovable AI
-  let result = await callLovableAI(prompt, systemPrompt);
+  let result = await callLovableAI(prompt, systemPrompt, maxTokens);
   if (result.success) {
     return { ...result, provider: 'lovable-ai' };
   }
   console.log('⚠️ Lovable AI échec, tentative OpenAI...');
 
   // Essai 2: OpenAI
-  result = await callOpenAI(prompt, systemPrompt);
+  result = await callOpenAI(prompt, systemPrompt, maxTokens);
   if (result.success) {
     return { ...result, provider: 'openai' };
   }
   console.log('⚠️ OpenAI échec, tentative Mistral...');
 
   // Essai 3: Mistral
-  result = await callMistral(prompt, systemPrompt);
+  result = await callMistral(prompt, systemPrompt, maxTokens);
   if (result.success) {
     return { ...result, provider: 'mistral' };
   }
 
   return { success: false, error: 'Tous les providers AI ont échoué' };
+}
+
+// Parser JSON de manière sécurisée
+function parseAIResponse(content: string): any[] {
+  let cleanContent = content.trim();
+  if (cleanContent.startsWith('```json')) cleanContent = cleanContent.slice(7);
+  if (cleanContent.startsWith('```')) cleanContent = cleanContent.slice(3);
+  if (cleanContent.endsWith('```')) cleanContent = cleanContent.slice(0, -3);
+  cleanContent = cleanContent.trim();
+  
+  const parsed = JSON.parse(cleanContent);
+  
+  if (!Array.isArray(parsed)) {
+    throw new Error('La réponse n\'est pas un tableau');
+  }
+  
+  return parsed;
+}
+
+// Générer le prompt pour une zone spécifique
+function generatePrompt(zoneName: string, zoneCode: string, count: number, specificArea?: string): string {
+  const areaInfo = specificArea ? ` dans le quartier ${specificArea}` : '';
+  
+  return `Tu es un expert en réparation de smartphones en France. Génère une liste de ${count} boutiques de réparation de téléphones RÉELLES et UNIQUES pour ${zoneName}${areaInfo}.
+
+IMPORTANT: 
+- Génère des données réalistes avec des noms d'entreprises crédibles et variés
+- Utilise des adresses complètes avec numéros de rue DIFFÉRENTS
+- Les numéros de téléphone doivent être valides au format français
+- Évite les doublons de noms
+
+Pour chaque réparateur, fournis EXACTEMENT ce format JSON:
+{
+  "name": "Nom de la boutique (ex: Phone Repair Express, iDoctor, MobileFix, Dr Phone, etc.)",
+  "address": "Adresse complète avec numéro de rue (ex: 15 rue du Commerce)",
+  "postal_code": "${zoneCode}",
+  "city": "${zoneName}",
+  "phone": "Numéro au format 01 23 45 67 89 ou 06 12 34 56 78",
+  "services": ["Réparation écran", "Changement batterie", "Réparation connecteur"],
+  "description": "Description courte de la boutique (30 mots max)"
+}
+
+RETOURNE UNIQUEMENT un tableau JSON valide avec ${count} éléments UNIQUES, sans texte avant ou après, sans balises markdown.`;
 }
 
 serve(async (req) => {
@@ -174,7 +241,12 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { department_code, test_mode = false } = body;
+    const { 
+      department_code, 
+      test_mode = false,
+      count: requestedCount,
+      scrape_by_arrondissement = false // Nouveau paramètre pour Paris
+    } = body;
     
     if (!department_code) {
       return new Response(
@@ -184,9 +256,12 @@ serve(async (req) => {
     }
 
     const departmentName = DEPARTMENT_NAMES[department_code] || department_code;
-    const count = test_mode ? 5 : 15;
+    const isParis = department_code === '75';
+    
+    // Déterminer le nombre de résultats
+    let count = requestedCount || (test_mode ? 5 : 30); // Augmenté de 15 à 30 par défaut
 
-    console.log(`🚀 Génération IA pour ${departmentName} (${department_code}), mode test: ${test_mode}`);
+    console.log(`🚀 Génération IA pour ${departmentName} (${department_code}), mode test: ${test_mode}, count: ${count}`);
 
     // Créer le client Supabase
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -212,89 +287,118 @@ serve(async (req) => {
     }
 
     const logId = logData.id;
-
-    // Prompts
     const systemPrompt = 'Tu es un assistant qui génère uniquement du JSON valide sans aucun texte supplémentaire. Ne mets jamais de balises markdown comme ```json. Retourne directement le tableau JSON.';
     
-    const prompt = `Tu es un expert en réparation de smartphones en France. Génère une liste de ${count} boutiques de réparation de téléphones réalistes pour le département ${departmentName} (${department_code}).
+    let allRepairers: any[] = [];
 
-IMPORTANT: Génère des données réalistes avec des noms d'entreprises crédibles, des adresses complètes avec numéros de rue, et des numéros de téléphone valides au format français.
-
-Pour chaque réparateur, fournis EXACTEMENT ce format JSON:
-{
-  "name": "Nom de la boutique (ex: Phone Repair Express, iDoctor Paris, MobileFix)",
-  "address": "Adresse complète avec numéro de rue (ex: 15 rue du Commerce)",
-  "postal_code": "Code postal 5 chiffres commençant par ${department_code.substring(0, 2)}",
-  "city": "Ville du département ${departmentName}",
-  "phone": "Numéro au format 01 23 45 67 89 ou 06 12 34 56 78",
-  "services": ["Réparation écran", "Changement batterie", "Réparation connecteur"],
-  "description": "Description courte de la boutique (30 mots max)"
-}
-
-RETOURNE UNIQUEMENT un tableau JSON valide avec ${count} éléments, sans texte avant ou après, sans balises markdown.`;
-
-    // Appel AI avec fallback
-    const aiResult = await callAIWithFallback(prompt, systemPrompt);
-
-    if (!aiResult.success) {
-      await supabase
-        .from('scraping_logs')
-        .update({ status: 'failed', error_message: aiResult.error, completed_at: new Date().toISOString() })
-        .eq('id', logId);
+    // Pour Paris avec scraping par arrondissement
+    if (isParis && scrape_by_arrondissement) {
+      console.log('🗼 Mode Paris par arrondissements activé');
       
-      throw new Error(aiResult.error);
-    }
-
-    console.log(`✅ Réponse reçue de ${aiResult.provider}`);
-
-    // Parser le JSON
-    let repairers = [];
-    try {
-      let cleanContent = aiResult.content!.trim();
-      if (cleanContent.startsWith('```json')) cleanContent = cleanContent.slice(7);
-      if (cleanContent.startsWith('```')) cleanContent = cleanContent.slice(3);
-      if (cleanContent.endsWith('```')) cleanContent = cleanContent.slice(0, -3);
-      cleanContent = cleanContent.trim();
+      const countPerArrondissement = Math.ceil(count / 10); // On divise par 10 arrondissements sélectionnés
+      const selectedArrondissements = PARIS_ARRONDISSEMENTS.filter((_, i) => i % 2 === 0); // 10 arrondissements
       
-      repairers = JSON.parse(cleanContent);
-      
-      if (!Array.isArray(repairers)) {
-        throw new Error('La réponse n\'est pas un tableau');
+      for (const arr of selectedArrondissements) {
+        console.log(`📍 Scraping ${arr.name}...`);
+        
+        const prompt = generatePrompt(arr.name, arr.code, countPerArrondissement, arr.zone);
+        const aiResult = await callAIWithFallback(prompt, systemPrompt);
+        
+        if (aiResult.success) {
+          try {
+            const repairers = parseAIResponse(aiResult.content!);
+            console.log(`✅ ${repairers.length} réparateurs générés pour ${arr.name} via ${aiResult.provider}`);
+            
+            // Enrichir avec les infos de l'arrondissement
+            const enriched = repairers.map((r: any, index: number) => ({
+              name: r.name || `Réparateur ${arr.name} ${index + 1}`,
+              address: r.address || '',
+              city: arr.name,
+              postal_code: r.postal_code || arr.code,
+              phone: r.phone || '',
+              email: r.email || '',
+              website: r.website || '',
+              services: r.services || ['Réparation smartphone'],
+              description: r.description || '',
+              source: aiResult.provider,
+              arrondissement: arr.name,
+              logo_url: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(r.name || 'R')}`,
+            }));
+            
+            allRepairers.push(...enriched);
+          } catch (parseError) {
+            console.error(`❌ Erreur parsing pour ${arr.name}:`, parseError);
+          }
+        } else {
+          console.error(`❌ Échec génération pour ${arr.name}`);
+        }
+        
+        // Pause entre les appels pour éviter le rate limiting
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
-    } catch (parseError) {
-      console.error('❌ Erreur parsing JSON:', parseError);
-      
-      await supabase
-        .from('scraping_logs')
-        .update({ status: 'failed', error_message: 'Erreur parsing JSON', completed_at: new Date().toISOString() })
-        .eq('id', logId);
-      
-      throw new Error('Impossible de parser la réponse IA');
+    } else {
+      // Mode normal : un seul appel AI
+      const prompt = generatePrompt(departmentName, `${department_code}000`, count);
+      const aiResult = await callAIWithFallback(prompt, systemPrompt);
+
+      if (!aiResult.success) {
+        await supabase
+          .from('scraping_logs')
+          .update({ status: 'failed', error_message: aiResult.error, completed_at: new Date().toISOString() })
+          .eq('id', logId);
+        
+        throw new Error(aiResult.error);
+      }
+
+      console.log(`✅ Réponse reçue de ${aiResult.provider}`);
+
+      try {
+        const repairers = parseAIResponse(aiResult.content!);
+        
+        allRepairers = repairers.map((r: any, index: number) => ({
+          name: r.name || `Réparateur ${index + 1}`,
+          address: r.address || '',
+          city: r.city || departmentName,
+          postal_code: r.postal_code || `${department_code}000`,
+          phone: r.phone || '',
+          email: r.email || '',
+          website: r.website || '',
+          services: r.services || ['Réparation smartphone'],
+          description: r.description || '',
+          source: aiResult.provider,
+          logo_url: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(r.name || 'R')}`,
+        }));
+      } catch (parseError) {
+        console.error('❌ Erreur parsing JSON:', parseError);
+        
+        await supabase
+          .from('scraping_logs')
+          .update({ status: 'failed', error_message: 'Erreur parsing JSON', completed_at: new Date().toISOString() })
+          .eq('id', logId);
+        
+        throw new Error('Impossible de parser la réponse IA');
+      }
     }
 
-    // Enrichir les résultats
-    const enrichedResults = repairers.map((r: any, index: number) => ({
-      name: r.name || `Réparateur ${index + 1}`,
-      address: r.address || '',
-      city: r.city || departmentName,
-      postal_code: r.postal_code || `${department_code}000`,
-      phone: r.phone || '',
-      email: r.email || '',
-      website: r.website || '',
-      services: r.services || ['Réparation smartphone'],
-      description: r.description || '',
-      source: aiResult.provider,
-      logo_url: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(r.name || 'R')}`,
-    }));
+    // Dédupliquer par nom
+    const uniqueNames = new Set<string>();
+    const deduplicatedRepairers = allRepairers.filter(r => {
+      const nameLower = r.name.toLowerCase();
+      if (uniqueNames.has(nameLower)) {
+        return false;
+      }
+      uniqueNames.add(nameLower);
+      return true;
+    });
 
-    console.log(`✅ ${enrichedResults.length} réparateurs générés via ${aiResult.provider}`);
+    console.log(`✅ ${deduplicatedRepairers.length} réparateurs uniques générés (${allRepairers.length} avant déduplication)`);
 
     // Mettre à jour le log
     await supabase
       .from('scraping_logs')
       .update({ 
         status: 'preview', 
-        items_scraped: enrichedResults.length,
+        items_scraped: deduplicatedRepairers.length,
         completed_at: new Date().toISOString()
       })
       .eq('id', logId);
@@ -302,10 +406,10 @@ RETOURNE UNIQUEMENT un tableau JSON valide avec ${count} éléments, sans texte 
     return new Response(
       JSON.stringify({
         success: true,
-        results: enrichedResults,
-        total_found: enrichedResults.length,
+        results: deduplicatedRepairers,
+        total_found: deduplicatedRepairers.length,
         log_id: logId,
-        provider: aiResult.provider
+        provider: isParis && scrape_by_arrondissement ? 'multi-arrondissement' : 'single-call'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
