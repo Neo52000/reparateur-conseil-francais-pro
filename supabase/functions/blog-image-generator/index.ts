@@ -104,7 +104,7 @@ horizontal format 16:9, high quality, attention-grabbing but professional.`;
     let imageUrl: string | null = null;
     let usedProvider = '';
 
-    // 1️⃣ Essayer Lovable AI (Gemini Image)
+    // 1️⃣ Essayer Lovable AI (Gemini Image) avec modalities
     if (LOVABLE_API_KEY) {
       try {
         console.log('🔹 Trying Lovable AI (Gemini Image)...');
@@ -116,25 +116,36 @@ horizontal format 16:9, high quality, attention-grabbing but professional.`;
           },
           body: JSON.stringify({
             model: 'google/gemini-2.5-flash-image-preview',
-            messages: [{ role: 'user', content: enhancedPrompt }],
-            max_tokens: 1024
+            messages: [{ role: 'user', content: `Generate this image: ${enhancedPrompt}` }],
+            modalities: ['image', 'text']
           })
         });
 
         if (aiResponse.ok) {
           const aiData = await aiResponse.json();
-          imageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-          if (imageUrl) {
+          console.log('📸 Lovable AI response received');
+          
+          // Récupérer l'image base64 ou URL
+          const imageData = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+          if (imageData) {
+            imageUrl = imageData;
             usedProvider = 'Lovable AI (Gemini)';
-            console.log('✅ Lovable AI succeeded');
+            console.log('✅ Lovable AI succeeded - Image generated');
+          } else {
+            console.log('⚠️ Lovable AI: No image in response');
+            console.log('   Response structure:', JSON.stringify(aiData.choices?.[0]?.message, null, 2).substring(0, 500));
           }
-        } else if (aiResponse.status === 402) {
-          console.log('⚠️ Lovable AI: No credits, trying fallback...');
-        } else if (aiResponse.status === 429) {
-          console.log('⚠️ Lovable AI: Rate limited, trying fallback...');
+        } else {
+          const errorText = await aiResponse.text();
+          console.log(`⚠️ Lovable AI failed (${aiResponse.status}): ${errorText.substring(0, 200)}`);
+          if (aiResponse.status === 402) {
+            console.log('   → No credits available');
+          } else if (aiResponse.status === 429) {
+            console.log('   → Rate limited');
+          }
         }
       } catch (error) {
-        console.log('⚠️ Lovable AI failed:', error.message);
+        console.log('⚠️ Lovable AI exception:', error.message);
       }
     }
 
