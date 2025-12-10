@@ -2,13 +2,17 @@
 import React from 'react';
 import { MapContainer as LeafletMapContainer, TileLayer } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
-import { useMapStore } from '@/stores/mapStore';
+import { useMapStore, MapRepairer } from '@/stores/mapStore';
 import SimpleRepairerMarker from './SimpleRepairerMarker';
 import UserLocationMarker from './UserLocationMarker';
 import MapController from './MapController';
 import L from 'leaflet';
-import { RepairerWithCoordinates } from '@/types/repairer';
 import 'leaflet/dist/leaflet.css';
+
+// Type étendu pour les réparateurs avec coordonnées calculées
+interface MapRepairerWithCoordinates extends MapRepairer {
+  hasRealCoordinates?: boolean;
+}
 
 // Fix pour les markers Leaflet avec Vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -46,7 +50,7 @@ const RepairersMapContainer: React.FC = () => {
     console.log(`MapContainer: Processing ${repairers.length} repairers for display`);
     
     try {
-      return repairers.map((repairer, index): RepairerWithCoordinates => {
+      return repairers.map((repairer, index): MapRepairerWithCoordinates => {
         // Vérifier si le réparateur a des coordonnées valides
         const hasValidCoords = repairer.lat && 
                               repairer.lng && 

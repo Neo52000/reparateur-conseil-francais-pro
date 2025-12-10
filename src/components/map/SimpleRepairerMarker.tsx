@@ -1,12 +1,14 @@
-
 import React from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { RepairerWithCoordinates } from '@/types/repairer';
-import { useMapStore } from '@/stores/mapStore';
+import { useMapStore, MapRepairer } from '@/stores/mapStore';
+
+interface MapRepairerWithCoordinates extends MapRepairer {
+  hasRealCoordinates?: boolean;
+}
 
 interface SimpleRepairerMarkerProps {
-  repairer: RepairerWithCoordinates;
+  repairer: MapRepairerWithCoordinates;
 }
 
 /**
@@ -66,9 +68,6 @@ const SimpleRepairerMarker: React.FC<SimpleRepairerMarkerProps> = ({ repairer })
     }
   };
 
-  const displayPrice = repairer.price_range === 'low' ? '€' : 
-                     repairer.price_range === 'medium' ? '€€' : '€€€';
-
   try {
     return (
       <Marker
@@ -96,14 +95,13 @@ const SimpleRepairerMarker: React.FC<SimpleRepairerMarkerProps> = ({ repairer })
               <div className="flex items-center mb-2">
                 <span className="text-yellow-500 mr-1">★</span>
                 <span className="text-sm">
-                  {repairer.rating}/5 ({repairer.review_count || 0} avis)
+                  {repairer.rating}/5
                 </span>
               </div>
             )}
             
             <div className="text-sm space-y-1">
               <p><strong>Services:</strong> {repairer.services?.join(', ') || 'Réparation générale'}</p>
-              <p><strong>Prix:</strong> {displayPrice}</p>
               {repairer.phone && <p><strong>Téléphone:</strong> {repairer.phone}</p>}
               {repairer.email && <p><strong>Email:</strong> {repairer.email}</p>}
             </div>

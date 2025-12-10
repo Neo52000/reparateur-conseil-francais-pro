@@ -1,20 +1,39 @@
-
 import { create } from 'zustand';
-import { Repairer } from '@/types/repairer';
+
+// Type simplifié pour le store de la carte - compatible avec les données réelles
+export interface MapRepairer {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  postal_code?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  description?: string;
+  services?: string[];
+  rating?: number;
+  lat?: number | null;
+  lng?: number | null;
+  is_verified?: boolean;
+  logo_url?: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 interface MapState {
   center: [number, number];
   zoom: number;
-  repairers: Repairer[];
-  selectedRepairer: Repairer | null;
+  repairers: MapRepairer[];
+  selectedRepairer: MapRepairer | null;
   userLocation: [number, number] | null;
   isLoading: boolean;
   
   // Actions
   setCenter: (center: [number, number]) => void;
   setZoom: (zoom: number) => void;
-  setRepairers: (repairers: Repairer[]) => void;
-  setSelectedRepairer: (repairer: Repairer | null) => void;
+  setRepairers: (repairers: MapRepairer[]) => void;
+  setSelectedRepairer: (repairer: MapRepairer | null) => void;
   setUserLocation: (location: [number, number] | null) => void;
   setLoading: (loading: boolean) => void;
   reset: () => void;
@@ -23,9 +42,9 @@ interface MapState {
 const initialState = {
   center: [46.8566, 2.3522] as [number, number], // France center
   zoom: 6,
-  repairers: [],
-  selectedRepairer: null,
-  userLocation: null,
+  repairers: [] as MapRepairer[],
+  selectedRepairer: null as MapRepairer | null,
+  userLocation: null as [number, number] | null,
   isLoading: false,
 };
 

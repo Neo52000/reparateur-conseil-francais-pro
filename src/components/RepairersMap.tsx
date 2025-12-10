@@ -28,11 +28,33 @@ const RepairersMap: React.FC<RepairersMapProps> = ({ searchFilters }) => {
   const { setRepairers, selectedRepairer, setSelectedRepairer } = useMapStore();
   const { userLocation, isLocating, isAutoLocating, getUserLocation, getLocationAutomatically } = useGeolocation();
 
-  // Update store when repairers data changes
+  // Update store when repairers data changes - IMPORTANT pour afficher sur la carte
   useEffect(() => {
-    // setRepairers(repairers); // Temporairement désactivé pour éviter conflit de types
+    if (repairers.length > 0) {
+      // Convertir les réparateurs pour le store de la carte
+      const mapRepairers = repairers.map(r => ({
+        id: r.id,
+        name: r.name,
+        address: r.address,
+        city: r.city,
+        postal_code: r.postal_code,
+        phone: r.phone,
+        email: r.email,
+        website: r.website,
+        description: r.description,
+        services: r.services,
+        rating: r.rating,
+        lat: r.lat,
+        lng: r.lng,
+        is_verified: r.is_verified,
+        logo_url: '',
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+      }));
+      setRepairers(mapRepairers);
+    }
     setResultsCount(repairers.length);
-  }, [repairers, setResultsCount]);
+  }, [repairers, setRepairers, setResultsCount]);
 
   // Handle automatic location detection
   useEffect(() => {
