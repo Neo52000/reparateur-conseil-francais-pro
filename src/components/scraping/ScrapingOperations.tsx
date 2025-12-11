@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAdminAuditIntegration } from '@/hooks/useAdminAuditIntegration';
 import { useToast } from '@/hooks/use-toast';
-import { Play, Square, RotateCcw, Database, AlertTriangle } from 'lucide-react';
+import { Play, Square, RotateCcw, Database, AlertTriangle, MapPin } from 'lucide-react';
 
 interface ScrapingOperationsProps {
   onRefresh: () => void;
@@ -166,6 +166,32 @@ const ScrapingOperations: React.FC<ScrapingOperationsProps> = ({ onRefresh }) =>
     }
   };
 
+  const handleGeocodeRepairers = async () => {
+    setLoading('geocode');
+    try {
+      const { data, error } = await supabase.functions.invoke('geocode-repairers', {
+        body: { limit: 50 }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Géocodage terminé",
+        description: data?.message || `${data?.geocoded || 0} réparateurs géocodés`,
+      });
+
+      onRefresh();
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de géocoder les réparateurs",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(null);
+    }
+  };
+
   const getStatusBadge = () => {
     switch (scrapingStatus) {
       case 'running':
@@ -249,6 +275,15 @@ const ScrapingOperations: React.FC<ScrapingOperationsProps> = ({ onRefresh }) =>
                 >
                   <RotateCcw className="mr-2 h-4 w-4" />
                   {loading === 'reset' ? 'Réinitialisation...' : 'Réinitialiser système'}
+                </Button>
+                <Button
+                  onClick={handleGeocodeRepairers}
+                  disabled={loading !== null}
+                  className="w-full"
+                  variant="default"
+                >
+                  <MapPin className="mr-2 h-4 w-4" />
+                  {loading === 'geocode' ? 'Géocodage...' : 'Géocoder réparateurs (carte)'}
                 </Button>
               </div>
             </div>

@@ -12,6 +12,38 @@ interface ValidateRequest {
   results: any[];
 }
 
+// Fonction de géocodage via Nominatim
+async function geocodeAddress(address: string, city: string, postalCode: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const query = encodeURIComponent(`${address || ''} ${postalCode} ${city}, France`);
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`,
+      {
+        headers: {
+          'User-Agent': 'TopReparateurs/1.0'
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      console.log(`⚠️ Nominatim error: ${response.status}`);
+      return null;
+    }
+    
+    const data = await response.json();
+    if (data && data.length > 0) {
+      return {
+        lat: parseFloat(data[0].lat),
+        lng: parseFloat(data[0].lon)
+      };
+    }
+    return null;
+  } catch (error) {
+    console.log(`⚠️ Geocoding error:`, error);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -80,6 +112,22 @@ serve(async (req) => {
         }
 
         if (existing) {
+          // Géocoder si pas de coordonnées
+          let lat = repairer.latitude || repairer.lat || null;
+          let lng = repairer.longitude || repairer.lng || null;
+          
+          if (!lat || !lng) {
+            console.log(`🗺️ Géocodage pour mise à jour: ${repairer.name}`);
+            const coords = await geocodeAddress(repairer.address, repairer.city, repairer.postal_code);
+            if (coords) {
+              lat = coords.lat;
+              lng = coords.lng;
+              console.log(`📍 Coordonnées trouvées: ${lat}, ${lng}`);
+            }
+            // Pause pour respecter le rate limit de Nominatim
+            await new Promise(resolve => setTimeout(resolve, 1100));
+          }
+          
           // Mettre à jour
           const { error: updateError } = await supabase
             .from('repairers')
@@ -89,8 +137,8 @@ serve(async (req) => {
               phone: repairer.phone || null,
               email: repairer.email || null,
               website: repairer.website || null,
-              lat: repairer.latitude || repairer.lat || null,
-              lng: repairer.longitude || repairer.lng || null,
+              lat,
+              lng,
               description: repairer.description || null,
               services: repairer.services || [],
               updated_at: new Date().toISOString(),
@@ -105,7 +153,23 @@ serve(async (req) => {
             console.log(`🔄 Mis à jour: ${repairer.name}`);
           }
         } else {
-          // Insérer nouveau - colonnes valides: name, address, city, postal_code, phone, email, website, lat, lng, description, services, source, is_verified
+          // Géocoder avant insertion
+          let lat = repairer.latitude || repairer.lat || null;
+          let lng = repairer.longitude || repairer.lng || null;
+          
+          if (!lat || !lng) {
+            console.log(`🗺️ Géocodage pour insertion: ${repairer.name}`);
+            const coords = await geocodeAddress(repairer.address, repairer.city, repairer.postal_code);
+            if (coords) {
+              lat = coords.lat;
+              lng = coords.lng;
+              console.log(`📍 Coordonnées trouvées: ${lat}, ${lng}`);
+            }
+            // Pause pour respecter le rate limit de Nominatim
+            await new Promise(resolve => setTimeout(resolve, 1100));
+          }
+          
+          // Insérer nouveau
           const { error: insertError } = await supabase
             .from('repairers')
             .insert({
@@ -116,8 +180,8 @@ serve(async (req) => {
               phone: repairer.phone || null,
               email: repairer.email || null,
               website: repairer.website || null,
-              lat: repairer.latitude || repairer.lat || null,
-              lng: repairer.longitude || repairer.lng || null,
+              lat,
+              lng,
               description: repairer.description || null,
               services: repairer.services || [],
               source: repairer.source || 'ai_scraping',

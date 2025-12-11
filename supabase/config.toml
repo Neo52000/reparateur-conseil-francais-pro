@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.blog-schedules]
 verify_jwt = false
+
+[functions.geocode-repairers]
+verify_jwt = false
