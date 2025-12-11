@@ -89,9 +89,8 @@ serve(async (req) => {
               phone: repairer.phone || null,
               email: repairer.email || null,
               website: repairer.website || null,
-              logo_url: repairer.logo_url || null,
-              lat: repairer.latitude || null,
-              lng: repairer.longitude || null,
+              lat: repairer.latitude || repairer.lat || null,
+              lng: repairer.longitude || repairer.lng || null,
               description: repairer.description || null,
               services: repairer.services || [],
               updated_at: new Date().toISOString(),
@@ -106,7 +105,7 @@ serve(async (req) => {
             console.log(`🔄 Mis à jour: ${repairer.name}`);
           }
         } else {
-          // Insérer nouveau
+          // Insérer nouveau - colonnes valides: name, address, city, postal_code, phone, email, website, lat, lng, description, services, source, is_verified
           const { error: insertError } = await supabase
             .from('repairers')
             .insert({
@@ -117,9 +116,8 @@ serve(async (req) => {
               phone: repairer.phone || null,
               email: repairer.email || null,
               website: repairer.website || null,
-              logo_url: repairer.logo_url || null,
-              lat: repairer.latitude || null,
-              lng: repairer.longitude || null,
+              lat: repairer.latitude || repairer.lat || null,
+              lng: repairer.longitude || repairer.lng || null,
               description: repairer.description || null,
               services: repairer.services || [],
               source: repairer.source || 'ai_scraping',
