@@ -90,8 +90,8 @@ serve(async (req) => {
               email: repairer.email || null,
               website: repairer.website || null,
               logo_url: repairer.logo_url || null,
-              latitude: repairer.latitude || null,
-              longitude: repairer.longitude || null,
+              lat: repairer.latitude || null,
+              lng: repairer.longitude || null,
               description: repairer.description || null,
               services: repairer.services || [],
               updated_at: new Date().toISOString(),
@@ -118,13 +118,12 @@ serve(async (req) => {
               email: repairer.email || null,
               website: repairer.website || null,
               logo_url: repairer.logo_url || null,
-              latitude: repairer.latitude || null,
-              longitude: repairer.longitude || null,
+              lat: repairer.latitude || null,
+              lng: repairer.longitude || null,
               description: repairer.description || null,
               services: repairer.services || [],
               source: repairer.source || 'ai_scraping',
               is_verified: false,
-              is_active: true,
             });
 
           if (insertError) {
