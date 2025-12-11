@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Clock, Trash2 } from 'lucide-react';
 import { useScrapingStatus } from '@/hooks/scraping/useScrapingStatus';
 import { useHistoryCleanup } from '@/hooks/useHistoryCleanup';
 import { getLogsToDelete } from './utils/cleanupUtils';
@@ -12,13 +12,21 @@ import HistoryStats from './components/HistoryStats';
 
 const ScrapingHistoryManager = () => {
   const { logs, loading, refetch } = useScrapingStatus();
-  const { isCleaningUp, performCleanup } = useHistoryCleanup();
+  const { isCleaningUp, performCleanup, deleteAllHistory } = useHistoryCleanup();
   const [cleanupFilter, setCleanupFilter] = useState<string>('older_than_week');
 
   const logsToDelete = getLogsToDelete(logs, cleanupFilter);
 
   const handleCleanup = async () => {
     const success = await performCleanup(cleanupFilter, logsToDelete.length);
+    if (success) {
+      await refetch();
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (logs.length === 0) return;
+    const success = await deleteAllHistory();
     if (success) {
       await refetch();
     }
@@ -32,9 +40,20 @@ const ScrapingHistoryManager = () => {
             <Clock className="h-5 w-5 mr-2" />
             Gestion de l'Historique
           </div>
-          <Badge variant="outline">
-            {logs.length} logs total
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline">
+              {logs.length} logs total
+            </Badge>
+            <Button 
+              variant="destructive" 
+              size="sm"
+              onClick={handleDeleteAll}
+              disabled={isCleaningUp || logs.length === 0}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Tout supprimer
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
