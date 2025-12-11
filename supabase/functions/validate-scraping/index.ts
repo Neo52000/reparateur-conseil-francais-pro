@@ -7,9 +7,9 @@ const corsHeaders = {
 };
 
 interface ValidateRequest {
-  log_id: string;
-  selected_ids: number[]; // indices des résultats à insérer
-  results: any[]; // résultats du scraping
+  log_id?: string;
+  selected_ids: number[];
+  results: any[];
 }
 
 serve(async (req) => {
@@ -22,89 +22,146 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { log_id, selected_ids, results }: ValidateRequest = await req.json();
+    const body = await req.json();
+    const { log_id, selected_ids, results }: ValidateRequest = body;
 
-    console.log(`✅ Validation de ${selected_ids.length} réparateurs sur ${results.length}`);
+    console.log('📥 Requête reçue:', {
+      log_id: log_id || 'non fourni',
+      selected_ids_count: selected_ids?.length || 0,
+      results_count: results?.length || 0
+    });
+
+    if (!selected_ids || selected_ids.length === 0) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Aucun réparateur sélectionné' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!results || results.length === 0) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Aucun résultat fourni' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Filtrer les résultats sélectionnés
-    const selectedResults = selected_ids.map(id => results[id]).filter(Boolean);
+    const selectedResults = selected_ids
+      .map(id => results[id])
+      .filter(Boolean);
+
+    console.log(`✅ Validation de ${selectedResults.length} réparateurs`);
 
     let itemsAdded = 0;
     let itemsUpdated = 0;
+    const errors: string[] = [];
 
     for (const repairer of selectedResults) {
-      // Vérifier si le réparateur existe déjà (par nom et code postal)
-      const { data: existing } = await supabase
-        .from('repairers')
-        .select('id')
-        .eq('name', repairer.name)
-        .eq('postal_code', repairer.postal_code)
-        .single();
+      try {
+        // Validation des données minimales
+        if (!repairer.name || !repairer.postal_code) {
+          console.log(`⚠️ Données incomplètes pour: ${repairer.name || 'inconnu'}`);
+          errors.push(`Données incomplètes: ${repairer.name || 'inconnu'}`);
+          continue;
+        }
 
-      if (existing) {
-        // Mettre à jour
-        const { error: updateError } = await supabase
+        // Vérifier si le réparateur existe déjà (par nom et code postal)
+        const { data: existing, error: selectError } = await supabase
           .from('repairers')
-          .update({
-            address: repairer.address,
-            city: repairer.city,
-            phone: repairer.phone,
-            email: repairer.email,
-            website: repairer.website,
-            logo_url: repairer.logo_url,
-            latitude: repairer.latitude,
-            longitude: repairer.longitude,
-            description: repairer.description,
-            services: repairer.services,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existing.id);
+          .select('id')
+          .eq('name', repairer.name.trim())
+          .eq('postal_code', repairer.postal_code.trim())
+          .maybeSingle();
 
-        if (!updateError) itemsUpdated++;
-      } else {
-        // Insérer nouveau
-        const { error: insertError } = await supabase
-          .from('repairers')
-          .insert({
-            name: repairer.name,
-            address: repairer.address,
-            city: repairer.city,
-            postal_code: repairer.postal_code,
-            phone: repairer.phone,
-            email: repairer.email,
-            website: repairer.website,
-            logo_url: repairer.logo_url,
-            latitude: repairer.latitude,
-            longitude: repairer.longitude,
-            description: repairer.description,
-            services: repairer.services,
-            source: repairer.source,
-            is_verified: false,
-            is_active: true,
-          });
+        if (selectError) {
+          console.log(`⚠️ Erreur SELECT pour ${repairer.name}:`, selectError.message);
+          errors.push(`Erreur recherche: ${repairer.name}`);
+          continue;
+        }
 
-        if (!insertError) itemsAdded++;
+        if (existing) {
+          // Mettre à jour
+          const { error: updateError } = await supabase
+            .from('repairers')
+            .update({
+              address: repairer.address || null,
+              city: repairer.city || null,
+              phone: repairer.phone || null,
+              email: repairer.email || null,
+              website: repairer.website || null,
+              logo_url: repairer.logo_url || null,
+              latitude: repairer.latitude || null,
+              longitude: repairer.longitude || null,
+              description: repairer.description || null,
+              services: repairer.services || [],
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existing.id);
+
+          if (updateError) {
+            console.log(`⚠️ Erreur UPDATE pour ${repairer.name}:`, updateError.message);
+            errors.push(`Erreur mise à jour: ${repairer.name}`);
+          } else {
+            itemsUpdated++;
+            console.log(`🔄 Mis à jour: ${repairer.name}`);
+          }
+        } else {
+          // Insérer nouveau
+          const { error: insertError } = await supabase
+            .from('repairers')
+            .insert({
+              name: repairer.name.trim(),
+              address: repairer.address || null,
+              city: repairer.city || null,
+              postal_code: repairer.postal_code.trim(),
+              phone: repairer.phone || null,
+              email: repairer.email || null,
+              website: repairer.website || null,
+              logo_url: repairer.logo_url || null,
+              latitude: repairer.latitude || null,
+              longitude: repairer.longitude || null,
+              description: repairer.description || null,
+              services: repairer.services || [],
+              source: repairer.source || 'ai_scraping',
+              is_verified: false,
+              is_active: true,
+            });
+
+          if (insertError) {
+            console.log(`⚠️ Erreur INSERT pour ${repairer.name}:`, insertError.message);
+            errors.push(`Erreur insertion: ${repairer.name} - ${insertError.message}`);
+          } else {
+            itemsAdded++;
+            console.log(`✨ Ajouté: ${repairer.name}`);
+          }
+        }
+      } catch (repairerError: any) {
+        console.log(`⚠️ Exception pour ${repairer?.name}:`, repairerError.message);
+        errors.push(`Exception: ${repairer?.name || 'inconnu'}`);
       }
     }
 
-    // Mettre à jour le log
-    await supabase
-      .from('scraping_logs')
-      .update({
-        status: 'completed',
-        items_added: itemsAdded,
-        items_updated: itemsUpdated,
-        completed_at: new Date().toISOString(),
-      })
-      .eq('id', log_id);
+    // Mettre à jour le log si fourni
+    if (log_id) {
+      await supabase
+        .from('scraping_logs')
+        .update({
+          status: 'completed',
+          items_added: itemsAdded,
+          items_updated: itemsUpdated,
+          completed_at: new Date().toISOString(),
+        })
+        .eq('id', log_id);
+    }
 
-    console.log(`📊 Résultat: ${itemsAdded} ajoutés, ${itemsUpdated} mis à jour`);
+    console.log(`📊 Résultat final: ${itemsAdded} ajoutés, ${itemsUpdated} mis à jour, ${errors.length} erreurs`);
 
     return new Response(
       JSON.stringify({
         success: true,
         items_added: itemsAdded,
         items_updated: itemsUpdated,
+        errors: errors.length > 0 ? errors : undefined,
         message: `${itemsAdded} réparateurs ajoutés, ${itemsUpdated} mis à jour`,
       }),
       {
@@ -112,7 +169,7 @@ serve(async (req) => {
       }
     );
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Erreur validation:', error);
     return new Response(
       JSON.stringify({
