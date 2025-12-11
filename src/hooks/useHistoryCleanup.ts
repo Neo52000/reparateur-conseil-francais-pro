@@ -67,8 +67,39 @@ export const useHistoryCleanup = () => {
     }
   };
 
+  const deleteAllHistory = async () => {
+    setIsCleaningUp(true);
+    
+    try {
+      const { error } = await supabase
+        .from('scraping_logs')
+        .delete()
+        .gte('created_at', '1970-01-01');
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Historique supprimé",
+        description: "Tout l'historique de scraping a été supprimé."
+      });
+      
+      return true;
+    } catch (error: any) {
+      console.error('Erreur lors de la suppression:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de supprimer l'historique.",
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setIsCleaningUp(false);
+    }
+  };
+
   return {
     isCleaningUp,
-    performCleanup
+    performCleanup,
+    deleteAllHistory
   };
 };
