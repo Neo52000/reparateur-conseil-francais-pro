@@ -25,34 +25,53 @@ const SimpleRepairerMarker: React.FC<SimpleRepairerMarkerProps> = ({ repairer })
     return null;
   }
 
-  // Icône différente selon si les coordonnées sont réelles ou approximatives
+  // Icône différente selon le tier et si les coordonnées sont réelles ou approximatives
   const createIcon = () => {
     try {
       const hasRealCoords = repairer.hasRealCoordinates !== false;
-      const color = hasRealCoords ? '#3b82f6' : '#f59e0b'; // Bleu pour réel, orange pour approximatif
-      const emoji = hasRealCoords ? '📱' : '📍';
+      const tier = (repairer as any).subscription_tier || 'free';
+      const isPremium = tier === 'premium' || tier === 'enterprise';
+      
+      // Couleurs selon le tier
+      let color = '#3b82f6'; // Bleu par défaut
+      let emoji = '📱';
+      let size = 28;
+      
+      if (!hasRealCoords) {
+        color = '#f59e0b'; // Orange pour approximatif
+        emoji = '📍';
+      } else if (tier === 'enterprise') {
+        color = '#f59e0b'; // Or pour enterprise
+        emoji = '⭐';
+        size = 34;
+      } else if (tier === 'premium') {
+        color = '#10b981'; // Vert primary pour premium
+        emoji = '✓';
+        size = 32;
+      }
       
       return L.divIcon({
         html: `
           <div style="
             background: ${color}; 
-            width: 24px; 
-            height: 24px; 
+            width: ${size}px; 
+            height: ${size}px; 
             border-radius: 50%; 
             border: 3px solid white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            font-size: ${isPremium ? '14px' : '12px'};
+            box-shadow: 0 2px 8px rgba(0,0,0,${isPremium ? '0.3' : '0.2'});
+            ${isPremium ? 'animation: pulse 2s infinite;' : ''}
           ">
             ${emoji}
           </div>
         `,
-        className: 'simple-marker',
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-        popupAnchor: [0, -12]
+        className: `simple-marker ${isPremium ? 'premium-marker' : ''}`,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+        popupAnchor: [0, -size / 2]
       });
     } catch (error) {
       console.warn('Erreur création icône, utilisation par défaut');

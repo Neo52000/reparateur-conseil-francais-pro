@@ -357,3 +357,19 @@
   transform: translateY(-1px);
   box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.08);
 }
+
+/* Animation pulse pour les marqueurs premium sur la carte */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.premium-marker {
+  z-index: 1000 !important;
+}

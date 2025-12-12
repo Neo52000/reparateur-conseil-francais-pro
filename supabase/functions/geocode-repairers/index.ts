@@ -7,34 +7,55 @@ const corsHeaders = {
 };
 
 async function geocodeAddress(address: string, city: string, postalCode: string): Promise<{ lat: number; lng: number } | null> {
-  try {
-    const query = encodeURIComponent(`${address || ''} ${postalCode} ${city}, France`);
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`,
-      {
-        headers: {
-          'User-Agent': 'TopReparateurs/1.0'
+  // Essayer plusieurs formats de requête pour améliorer la précision
+  const queries = [
+    // Format 1: Adresse complète avec code postal
+    `${address}, ${postalCode} ${city}, France`,
+    // Format 2: Juste code postal et ville (plus fiable si l'adresse est mal formatée)
+    `${postalCode} ${city}, France`,
+    // Format 3: Ville seule avec département
+    `${city}, ${postalCode?.substring(0, 2) || ''}, France`,
+  ];
+
+  for (const queryStr of queries) {
+    try {
+      const query = encodeURIComponent(queryStr.replace(/\s+/g, ' ').trim());
+      console.log(`🔍 Tentative géocodage: ${queryStr}`);
+      
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=fr`,
+        {
+          headers: {
+            'User-Agent': 'TopReparateurs/1.0 (contact@topreparateurs.fr)'
+          }
         }
+      );
+      
+      if (!response.ok) {
+        console.log(`⚠️ Nominatim error: ${response.status}`);
+        await new Promise(resolve => setTimeout(resolve, 1100));
+        continue;
       }
-    );
-    
-    if (!response.ok) {
-      console.log(`⚠️ Nominatim error: ${response.status}`);
-      return null;
+      
+      const data = await response.json();
+      if (data && data.length > 0) {
+        const result = {
+          lat: parseFloat(data[0].lat),
+          lng: parseFloat(data[0].lon)
+        };
+        console.log(`✅ Trouvé: ${result.lat}, ${result.lng} pour "${queryStr}"`);
+        return result;
+      }
+      
+      // Pause avant la prochaine tentative
+      await new Promise(resolve => setTimeout(resolve, 1100));
+    } catch (error) {
+      console.log(`⚠️ Geocoding error for "${queryStr}":`, error);
+      await new Promise(resolve => setTimeout(resolve, 1100));
     }
-    
-    const data = await response.json();
-    if (data && data.length > 0) {
-      return {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon)
-      };
-    }
-    return null;
-  } catch (error) {
-    console.log(`⚠️ Geocoding error:`, error);
-    return null;
   }
+  
+  return null;
 }
 
 serve(async (req) => {
