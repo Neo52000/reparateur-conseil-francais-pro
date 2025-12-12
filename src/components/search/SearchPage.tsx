@@ -134,7 +134,7 @@ const SearchPage = () => {
         )}
         
         {viewMode === 'map' ? (
-          <EnhancedRepairersMap searchFilters={searchFilters} />
+          <EnhancedRepairersMap searchFilters={searchFilters} repairers={repairers} />
         ) : (
           <RepairersList filters={searchFilters} />
         )}

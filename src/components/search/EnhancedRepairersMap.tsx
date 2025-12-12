@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useRepairerSearch } from '@/hooks/useRepairerSearch';
 import { useMapStore } from '@/stores/mapStore';
+import type { Repairer } from '@/types/repairer';
 import RepairersMapContainer from '../map/MapContainer';
 import QuoteRequestModal from '@/components/modals/QuoteRequestModal';
 import AppointmentModal from '@/components/modals/AppointmentModal';
@@ -15,11 +16,14 @@ import { X } from 'lucide-react';
 interface EnhancedRepairersMapProps {
   onClose?: () => void;
   searchFilters?: any;
+  // Permet d'injecter directement les réparateurs déjà chargés (ex: page de recherche principale)
+  repairers?: Repairer[];
 }
 
 const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({ 
   onClose, 
-  searchFilters 
+  searchFilters,
+  repairers: overrideRepairers,
 }) => {
   const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
   const [showQuoteModal, setShowQuoteModal] = useState(false);
@@ -27,19 +31,20 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [selectedRepairer, setSelectedRepairer] = useState<any>(null);
 
-  const { results: repairers, loading, searchRepairers } = useRepairerSearch();
+  const { results: searchedRepairers, loading, searchRepairers } = useRepairerSearch();
+  const effectiveRepairers = overrideRepairers ?? searchedRepairers;
   const { setRepairers, selectedRepairer: mapSelectedRepairer } = useMapStore();
   const { userLocation, getUserLocation } = useGeolocation();
 
   useEffect(() => {
-    if (searchFilters?.deviceModelId && searchFilters?.repairTypeId) {
+    if (!overrideRepairers && searchFilters?.deviceModelId && searchFilters?.repairTypeId) {
       searchRepairers(searchFilters);
     }
-  }, [searchFilters, searchRepairers]);
+  }, [overrideRepairers, searchFilters, searchRepairers]);
 
   useEffect(() => {
-    setRepairers(repairers);
-  }, [repairers, setRepairers]);
+    setRepairers(effectiveRepairers);
+  }, [effectiveRepairers, setRepairers]);
 
   useEffect(() => {
     if (mapSelectedRepairer) {
@@ -89,7 +94,7 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
       </div>
 
       {/* Compteur de résultats */}
-      <MapResultsCounter count={repairers.length} />
+      <MapResultsCounter count={effectiveRepairers.length} />
 
       {/* Panneau flottant en bas */}
       {selectedRepairer && (
