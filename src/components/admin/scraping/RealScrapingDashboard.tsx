@@ -9,7 +9,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Play, RefreshCw, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Eye, Save, Phone, Globe, Building2, Trash2, Settings2, ChevronDown } from 'lucide-react';
+import { Play, RefreshCw, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Eye, Save, Phone, Globe, Building2, Trash2, Settings2, ChevronDown, Brain, Zap, Star, Sparkles } from 'lucide-react';
+
+// Options d'IA disponibles pour le scraping
+const AI_OPTIONS = [
+  { id: 'lovable', name: 'Lovable AI (Gemini)', icon: Sparkles, description: 'IA par défaut, rapide' },
+  { id: 'openai', name: 'OpenAI GPT', icon: Star, description: 'Très précis' },
+  { id: 'mistral', name: 'Mistral AI', icon: Brain, description: 'IA française' },
+];
 
 interface ScrapingLog {
   id: string;
@@ -209,6 +216,7 @@ const RealScrapingDashboard: React.FC = () => {
   const [deletingHistory, setDeletingHistory] = useState(false);
   const [customPrompt, setCustomPrompt] = useState(DEFAULT_PROMPT);
   const [promptOpen, setPromptOpen] = useState(false);
+  const [selectedAI, setSelectedAI] = useState('lovable');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -282,7 +290,9 @@ const RealScrapingDashboard: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('ai-scrape-repairers', {
         body: {
           department_code: selectedDepartment,
-          test_mode: testMode
+          test_mode: testMode,
+          ai_provider: selectedAI,
+          custom_prompt: customPrompt !== DEFAULT_PROMPT ? customPrompt : undefined
         }
       });
 
@@ -515,18 +525,36 @@ const RealScrapingDashboard: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-end">
-              <div className="flex items-center gap-2">
-                <Checkbox 
-                  id="testMode" 
-                  checked={testMode} 
-                  onCheckedChange={(checked) => setTestMode(checked === true)}
-                />
-                <label htmlFor="testMode" className="text-sm font-medium cursor-pointer">
-                  Mode test (limité)
-                </label>
-              </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">IA utilisée</label>
+              <Select value={selectedAI} onValueChange={setSelectedAI}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {AI_OPTIONS.map(ai => (
+                    <SelectItem key={ai.id} value={ai.id}>
+                      <span className="flex items-center gap-2">
+                        <ai.icon className="h-4 w-4" />
+                        {ai.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+          </div>
+
+          {/* Mode test */}
+          <div className="flex items-center gap-2">
+            <Checkbox 
+              id="testMode" 
+              checked={testMode} 
+              onCheckedChange={(checked) => setTestMode(checked === true)}
+            />
+            <label htmlFor="testMode" className="text-sm font-medium cursor-pointer">
+              Mode test (limité à ~15 résultats)
+            </label>
           </div>
 
           {/* Éditeur de prompt */}
