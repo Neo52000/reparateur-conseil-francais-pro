@@ -164,27 +164,84 @@ async function callMistral(prompt: string, systemPrompt: string, maxTokens: numb
   return content ? { success: true, content } : { success: false, error: 'Réponse vide' };
 }
 
-// Fonction avec fallback automatique
-async function callAIWithFallback(prompt: string, systemPrompt: string, maxTokens: number = 8000): Promise<{ success: boolean; content?: string; provider?: string; error?: string }> {
-  // Essai 1: Lovable AI
-  let result = await callLovableAI(prompt, systemPrompt, maxTokens);
-  if (result.success) {
-    return { ...result, provider: 'lovable-ai' };
+// Fonction pour appeler Gemini Pro directement
+async function callGeminiPro(prompt: string, systemPrompt: string): Promise<{ success: boolean; content?: string; error?: string }> {
+  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+  if (!GEMINI_API_KEY) {
+    return { success: false, error: 'GEMINI_API_KEY non configurée' };
   }
-  console.log('⚠️ Lovable AI échec, tentative OpenAI...');
 
-  // Essai 2: OpenAI
-  result = await callOpenAI(prompt, systemPrompt, maxTokens);
-  if (result.success) {
-    return { ...result, provider: 'openai' };
+  console.log('🤖 Tentative avec Gemini Pro...');
+  
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{ text: `${systemPrompt}\n\n${prompt}` }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 8000,
+      }
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ Erreur Gemini Pro:', response.status, errorText);
+    return { success: false, error: `Gemini Pro error: ${response.status}` };
   }
+
+  const data = await response.json();
+  const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  return content ? { success: true, content } : { success: false, error: 'Réponse vide' };
+}
+
+// Fonction avec provider spécifique ou fallback automatique
+async function callAIWithFallback(prompt: string, systemPrompt: string, maxTokens: number = 8000, preferredProvider?: string): Promise<{ success: boolean; content?: string; provider?: string; error?: string }> {
+  // Si un provider spécifique est demandé
+  if (preferredProvider) {
+    let result;
+    switch (preferredProvider) {
+      case 'gemini':
+        result = await callGeminiPro(prompt, systemPrompt);
+        if (result.success) return { ...result, provider: 'gemini-pro' };
+        break;
+      case 'openai':
+        result = await callOpenAI(prompt, systemPrompt, maxTokens);
+        if (result.success) return { ...result, provider: 'openai' };
+        break;
+      case 'mistral':
+        result = await callMistral(prompt, systemPrompt, maxTokens);
+        if (result.success) return { ...result, provider: 'mistral' };
+        break;
+      case 'lovable':
+      default:
+        result = await callLovableAI(prompt, systemPrompt, maxTokens);
+        if (result.success) return { ...result, provider: 'lovable-ai' };
+        break;
+    }
+    console.log(`⚠️ Provider ${preferredProvider} échec, tentative fallback...`);
+  }
+
+  // Fallback automatique
+  let result = await callLovableAI(prompt, systemPrompt, maxTokens);
+  if (result.success) return { ...result, provider: 'lovable-ai' };
+  console.log('⚠️ Lovable AI échec, tentative Gemini Pro...');
+
+  result = await callGeminiPro(prompt, systemPrompt);
+  if (result.success) return { ...result, provider: 'gemini-pro' };
+  console.log('⚠️ Gemini Pro échec, tentative OpenAI...');
+
+  result = await callOpenAI(prompt, systemPrompt, maxTokens);
+  if (result.success) return { ...result, provider: 'openai' };
   console.log('⚠️ OpenAI échec, tentative Mistral...');
 
-  // Essai 3: Mistral
   result = await callMistral(prompt, systemPrompt, maxTokens);
-  if (result.success) {
-    return { ...result, provider: 'mistral' };
-  }
+  if (result.success) return { ...result, provider: 'mistral' };
 
   return { success: false, error: 'Tous les providers AI ont échoué' };
 }
@@ -245,7 +302,8 @@ serve(async (req) => {
       department_code, 
       test_mode = false,
       count: requestedCount,
-      scrape_by_arrondissement = false // Nouveau paramètre pour Paris
+      scrape_by_arrondissement = false,
+      ai_provider // Nouveau: provider IA spécifique
     } = body;
     
     if (!department_code) {
@@ -302,7 +360,7 @@ serve(async (req) => {
         console.log(`📍 Scraping ${arr.name}...`);
         
         const prompt = generatePrompt(arr.name, arr.code, countPerArrondissement, arr.zone);
-        const aiResult = await callAIWithFallback(prompt, systemPrompt);
+        const aiResult = await callAIWithFallback(prompt, systemPrompt, 8000, ai_provider);
         
         if (aiResult.success) {
           try {
@@ -339,7 +397,7 @@ serve(async (req) => {
     } else {
       // Mode normal : un seul appel AI
       const prompt = generatePrompt(departmentName, `${department_code}000`, count);
-      const aiResult = await callAIWithFallback(prompt, systemPrompt);
+      const aiResult = await callAIWithFallback(prompt, systemPrompt, 8000, ai_provider);
 
       if (!aiResult.success) {
         await supabase

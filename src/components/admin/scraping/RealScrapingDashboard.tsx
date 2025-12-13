@@ -13,7 +13,8 @@ import { Play, RefreshCw, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Eye,
 
 // Options d'IA disponibles pour le scraping
 const AI_OPTIONS = [
-  { id: 'lovable', name: 'Lovable AI (Gemini)', icon: Sparkles, description: 'IA par défaut, rapide' },
+  { id: 'lovable', name: 'Lovable AI (Gemini Flash)', icon: Sparkles, description: 'IA par défaut, rapide' },
+  { id: 'gemini', name: 'Gemini Pro (Direct)', icon: Zap, description: 'API Google directe' },
   { id: 'openai', name: 'OpenAI GPT', icon: Star, description: 'Très précis' },
   { id: 'mistral', name: 'Mistral AI', icon: Brain, description: 'IA française' },
 ];
