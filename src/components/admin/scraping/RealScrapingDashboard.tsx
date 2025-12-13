@@ -5,9 +5,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Play, RefreshCw, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Eye, Save, Phone, Globe, Building2 } from 'lucide-react';
+import { Play, RefreshCw, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Eye, Save, Phone, Globe, Building2, Trash2, Settings2, ChevronDown } from 'lucide-react';
 
 interface ScrapingLog {
   id: string;
@@ -171,6 +173,27 @@ const DEPARTMENTS_BY_REGION: Record<string, { code: string; name: string }[]> = 
   ],
 };
 
+const DEFAULT_PROMPT = `Tu es un expert en réparation de smartphones en France. Génère une liste de boutiques de réparation de téléphones RÉELLES et UNIQUES pour {zoneName}.
+
+IMPORTANT: 
+- Génère des données réalistes avec des noms d'entreprises crédibles et variés
+- Utilise des adresses complètes avec numéros de rue DIFFÉRENTS
+- Les numéros de téléphone doivent être valides au format français
+- Évite les doublons de noms
+
+Pour chaque réparateur, fournis EXACTEMENT ce format JSON:
+{
+  "name": "Nom de la boutique (ex: Phone Repair Express, iDoctor, MobileFix, Dr Phone, etc.)",
+  "address": "Adresse complète avec numéro de rue (ex: 15 rue du Commerce)",
+  "postal_code": "{zoneCode}",
+  "city": "{zoneName}",
+  "phone": "Numéro au format 01 23 45 67 89 ou 06 12 34 56 78",
+  "services": ["Réparation écran", "Changement batterie", "Réparation connecteur"],
+  "description": "Description courte de la boutique (30 mots max)"
+}
+
+RETOURNE UNIQUEMENT un tableau JSON valide, sans texte avant ou après, sans balises markdown.`;
+
 const RealScrapingDashboard: React.FC = () => {
   const [logs, setLogs] = useState<ScrapingLog[]>([]);
   const [selectedRegion, setSelectedRegion] = useState('Île-de-France');
@@ -182,6 +205,10 @@ const RealScrapingDashboard: React.FC = () => {
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [currentLogId, setCurrentLogId] = useState<string | null>(null);
   const [validating, setValidating] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
+  const [deletingHistory, setDeletingHistory] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState(DEFAULT_PROMPT);
+  const [promptOpen, setPromptOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -351,6 +378,60 @@ const RealScrapingDashboard: React.FC = () => {
     }
   };
 
+  const handleGeocodeRepairers = async () => {
+    setGeocoding(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('geocode-repairers', {
+        body: { limit: 50 }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Géocodage terminé",
+        description: data?.message || `${data?.geocoded || 0} réparateurs géocodés`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de géocoder les réparateurs",
+        variant: "destructive"
+      });
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
+  const handleDeleteHistory = async () => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer tout l'historique des scrapings ?")) {
+      return;
+    }
+
+    setDeletingHistory(true);
+    try {
+      const { error } = await supabase
+        .from('scraping_logs')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Supprimer tous
+
+      if (error) throw error;
+
+      setLogs([]);
+      toast({
+        title: "Historique supprimé",
+        description: "Tout l'historique des scrapings a été supprimé",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de supprimer l'historique",
+        variant: "destructive"
+      });
+    } finally {
+      setDeletingHistory(false);
+    }
+  };
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
@@ -448,24 +529,74 @@ const RealScrapingDashboard: React.FC = () => {
             </div>
           </div>
 
-          <Button 
-            onClick={startScraping}
-            disabled={loading || isScrapingActive}
-            className="w-full md:w-auto bg-primary hover:bg-primary/90"
-          >
-            {loading ? (
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Play className="h-4 w-4 mr-2" />
-            )}
-            🤖 Générer avec l'IA
-          </Button>
+          {/* Éditeur de prompt */}
+          <Collapsible open={promptOpen} onOpenChange={setPromptOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+                <span className="flex items-center gap-2">
+                  <Settings2 className="h-4 w-4" />
+                  Personnaliser le prompt IA
+                </span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${promptOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-3">
+              <div className="space-y-2">
+                <Textarea
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                  rows={10}
+                  className="font-mono text-sm"
+                  placeholder="Prompt personnalisé pour la génération IA..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  Variables disponibles : {'{zoneName}'}, {'{zoneCode}'}, {'{count}'}
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setCustomPrompt(DEFAULT_PROMPT)}
+                >
+                  Réinitialiser le prompt
+                </Button>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Boutons d'action */}
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              onClick={startScraping}
+              disabled={loading || isScrapingActive}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {loading ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4 mr-2" />
+              )}
+              🤖 Générer avec l'IA
+            </Button>
+
+            <Button
+              onClick={handleGeocodeRepairers}
+              disabled={geocoding}
+              variant="secondary"
+            >
+              {geocoding ? (
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <MapPin className="h-4 w-4 mr-2" />
+              )}
+              Géocoder réparateurs
+            </Button>
+          </div>
 
           {isScrapingActive && (
-            <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+            <div className="p-4 bg-orange-50 dark:bg-orange-950/30 rounded-lg border border-orange-200 dark:border-orange-800">
               <div className="flex items-center gap-2 mb-2">
                 <AlertCircle className="h-4 w-4 text-orange-600 animate-pulse" />
-                <span className="font-medium text-orange-800">Scraping en cours...</span>
+                <span className="font-medium text-orange-800 dark:text-orange-200">Scraping en cours...</span>
               </div>
             </div>
           )}
@@ -578,10 +709,25 @@ const RealScrapingDashboard: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Historique des scrapings</CardTitle>
-            <Button onClick={loadScrapingLogs} variant="outline" size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Actualiser
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={loadScrapingLogs} variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Actualiser
+              </Button>
+              <Button 
+                onClick={handleDeleteHistory} 
+                variant="destructive" 
+                size="sm"
+                disabled={deletingHistory || logs.length === 0}
+              >
+                {deletingHistory ? (
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4 mr-2" />
+                )}
+                Supprimer tout
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
