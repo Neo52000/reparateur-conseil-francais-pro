@@ -55,7 +55,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   try {
     return (
       <div className="relative h-screen bg-cover bg-center" style={{
-        backgroundImage: "url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')"
+        backgroundImage: "url('https://images.unsplash.com/photo-1556656793-08538906a9f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')"
       }}>
         {/* Overlay noir */}
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
