@@ -312,6 +312,9 @@ Contenu...
     }
 
     // 3️⃣ Fallback OpenAI
+    if (!articleData && OPENAI_API_KEY) {
+      try {
+        console.log('🔹 Trying OpenAI (GPT-4o-mini)...');
         console.log('   OPENAI_API_KEY present:', OPENAI_API_KEY ? 'Yes' : 'No');
         console.log('   OPENAI_API_KEY length:', OPENAI_API_KEY?.length || 0);
         const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
