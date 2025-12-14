@@ -89,12 +89,13 @@ serve(async (req) => {
     const { topic, category_id, keywords, target_audience, tone, auto_publish, scheduled_at } = requestData;
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     const MISTRAL_API_KEY = Deno.env.get('CLE_API_MISTRAL');
 
     // Vérifier qu'au moins une clé API est disponible
-    if (!LOVABLE_API_KEY && !OPENAI_API_KEY && !MISTRAL_API_KEY) {
-      throw new Error('Aucune clé API IA configurée (LOVABLE_API_KEY, OPENAI_API_KEY ou CLE_API_MISTRAL requis)');
+    if (!LOVABLE_API_KEY && !GEMINI_API_KEY && !OPENAI_API_KEY && !MISTRAL_API_KEY) {
+      throw new Error('Aucune clé API IA configurée (LOVABLE_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY ou CLE_API_MISTRAL requis)');
     }
 
     // Récupérer la catégorie si fournie
@@ -276,10 +277,41 @@ Contenu...
       console.log('⚠️ LOVABLE_API_KEY not set, skipping Lovable AI...');
     }
 
-    // 2️⃣ Fallback OpenAI
-    if (!articleData && OPENAI_API_KEY) {
+    // 2️⃣ Fallback Gemini Pro (direct API)
+    if (!articleData && GEMINI_API_KEY) {
       try {
-        console.log('🔹 Trying OpenAI (GPT-4o-mini)...');
+        console.log('🔹 Trying Gemini Pro (direct)...');
+        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `${systemPrompt}\n\n${userPrompt}\n\nRéponds UNIQUEMENT avec un JSON valide au format: {"title":"...", "slug":"...", "excerpt":"...", "content":"...", "meta_title":"...", "meta_description":"...", "keywords":["..."], "image_placeholders":[{"placeholder":"{{IMAGE_1}}", "description":"..."}]}` }] }],
+            generationConfig: { temperature: 0.7, maxOutputTokens: 8000 }
+          })
+        });
+
+        if (geminiResponse.ok) {
+          const geminiData = await geminiResponse.json();
+          const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (content) {
+            // Parse le JSON de la réponse
+            let cleanContent = content.trim();
+            if (cleanContent.startsWith('```json')) cleanContent = cleanContent.slice(7);
+            if (cleanContent.startsWith('```')) cleanContent = cleanContent.slice(3);
+            if (cleanContent.endsWith('```')) cleanContent = cleanContent.slice(0, -3);
+            articleData = JSON.parse(cleanContent.trim());
+            usedProvider = 'Gemini Pro (Direct)';
+            console.log('✅ Gemini Pro succeeded');
+          }
+        } else {
+          console.log(`⚠️ Gemini Pro failed (${geminiResponse.status})`);
+        }
+      } catch (error) {
+        console.log('⚠️ Gemini Pro exception:', error.message);
+      }
+    }
+
+    // 3️⃣ Fallback OpenAI
         console.log('   OPENAI_API_KEY present:', OPENAI_API_KEY ? 'Yes' : 'No');
         console.log('   OPENAI_API_KEY length:', OPENAI_API_KEY?.length || 0);
         const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -321,7 +353,7 @@ Contenu...
       console.log('⚠️ OPENAI_API_KEY not set, skipping OpenAI...');
     }
 
-    // 3️⃣ Fallback Mistral
+    // 4️⃣ Fallback Mistral
     if (!articleData && MISTRAL_API_KEY) {
       try {
         console.log('🔹 Trying Mistral (Large)...');

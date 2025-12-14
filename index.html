@@ -206,12 +206,12 @@
         justify-content: center;
       }
       
-      /* LCP optimization - preload hero background */
+      /* LCP optimization - modern smartphone repair hero background */
       .hero-bg {
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80&fm=webp');
+        background-image: url('https://images.unsplash.com/photo-1556656793-08538906a9f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80&fm=webp');
         content-visibility: auto;
         contain-intrinsic-size: 100vw 70vh;
       }
@@ -219,13 +219,13 @@
       /* Responsive hero images for optimal LCP - mobile-first approach */
       @media (max-width: 767px) {
         .hero-bg {
-          background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=768&q=70&fm=webp');
+          background-image: url('https://images.unsplash.com/photo-1556656793-08538906a9f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=768&q=70&fm=webp');
         }
       }
       
       @media (min-width: 768px) and (max-width: 1023px) {
         .hero-bg {
-          background-image: url('https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=75&fm=webp');
+          background-image: url('https://images.unsplash.com/photo-1556656793-08538906a9f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=75&fm=webp');
         }
       }
       
@@ -431,16 +431,16 @@
     <link rel="preconnect" href="https://images.unsplash.com">
     <link rel="dns-prefetch" href="https://images.unsplash.com">
     
-    <!-- High priority preload for LCP hero image - critical for LCP optimization -->
-    <link rel="preload" href="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80&fm=webp" as="image" fetchpriority="high" imagesrcset="
-      https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=768&q=70&fm=webp 768w,
-      https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=75&fm=webp 1200w,
-      https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80&fm=webp 1920w
+    <!-- High priority preload for LCP hero image - smartphone repair themed -->
+    <link rel="preload" href="https://images.unsplash.com/photo-1556656793-08538906a9f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80&fm=webp" as="image" fetchpriority="high" imagesrcset="
+      https://images.unsplash.com/photo-1556656793-08538906a9f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=768&q=70&fm=webp 768w,
+      https://images.unsplash.com/photo-1556656793-08538906a9f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=75&fm=webp 1200w,
+      https://images.unsplash.com/photo-1556656793-08538906a9f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80&fm=webp 1920w
     " imagesizes="100vw">
     
     <!-- Secondary responsive images -->
-    <link rel="preload" href="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=75&fm=webp" as="image" media="(min-width: 768px) and (max-width: 1023px)">
-    <link rel="preload" href="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=768&q=70&fm=webp" as="image" media="(max-width: 767px)">
+    <link rel="preload" href="https://images.unsplash.com/photo-1556656793-08538906a9f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=75&fm=webp" as="image" media="(min-width: 768px) and (max-width: 1023px)">
+    <link rel="preload" href="https://images.unsplash.com/photo-1556656793-08538906a9f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=768&q=70&fm=webp" as="image" media="(max-width: 767px)">
 
     <!-- Async Google Analytics - prevent render blocking -->
     <script>
