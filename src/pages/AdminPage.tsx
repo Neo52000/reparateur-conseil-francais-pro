@@ -10,7 +10,7 @@ import QuickActions from '@/components/admin/modern/QuickActions';
 import RecentActivity from '@/components/admin/modern/RecentActivity';
 import RepairerList from '@/components/admin/RepairerList';
 import ClientInterestManagement from '@/components/ClientInterestManagement';
-import RealScrapingDashboard from '@/components/admin/scraping/RealScrapingDashboard';
+import GooglePlacesScraper from '@/components/admin/scraping/GooglePlacesScraper';
 import AutomatedRelaunchDashboard from '@/components/admin/automation/AutomatedRelaunchDashboard';
 import BlogManagement from '@/components/blog/admin/BlogManagement';
 import ChatbotManagement from '@/components/admin/ChatbotManagement';
@@ -331,7 +331,7 @@ const AdminPage = () => {
       case 'analytics':
         return <AnalyticsDashboard />;
         case 'scraping':
-          return <RealScrapingDashboard />;
+          return <GooglePlacesScraper />;
         case 'automation':
           return <AutomatedRelaunchDashboard />;
       case 'monitoring':
