@@ -24,7 +24,7 @@ export const useBlogHeaderImage = () => {
   const generateHeaderImage = async () => {
     setLoading(true);
     try {
-      const prompt = `Modern smartphone repair workshop banner. Clean workspace with professional repair tools, smartphone components, circuit boards. Emerald green accent colors (#10B981). Tech-savvy atmosphere, soft lighting, blurred background with depth of field. Premium quality, horizontal 16:9 format, suitable for website header.`;
+      const prompt = `Modern smartphone repair workshop banner. Clean workspace with professional technician hands repairing a smartphone, specialized tools, bright modern environment. Electric blue accent colors (#3b82f6). Professional atmosphere, soft studio lighting, shallow depth of field. Premium quality, horizontal 16:9 format, suitable for website header. NO circuit boards, NO abstract technology patterns.`;
 
       const { data, error } = await supabase.functions.invoke('blog-image-generator', {
         body: {
