@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,9 +7,10 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Search, Download, Trash2, MapPin, Phone, Star, Globe, 
-  Loader2, Settings2, RefreshCw, Building2, CheckCircle, XCircle
+  Loader2, Settings2, Building2, CheckCircle, Database
 } from 'lucide-react';
 
 // Types
@@ -36,10 +37,6 @@ interface RepairerExport {
 // Default hardcoded services
 const DEFAULT_SERVICES = ["Réparation écran", "Changement batterie", "Diagnostic"];
 
-// CORS proxy for Google Places API
-const CORS_PROXY = "https://cors-anywhere.herokuapp.com/";
-const GOOGLE_PLACES_API = "https://maps.googleapis.com/maps/api/place";
-
 const GooglePlacesScraper: React.FC = () => {
   // State
   const [apiKey, setApiKey] = useState('AIzaSyCC_6zU1EIPQ31oZnhLGD4MzU-Ms6axxC0');
@@ -48,6 +45,7 @@ const GooglePlacesScraper: React.FC = () => {
   const [query, setQuery] = useState('Réparation téléphone');
   const [results, setResults] = useState<GooglePlace[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState('');
   const { toast } = useToast();
@@ -55,9 +53,9 @@ const GooglePlacesScraper: React.FC = () => {
   // Clean shop name
   const cleanName = (name: string): string => {
     return name
-      .replace(/\s*-\s*.*$/, '') // Remove everything after dash
-      .replace(/\s*\|.*$/, '') // Remove everything after pipe
-      .replace(/\([^)]*\)/g, '') // Remove parentheses content
+      .replace(/\s*-\s*.*$/, '')
+      .replace(/\s*\|.*$/, '')
+      .replace(/\([^)]*\)/g, '')
       .trim();
   };
 
@@ -67,18 +65,14 @@ const GooglePlacesScraper: React.FC = () => {
     return phone.replace(/\D/g, '').replace(/^33/, '0').replace(/(\d{2})(?=\d)/g, '$1 ').trim();
   };
 
-  // Fetch place details
+  // Fetch place details via Edge Function
   const fetchPlaceDetails = async (placeId: string): Promise<GooglePlace | null> => {
     try {
-      const url = `${CORS_PROXY}${GOOGLE_PLACES_API}/details/json?place_id=${placeId}&fields=formatted_address,formatted_phone_number,name,rating,user_ratings_total,website&key=${apiKey}`;
-      
-      const response = await fetch(url, {
-        headers: { 'Origin': window.location.origin }
+      const { data, error } = await supabase.functions.invoke('google-places-proxy', {
+        body: { action: 'placeDetails', placeId, apiKey }
       });
       
-      if (!response.ok) throw new Error('API error');
-      
-      const data = await response.json();
+      if (error) throw error;
       
       if (data.result) {
         return {
@@ -115,19 +109,16 @@ const GooglePlacesScraper: React.FC = () => {
     setProgressMessage('Recherche en cours...');
 
     try {
-      // Step A: Text Search to find place_ids
+      // Step A: Text Search via Edge Function
       const searchQuery = `${query} ${city} ${postalCode}`.trim();
-      const textSearchUrl = `${CORS_PROXY}${GOOGLE_PLACES_API}/textsearch/json?query=${encodeURIComponent(searchQuery)}&key=${apiKey}`;
       
-      const searchResponse = await fetch(textSearchUrl, {
-        headers: { 'Origin': window.location.origin }
+      const { data: searchData, error: searchError } = await supabase.functions.invoke('google-places-proxy', {
+        body: { action: 'textSearch', query: searchQuery, apiKey }
       });
       
-      if (!searchResponse.ok) {
-        throw new Error('Erreur API Google Places. Vérifiez votre clé API.');
+      if (searchError) {
+        throw new Error(`Erreur API: ${searchError.message}`);
       }
-      
-      const searchData = await searchResponse.json();
       
       if (searchData.status !== 'OK' && searchData.status !== 'ZERO_RESULTS') {
         throw new Error(`Erreur Google Places: ${searchData.status} - ${searchData.error_message || 'Erreur inconnue'}`);
@@ -164,7 +155,7 @@ const GooglePlacesScraper: React.FC = () => {
         }
         
         // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
 
       setResults(detailedPlaces);
@@ -187,25 +178,84 @@ const GooglePlacesScraper: React.FC = () => {
     }
   };
 
-  // Remove a result
-  const removeResult = (placeId: string) => {
-    setResults(prev => prev.filter(r => r.place_id !== placeId));
-    toast({
-      title: "Supprimé",
-      description: "Boutique retirée de la liste",
-    });
-  };
-
-  // Export to JSON
-  const exportToJSON = () => {
+  // Import directly to database
+  const importToDatabase = async () => {
     if (results.length === 0) {
       toast({
         title: "Erreur",
-        description: "Aucun résultat à exporter",
+        description: "Aucun résultat à importer",
         variant: "destructive"
       });
       return;
     }
+
+    setIsImporting(true);
+    let imported = 0;
+    let errors = 0;
+
+    try {
+      for (const place of results) {
+        const repairerData = {
+          name: cleanName(place.name),
+          address: place.formatted_address,
+          city: city || 'France',
+          postal_code: postalCode || '00000',
+          phone: formatPhone(place.formatted_phone_number),
+          services: DEFAULT_SERVICES,
+          description: `Expert à ${city}. Note: ${place.rating || 'N/A'}/5 (${place.user_ratings_total || 0} avis).`,
+          website: place.website || null,
+          is_verified: false,
+          source: 'google_places'
+        };
+
+        const { error } = await supabase
+          .from('repairers')
+          .upsert(repairerData, { onConflict: 'phone' });
+
+        if (error) {
+          console.error('Insert error:', error);
+          errors++;
+        } else {
+          imported++;
+        }
+      }
+
+      toast({
+        title: "Import terminé",
+        description: `${imported} réparateurs importés. ${errors > 0 ? `${errors} erreurs.` : ''}`,
+        variant: errors > 0 ? "default" : "default"
+      });
+
+      // Trigger geocoding
+      if (imported > 0) {
+        toast({
+          title: "Géocodage",
+          description: "Lancement du géocodage automatique...",
+        });
+        
+        await supabase.functions.invoke('geocode-repairers');
+      }
+
+    } catch (error: any) {
+      console.error('Import error:', error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Erreur lors de l'import",
+        variant: "destructive"
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  // Remove a result
+  const removeResult = (placeId: string) => {
+    setResults(prev => prev.filter(r => r.place_id !== placeId));
+  };
+
+  // Export to JSON
+  const exportToJSON = () => {
+    if (results.length === 0) return;
 
     const exportData: RepairerExport[] = results.map(place => ({
       name: cleanName(place.name),
@@ -221,7 +271,7 @@ const GooglePlacesScraper: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'reparateurs.json';
+    link.download = `reparateurs-${city}-${postalCode}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -229,7 +279,7 @@ const GooglePlacesScraper: React.FC = () => {
 
     toast({
       title: "Export réussi",
-      description: `${exportData.length} réparateurs exportés vers reparateurs.json`,
+      description: `${exportData.length} réparateurs exportés`,
     });
   };
 
@@ -256,18 +306,28 @@ const GooglePlacesScraper: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <MapPin className="h-6 w-6 text-primary" />
-            TopReparateurs Scraper
+            Google Places Scraper
           </h1>
           <p className="text-muted-foreground">
-            Recherche via Google Places API avec export JSON formaté
+            Recherche via Google Places API avec import direct en base
           </p>
         </div>
         
         {results.length > 0 && (
-          <Button onClick={exportToJSON} className="gap-2">
-            <Download className="h-4 w-4" />
-            Télécharger reparateurs.json
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={exportToJSON} variant="outline" className="gap-2">
+              <Download className="h-4 w-4" />
+              Télécharger JSON
+            </Button>
+            <Button onClick={importToDatabase} disabled={isImporting} className="gap-2">
+              {isImporting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Database className="h-4 w-4" />
+              )}
+              Importer en base
+            </Button>
+          </div>
         )}
       </div>
 
@@ -368,7 +428,7 @@ const GooglePlacesScraper: React.FC = () => {
               )}
             </div>
             <CardDescription>
-              Prévisualisez et nettoyez les résultats avant export
+              Prévisualisez et nettoyez les résultats avant import
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -395,7 +455,7 @@ const GooglePlacesScraper: React.FC = () => {
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
-                            {city}
+                            {place.formatted_address}
                           </span>
                           <span className="flex items-center gap-1">
                             <Phone className="h-3 w-3" />
