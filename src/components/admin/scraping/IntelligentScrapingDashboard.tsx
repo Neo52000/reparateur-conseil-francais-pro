@@ -272,6 +272,7 @@ const IntelligentScrapingDashboard = () => {
                 <SelectContent>
                   <SelectItem value="google_maps">Google Maps</SelectItem>
                   <SelectItem value="pages_jaunes">Pages Jaunes</SelectItem>
+                  <SelectItem value="firecrawl">🔥 Firecrawl AI</SelectItem>
                   <SelectItem value="local_directories">Annuaires locaux</SelectItem>
                 </SelectContent>
               </Select>
