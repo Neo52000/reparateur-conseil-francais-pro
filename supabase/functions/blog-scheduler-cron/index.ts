@@ -5,30 +5,41 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Convertir UTC en heure de Paris
-function getParisTime(): Date {
+// Obtenir l'heure de Paris avec gestion correcte du DST
+function getParisDateTime(): { day: number; time: string; offset: number } {
   const now = new Date();
-  // Paris est UTC+1 en hiver, UTC+2 en été (DST)
-  const parisOffset = getParisOffset(now);
-  return new Date(now.getTime() + parisOffset * 60 * 60 * 1000);
-}
-
-// Déterminer l'offset de Paris (gestion DST)
-function getParisOffset(date: Date): number {
-  const year = date.getUTCFullYear();
-  // DST en Europe: dernier dimanche de mars au dernier dimanche d'octobre
-  const marchLast = new Date(Date.UTC(year, 2, 31));
-  const lastSundayMarch = new Date(marchLast.setDate(31 - marchLast.getUTCDay()));
-  lastSundayMarch.setUTCHours(1, 0, 0, 0); // DST commence à 1h UTC
   
-  const octoberLast = new Date(Date.UTC(year, 9, 31));
-  const lastSundayOctober = new Date(octoberLast.setDate(31 - octoberLast.getUTCDay()));
-  lastSundayOctober.setUTCHours(1, 0, 0, 0); // DST finit à 1h UTC
+  // Utiliser l'API Intl pour obtenir l'heure exacte de Paris
+  const parisFormatter = new Intl.DateTimeFormat('fr-FR', {
+    timeZone: 'Europe/Paris',
+    weekday: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
   
-  if (date >= lastSundayMarch && date < lastSundayOctober) {
-    return 2; // CEST (été)
-  }
-  return 1; // CET (hiver)
+  const parts = parisFormatter.formatToParts(now);
+  const weekdayShort = parts.find(p => p.type === 'weekday')?.value || '';
+  const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0', 10);
+  const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0', 10);
+  
+  // Mapper les jours français vers les numéros JavaScript (0=Dimanche)
+  const dayMap: Record<string, number> = {
+    'dim.': 0, 'lun.': 1, 'mar.': 2, 'mer.': 3, 
+    'jeu.': 4, 'ven.': 5, 'sam.': 6
+  };
+  const day = dayMap[weekdayShort] ?? now.getDay();
+  
+  // Calculer l'offset Paris (pour le log)
+  const parisDate = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+  const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+  const offset = (parisDate.getTime() - utcDate.getTime()) / (1000 * 60 * 60);
+  
+  return {
+    day,
+    time: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
+    offset
+  };
 }
 
 // Vérifier si l'heure actuelle est dans une fenêtre de 5 minutes autour de l'heure cible
@@ -57,14 +68,12 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Utiliser l'heure de Paris au lieu de UTC
-    const parisNow = getParisTime();
-    const currentDay = parisNow.getUTCDay(); // 0=Dimanche, 1=Lundi, ..., 6=Samedi
-    const currentHour = parisNow.getUTCHours();
-    const currentMinute = parisNow.getUTCMinutes();
-    const currentTime = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`;
+    // Obtenir l'heure de Paris avec la bonne méthode
+    const paris = getParisDateTime();
+    const currentDay = paris.day;
+    const currentTime = paris.time;
 
-    console.log(`🕐 Checking schedules for day ${currentDay} at ${currentTime} Paris time (UTC+${getParisOffset(new Date())})`);
+    console.log(`🕐 Checking schedules for day ${currentDay} at ${currentTime} Paris time (UTC+${paris.offset})`);
 
     // Récupérer TOUTES les planifications activées pour ce jour
     const { data: allSchedules, error: fetchError } = await supabase
