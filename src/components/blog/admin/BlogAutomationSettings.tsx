@@ -69,13 +69,14 @@ export const BlogAutomationSettings = () => {
     setTesting(true);
     try {
       // Call blog-ai-generator directly (simpler and more reliable)
+      // Respecte la demande “publication automatique” : on publie directement (sous réserve de la modération).
       const { data, error } = await supabase.functions.invoke('blog-ai-generator', {
         body: {
           topic: 'Actualités de la réparation mobile',
           category_id: selectedCategory && selectedCategory !== 'none' ? selectedCategory : undefined,
           target_audience: 'public',
           tone: 'professionnel',
-          auto_publish: false, // Create as draft for review
+          auto_publish: true,
           keywords: ['réparation', 'smartphone', 'mobile']
         }
       });
