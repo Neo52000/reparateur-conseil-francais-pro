@@ -15,6 +15,7 @@ import {
   Loader2, Settings2, Building2, CheckCircle, Database,
   Sparkles, Filter, Map
 } from 'lucide-react';
+import { REGIONS } from '@/components/scraping/controls/scrapingConstants';
 
 // Types
 interface GooglePlace {
@@ -55,25 +56,24 @@ const EXCLUSION_KEYWORDS = [
   "laptop", "macbook pro", "réparation ordinateur"
 ];
 
-// French departments with major cities
-const DEPARTMENTS: Record<string, { name: string; cities: string[] }> = {
-  '75': { name: 'Paris', cities: ['Paris 1er', 'Paris 2e', 'Paris 3e', 'Paris 4e', 'Paris 5e', 'Paris 6e', 'Paris 7e', 'Paris 8e', 'Paris 9e', 'Paris 10e', 'Paris 11e', 'Paris 12e', 'Paris 13e', 'Paris 14e', 'Paris 15e', 'Paris 16e', 'Paris 17e', 'Paris 18e', 'Paris 19e', 'Paris 20e'] },
-  '13': { name: 'Bouches-du-Rhône', cities: ['Marseille', 'Aix-en-Provence', 'Arles', 'Aubagne', 'Martigues', 'Salon-de-Provence', 'Istres', 'La Ciotat', 'Vitrolles', 'Marignane'] },
-  '69': { name: 'Rhône', cities: ['Lyon', 'Villeurbanne', 'Vénissieux', 'Caluire-et-Cuire', 'Saint-Priest', 'Vaulx-en-Velin', 'Bron', 'Décines-Charpieu', 'Meyzieu', 'Oullins'] },
-  '31': { name: 'Haute-Garonne', cities: ['Toulouse', 'Colomiers', 'Tournefeuille', 'Blagnac', 'Muret', 'Plaisance-du-Touch', 'Cugnaux', 'Ramonville-Saint-Agne', 'Saint-Orens-de-Gameville', 'Balma'] },
-  '33': { name: 'Gironde', cities: ['Bordeaux', 'Mérignac', 'Pessac', 'Talence', 'Villenave-d\'Ornon', 'Bègles', 'Gradignan', 'Cenon', 'Lormont', 'Le Bouscat'] },
-  '59': { name: 'Nord', cities: ['Lille', 'Roubaix', 'Tourcoing', 'Dunkerque', 'Villeneuve-d\'Ascq', 'Valenciennes', 'Wattrelos', 'Douai', 'Marcq-en-Barœul', 'Cambrai'] },
-  '44': { name: 'Loire-Atlantique', cities: ['Nantes', 'Saint-Nazaire', 'Saint-Herblain', 'Rezé', 'Orvault', 'Vertou', 'Couëron', 'Carquefou', 'La Chapelle-sur-Erdre', 'Bouguenais'] },
-  '67': { name: 'Bas-Rhin', cities: ['Strasbourg', 'Haguenau', 'Schiltigheim', 'Illkirch-Graffenstaden', 'Sélestat', 'Bischheim', 'Lingolsheim', 'Ostwald', 'Obernai', 'Saverne'] },
-  '06': { name: 'Alpes-Maritimes', cities: ['Nice', 'Antibes', 'Cannes', 'Grasse', 'Cagnes-sur-Mer', 'Le Cannet', 'Saint-Laurent-du-Var', 'Menton', 'Vallauris', 'Mandelieu-la-Napoule'] },
-  '34': { name: 'Hérault', cities: ['Montpellier', 'Béziers', 'Sète', 'Agde', 'Lunel', 'Frontignan', 'Mauguio', 'Lattes', 'Castelnau-le-Lez', 'Pérols'] },
-  '92': { name: 'Hauts-de-Seine', cities: ['Boulogne-Billancourt', 'Nanterre', 'Courbevoie', 'Colombes', 'Asnières-sur-Seine', 'Rueil-Malmaison', 'Levallois-Perret', 'Issy-les-Moulineaux', 'Antony', 'Neuilly-sur-Seine'] },
-  '93': { name: 'Seine-Saint-Denis', cities: ['Saint-Denis', 'Montreuil', 'Aubervilliers', 'Aulnay-sous-Bois', 'Drancy', 'Noisy-le-Grand', 'Pantin', 'Bondy', 'Épinay-sur-Seine', 'Sevran'] },
-  '94': { name: 'Val-de-Marne', cities: ['Créteil', 'Vitry-sur-Seine', 'Saint-Maur-des-Fossés', 'Champigny-sur-Marne', 'Ivry-sur-Seine', 'Maisons-Alfort', 'Fontenay-sous-Bois', 'Villejuif', 'Vincennes', 'Alfortville'] },
-  '78': { name: 'Yvelines', cities: ['Versailles', 'Sartrouville', 'Mantes-la-Jolie', 'Saint-Germain-en-Laye', 'Poissy', 'Conflans-Sainte-Honorine', 'Montigny-le-Bretonneux', 'Les Mureaux', 'Houilles', 'Plaisir'] },
-  '91': { name: 'Essonne', cities: ['Évry-Courcouronnes', 'Corbeil-Essonnes', 'Massy', 'Savigny-sur-Orge', 'Sainte-Geneviève-des-Bois', 'Viry-Châtillon', 'Athis-Mons', 'Palaiseau', 'Yerres', 'Draveil'] },
-  '95': { name: 'Val-d\'Oise', cities: ['Argenteuil', 'Sarcelles', 'Cergy', 'Garges-lès-Gonesse', 'Franconville', 'Goussainville', 'Pontoise', 'Bezons', 'Ermont', 'Villiers-le-Bel'] },
-  '77': { name: 'Seine-et-Marne', cities: ['Meaux', 'Chelles', 'Melun', 'Pontault-Combault', 'Savigny-le-Temple', 'Champs-sur-Marne', 'Villeparisis', 'Torcy', 'Roissy-en-Brie', 'Combs-la-Ville'] },
+// Build departments map from centralized REGIONS constant
+const getDepartmentInfo = (code: string) => {
+  for (const region of REGIONS) {
+    const dept = region.departments.find(d => d.code === code);
+    if (dept) {
+      return { name: dept.name, region: region.name };
+    }
+  }
+  return null;
+};
+
+// Get cities for a department (default cities based on department name)
+const getDepartmentCities = (code: string): string[] => {
+  const dept = getDepartmentInfo(code);
+  if (!dept) return [];
+  // For now, just use the department name as main city
+  // This can be enhanced later with a proper cities database
+  return [dept.name];
 };
 
 // Default hardcoded services
@@ -200,26 +200,18 @@ const GooglePlacesScraper: React.FC = () => {
       let allPlaces: GooglePlace[] = [];
       
       if (searchMode === 'department') {
-        // Department mode: search across multiple cities
-        const department = DEPARTMENTS[selectedDepartment];
-        if (!department) {
+        // Department mode: search in main city of department
+        const deptInfo = getDepartmentInfo(selectedDepartment);
+        if (!deptInfo) {
           throw new Error('Département non trouvé');
         }
         
-        const cities = department.cities;
-        const totalCities = cities.length;
+        // Search using department name as location
+        setProgress(50);
+        setProgressMessage(`Recherche dans ${deptInfo.name}...`);
         
-        for (let i = 0; i < totalCities; i++) {
-          const cityName = cities[i];
-          setProgress(Math.round(((i + 1) / totalCities) * 100));
-          setProgressMessage(`Recherche ${i + 1}/${totalCities}: ${cityName}`);
-          
-          const cityResults = await searchLocation(cityName);
-          allPlaces = [...allPlaces, ...cityResults];
-          
-          // Small delay between city searches
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
+        const cityResults = await searchLocation(deptInfo.name);
+        allPlaces = [...allPlaces, ...cityResults];
       } else {
         // City mode: single search
         const searchQuery = `${query} ${city} ${postalCode}`.trim();
@@ -404,7 +396,7 @@ const GooglePlacesScraper: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `reparateurs-${searchMode === 'department' ? DEPARTMENTS[selectedDepartment]?.name : city}-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `reparateurs-${searchMode === 'department' ? getDepartmentInfo(selectedDepartment)?.name : city}-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -542,16 +534,23 @@ const GooglePlacesScraper: React.FC = () => {
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner un département" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(DEPARTMENTS).map(([code, dept]) => (
-                      <SelectItem key={code} value={code}>
-                        {code} - {dept.name}
-                      </SelectItem>
+                  <SelectContent className="max-h-80">
+                    {REGIONS.map((region) => (
+                      <React.Fragment key={region.name}>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 sticky top-0">
+                          {region.name}
+                        </div>
+                        {region.departments.map((dept) => (
+                          <SelectItem key={dept.code} value={dept.code}>
+                            {dept.code} - {dept.name}
+                          </SelectItem>
+                        ))}
+                      </React.Fragment>
                     ))}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Recherche sur {DEPARTMENTS[selectedDepartment]?.cities.length || 0} villes principales
+                  Recherche dans {getDepartmentInfo(selectedDepartment)?.name || 'le département'}
                 </p>
               </div>
             )}
