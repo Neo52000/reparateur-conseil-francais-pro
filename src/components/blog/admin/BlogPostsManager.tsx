@@ -347,6 +347,7 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
                         size="icon"
                         onClick={() => handleDeletePost(post.id)}
                         title="Supprimer l'article"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
