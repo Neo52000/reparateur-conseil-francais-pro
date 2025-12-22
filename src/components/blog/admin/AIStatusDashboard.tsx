@@ -41,7 +41,10 @@ const AIStatusDashboard: React.FC = () => {
   const checkProviderStatus = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('check-ai-status');
+      // Use blog-ai-generator with action: 'check-status' instead of separate function
+      const { data, error } = await supabase.functions.invoke('blog-ai-generator', {
+        body: { action: 'check-status' }
+      });
 
       if (error) {
         console.error('Erreur vérification API:', error);
