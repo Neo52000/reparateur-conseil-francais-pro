@@ -2,14 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, FileText, Settings, Users, BarChart3, Newspaper, Sparkles, Zap } from 'lucide-react';
+import { Plus, FileText, Settings, Users, Newspaper, Sparkles, Zap } from 'lucide-react';
 import BlogPostsManager from './BlogPostsManager';
 import BlogCategoriesManager from './BlogCategoriesManager';
 import BlogTemplatesManager from './BlogTemplatesManager';
-import BlogAnalytics from './BlogAnalytics';
-import { BlogAIAnalytics } from './BlogAIAnalytics';
 import { BlogModerationQueue } from './BlogModerationQueue';
 import BlogSettings from './BlogSettings';
 import BlogNewsTracker from './BlogNewsTracker';
@@ -25,7 +22,7 @@ const BlogManagement: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   
   // Valid blog sub-tabs
-  const validBlogTabs = ['posts', 'ai-generator', 'categories', 'templates', 'news', 'analytics', 'ai-analytics', 'moderation', 'automation', 'settings'];
+  const validBlogTabs = ['posts', 'ai-generator', 'categories', 'templates', 'news', 'moderation', 'automation', 'settings'];
   
   // Mapping pour supporter les variantes françaises
   const normalizeBlogTab = (tab: string | null): string => {
@@ -107,7 +104,7 @@ const BlogManagement: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-10' : 'grid-cols-9'}`}>
+        <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-8' : 'grid-cols-7'}`}>
           <TabsTrigger value="posts" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Articles
@@ -127,14 +124,6 @@ const BlogManagement: React.FC = () => {
           <TabsTrigger value="news" className="flex items-center gap-2">
             <Newspaper className="h-4 w-4" />
             Actualités
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Analytics
-          </TabsTrigger>
-          <TabsTrigger value="ai-analytics" className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4" />
-            Analytics IA
           </TabsTrigger>
           <TabsTrigger value="moderation" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
@@ -174,14 +163,6 @@ const BlogManagement: React.FC = () => {
 
         <TabsContent value="news" className="space-y-4">
           <BlogNewsTracker />
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-4">
-          <BlogAnalytics />
-        </TabsContent>
-
-        <TabsContent value="ai-analytics" className="space-y-4">
-          <BlogAIAnalytics />
         </TabsContent>
 
         <TabsContent value="moderation" className="space-y-4">
