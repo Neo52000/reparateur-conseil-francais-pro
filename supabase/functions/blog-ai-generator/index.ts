@@ -266,7 +266,7 @@ serve(async (req) => {
     if (authHeader === `Bearer ${SERVICE_ROLE}`) {
       console.log("✅ Internal service call detected (SERVICE_ROLE_KEY) - skipping admin check");
       isInternalCall = true;
-      userId = "internal-service";
+      userId = null; // Les appels internes n'ont pas d'auteur - author_id sera NULL
     } else {
       // External call - verify admin role
       userId = await checkAdminRole(supabase, authHeader);
