@@ -133,15 +133,20 @@ const CITIES_BY_DEPARTMENT: Record<string, string[]> = {
   '976': ['Mamoudzou', 'Koungou', 'Dzaoudzi'],
 };
 
-// Requêtes de recherche pour trouver des réparateurs
+// Requêtes de recherche optimisées pour trouver des réparateurs
 const SEARCH_QUERIES = [
   'réparation smartphone',
   'réparateur téléphone portable',
+  'réparation iPhone écran cassé',
+  'réparation Samsung Galaxy',
   'réparation tablette iPad',
-  'réparation iPhone',
   'micro soudure téléphone',
   'réparation montre connectée Apple Watch',
-  'réparation écran cassé téléphone',
+  'changement batterie téléphone',
+  'déblocage téléphone',
+  'réparation console PS5 Xbox',
+  'réparation ordinateur portable',
+  'réparation écran MacBook',
 ];
 
 // Fonction pour rechercher via Serper API
@@ -249,6 +254,9 @@ function transformSerperResult(place: any, searchCity: string, departmentCode: s
 
   const postalCode = extractPostalCode(place.address) || departmentCode.padStart(5, '0').substring(0, 2) + '000';
   const city = extractCity(place.address, searchCity);
+  
+  // Extraire les services à partir des catégories Google
+  const services = extractServices(place);
 
   return {
     name: place.title,
@@ -261,9 +269,53 @@ function transformSerperResult(place: any, searchCity: string, departmentCode: s
     latitude: place.latitude,
     longitude: place.longitude,
     description: place.snippet || `Réparateur de téléphones et appareils électroniques à ${city}`,
-    services: ['Réparation smartphone', 'Réparation tablette'],
+    services: services,
     source: 'serper_places',
   };
+}
+
+// Extraire les services à partir des infos Google Places
+function extractServices(place: any): string[] {
+  const services = new Set<string>();
+  
+  // Services de base
+  services.add('Réparation smartphone');
+  services.add('Réparation tablette');
+  
+  const title = (place.title || '').toLowerCase();
+  const snippet = (place.snippet || '').toLowerCase();
+  const combined = `${title} ${snippet}`;
+  
+  if (combined.includes('iphone') || combined.includes('apple')) {
+    services.add('Réparation iPhone');
+    services.add('Réparation iPad');
+  }
+  if (combined.includes('samsung') || combined.includes('galaxy')) {
+    services.add('Réparation Samsung');
+  }
+  if (combined.includes('écran') || combined.includes('vitre')) {
+    services.add('Réparation écran');
+  }
+  if (combined.includes('batterie')) {
+    services.add('Changement batterie');
+  }
+  if (combined.includes('micro') || combined.includes('soudure')) {
+    services.add('Micro-soudure');
+  }
+  if (combined.includes('watch') || combined.includes('montre')) {
+    services.add('Réparation montre connectée');
+  }
+  if (combined.includes('console') || combined.includes('ps5') || combined.includes('xbox')) {
+    services.add('Réparation console');
+  }
+  if (combined.includes('ordinateur') || combined.includes('laptop') || combined.includes('macbook')) {
+    services.add('Réparation ordinateur');
+  }
+  if (combined.includes('déblocage') || combined.includes('unlock')) {
+    services.add('Déblocage téléphone');
+  }
+  
+  return Array.from(services);
 }
 
 serve(async (req) => {
