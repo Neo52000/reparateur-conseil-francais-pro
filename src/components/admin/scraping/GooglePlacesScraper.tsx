@@ -6,11 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Search, Download, Trash2, MapPin, Phone, Star, Globe, 
-  Loader2, Settings2, Building2, CheckCircle, Database
+  Loader2, Settings2, Building2, CheckCircle, Database,
+  Sparkles, Filter, Map
 } from 'lucide-react';
 
 // Types
@@ -34,21 +37,73 @@ interface RepairerExport {
   description: string;
 }
 
+// Suggested queries for better precision
+const SUGGESTED_QUERIES = [
+  { label: "📱 Réparation smartphone", value: "réparation smartphone mobile" },
+  { label: "📱 Réparation iPhone", value: "réparation iPhone Apple" },
+  { label: "🔧 Réparation écran mobile", value: "réparation écran téléphone portable" },
+  { label: "⚡ Micro-soudure téléphone", value: "micro soudure téléphone mobile" },
+  { label: "🔋 Changement batterie", value: "changement batterie smartphone" },
+  { label: "📲 Déblocage téléphone", value: "déblocage réparation téléphone" },
+];
+
+// Keywords to exclude from results (computer repair, etc.)
+const EXCLUSION_KEYWORDS = [
+  "informatique", "ordinateur", "pc", "imprimante", "computer",
+  "electroménager", "électroménager", "automobile", "auto", "voiture",
+  "dépannage informatique", "assistance informatique", "réparation pc",
+  "laptop", "macbook pro", "réparation ordinateur"
+];
+
+// French departments with major cities
+const DEPARTMENTS: Record<string, { name: string; cities: string[] }> = {
+  '75': { name: 'Paris', cities: ['Paris 1er', 'Paris 2e', 'Paris 3e', 'Paris 4e', 'Paris 5e', 'Paris 6e', 'Paris 7e', 'Paris 8e', 'Paris 9e', 'Paris 10e', 'Paris 11e', 'Paris 12e', 'Paris 13e', 'Paris 14e', 'Paris 15e', 'Paris 16e', 'Paris 17e', 'Paris 18e', 'Paris 19e', 'Paris 20e'] },
+  '13': { name: 'Bouches-du-Rhône', cities: ['Marseille', 'Aix-en-Provence', 'Arles', 'Aubagne', 'Martigues', 'Salon-de-Provence', 'Istres', 'La Ciotat', 'Vitrolles', 'Marignane'] },
+  '69': { name: 'Rhône', cities: ['Lyon', 'Villeurbanne', 'Vénissieux', 'Caluire-et-Cuire', 'Saint-Priest', 'Vaulx-en-Velin', 'Bron', 'Décines-Charpieu', 'Meyzieu', 'Oullins'] },
+  '31': { name: 'Haute-Garonne', cities: ['Toulouse', 'Colomiers', 'Tournefeuille', 'Blagnac', 'Muret', 'Plaisance-du-Touch', 'Cugnaux', 'Ramonville-Saint-Agne', 'Saint-Orens-de-Gameville', 'Balma'] },
+  '33': { name: 'Gironde', cities: ['Bordeaux', 'Mérignac', 'Pessac', 'Talence', 'Villenave-d\'Ornon', 'Bègles', 'Gradignan', 'Cenon', 'Lormont', 'Le Bouscat'] },
+  '59': { name: 'Nord', cities: ['Lille', 'Roubaix', 'Tourcoing', 'Dunkerque', 'Villeneuve-d\'Ascq', 'Valenciennes', 'Wattrelos', 'Douai', 'Marcq-en-Barœul', 'Cambrai'] },
+  '44': { name: 'Loire-Atlantique', cities: ['Nantes', 'Saint-Nazaire', 'Saint-Herblain', 'Rezé', 'Orvault', 'Vertou', 'Couëron', 'Carquefou', 'La Chapelle-sur-Erdre', 'Bouguenais'] },
+  '67': { name: 'Bas-Rhin', cities: ['Strasbourg', 'Haguenau', 'Schiltigheim', 'Illkirch-Graffenstaden', 'Sélestat', 'Bischheim', 'Lingolsheim', 'Ostwald', 'Obernai', 'Saverne'] },
+  '06': { name: 'Alpes-Maritimes', cities: ['Nice', 'Antibes', 'Cannes', 'Grasse', 'Cagnes-sur-Mer', 'Le Cannet', 'Saint-Laurent-du-Var', 'Menton', 'Vallauris', 'Mandelieu-la-Napoule'] },
+  '34': { name: 'Hérault', cities: ['Montpellier', 'Béziers', 'Sète', 'Agde', 'Lunel', 'Frontignan', 'Mauguio', 'Lattes', 'Castelnau-le-Lez', 'Pérols'] },
+  '92': { name: 'Hauts-de-Seine', cities: ['Boulogne-Billancourt', 'Nanterre', 'Courbevoie', 'Colombes', 'Asnières-sur-Seine', 'Rueil-Malmaison', 'Levallois-Perret', 'Issy-les-Moulineaux', 'Antony', 'Neuilly-sur-Seine'] },
+  '93': { name: 'Seine-Saint-Denis', cities: ['Saint-Denis', 'Montreuil', 'Aubervilliers', 'Aulnay-sous-Bois', 'Drancy', 'Noisy-le-Grand', 'Pantin', 'Bondy', 'Épinay-sur-Seine', 'Sevran'] },
+  '94': { name: 'Val-de-Marne', cities: ['Créteil', 'Vitry-sur-Seine', 'Saint-Maur-des-Fossés', 'Champigny-sur-Marne', 'Ivry-sur-Seine', 'Maisons-Alfort', 'Fontenay-sous-Bois', 'Villejuif', 'Vincennes', 'Alfortville'] },
+  '78': { name: 'Yvelines', cities: ['Versailles', 'Sartrouville', 'Mantes-la-Jolie', 'Saint-Germain-en-Laye', 'Poissy', 'Conflans-Sainte-Honorine', 'Montigny-le-Bretonneux', 'Les Mureaux', 'Houilles', 'Plaisir'] },
+  '91': { name: 'Essonne', cities: ['Évry-Courcouronnes', 'Corbeil-Essonnes', 'Massy', 'Savigny-sur-Orge', 'Sainte-Geneviève-des-Bois', 'Viry-Châtillon', 'Athis-Mons', 'Palaiseau', 'Yerres', 'Draveil'] },
+  '95': { name: 'Val-d\'Oise', cities: ['Argenteuil', 'Sarcelles', 'Cergy', 'Garges-lès-Gonesse', 'Franconville', 'Goussainville', 'Pontoise', 'Bezons', 'Ermont', 'Villiers-le-Bel'] },
+  '77': { name: 'Seine-et-Marne', cities: ['Meaux', 'Chelles', 'Melun', 'Pontault-Combault', 'Savigny-le-Temple', 'Champs-sur-Marne', 'Villeparisis', 'Torcy', 'Roissy-en-Brie', 'Combs-la-Ville'] },
+};
+
 // Default hardcoded services
 const DEFAULT_SERVICES = ["Réparation écran", "Changement batterie", "Diagnostic"];
+
+type SearchMode = 'city' | 'department';
 
 const GooglePlacesScraper: React.FC = () => {
   // State
   const [apiKey, setApiKey] = useState('AIzaSyCC_6zU1EIPQ31oZnhLGD4MzU-Ms6axxC0');
+  const [searchMode, setSearchMode] = useState<SearchMode>('city');
   const [city, setCity] = useState('Paris');
   const [postalCode, setPostalCode] = useState('75001');
+  const [selectedDepartment, setSelectedDepartment] = useState('75');
   const [query, setQuery] = useState('Réparation téléphone');
+  const [enableExclusionFilter, setEnableExclusionFilter] = useState(true);
   const [results, setResults] = useState<GooglePlace[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState('');
+  const [excludedCount, setExcludedCount] = useState(0);
   const { toast } = useToast();
+
+  // Check if result matches exclusion keywords
+  const shouldExclude = (place: GooglePlace): boolean => {
+    if (!enableExclusionFilter) return false;
+    const searchText = `${place.name} ${place.formatted_address}`.toLowerCase();
+    return EXCLUSION_KEYWORDS.some(keyword => searchText.includes(keyword.toLowerCase()));
+  };
 
   // Clean shop name
   const cleanName = (name: string): string => {
@@ -92,9 +147,41 @@ const GooglePlacesScraper: React.FC = () => {
     }
   };
 
+  // Search for a single location
+  const searchLocation = async (location: string): Promise<GooglePlace[]> => {
+    const searchQuery = `${query} ${location}`.trim();
+    
+    const { data: searchData, error: searchError } = await supabase.functions.invoke('google-places-proxy', {
+      body: { action: 'textSearch', query: searchQuery, apiKey }
+    });
+    
+    if (searchError) {
+      console.error('Search error for', location, searchError);
+      return [];
+    }
+    
+    if (searchData.status !== 'OK' && searchData.status !== 'ZERO_RESULTS') {
+      console.error('Google Places error:', searchData.status);
+      return [];
+    }
+
+    const places = searchData.results || [];
+    const detailedPlaces: GooglePlace[] = [];
+    
+    for (const place of places) {
+      const details = await fetchPlaceDetails(place.place_id);
+      if (details && details.formatted_phone_number) {
+        detailedPlaces.push(details);
+      }
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    return detailedPlaces;
+  };
+
   // Start scraping
   const startScraping = async () => {
-    if (!city && !postalCode) {
+    if (searchMode === 'city' && !city && !postalCode) {
       toast({
         title: "Erreur",
         description: "Veuillez saisir une ville ou un code postal",
@@ -106,65 +193,106 @@ const GooglePlacesScraper: React.FC = () => {
     setIsLoading(true);
     setResults([]);
     setProgress(0);
+    setExcludedCount(0);
     setProgressMessage('Recherche en cours...');
 
     try {
-      // Step A: Text Search via Edge Function
-      const searchQuery = `${query} ${city} ${postalCode}`.trim();
+      let allPlaces: GooglePlace[] = [];
       
-      const { data: searchData, error: searchError } = await supabase.functions.invoke('google-places-proxy', {
-        body: { action: 'textSearch', query: searchQuery, apiKey }
-      });
-      
-      if (searchError) {
-        throw new Error(`Erreur API: ${searchError.message}`);
-      }
-      
-      if (searchData.status !== 'OK' && searchData.status !== 'ZERO_RESULTS') {
-        throw new Error(`Erreur Google Places: ${searchData.status} - ${searchData.error_message || 'Erreur inconnue'}`);
-      }
-
-      const places = searchData.results || [];
-      const totalPlaces = places.length;
-      
-      if (totalPlaces === 0) {
-        toast({
-          title: "Aucun résultat",
-          description: "Aucune boutique trouvée pour cette recherche",
-          variant: "default"
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      setProgressMessage(`${totalPlaces} boutiques trouvées. Récupération des détails...`);
-
-      // Step B: Fetch details for each place
-      const detailedPlaces: GooglePlace[] = [];
-      
-      for (let i = 0; i < totalPlaces; i++) {
-        const place = places[i];
-        setProgress(Math.round(((i + 1) / totalPlaces) * 100));
-        setProgressMessage(`Récupération ${i + 1}/${totalPlaces}: ${place.name}`);
-        
-        const details = await fetchPlaceDetails(place.place_id);
-        
-        // Filter: Only include if has phone number
-        if (details && details.formatted_phone_number) {
-          detailedPlaces.push(details);
+      if (searchMode === 'department') {
+        // Department mode: search across multiple cities
+        const department = DEPARTMENTS[selectedDepartment];
+        if (!department) {
+          throw new Error('Département non trouvé');
         }
         
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 300));
+        const cities = department.cities;
+        const totalCities = cities.length;
+        
+        for (let i = 0; i < totalCities; i++) {
+          const cityName = cities[i];
+          setProgress(Math.round(((i + 1) / totalCities) * 100));
+          setProgressMessage(`Recherche ${i + 1}/${totalCities}: ${cityName}`);
+          
+          const cityResults = await searchLocation(cityName);
+          allPlaces = [...allPlaces, ...cityResults];
+          
+          // Small delay between city searches
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      } else {
+        // City mode: single search
+        const searchQuery = `${query} ${city} ${postalCode}`.trim();
+        
+        const { data: searchData, error: searchError } = await supabase.functions.invoke('google-places-proxy', {
+          body: { action: 'textSearch', query: searchQuery, apiKey }
+        });
+        
+        if (searchError) {
+          throw new Error(`Erreur API: ${searchError.message}`);
+        }
+        
+        if (searchData.status !== 'OK' && searchData.status !== 'ZERO_RESULTS') {
+          throw new Error(`Erreur Google Places: ${searchData.status} - ${searchData.error_message || 'Erreur inconnue'}`);
+        }
+
+        const places = searchData.results || [];
+        const totalPlaces = places.length;
+        
+        if (totalPlaces === 0) {
+          toast({
+            title: "Aucun résultat",
+            description: "Aucune boutique trouvée pour cette recherche",
+            variant: "default"
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        setProgressMessage(`${totalPlaces} boutiques trouvées. Récupération des détails...`);
+
+        for (let i = 0; i < totalPlaces; i++) {
+          const place = places[i];
+          setProgress(Math.round(((i + 1) / totalPlaces) * 100));
+          setProgressMessage(`Récupération ${i + 1}/${totalPlaces}: ${place.name}`);
+          
+          const details = await fetchPlaceDetails(place.place_id);
+          
+          if (details && details.formatted_phone_number) {
+            allPlaces.push(details);
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
       }
 
-      setResults(detailedPlaces);
+      // Deduplicate by place_id
+      const uniquePlaces = allPlaces.filter((place, index, self) => 
+        index === self.findIndex(p => p.place_id === place.place_id)
+      );
+
+      // Apply exclusion filter
+      let filteredPlaces = uniquePlaces;
+      let excluded = 0;
+      
+      if (enableExclusionFilter) {
+        filteredPlaces = uniquePlaces.filter(place => {
+          if (shouldExclude(place)) {
+            excluded++;
+            return false;
+          }
+          return true;
+        });
+        setExcludedCount(excluded);
+      }
+
+      setResults(filteredPlaces);
       setProgress(100);
       setProgressMessage('Terminé!');
       
       toast({
         title: "Scraping terminé",
-        description: `${detailedPlaces.length} boutiques avec téléphone trouvées sur ${totalPlaces}`,
+        description: `${filteredPlaces.length} boutiques trouvées${excluded > 0 ? ` (${excluded} exclues par le filtre)` : ''}`,
       });
     } catch (error: any) {
       console.error('Scraping error:', error);
@@ -195,14 +323,20 @@ const GooglePlacesScraper: React.FC = () => {
 
     try {
       for (const place of results) {
+        // Extract city from address
+        const addressParts = place.formatted_address.split(',');
+        const cityFromAddress = addressParts.length > 1 ? addressParts[addressParts.length - 2].trim() : city || 'France';
+        const postalMatch = cityFromAddress.match(/\d{5}/);
+        const extractedPostal = postalMatch ? postalMatch[0] : postalCode || '00000';
+        
         const repairerData = {
           name: cleanName(place.name),
           address: place.formatted_address,
-          city: city || 'France',
-          postal_code: postalCode || '00000',
+          city: cityFromAddress.replace(/\d{5}/, '').trim() || city || 'France',
+          postal_code: extractedPostal,
           phone: formatPhone(place.formatted_phone_number),
           services: DEFAULT_SERVICES,
-          description: `Expert à ${city}. Note: ${place.rating || 'N/A'}/5 (${place.user_ratings_total || 0} avis).`,
+          description: `Expert en réparation mobile. Note: ${place.rating || 'N/A'}/5 (${place.user_ratings_total || 0} avis).`,
           website: place.website || null,
           is_verified: false,
           source: 'google_places'
@@ -226,7 +360,6 @@ const GooglePlacesScraper: React.FC = () => {
         variant: errors > 0 ? "default" : "default"
       });
 
-      // Trigger geocoding
       if (imported > 0) {
         toast({
           title: "Géocodage",
@@ -264,14 +397,14 @@ const GooglePlacesScraper: React.FC = () => {
       city: city || 'France',
       phone: formatPhone(place.formatted_phone_number),
       services: DEFAULT_SERVICES,
-      description: `Expert à ${city}. Note: ${place.rating || 'N/A'}/5 (${place.user_ratings_total || 0} avis).`
+      description: `Expert en réparation mobile. Note: ${place.rating || 'N/A'}/5 (${place.user_ratings_total || 0} avis).`
     }));
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `reparateurs-${city}-${postalCode}.json`;
+    link.download = `reparateurs-${searchMode === 'department' ? DEPARTMENTS[selectedDepartment]?.name : city}-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -309,7 +442,7 @@ const GooglePlacesScraper: React.FC = () => {
             Google Places Scraper
           </h1>
           <p className="text-muted-foreground">
-            Recherche via Google Places API avec import direct en base
+            Recherche par ville ou département avec filtres intelligents
           </p>
         </div>
         
@@ -341,6 +474,7 @@ const GooglePlacesScraper: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* API Key */}
             <div className="space-y-2">
               <Label htmlFor="apiKey">Clé API Google</Label>
               <Input 
@@ -353,26 +487,76 @@ const GooglePlacesScraper: React.FC = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="city">Ville</Label>
-              <Input 
-                id="city"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="ex: Paris"
-              />
+            {/* Search Mode Toggle */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2">
+                <Map className="h-4 w-4" />
+                Mode de recherche
+              </Label>
+              <div className="flex gap-2">
+                <Button
+                  variant={searchMode === 'city' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSearchMode('city')}
+                  className="flex-1"
+                >
+                  Ville
+                </Button>
+                <Button
+                  variant={searchMode === 'department' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSearchMode('department')}
+                  className="flex-1"
+                >
+                  Département
+                </Button>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="postalCode">Code Postal</Label>
-              <Input 
-                id="postalCode"
-                value={postalCode}
-                onChange={(e) => setPostalCode(e.target.value)}
-                placeholder="ex: 75001"
-              />
-            </div>
+            {searchMode === 'city' ? (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="city">Ville</Label>
+                  <Input 
+                    id="city"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="ex: Paris"
+                  />
+                </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="postalCode">Code Postal</Label>
+                  <Input 
+                    id="postalCode"
+                    value={postalCode}
+                    onChange={(e) => setPostalCode(e.target.value)}
+                    placeholder="ex: 75001"
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="space-y-2">
+                <Label>Département</Label>
+                <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un département" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(DEPARTMENTS).map(([code, dept]) => (
+                      <SelectItem key={code} value={code}>
+                        {code} - {dept.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Recherche sur {DEPARTMENTS[selectedDepartment]?.cities.length || 0} villes principales
+                </p>
+              </div>
+            )}
+
+            {/* Query Input */}
             <div className="space-y-2">
               <Label htmlFor="query">Requête de recherche</Label>
               <Input 
@@ -380,6 +564,42 @@ const GooglePlacesScraper: React.FC = () => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Réparation téléphone"
+              />
+            </div>
+
+            {/* Suggested Queries */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                Suggestions précises
+              </Label>
+              <div className="flex flex-wrap gap-1">
+                {SUGGESTED_QUERIES.map((suggestion, idx) => (
+                  <Button
+                    key={idx}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs h-7 px-2"
+                    onClick={() => setQuery(suggestion.value)}
+                  >
+                    {suggestion.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Exclusion Filter Toggle */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-primary" />
+                <Label htmlFor="exclusionFilter" className="text-sm cursor-pointer">
+                  Exclure informatique
+                </Label>
+              </div>
+              <Switch
+                id="exclusionFilter"
+                checked={enableExclusionFilter}
+                onCheckedChange={setEnableExclusionFilter}
               />
             </div>
 
@@ -420,12 +640,20 @@ const GooglePlacesScraper: React.FC = () => {
                 <Building2 className="h-5 w-5" />
                 Résultats ({results.length})
               </CardTitle>
-              {results.length > 0 && (
-                <Badge variant="secondary" className="gap-1">
-                  <CheckCircle className="h-3 w-3" />
-                  {results.length} avec téléphone
-                </Badge>
-              )}
+              <div className="flex gap-2">
+                {excludedCount > 0 && (
+                  <Badge variant="outline" className="gap-1 text-orange-600 border-orange-300">
+                    <Filter className="h-3 w-3" />
+                    {excludedCount} exclues
+                  </Badge>
+                )}
+                {results.length > 0 && (
+                  <Badge variant="secondary" className="gap-1">
+                    <CheckCircle className="h-3 w-3" />
+                    {results.length} avec téléphone
+                  </Badge>
+                )}
+              </div>
             </div>
             <CardDescription>
               Prévisualisez et nettoyez les résultats avant import
@@ -436,6 +664,9 @@ const GooglePlacesScraper: React.FC = () => {
               <div className="text-center py-12 text-muted-foreground">
                 <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>Aucun résultat. Lancez une recherche pour commencer.</p>
+                <p className="text-xs mt-2">
+                  💡 Conseil: Utilisez les suggestions pour des résultats plus précis
+                </p>
               </div>
             ) : (
               <ScrollArea className="h-[500px]">
