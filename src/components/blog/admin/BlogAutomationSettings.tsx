@@ -12,6 +12,7 @@ import { CronStatus } from '@/types/blogAutomation';
 import { useAuth } from '@/hooks/useAuth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AIStatusDashboard from './AIStatusDashboard';
 
 export const BlogAutomationSettings = () => {
   const { toast } = useToast();
@@ -156,6 +157,9 @@ export const BlogAutomationSettings = () => {
 
   return (
     <div className="space-y-6">
+      {/* AI Status Dashboard */}
+      <AIStatusDashboard />
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
