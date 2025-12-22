@@ -637,19 +637,47 @@ Contenu...
 
     console.log(`✅ Article généré avec: ${usedProvider}`);
 
-    // 🖼️ GÉNÉRATION DES IMAGES INLINE
-    if (articleData.image_placeholders && Array.isArray(articleData.image_placeholders) && articleData.image_placeholders.length > 0) {
-      console.log(`🖼️ Generating ${articleData.image_placeholders.length} inline images...`);
+    // 🖼️ EXTRACTION ET GÉNÉRATION DES IMAGES INLINE
+    
+    // Fonction pour extraire les placeholders directement du contenu (fallback)
+    function extractImagePlaceholders(content: string): { placeholder: string; description: string }[] {
+      const placeholders: { placeholder: string; description: string }[] = [];
+      
+      // Pattern pour capturer {{IMAGE_X}} suivi d'une description optionnelle (avec -, –, —, ou :)
+      const regex = /(\{\{IMAGE_(\d+)\}\})(?:\s*[-–—:]\s*([^\n]+))?/gi;
+      let match;
+      
+      while ((match = regex.exec(content)) !== null) {
+        placeholders.push({
+          placeholder: match[1], // {{IMAGE_1}}
+          description: match[3]?.trim() || `Image illustrative pour la section ${match[2]}`
+        });
+      }
+      
+      return placeholders;
+    }
+    
+    // Si l'IA n'a pas retourné de placeholders ou tableau vide, les extraire du contenu
+    let imagePlaceholders = articleData.image_placeholders;
+    if (!imagePlaceholders || !Array.isArray(imagePlaceholders) || imagePlaceholders.length === 0) {
+      console.log('⚠️ No image_placeholders from AI response, extracting from content...');
+      imagePlaceholders = extractImagePlaceholders(articleData.content);
+      console.log(`📸 Extracted ${imagePlaceholders.length} placeholders from content`);
+    }
+    
+    if (imagePlaceholders.length > 0) {
+      console.log(`🖼️ Processing ${imagePlaceholders.length} inline images...`);
+      console.log('📝 Placeholders found:', JSON.stringify(imagePlaceholders, null, 2));
       
       let updatedContent = articleData.content;
       
-      for (const placeholder of articleData.image_placeholders) {
+      for (const placeholder of imagePlaceholders) {
         let inlineImageUrl: string | null = null;
         
         // Retry jusqu'à 2 fois pour chaque image inline
         for (let attempt = 1; attempt <= 2 && !inlineImageUrl; attempt++) {
           try {
-            console.log(`  → Generating ${placeholder.placeholder} (attempt ${attempt}/2)`);
+            console.log(`  → Generating ${placeholder.placeholder} (attempt ${attempt}/2): "${placeholder.description?.substring(0, 60)}..."`);
             
             const imageResponse = await fetch(`${SUPABASE_URL}/functions/v1/blog-image-generator`, {
               method: 'POST',
@@ -668,13 +696,14 @@ Contenu...
               inlineImageUrl = imageData?.image_url || imageData?.imageUrl;
               
               if (inlineImageUrl) {
-                console.log(`  ✅ ${placeholder.placeholder} generated`);
+                console.log(`  ✅ ${placeholder.placeholder} generated successfully`);
               } else {
                 console.error(`  ⚠️ No URL in response for ${placeholder.placeholder} (attempt ${attempt})`);
+                console.error(`     Response:`, JSON.stringify(imageData).substring(0, 200));
               }
             } else {
               const errorText = await imageResponse.text();
-              console.error(`  ⚠️ Failed for ${placeholder.placeholder} (attempt ${attempt}):`, imageResponse.status, errorText);
+              console.error(`  ⚠️ Failed for ${placeholder.placeholder} (attempt ${attempt}):`, imageResponse.status, errorText.substring(0, 200));
             }
           } catch (imgError) {
             console.error(`  ⚠️ Error for ${placeholder.placeholder} (attempt ${attempt}):`, imgError);
@@ -686,25 +715,38 @@ Contenu...
           }
         }
         
+        // Pattern pour remplacer {{IMAGE_X}} ET sa description éventuelle sur la même ligne
+        // Capture: {{IMAGE_1}} suivi optionnellement de " - description" ou " : description"
+        const escapedPlaceholder = placeholder.placeholder.replace(/[{}]/g, '\\$&');
+        const patternWithDesc = new RegExp(
+          escapedPlaceholder + '(?:\\s*[-–—:]\\s*[^\\n]*)?',
+          'g'
+        );
+        
         // Si image générée ou utiliser placeholder
-        if (inlineImageUrl) {
-          updatedContent = updatedContent.replace(
-            placeholder.placeholder, 
-            `![${placeholder.description}](${inlineImageUrl})`
-          );
+        const imageMarkdown = inlineImageUrl 
+          ? `\n\n![${placeholder.description}](${inlineImageUrl})\n\n`
+          : `\n\n![${placeholder.description}](https://images.unsplash.com/photo-1556656793-08538906a9f8?w=1200&h=800&fit=crop&q=80)\n\n`;
+        
+        const beforeReplace = updatedContent.length;
+        updatedContent = updatedContent.replace(patternWithDesc, imageMarkdown);
+        const afterReplace = updatedContent.length;
+        
+        if (beforeReplace === afterReplace && !updatedContent.includes(imageMarkdown)) {
+          console.log(`  ⚠️ Pattern not found in content for ${placeholder.placeholder}`);
         } else {
-          // Utiliser une image placeholder si échec
-          const fallbackImage = 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=1200&h=800&fit=crop&q=80';
-          updatedContent = updatedContent.replace(
-            placeholder.placeholder, 
-            `![${placeholder.description}](${fallbackImage})`
-          );
+          console.log(`  ✅ Replaced ${placeholder.placeholder} in content`);
+        }
+        
+        if (!inlineImageUrl) {
           console.log(`  ⚠️ Using fallback for ${placeholder.placeholder}`);
         }
       }
       
       articleData.content = updatedContent;
       console.log('✅ All inline images processed');
+    } else {
+      console.log('ℹ️ No image placeholders to process');
     }
 
     // Enregistrer l'analytics
