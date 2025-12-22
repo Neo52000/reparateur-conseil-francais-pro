@@ -149,7 +149,6 @@ export class WebVitalsTracker {
   }
 
   private handleLCPOptimization(optimization: any): void {
-    console.log('Optimisation LCP calculée:', optimization);
     
     if (optimization.priority === 'high') {
       // Appliquer les optimisations critiques

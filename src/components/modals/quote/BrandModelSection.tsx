@@ -21,12 +21,6 @@ const BrandModelSection: React.FC<BrandModelSectionProps> = ({
   onBrandChange,
   onModelChange
 }) => {
-  console.log('🏷️ BrandModelSection render:', { 
-    brandsCount: brands.length, 
-    modelsCount: filteredModels.length,
-    selectedBrand: deviceBrand,
-    selectedModel: deviceModel
-  });
 
   return (
     <div className="space-y-4">

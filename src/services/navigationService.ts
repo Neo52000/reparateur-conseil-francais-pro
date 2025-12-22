@@ -1,4 +1,3 @@
-
 /**
  * Service centralisé pour la gestion de la navigation et validation des routes
  */
@@ -10,23 +9,43 @@ export class NavigationService {
   static readonly routes = {
     // Pages publiques
     home: '/',
+    search: '/search',
     blog: '/blog',
-    blogArticle: (slug: string) => `/blog/article/${slug}`,
+    blogArticle: (slug: string) => `/blog/${slug}`,
+    
+    // Services
+    smartphoneRepair: '/reparation-smartphone',
+    tabletRepair: '/reparation-tablette',
+    computerRepair: '/reparation-ordinateur',
+    consoleRepair: '/reparation-console',
     
     // Authentification
     clientAuth: '/client-auth',
     repairerAuth: '/repairer-auth',
-    adminAuth: '/admin-auth',
     
     // Espaces utilisateurs
-    client: '/client',
-    repairer: '/repairer',
-    repairerPlans: '/repairer/plans',
+    client: '/client-auth',
+    repairer: '/repairer-auth',
+    repairerPlans: '/repairer-plans',
+    repairerDashboard: '/repairer-dashboard',
+    clientDashboard: '/client-dashboard',
     admin: '/admin',
     
     // Blog spécialisé
     blogRepairers: '/blog/repairers',
-    blogRepairersArticle: (slug: string) => `/blog/repairers/article/${slug}`
+    blogRepairersArticle: (slug: string) => `/blog/repairers/article/${slug}`,
+    
+    // Pages légales
+    legalNotice: '/legal-notice',
+    terms: '/terms',
+    termsOfSale: '/terms-of-sale',
+    privacy: '/privacy',
+    cookies: '/cookies',
+    
+    // Autres
+    quotesAppointments: '/quotes-appointments',
+    suppliersDirectory: '/suppliers-directory',
+    documentation: '/documentation'
   } as const;
 
   /**
@@ -35,17 +54,29 @@ export class NavigationService {
   static isValidRoute(path: string): boolean {
     const validPaths = [
       '/',
+      '/search',
       '/blog',
-      '/blog/article',
       '/blog/repairers',
-      '/blog/repairers/article',
       '/client-auth',
       '/repairer-auth', 
-      '/admin-auth',
-      '/client',
-      '/repairer',
-      '/repairer/plans',
-      '/admin'
+      '/admin',
+      '/repairer-dashboard',
+      '/client-dashboard',
+      '/repairer-plans',
+      '/repairer-profile',
+      '/repairer-settings',
+      '/reparation-smartphone',
+      '/reparation-tablette',
+      '/reparation-ordinateur',
+      '/reparation-console',
+      '/quotes-appointments',
+      '/suppliers-directory',
+      '/legal-notice',
+      '/terms',
+      '/terms-of-sale',
+      '/privacy',
+      '/cookies',
+      '/documentation'
     ];
     
     return validPaths.some(validPath => 
@@ -58,14 +89,12 @@ export class NavigationService {
    */
   static cleanSlug(slug: string): string {
     if (!slug || typeof slug !== 'string') {
-      console.warn('NavigationService.cleanSlug: Invalid slug provided:', slug);
       return 'article-sans-slug';
     }
 
     const cleaned = slug
       .toLowerCase()
       .trim()
-      // Normaliser les caractères accentués
       .replace(/[àáâãäå]/g, 'a')
       .replace(/[èéêë]/g, 'e')
       .replace(/[ìíîï]/g, 'i')
@@ -73,19 +102,15 @@ export class NavigationService {
       .replace(/[ùúûü]/g, 'u')
       .replace(/[ç]/g, 'c')
       .replace(/[ñ]/g, 'n')
-      // Garder seulement les caractères alphanumériques, espaces, tirets et underscores
       .replace(/[^a-z0-9\s-_]/g, '') 
-      .replace(/\s+/g, '-') // Remplacer les espaces par des tirets
-      .replace(/-+/g, '-') // Remplacer les tirets multiples par un seul
-      .replace(/^-|-$/g, ''); // Supprimer les tirets en début et fin
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
 
-    // Si le slug nettoyé est vide, retourner un fallback
     if (!cleaned || cleaned.length === 0) {
-      console.warn('NavigationService.cleanSlug: Slug became empty after cleaning:', slug);
       return 'article-sans-titre';
     }
 
-    console.log('NavigationService.cleanSlug:', { original: slug, cleaned });
     return cleaned;
   }
 
@@ -101,12 +126,9 @@ export class NavigationService {
    */
   static getBlogArticleUrl(slug: string, isRepairers = false): string {
     const cleanSlug = this.cleanSlug(slug);
-    const url = isRepairers 
+    return isRepairers 
       ? this.routes.blogRepairersArticle(cleanSlug)
       : this.routes.blogArticle(cleanSlug);
-    
-    console.log('NavigationService.getBlogArticleUrl:', { slug, cleanSlug, url, isRepairers });
-    return url;
   }
 
   /**
@@ -117,18 +139,15 @@ export class NavigationService {
     userRole: string | null,
     isAuthenticated: boolean
   ): boolean {
-    // Routes publiques
-    const publicRoutes = ['/', '/blog', '/client-auth', '/repairer-auth'];
+    const publicRoutes = ['/', '/blog', '/search', '/client-auth', '/repairer-auth', '/repairer-plans'];
     if (publicRoutes.some(route => path.startsWith(route))) {
       return true;
     }
 
-    // Routes nécessitant une authentification
     if (!isAuthenticated) {
       return false;
     }
 
-    // Routes spécifiques par rôle
     if (path.startsWith('/admin')) {
       return userRole === 'admin';
     }
@@ -152,9 +171,9 @@ export class NavigationService {
       case 'admin':
         return this.routes.admin;
       case 'repairer':
-        return this.routes.repairer;
+        return this.routes.repairerDashboard;
       case 'user':
-        return this.routes.client;
+        return this.routes.clientDashboard;
       default:
         return this.routes.home;
     }
@@ -179,28 +198,27 @@ export class NavigationService {
     if (!title || typeof title !== 'string') {
       return 'article-sans-titre';
     }
-
     return this.cleanSlug(title);
   }
 
   /**
-   * Liste des liens potentiellement problématiques à vérifier
+   * Liste des liens à auditer
    */
   static readonly linksToAudit = [
-    // Navigation principale
     { path: '/', description: 'Page d\'accueil' },
+    { path: '/search', description: 'Recherche' },
     { path: '/blog', description: 'Blog principal' },
     { path: '/client-auth', description: 'Authentification client' },
     { path: '/repairer-auth', description: 'Authentification réparateur' },
-    { path: '/admin-auth', description: 'Authentification admin' },
-    
-    // Espaces utilisateurs
-    { path: '/client', description: 'Dashboard client' },
-    { path: '/repairer', description: 'Dashboard réparateur' },
-    { path: '/repairer/plans', description: 'Plans réparateur' },
+    { path: '/repairer-plans', description: 'Plans réparateur' },
+    { path: '/repairer-dashboard', description: 'Dashboard réparateur' },
+    { path: '/client-dashboard', description: 'Dashboard client' },
     { path: '/admin', description: 'Dashboard admin' },
-    
-    // Blog spécialisé
     { path: '/blog/repairers', description: 'Blog réparateurs' },
+    { path: '/reparation-smartphone', description: 'Réparation smartphone' },
+    { path: '/reparation-tablette', description: 'Réparation tablette' },
+    { path: '/legal-notice', description: 'Mentions légales' },
+    { path: '/terms', description: 'CGU' },
+    { path: '/privacy', description: 'Politique de confidentialité' },
   ];
 }

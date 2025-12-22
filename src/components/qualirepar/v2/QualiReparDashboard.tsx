@@ -151,8 +151,7 @@ const QualiReparDashboard: React.FC = () => {
   };
 
   const handleViewDossier = (dossier: QualiReparDossier) => {
-    // Navigation vers le détail du dossier
-    console.log('View dossier:', dossier.id);
+    // TODO: Navigation vers le détail du dossier
   };
 
   const stats = getStats();
