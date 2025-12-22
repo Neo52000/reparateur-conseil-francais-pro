@@ -10,7 +10,6 @@ import RepairerProfileModal from '@/components/RepairerProfileModal';
 interface Repairer {
   id: string;
   name: string;
-  business_name?: string;
   address: string;
   city: string;
   postal_code?: string;
@@ -20,10 +19,8 @@ interface Repairer {
   lat?: number;
   lng?: number;
   is_verified?: boolean;
-  has_qualirepar_label?: boolean;
   services?: string[];
   subscription_tier?: string;
-  user_id?: string | null;
 }
 
 const RepairerResultsGrid = () => {
@@ -42,10 +39,9 @@ const RepairerResultsGrid = () => {
       const { data, error } = await supabase
         .from('repairers')
         .select(`
-          id, name, business_name, address, city, postal_code, phone, 
-          lat, lng, rating, is_verified, has_qualirepar_label, services, user_id
+          id, name, address, city, postal_code, phone, 
+          lat, lng, rating, is_verified, services
         `)
-        .eq('is_verified', true)
         .not('lat', 'is', null)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(9);
@@ -158,7 +154,7 @@ const RepairerResultsGrid = () => {
         <RepairerClaimModal
           isOpen={!!claimRepairer}
           onClose={() => setClaimRepairer(null)}
-          repairerName={claimRepairer.business_name || claimRepairer.name}
+          repairerName={claimRepairer.name}
           repairerId={claimRepairer.id}
         />
       )}
