@@ -154,6 +154,31 @@ Deno.serve(async (req) => {
         if (!response.ok) {
           const errorText = await response.text();
           console.error(`❌ Error generating article for schedule ${schedule.id}: ${response.status} - ${errorText}`);
+          
+          // Send error notification
+          try {
+            await fetch(`${supabaseUrl}/functions/v1/blog-automation-notify`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${supabaseServiceKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                type: 'error',
+                schedule_name: schedule.name,
+                schedule_id: schedule.id,
+                error_message: `Échec de génération d'article: HTTP ${response.status}`,
+                error_details: {
+                  http_status: response.status,
+                  api_response: errorText.substring(0, 500)
+                }
+              })
+            });
+            console.log(`📧 Error notification sent for schedule ${schedule.name}`);
+          } catch (notifyError) {
+            console.error(`⚠️ Failed to send error notification:`, notifyError);
+          }
+          
           results.push({
             schedule_id: schedule.id,
             schedule_name: schedule.name,
@@ -186,6 +211,31 @@ Deno.serve(async (req) => {
         });
       } catch (error) {
         console.error(`❌ Exception for schedule ${schedule.id}:`, error);
+        
+        // Send error notification for exceptions
+        try {
+          await fetch(`${supabaseUrl}/functions/v1/blog-automation-notify`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${supabaseServiceKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              type: 'error',
+              schedule_name: schedule.name,
+              schedule_id: schedule.id,
+              error_message: `Exception lors de la génération: ${error.message}`,
+              error_details: {
+                provider: 'unknown',
+                api_response: error.stack || error.message
+              }
+            })
+          });
+          console.log(`📧 Exception notification sent for schedule ${schedule.name}`);
+        } catch (notifyError) {
+          console.error(`⚠️ Failed to send exception notification:`, notifyError);
+        }
+        
         results.push({
           schedule_id: schedule.id,
           schedule_name: schedule.name,
