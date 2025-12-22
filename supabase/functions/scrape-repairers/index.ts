@@ -234,10 +234,34 @@ function hashCode(str: string): number {
   return hash;
 }
 
+// Fonction pour vérifier si un code postal appartient à un département
+function isInDepartment(postalCode: string, departmentCode: string): boolean {
+  if (!postalCode || postalCode.length !== 5) return false;
+  
+  // Cas spécial pour la Corse (2A = 20000-20190, 2B = 20200-20620)
+  if (departmentCode === '2A') {
+    const prefix = postalCode.substring(0, 3);
+    return prefix === '200' || prefix === '201';
+  }
+  if (departmentCode === '2B') {
+    const prefix = postalCode.substring(0, 3);
+    return prefix === '202' || prefix === '206' || prefix === '203' || prefix === '204' || prefix === '205';
+  }
+  
+  // Cas DOM-TOM (971, 972, 973, 974, 976)
+  if (departmentCode.length === 3) {
+    return postalCode.startsWith(departmentCode);
+  }
+  
+  // Cas standard : les 2 premiers chiffres correspondent au département
+  const expectedPrefix = departmentCode.padStart(2, '0');
+  return postalCode.startsWith(expectedPrefix);
+}
+
 // Fonction pour extraire le code postal d'une adresse
-function extractPostalCode(address: string): string {
+function extractPostalCode(address: string): string | null {
   const match = address.match(/\b(\d{5})\b/);
-  return match ? match[1] : '';
+  return match ? match[1] : null;
 }
 
 // Fonction pour extraire la ville d'une adresse
@@ -252,7 +276,14 @@ function extractCity(address: string, defaultCity: string): string {
 function transformSerperResult(place: any, searchCity: string, departmentCode: string): ScrapedRepairer | null {
   if (!place.title || !place.address) return null;
 
-  const postalCode = extractPostalCode(place.address) || departmentCode.padStart(5, '0').substring(0, 2) + '000';
+  const postalCode = extractPostalCode(place.address);
+  
+  // Si pas de code postal extrait, rejeter le résultat
+  if (!postalCode) {
+    console.log(`⚠️ Pas de code postal trouvé pour: ${place.title}`);
+    return null;
+  }
+  
   const city = extractCity(place.address, searchCity);
   
   // Extraire les services à partir des catégories Google
@@ -367,6 +398,7 @@ serve(async (req) => {
 
     const allResults: ScrapedRepairer[] = [];
     const seenNames = new Set<string>();
+    let excludedCount = 0;
 
     // Limiter en mode test
     const citiesToProcess = test_mode ? cities.slice(0, 1) : cities;
@@ -383,6 +415,13 @@ serve(async (req) => {
           const repairer = transformSerperResult(place, city, department_code);
           
           if (repairer && !seenNames.has(repairer.name.toLowerCase())) {
+            // FILTRAGE STRICT : Vérifier que le résultat est bien dans le département demandé
+            if (!isInDepartment(repairer.postal_code, department_code)) {
+              excludedCount++;
+              console.log(`⚠️ Exclu (${excludedCount}): ${repairer.name} - CP ${repairer.postal_code} hors département ${department_code}`);
+              continue; // Ignorer ce résultat
+            }
+            
             seenNames.add(repairer.name.toLowerCase());
 
             // Si pas de coordonnées, géocoder l'adresse
@@ -402,7 +441,7 @@ serve(async (req) => {
       }
     }
 
-    console.log(`📊 Total de ${allResults.length} réparateurs uniques trouvés`);
+    console.log(`📊 Total: ${allResults.length} réparateurs gardés, ${excludedCount} exclus (hors département ${department_code})`);
 
     // Mettre à jour le log avec les résultats (sans insérer en base - preview mode)
     await supabase
