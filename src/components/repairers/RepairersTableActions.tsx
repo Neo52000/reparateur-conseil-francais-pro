@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,11 +20,11 @@ export const useRepairersTableActions = ({
   setSelectedIds,
 }: UseRepairersTableActionsProps) => {
   const { toast } = useToast();
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
   const handleDeleteRepairer = async (repairerId: string) => {
     setLoading(repairerId);
     try {
-      // Delete repairer via Supabase
       const { error } = await supabase
         .from('repairers')
         .delete()
@@ -51,8 +50,14 @@ export const useRepairersTableActions = ({
   const handleToggleStatus = async (repairerId: string, currentStatus: boolean) => {
     setLoading(repairerId);
     try {
-      // Implémentation du changement de statut
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulation
+      // Note: is_active field might not exist yet, this is a placeholder
+      const { error } = await supabase
+        .from('repairers')
+        .update({ is_verified: !currentStatus })
+        .eq('id', repairerId);
+      
+      if (error) throw error;
+      
       toast({
         title: "Statut modifié",
         description: `Le réparateur a été ${currentStatus ? 'désactivé' : 'activé'}`,
@@ -71,8 +76,13 @@ export const useRepairersTableActions = ({
 
   const handleBulkSetActive = async () => {
     try {
-      // Implémentation de l'activation en masse
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulation
+      const { error } = await supabase
+        .from('repairers')
+        .update({ is_verified: true })
+        .in('id', selectedIds);
+      
+      if (error) throw error;
+      
       toast({
         title: "Réparateurs activés",
         description: `${selectedIds.length} réparateurs ont été activés`,
@@ -88,15 +98,29 @@ export const useRepairersTableActions = ({
     }
   };
 
-  const handleBulkDelete = async () => {
+  const requestBulkDelete = () => {
+    setShowBulkDeleteConfirm(true);
+  };
+
+  const cancelBulkDelete = () => {
+    setShowBulkDeleteConfirm(false);
+  };
+
+  const confirmBulkDelete = async () => {
     try {
-      // Implémentation de la suppression en masse
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulation
+      const { error } = await supabase
+        .from('repairers')
+        .delete()
+        .in('id', selectedIds);
+      
+      if (error) throw error;
+      
       toast({
         title: "Réparateurs supprimés",
         description: `${selectedIds.length} réparateurs ont été supprimés`,
       });
       setSelectedIds([]);
+      setShowBulkDeleteConfirm(false);
       onRefresh();
     } catch (error) {
       toast({
@@ -111,6 +135,9 @@ export const useRepairersTableActions = ({
     handleDeleteRepairer,
     handleToggleStatus,
     handleBulkSetActive,
-    handleBulkDelete,
+    requestBulkDelete,
+    confirmBulkDelete,
+    cancelBulkDelete,
+    showBulkDeleteConfirm,
   };
 };
