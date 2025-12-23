@@ -22,30 +22,13 @@ const ScrapingDebugPanel: React.FC<ScrapingDebugPanelProps> = ({
   const runDatabaseDiagnostic = async () => {
     setLoading(true);
     try {
-      // Test des permissions RLS sur la table repairers
-      const { data: testInsert, error: insertError } = await supabase
+      // Test des permissions RLS sur la table repairers (sans insertion)
+      const { data: testSelect, error: selectError } = await supabase
         .from('repairers')
-        .insert({
-          name: 'TEST_REPAIRER_DEBUG',
-          unique_id: `DEBUG_TEST_${Date.now()}`,
-          business_category_id: null,
-          address: 'Test Address',
-          city: 'Test City',
-          postal_code: '00000',
-          description: 'Test description pour debug',
-          source: 'debug_test'
-        })
-        .select('id');
+        .select('id')
+        .limit(1);
 
-      let insertResult = { success: !insertError, error: insertError?.message };
-
-      // Nettoyer le test si réussi
-      if (testInsert && testInsert.length > 0) {
-        await supabase
-          .from('repairers')
-          .delete()
-          .eq('id', testInsert[0].id);
-      }
+      let permissionResult = { success: !selectError, error: selectError?.message };
 
       // Test des catégories disponibles
       const { data: categories, error: categoriesError } = await supabase
@@ -73,7 +56,7 @@ const ScrapingDebugPanel: React.FC<ScrapingDebugPanelProps> = ({
 
       setDebugInfo({
         database: {
-          insertTest: insertResult,
+          permissionTest: permissionResult,
           categories: {
             count: categories?.length || 0,
             available: categories || [],

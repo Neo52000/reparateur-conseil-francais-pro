@@ -132,17 +132,7 @@ const Footer = () => {
                               </Button>
                             </Link>)}
                           
-                          {/* Stats rapides */}
-                          <div className="grid grid-cols-2 gap-2 mt-4 text-center">
-                            <div className="bg-white/10 rounded p-2">
-                              <div className="font-bold text-white">5000+</div>
-                              <div className="text-xs text-blue-100">Réparateurs</div>
-                            </div>
-                            <div className="bg-white/10 rounded p-2">
-                              <div className="font-bold text-white">50K+</div>
-                              <div className="text-xs text-blue-100">Réparations</div>
-                            </div>
-                          </div>
+                          {/* Stats supprimées - données fictives retirées */}
                         </div> :
               // Sections génériques avec sous-sections
               <div>
