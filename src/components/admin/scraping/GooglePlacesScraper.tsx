@@ -58,14 +58,35 @@ interface RepairerExport {
   description: string;
 }
 
-// Suggested queries for better precision
-const SUGGESTED_QUERIES = [
-  { label: "📱 Réparation smartphone", value: "réparation smartphone mobile" },
-  { label: "📱 Réparation iPhone", value: "réparation iPhone Apple" },
-  { label: "🔧 Réparation écran mobile", value: "réparation écran téléphone portable" },
-  { label: "⚡ Micro-soudure téléphone", value: "micro soudure téléphone mobile" },
-  { label: "🔋 Changement batterie", value: "changement batterie smartphone" },
-  { label: "📲 Déblocage téléphone", value: "déblocage réparation téléphone" },
+// Brand categories for combined search
+const BRAND_QUERIES = [
+  { id: 'apple', label: '🍎 Apple/iPhone', query: 'réparation iPhone Apple' },
+  { id: 'samsung', label: '📱 Samsung', query: 'réparation Samsung Galaxy' },
+  { id: 'huawei', label: '📲 Huawei', query: 'réparation Huawei' },
+  { id: 'xiaomi', label: '🔧 Xiaomi', query: 'réparation Xiaomi Redmi' },
+  { id: 'oneplus', label: '⚡ OnePlus', query: 'réparation OnePlus' },
+  { id: 'oppo', label: '📱 OPPO/Vivo', query: 'réparation OPPO Vivo' },
+  { id: 'google', label: '🔍 Google Pixel', query: 'réparation Google Pixel' },
+];
+
+// Service categories for combined search
+const SERVICE_QUERIES = [
+  { id: 'screen', label: '📱 Écran/Vitre', query: 'réparation écran vitre téléphone' },
+  { id: 'battery', label: '🔋 Batterie', query: 'changement batterie smartphone' },
+  { id: 'charging', label: '⚡ Connecteur charge', query: 'réparation connecteur charge téléphone' },
+  { id: 'camera', label: '📷 Caméra', query: 'réparation caméra téléphone' },
+  { id: 'speaker', label: '🔊 Haut-parleur/Micro', query: 'réparation haut-parleur micro téléphone' },
+  { id: 'water', label: '💧 Oxydation', query: 'désoxydation réparation téléphone' },
+  { id: 'motherboard', label: '🔧 Micro-soudure', query: 'micro soudure carte mère téléphone' },
+];
+
+// Pre-built combined queries for maximum coverage
+const COMBINED_QUERIES_PRESET = [
+  'réparation smartphone mobile',
+  'réparation écran téléphone portable',
+  'réparation iPhone Apple',
+  'réparation Samsung Galaxy',
+  'réparateur téléphone agréé',
 ];
 
 // Keywords to exclude from results (computer repair, etc.)
@@ -73,7 +94,9 @@ const EXCLUSION_KEYWORDS = [
   "informatique", "ordinateur", "pc", "imprimante", "computer",
   "electroménager", "électroménager", "automobile", "auto", "voiture",
   "dépannage informatique", "assistance informatique", "réparation pc",
-  "laptop", "macbook pro", "réparation ordinateur"
+  "laptop", "macbook pro", "réparation ordinateur",
+  "tablette", "ipad", "vente occasion", "reconditionné", "accessoires",
+  "coque", "protection écran", "chargeur", "câble"
 ];
 
 // Build departments map from centralized REGIONS constant
@@ -119,6 +142,12 @@ const GooglePlacesScraper: React.FC = () => {
   const [progressMessage, setProgressMessage] = useState('');
   const [excludedCount, setExcludedCount] = useState(0);
   const [exhaustiveStats, setExhaustiveStats] = useState({ cities: 0, totalCities: 0, departments: 0, totalDepartments: 0 });
+  
+  // New: Combined search state
+  const [enableCombinedSearch, setEnableCombinedSearch] = useState(false);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [showQueryPreview, setShowQueryPreview] = useState(false);
   const { toast } = useToast();
   
   // Get cities for exhaustive scraping
@@ -183,12 +212,58 @@ const GooglePlacesScraper: React.FC = () => {
     }
   };
 
-  // Search for a single location
-  const searchLocation = async (location: string): Promise<GooglePlace[]> => {
-    const searchQuery = `${query} ${location}`.trim();
+  // Get all queries to execute based on current configuration
+  const getQueriesToExecute = (): string[] => {
+    if (!enableCombinedSearch) {
+      return [query];
+    }
+    
+    const queries: string[] = [];
+    
+    // Add preset combined queries if no specific selections
+    if (selectedBrands.length === 0 && selectedServices.length === 0) {
+      return COMBINED_QUERIES_PRESET;
+    }
+    
+    // Add brand queries
+    selectedBrands.forEach(brandId => {
+      const brand = BRAND_QUERIES.find(b => b.id === brandId);
+      if (brand) queries.push(brand.query);
+    });
+    
+    // Add service queries
+    selectedServices.forEach(serviceId => {
+      const service = SERVICE_QUERIES.find(s => s.id === serviceId);
+      if (service) queries.push(service.query);
+    });
+    
+    return queries.length > 0 ? queries : [query];
+  };
+  
+  // Toggle brand selection
+  const toggleBrand = (brandId: string) => {
+    setSelectedBrands(prev => 
+      prev.includes(brandId) 
+        ? prev.filter(id => id !== brandId)
+        : [...prev, brandId]
+    );
+  };
+  
+  // Toggle service selection
+  const toggleService = (serviceId: string) => {
+    setSelectedServices(prev => 
+      prev.includes(serviceId) 
+        ? prev.filter(id => id !== serviceId)
+        : [...prev, serviceId]
+    );
+  };
+
+  // Search for a single location with a specific query
+  const searchLocationWithQuery = async (location: string, searchQuery: string): Promise<GooglePlace[]> => {
+    const fullQuery = `${searchQuery} ${location}`.trim();
     
     const { data: searchData, error: searchError } = await supabase.functions.invoke('google-places-proxy', {
-      body: { action: 'textSearch', query: searchQuery, apiKey }
+      body: { action: 'textSearch', query: fullQuery, apiKey }
     });
     
     if (searchError) {
@@ -213,6 +288,25 @@ const GooglePlacesScraper: React.FC = () => {
     }
     
     return detailedPlaces;
+  };
+
+  // Search for a single location with all configured queries
+  const searchLocation = async (location: string): Promise<GooglePlace[]> => {
+    const queries = getQueriesToExecute();
+    const allPlaces: GooglePlace[] = [];
+    
+    for (const q of queries) {
+      const results = await searchLocationWithQuery(location, q);
+      allPlaces.push(...results);
+      if (queries.length > 1) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
+    
+    // Deduplicate by place_id
+    return allPlaces.filter((place, index, self) => 
+      index === self.findIndex(p => p.place_id === place.place_id)
+    );
   };
 
   // Start scraping
@@ -620,42 +714,117 @@ const GooglePlacesScraper: React.FC = () => {
               </div>
             )}
 
-            {/* Query Input */}
-            <div className="space-y-2">
-              <Label htmlFor="query">Requête de recherche</Label>
-              <Input 
-                id="query"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Réparation téléphone"
-              />
+            {/* Combined Search Toggle */}
+            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />
+                <Label htmlFor="combinedSearch" className="text-sm cursor-pointer font-medium">
+                  Recherche combinée
+                </Label>
+              </div>
+              <Switch id="combinedSearch" checked={enableCombinedSearch} onCheckedChange={setEnableCombinedSearch} />
             </div>
 
-            {/* Suggested Queries */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                Suggestions précises
-              </Label>
-              <div className="flex flex-wrap gap-1">
-                {SUGGESTED_QUERIES.map((suggestion, idx) => (
-                  <Button
-                    key={idx}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs h-7 px-2"
-                    onClick={() => setQuery(suggestion.value)}
-                  >
-                    {suggestion.label}
-                  </Button>
-                ))}
+            {enableCombinedSearch ? (
+              <div className="space-y-4">
+                {/* Brand Selection */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-sm">
+                    📱 Marques à rechercher
+                  </Label>
+                  <div className="flex flex-wrap gap-1">
+                    {BRAND_QUERIES.map((brand) => (
+                      <Button
+                        key={brand.id}
+                        variant={selectedBrands.includes(brand.id) ? 'default' : 'outline'}
+                        size="sm"
+                        className="text-xs h-7 px-2"
+                        onClick={() => toggleBrand(brand.id)}
+                      >
+                        {brand.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Service Selection */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-sm">
+                    🔧 Types de réparation
+                  </Label>
+                  <div className="flex flex-wrap gap-1">
+                    {SERVICE_QUERIES.map((service) => (
+                      <Button
+                        key={service.id}
+                        variant={selectedServices.includes(service.id) ? 'default' : 'outline'}
+                        size="sm"
+                        className="text-xs h-7 px-2"
+                        onClick={() => toggleService(service.id)}
+                      >
+                        {service.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Query Preview */}
+                <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-xs text-muted-foreground">Requêtes qui seront lancées:</Label>
+                    <Badge variant="secondary" className="text-xs">
+                      {getQueriesToExecute().length} requête(s)
+                    </Badge>
+                  </div>
+                  <div className="space-y-1 max-h-24 overflow-y-auto">
+                    {getQueriesToExecute().map((q, idx) => (
+                      <div key={idx} className="text-xs text-foreground bg-background/50 px-2 py-1 rounded flex items-center gap-1">
+                        <Search className="h-3 w-3 text-muted-foreground" />
+                        "{q}"
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
+            ) : (
+              <>
+                {/* Query Input (simple mode) */}
+                <div className="space-y-2">
+                  <Label htmlFor="query">Requête de recherche</Label>
+                  <Input 
+                    id="query"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Réparation téléphone"
+                  />
+                </div>
+
+                {/* Quick Suggestions */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Sparkles className="h-3 w-3" />
+                    Suggestions rapides
+                  </Label>
+                  <div className="flex flex-wrap gap-1">
+                    {COMBINED_QUERIES_PRESET.slice(0, 3).map((suggestion, idx) => (
+                      <Button
+                        key={idx}
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs h-6 px-2"
+                        onClick={() => setQuery(suggestion)}
+                      >
+                        {suggestion.slice(0, 25)}...
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Exclusion Filter Toggle */}
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-primary" />
+                <Filter className="h-4 w-4 text-muted-foreground" />
                 <Label htmlFor="exclusionFilter" className="text-sm cursor-pointer">
                   Exclure informatique
                 </Label>
@@ -666,6 +835,15 @@ const GooglePlacesScraper: React.FC = () => {
                 onCheckedChange={setEnableExclusionFilter}
               />
             </div>
+
+            {/* Final Query Preview */}
+            {!enableCombinedSearch && (
+              <div className="p-2 bg-muted/30 rounded border border-border/50">
+                <p className="text-xs text-muted-foreground">
+                  🔍 Requête finale: <span className="text-foreground font-mono">"{query} {searchMode === 'city' ? `${city} ${postalCode}` : searchMode === 'department' ? getDepartmentInfo(selectedDepartment)?.name : selectedRegion}"</span>
+                </p>
+              </div>
+            )}
 
             <Button 
               onClick={startScraping} 
@@ -680,7 +858,7 @@ const GooglePlacesScraper: React.FC = () => {
               ) : (
                 <>
                   <Search className="h-4 w-4" />
-                  Lancer le Scraping
+                  {enableCombinedSearch ? `Lancer ${getQueriesToExecute().length} requêtes` : 'Lancer le Scraping'}
                 </>
               )}
             </Button>
