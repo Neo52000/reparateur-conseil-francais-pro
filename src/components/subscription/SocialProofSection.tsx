@@ -1,103 +1,58 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Quote, Star } from 'lucide-react';
+import { Star, Users, MapPin, MessageSquare } from 'lucide-react';
+import { usePlatformStats, formatStatForDisplay } from '@/hooks/usePlatformStats';
 
 const SocialProofSection: React.FC = () => {
-  const testimonials = [
-    {
-      name: "Marc Dubois",
-      business: "Réparation Mobile Plus",
-      city: "Lyon",
-      rating: 5,
-      comment: "Depuis que j'ai rejoint la plateforme, j'ai doublé mon chiffre d'affaires. Les clients arrivent régulièrement et sont de qualité.",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+  const { data: stats, isLoading: loading } = usePlatformStats();
+
+  const displayStats = [
+    { 
+      number: stats ? formatStatForDisplay(stats.totalRepairers) : '...', 
+      label: "Réparateurs partenaires",
+      icon: Users 
     },
-    {
-      name: "Sophie Martin",
-      business: "TechRepair Pro",
-      city: "Paris",
-      rating: 5,
-      comment: "Interface intuitive et support client exceptionnel. Je recommande vivement à tous mes collègues réparateurs.",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b332c5ad?w=100&h=100&fit=crop&crop=face"
+    { 
+      number: stats ? formatStatForDisplay(stats.citiesCovered) : '...', 
+      label: "Villes couvertes",
+      icon: MapPin 
     },
-    {
-      name: "Ahmed Benali",
-      business: "Mobile Expert",
-      city: "Marseille",
-      rating: 5,
-      comment: "Grâce à cette plateforme, j'ai pu développer ma clientèle et professionnaliser mon activité. Un vrai game-changer !",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face"
+    { 
+      number: stats ? formatStatForDisplay(stats.totalReviews) : '...', 
+      label: "Avis clients",
+      icon: MessageSquare 
+    },
+    { 
+      number: stats ? `${stats.averageRating}/5` : '...', 
+      label: "Note moyenne",
+      icon: Star 
     }
   ];
 
-  const stats = [
-    { number: "1200+", label: "Réparateurs actifs" },
-    { number: "50K+", label: "Réparations réalisées" },
-    { number: "98%", label: "Taux de satisfaction" },
-    { number: "24h", label: "Temps de réponse moyen" }
-  ];
-
   return (
-    <div className="py-16 bg-white">
+    <div className="py-16 bg-background">
       <div className="max-w-6xl mx-auto px-6">
-        {/* Statistiques */}
+        {/* Statistiques en temps réel */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-foreground mb-4">
             Rejoignez une communauté qui grandit
           </h2>
-          <p className="text-lg text-gray-600 mb-12">
-            Des milliers de réparateurs développent leur activité avec nous
+          <p className="text-lg text-muted-foreground mb-12">
+            Des réparateurs développent leur activité avec nous chaque jour
           </p>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
+            {displayStats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="text-4xl font-bold text-blue-600 mb-2">{stat.number}</div>
-                <div className="text-gray-600">{stat.label}</div>
+                <div className="flex justify-center mb-2">
+                  <stat.icon className="h-6 w-6 text-primary" />
+                </div>
+                <div className="text-4xl font-bold text-primary mb-2">
+                  {loading ? '...' : stat.number}
+                </div>
+                <div className="text-muted-foreground">{stat.label}</div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Témoignages */}
-        <div className="mb-16">
-          <h3 className="text-2xl font-bold text-center text-gray-900 mb-12">
-            Ce que disent nos partenaires
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardContent className="p-6">
-                  <div className="flex items-center mb-4">
-                    <Quote className="h-8 w-8 text-blue-500 mr-3" />
-                    <div className="flex">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <p className="text-gray-700 mb-6 italic">
-                    "{testimonial.comment}"
-                  </p>
-                  
-                  <div className="flex items-center">
-                    <img 
-                      src={testimonial.avatar} 
-                      alt={testimonial.name}
-                      className="w-12 h-12 rounded-full mr-4"
-                    />
-                    <div>
-                      <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                      <div className="text-sm text-gray-600">{testimonial.business}</div>
-                      <div className="text-sm text-gray-500">{testimonial.city}</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             ))}
           </div>
         </div>
