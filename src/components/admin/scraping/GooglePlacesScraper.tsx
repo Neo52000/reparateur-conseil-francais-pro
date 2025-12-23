@@ -13,9 +13,29 @@ import { supabase } from '@/integrations/supabase/client';
 import { 
   Search, Download, Trash2, MapPin, Phone, Star, Globe, 
   Loader2, Settings2, Building2, CheckCircle, Database,
-  Sparkles, Filter, Map
+  Sparkles, Filter, Map, Globe2, Zap
 } from 'lucide-react';
 import { REGIONS } from '@/components/scraping/controls/scrapingConstants';
+
+// Liste des principales villes par département pour le scraping exhaustif
+const DEPARTMENT_CITIES: Record<string, string[]> = {
+  '75': ['Paris 1er', 'Paris 2e', 'Paris 3e', 'Paris 4e', 'Paris 5e', 'Paris 6e', 'Paris 7e', 'Paris 8e', 'Paris 9e', 'Paris 10e', 'Paris 11e', 'Paris 12e', 'Paris 13e', 'Paris 14e', 'Paris 15e', 'Paris 16e', 'Paris 17e', 'Paris 18e', 'Paris 19e', 'Paris 20e'],
+  '92': ['Boulogne-Billancourt', 'Nanterre', 'Courbevoie', 'Colombes', 'Asnières-sur-Seine', 'Rueil-Malmaison', 'Levallois-Perret', 'Issy-les-Moulineaux', 'Neuilly-sur-Seine', 'Antony', 'Clichy', 'Clamart', 'Montrouge', 'Meudon', 'Suresnes', 'Puteaux', 'Gennevilliers', 'Bagneux', 'Malakoff', 'Châtillon'],
+  '93': ['Saint-Denis', 'Montreuil', 'Aubervilliers', 'Aulnay-sous-Bois', 'Drancy', 'Noisy-le-Grand', 'Pantin', 'Bondy', 'Épinay-sur-Seine', 'Sevran', 'Bobigny', 'Saint-Ouen', 'Rosny-sous-Bois', 'Livry-Gargan', 'Stains', 'Gagny', 'La Courneuve', 'Blanc-Mesnil', 'Villepinte', 'Tremblay-en-France'],
+  '94': ['Créteil', 'Vitry-sur-Seine', 'Saint-Maur-des-Fossés', 'Champigny-sur-Marne', 'Ivry-sur-Seine', 'Villejuif', 'Maisons-Alfort', 'Vincennes', 'Fontenay-sous-Bois', 'Alfortville', 'Thiais', 'Choisy-le-Roi', 'Le Kremlin-Bicêtre', 'Nogent-sur-Marne', 'Charenton-le-Pont', 'Cachan', 'L\'Haÿ-les-Roses', 'Villeneuve-Saint-Georges', 'Orly', 'Boissy-Saint-Léger'],
+  '69': ['Lyon', 'Villeurbanne', 'Vénissieux', 'Caluire-et-Cuire', 'Saint-Priest', 'Bron', 'Vaulx-en-Velin', 'Meyzieu', 'Rillieux-la-Pape', 'Décines-Charpieu', 'Oullins', 'Tassin-la-Demi-Lune', 'Sainte-Foy-lès-Lyon', 'Saint-Genis-Laval', 'Givors', 'Villefranche-sur-Saône', 'Écully', 'Francheville', 'Mions', 'Pierre-Bénite'],
+  '13': ['Marseille', 'Aix-en-Provence', 'Martigues', 'Aubagne', 'Istres', 'Salon-de-Provence', 'Vitrolles', 'Arles', 'Marignane', 'La Ciotat', 'Gardanne', 'Miramas', 'Les Pennes-Mirabeau', 'Allauch', 'Port-de-Bouc', 'Fos-sur-Mer', 'Châteauneuf-les-Martigues', 'Septèmes-les-Vallons', 'Berre-l\'Étang', 'Rognac'],
+  '31': ['Toulouse', 'Colomiers', 'Tournefeuille', 'Blagnac', 'Muret', 'Plaisance-du-Touch', 'Cugnaux', 'Ramonville-Saint-Agne', 'Saint-Orens-de-Gameville', 'Castanet-Tolosan', 'L\'Union', 'Balma', 'Portet-sur-Garonne', 'Saint-Gaudens', 'Labège', 'Fonsorbes', 'Villeneuve-Tolosane', 'Castelginest', 'Léguevin', 'Seysses'],
+  '33': ['Bordeaux', 'Mérignac', 'Pessac', 'Talence', 'Villenave-d\'Ornon', 'Saint-Médard-en-Jalles', 'Bègles', 'Libourne', 'Lormont', 'Le Bouscat', 'Cenon', 'Gradignan', 'Eysines', 'Floirac', 'Blanquefort', 'Bruges', 'Arcachon', 'Gujan-Mestras', 'La Teste-de-Buch', 'Ambarès-et-Lagrave'],
+  '44': ['Nantes', 'Saint-Nazaire', 'Rezé', 'Saint-Herblain', 'Orvault', 'Vertou', 'Couëron', 'Carquefou', 'Bouguenais', 'La Chapelle-sur-Erdre', 'Saint-Sébastien-sur-Loire', 'Sainte-Luce-sur-Loire', 'Pornic', 'Guérande', 'Châteaubriant', 'Treillières', 'Sautron', 'Pont-Saint-Martin', 'La Montagne', 'Basse-Goulaine'],
+  '59': ['Lille', 'Roubaix', 'Tourcoing', 'Dunkerque', 'Villeneuve-d\'Ascq', 'Valenciennes', 'Wattrelos', 'Douai', 'Marcq-en-Barœul', 'Cambrai', 'Lambersart', 'Maubeuge', 'Armentières', 'Wasquehal', 'Croix', 'Hem', 'Loos', 'Denain', 'La Madeleine', 'Faches-Thumesnil'],
+  '06': ['Nice', 'Antibes', 'Cannes', 'Grasse', 'Cagnes-sur-Mer', 'Le Cannet', 'Saint-Laurent-du-Var', 'Mandelieu-la-Napoule', 'Menton', 'Vallauris', 'Mougins', 'Vence', 'Villeneuve-Loubet', 'Carros', 'Roquebrune-Cap-Martin', 'La Trinité', 'Beausoleil', 'Valbonne', 'Biot', 'Mouans-Sartoux'],
+  '34': ['Montpellier', 'Béziers', 'Sète', 'Agde', 'Lunel', 'Frontignan', 'Mauguio', 'Lattes', 'Castelnau-le-Lez', 'Saint-Jean-de-Védas', 'La Grande-Motte', 'Pérols', 'Grabels', 'Jacou', 'Le Crès', 'Marsillargues', 'Palavas-les-Flots', 'Villeneuve-lès-Maguelone', 'Pignan', 'Clapiers'],
+  '67': ['Strasbourg', 'Haguenau', 'Schiltigheim', 'Illkirch-Graffenstaden', 'Lingolsheim', 'Sélestat', 'Bischwiller', 'Bischheim', 'Ostwald', 'Saverne', 'Obernai', 'Molsheim', 'Hœnheim', 'Erstein', 'Wissembourg', 'La Wantzenau', 'Brumath', 'Geispolsheim', 'Reichshoffen', 'Souffelweyersheim'],
+  '76': ['Le Havre', 'Rouen', 'Sotteville-lès-Rouen', 'Dieppe', 'Saint-Étienne-du-Rouvray', 'Le Grand-Quevilly', 'Le Petit-Quevilly', 'Mont-Saint-Aignan', 'Fécamp', 'Elbeuf', 'Bois-Guillaume', 'Canteleu', 'Maromme', 'Montivilliers', 'Barentin', 'Bolbec', 'Déville-lès-Rouen', 'Oissel', 'Sainte-Adresse', 'Bihorel'],
+  '38': ['Grenoble', 'Saint-Martin-d\'Hères', 'Échirolles', 'Vienne', 'Fontaine', 'Voiron', 'Bourgoin-Jallieu', 'Meylan', 'Saint-Égrève', 'Le Pont-de-Claix', 'Seyssinet-Pariset', 'Eybens', 'Sassenage', 'Villefontaine', 'L\'Isle-d\'Abeau', 'Claix', 'Saint-Marcellin', 'Moirans', 'Tullins', 'La Tronche'],
+  '57': ['Metz', 'Thionville', 'Montigny-lès-Metz', 'Forbach', 'Sarreguemines', 'Saint-Avold', 'Hayange', 'Yutz', 'Creutzwald', 'Freyming-Merlebach', 'Fameck', 'Woippy', 'Florange', 'Sarrebourg', 'Stiring-Wendel', 'Marly', 'Maizières-lès-Metz', 'Hagondange', 'Uckange', 'Talange'],
+};
 
 // Types
 interface GooglePlace {
@@ -79,7 +99,7 @@ const getDepartmentCities = (code: string): string[] => {
 // Default hardcoded services
 const DEFAULT_SERVICES = ["Réparation écran", "Changement batterie", "Diagnostic"];
 
-type SearchMode = 'city' | 'department';
+type SearchMode = 'city' | 'department' | 'region';
 
 const GooglePlacesScraper: React.FC = () => {
   // State
@@ -88,15 +108,31 @@ const GooglePlacesScraper: React.FC = () => {
   const [city, setCity] = useState('Paris');
   const [postalCode, setPostalCode] = useState('75001');
   const [selectedDepartment, setSelectedDepartment] = useState('75');
+  const [selectedRegion, setSelectedRegion] = useState('');
   const [query, setQuery] = useState('Réparation téléphone');
   const [enableExclusionFilter, setEnableExclusionFilter] = useState(true);
+  const [enableExhaustiveScraping, setEnableExhaustiveScraping] = useState(false);
   const [results, setResults] = useState<GooglePlace[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState('');
   const [excludedCount, setExcludedCount] = useState(0);
+  const [exhaustiveStats, setExhaustiveStats] = useState({ cities: 0, totalCities: 0, departments: 0, totalDepartments: 0 });
   const { toast } = useToast();
+  
+  // Get cities for exhaustive scraping
+  const getCitiesForDepartment = (deptCode: string): string[] => {
+    if (DEPARTMENT_CITIES[deptCode]) {
+      return DEPARTMENT_CITIES[deptCode];
+    }
+    // Fallback: use department name
+    const deptInfo = getDepartmentInfo(deptCode);
+    return deptInfo ? [deptInfo.name] : [];
+  };
+  
+  // Get selected region data
+  const selectedRegionData = REGIONS.find(r => r.name === selectedRegion);
 
   // Check if result matches exclusion keywords
   const shouldExclude = (place: GooglePlace): boolean => {
@@ -199,80 +235,90 @@ const GooglePlacesScraper: React.FC = () => {
     try {
       let allPlaces: GooglePlace[] = [];
       
-      if (searchMode === 'department') {
-        // Department mode: search in main city of department
-        const deptInfo = getDepartmentInfo(selectedDepartment);
-        if (!deptInfo) {
-          throw new Error('Département non trouvé');
+      if (searchMode === 'region' && selectedRegionData) {
+        // Region mode: scrape all departments in the region
+        const departments = selectedRegionData.departments;
+        setExhaustiveStats({ cities: 0, totalCities: 0, departments: 0, totalDepartments: departments.length });
+        
+        for (let deptIdx = 0; deptIdx < departments.length; deptIdx++) {
+          const dept = departments[deptIdx];
+          const cities = enableExhaustiveScraping ? getCitiesForDepartment(dept.code) : [dept.name];
+          
+          setExhaustiveStats(prev => ({ ...prev, totalCities: prev.totalCities + cities.length }));
+          
+          for (let cityIdx = 0; cityIdx < cities.length; cityIdx++) {
+            const cityName = cities[cityIdx];
+            setProgress(Math.round(((deptIdx * cities.length + cityIdx) / (departments.length * cities.length)) * 100));
+            setProgressMessage(`${dept.name}: ${cityName} (${deptIdx + 1}/${departments.length})`);
+            
+            const cityResults = await searchLocation(cityName);
+            allPlaces = [...allPlaces, ...cityResults];
+            
+            setExhaustiveStats(prev => ({ ...prev, cities: prev.cities + 1 }));
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+          
+          setExhaustiveStats(prev => ({ ...prev, departments: prev.departments + 1 }));
         }
+      } else if (searchMode === 'department') {
+        const deptInfo = getDepartmentInfo(selectedDepartment);
+        if (!deptInfo) throw new Error('Département non trouvé');
         
-        // Search using department name as location
-        setProgress(50);
-        setProgressMessage(`Recherche dans ${deptInfo.name}...`);
-        
-        const cityResults = await searchLocation(deptInfo.name);
-        allPlaces = [...allPlaces, ...cityResults];
+        if (enableExhaustiveScraping) {
+          const cities = getCitiesForDepartment(selectedDepartment);
+          setExhaustiveStats({ cities: 0, totalCities: cities.length, departments: 0, totalDepartments: 1 });
+          
+          for (let i = 0; i < cities.length; i++) {
+            setProgress(Math.round(((i + 1) / cities.length) * 100));
+            setProgressMessage(`${cities[i]} (${i + 1}/${cities.length})`);
+            
+            const cityResults = await searchLocation(cities[i]);
+            allPlaces = [...allPlaces, ...cityResults];
+            
+            setExhaustiveStats(prev => ({ ...prev, cities: prev.cities + 1 }));
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+        } else {
+          setProgress(50);
+          setProgressMessage(`Recherche dans ${deptInfo.name}...`);
+          const cityResults = await searchLocation(deptInfo.name);
+          allPlaces = [...allPlaces, ...cityResults];
+        }
       } else {
-        // City mode: single search
+        // City mode
         const searchQuery = `${query} ${city} ${postalCode}`.trim();
         
         const { data: searchData, error: searchError } = await supabase.functions.invoke('google-places-proxy', {
           body: { action: 'textSearch', query: searchQuery, apiKey }
         });
         
-        if (searchError) {
-          throw new Error(`Erreur API: ${searchError.message}`);
-        }
-        
+        if (searchError) throw new Error(`Erreur API: ${searchError.message}`);
         if (searchData.status !== 'OK' && searchData.status !== 'ZERO_RESULTS') {
-          throw new Error(`Erreur Google Places: ${searchData.status} - ${searchData.error_message || 'Erreur inconnue'}`);
+          throw new Error(`Erreur Google Places: ${searchData.status}`);
         }
 
         const places = searchData.results || [];
-        const totalPlaces = places.length;
-        
-        if (totalPlaces === 0) {
-          toast({
-            title: "Aucun résultat",
-            description: "Aucune boutique trouvée pour cette recherche",
-            variant: "default"
-          });
-          setIsLoading(false);
-          return;
-        }
-
-        setProgressMessage(`${totalPlaces} boutiques trouvées. Récupération des détails...`);
-
-        for (let i = 0; i < totalPlaces; i++) {
-          const place = places[i];
-          setProgress(Math.round(((i + 1) / totalPlaces) * 100));
-          setProgressMessage(`Récupération ${i + 1}/${totalPlaces}: ${place.name}`);
+        for (let i = 0; i < places.length; i++) {
+          setProgress(Math.round(((i + 1) / places.length) * 100));
+          setProgressMessage(`Récupération ${i + 1}/${places.length}: ${places[i].name}`);
           
-          const details = await fetchPlaceDetails(place.place_id);
-          
-          if (details && details.formatted_phone_number) {
-            allPlaces.push(details);
-          }
-          
+          const details = await fetchPlaceDetails(places[i].place_id);
+          if (details && details.formatted_phone_number) allPlaces.push(details);
           await new Promise(resolve => setTimeout(resolve, 300));
         }
       }
 
-      // Deduplicate by place_id
+      // Deduplicate and filter
       const uniquePlaces = allPlaces.filter((place, index, self) => 
         index === self.findIndex(p => p.place_id === place.place_id)
       );
 
-      // Apply exclusion filter
       let filteredPlaces = uniquePlaces;
       let excluded = 0;
       
       if (enableExclusionFilter) {
         filteredPlaces = uniquePlaces.filter(place => {
-          if (shouldExclude(place)) {
-            excluded++;
-            return false;
-          }
+          if (shouldExclude(place)) { excluded++; return false; }
           return true;
         });
         setExcludedCount(excluded);
@@ -284,15 +330,11 @@ const GooglePlacesScraper: React.FC = () => {
       
       toast({
         title: "Scraping terminé",
-        description: `${filteredPlaces.length} boutiques trouvées${excluded > 0 ? ` (${excluded} exclues par le filtre)` : ''}`,
+        description: `${filteredPlaces.length} boutiques trouvées${excluded > 0 ? ` (${excluded} exclues)` : ''}`,
       });
     } catch (error: any) {
       console.error('Scraping error:', error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Erreur lors du scraping",
-        variant: "destructive"
-      });
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -502,6 +544,14 @@ const GooglePlacesScraper: React.FC = () => {
                 >
                   Département
                 </Button>
+                <Button
+                  variant={searchMode === 'region' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSearchMode('region')}
+                  className="flex-1"
+                >
+                  Région
+                </Button>
               </div>
             </div>
 
@@ -509,49 +559,64 @@ const GooglePlacesScraper: React.FC = () => {
               <>
                 <div className="space-y-2">
                   <Label htmlFor="city">Ville</Label>
-                  <Input 
-                    id="city"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="ex: Paris"
-                  />
+                  <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="ex: Paris" />
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="postalCode">Code Postal</Label>
-                  <Input 
-                    id="postalCode"
-                    value={postalCode}
-                    onChange={(e) => setPostalCode(e.target.value)}
-                    placeholder="ex: 75001"
-                  />
+                  <Input id="postalCode" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="ex: 75001" />
                 </div>
               </>
+            ) : searchMode === 'region' ? (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2"><Globe2 className="h-4 w-4" />Région</Label>
+                <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                  <SelectTrigger><SelectValue placeholder="Sélectionner une région" /></SelectTrigger>
+                  <SelectContent className="max-h-80">
+                    {REGIONS.map((region) => (
+                      <SelectItem key={region.name} value={region.name}>
+                        {region.name} ({region.departments.length} dép.)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedRegionData && (
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <p className="text-xs text-muted-foreground mb-2">Départements inclus ({selectedRegionData.departments.length}):</p>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedRegionData.departments.map((dept) => (
+                        <Badge key={dept.code} variant="outline" className="text-xs">{dept.code}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="space-y-2">
                 <Label>Département</Label>
                 <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un département" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
                   <SelectContent className="max-h-80">
                     {REGIONS.map((region) => (
                       <div key={region.name}>
-                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 sticky top-0">
-                          {region.name}
-                        </div>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 sticky top-0">{region.name}</div>
                         {region.departments.map((dept) => (
-                          <SelectItem key={dept.code} value={dept.code}>
-                            {dept.code} - {dept.name}
-                          </SelectItem>
+                          <SelectItem key={dept.code} value={dept.code}>{dept.code} - {dept.name}</SelectItem>
                         ))}
                       </div>
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">
-                  Recherche dans {getDepartmentInfo(selectedDepartment)?.name || 'le département'}
-                </p>
+              </div>
+            )}
+
+            {/* Exhaustive scraping toggle */}
+            {(searchMode === 'department' || searchMode === 'region') && (
+              <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-primary" />
+                  <Label htmlFor="exhaustive" className="text-sm cursor-pointer">Scraping exhaustif</Label>
+                </div>
+                <Switch id="exhaustive" checked={enableExhaustiveScraping} onCheckedChange={setEnableExhaustiveScraping} />
               </div>
             )}
 
