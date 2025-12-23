@@ -184,11 +184,61 @@ horizontal format 16:9, high quality, attention-grabbing but professional.`;
       }
     }
 
-    // 3️⃣ Fallback Unsplash placeholder
+    // 3️⃣ Fallback Unsplash avec image pertinente
     if (!imageUrl) {
-      imageUrl = 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=1792&h=1024&fit=crop&q=80';
-      usedProvider = 'Unsplash (Placeholder)';
-      console.log('⚠️ Using Unsplash placeholder image');
+      // Utiliser un ensemble d'images Unsplash de haute qualité pour la réparation tech
+      const unsplashImages = [
+        'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=1792&h=1024&fit=crop&q=80', // smartphone
+        'https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=1792&h=1024&fit=crop&q=80', // repair tools
+        'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1792&h=1024&fit=crop&q=80', // phone screen
+        'https://images.unsplash.com/photo-1544866092-1935c5ef2a8f?w=1792&h=1024&fit=crop&q=80', // tech
+        'https://images.unsplash.com/photo-1563206767-5b18f218e8de?w=1792&h=1024&fit=crop&q=80'  // electronics
+      ];
+      imageUrl = unsplashImages[Math.floor(Math.random() * unsplashImages.length)];
+      usedProvider = 'Unsplash (Fallback)';
+      console.log('⚠️ Using Unsplash fallback image');
+    }
+
+    // 4️⃣ Upload vers Supabase Storage si image base64
+    let finalImageUrl = imageUrl;
+    if (imageUrl && imageUrl.startsWith('data:image')) {
+      try {
+        console.log('📤 Uploading base64 image to Supabase Storage...');
+        const supabaseAdmin = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        );
+
+        // Extraire le type et les données
+        const matches = imageUrl.match(/^data:image\/(\w+);base64,(.+)$/);
+        if (matches) {
+          const ext = matches[1];
+          const base64Data = matches[2];
+          const buffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+          
+          const fileName = `blog-${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+          
+          const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+            .from('blog-images')
+            .upload(fileName, buffer, {
+              contentType: `image/${ext}`,
+              upsert: true
+            });
+
+          if (!uploadError && uploadData) {
+            const { data: { publicUrl } } = supabaseAdmin.storage
+              .from('blog-images')
+              .getPublicUrl(fileName);
+            
+            finalImageUrl = publicUrl;
+            console.log('✅ Image uploaded to Storage:', finalImageUrl);
+          } else {
+            console.log('⚠️ Storage upload failed, keeping base64:', uploadError?.message);
+          }
+        }
+      } catch (storageError) {
+        console.log('⚠️ Storage error, keeping original URL:', storageError.message);
+      }
     }
 
     console.log(`✅ Image générée avec: ${usedProvider}`);
@@ -196,7 +246,7 @@ horizontal format 16:9, high quality, attention-grabbing but professional.`;
     return new Response(
       JSON.stringify({
         success: true,
-        image_url: imageUrl,
+        image_url: finalImageUrl,
         provider: usedProvider,
         style
       }),

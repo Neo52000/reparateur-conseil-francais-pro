@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Brain, Zap, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import CityAutocomplete from '../scraping/CityAutocomplete';
 import AISelector from '../scraping/AISelector';
 import { useApiKeyStatus } from '../scraping/ai-selector/useApiKeyStatus';
+import PendingScrapingResults from '../scraping/PendingScrapingResults';
 
 const IntelligentScrapingDashboard = () => {
   const [selectedCity, setSelectedCity] = useState('');
@@ -14,6 +15,7 @@ const IntelligentScrapingDashboard = () => {
   const [selectedAI, setSelectedAI] = useState('mistral');
   const [isScrapingActive, setIsScrapingActive] = useState(false);
   const [scrapingResults, setScrapingResults] = useState<any[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
   const { toast } = useToast();
   const apiKeyStatuses = useApiKeyStatus();
 
@@ -21,6 +23,42 @@ const IntelligentScrapingDashboard = () => {
     setSelectedCity(city);
     setCityCoordinates(coordinates || null);
   };
+
+  // Sauvegarder les résultats en base
+  const saveResultsToDB = async (results: any[], city: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('scraping_pending_results')
+        .insert({
+          user_id: user.id,
+          city,
+          source: 'google_maps',
+          ai_model: selectedAI,
+          result_data: results,
+          results_count: results.length
+        });
+
+      if (error) {
+        console.error('Erreur sauvegarde résultats:', error);
+      } else {
+        console.log('✅ Résultats sauvegardés en base');
+        setRefreshKey(prev => prev + 1);
+      }
+    } catch (err) {
+      console.error('Erreur sauvegarde:', err);
+    }
+  };
+
+  const handleImportFromPending = useCallback((results: any[], sessionId: string) => {
+    setScrapingResults(results);
+    toast({
+      title: "Résultats chargés",
+      description: `${results.length} réparateurs prêts à être importés`
+    });
+  }, [toast]);
 
   const handleStartIntelligentScraping = async () => {
     if (!selectedCity.trim()) {
@@ -66,7 +104,14 @@ const IntelligentScrapingDashboard = () => {
       console.log('✅ Résultats scraping:', data);
 
       if (data?.success) {
-        setScrapingResults(data.data || []);
+        const results = data.data || [];
+        setScrapingResults(results);
+        
+        // Sauvegarder en base pour persistance
+        if (results.length > 0) {
+          await saveResultsToDB(results, selectedCity);
+        }
+        
         toast({
           title: "Scraping terminé",
           description: `${data.stats?.scraped || 0} réparateurs trouvés et ${data.stats?.classified || 0} classifiés par IA`,
@@ -103,6 +148,12 @@ const IntelligentScrapingDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Résultats en attente d'import */}
+      <PendingScrapingResults 
+        key={refreshKey}
+        onImport={handleImportFromPending} 
+      />
+
       {/* Statut des services IA */}
       <Card>
         <CardHeader>
