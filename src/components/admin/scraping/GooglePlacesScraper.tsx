@@ -536,7 +536,7 @@ const GooglePlacesScraper: React.FC = () => {
                   </SelectTrigger>
                   <SelectContent className="max-h-80">
                     {REGIONS.map((region) => (
-                      <React.Fragment key={region.name}>
+                      <div key={region.name}>
                         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 sticky top-0">
                           {region.name}
                         </div>
@@ -545,7 +545,7 @@ const GooglePlacesScraper: React.FC = () => {
                             {dept.code} - {dept.name}
                           </SelectItem>
                         ))}
-                      </React.Fragment>
+                      </div>
                     ))}
                   </SelectContent>
                 </Select>
