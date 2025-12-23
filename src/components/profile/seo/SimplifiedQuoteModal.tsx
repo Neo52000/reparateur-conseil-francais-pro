@@ -36,10 +36,11 @@ const SimplifiedQuoteModal: React.FC<SimplifiedQuoteModalProps> = ({
     setLoading(true);
 
     try {
-      const { error } = await supabase.from('quote_requests').insert({
+      const { error } = await supabase.from('quotes_with_timeline').insert({
         repairer_id: profile.id,
-        device_type: formData.deviceType,
         device_brand: formData.brand,
+        device_model: formData.deviceType,
+        repair_type: formData.deviceType,
         issue_description: formData.issue,
         client_name: formData.name,
         client_email: formData.email,
