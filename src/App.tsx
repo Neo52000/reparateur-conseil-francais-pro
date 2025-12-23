@@ -13,6 +13,7 @@ import AdminPage from "./pages/AdminPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
 import RepairerProfilePage from "./pages/RepairerProfilePage";
+import RepairerPublicProfilePage from "./pages/RepairerPublicProfilePage";
 import RepairerPlans from "./pages/RepairerPlans";
 import RepairerTestimonials from "./pages/RepairerTestimonials";
 import RepairerFAQ from "./pages/RepairerFAQ";
@@ -113,6 +114,7 @@ const AppWithTracking = () => {
         <Route path="/reparateur-:serviceType-:city" element={<LocalSeoPage />} />
         <Route path="/modern-reparateur-:serviceType-:city" element={<ModernLocalSeoPageLazy />} />
         {/* Pages SEO individuelles des réparateurs */}
+        <Route path="/reparateur/:city/:repairerSlug" element={<RepairerPublicProfilePage />} />
         <Route path="/:city/:repairerName" element={<RepairerSeoPage />} />
         <Route path="/404" element={<NotFound />} />
         <Route path="/repairer-dashboard" element={<RepairerDashboardPage />} />
