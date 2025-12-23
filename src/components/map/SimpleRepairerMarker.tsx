@@ -116,9 +116,15 @@ const SimpleRepairerMarker: React.FC<SimpleRepairerMarkerProps> = ({ repairer })
               </div>
             )}
             
-            <p className="text-xs text-gray-500 mt-2 text-center">
-              Cliquez pour voir la fiche complète
-            </p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedRepairer(repairer);
+              }}
+              className="w-full mt-2 px-3 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary/90 transition-colors"
+            >
+              Voir la fiche complète
+            </button>
           </div>
         </Popup>
       </Marker>

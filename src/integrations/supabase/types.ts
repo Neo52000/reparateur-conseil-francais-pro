@@ -11948,6 +11948,51 @@ export type Database = {
         }
         Relationships: []
       }
+      scraping_pending_results: {
+        Row: {
+          ai_model: string | null
+          city: string
+          created_at: string
+          expires_at: string
+          id: string
+          imported_at: string | null
+          result_data: Json
+          results_count: number | null
+          session_id: string
+          source: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_model?: string | null
+          city: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          imported_at?: string | null
+          result_data?: Json
+          results_count?: number | null
+          session_id?: string
+          source?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_model?: string | null
+          city?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          imported_at?: string | null
+          result_data?: Json
+          results_count?: number | null
+          session_id?: string
+          source?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       scraping_suggestions: {
         Row: {
           confidence_score: number | null
@@ -14655,6 +14700,7 @@ export type Database = {
       }
       can_create_subdomain: { Args: { user_id: string }; Returns: boolean }
       cleanup_expired_conversations: { Args: never; Returns: undefined }
+      cleanup_expired_scraping_results: { Args: never; Returns: undefined }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       close_accounting_period: {
         Args: {
