@@ -10,9 +10,7 @@ import ClientOptionsAndCertificationsSection from '@/components/profile/ClientOp
 import LanguagesPaymentCard from '@/components/profile/LanguagesPaymentCard';
 import ClientPhotosSection from '@/components/profile/ClientPhotosSection';
 import ClientContactSection from '@/components/profile/ClientContactSection';
-import ClientTestimonialsSection from '@/components/profile/ClientTestimonialsSection';
 import ClientSimplifiedProfile from '@/components/profile/ClientSimplifiedProfile';
-import ClaimBusinessBanner from '@/components/ClaimBusinessBanner';
 import ReviewsList from '@/components/reviews/ReviewsList';
 import { RepairerProfile } from '@/types/repairerProfile';
 
@@ -84,10 +82,7 @@ const ClientModeContent: React.FC<ClientModeContentProps> = ({
             {/* 8. Langues et moyens de paiement */}
             <LanguagesPaymentCard profile={profile} />
 
-            {/* 9. Témoignages */}
-            <ClientTestimonialsSection businessName={profile.business_name} />
-
-            {/* 10. Avis clients */}
+            {/* 9. Avis clients */}
             <ReviewsList 
               repairerId={profile.id} 
               showAddReviewButton={true}
