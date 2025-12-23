@@ -96,34 +96,29 @@ const SimpleRepairerMarker: React.FC<SimpleRepairerMarkerProps> = ({ repairer })
           click: handleMarkerClick,
         }}
       >
-        <Popup maxWidth={300} closeButton={true}>
-          <div className="p-3">
-            <h3 className="font-semibold text-base mb-2">{repairer.name}</h3>
+        <Popup maxWidth={280} closeButton={true}>
+          <div className="p-3 min-w-[240px]">
+            <h3 className="font-semibold text-base mb-1">{repairer.name}</h3>
             <p className="text-sm text-gray-600 mb-2">
-              {repairer.address}, {repairer.city}
+              {repairer.city}
             </p>
             
-            {/* Indication si position approximative */}
             {repairer.hasRealCoordinates === false && (
-              <div className="bg-orange-100 text-orange-800 text-xs p-2 rounded mb-2">
-                📍 Position approximative (adresse exacte à confirmer)
+              <div className="bg-orange-100 text-orange-800 text-xs p-1.5 rounded mb-2">
+                📍 Position approximative
               </div>
             )}
             
             {repairer.rating && (
               <div className="flex items-center mb-2">
                 <span className="text-yellow-500 mr-1">★</span>
-                <span className="text-sm">
-                  {repairer.rating}/5
-                </span>
+                <span className="text-sm">{repairer.rating}/5</span>
               </div>
             )}
             
-            <div className="text-sm space-y-1">
-              <p><strong>Services:</strong> {repairer.services?.join(', ') || 'Réparation générale'}</p>
-              {repairer.phone && <p><strong>Téléphone:</strong> {repairer.phone}</p>}
-              {repairer.email && <p><strong>Email:</strong> {repairer.email}</p>}
-            </div>
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              Cliquez pour voir la fiche complète
+            </p>
           </div>
         </Popup>
       </Marker>
