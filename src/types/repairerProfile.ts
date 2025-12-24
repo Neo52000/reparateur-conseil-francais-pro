@@ -8,6 +8,7 @@ export interface RepairerProfile {
   address: string;
   city: string;
   postal_code: string;
+  is_claimed?: boolean; // Indique si le profil a été revendiqué par un réparateur
   phone: string;
   email: string;
   website: string | null;

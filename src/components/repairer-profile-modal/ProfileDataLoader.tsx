@@ -60,7 +60,9 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
 
         if (repairerData) {
           console.log('✅ ProfileDataLoader - Found in repairers table, creating minimal profile');
-          // Créer un profil minimal à partir des données repairers
+          // Un profil venant de la table repairers (sans repairer_profiles associé) est NON revendiqué
+          const isClaimed = false;
+          
           const mappedProfile: RepairerProfile = {
             id: repairerData.id,
             repairer_id: repairerData.id,
@@ -71,7 +73,7 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
             city: repairerData.city || '',
             postal_code: repairerData.postal_code || '',
             website: repairerData.website,
-            description: `Réparateur professionnel basé à ${repairerData.city}`,
+            description: null, // Non revendiqué = pas de description
             repair_types: repairerData.specialties || [],
             services_offered: repairerData.services || [],
             certifications: [],
@@ -97,6 +99,7 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
             siret_number: repairerData.siret,
             has_qualirepar_label: false,
             other_services: null,
+            is_claimed: isClaimed,
             created_at: repairerData.created_at,
             updated_at: repairerData.updated_at
           };
@@ -125,6 +128,9 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
       };
 
       // Map the database data to RepairerProfile format
+      // Un profil dans repairer_profiles avec user_id est REVENDIQUÉ
+      const isClaimed = !!profileData.user_id;
+      
       const mappedProfile: RepairerProfile = {
         id: profileData.id,
         repairer_id: profileData.user_id,
@@ -161,6 +167,7 @@ export const useProfileData = (repairerId: string, isOpen: boolean) => {
         siret_number: profileData.siret_number,
         has_qualirepar_label: profileData.has_qualirepar_label || false,
         other_services: profileData.other_services,
+        is_claimed: isClaimed,
         created_at: profileData.created_at,
         updated_at: profileData.updated_at
       };
