@@ -17,6 +17,7 @@ interface SimpleRepairerMarkerProps {
  */
 const SimpleRepairerMarker: React.FC<SimpleRepairerMarkerProps> = ({ repairer }) => {
   const setSelectedRepairer = useMapStore(state => state.setSelectedRepairer);
+  const setOpenProfileOnSelect = useMapStore(state => state.setOpenProfileOnSelect);
 
   // Validation des coordonnées
   if (!repairer?.lat || !repairer?.lng || 
@@ -119,6 +120,7 @@ const SimpleRepairerMarker: React.FC<SimpleRepairerMarkerProps> = ({ repairer })
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                setOpenProfileOnSelect(true);
                 setSelectedRepairer(repairer);
               }}
               className="w-full mt-2 px-3 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary/90 transition-colors"

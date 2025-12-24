@@ -33,7 +33,7 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
 
   const { results: searchedRepairers, loading, searchRepairers } = useRepairerSearch();
   const effectiveRepairers = overrideRepairers ?? searchedRepairers;
-  const { setRepairers, selectedRepairer: mapSelectedRepairer } = useMapStore();
+  const { setRepairers, selectedRepairer: mapSelectedRepairer, openProfileOnSelect, setOpenProfileOnSelect } = useMapStore();
   const { userLocation, getUserLocation } = useGeolocation();
 
   useEffect(() => {
@@ -50,8 +50,14 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
     if (mapSelectedRepairer) {
       setSelectedRepairer(mapSelectedRepairer);
       setSelectedRepairerId(mapSelectedRepairer.id);
+      
+      // Si le flag est activé, ouvrir directement le modal de profil
+      if (openProfileOnSelect) {
+        setShowProfileModal(true);
+        setOpenProfileOnSelect(false);
+      }
     }
-  }, [mapSelectedRepairer]);
+  }, [mapSelectedRepairer, openProfileOnSelect, setOpenProfileOnSelect]);
 
   useEffect(() => {
     if (!userLocation) {

@@ -28,6 +28,7 @@ interface MapState {
   selectedRepairer: MapRepairer | null;
   userLocation: [number, number] | null;
   isLoading: boolean;
+  openProfileOnSelect: boolean;
   
   // Actions
   setCenter: (center: [number, number]) => void;
@@ -36,6 +37,7 @@ interface MapState {
   setSelectedRepairer: (repairer: MapRepairer | null) => void;
   setUserLocation: (location: [number, number] | null) => void;
   setLoading: (loading: boolean) => void;
+  setOpenProfileOnSelect: (open: boolean) => void;
   reset: () => void;
 }
 
@@ -46,6 +48,7 @@ const initialState = {
   selectedRepairer: null as MapRepairer | null,
   userLocation: null as [number, number] | null,
   isLoading: false,
+  openProfileOnSelect: false,
 };
 
 export const useMapStore = create<MapState>((set) => ({
@@ -57,5 +60,6 @@ export const useMapStore = create<MapState>((set) => ({
   setSelectedRepairer: (selectedRepairer) => set({ selectedRepairer }),
   setUserLocation: (userLocation) => set({ userLocation }),
   setLoading: (isLoading) => set({ isLoading }),
+  setOpenProfileOnSelect: (openProfileOnSelect) => set({ openProfileOnSelect }),
   reset: () => set(initialState),
 }));
