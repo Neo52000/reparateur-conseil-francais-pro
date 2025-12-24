@@ -29,8 +29,9 @@ const ClientModeContent: React.FC<ClientModeContentProps> = ({
   onBookAppointment,
   onClose
 }) => {
-  // Vérifier si c'est un profil basique (créé automatiquement) - fiche non revendiquée
-  const isBasicProfile = !profile.description && !profile.siret_number && !profile.years_experience;
+  // Utiliser is_claimed si disponible, sinon fallback sur l'heuristique
+  const isBasicProfile = profile.is_claimed === false || 
+    (profile.is_claimed === undefined && !profile.description && !profile.siret_number && !profile.years_experience);
 
   return (
     <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto" aria-describedby="client-profile-description">
