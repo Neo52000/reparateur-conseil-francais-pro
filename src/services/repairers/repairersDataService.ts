@@ -40,9 +40,13 @@ export class RepairersDataService {
       }
 
       // Order by rating and review count for better results
-      query = query.order('rating', { ascending: false, nullsFirst: false })
-                  .order('review_count', { ascending: false, nullsFirst: false })
-                  .limit(200);
+      // Filtrer uniquement les réparateurs avec coordonnées GPS pour la carte
+      query = query
+        .not('lat', 'is', null)
+        .not('lng', 'is', null)
+        .order('rating', { ascending: false, nullsFirst: false })
+        .order('review_count', { ascending: false, nullsFirst: false })
+        .limit(1000); // Augmenter la limite pour afficher tous les réparateurs géolocalisés
 
       const { data, error } = await query;
 
