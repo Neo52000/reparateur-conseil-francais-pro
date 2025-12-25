@@ -11,90 +11,36 @@ export class PriorityRepairersService {
    * 2. Réparateurs avec abonnement payant
    * 3. Autres réparateurs avec données valides
    */
-  static async fetchPriorityRepairers(limit: number = 50): Promise<SupabaseRepairer[]> {
-    console.log('PriorityRepairersService - Fetching priority repairers...');
+  static async fetchPriorityRepairers(limit: number = 500): Promise<SupabaseRepairer[]> {
+    console.log('PriorityRepairersService - Fetching ALL geolocated repairers...');
 
     try {
-      // Requête pour les réparateurs vérifiés ET avec coordonnées valides
-      const { data: verifiedRepairers, error: verifiedError } = await supabase
+      // Récupérer TOUS les réparateurs avec coordonnées valides
+      // Priorité d'affichage : vérifiés > payants > autres
+      const { data: allRepairers, error } = await supabase
         .from('repairers')
         .select('*')
-        .eq('is_verified', true)
         .not('lat', 'is', null)
         .not('lng', 'is', null)
         .not('name', 'ilike', '%�%') // Exclure les noms avec caractères corrompus
+        .order('is_verified', { ascending: false }) // Vérifiés en premier
+        .order('rating', { ascending: false })
         .order('updated_at', { ascending: false })
-        .limit(Math.floor(limit / 2));
+        .limit(limit);
 
-      if (verifiedError) {
-        console.error('Error fetching verified repairers:', verifiedError);
+      if (error) {
+        console.error('Error fetching repairers:', error);
+        return [];
       }
 
-      // Requête pour les réparateurs avec abonnements payants
-      // D'abord récupérer les emails des réparateurs avec abonnements payants
-      const { data: paidSubscriptions } = await supabase
-        .from('repairer_subscriptions')
-        .select('email')
-        .neq('subscription_tier', 'free')
-        .eq('subscribed', true);
-
-      const paidEmails = paidSubscriptions?.map(sub => sub.email) || [];
+      console.log(`✅ PriorityRepairersService - Found ${allRepairers?.length || 0} geolocated repairers`);
       
-      const { data: paidRepairers, error: paidError } = paidEmails.length > 0 
-        ? await supabase
-            .from('repairers')
-            .select('*')
-            .in('email', paidEmails)
-            .not('lat', 'is', null)
-            .not('lng', 'is', null)
-            .not('name', 'ilike', '%�%')
-            .order('updated_at', { ascending: false })
-            .limit(Math.floor(limit / 3))
-        : { data: [], error: null };
-
-      if (paidError) {
-        console.error('Error fetching paid repairers:', paidError);
-      }
-
-      // Combiner et dédupliquer les résultats
-      const combinedRepairers = new Map<string, SupabaseRepairer>();
+      // Log breakdown
+      const verified = allRepairers?.filter(r => r.is_verified).length || 0;
+      console.log(`- Verified: ${verified}`);
+      console.log(`- Unverified: ${(allRepairers?.length || 0) - verified}`);
       
-      // Ajouter les réparateurs vérifiés (priorité 1)
-      verifiedRepairers?.forEach(repairer => {
-        combinedRepairers.set(repairer.id, repairer);
-      });
-
-      // Ajouter les réparateurs payants (priorité 2)
-      paidRepairers?.forEach(repairer => {
-        if (!combinedRepairers.has(repairer.id)) {
-          combinedRepairers.set(repairer.id, repairer);
-        }
-      });
-
-      // Si on n'a pas assez de résultats, compléter avec d'autres réparateurs valides
-      if (combinedRepairers.size < limit) {
-        const remainingLimit = limit - combinedRepairers.size;
-        const { data: fallbackRepairers } = await supabase
-          .from('repairers')
-          .select('*')
-          .not('lat', 'is', null)
-          .not('lng', 'is', null)
-          .not('name', 'ilike', '%�%')
-          .not('id', 'in', Array.from(combinedRepairers.keys()))
-          .order('created_at', { ascending: false })
-          .limit(remainingLimit);
-
-        fallbackRepairers?.forEach(repairer => {
-          combinedRepairers.set(repairer.id, repairer);
-        });
-      }
-
-      const result = Array.from(combinedRepairers.values());
-      console.log(`PriorityRepairersService - Found ${result.length} priority repairers`);
-      console.log(`- Verified: ${verifiedRepairers?.length || 0}`);
-      console.log(`- Paid subscriptions: ${paidRepairers?.length || 0}`);
-      
-      return result;
+      return allRepairers || [];
 
     } catch (error) {
       console.error('PriorityRepairersService - Error:', error);
