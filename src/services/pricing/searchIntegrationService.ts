@@ -25,7 +25,7 @@ export class SearchIntegrationService {
         .not('lat', 'is', null)
         .not('lng', 'is', null)
         .order('rating', { ascending: false })
-        .limit(500); // Augmenter la limite pour afficher plus de réparateurs
+        .limit(3000); // Augmenter la limite pour afficher plus de réparateurs
 
       if (error) {
         console.error('Error fetching repairers from Supabase:', error);

@@ -46,7 +46,7 @@ export class RepairersDataService {
         .not('lng', 'is', null)
         .order('rating', { ascending: false, nullsFirst: false })
         .order('review_count', { ascending: false, nullsFirst: false })
-        .limit(1000); // Augmenter la limite pour afficher tous les réparateurs géolocalisés
+        .limit(3000); // Augmenter la limite pour afficher tous les réparateurs géolocalisés
 
       const { data, error } = await query;
 
