@@ -5,6 +5,7 @@ import TrustSignals from '@/components/modern/TrustSignals';
 import RepairerResultsGrid from '@/components/modern/RepairerResultsGrid';
 import BlogSection from '@/components/modern/BlogSection';
 import Footer from '@/components/Footer';
+import heroImage from '@/assets/hero-repair-workshop.jpg';
 
 const Index = () => {
   return (
@@ -17,6 +18,9 @@ const Index = () => {
         />
         <meta name="keywords" content="réparateur smartphone, réparation téléphone, réparateur tablette, réparation ordinateur, réparateur certifié, devis gratuit réparation, réparation express, réparateur près de moi, service réparation mobile, atelier réparation, dépannage smartphone" />
         <link rel="canonical" href="https://topreparateurs.fr/" />
+        
+        {/* Preload hero image for LCP optimization */}
+        <link rel="preload" as="image" href={heroImage} fetchPriority="high" />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />

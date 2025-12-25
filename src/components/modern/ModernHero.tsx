@@ -23,15 +23,17 @@ const ModernHero = () => {
 
   return (
     <section className="relative min-h-[60vh] flex items-center overflow-hidden">
-      {/* Background Image avec overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center"
-        style={{ 
-          backgroundImage: `url(${heroImage})`,
-          filter: 'blur(3px)',
-          transform: 'scale(1.1)'
-        }}
-      />
+      {/* Background Image avec overlay - using img tag for better LCP */}
+      <div className="absolute inset-0 overflow-hidden">
+        <img
+          src={heroImage}
+          alt="Réparateurs professionnels"
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover blur-[3px] scale-110"
+        />
+      </div>
       <div className="absolute inset-0 bg-white/70" />
       
       {/* Content */}
