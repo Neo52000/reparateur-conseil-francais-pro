@@ -16,30 +16,29 @@ export class SearchIntegrationService {
    */
   static async getFallbackRepairers(location?: { lat: number; lng: number; radius?: number }) {
     try {
-      // Récupération directe depuis Supabase sans données mockées
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabase = createClient(
-        'https://nbugpbakfkyvvjzgfjmw.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5idWdwYmFrZmt5dnZqemdmam13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4OTgyMjQsImV4cCI6MjA2NTQ3NDIyNH0.3D_IxWcSNpA2Xk5PtsJVyfjAk9kC1KbMG2n1FJ32tWc'
-      );
+      const { supabase } = await import('@/integrations/supabase/client');
 
+      // Récupérer TOUS les réparateurs avec coordonnées valides (pas de filtre is_verified)
       const { data: repairers, error } = await supabase
         .from('repairers')
         .select('*')
-        .eq('verified', true)
+        .not('lat', 'is', null)
+        .not('lng', 'is', null)
         .order('rating', { ascending: false })
-        .limit(10);
+        .limit(500); // Augmenter la limite pour afficher plus de réparateurs
 
       if (error) {
         console.error('Error fetching repairers from Supabase:', error);
         return [];
       }
 
+      console.log(`✅ SearchIntegrationService - Found ${repairers?.length || 0} geolocated repairers`);
+
       return (repairers || []).map(repairer => ({
         id: repairer.id,
         repairer_id: repairer.id,
-        business_name: repairer.name || repairer.business_name,
-        name: repairer.name || repairer.business_name,
+        business_name: repairer.name,
+        name: repairer.name,
         city: repairer.city,
         address: repairer.address,
         phone: repairer.phone,
@@ -47,9 +46,10 @@ export class SearchIntegrationService {
         rating: repairer.rating || 4.5,
         lat: repairer.lat,
         lng: repairer.lng,
+        is_verified: repairer.is_verified || false,
         custom_price: null,
         location: { lat: repairer.lat, lng: repairer.lng },
-        distance: location ? null : null // TODO: Calculate actual distance if needed
+        distance: location ? null : null
       }));
     } catch (error) {
       console.error('Error fetching repairers:', error);
