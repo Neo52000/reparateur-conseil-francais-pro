@@ -22,11 +22,36 @@ import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
 const LocalSeoPage = () => {
-  const { serviceType, city, slug: routeSlug } = useParams<{ serviceType: string, city: string, slug: string }>();
+  const params = useParams<{ serviceType?: string, city?: string, slug?: string, '*'?: string }>();
+  const location = window.location.pathname;
   
-  console.log('🔍 [LocalSeoPage] Params récupérés:', { serviceType, city, routeSlug });
+  // Parser le slug depuis l'URL pour gérer les patterns complexes
+  const parseSlugFromUrl = () => {
+    const path = location.replace(/^\//, ''); // Enlever le slash initial
+    
+    // Patterns supportés: reparateur-smartphone-paris, reparateur-tablette-lyon, etc.
+    const match = path.match(/^(reparateur|modern-reparateur)-(smartphone|tablette|ordinateur)-(.+)$/);
+    if (match) {
+      return {
+        serviceType: match[2],
+        city: match[3],
+        slug: path.replace('modern-', '')
+      };
+    }
+    
+    return {
+      serviceType: params.serviceType,
+      city: params.city,
+      slug: params.slug
+    };
+  };
   
-  const slug = routeSlug || (serviceType && city ? `reparateur-${serviceType}-${city}` : '');
+  const parsed = parseSlugFromUrl();
+  const { serviceType, city } = parsed;
+  
+  console.log('🔍 [LocalSeoPage] Params récupérés:', { serviceType, city, path: location });
+  
+  const slug = parsed.slug || (serviceType && city ? `reparateur-${serviceType}-${city}` : '');
   
   console.log('🔍 [LocalSeoPage] Slug construit:', slug);
   
