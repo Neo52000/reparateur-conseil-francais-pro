@@ -111,8 +111,13 @@ const AppWithTracking = () => {
         <Route path="/admin/import" element={<AdminImportPage />} />
         <Route path="/admin/import/*" element={<AdminImportPage />} />
         <Route path="/admin/static-pages" element={<StaticPagesManagerPage />} />
-        <Route path="/reparateur-:serviceType-:city" element={<LocalSeoPage />} />
-        <Route path="/modern-reparateur-:serviceType-:city" element={<ModernLocalSeoPageLazy />} />
+        {/* SEO pages dynamiques avec parsing manuel du slug */}
+        <Route path="/reparateur-smartphone-:city" element={<LocalSeoPage />} />
+        <Route path="/reparateur-tablette-:city" element={<LocalSeoPage />} />
+        <Route path="/reparateur-ordinateur-:city" element={<LocalSeoPage />} />
+        <Route path="/modern-reparateur-smartphone-:city" element={<ModernLocalSeoPageLazy />} />
+        <Route path="/modern-reparateur-tablette-:city" element={<ModernLocalSeoPageLazy />} />
+        <Route path="/modern-reparateur-ordinateur-:city" element={<ModernLocalSeoPageLazy />} />
         {/* Pages SEO individuelles des réparateurs */}
         <Route path="/reparateur/:city/:repairerSlug" element={<RepairerPublicProfilePage />} />
         <Route path="/:city/:repairerName" element={<RepairerSeoPage />} />
