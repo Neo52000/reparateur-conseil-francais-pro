@@ -45,6 +45,55 @@ const RepairerSeoManagement: React.FC = () => {
   const [fixingEncoding, setFixingEncoding] = useState(false);
   const [selectedPageIds, setSelectedPageIds] = useState<Set<string>>(new Set());
 
+  // Calculer les pages sélectionnables (celles qui ont un pageId)
+  const selectablePageIds = cities.filter(c => c.hasPage && c.pageId).map(c => c.pageId as string);
+  const allSelected = selectablePageIds.length > 0 && selectablePageIds.every(id => selectedPageIds.has(id));
+  const someSelected = selectablePageIds.some(id => selectedPageIds.has(id)) && !allSelected;
+
+  const toggleSelectPage = (pageId: string) => {
+    setSelectedPageIds(prev => {
+      const next = new Set(prev);
+      if (next.has(pageId)) {
+        next.delete(pageId);
+      } else {
+        next.add(pageId);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedPageIds(new Set());
+    } else {
+      setSelectedPageIds(new Set(selectablePageIds));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedPageIds(new Set());
+  };
+
+  const handleBulkPublish = async (publish: boolean) => {
+    if (selectedPageIds.size === 0) return;
+    
+    try {
+      const { error } = await supabase
+        .from('local_seo_pages')
+        .update({ is_published: publish })
+        .in('id', Array.from(selectedPageIds));
+
+      if (error) throw error;
+
+      toast.success(`${selectedPageIds.size} page(s) ${publish ? 'publiée(s)' : 'dépubliée(s)'}`);
+      clearSelection();
+      await loadSeoData();
+    } catch (error) {
+      console.error('Erreur publication en masse:', error);
+      toast.error('Erreur lors de la publication en masse');
+    }
+  };
+
   useEffect(() => {
     loadSeoData();
   }, []);
@@ -97,6 +146,13 @@ const RepairerSeoManagement: React.FC = () => {
 
       setCities(citiesData);
       setSelectedPageIds(new Set());
+    } catch (error) {
+      console.error('Erreur chargement données SEO:', error);
+      toast.error('Erreur lors du chargement des données SEO');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const testApiConnection = async () => {
     setTestingConnection(true);
