@@ -28,6 +28,7 @@ interface RepairerData {
   department: string;
   subscription_tier: string;
   subscribed: boolean;
+  is_active: boolean;
   total_repairs: number;
   rating: number;
   created_at: string;
@@ -159,6 +160,7 @@ export const useRepairersData = () => {
             department: repairer.department || repairer.postal_code?.substring(0, 2) || '00',
             subscription_tier: 'free', // Défaut
             subscribed: repairer.is_verified || false,
+            is_active: repairer.is_verified || false, // Map is_verified to is_active
             total_repairs: realRepairCount, // UTILISER LES VRAIES DONNÉES
             rating: repairer.rating || 4.5,
             created_at: repairer.created_at,
