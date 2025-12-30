@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Globe, 
   Eye, 
@@ -25,7 +26,10 @@ import {
   Target,
   RefreshCw,
   ExternalLink,
-  Crown
+  Crown,
+  CheckSquare,
+  Square,
+  XCircle
 } from 'lucide-react';
 import { localSeoService, LocalSeoPage } from '@/services/localSeoService';
 import { useToast } from '@/hooks/use-toast';
@@ -38,6 +42,7 @@ const LocalSeoManagement = () => {
   const [selectedPage, setSelectedPage] = useState<LocalSeoPage | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [globalStats, setGlobalStats] = useState({
     totalPages: 0,
     publishedPages: 0,
@@ -281,6 +286,80 @@ ${publishedPages.map(page => `  <url>
     page.service_type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Fonctions de sélection en masse
+  const toggleSelectItem = (id: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAll = () => {
+    if (selectedItems.size === filteredPages.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(filteredPages.map(p => p.id)));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedItems(new Set());
+  };
+
+  const handleBulkPublish = async (publish: boolean) => {
+    const selectedIds = Array.from(selectedItems);
+    let successCount = 0;
+
+    for (const id of selectedIds) {
+      try {
+        const success = await localSeoService.togglePublish(id, publish);
+        if (success) successCount++;
+      } catch (error) {
+        console.error(`Erreur publication ${id}:`, error);
+      }
+    }
+
+    if (successCount > 0) {
+      setPages(pages.map(p => 
+        selectedItems.has(p.id) ? { ...p, is_published: publish } : p
+      ));
+      toast({
+        title: "Succès",
+        description: `${successCount} page(s) ${publish ? 'publiée(s)' : 'dépubliée(s)'}`,
+      });
+    }
+    clearSelection();
+  };
+
+  const handleBulkDelete = async () => {
+    const selectedIds = Array.from(selectedItems);
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} page(s) ?`)) return;
+
+    let successCount = 0;
+    for (const id of selectedIds) {
+      try {
+        const success = await localSeoService.deletePage(id);
+        if (success) successCount++;
+      } catch (error) {
+        console.error(`Erreur suppression ${id}:`, error);
+      }
+    }
+
+    if (successCount > 0) {
+      setPages(pages.filter(p => !selectedItems.has(p.id)));
+      toast({
+        title: "Suppression effectuée",
+        description: `${successCount} page(s) supprimée(s)`,
+      });
+    }
+    clearSelection();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -406,12 +485,84 @@ ${publishedPages.map(page => `  <url>
             </Button>
           </div>
 
+          {/* Barre d'actions en masse */}
+          {selectedItems.size > 0 && (
+            <Card className="border-primary bg-primary/5">
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="secondary" className="text-sm">
+                      {selectedItems.size} sélectionnée(s)
+                    </Badge>
+                    <Button variant="ghost" size="sm" onClick={clearSelection}>
+                      <XCircle className="w-4 h-4 mr-1" />
+                      Désélectionner
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleBulkPublish(true)}
+                      className="text-green-600 border-green-600 hover:bg-green-50"
+                    >
+                      <Eye className="w-4 h-4 mr-1" />
+                      Publier
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleBulkPublish(false)}
+                      className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                    >
+                      <EyeOff className="w-4 h-4 mr-1" />
+                      Dépublier
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleBulkDelete}
+                      className="text-red-600 border-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Supprimer
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* En-tête avec sélection globale */}
+          {filteredPages.length > 0 && (
+            <div className="flex items-center gap-3 px-4 py-2 bg-muted/50 rounded-lg">
+              <Checkbox
+                checked={selectedItems.size === filteredPages.length && filteredPages.length > 0}
+                onCheckedChange={selectAll}
+                aria-label="Tout sélectionner"
+              />
+              <span className="text-sm text-muted-foreground">
+                {selectedItems.size === filteredPages.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+              </span>
+              <span className="text-sm text-muted-foreground ml-auto">
+                {filteredPages.length} page(s)
+              </span>
+            </div>
+          )}
+
           {/* Liste des pages SEO */}
           <div className="grid gap-4">
             {filteredPages.map((page) => (
-              <Card key={page.id}>
+              <Card key={page.id} className={selectedItems.has(page.id) ? 'ring-2 ring-primary' : ''}>
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    {/* Checkbox de sélection */}
+                    <Checkbox
+                      checked={selectedItems.has(page.id)}
+                      onCheckedChange={() => toggleSelectItem(page.id)}
+                      aria-label={`Sélectionner ${page.city}`}
+                    />
+                    
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold">{page.title}</h3>
