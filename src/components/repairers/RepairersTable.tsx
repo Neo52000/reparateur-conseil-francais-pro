@@ -18,6 +18,7 @@ interface RepairerData {
   department: string;
   subscription_tier: string;
   subscribed: boolean;
+  is_active?: boolean;
   total_repairs: number;
   rating: number;
   created_at: string;

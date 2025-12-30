@@ -32,9 +32,13 @@ const RepairerTableActions = ({
   const handleActivateRepairer = async () => {
     setLoading(true);
     try {
-      // Log action for audit trail - actual update will be implemented when is_active field is added
-      console.log('Would update repairer active status:', repairer.id);
-      // TODO: Implement real update when is_active field is added to repairers table
+      // Update is_verified field in repairers table (used as active status)
+      const { error } = await supabase
+        .from('repairers')
+        .update({ is_verified: true })
+        .eq('id', repairer.id);
+
+      if (error) throw error;
       
       logRepairerAction('activate', repairer.id, {
         previous_status: 'inactive',
@@ -51,6 +55,7 @@ const RepairerTableActions = ({
 
       onRefresh();
     } catch (error) {
+      console.error('Error activating repairer:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'activer le réparateur",
@@ -64,9 +69,13 @@ const RepairerTableActions = ({
   const handleDeactivateRepairer = async () => {
     setLoading(true);
     try {
-      // Log action for audit trail - actual update will be implemented when is_active field is added
-      console.log('Would deactivate repairer:', repairer.id);
-      // TODO: Implement real update when is_active field is added to repairers table
+      // Update is_verified field in repairers table (used as active status)
+      const { error } = await supabase
+        .from('repairers')
+        .update({ is_verified: false })
+        .eq('id', repairer.id);
+
+      if (error) throw error;
       
       logRepairerAction('deactivate', repairer.id, {
         previous_status: 'active',
@@ -85,6 +94,7 @@ const RepairerTableActions = ({
 
       onRefresh();
     } catch (error) {
+      console.error('Error deactivating repairer:', error);
       toast({
         title: "Erreur",
         description: "Impossible de désactiver le réparateur",
