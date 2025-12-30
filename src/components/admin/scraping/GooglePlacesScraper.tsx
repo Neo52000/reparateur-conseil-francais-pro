@@ -16,6 +16,7 @@ import {
   Sparkles, Filter, Map, Globe2, Zap
 } from 'lucide-react';
 import { REGIONS } from '@/components/scraping/controls/scrapingConstants';
+import { useScrapedRegionsStats } from '@/hooks/useScrapedRegionsStats';
 
 // Liste des principales villes par département pour le scraping exhaustif
 const DEPARTMENT_CITIES: Record<string, string[]> = {
@@ -149,6 +150,7 @@ const GooglePlacesScraper: React.FC = () => {
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showQueryPreview, setShowQueryPreview] = useState(false);
   const { toast } = useToast();
+  const { regionStats, departmentStats } = useScrapedRegionsStats();
   
   // Get cities for exhaustive scraping
   const getCitiesForDepartment = (deptCode: string): string[] => {
@@ -666,20 +668,60 @@ const GooglePlacesScraper: React.FC = () => {
                 <Select value={selectedRegion} onValueChange={setSelectedRegion}>
                   <SelectTrigger><SelectValue placeholder="Sélectionner une région" /></SelectTrigger>
                   <SelectContent className="max-h-80">
-                    {REGIONS.map((region) => (
-                      <SelectItem key={region.name} value={region.name}>
-                        {region.name} ({region.departments.length} dép.)
-                      </SelectItem>
-                    ))}
+                    {REGIONS.map((region) => {
+                      const stats = regionStats.get(region.name);
+                      const hasData = stats && stats.totalRepairers > 0;
+                      return (
+                        <SelectItem key={region.name} value={region.name}>
+                          <div className="flex items-center gap-2 w-full">
+                            {hasData && <CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />}
+                            <span>{region.name}</span>
+                            {hasData ? (
+                              <Badge variant="default" className="ml-auto text-xs bg-green-500/20 text-green-700 border-green-500/30">
+                                {stats.totalRepairers}
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="ml-auto text-xs text-muted-foreground">
+                                {region.departments.length} dép.
+                              </Badge>
+                            )}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
                 {selectedRegionData && (
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-2">Départements inclus ({selectedRegionData.departments.length}):</p>
+                  <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                    {(() => {
+                      const stats = regionStats.get(selectedRegionData.name);
+                      if (stats && stats.totalRepairers > 0) {
+                        return (
+                          <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 dark:bg-green-950/30 px-2 py-1 rounded">
+                            <CheckCircle className="h-3.5 w-3.5" />
+                            <span>{stats.totalRepairers} réparateurs • {stats.scrapedDepartments}/{stats.totalDepartments} dép. scrapés</span>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                    <p className="text-xs text-muted-foreground">Départements ({selectedRegionData.departments.length}):</p>
                     <div className="flex flex-wrap gap-1">
-                      {selectedRegionData.departments.map((dept) => (
-                        <Badge key={dept.code} variant="outline" className="text-xs">{dept.code}</Badge>
-                      ))}
+                      {selectedRegionData.departments.map((dept) => {
+                        const deptStats = departmentStats.get(dept.code);
+                        const hasDeptData = deptStats && deptStats.repairerCount > 0;
+                        return (
+                          <Badge 
+                            key={dept.code} 
+                            variant={hasDeptData ? "default" : "outline"} 
+                            className={`text-xs ${hasDeptData ? 'bg-green-500/20 text-green-700 border-green-500/30' : ''}`}
+                            title={hasDeptData ? `${deptStats.repairerCount} réparateurs` : 'Non scrapé'}
+                          >
+                            {dept.code}
+                            {hasDeptData && <span className="ml-1 opacity-70">({deptStats.repairerCount})</span>}
+                          </Badge>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -693,13 +735,39 @@ const GooglePlacesScraper: React.FC = () => {
                     {REGIONS.map((region) => (
                       <div key={region.name}>
                         <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 sticky top-0">{region.name}</div>
-                        {region.departments.map((dept) => (
-                          <SelectItem key={dept.code} value={dept.code}>{dept.code} - {dept.name}</SelectItem>
-                        ))}
+                        {region.departments.map((dept) => {
+                          const deptStats = departmentStats.get(dept.code);
+                          const hasDeptData = deptStats && deptStats.repairerCount > 0;
+                          return (
+                            <SelectItem key={dept.code} value={dept.code}>
+                              <div className="flex items-center gap-2 w-full">
+                                {hasDeptData && <CheckCircle className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />}
+                                <span>{dept.code} - {dept.name}</span>
+                                {hasDeptData && (
+                                  <Badge variant="default" className="ml-auto text-xs bg-green-500/20 text-green-700 border-green-500/30">
+                                    {deptStats.repairerCount}
+                                  </Badge>
+                                )}
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
                       </div>
                     ))}
                   </SelectContent>
                 </Select>
+                {(() => {
+                  const deptStats = departmentStats.get(selectedDepartment);
+                  if (deptStats && deptStats.repairerCount > 0) {
+                    return (
+                      <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 dark:bg-green-950/30 px-2 py-1.5 rounded">
+                        <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span>{deptStats.repairerCount} réparateurs dans {deptStats.cityCount} villes</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             )}
 
