@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { localSeoService } from '@/services/localSeoService';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  MapPin, 
-  Zap, 
-  Eye, 
-  TrendingUp, 
-  Globe, 
+import {
+  MapPin,
+  Zap,
+  Eye,
+  TrendingUp,
+  Globe,
   RefreshCw,
   Plus,
   ExternalLink,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 
 interface CityData {
@@ -42,6 +43,7 @@ const RepairerSeoManagement: React.FC = () => {
   const [generating, setGenerating] = useState<string | null>(null);
   const [testingConnection, setTestingConnection] = useState(false);
   const [fixingEncoding, setFixingEncoding] = useState(false);
+  const [selectedPageIds, setSelectedPageIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadSeoData();
@@ -94,13 +96,7 @@ const RepairerSeoManagement: React.FC = () => {
       }).sort((a, b) => b.repairerCount - a.repairerCount);
 
       setCities(citiesData);
-    } catch (error) {
-      console.error('Erreur chargement données SEO:', error);
-      toast.error('Erreur lors du chargement des données SEO');
-    } finally {
-      setLoading(false);
-    }
-  };
+      setSelectedPageIds(new Set());
 
   const testApiConnection = async () => {
     setTestingConnection(true);
@@ -350,9 +346,36 @@ const RepairerSeoManagement: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
+          {selectedPageIds.size > 0 && (
+            <div className="mb-3 flex flex-col gap-2 rounded-lg border bg-card p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-sm text-muted-foreground">
+                {selectedPageIds.size} ville(s) sélectionnée(s)
+              </div>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" onClick={clearSelection}>
+                  Désélectionner
+                </Button>
+                <Button size="sm" onClick={() => handleBulkPublish(true)}>
+                  Publier
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => handleBulkPublish(false)}>
+                  Dépublier
+                </Button>
+              </div>
+            </div>
+          )}
+
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+                    onCheckedChange={toggleSelectAll}
+                    disabled={selectablePageIds.length === 0}
+                    aria-label="Sélectionner toutes les villes avec page SEO"
+                  />
+                </TableHead>
                 <TableHead>Ville</TableHead>
                 <TableHead>Réparateurs</TableHead>
                 <TableHead>Page SEO</TableHead>
@@ -363,102 +386,116 @@ const RepairerSeoManagement: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {cities.map((cityData) => (
-                <TableRow key={cityData.city}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      {cityData.city}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {cityData.repairerCount} réparateur{cityData.repairerCount > 1 ? 's' : ''}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {cityData.hasPage ? (
-                      <Badge variant="default">
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Créée
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        À créer
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {cityData.hasPage && (
+              {cities.map((cityData) => {
+                const canSelect = cityData.hasPage && !!cityData.pageId;
+                const checked = canSelect && selectedPageIds.has(cityData.pageId as string);
+
+                return (
+                  <TableRow key={cityData.city}>
+                    <TableCell>
+                      <Checkbox
+                        checked={checked}
+                        disabled={!canSelect}
+                        onCheckedChange={() => {
+                          if (!canSelect) return;
+                          toggleSelectPage(cityData.pageId as string);
+                        }}
+                        aria-label={`Sélectionner ${cityData.city}`}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
-                        <Progress value={cityData.seoScore || 0} className="w-16" />
-                        <span className="text-sm text-muted-foreground">
-                          {cityData.seoScore || 0}%
-                        </span>
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        {cityData.city}
                       </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {cityData.hasPage && (
-                      <div className="flex items-center gap-1">
-                        <Eye className="h-3 w-3 text-muted-foreground" />
-                        {cityData.pageViews || 0}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {cityData.hasPage && (
-                      <Badge variant={cityData.isPublished ? "default" : "secondary"}>
-                        {cityData.isPublished ? 'Publiée' : 'Brouillon'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {cityData.repairerCount} réparateur{cityData.repairerCount > 1 ? 's' : ''}
                       </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      {!cityData.hasPage ? (
-                        <Button
-                          size="sm"
-                          variant="default"
-                          onClick={() => generateSeoPage(cityData.city, cityData.repairerCount)}
-                          disabled={generating === cityData.city}
-                        >
-                          {generating === cityData.city ? (
-                            <RefreshCw className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Plus className="h-3 w-3" />
-                          )}
-                          Créer
-                        </Button>
+                    </TableCell>
+                    <TableCell>
+                      {cityData.hasPage ? (
+                        <Badge variant="default">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Créée
+                        </Badge>
                       ) : (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => togglePagePublication(cityData.pageId!, cityData.isPublished!)}
-                          >
-                            {cityData.isPublished ? 'Dépublier' : 'Publier'}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => refreshPageContent(cityData.pageId!, cityData.city)}
-                          >
-                            <Zap className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => window.open(`/local-seo/${cityData.pageId}`, '_blank')}
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                          </Button>
-                        </>
+                        <Badge variant="secondary">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          À créer
+                        </Badge>
                       )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell>
+                      {cityData.hasPage && (
+                        <div className="flex items-center gap-2">
+                          <Progress value={cityData.seoScore || 0} className="w-16" />
+                          <span className="text-sm text-muted-foreground">{cityData.seoScore || 0}%</span>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {cityData.hasPage && (
+                        <div className="flex items-center gap-1">
+                          <Eye className="h-3 w-3 text-muted-foreground" />
+                          {cityData.pageViews || 0}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {cityData.hasPage && (
+                        <Badge variant={cityData.isPublished ? 'default' : 'secondary'}>
+                          {cityData.isPublished ? 'Publiée' : 'Brouillon'}
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        {!cityData.hasPage ? (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => generateSeoPage(cityData.city, cityData.repairerCount)}
+                            disabled={generating === cityData.city}
+                          >
+                            {generating === cityData.city ? (
+                              <RefreshCw className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Plus className="h-3 w-3" />
+                            )}
+                            Créer
+                          </Button>
+                        ) : (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => togglePagePublication(cityData.pageId!, cityData.isPublished!)}
+                            >
+                              {cityData.isPublished ? 'Dépublier' : 'Publier'}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => refreshPageContent(cityData.pageId!, cityData.city)}
+                            >
+                              <Zap className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => window.open(`/local-seo/${cityData.pageId}`, '_blank')}
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
