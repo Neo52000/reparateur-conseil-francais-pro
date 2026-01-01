@@ -115,10 +115,16 @@ const BlogTemplatesManager: React.FC = () => {
     }
 
     try {
+      const templateData = {
+        ...formData,
+        category_id: formData.category_id || null,
+        ai_model: selectedAI
+      };
+
       if (editingTemplate) {
         const { error } = await supabase
           .from('blog_generation_templates')
-          .update({ ...formData, ai_model: selectedAI })
+          .update(templateData)
           .eq('id', editingTemplate.id);
 
         if (error) throw error;
@@ -129,7 +135,7 @@ const BlogTemplatesManager: React.FC = () => {
       } else {
         const { error } = await supabase
           .from('blog_generation_templates')
-          .insert({ ...formData, ai_model: selectedAI });
+          .insert(templateData);
 
         if (error) throw error;
         toast({
