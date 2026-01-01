@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Eye, Edit, Trash2, Plus, Search, Filter, ExternalLink, ImagePlus } from 'lucide-react';
 import { useBlog } from '@/hooks/useBlog';
 import { useBlogPosts } from '@/hooks/blog/useBlogPosts';
@@ -279,82 +280,103 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPosts.map((post) => (
-                <TableRow key={post.id}>
-                  <TableCell>
-                    <div className="font-medium">{post.title}</div>
-                  </TableCell>
-                  <TableCell>
-                    {post.category?.name || 'Non catégorisé'}
-                  </TableCell>
-                  <TableCell>
-                    <Select 
-                      value={post.status} 
-                      onValueChange={(value: any) => handleStatusChange(post.id, value)}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="draft">Brouillon</SelectItem>
-                        <SelectItem value="pending">En attente</SelectItem>
-                        <SelectItem value="scheduled">Programmé</SelectItem>
-                        <SelectItem value="published">Publié</SelectItem>
-                        <SelectItem value="archived">Archivé</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    {getVisibilityBadge(post.visibility)}
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(post.published_at || post.created_at), 'dd/MM/yyyy', { locale: fr })}
-                  </TableCell>
-                  <TableCell>{post.view_count}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRegenerateImage(post)}
-                        disabled={regeneratingImages.has(post.id)}
-                        title="Régénérer l'image"
-                      >
-                        <ImagePlus className={`h-4 w-4 ${regeneratingImages.has(post.id) ? 'animate-pulse' : ''}`} />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handlePreviewPost(post)}
-                        title="Prévisualiser l'article"
-                      >
-                        {post.status === 'published' ? (
-                          <ExternalLink className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleShowEditor(post)}
-                        title="Modifier l'article"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleDeletePost(post.id)}
-                        title="Supprimer l'article"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+              {loading ? (
+                // Skeleton loading state
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-5 w-48" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-8 w-28" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+                    <TableCell><Skeleton className="h-8 w-32" /></TableCell>
+                  </TableRow>
+                ))
+              ) : filteredPosts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    Aucun article trouvé
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filteredPosts.map((post) => (
+                  <TableRow key={post.id}>
+                    <TableCell>
+                      <div className="font-medium">{post.title}</div>
+                    </TableCell>
+                    <TableCell>
+                      {post.category?.name || 'Non catégorisé'}
+                    </TableCell>
+                    <TableCell>
+                      <Select 
+                        value={post.status} 
+                        onValueChange={(value: any) => handleStatusChange(post.id, value)}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="draft">Brouillon</SelectItem>
+                          <SelectItem value="pending">En attente</SelectItem>
+                          <SelectItem value="scheduled">Programmé</SelectItem>
+                          <SelectItem value="published">Publié</SelectItem>
+                          <SelectItem value="archived">Archivé</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      {getVisibilityBadge(post.visibility)}
+                    </TableCell>
+                    <TableCell>
+                      {format(new Date(post.published_at || post.created_at), 'dd/MM/yyyy', { locale: fr })}
+                    </TableCell>
+                    <TableCell>{post.view_count}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRegenerateImage(post)}
+                          disabled={regeneratingImages.has(post.id)}
+                          title="Régénérer l'image"
+                        >
+                          <ImagePlus className={`h-4 w-4 ${regeneratingImages.has(post.id) ? 'animate-pulse' : ''}`} />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handlePreviewPost(post)}
+                          title="Prévisualiser l'article"
+                        >
+                          {post.status === 'published' ? (
+                            <ExternalLink className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleShowEditor(post)}
+                          title="Modifier l'article"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleDeletePost(post.id)}
+                          title="Supprimer l'article"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
