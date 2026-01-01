@@ -50,9 +50,9 @@ export const useBlogPrompts = () => {
           .from('blog_generation_templates')
           .update({
             name: prompt.name,
-            category_id: prompt.category_id,
+            category_id: prompt.category_id || null,
             prompt_template: prompt.prompt_template,
-            ai_model: prompt.ai_model,
+            ai_model: prompt.ai_model || null,
             visibility: prompt.visibility,
             is_active: prompt.is_active,
             updated_at: new Date().toISOString()
@@ -71,7 +71,7 @@ export const useBlogPrompts = () => {
           .from('blog_generation_templates')
           .insert({
             name: prompt.name!,
-            category_id: prompt.category_id,
+            category_id: prompt.category_id || null,
             prompt_template: prompt.prompt_template!,
             ai_model: prompt.ai_model || 'google/gemini-2.5-flash',
             visibility: prompt.visibility || 'public',
