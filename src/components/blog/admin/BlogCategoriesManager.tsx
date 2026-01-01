@@ -7,12 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Loader2 } from 'lucide-react';
 import { useBlog } from '@/hooks/useBlog';
+import { useBlogCategories } from '@/hooks/blog/useBlogCategories';
 import { BlogCategory } from '@/types/blog';
+import { useToast } from '@/hooks/use-toast';
 
 const BlogCategoriesManager: React.FC = () => {
   const { fetchCategories } = useBlog();
+  const { saveCategory, loading: saving } = useBlogCategories();
+  const { toast } = useToast();
   const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [editingCategory, setEditingCategory] = useState<BlogCategory | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -62,6 +66,33 @@ const BlogCategoriesManager: React.FC = () => {
     });
     setEditingCategory(null);
     setShowForm(false);
+  };
+
+  const handleSave = async () => {
+    if (!formData.name || !formData.slug) {
+      toast({
+        title: "Erreur",
+        description: "Le nom et le slug sont obligatoires",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const categoryData = {
+      ...(editingCategory?.id && { id: editingCategory.id }),
+      name: formData.name,
+      slug: formData.slug,
+      description: formData.description || null,
+      icon: formData.icon || null,
+      display_order: formData.display_order,
+      is_active: formData.is_active
+    };
+
+    const success = await saveCategory(categoryData);
+    if (success) {
+      resetForm();
+      loadCategories();
+    }
   };
 
   const handleEdit = (category: BlogCategory) => {
@@ -158,13 +189,13 @@ const BlogCategoriesManager: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex justify-end space-x-2 mt-4">
-                  <Button variant="outline" onClick={resetForm}>
+                  <Button variant="outline" onClick={resetForm} disabled={saving}>
                     <X className="h-4 w-4 mr-2" />
                     Annuler
                   </Button>
-                  <Button>
-                    <Save className="h-4 w-4 mr-2" />
-                    Sauvegarder
+                  <Button onClick={handleSave} disabled={saving}>
+                    {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                    {saving ? 'Sauvegarde...' : 'Sauvegarder'}
                   </Button>
                 </div>
               </CardContent>
