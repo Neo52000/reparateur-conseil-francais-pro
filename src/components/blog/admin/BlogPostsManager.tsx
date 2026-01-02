@@ -9,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Eye, Edit, Trash2, Plus, Search, Filter, ExternalLink, ImagePlus } from 'lucide-react';
 import { useBlog } from '@/hooks/useBlog';
-import { useBlogPosts } from '@/hooks/blog/useBlogPosts';
 import { BlogPost, BlogCategory } from '@/types/blog';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -29,8 +28,7 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
   onEditorStateChange,
   editingPost = null
 }) => {
-  const { fetchPosts, fetchCategories, deletePost, loading } = useBlog();
-  const { savePost } = useBlogPosts();
+  const { fetchPosts, fetchPostBySlug, fetchCategories, deletePost, loading, savePost } = useBlog();
   const { toast } = useToast();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
@@ -42,6 +40,7 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
   const [previewPost, setPreviewPost] = useState<BlogPost | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [regeneratingImages, setRegeneratingImages] = useState<Set<string>>(new Set());
+  const [loadingPostDetails, setLoadingPostDetails] = useState(false);
 
   useEffect(() => {
     if (forceShowEditor) {
@@ -56,12 +55,17 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
   }, [statusFilter, categoryFilter]);
 
   const loadPosts = async () => {
-    const filters: any = {};
+    const filters: any = {
+      // Sécurise la perf de l'admin : on charge une liste paginée et sans `content`
+      limit: 50,
+      offset: 0,
+      includeContent: false,
+    };
     if (statusFilter !== 'all') filters.status = statusFilter;
     if (categoryFilter !== 'all') filters.category = categoryFilter;
-    
+
     const data = await fetchPosts(filters);
-    setPosts(data);
+    setPosts(data || []);
   };
 
   const loadCategories = async () => {
@@ -78,10 +82,21 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
     }
   };
 
-  const handleShowEditor = (post: BlogPost | null = null) => {
-    setSelectedPost(post);
-    setShowEditor(true);
-    onEditorStateChange?.(true);
+  const handleShowEditor = async (post: BlogPost | null = null) => {
+    try {
+      setLoadingPostDetails(true);
+      if (post) {
+        const fullPost = await fetchPostBySlug(post.slug);
+        setSelectedPost(fullPost || post);
+      } else {
+        setSelectedPost(null);
+      }
+
+      setShowEditor(true);
+      onEditorStateChange?.(true);
+    } finally {
+      setLoadingPostDetails(false);
+    }
   };
 
   const handleCloseEditor = () => {
@@ -91,14 +106,20 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
     loadPosts();
   };
 
-  const handlePreviewPost = (post: BlogPost) => {
+  const handlePreviewPost = async (post: BlogPost) => {
     if (post.status === 'published') {
       // Si l'article est publié, ouvrir la page publique
       window.open(`/blog/article/${post.slug}`, '_blank');
-    } else {
-      // Pour les autres statuts, utiliser le modal de prévisualisation
-      setPreviewPost(post);
+      return;
+    }
+
+    setLoadingPostDetails(true);
+    try {
+      const fullPost = await fetchPostBySlug(post.slug);
+      setPreviewPost(fullPost || post);
       setShowPreview(true);
+    } finally {
+      setLoadingPostDetails(false);
     }
   };
 
@@ -227,9 +248,12 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
         </div>
       </CardHeader>
       <CardContent>
+        {loadingPostDetails && (
+          <div className="mb-4 text-sm text-muted-foreground">Chargement des détails de l'article…</div>
+        )}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Rechercher des articles..."
               value={searchQuery}

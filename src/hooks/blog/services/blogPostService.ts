@@ -8,36 +8,44 @@ export const fetchPosts = async (filters?: {
   status?: string;
   limit?: number;
   offset?: number;
+  /**
+   * Par défaut, on n'inclut pas le champ `content` (très volumineux) pour éviter
+   * les timeouts et les réponses trop lourdes sur les listes.
+   */
+  includeContent?: boolean;
 }) => {
+  const limit = filters?.limit ?? 50;
+  const offset = filters?.offset ?? 0;
+
+  const listSelect = filters?.includeContent
+    ? `*,
+       category:blog_categories(*),
+       author:profiles(first_name, last_name, email)`
+    : `id, title, slug, excerpt, featured_image_url, author_id, category_id, visibility, status,
+       ai_generated, ai_model, generation_prompt, meta_title, meta_description, keywords,
+       view_count, comment_count, share_count, published_at, scheduled_at, created_at, updated_at,
+       category:blog_categories(id, name, slug, description, icon, display_order, is_active, created_at, updated_at)`;
+
   let query = supabase
     .from('blog_posts')
-    .select(`
-      *,
-      category:blog_categories(*),
-      author:profiles(first_name, last_name, email)
-    `)
+    .select(listSelect)
     .order('created_at', { ascending: false });
 
   // Application des filtres
   if (filters?.visibility && filters.visibility !== 'all') {
     query = query.eq('visibility', filters.visibility);
   }
-  
+
   if (filters?.category && filters.category !== 'all') {
     query = query.eq('category_id', filters.category);
   }
-  
+
   if (filters?.status && filters.status !== 'all') {
     query = query.eq('status', filters.status);
   }
-  
-  if (filters?.limit) {
-    query = query.limit(filters.limit);
-  }
-  
-  if (filters?.offset) {
-    query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1);
-  }
+
+  // Pagination (toujours, pour éviter de récupérer toute la table)
+  query = query.range(offset, offset + limit - 1);
 
   const { data, error } = await query;
 
