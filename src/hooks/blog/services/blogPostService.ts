@@ -8,30 +8,23 @@ export const fetchPosts = async (filters?: {
   status?: string;
   limit?: number;
   offset?: number;
-  /**
-   * Par défaut, on n'inclut pas le champ `content` (très volumineux) pour éviter
-   * les timeouts et les réponses trop lourdes sur les listes.
-   */
   includeContent?: boolean;
 }) => {
-  const limit = filters?.limit ?? 50;
-  const offset = filters?.offset ?? 0;
+  const queryLimit = filters?.limit ?? 50;
+  const queryOffset = filters?.offset ?? 0;
 
-  const listSelect = filters?.includeContent
-    ? `*,
-       category:blog_categories(*),
-       author:profiles(first_name, last_name, email)`
-    : `id, title, slug, excerpt, featured_image_url, author_id, category_id, visibility, status,
-       ai_generated, ai_model, generation_prompt, meta_title, meta_description, keywords,
-       view_count, comment_count, share_count, published_at, scheduled_at, created_at, updated_at,
-       category:blog_categories(id, name, slug, description, icon, display_order, is_active, created_at, updated_at)`;
+  // Sélection légère sans content pour les listes (évite timeout)
+  const lightSelect = 'id,title,slug,excerpt,featured_image_url,author_id,category_id,visibility,status,ai_generated,ai_model,generation_prompt,meta_title,meta_description,keywords,view_count,comment_count,share_count,published_at,scheduled_at,created_at,updated_at,category:blog_categories(id,name,slug,icon)';
+  const fullSelect = '*,category:blog_categories(*),author:profiles(first_name,last_name,email)';
+
+  const selectString = filters?.includeContent ? fullSelect : lightSelect;
 
   let query = supabase
     .from('blog_posts')
-    .select(listSelect)
-    .order('created_at', { ascending: false });
+    .select(selectString)
+    .order('created_at', { ascending: false })
+    .range(queryOffset, queryOffset + queryLimit - 1);
 
-  // Application des filtres
   if (filters?.visibility && filters.visibility !== 'all') {
     query = query.eq('visibility', filters.visibility);
   }
@@ -44,9 +37,6 @@ export const fetchPosts = async (filters?: {
     query = query.eq('status', filters.status);
   }
 
-  // Pagination (toujours, pour éviter de récupérer toute la table)
-  query = query.range(offset, offset + limit - 1);
-
   const { data, error } = await query;
 
   if (error) {
@@ -54,7 +44,7 @@ export const fetchPosts = async (filters?: {
     throw error;
   }
 
-  return cleanBlogPostsData(data || []);
+  return cleanBlogPostsData((data as any[]) || []);
 };
 
 export const fetchPostBySlug = async (slug: string) => {
