@@ -22,6 +22,7 @@ import TabletRepairPage from "./pages/services/TabletRepairPage";
 import ComputerRepairPage from "./pages/services/ComputerRepairPage";
 import ConsoleRepairPage from "./pages/services/ConsoleRepairPage";
 import LocalSeoPage from "./components/LocalSeoPage";
+import LocalSeoRouter from "./components/LocalSeoRouter";
 import RepairerSeoPage from "./pages/RepairerSeoPage";
 import DocumentationPage from "./pages/DocumentationPage";
 
@@ -111,13 +112,13 @@ const AppWithTracking = () => {
         <Route path="/admin/import" element={<AdminImportPage />} />
         <Route path="/admin/import/*" element={<AdminImportPage />} />
         <Route path="/admin/static-pages" element={<StaticPagesManagerPage />} />
-        {/* SEO pages dynamiques avec parsing manuel du slug */}
-        <Route path="/reparateur-smartphone-:city" element={<LocalSeoPage />} />
-        <Route path="/reparateur-tablette-:city" element={<LocalSeoPage />} />
-        <Route path="/reparateur-ordinateur-:city" element={<LocalSeoPage />} />
-        <Route path="/modern-reparateur-smartphone-:city" element={<ModernLocalSeoPageLazy />} />
-        <Route path="/modern-reparateur-tablette-:city" element={<ModernLocalSeoPageLazy />} />
-        <Route path="/modern-reparateur-ordinateur-:city" element={<ModernLocalSeoPageLazy />} />
+        {/* SEO pages dynamiques - LocalSeoRouter gère le parsing de l'URL */}
+        <Route path="/reparateur-smartphone-*" element={<LocalSeoRouter />} />
+        <Route path="/reparateur-tablette-*" element={<LocalSeoRouter />} />
+        <Route path="/reparateur-ordinateur-*" element={<LocalSeoRouter />} />
+        <Route path="/modern-reparateur-smartphone-*" element={<ModernLocalSeoPageLazy />} />
+        <Route path="/modern-reparateur-tablette-*" element={<ModernLocalSeoPageLazy />} />
+        <Route path="/modern-reparateur-ordinateur-*" element={<ModernLocalSeoPageLazy />} />
         {/* Pages SEO individuelles des réparateurs */}
         <Route path="/reparateur/:city/:repairerSlug" element={<RepairerPublicProfilePage />} />
         <Route path="/:city/:repairerName" element={<RepairerSeoPage />} />
