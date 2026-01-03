@@ -1056,6 +1056,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_search_queries: {
+        Row: {
+          created_at: string | null
+          fallback_used: boolean | null
+          id: string
+          matched_repairers: string[] | null
+          parsed_intent: Json | null
+          raw_query: string
+          results_count: number | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          fallback_used?: boolean | null
+          id?: string
+          matched_repairers?: string[] | null
+          parsed_intent?: Json | null
+          raw_query: string
+          results_count?: number | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          fallback_used?: boolean | null
+          id?: string
+          matched_repairers?: string[] | null
+          parsed_intent?: Json | null
+          raw_query?: string
+          results_count?: number | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ai_suggestions: {
         Row: {
           action_steps: string[] | null
@@ -4798,6 +4834,73 @@ export type Database = {
           verification_hash?: string
         }
         Relationships: []
+      }
+      exclusivity_zones: {
+        Row: {
+          city_name: string
+          city_slug: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          monthly_price: number | null
+          postal_codes: string[]
+          radius_km: number | null
+          repairer_id: string | null
+          starts_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          city_name: string
+          city_slug: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          monthly_price?: number | null
+          postal_codes?: string[]
+          radius_km?: number | null
+          repairer_id?: string | null
+          starts_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          city_name?: string
+          city_slug?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          monthly_price?: number | null
+          postal_codes?: string[]
+          radius_km?: number | null
+          repairer_id?: string | null
+          starts_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exclusivity_zones_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "nf203_admin_overview"
+            referencedColumns: ["repairer_id"]
+          },
+          {
+            foreignKeyName: "exclusivity_zones_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exclusivity_zones_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairer_profiles_safe"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       feature_flags_by_plan: {
         Row: {
@@ -11179,10 +11282,12 @@ export type Database = {
           business_name: string
           certifications: string[] | null
           city: string
+          claimed_at: string | null
           created_at: string
           description: string | null
           email: string
           emergency_service: boolean | null
+          exclusivity_zone_id: string | null
           facebook_url: string | null
           has_qualirepar_label: boolean | null
           home_service: boolean | null
@@ -11197,9 +11302,12 @@ export type Database = {
           pickup_service: boolean | null
           postal_code: string
           pricing_info: Json | null
+          profile_completion_percent: number | null
           profile_image_url: string | null
           repair_types: string[] | null
+          repairer_level: number | null
           response_time: string | null
+          seo_score: number | null
           services_offered: string[] | null
           shop_photos: string[] | null
           siret_number: string | null
@@ -11218,10 +11326,12 @@ export type Database = {
           business_name: string
           certifications?: string[] | null
           city: string
+          claimed_at?: string | null
           created_at?: string
           description?: string | null
           email: string
           emergency_service?: boolean | null
+          exclusivity_zone_id?: string | null
           facebook_url?: string | null
           has_qualirepar_label?: boolean | null
           home_service?: boolean | null
@@ -11236,9 +11346,12 @@ export type Database = {
           pickup_service?: boolean | null
           postal_code: string
           pricing_info?: Json | null
+          profile_completion_percent?: number | null
           profile_image_url?: string | null
           repair_types?: string[] | null
+          repairer_level?: number | null
           response_time?: string | null
+          seo_score?: number | null
           services_offered?: string[] | null
           shop_photos?: string[] | null
           siret_number?: string | null
@@ -11257,10 +11370,12 @@ export type Database = {
           business_name?: string
           certifications?: string[] | null
           city?: string
+          claimed_at?: string | null
           created_at?: string
           description?: string | null
           email?: string
           emergency_service?: boolean | null
+          exclusivity_zone_id?: string | null
           facebook_url?: string | null
           has_qualirepar_label?: boolean | null
           home_service?: boolean | null
@@ -11275,9 +11390,12 @@ export type Database = {
           pickup_service?: boolean | null
           postal_code?: string
           pricing_info?: Json | null
+          profile_completion_percent?: number | null
           profile_image_url?: string | null
           repair_types?: string[] | null
+          repairer_level?: number | null
           response_time?: string | null
+          seo_score?: number | null
           services_offered?: string[] | null
           shop_photos?: string[] | null
           siret_number?: string | null
@@ -11291,7 +11409,15 @@ export type Database = {
           whatsapp_url?: string | null
           years_experience?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "repairer_profiles_exclusivity_zone_id_fkey"
+            columns: ["exclusivity_zone_id"]
+            isOneToOne: false
+            referencedRelation: "exclusivity_zones"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       repairer_seo_pages: {
         Row: {
@@ -12173,6 +12299,60 @@ export type Database = {
           performance_thresholds?: Json
           sitemap_auto_update?: boolean
           updated_at?: string
+        }
+        Relationships: []
+      }
+      seo_programmatic_pages: {
+        Row: {
+          average_rating: number | null
+          content: Json | null
+          generated_at: string | null
+          h1_title: string | null
+          id: string
+          internal_links: string[] | null
+          is_indexed: boolean | null
+          is_published: boolean | null
+          meta_description: string | null
+          page_type: string
+          repairers_count: number | null
+          schema_org: Json | null
+          slug: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          average_rating?: number | null
+          content?: Json | null
+          generated_at?: string | null
+          h1_title?: string | null
+          id?: string
+          internal_links?: string[] | null
+          is_indexed?: boolean | null
+          is_published?: boolean | null
+          meta_description?: string | null
+          page_type: string
+          repairers_count?: number | null
+          schema_org?: Json | null
+          slug: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          average_rating?: number | null
+          content?: Json | null
+          generated_at?: string | null
+          h1_title?: string | null
+          id?: string
+          internal_links?: string[] | null
+          is_indexed?: boolean | null
+          is_published?: boolean | null
+          meta_description?: string | null
+          page_type?: string
+          repairers_count?: number | null
+          schema_org?: Json | null
+          slug?: string
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -14677,6 +14857,10 @@ export type Database = {
         Args: { end_date: string; repairer_uuid: string; start_date: string }
         Returns: string
       }
+      calculate_profile_completion: {
+        Args: { profile_id: string }
+        Returns: number
+      }
       calculate_repairer_commission: {
         Args: { repairer_uuid: string; transaction_amount: number }
         Returns: {
@@ -14686,6 +14870,7 @@ export type Database = {
           tier_name: string
         }[]
       }
+      calculate_seo_score: { Args: { profile_id: string }; Returns: number }
       calculate_shopify_commission: {
         Args: { commission_rate_param: number; order_total: number }
         Returns: {
