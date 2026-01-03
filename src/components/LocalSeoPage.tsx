@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -14,7 +14,9 @@ import {
   Users,
   Award,
   ArrowRight,
-  Zap
+  Zap,
+  Home,
+  ArrowLeft
 } from 'lucide-react';
 import { localSeoService, LocalSeoPage as LocalSeoPageType } from '@/services/localSeoService';
 import { generateStructuredData, generateMetaTags } from '@/utils/seoUtils';
@@ -126,7 +128,39 @@ const LocalSeoPage = () => {
   }
 
   if (notFound || !page) {
-    return <Navigate to="/404" replace />;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="min-h-[60vh] flex items-center justify-center p-4">
+          <Card className="w-full max-w-md text-center">
+            <CardHeader>
+              <CardTitle className="text-6xl font-bold text-muted-foreground mb-4">404</CardTitle>
+              <h1 className="text-2xl font-semibold mb-2">
+                Page non trouvée
+              </h1>
+              <p className="text-muted-foreground">
+                Désolé, la page que vous recherchez n'existe pas.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col space-y-2">
+                <Button asChild className="w-full">
+                  <Link to="/">
+                    <Home className="h-4 w-4 mr-2" />
+                    Retourner à l'accueil
+                  </Link>
+                </Button>
+                <Button variant="outline" onClick={() => window.history.back()} className="w-full">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Page précédente
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   const serviceTypeLabels = {
