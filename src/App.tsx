@@ -9,6 +9,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import ChatbotLayout from "./components/ChatbotLayout";
 import Index from "./pages/Index";
 import SearchPage from "./components/search/SearchPage";
+import { AISearchPage } from "./components/search/AISearchPage";
 import AdminPage from "./pages/AdminPage";
 import RepairerDashboardPage from "./pages/RepairerDashboardPage";
 import ClientDashboardPage from "./pages/ClientDashboardPage";
@@ -102,6 +103,7 @@ const AppWithTracking = () => {
         <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/ai-search" element={<AISearchPage />} />
         {/* Navigation routes */}
         <Route path="/reparateur" element={<Navigate to="/repairer-auth" replace />} />
         <Route path="/reparations" element={<Navigate to="/reparation-smartphone" replace />} />
