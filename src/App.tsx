@@ -55,6 +55,9 @@ import { initializeSentry } from './config/sentry';
 import { MobileBottomNav } from './components/navigation/MobileBottomNav';
 
 const ModernLocalSeoPageLazy = lazy(() => import("./pages/ModernLocalSeoPage"));
+const ModelCityPageLazy = lazy(() => import("./components/seo/programmatic/ModelCityPage").then(m => ({ default: m.ModelCityPage })));
+const HubCityPageLazy = lazy(() => import("./components/seo/programmatic/HubCityPage").then(m => ({ default: m.HubCityPage })));
+const SymptomPageLazy = lazy(() => import("./components/seo/programmatic/SymptomPage").then(m => ({ default: m.SymptomPage })));
 
 const queryClient = new QueryClient();
 
@@ -121,6 +124,10 @@ const AppWithTracking = () => {
         <Route path="/modern-reparateur-smartphone-*" element={<ModernLocalSeoPageLazy />} />
         <Route path="/modern-reparateur-tablette-*" element={<ModernLocalSeoPageLazy />} />
         <Route path="/modern-reparateur-ordinateur-*" element={<ModernLocalSeoPageLazy />} />
+        {/* Pages SEO programmatiques V3 */}
+        <Route path="/reparation/:model/:city" element={<ModelCityPageLazy />} />
+        <Route path="/reparateurs/:city" element={<HubCityPageLazy />} />
+        <Route path="/probleme/:symptom" element={<SymptomPageLazy />} />
         {/* Pages SEO individuelles des réparateurs */}
         <Route path="/reparateur/:city/:repairerSlug" element={<RepairerPublicProfilePage />} />
         <Route path="/:city/:repairerName" element={<RepairerSeoPage />} />

@@ -79,6 +79,11 @@ const AdminSidebar: React.FC = () => {
   { path: '/admin?tab=shopify-analytics', icon: TrendingUp, label: 'Analytics Shopify', tab: 'shopify-analytics', category: 'Shopify Management', isNew: true },
   { path: '/admin?tab=shopify-settings', icon: Settings2, label: 'Configuration API', tab: 'shopify-settings', category: 'Shopify Management', isNew: true },
     
+    // Monetization V3
+    { path: '/admin?tab=exclusivity-zones', icon: MapPin, label: 'Zones Exclusivité N3', tab: 'exclusivity-zones', category: 'Monetization V3', isNew: true },
+    { path: '/admin?tab=seo-programmatic', icon: Globe, label: 'SEO Programmatique', tab: 'seo-programmatic', category: 'Monetization V3', isNew: true },
+    { path: '/admin?tab=pos-nf525', icon: ShieldCheck, label: 'POS NF-525', tab: 'pos-nf525', category: 'Monetization V3', isNew: true },
+    
     // Technical
     { path: '/admin?tab=scraping', icon: Database, label: 'Scraping Réel', tab: 'scraping', category: 'Technical' },
     { path: '/admin?tab=automation', icon: Zap, label: 'Relances Automatiques', tab: 'automation', category: 'Technical' },
@@ -113,6 +118,7 @@ const AdminSidebar: React.FC = () => {
     'SEO & Performance',
     'Content & Marketing',
     'Shopify Management',
+    'Monetization V3',
     'Technical'
   ];
 
