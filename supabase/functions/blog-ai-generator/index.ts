@@ -356,27 +356,50 @@ serve(async (req) => {
 
     // Remplacer les variables dynamiques dans le prompt
     const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.toLocaleDateString('fr-FR', { month: 'long' });
+    const formattedDate = currentDate.toLocaleDateString('fr-FR', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
     const season = ['hiver', 'printemps', 'été', 'automne'][Math.floor((currentDate.getMonth() % 12) / 3)];
+    
+    console.log(`📅 Date context: ${formattedDate} (${currentYear}, ${season})`);
     
     if (customPrompt) {
       customPrompt = customPrompt
         .replace(/\{categorie\}/g, categoryName)
-        .replace(/\{date\}/g, currentDate.toLocaleDateString('fr-FR'))
+        .replace(/\{date\}/g, formattedDate)
+        .replace(/\{annee\}/g, String(currentYear))
         .replace(/\{saison\}/g, season)
         .replace(/\{ton\}/g, tone || 'professionnel')
         .replace(/\{longueur\}/g, '600-800');
     }
 
-    // Construire le prompt système
+    // Construire le prompt système avec contexte temporel explicite
     const systemPrompt = `Tu es un expert en rédaction d'articles de blog pour une plateforme de réparation de smartphones.
 Ton objectif est de créer des articles optimisés SEO, informatifs et engageants.
+
+**📅 CONTEXTE TEMPOREL IMPORTANT:**
+- Date du jour: ${formattedDate}
+- Année actuelle: ${currentYear}
+- Mois: ${currentMonth}
+- Saison: ${season}
+
+⚠️ RÈGLE CRITIQUE: Tous les contenus, références temporelles, tendances et statistiques mentionnées DOIVENT être pertinents pour ${currentYear}. 
+NE JAMAIS mentionner 2024 ou des années passées comme étant "actuelles", "récentes" ou "cette année".
+Si tu mentionnes une année, utilise UNIQUEMENT ${currentYear}.
+
 Audience cible: ${target_audience === 'repairers' ? 'professionnels réparateurs' : target_audience === 'public' ? 'grand public' : 'mixte (public et professionnels)'}
 Ton: ${tone || 'professionnel'}
-${categoryName ? `Catégorie: ${categoryName}` : ''}
-Saison actuelle: ${season}`;
+${categoryName ? `Catégorie: ${categoryName}` : ''}`;
 
     // Utiliser le prompt personnalisé ou le prompt par défaut
-    const userPrompt = customPrompt || `Crée un article de blog complet sur le sujet suivant: ${topic || 'Les dernières tendances en réparation de smartphones'}
+    const userPrompt = customPrompt || `📅 Date de rédaction: ${formattedDate} (Année ${currentYear})
+
+Crée un article de blog complet sur le sujet suivant: ${topic || 'Les dernières tendances en réparation de smartphones'}
 ${keywords?.length ? `Mots-clés à inclure naturellement: ${keywords.join(', ')}` : ''}
 
 L'article doit:
@@ -395,6 +418,8 @@ L'article doit:
 - Un meta_title optimisé SEO (50-60 caractères)
 - Une meta_description engageante (150-160 caractères)
 - 5-7 mots-clés pertinents pour le SEO
+
+⚠️ IMPORTANT: Toutes les références temporelles (tendances, statistiques, "en ${currentYear}") doivent utiliser l'année ${currentYear}. NE PAS mentionner 2024 ou années antérieures comme actuelles.
 
 STRUCTURE RECOMMANDÉE:
 ## Introduction (avec {{IMAGE_1}})
@@ -431,7 +456,7 @@ Contenu...
         parameters: {
           type: 'object',
           properties: {
-            title: { type: 'string', description: 'Article title (50-60 chars)' },
+            title: { type: 'string', description: `Article title (50-60 chars). If mentioning year/trends, use current year ${currentDate.getFullYear()} only.` },
             slug: { type: 'string', description: 'URL-friendly slug (lowercase, hyphens)' },
             excerpt: { type: 'string', description: 'Short excerpt (150-160 chars)' },
             content: { type: 'string', description: 'Full article content in Markdown format with H2/H3 headings' },
