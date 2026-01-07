@@ -53,6 +53,9 @@ import ShopifyGlobalOrders from '@/components/shopify/admin/ShopifyGlobalOrders'
 import ShopifyCommissionsManager from '@/components/shopify/admin/ShopifyCommissionsManager';
 import ShopifyGlobalAnalytics from '@/components/shopify/admin/ShopifyGlobalAnalytics';
 import ShopifyAdminSettings from '@/components/shopify/admin/ShopifyAdminSettings';
+import { ExclusivityZonesAdmin } from '@/components/admin/exclusivity';
+import { AdminSeoProgrammaticPanel } from '@/components/admin/seo';
+import { AdminPOSOverview } from '@/components/admin/pos';
 
 const AdminPage = () => {
   const {
@@ -74,7 +77,8 @@ const AdminPage = () => {
     'documentation', 'features-manager', 'plans-tester', 'dashboard-tester', 'configuration',
     'suppliers', 'static-pages', 'system-diagnostics', 'system-optimization', 'chatbot-performance',
     'shopify-dashboard', 'shopify-stores', 'shopify-orders', 'shopify-commissions',
-    'shopify-analytics', 'shopify-settings'
+    'shopify-analytics', 'shopify-settings',
+    'exclusivity-zones', 'seo-programmatic', 'pos-nf525', 'pos-payments', 'pos-integrations'
   ];
 
   // Restore tab from sessionStorage if missing
@@ -197,6 +201,16 @@ const AdminPage = () => {
         return 'Analytics Shopify';
       case 'shopify-settings':
         return 'Configuration Shopify';
+      case 'exclusivity-zones':
+        return 'Zones Exclusivité N3';
+      case 'seo-programmatic':
+        return 'SEO Programmatique';
+      case 'pos-nf525':
+        return 'Conformité NF525';
+      case 'pos-payments':
+        return 'Paiements POS';
+      case 'pos-integrations':
+        return 'Intégrations Paiement';
       default:
         return 'Dashboard';
     }
@@ -277,6 +291,16 @@ const AdminPage = () => {
         return 'Analyses avancées et métriques e-commerce';
       case 'shopify-settings':
         return 'Paramètres API et configuration globale Shopify';
+      case 'exclusivity-zones':
+        return 'Gestion des zones d\'exclusivité géographique pour les réparateurs Niveau 3';
+      case 'seo-programmatic':
+        return 'Génération automatique de pages SEO et sitemap dynamique';
+      case 'pos-nf525':
+        return 'Tableau de bord conformité fiscale NF525 pour les caisses enregistreuses';
+      case 'pos-payments':
+        return 'Gestion des paiements et moyens de paiement du POS';
+      case 'pos-integrations':
+        return 'Configuration des intégrations de paiement (Stripe, Apple Pay, etc.)';
       default:
         return 'Administration de RepairHub';
     }
@@ -416,6 +440,14 @@ const AdminPage = () => {
         return <ShopifyGlobalAnalytics />;
       case 'shopify-settings':
         return <ShopifyAdminSettings />;
+      case 'exclusivity-zones':
+        return <ExclusivityZonesAdmin />;
+      case 'seo-programmatic':
+        return <AdminSeoProgrammaticPanel />;
+      case 'pos-nf525':
+      case 'pos-payments':
+      case 'pos-integrations':
+        return <AdminPOSOverview repairerId={user?.id || ''} />;
       default:
         return <AdminDashboardContent activeTab={activeTab} subscriptions={[]} repairers={[]} onViewProfile={() => {}} onRefresh={async () => {}} />;
     }
