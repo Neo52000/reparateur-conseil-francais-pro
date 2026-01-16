@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,10 +13,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { 
   Search, Download, Trash2, MapPin, Phone, Star, Globe, 
   Loader2, Settings2, Building2, CheckCircle, Database,
-  Sparkles, Filter, Map, Globe2, Zap
+  Sparkles, Filter, Map, Globe2, Zap, Save
 } from 'lucide-react';
 import { REGIONS } from '@/components/scraping/controls/scrapingConstants';
 import { useScrapedRegionsStats } from '@/hooks/useScrapedRegionsStats';
+import { useScrapingPersistence } from '@/hooks/scraping/useScrapingPersistence';
+import ScrapingExportPanel from './ScrapingExportPanel';
+import PendingSessionsPanel from './PendingSessionsPanel';
 
 // Liste des principales villes par département pour le scraping exhaustif
 const DEPARTMENT_CITIES: Record<string, string[]> = {
@@ -158,6 +161,26 @@ const GooglePlacesScraper: React.FC = () => {
   const [showQueryPreview, setShowQueryPreview] = useState(false);
   const { toast } = useToast();
   const { regionStats, departmentStats } = useScrapedRegionsStats();
+  
+  // Persistence hook
+  const {
+    pendingSessions,
+    currentSessionId,
+    loading: loadingPending,
+    createSession,
+    saveResults,
+    loadPendingSessions,
+    resumeSession,
+    markAsImported,
+    deleteSession,
+  } = useScrapingPersistence();
+  
+  // Get current location label for saving
+  const getLocationLabel = () => {
+    if (searchMode === 'region') return selectedRegion || 'Région';
+    if (searchMode === 'department') return getDepartmentInfo(selectedDepartment)?.name || selectedDepartment;
+    return city || postalCode || 'Ville';
+  };
   
   // Get cities for exhaustive scraping
   const getCitiesForDepartment = (deptCode: string): string[] => {
@@ -334,6 +357,9 @@ const GooglePlacesScraper: React.FC = () => {
     setProgress(0);
     setExcludedCount(0);
     setProgressMessage('Recherche en cours...');
+    
+    // Create a new session for persistence
+    const sessionId = createSession();
 
     try {
       let allPlaces: GooglePlace[] = [];
@@ -357,6 +383,16 @@ const GooglePlacesScraper: React.FC = () => {
             const cityResults = await searchLocation(cityName);
             allPlaces = [...allPlaces, ...cityResults];
             
+            // Save progressively every 5 cities
+            if ((cityIdx + 1) % 5 === 0 || cityIdx === cities.length - 1) {
+              await saveResults(sessionId, allPlaces, {
+                city: getLocationLabel(),
+                source: 'google_places',
+                searchMode,
+                region: selectedRegion,
+              });
+            }
+            
             setExhaustiveStats(prev => ({ ...prev, cities: prev.cities + 1 }));
             await new Promise(resolve => setTimeout(resolve, 300));
           }
@@ -378,6 +414,16 @@ const GooglePlacesScraper: React.FC = () => {
             const cityResults = await searchLocation(cities[i]);
             allPlaces = [...allPlaces, ...cityResults];
             
+            // Save progressively every 3 cities
+            if ((i + 1) % 3 === 0 || i === cities.length - 1) {
+              await saveResults(sessionId, allPlaces, {
+                city: getLocationLabel(),
+                source: 'google_places',
+                searchMode,
+                department: selectedDepartment,
+              });
+            }
+            
             setExhaustiveStats(prev => ({ ...prev, cities: prev.cities + 1 }));
             await new Promise(resolve => setTimeout(resolve, 300));
           }
@@ -386,6 +432,14 @@ const GooglePlacesScraper: React.FC = () => {
           setProgressMessage(`Recherche dans ${deptInfo.name}...`);
           const cityResults = await searchLocation(deptInfo.name);
           allPlaces = [...allPlaces, ...cityResults];
+          
+          // Save results
+          await saveResults(sessionId, allPlaces, {
+            city: getLocationLabel(),
+            source: 'google_places',
+            searchMode,
+            department: selectedDepartment,
+          });
         }
       } else {
         // City mode
@@ -409,6 +463,13 @@ const GooglePlacesScraper: React.FC = () => {
           if (details && details.formatted_phone_number) allPlaces.push(details);
           await new Promise(resolve => setTimeout(resolve, 300));
         }
+        
+        // Save results for city mode
+        await saveResults(sessionId, allPlaces, {
+          city: getLocationLabel(),
+          source: 'google_places',
+          searchMode,
+        });
       }
 
       // Deduplicate and filter
@@ -431,15 +492,36 @@ const GooglePlacesScraper: React.FC = () => {
       setProgress(100);
       setProgressMessage('Terminé!');
       
+      // Final save with filtered results
+      await saveResults(sessionId, filteredPlaces, {
+        city: getLocationLabel(),
+        source: 'google_places',
+        searchMode,
+        department: searchMode === 'department' ? selectedDepartment : undefined,
+        region: searchMode === 'region' ? selectedRegion : undefined,
+      });
+      
       toast({
         title: "Scraping terminé",
-        description: `${filteredPlaces.length} boutiques trouvées${excluded > 0 ? ` (${excluded} exclues)` : ''}`,
+        description: `${filteredPlaces.length} boutiques trouvées${excluded > 0 ? ` (${excluded} exclues)` : ''}. Résultats sauvegardés.`,
       });
     } catch (error: any) {
       console.error('Scraping error:', error);
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  // Resume a pending session
+  const handleResumeSession = async (sessionId: string) => {
+    const sessionResults = await resumeSession(sessionId);
+    if (sessionResults.length > 0) {
+      setResults(sessionResults);
+      toast({
+        title: "Session reprise",
+        description: `${sessionResults.length} résultats chargés`,
+      });
     }
   };
 
@@ -498,6 +580,11 @@ const GooglePlacesScraper: React.FC = () => {
       });
 
       if (imported > 0) {
+        // Mark session as imported
+        if (currentSessionId) {
+          await markAsImported(currentSessionId);
+        }
+        
         toast({
           title: "Géocodage",
           description: "Lancement du géocodage automatique...",
@@ -603,7 +690,20 @@ const GooglePlacesScraper: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar Configuration */}
-        <Card className="lg:col-span-1 bg-card border-border">
+        <div className="lg:col-span-1 space-y-4">
+          {/* Pending Sessions */}
+          <PendingSessionsPanel
+            sessions={pendingSessions}
+            loading={loadingPending}
+            onResume={handleResumeSession}
+            onDelete={deleteSession}
+            onRefresh={loadPendingSessions}
+          />
+          
+          {/* Export Panel */}
+          <ScrapingExportPanel results={results} locationLabel={getLocationLabel()} />
+          
+        <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Settings2 className="h-5 w-5" />
@@ -948,6 +1048,7 @@ const GooglePlacesScraper: React.FC = () => {
             )}
           </CardContent>
         </Card>
+        </div>
 
         {/* Results Table */}
         <Card className="lg:col-span-3 bg-card border-border">
