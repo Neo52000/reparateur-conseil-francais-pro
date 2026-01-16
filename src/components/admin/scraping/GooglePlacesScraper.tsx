@@ -36,6 +36,13 @@ const DEPARTMENT_CITIES: Record<string, string[]> = {
   '76': ['Le Havre', 'Rouen', 'Sotteville-lès-Rouen', 'Dieppe', 'Saint-Étienne-du-Rouvray', 'Le Grand-Quevilly', 'Le Petit-Quevilly', 'Mont-Saint-Aignan', 'Fécamp', 'Elbeuf', 'Bois-Guillaume', 'Canteleu', 'Maromme', 'Montivilliers', 'Barentin', 'Bolbec', 'Déville-lès-Rouen', 'Oissel', 'Sainte-Adresse', 'Bihorel'],
   '38': ['Grenoble', 'Saint-Martin-d\'Hères', 'Échirolles', 'Vienne', 'Fontaine', 'Voiron', 'Bourgoin-Jallieu', 'Meylan', 'Saint-Égrève', 'Le Pont-de-Claix', 'Seyssinet-Pariset', 'Eybens', 'Sassenage', 'Villefontaine', 'L\'Isle-d\'Abeau', 'Claix', 'Saint-Marcellin', 'Moirans', 'Tullins', 'La Tronche'],
   '57': ['Metz', 'Thionville', 'Montigny-lès-Metz', 'Forbach', 'Sarreguemines', 'Saint-Avold', 'Hayange', 'Yutz', 'Creutzwald', 'Freyming-Merlebach', 'Fameck', 'Woippy', 'Florange', 'Sarrebourg', 'Stiring-Wendel', 'Marly', 'Maizières-lès-Metz', 'Hagondange', 'Uckange', 'Talange'],
+  // Nouvelle-Aquitaine - Départements manquants
+  '16': ['Angoulême', 'Cognac', 'Soyaux', 'La Couronne', 'Champniers', 'L\'Isle-d\'Espagnac', 'Ruelle-sur-Touvre', 'Gond-Pontouvre', 'Saint-Yrieix-sur-Charente', 'Jarnac', 'Barbezieux-Saint-Hilaire', 'Ruffec', 'Châteaubernard', 'La Rochefoucauld-en-Angoumois'],
+  '17': ['La Rochelle', 'Saintes', 'Rochefort', 'Royan', 'Cognac', 'Tonnay-Charente', 'Aytré', 'Lagord', 'Saint-Jean-d\'Angély', 'Périgny', 'Surgères', 'Marennes', 'Saint-Pierre-d\'Oléron', 'Saujon', 'Jonzac', 'Châtellaillon-Plage', 'Fouras', 'La Tremblade'],
+  '19': ['Brive-la-Gaillarde', 'Tulle', 'Ussel', 'Malemort-sur-Corrèze', 'Égletons', 'Uzerche', 'Objat', 'Allassac', 'Argentat-sur-Dordogne', 'Saint-Pantaléon-de-Larche', 'Ussac', 'Naves', 'Donzenac', 'Varetz'],
+  '23': ['Guéret', 'La Souterraine', 'Aubusson', 'Sainte-Feyre', 'Bourganeuf', 'Felletin', 'Évaux-les-Bains', 'Ahun', 'Dun-le-Palestel', 'Bonnat', 'Bénévent-l\'Abbaye', 'Gouzon'],
+  '24': ['Périgueux', 'Bergerac', 'Sarlat-la-Canéda', 'Coulounieix-Chamiers', 'Trélissac', 'Boulazac Isle Manoire', 'Terrasson-Lavilledieu', 'Montpon-Ménestérol', 'Ribérac', 'Nontron', 'Saint-Astier', 'Thiviers', 'Le Bugue', 'Mussidan', 'Neuvic'],
+  '87': ['Limoges', 'Saint-Junien', 'Panazol', 'Couzeix', 'Isle', 'Aixe-sur-Vienne', 'Feytiat', 'Le Palais-sur-Vienne', 'Saint-Léonard-de-Noblat', 'Bellac', 'Rochechouart', 'Saint-Yrieix-la-Perche', 'Ambazac', 'Condat-sur-Vienne', 'Rilhac-Rancon'],
 };
 
 // Types
