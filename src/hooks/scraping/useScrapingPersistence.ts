@@ -46,6 +46,7 @@ export const useScrapingPersistence = () => {
       source?: string;
       searchMode?: string;
       department?: string;
+      departments?: string[];
       region?: string;
     }
   ) => {

@@ -13,8 +13,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { 
   Search, Download, Trash2, MapPin, Phone, Star, Globe, 
   Loader2, Settings2, Building2, CheckCircle, Database,
-  Sparkles, Filter, Map, Globe2, Zap, Save
+  Sparkles, Filter, Map, Globe2, Zap, Save, X
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { REGIONS } from '@/components/scraping/controls/scrapingConstants';
 import { useScrapedRegionsStats } from '@/hooks/useScrapedRegionsStats';
 import { useScrapingPersistence } from '@/hooks/scraping/useScrapingPersistence';
@@ -152,7 +153,7 @@ const getDepartmentCities = (code: string): string[] => {
 // Default hardcoded services
 const DEFAULT_SERVICES = ["Réparation écran", "Changement batterie", "Diagnostic"];
 
-type SearchMode = 'city' | 'department' | 'region';
+type SearchMode = 'city' | 'department' | 'multi-department' | 'region';
 
 const GooglePlacesScraper: React.FC = () => {
   // State
@@ -161,6 +162,7 @@ const GooglePlacesScraper: React.FC = () => {
   const [city, setCity] = useState('Paris');
   const [postalCode, setPostalCode] = useState('75001');
   const [selectedDepartment, setSelectedDepartment] = useState('75');
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [selectedRegion, setSelectedRegion] = useState('');
   const [query, setQuery] = useState('Réparation téléphone');
   const [enableExclusionFilter, setEnableExclusionFilter] = useState(true);
@@ -197,9 +199,37 @@ const GooglePlacesScraper: React.FC = () => {
   // Get current location label for saving
   const getLocationLabel = () => {
     if (searchMode === 'region') return selectedRegion || 'Région';
+    if (searchMode === 'multi-department') return `${selectedDepartments.length} départements`;
     if (searchMode === 'department') return getDepartmentInfo(selectedDepartment)?.name || selectedDepartment;
     return city || postalCode || 'Ville';
   };
+  
+  // Toggle department selection for multi-mode
+  const toggleDepartmentSelection = (code: string) => {
+    setSelectedDepartments(prev => 
+      prev.includes(code) 
+        ? prev.filter(c => c !== code)
+        : [...prev, code]
+    );
+  };
+  
+  // Select all departments from a region
+  const selectRegionDepartments = (regionName: string) => {
+    const region = REGIONS.find(r => r.name === regionName);
+    if (region) {
+      const codes = region.departments.map(d => d.code);
+      setSelectedDepartments(prev => {
+        const allSelected = codes.every(c => prev.includes(c));
+        if (allSelected) {
+          return prev.filter(c => !codes.includes(c));
+        }
+        return [...new Set([...prev, ...codes])];
+      });
+    }
+  };
+  
+  // Clear all selected departments
+  const clearSelectedDepartments = () => setSelectedDepartments([]);
   
   // Get cities for exhaustive scraping
   const getCitiesForDepartment = (deptCode: string): string[] => {
@@ -370,6 +400,15 @@ const GooglePlacesScraper: React.FC = () => {
       });
       return;
     }
+    
+    if (searchMode === 'multi-department' && selectedDepartments.length === 0) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner au moins un département",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsLoading(true);
     setResults([]);
@@ -418,6 +457,50 @@ const GooglePlacesScraper: React.FC = () => {
           
           setExhaustiveStats(prev => ({ ...prev, departments: prev.departments + 1 }));
         }
+      } else if (searchMode === 'multi-department' && selectedDepartments.length > 0) {
+        // Multi-department mode: scrape selected departments
+        const totalDepts = selectedDepartments.length;
+        let totalCitiesCount = 0;
+        
+        // Calculate total cities first
+        for (const deptCode of selectedDepartments) {
+          const cities = enableExhaustiveScraping ? getCitiesForDepartment(deptCode) : [getDepartmentInfo(deptCode)?.name || deptCode];
+          totalCitiesCount += cities.length;
+        }
+        
+        setExhaustiveStats({ cities: 0, totalCities: totalCitiesCount, departments: 0, totalDepartments: totalDepts });
+        
+        let processedCities = 0;
+        for (let deptIdx = 0; deptIdx < selectedDepartments.length; deptIdx++) {
+          const deptCode = selectedDepartments[deptIdx];
+          const deptInfo = getDepartmentInfo(deptCode);
+          const cities = enableExhaustiveScraping ? getCitiesForDepartment(deptCode) : [deptInfo?.name || deptCode];
+          
+          for (let cityIdx = 0; cityIdx < cities.length; cityIdx++) {
+            const cityName = cities[cityIdx];
+            processedCities++;
+            setProgress(Math.round((processedCities / totalCitiesCount) * 100));
+            setProgressMessage(`${deptInfo?.name || deptCode}: ${cityName} (Dép. ${deptIdx + 1}/${totalDepts})`);
+            
+            const cityResults = await searchLocation(cityName);
+            allPlaces = [...allPlaces, ...cityResults];
+            
+            // Save progressively every 5 cities
+            if (processedCities % 5 === 0 || processedCities === totalCitiesCount) {
+              await saveResults(sessionId, allPlaces, {
+                city: getLocationLabel(),
+                source: 'google_places',
+                searchMode,
+                departments: selectedDepartments,
+              });
+            }
+            
+            setExhaustiveStats(prev => ({ ...prev, cities: processedCities }));
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+          
+          setExhaustiveStats(prev => ({ ...prev, departments: deptIdx + 1 }));
+        }
       } else if (searchMode === 'department') {
         const deptInfo = getDepartmentInfo(selectedDepartment);
         if (!deptInfo) throw new Error('Département non trouvé');
@@ -460,7 +543,7 @@ const GooglePlacesScraper: React.FC = () => {
             department: selectedDepartment,
           });
         }
-      } else {
+      } else if (searchMode === 'city') {
         // City mode
         const searchQuery = `${query} ${city} ${postalCode}`.trim();
         
@@ -749,12 +832,11 @@ const GooglePlacesScraper: React.FC = () => {
                 <Map className="h-4 w-4" />
                 Mode de recherche
               </Label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <Button
                   variant={searchMode === 'city' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSearchMode('city')}
-                  className="flex-1"
                 >
                   Ville
                 </Button>
@@ -762,15 +844,20 @@ const GooglePlacesScraper: React.FC = () => {
                   variant={searchMode === 'department' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSearchMode('department')}
-                  className="flex-1"
                 >
-                  Département
+                  1 Département
+                </Button>
+                <Button
+                  variant={searchMode === 'multi-department' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSearchMode('multi-department')}
+                >
+                  Multi-Dép.
                 </Button>
                 <Button
                   variant={searchMode === 'region' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSearchMode('region')}
-                  className="flex-1"
                 >
                   Région
                 </Button>
@@ -852,7 +939,109 @@ const GooglePlacesScraper: React.FC = () => {
                   </div>
                 )}
               </div>
-            ) : (
+            ) : searchMode === 'multi-department' ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Départements sélectionnés</Label>
+                  {selectedDepartments.length > 0 && (
+                    <Button variant="ghost" size="sm" onClick={clearSelectedDepartments} className="h-6 px-2 text-xs">
+                      <X className="h-3 w-3 mr-1" /> Effacer ({selectedDepartments.length})
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Selected departments badges */}
+                {selectedDepartments.length > 0 && (
+                  <div className="flex flex-wrap gap-1 p-2 bg-muted/50 rounded-lg">
+                    {selectedDepartments.map(code => {
+                      const info = getDepartmentInfo(code);
+                      return (
+                        <Badge 
+                          key={code} 
+                          variant="default" 
+                          className="text-xs cursor-pointer hover:bg-destructive"
+                          onClick={() => toggleDepartmentSelection(code)}
+                        >
+                          {code} - {info?.name || code}
+                          <X className="h-3 w-3 ml-1" />
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                )}
+                
+                {/* Region-based selection */}
+                <ScrollArea className="h-64 border rounded-lg p-2">
+                  {REGIONS.map((region) => {
+                    const regionCodes = region.departments.map(d => d.code);
+                    const allSelected = regionCodes.every(c => selectedDepartments.includes(c));
+                    const someSelected = regionCodes.some(c => selectedDepartments.includes(c));
+                    
+                    return (
+                      <div key={region.name} className="mb-3">
+                        <div 
+                          className="flex items-center gap-2 px-2 py-1.5 bg-muted/50 rounded cursor-pointer hover:bg-muted"
+                          onClick={() => selectRegionDepartments(region.name)}
+                        >
+                          <Checkbox 
+                            checked={allSelected} 
+                            className={someSelected && !allSelected ? 'data-[state=checked]:bg-primary/50' : ''}
+                          />
+                          <span className="text-xs font-semibold text-muted-foreground">{region.name}</span>
+                          <Badge variant="outline" className="ml-auto text-xs">
+                            {regionCodes.filter(c => selectedDepartments.includes(c)).length}/{region.departments.length}
+                          </Badge>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1 mt-1 pl-2">
+                          {region.departments.map((dept) => {
+                            const isSelected = selectedDepartments.includes(dept.code);
+                            const deptStats = departmentStats.get(dept.code);
+                            const hasDeptData = deptStats && deptStats.repairerCount > 0;
+                            
+                            return (
+                              <div 
+                                key={dept.code}
+                                className={`flex items-center gap-2 p-1.5 rounded cursor-pointer text-xs hover:bg-muted/50 ${isSelected ? 'bg-primary/10 border border-primary/30' : ''}`}
+                                onClick={() => toggleDepartmentSelection(dept.code)}
+                              >
+                                <Checkbox checked={isSelected} />
+                                <span className="truncate flex-1">{dept.code}</span>
+                                {hasDeptData && (
+                                  <span className="text-green-600 text-[10px]">{deptStats.repairerCount}</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </ScrollArea>
+                
+                {/* Quick select buttons for missing departments */}
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Sélection rapide</Label>
+                  <div className="flex flex-wrap gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => setSelectedDepartments(['07', '53', '50', '2A', '2B'])}
+                    >
+                      Non scrapés
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => setSelectedDepartments(['22', '26', '44', '57', '67', '68', '72', '73', '74', '49', '46'])}
+                    >
+                      Faible couverture
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : searchMode === 'department' ? (
               <div className="space-y-2">
                 <Label>Département</Label>
                 <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
@@ -895,10 +1084,10 @@ const GooglePlacesScraper: React.FC = () => {
                   return null;
                 })()}
               </div>
-            )}
+            ) : null}
 
             {/* Exhaustive scraping toggle */}
-            {(searchMode === 'department' || searchMode === 'region') && (
+            {(searchMode === 'department' || searchMode === 'region' || searchMode === 'multi-department') && (
               <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
                 <div className="flex items-center gap-2">
                   <Zap className="h-4 w-4 text-primary" />
