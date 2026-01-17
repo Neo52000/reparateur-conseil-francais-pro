@@ -46,6 +46,25 @@ const DEPARTMENT_CITIES: Record<string, string[]> = {
   '23': ['Guéret', 'La Souterraine', 'Aubusson', 'Sainte-Feyre', 'Bourganeuf', 'Felletin', 'Évaux-les-Bains', 'Ahun', 'Dun-le-Palestel', 'Bonnat', 'Bénévent-l\'Abbaye', 'Gouzon'],
   '24': ['Périgueux', 'Bergerac', 'Sarlat-la-Canéda', 'Coulounieix-Chamiers', 'Trélissac', 'Boulazac Isle Manoire', 'Terrasson-Lavilledieu', 'Montpon-Ménestérol', 'Ribérac', 'Nontron', 'Saint-Astier', 'Thiviers', 'Le Bugue', 'Mussidan', 'Neuvic'],
   '87': ['Limoges', 'Saint-Junien', 'Panazol', 'Couzeix', 'Isle', 'Aixe-sur-Vienne', 'Feytiat', 'Le Palais-sur-Vienne', 'Saint-Léonard-de-Noblat', 'Bellac', 'Rochechouart', 'Saint-Yrieix-la-Perche', 'Ambazac', 'Condat-sur-Vienne', 'Rilhac-Rancon'],
+  
+  // Départements manquants - Métropole
+  '07': ['Privas', 'Annonay', 'Aubenas', 'Guilherand-Granges', 'Tournon-sur-Rhône', 'Le Teil', 'Bourg-Saint-Andéol', 'Vals-les-Bains', 'La Voulte-sur-Rhône', 'Cruas', 'Davézieux', 'Ruoms', 'Largentière', 'Saint-Péray', 'Villeneuve-de-Berg'],
+  '53': ['Laval', 'Mayenne', 'Château-Gontier-sur-Mayenne', 'Évron', 'Ernée', 'Craon', 'Saint-Berthevin', 'Changé', 'Bonchamp-lès-Laval', 'L\'Huisserie', 'Gorron', 'Argentré', 'Louverné', 'Montsûrs'],
+  '50': ['Cherbourg-en-Cotentin', 'Saint-Lô', 'Granville', 'Équeurdreville-Hainneville', 'Coutances', 'Avranches', 'Valognes', 'La Glacerie', 'Tourlaville', 'Querqueville', 'Carentan-les-Marais', 'Villedieu-les-Poêles', 'Bréhal', 'Mortain-Bocage'],
+  
+  // Corse
+  '2A': ['Ajaccio', 'Porto-Vecchio', 'Propriano', 'Sartène', 'Bonifacio', 'Grosseto-Prugna', 'Bastelicaccia', 'Alata', 'Coti-Chiavari', 'Sarrola-Carcopino', 'Pietrosella', 'Olmeto', 'Santa-Maria-Siché', 'Lecci'],
+  '2B': ['Bastia', 'Biguglia', 'Borgo', 'Corte', 'Furiani', 'Lucciana', 'Calvi', 'L\'Île-Rousse', 'Ghisonaccia', 'Penta-di-Casinca', 'San-Nicolao', 'Vescovato', 'Folelli', 'Moriani-Plage', 'Santa-Maria-di-Lota'],
+  
+  // Départements avec couverture faible - à améliorer
+  '22': ['Saint-Brieuc', 'Lannion', 'Dinan', 'Lamballe-Armor', 'Plérin', 'Loudéac', 'Perros-Guirec', 'Guingamp', 'Trégueux', 'Langueux', 'Ploufragan', 'Pordic', 'Rostrenen', 'Paimpol', 'Plouha', 'Quintin', 'Erquy', 'Plestin-les-Grèves'],
+  '26': ['Valence', 'Montélimar', 'Romans-sur-Isère', 'Bourg-lès-Valence', 'Pierrelatte', 'Portes-lès-Valence', 'Guilherand-Granges', 'Crest', 'Livron-sur-Drôme', 'Loriol-sur-Drôme', 'Saint-Péray', 'Bourg-de-Péage', 'Tain-l\'Hermitage', 'Nyons', 'Die', 'Donzère'],
+  '72': ['Le Mans', 'La Flèche', 'Sablé-sur-Sarthe', 'Allonnes', 'Coulaines', 'La Ferté-Bernard', 'Mamers', 'Saint-Calais', 'Château-du-Loir', 'Écommoy', 'Le Grand-Lucé', 'Montval-sur-Loir', 'Arnage', 'Mulsanne', 'Yvré-l\'Évêque'],
+  '73': ['Chambéry', 'Aix-les-Bains', 'Albertville', 'La Motte-Servolex', 'Saint-Jean-de-Maurienne', 'Bourg-Saint-Maurice', 'Moûtiers', 'La Ravoire', 'Cognin', 'Ugine', 'Montmélian', 'Saint-Alban-Leysse', 'Challes-les-Eaux', 'Barby', 'Jacob-Bellecombette'],
+  '74': ['Annecy', 'Thonon-les-Bains', 'Annemasse', 'Cluses', 'Sallanches', 'Bonneville', 'Évian-les-Bains', 'Gaillard', 'Rumilly', 'Seynod', 'Cran-Gevrier', 'Meythet', 'Saint-Julien-en-Genevois', 'La Roche-sur-Foron', 'Passy', 'Chamonix-Mont-Blanc', 'Megève'],
+  '49': ['Angers', 'Cholet', 'Saumur', 'Avrillé', 'Les Ponts-de-Cé', 'Trélazé', 'Saint-Barthélemy-d\'Anjou', 'Bouchemaine', 'Segré-en-Anjou Bleu', 'Beaupréau-en-Mauges', 'Chemillé-en-Anjou', 'Doué-en-Anjou', 'Montreuil-Juigné', 'Mûrs-Erigné'],
+  '46': ['Cahors', 'Figeac', 'Souillac', 'Gourdon', 'Prayssac', 'Biars-sur-Cère', 'Saint-Céré', 'Gramat', 'Puy-l\'Évêque', 'Luzech', 'Castelnau-Montratier-Sainte-Alauzie', 'Salviac', 'Lacapelle-Marival'],
+  '68': ['Mulhouse', 'Colmar', 'Saint-Louis', 'Illzach', 'Wittenheim', 'Kingersheim', 'Rixheim', 'Riedisheim', 'Wittelsheim', 'Cernay', 'Guebwiller', 'Thann', 'Pfastatt', 'Lutterbach', 'Ensisheim', 'Brunstatt-Didenheim'],
 };
 
 // Types
