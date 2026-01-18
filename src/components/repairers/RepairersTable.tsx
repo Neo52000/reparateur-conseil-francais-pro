@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AddRepairerModal from '@/components/AddRepairerModal';
 import RepairerTableRow from './RepairerTableRow';
 import BulkActionsBar from './BulkActionsBar';
 import RepairersTableHeader from './RepairersTableHeader';
+import RepairersFilters, { RepairersFiltersState } from './RepairersFilters';
 import { useRepairersTableActions } from './RepairersTableActions';
 import { useRepairersTableSelection } from './RepairersTableSelection';
 
