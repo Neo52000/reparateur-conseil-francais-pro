@@ -19,11 +19,13 @@ interface RepairerTableRowProps {
     subscription_tier: string;
     subscribed: boolean;
     total_repairs: number;
-    rating: number;
+    rating: number | null;
     created_at: string;
     is_active?: boolean;
     category_name?: string;
     category_color?: string;
+    lat?: number | null;
+    lng?: number | null;
   };
   loading: string | null;
   onViewProfile: (repairerId: string) => void;
@@ -58,6 +60,8 @@ const RepairerTableRow: React.FC<RepairerTableRowProps> = ({
 
   const displayName = repairer.name || `${repairer.first_name || ''} ${repairer.last_name || ''}`.trim() || 'N/A';
 
+  const hasGps = repairer.lat != null && repairer.lng != null;
+
   return (
     <TableRow>
       <TableCell>
@@ -70,41 +74,44 @@ const RepairerTableRow: React.FC<RepairerTableRowProps> = ({
       <TableCell className="font-medium">
         {displayName}
       </TableCell>
-      <TableCell>
-        {repairer.email}
+      <TableCell className="text-sm text-muted-foreground truncate max-w-[150px]">
+        {repairer.email || 'N/A'}
       </TableCell>
-      <TableCell>
+      <TableCell className="text-sm">
         {repairer.phone || 'N/A'}
       </TableCell>
-      <TableCell>
+      <TableCell className="text-sm">
         {repairer.city || 'N/A'}
+      </TableCell>
+      <TableCell>
+        <Badge variant={hasGps ? 'default' : 'destructive'} className="text-xs">
+          {hasGps ? '✓' : '✗'}
+        </Badge>
       </TableCell>
       <TableCell>
         <Badge 
           variant="outline" 
+          className="text-xs"
           style={{ backgroundColor: `${repairer.category_color}20`, borderColor: repairer.category_color, color: repairer.category_color }}
         >
-          {repairer.category_name || 'Non catégorisé'}
+          {repairer.category_name || 'N/A'}
         </Badge>
       </TableCell>
       <TableCell>
-        <Badge variant={getTierBadgeVariant(repairer.subscription_tier || 'free')}>
+        <Badge variant={getTierBadgeVariant(repairer.subscription_tier || 'free')} className="text-xs">
           {repairer.subscription_tier || 'free'}
         </Badge>
       </TableCell>
-      <TableCell>
-        {repairer.total_repairs || 0}
+      <TableCell className="text-sm">
+        {repairer.rating != null ? `${repairer.rating.toFixed(1)}/5` : 'N/A'}
       </TableCell>
       <TableCell>
-        {repairer.rating ? `${repairer.rating}/5` : 'N/A'}
-      </TableCell>
-      <TableCell>
-        <Badge variant={repairer.is_active !== false ? 'default' : 'secondary'}>
+        <Badge variant={repairer.is_active !== false ? 'default' : 'secondary'} className="text-xs">
           {repairer.is_active !== false ? 'Actif' : 'Inactif'}
         </Badge>
       </TableCell>
       <TableCell>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="sm"
