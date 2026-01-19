@@ -72,7 +72,7 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-      <TabsList className="grid w-full grid-cols-8">
+      <TabsList className="flex flex-wrap gap-1 h-auto p-1">
         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
         <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
