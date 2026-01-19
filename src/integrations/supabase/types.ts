@@ -4973,6 +4973,24 @@ export type Database = {
           },
         ]
       }
+      french_departments: {
+        Row: {
+          code: string
+          name: string
+          region: string
+        }
+        Insert: {
+          code: string
+          name: string
+          region: string
+        }
+        Update: {
+          code?: string
+          name?: string
+          region?: string
+        }
+        Relationships: []
+      }
       gamification_profiles: {
         Row: {
           achievements_earned: string[] | null
@@ -14995,6 +15013,7 @@ export type Database = {
         }[]
       }
       get_current_user_role: { Args: never; Returns: string }
+      get_department_code: { Args: { postal_code: string }; Returns: string }
       get_service_performance: {
         Args: never
         Returns: {
