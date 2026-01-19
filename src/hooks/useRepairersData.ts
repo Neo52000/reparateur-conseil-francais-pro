@@ -1,7 +1,8 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { fetchAllRepairers, PaginationProgress } from '@/services/supabase/paginate';
 
 interface SubscriptionData {
   id: string;
@@ -25,15 +26,20 @@ interface RepairerData {
   email: string;
   phone: string;
   city: string;
+  region: string;
   department: string;
+  postal_code: string;
+  address: string;
   subscription_tier: string;
   subscribed: boolean;
   is_active: boolean;
   total_repairs: number;
-  rating: number;
+  rating: number | null;
   created_at: string;
   category_name?: string;
   category_color?: string;
+  lat: number | null;
+  lng: number | null;
 }
 
 interface Stats {
@@ -45,12 +51,14 @@ interface Stats {
   totalRepairers: number;
   activeRepairers: number;
   totalInterests: number;
+  repairersWithGps: number;
 }
 
 export const useRepairersData = () => {
   const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
   const [repairers, setRepairers] = useState<RepairerData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState<PaginationProgress | null>(null);
   const [stats, setStats] = useState<Stats>({
     totalSubscriptions: 0,
     activeSubscriptions: 0,
@@ -59,7 +67,8 @@ export const useRepairersData = () => {
     totalRevenue: 0,
     totalRepairers: 0,
     activeRepairers: 0,
-    totalInterests: 0
+    totalInterests: 0,
+    repairersWithGps: 0
   });
   const { toast } = useToast();
 
@@ -81,103 +90,60 @@ export const useRepairersData = () => {
     }
   };
 
-  const fetchRealRepairCount = async (repairerId: string): Promise<number> => {
+  const fetchRepairers = useCallback(async () => {
     try {
-      // Essayer de récupérer le nombre réel de réparations depuis différentes tables
-      const [quotesResult, appointmentsResult, trackingResult] = await Promise.all([
-        supabase
-          .from('quotes')
-          .select('*', { count: 'exact', head: true })
-          .eq('repairer_id', repairerId)
-          .eq('status', 'completed'),
-        
-        supabase
-          .from('appointments')
-          .select('*', { count: 'exact', head: true })
-          .eq('repairer_id', repairerId)
-          .eq('status', 'completed'),
-        
-        supabase
-          .from('repair_tracking')
-          .select('*', { count: 'exact', head: true })
-          .eq('repairer_id', repairerId)
-          .eq('status', 'completed')
-      ]);
-
-      const completedQuotes = quotesResult.count || 0;
-      const completedAppointments = appointmentsResult.count || 0;
-      const completedTracking = trackingResult.count || 0;
-
-      // Prendre le maximum des trois sources pour avoir une estimation réaliste
-      const totalRepairs = Math.max(completedQuotes, completedAppointments, completedTracking);
+      console.log('🔄 useRepairersData - Fetching ALL repairers with pagination...');
       
-      console.log(`📊 Real repair count for ${repairerId}:`, {
-        quotes: completedQuotes,
-        appointments: completedAppointments,
-        tracking: completedTracking,
-        total: totalRepairs
+      // Utiliser la pagination pour récupérer TOUS les réparateurs
+      const { data: repairersData, error, total } = await fetchAllRepairers((progress) => {
+        setLoadingProgress(progress);
+        console.log(`📊 Loading progress: ${progress.loaded}/${progress.total || '?'}`);
       });
 
-      return totalRepairs;
-    } catch (error) {
-      console.error('❌ Error fetching real repair count:', error);
-      return 0;
-    }
-  };
-
-  const fetchRepairers = async () => {
-    try {
-      console.log('🔄 useRepairersData - Fetching repairers from main table...');
-      
-      // Récupérer DIRECTEMENT depuis la table repairers avec les catégories
-      const { data: repairersData, error: repairersError } = await supabase
-        .from('repairers')
-        .select(`
-          *,
-          business_categories(name, color)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (repairersError) {
-        console.error('❌ useRepairersData - Repairers fetch error:', repairersError);
+      if (error) {
+        console.error('❌ useRepairersData - Repairers fetch error:', error);
         setRepairers([]);
         return;
       }
 
-      console.log('✅ useRepairersData - Repairers loaded from main table:', repairersData?.length || 0);
+      console.log(`✅ useRepairersData - Loaded ${repairersData.length} repairers (total: ${total})`);
 
-      // Traiter les réparateurs avec de vraies données de réparations
-      const processedRepairers: RepairerData[] = await Promise.all(
-        (repairersData || []).map(async (repairer) => {
-          const realRepairCount = await fetchRealRepairCount(repairer.id);
-          
-          return {
-            id: repairer.id,
-            name: repairer.name,
-            email: repairer.email || 'Non renseigné',
-            phone: repairer.phone || 'Non renseigné',
-            city: repairer.city,
-            department: repairer.department || repairer.postal_code?.substring(0, 2) || '00',
-            subscription_tier: 'free', // Défaut
-            subscribed: repairer.is_verified || false,
-            is_active: repairer.is_verified || false, // Map is_verified to is_active
-            total_repairs: realRepairCount, // UTILISER LES VRAIES DONNÉES
-            rating: repairer.rating || 4.5,
-            created_at: repairer.created_at,
-            category_name: repairer.business_categories?.name || 'Non catégorisé',
-            category_color: repairer.business_categories?.color || '#6b7280'
-          };
-        })
-      );
+      // Compter les réparateurs avec GPS
+      const repairersWithGps = repairersData.filter(r => r.lat != null && r.lng != null).length;
 
-      console.log('✅ useRepairersData - Processed repairers with real repair counts:', processedRepairers);
+      // Traiter les réparateurs SANS valeurs fictives
+      const processedRepairers: RepairerData[] = repairersData.map((repairer) => ({
+        id: repairer.id,
+        name: repairer.name,
+        email: repairer.email || '',
+        phone: repairer.phone || '',
+        city: repairer.city || '',
+        region: repairer.region || '',
+        department: repairer.department || repairer.postal_code?.substring(0, 2) || '',
+        postal_code: repairer.postal_code || '',
+        address: repairer.address || '',
+        subscription_tier: 'free',
+        subscribed: repairer.is_verified || false,
+        is_active: repairer.is_verified || false,
+        total_repairs: 0, // Sera calculé à la demande dans le profil
+        rating: repairer.rating ?? null, // Pas de valeur par défaut !
+        created_at: repairer.created_at,
+        category_name: repairer.business_categories?.name || 'Non catégorisé',
+        category_color: repairer.business_categories?.color || '#6b7280',
+        lat: repairer.lat ?? null,
+        lng: repairer.lng ?? null
+      }));
+
       setRepairers(processedRepairers);
       
       setStats(prev => ({
         ...prev,
         totalRepairers: processedRepairers.length,
-        activeRepairers: processedRepairers.filter(r => r.subscribed).length
+        activeRepairers: processedRepairers.filter(r => r.subscribed).length,
+        repairersWithGps
       }));
+
+      setLoadingProgress(null);
 
     } catch (error) {
       console.error('❌ useRepairersData - Error fetching repairers:', error);
@@ -185,10 +151,11 @@ export const useRepairersData = () => {
       setStats(prev => ({
         ...prev,
         totalRepairers: 0,
-        activeRepairers: 0
+        activeRepairers: 0,
+        repairersWithGps: 0
       }));
     }
-  };
+  }, []);
 
   const fetchSubscriptions = async () => {
     try {
@@ -215,11 +182,9 @@ export const useRepairersData = () => {
         return;
       }
 
-      console.log('✅ useRepairersData - Raw subscriptions data:', data);
+      console.log('✅ useRepairersData - Raw subscriptions data:', data?.length || 0);
       
-      // Mapper les données avec gestion des plans spéciaux
       const mappedSubscriptions: SubscriptionData[] = (data || []).map(sub => {
-        // Mode production uniquement - tiers réels uniquement
         let actualTier = sub.subscription_tier || 'free';
 
         return {
@@ -239,10 +204,8 @@ export const useRepairersData = () => {
         };
       });
       
-      console.log('✅ useRepairersData - Mapped subscriptions:', mappedSubscriptions);
       setSubscriptions(mappedSubscriptions);
       
-      // Calculer les stats
       const total = mappedSubscriptions.length;
       const active = mappedSubscriptions.filter(sub => sub.subscribed).length;
       const monthlyRev = mappedSubscriptions.reduce((sum, sub) => {
@@ -275,15 +238,13 @@ export const useRepairersData = () => {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       console.log('🚀 useRepairersData - Starting data fetch...');
       
-      // Fetch interests count
       const interestsCount = await fetchInterestsCount();
       
-      // Update stats with interests count
       setStats(prev => ({
         ...prev,
         totalInterests: interestsCount
@@ -301,16 +262,17 @@ export const useRepairersData = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchRepairers, toast]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   return {
     subscriptions,
     repairers,
     loading,
+    loadingProgress,
     stats,
     fetchData
   };

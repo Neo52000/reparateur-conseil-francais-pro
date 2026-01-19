@@ -2,20 +2,39 @@
 import React from 'react';
 import { CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw, Filter, Zap } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Plus, RefreshCw, Zap } from 'lucide-react';
 
 interface RepairersTableHeaderProps {
   onAddRepairer: () => void;
   onRefresh?: () => void;
   onSeoOptimize?: () => void;
+  totalCount?: number;
+  filteredCount?: number;
 }
 
-const RepairersTableHeader: React.FC<RepairersTableHeaderProps> = ({ onAddRepairer, onRefresh, onSeoOptimize }) => {
+const RepairersTableHeader: React.FC<RepairersTableHeaderProps> = ({ 
+  onAddRepairer, 
+  onRefresh, 
+  onSeoOptimize,
+  totalCount,
+  filteredCount
+}) => {
   return (
     <CardHeader>
       <div className="flex items-center justify-between">
         <div>
-          <CardTitle>Gestion des réparateurs</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Gestion des réparateurs
+            {totalCount !== undefined && (
+              <Badge variant="outline" className="ml-2">
+                {filteredCount !== undefined && filteredCount !== totalCount 
+                  ? `${filteredCount} / ${totalCount}`
+                  : totalCount
+                }
+              </Badge>
+            )}
+          </CardTitle>
           <p className="text-sm text-muted-foreground mt-1">
             Gérez les réparateurs inscrits sur la plateforme
           </p>

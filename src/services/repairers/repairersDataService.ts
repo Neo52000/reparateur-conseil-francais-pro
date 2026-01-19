@@ -2,63 +2,59 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { SearchFilters } from '@/types/searchFilters';
 import { SecureDataAccess } from '@/services/secureDataAccess';
+import { fetchRepairersWithGPS } from '@/services/supabase/paginate';
 
 export class RepairersDataService {
   /**
    * Fetch repairers from database with optional filters
-   * Uses secure views for public access, full table for admins
+   * Uses pagination to bypass 1000 row limit
    */
   static async fetchRepairers(filters?: SearchFilters) {
     try {
-      console.log('🔍 RepairersDataService: Fetching repairers with filters:', filters);
+      console.log('🔍 RepairersDataService: Fetching ALL repairers with GPS using pagination...');
       
-      // Utiliser l'accès sécurisé automatique
-      const table = await SecureDataAccess.getRepairersTable();
-      
-      let query = (supabase as any).from(table).select('*');
-
-      // Apply filters if provided
-      if (filters?.services && filters.services.length > 0) {
-        query = query.overlaps('services', filters.services);
-      }
-
-      if (filters?.city) {
-        query = query.ilike('city', `%${filters.city}%`);
-      }
-
-      if (filters?.postalCode) {
-        query = query.ilike('postal_code', `${filters.postalCode}%`);
-      }
-
-      if (filters?.priceRange) {
-        const [minPrice, maxPrice] = filters.priceRange;
-        query = query.gte('min_price', minPrice).lte('max_price', maxPrice);
-      }
-
-      if (filters?.minRating) {
-        query = query.gte('rating', filters.minRating);
-      }
-
-      // Order by rating and review count for better results
-      // Filtrer uniquement les réparateurs avec coordonnées GPS pour la carte
-      query = query
-        .not('lat', 'is', null)
-        .not('lng', 'is', null)
-        .order('rating', { ascending: false, nullsFirst: false })
-        .order('review_count', { ascending: false, nullsFirst: false })
-        .limit(3000); // Augmenter la limite pour afficher tous les réparateurs géolocalisés
-
-      const { data, error } = await query;
+      // Utiliser la pagination pour récupérer TOUS les réparateurs avec GPS
+      const { data, error, total } = await fetchRepairersWithGPS((progress) => {
+        console.log(`📊 Map loading: ${progress.loaded}/${progress.total || '?'}`);
+      });
 
       if (error) {
         console.error('RepairersDataService: Error fetching repairers:', error);
         throw error;
       }
 
-      console.log(`RepairersDataService: Fetched ${data?.length || 0} repairers from database`);
-      console.log('Sample repairer data:', data?.[0]);
+      console.log(`RepairersDataService: Fetched ${data.length} repairers with GPS (total: ${total})`);
 
-      return data || [];
+      // Apply additional filters if provided
+      let filteredData = data;
+
+      if (filters?.services && filters.services.length > 0) {
+        filteredData = filteredData.filter(r => 
+          r.services && filters.services!.some(s => r.services.includes(s))
+        );
+      }
+
+      if (filters?.city) {
+        const cityLower = filters.city.toLowerCase();
+        filteredData = filteredData.filter(r => 
+          r.city?.toLowerCase().includes(cityLower)
+        );
+      }
+
+      if (filters?.postalCode) {
+        filteredData = filteredData.filter(r => 
+          r.postal_code?.startsWith(filters.postalCode!)
+        );
+      }
+
+      if (filters?.minRating) {
+        filteredData = filteredData.filter(r => 
+          r.rating && r.rating >= filters.minRating!
+        );
+      }
+
+      console.log(`RepairersDataService: After filters: ${filteredData.length} repairers`);
+      return filteredData;
       
     } catch (error) {
       console.error('RepairersDataService: Failed to fetch repairers:', error);
