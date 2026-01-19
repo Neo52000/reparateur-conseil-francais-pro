@@ -8,6 +8,7 @@ import RepairerSeoManagement from '../admin/RepairerSeoManagement';
 import RepairersDashboard from '../admin/RepairersDashboard';
 import RepairersAnalytics from '../admin/RepairersAnalytics';
 import { SuppliersDirectoryManagement } from '../admin/SuppliersDirectoryManagement';
+import { BatchGeocodingPanel } from '../admin/geocoding/BatchGeocodingPanel';
 
 interface RepairerData {
   id: string;
@@ -76,10 +77,8 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
         <TabsTrigger value="repairers">Réparateurs</TabsTrigger>
         <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
         <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        <TabsTrigger value="geocoding">Géocodage</TabsTrigger>
         <TabsTrigger value="categories">Catégories</TabsTrigger>
-        <TabsTrigger value="suppliers" disabled className="opacity-50 cursor-not-allowed">
-          Fournisseurs (Bientôt)
-        </TabsTrigger>
         <TabsTrigger value="seo-local">SEO Local</TabsTrigger>
       </TabsList>
 
@@ -113,12 +112,12 @@ const RepairersManagementTabs: React.FC<RepairersManagementTabsProps> = ({
         />
       </TabsContent>
 
-      <TabsContent value="categories">
-        <CategoriesManagement />
+      <TabsContent value="geocoding">
+        <BatchGeocodingPanel />
       </TabsContent>
 
-      <TabsContent value="suppliers">
-        <SuppliersDirectoryManagement />
+      <TabsContent value="categories">
+        <CategoriesManagement />
       </TabsContent>
 
       <TabsContent value="seo-local">
