@@ -48,7 +48,8 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
     region: '',
     department: '',
     city: '',
-    hasGps: null
+    hasGps: null,
+    isActive: 'all'
   });
 
   const {
@@ -95,6 +96,17 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
       if (filters.hasGps !== null) {
         const hasGps = repairer.lat != null && repairer.lng != null;
         if (filters.hasGps !== hasGps) {
+          return false;
+        }
+      }
+      
+      // Filtre Actif/Inactif
+      if (filters.isActive !== 'all') {
+        const isActive = repairer.is_active === true;
+        if (filters.isActive === 'active' && !isActive) {
+          return false;
+        }
+        if (filters.isActive === 'inactive' && isActive) {
           return false;
         }
       }
