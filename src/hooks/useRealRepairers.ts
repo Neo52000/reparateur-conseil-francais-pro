@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchRepairersWithGPS } from '@/services/supabase/paginate';
 
 export interface RealRepairer {
   id: string;
@@ -32,7 +33,7 @@ export const useRealRepairers = () => {
       setLoading(true);
       setError(null);
 
-      // Récupérer d'abord les suggestions de scraping
+      // Récupérer d'abord les suggestions de scraping (limité car peu nombreuses)
       const { data: suggestions, error: suggestionsError } = await supabase
         .from('scraping_suggestions')
         .select('*')
@@ -43,16 +44,14 @@ export const useRealRepairers = () => {
         console.error('❌ Erreur lors du chargement des suggestions:', suggestionsError);
       }
 
-      // Récupérer les réparateurs existants
-      const { data: existingRepairers, error: repairersError} = await supabase
-        .from('repairers')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
+      // Récupérer TOUS les réparateurs avec GPS via pagination (pas de limite de 1000)
+      const { data: existingRepairers, error: paginationError, total } = await fetchRepairersWithGPS();
+      
+      console.log(`✅ Chargé ${existingRepairers.length}/${total} réparateurs avec GPS pour la carte`);
 
-      if (repairersError) {
-        console.error('❌ Erreur lors du chargement des réparateurs:', repairersError);
-        throw repairersError;
+      if (paginationError) {
+        console.error('❌ Erreur lors du chargement des réparateurs:', paginationError);
+        throw paginationError;
       }
 
       // Combiner les données avec priorité aux réparateurs existants
