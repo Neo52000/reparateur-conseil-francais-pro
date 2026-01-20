@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, X, Filter, MapPin } from 'lucide-react';
+import { Search, X, Filter, MapPin, CheckCircle, XCircle } from 'lucide-react';
 import { useFrenchDepartments } from '@/hooks/useFrenchDepartments';
 
 export interface RepairersFiltersState {
@@ -12,6 +12,7 @@ export interface RepairersFiltersState {
   department: string;
   city: string;
   hasGps: boolean | null;
+  isActive: 'all' | 'active' | 'inactive';
 }
 
 interface RepairersFiltersProps {
@@ -60,12 +61,20 @@ const RepairersFilters: React.FC<RepairersFiltersProps> = ({
     });
   };
 
+  const handleActiveFilter = (value: string) => {
+    onFiltersChange({
+      ...filters,
+      isActive: value as 'all' | 'active' | 'inactive'
+    });
+  };
+
   const clearFilters = () => {
     onFiltersChange({
       region: '',
       department: '',
       city: '',
-      hasGps: null
+      hasGps: null,
+      isActive: 'all'
     });
   };
 
@@ -73,7 +82,8 @@ const RepairersFilters: React.FC<RepairersFiltersProps> = ({
     filters.region,
     filters.department,
     filters.city,
-    filters.hasGps !== null
+    filters.hasGps !== null,
+    filters.isActive !== 'all'
   ].filter(Boolean).length;
 
   const availableDepartments = filters.region 
@@ -100,7 +110,7 @@ const RepairersFilters: React.FC<RepairersFiltersProps> = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Région */}
         <div className="space-y-1">
           <label className="text-sm text-muted-foreground">Région</label>
@@ -181,6 +191,34 @@ const RepairersFilters: React.FC<RepairersFiltersProps> = ({
                 <span className="flex items-center gap-2">
                   <MapPin className="h-3 w-3 text-red-500" />
                   Sans GPS
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Filtre Actif/Inactif */}
+        <div className="space-y-1">
+          <label className="text-sm text-muted-foreground">Statut</label>
+          <Select 
+            value={filters.isActive} 
+            onValueChange={handleActiveFilter}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              <SelectItem value="active">
+                <span className="flex items-center gap-2">
+                  <CheckCircle className="h-3 w-3 text-emerald-500" />
+                  Actifs
+                </span>
+              </SelectItem>
+              <SelectItem value="inactive">
+                <span className="flex items-center gap-2">
+                  <XCircle className="h-3 w-3 text-destructive" />
+                  Inactifs
                 </span>
               </SelectItem>
             </SelectContent>
