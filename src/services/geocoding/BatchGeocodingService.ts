@@ -91,18 +91,43 @@ export class BatchGeocodingService {
     postal_code: string;
     name: string;
   }>> {
-    const { data, error } = await supabase
-      .from('repairers')
-      .select('id, address, city, postal_code, name')
-      .or('lat.is.null,lat.eq.0')
-      .order('created_at', { ascending: false });
+    const PAGE_SIZE = 1000;
+    const allData: Array<{
+      id: string;
+      address: string;
+      city: string;
+      postal_code: string;
+      name: string;
+    }> = [];
+    let from = 0;
+    let hasMore = true;
 
-    if (error) {
-      console.error('Error fetching repairers without GPS:', error);
-      throw error;
+    while (hasMore) {
+      const { data, error } = await supabase
+        .from('repairers')
+        .select('id, address, city, postal_code, name')
+        .or('lat.is.null,lat.eq.0')
+        .order('created_at', { ascending: false })
+        .range(from, from + PAGE_SIZE - 1);
+
+      if (error) {
+        console.error('Error fetching repairers without GPS:', error);
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        allData.push(...data);
+        from += PAGE_SIZE;
+        if (data.length < PAGE_SIZE) {
+          hasMore = false;
+        }
+      } else {
+        hasMore = false;
+      }
     }
 
-    return data || [];
+    console.log(`📍 Found ${allData.length} repairers without GPS (paginated)`);
+    return allData;
   }
 
   /**
@@ -211,19 +236,31 @@ export class BatchGeocodingService {
     withoutGps: number;
     percentage: number;
   }> {
-    const { data, error } = await supabase
+    // Get total count using exact count (bypasses 1000 row limit)
+    const { count: total, error: totalError } = await supabase
       .from('repairers')
-      .select('lat', { count: 'exact' });
+      .select('*', { count: 'exact', head: true });
 
-    if (error) {
-      throw error;
+    if (totalError) {
+      throw totalError;
     }
 
-    const total = data?.length || 0;
-    const withGps = data?.filter(r => r.lat && r.lat !== 0).length || 0;
-    const withoutGps = total - withGps;
-    const percentage = total > 0 ? Math.round((withGps / total) * 100) : 0;
+    // Get count of repairers WITH GPS coordinates
+    const { count: withGps, error: withGpsError } = await supabase
+      .from('repairers')
+      .select('*', { count: 'exact', head: true })
+      .not('lat', 'is', null)
+      .neq('lat', 0);
 
-    return { total, withGps, withoutGps, percentage };
+    if (withGpsError) {
+      throw withGpsError;
+    }
+
+    const totalCount = total || 0;
+    const withGpsCount = withGps || 0;
+    const withoutGps = totalCount - withGpsCount;
+    const percentage = totalCount > 0 ? Math.round((withGpsCount / totalCount) * 100) : 0;
+
+    return { total: totalCount, withGps: withGpsCount, withoutGps, percentage };
   }
 }
