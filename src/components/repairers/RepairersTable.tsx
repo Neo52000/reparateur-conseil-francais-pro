@@ -56,6 +56,7 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
     handleDeleteRepairer,
     handleToggleStatus,
     handleBulkSetActive,
+    handleBulkSetInactive,
     requestBulkDelete,
     confirmBulkDelete,
     cancelBulkDelete,
@@ -158,6 +159,7 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
             <BulkActionsBar
               selectedCount={selectedIds.length}
               onSetActive={handleBulkSetActive}
+              onSetInactive={handleBulkSetInactive}
               onDelete={requestBulkDelete}
               disableActions={!!loading}
               showDeleteConfirm={showBulkDeleteConfirm}
