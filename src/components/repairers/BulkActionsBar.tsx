@@ -1,11 +1,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Trash2, AlertTriangle, X } from 'lucide-react';
+import { CheckCircle, XCircle, Trash2, AlertTriangle, X } from 'lucide-react';
 
 interface BulkActionsBarProps {
   selectedCount: number;
   onSetActive: () => void;
+  onSetInactive: () => void;
   onDelete: () => void;
   disableActions: boolean;
   showDeleteConfirm?: boolean;
@@ -16,6 +17,7 @@ interface BulkActionsBarProps {
 const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
   selectedCount,
   onSetActive,
+  onSetInactive,
   onDelete,
   disableActions,
   showDeleteConfirm = false,
@@ -68,8 +70,18 @@ const BulkActionsBar: React.FC<BulkActionsBarProps> = ({
           disabled={disableActions}
           className="flex items-center gap-1"
         >
-          <CheckCircle className="h-4 w-4" />
+          <CheckCircle className="h-4 w-4 text-green-600" />
           Activer
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onSetInactive}
+          disabled={disableActions}
+          className="flex items-center gap-1"
+        >
+          <XCircle className="h-4 w-4 text-orange-600" />
+          Désactiver
         </Button>
         <Button
           variant="destructive"

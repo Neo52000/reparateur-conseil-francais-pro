@@ -98,6 +98,30 @@ export const useRepairersTableActions = ({
     }
   };
 
+  const handleBulkSetInactive = async () => {
+    try {
+      const { error } = await supabase
+        .from('repairers')
+        .update({ is_verified: false })
+        .in('id', selectedIds);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Réparateurs désactivés",
+        description: `${selectedIds.length} réparateurs ont été désactivés`,
+      });
+      setSelectedIds([]);
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de désactiver les réparateurs",
+        variant: "destructive"
+      });
+    }
+  };
+
   const requestBulkDelete = () => {
     setShowBulkDeleteConfirm(true);
   };
@@ -135,6 +159,7 @@ export const useRepairersTableActions = ({
     handleDeleteRepairer,
     handleToggleStatus,
     handleBulkSetActive,
+    handleBulkSetInactive,
     requestBulkDelete,
     confirmBulkDelete,
     cancelBulkDelete,
