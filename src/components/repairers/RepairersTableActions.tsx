@@ -65,13 +65,22 @@ export const useRepairersTableActions = ({
   const handleToggleStatus = async (repairerId: string, currentStatus: boolean) => {
     setLoading(repairerId);
     try {
-      // Note: is_active field might not exist yet, this is a placeholder
-      const { error } = await supabase
+      console.log('🔄 handleToggleStatus:', { repairerId, currentStatus, newStatus: !currentStatus });
+      
+      const { data, error, count } = await supabase
         .from('repairers')
         .update({ is_verified: !currentStatus })
-        .eq('id', repairerId);
+        .eq('id', repairerId)
+        .select('id, is_verified');
+      
+      console.log('📊 Update result:', { data, error, count });
       
       if (error) throw error;
+      
+      // Vérifier si des lignes ont été modifiées (RLS peut bloquer silencieusement)
+      if (!data || data.length === 0) {
+        throw new Error('Aucune ligne modifiée. Vérifiez vos permissions admin.');
+      }
       
       toast({
         title: "Statut modifié",
@@ -92,16 +101,26 @@ export const useRepairersTableActions = ({
 
   const handleBulkSetActive = async () => {
     try {
-      const { error } = await supabase
+      console.log('🔄 handleBulkSetActive:', { selectedIds, count: selectedIds.length });
+      
+      const { data, error } = await supabase
         .from('repairers')
         .update({ is_verified: true })
-        .in('id', selectedIds);
+        .in('id', selectedIds)
+        .select('id');
+      
+      console.log('📊 Bulk activate result:', { data, error, updatedCount: data?.length });
       
       if (error) throw error;
       
+      // Vérifier si des lignes ont été modifiées
+      if (!data || data.length === 0) {
+        throw new Error('Aucune ligne modifiée. Vérifiez vos permissions admin.');
+      }
+      
       toast({
         title: "Réparateurs activés",
-        description: `${selectedIds.length} réparateurs ont été activés`,
+        description: `${data.length} réparateur(s) ont été activés`,
       });
       setSelectedIds([]);
       onRefresh();
@@ -117,16 +136,26 @@ export const useRepairersTableActions = ({
 
   const handleBulkSetInactive = async () => {
     try {
-      const { error } = await supabase
+      console.log('🔄 handleBulkSetInactive:', { selectedIds, count: selectedIds.length });
+      
+      const { data, error } = await supabase
         .from('repairers')
         .update({ is_verified: false })
-        .in('id', selectedIds);
+        .in('id', selectedIds)
+        .select('id');
+      
+      console.log('📊 Bulk deactivate result:', { data, error, updatedCount: data?.length });
       
       if (error) throw error;
       
+      // Vérifier si des lignes ont été modifiées
+      if (!data || data.length === 0) {
+        throw new Error('Aucune ligne modifiée. Vérifiez vos permissions admin.');
+      }
+      
       toast({
         title: "Réparateurs désactivés",
-        description: `${selectedIds.length} réparateurs ont été désactivés`,
+        description: `${data.length} réparateur(s) ont été désactivés`,
       });
       setSelectedIds([]);
       onRefresh();
