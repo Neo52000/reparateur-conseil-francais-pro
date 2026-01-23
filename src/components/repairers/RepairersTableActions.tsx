@@ -22,6 +22,20 @@ export const useRepairersTableActions = ({
   const { toast } = useToast();
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
+  const getErrorMessage = (error: unknown) => {
+    if (!error) return 'Erreur inconnue';
+    if (error instanceof Error) return error.message;
+    if (typeof error === 'string') return error;
+    // PostgrestError / unknown objects
+    const anyErr = error as any;
+    if (typeof anyErr?.message === 'string') return anyErr.message;
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return 'Erreur inconnue';
+    }
+  };
+
   const handleDeleteRepairer = async (repairerId: string) => {
     setLoading(repairerId);
     try {
@@ -37,9 +51,10 @@ export const useRepairersTableActions = ({
       });
       onRefresh();
     } catch (error) {
+      console.error('❌ handleDeleteRepairer failed:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer le réparateur",
+        description: `Impossible de supprimer le réparateur. (${getErrorMessage(error)})`,
         variant: "destructive"
       });
     } finally {
@@ -64,9 +79,10 @@ export const useRepairersTableActions = ({
       });
       onRefresh();
     } catch (error) {
+      console.error('❌ handleToggleStatus failed:', { repairerId, currentStatus, error });
       toast({
         title: "Erreur",
-        description: "Impossible de modifier le statut",
+        description: `Impossible de modifier le statut. (${getErrorMessage(error)})`,
         variant: "destructive"
       });
     } finally {
@@ -90,9 +106,10 @@ export const useRepairersTableActions = ({
       setSelectedIds([]);
       onRefresh();
     } catch (error) {
+      console.error('❌ handleBulkSetActive failed:', { selectedIds, error });
       toast({
         title: "Erreur",
-        description: "Impossible d'activer les réparateurs",
+        description: `Impossible d'activer les réparateurs. (${getErrorMessage(error)})`,
         variant: "destructive"
       });
     }
@@ -114,9 +131,10 @@ export const useRepairersTableActions = ({
       setSelectedIds([]);
       onRefresh();
     } catch (error) {
+      console.error('❌ handleBulkSetInactive failed:', { selectedIds, error });
       toast({
         title: "Erreur",
-        description: "Impossible de désactiver les réparateurs",
+        description: `Impossible de désactiver les réparateurs. (${getErrorMessage(error)})`,
         variant: "destructive"
       });
     }
@@ -147,9 +165,10 @@ export const useRepairersTableActions = ({
       setShowBulkDeleteConfirm(false);
       onRefresh();
     } catch (error) {
+      console.error('❌ confirmBulkDelete failed:', { selectedIds, error });
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer les réparateurs",
+        description: `Impossible de supprimer les réparateurs. (${getErrorMessage(error)})`,
         variant: "destructive"
       });
     }
