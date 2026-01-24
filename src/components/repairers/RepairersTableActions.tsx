@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
+// Taille max des chunks pour éviter les URLs trop longues
+const CHUNK_SIZE = 50;
+
 interface UseRepairersTableActionsProps {
   repairers: any[];
   selectedIds: string[];
@@ -10,6 +13,15 @@ interface UseRepairersTableActionsProps {
   setLoading: (loading: string | null) => void;
   setSelectedIds: (ids: string[]) => void;
 }
+
+// Utilitaire pour découper un tableau en chunks
+const chunkArray = <T,>(array: T[], size: number): T[][] => {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+};
 
 export const useRepairersTableActions = ({
   repairers,
@@ -26,7 +38,6 @@ export const useRepairersTableActions = ({
     if (!error) return 'Erreur inconnue';
     if (error instanceof Error) return error.message;
     if (typeof error === 'string') return error;
-    // PostgrestError / unknown objects
     const anyErr = error as any;
     if (typeof anyErr?.message === 'string') return anyErr.message;
     try {
@@ -101,31 +112,37 @@ export const useRepairersTableActions = ({
 
   const handleBulkSetActive = async () => {
     try {
-      console.log('🔄 handleBulkSetActive:', { selectedIds, count: selectedIds.length });
+      console.log('🔄 handleBulkSetActive:', { count: selectedIds.length });
       
-      const { data, error } = await supabase
-        .from('repairers')
-        .update({ is_verified: true })
-        .in('id', selectedIds)
-        .select('id');
+      const chunks = chunkArray(selectedIds, CHUNK_SIZE);
+      let totalUpdated = 0;
       
-      console.log('📊 Bulk activate result:', { data, error, updatedCount: data?.length });
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        console.log(`📦 Processing chunk ${i + 1}/${chunks.length} (${chunk.length} items)`);
+        
+        const { data, error } = await supabase
+          .from('repairers')
+          .update({ is_verified: true })
+          .in('id', chunk)
+          .select('id');
+        
+        if (error) throw error;
+        totalUpdated += data?.length || 0;
+      }
       
-      if (error) throw error;
-      
-      // Vérifier si des lignes ont été modifiées
-      if (!data || data.length === 0) {
+      if (totalUpdated === 0) {
         throw new Error('Aucune ligne modifiée. Vérifiez vos permissions admin.');
       }
       
       toast({
         title: "Réparateurs activés",
-        description: `${data.length} réparateur(s) ont été activés`,
+        description: `${totalUpdated} réparateur(s) ont été activés`,
       });
       setSelectedIds([]);
       onRefresh();
     } catch (error) {
-      console.error('❌ handleBulkSetActive failed:', { selectedIds, error });
+      console.error('❌ handleBulkSetActive failed:', error);
       toast({
         title: "Erreur",
         description: `Impossible d'activer les réparateurs. (${getErrorMessage(error)})`,
@@ -136,31 +153,37 @@ export const useRepairersTableActions = ({
 
   const handleBulkSetInactive = async () => {
     try {
-      console.log('🔄 handleBulkSetInactive:', { selectedIds, count: selectedIds.length });
+      console.log('🔄 handleBulkSetInactive:', { count: selectedIds.length });
       
-      const { data, error } = await supabase
-        .from('repairers')
-        .update({ is_verified: false })
-        .in('id', selectedIds)
-        .select('id');
+      const chunks = chunkArray(selectedIds, CHUNK_SIZE);
+      let totalUpdated = 0;
       
-      console.log('📊 Bulk deactivate result:', { data, error, updatedCount: data?.length });
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        console.log(`📦 Processing chunk ${i + 1}/${chunks.length} (${chunk.length} items)`);
+        
+        const { data, error } = await supabase
+          .from('repairers')
+          .update({ is_verified: false })
+          .in('id', chunk)
+          .select('id');
+        
+        if (error) throw error;
+        totalUpdated += data?.length || 0;
+      }
       
-      if (error) throw error;
-      
-      // Vérifier si des lignes ont été modifiées
-      if (!data || data.length === 0) {
+      if (totalUpdated === 0) {
         throw new Error('Aucune ligne modifiée. Vérifiez vos permissions admin.');
       }
       
       toast({
         title: "Réparateurs désactivés",
-        description: `${data.length} réparateur(s) ont été désactivés`,
+        description: `${totalUpdated} réparateur(s) ont été désactivés`,
       });
       setSelectedIds([]);
       onRefresh();
     } catch (error) {
-      console.error('❌ handleBulkSetInactive failed:', { selectedIds, error });
+      console.error('❌ handleBulkSetInactive failed:', error);
       toast({
         title: "Erreur",
         description: `Impossible de désactiver les réparateurs. (${getErrorMessage(error)})`,
@@ -179,22 +202,33 @@ export const useRepairersTableActions = ({
 
   const confirmBulkDelete = async () => {
     try {
-      const { error } = await supabase
-        .from('repairers')
-        .delete()
-        .in('id', selectedIds);
+      console.log('🗑️ confirmBulkDelete:', { count: selectedIds.length });
       
-      if (error) throw error;
+      const chunks = chunkArray(selectedIds, CHUNK_SIZE);
+      let totalDeleted = 0;
+      
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        console.log(`📦 Deleting chunk ${i + 1}/${chunks.length} (${chunk.length} items)`);
+        
+        const { error } = await supabase
+          .from('repairers')
+          .delete()
+          .in('id', chunk);
+        
+        if (error) throw error;
+        totalDeleted += chunk.length;
+      }
       
       toast({
         title: "Réparateurs supprimés",
-        description: `${selectedIds.length} réparateurs ont été supprimés`,
+        description: `${totalDeleted} réparateurs ont été supprimés`,
       });
       setSelectedIds([]);
       setShowBulkDeleteConfirm(false);
       onRefresh();
     } catch (error) {
-      console.error('❌ confirmBulkDelete failed:', { selectedIds, error });
+      console.error('❌ confirmBulkDelete failed:', error);
       toast({
         title: "Erreur",
         description: `Impossible de supprimer les réparateurs. (${getErrorMessage(error)})`,
