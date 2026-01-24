@@ -22,7 +22,7 @@ const BlogNewsTracker: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [selectedAI, setSelectedAI] = useState<'perplexity' | 'openai' | 'mistral'>('perplexity');
+  const [selectedAI, setSelectedAI] = useState<'lovable' | 'openai' | 'gemini' | 'mistral' | 'perplexity'>('lovable');
 
   // Auto-reset copiedIndex
   useEffect(() => {
@@ -39,7 +39,7 @@ const BlogNewsTracker: React.FC = () => {
   const loadSavedPrompt = async () => {
     try {
       const savedPrompt = localStorage.getItem('blog_news_prompt');
-      const savedAI = localStorage.getItem('blog_news_ai') as 'perplexity' | 'openai' | 'mistral';
+      const savedAI = localStorage.getItem('blog_news_ai') as 'lovable' | 'openai' | 'gemini' | 'mistral' | 'perplexity';
       if (savedPrompt) {
         setNewsPrompt(savedPrompt);
       }

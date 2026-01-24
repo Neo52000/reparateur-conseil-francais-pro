@@ -443,7 +443,7 @@ Contenu...
 
     console.log('📝 Prompt utilisé:', customPrompt ? 'Personnalisé' : 'Par défaut');
 
-    // 🔄 SYSTÈME DE FALLBACK IA: Lovable AI → OpenAI → Mistral
+    // 🔄 SYSTÈME DE FALLBACK IA: Lovable AI → OpenAI → Gemini → Mistral → Perplexity
     let aiData: any = null;
     let articleData: any = null;
     let usedProvider = '';
@@ -532,41 +532,7 @@ Contenu...
       console.log('⚠️ LOVABLE_API_KEY not set, skipping Lovable AI...');
     }
 
-    // 2️⃣ Fallback Gemini Pro (direct API)
-    if (!articleData && GEMINI_API_KEY) {
-      try {
-        console.log('🔹 Trying Gemini Pro (direct)...');
-        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: `${systemPrompt}\n\n${userPrompt}\n\nRéponds UNIQUEMENT avec un JSON valide au format: {"title":"...", "slug":"...", "excerpt":"...", "content":"...", "meta_title":"...", "meta_description":"...", "keywords":["..."], "image_placeholders":[{"placeholder":"{{IMAGE_1}}", "description":"..."}]}` }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 8000 }
-          })
-        });
-
-        if (geminiResponse.ok) {
-          const geminiData = await geminiResponse.json();
-          const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (content) {
-            // Parse le JSON de la réponse
-            let cleanContent = content.trim();
-            if (cleanContent.startsWith('```json')) cleanContent = cleanContent.slice(7);
-            if (cleanContent.startsWith('```')) cleanContent = cleanContent.slice(3);
-            if (cleanContent.endsWith('```')) cleanContent = cleanContent.slice(0, -3);
-            articleData = JSON.parse(cleanContent.trim());
-            usedProvider = 'Gemini Pro (Direct)';
-            console.log('✅ Gemini Pro succeeded');
-          }
-        } else {
-          console.log(`⚠️ Gemini Pro failed (${geminiResponse.status})`);
-        }
-      } catch (error) {
-        console.log('⚠️ Gemini Pro exception:', error.message);
-      }
-    }
-
-    // 3️⃣ Fallback OpenAI
+    // 2️⃣ Fallback OpenAI
     if (!articleData && OPENAI_API_KEY) {
       try {
         console.log('🔹 Trying OpenAI (GPT-4o-mini)...');
@@ -609,6 +575,39 @@ Contenu...
       }
     } else if (!articleData && !OPENAI_API_KEY) {
       console.log('⚠️ OPENAI_API_KEY not set, skipping OpenAI...');
+    }
+
+    // 3️⃣ Fallback Gemini Pro (direct API)
+    if (!articleData && GEMINI_API_KEY) {
+      try {
+        console.log('🔹 Trying Gemini Pro (direct)...');
+        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `${systemPrompt}\n\n${userPrompt}\n\nRéponds UNIQUEMENT avec un JSON valide au format: {"title":"...", "slug":"...", "excerpt":"...", "content":"...", "meta_title":"...", "meta_description":"...", "keywords":["..."], "image_placeholders":[{"placeholder":"{{IMAGE_1}}", "description":"..."}]}` }] }],
+            generationConfig: { temperature: 0.7, maxOutputTokens: 8000 }
+          })
+        });
+
+        if (geminiResponse.ok) {
+          const geminiData = await geminiResponse.json();
+          const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (content) {
+            let cleanContent = content.trim();
+            if (cleanContent.startsWith('```json')) cleanContent = cleanContent.slice(7);
+            if (cleanContent.startsWith('```')) cleanContent = cleanContent.slice(3);
+            if (cleanContent.endsWith('```')) cleanContent = cleanContent.slice(0, -3);
+            articleData = JSON.parse(cleanContent.trim());
+            usedProvider = 'Gemini Pro (Direct)';
+            console.log('✅ Gemini Pro succeeded');
+          }
+        } else {
+          console.log(`⚠️ Gemini Pro failed (${geminiResponse.status})`);
+        }
+      } catch (error) {
+        console.log('⚠️ Gemini Pro exception:', error.message);
+      }
     }
 
     // 4️⃣ Fallback Mistral
@@ -654,6 +653,46 @@ Contenu...
       }
     } else if (!articleData && !MISTRAL_API_KEY) {
       console.log('⚠️ CLE_API_MISTRAL not set, skipping Mistral...');
+    }
+
+    // 5️⃣ Fallback Perplexity (si configuré)
+    const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY');
+    if (!articleData && PERPLEXITY_API_KEY) {
+      try {
+        console.log('🔹 Trying Perplexity...');
+        const aiResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'sonar',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: `${userPrompt}\n\nRéponds UNIQUEMENT avec un JSON valide au format: {"title":"...", "slug":"...", "excerpt":"...", "content":"...", "meta_title":"...", "meta_description":"...", "keywords":["..."], "image_placeholders":[{"placeholder":"{{IMAGE_1}}", "description":"..."}]}` }
+            ]
+          })
+        });
+
+        if (aiResponse.ok) {
+          const perplexityData = await aiResponse.json();
+          const content = perplexityData.choices?.[0]?.message?.content;
+          if (content) {
+            let cleanContent = content.trim();
+            if (cleanContent.startsWith('```json')) cleanContent = cleanContent.slice(7);
+            if (cleanContent.startsWith('```')) cleanContent = cleanContent.slice(3);
+            if (cleanContent.endsWith('```')) cleanContent = cleanContent.slice(0, -3);
+            articleData = JSON.parse(cleanContent.trim());
+            usedProvider = 'Perplexity (Sonar)';
+            console.log('✅ Perplexity succeeded');
+          }
+        } else {
+          console.log(`⚠️ Perplexity failed (${aiResponse.status})`);
+        }
+      } catch (error) {
+        console.log('⚠️ Perplexity exception:', error.message);
+      }
     }
 
     if (!articleData) {

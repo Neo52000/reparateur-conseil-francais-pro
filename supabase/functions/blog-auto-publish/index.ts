@@ -123,7 +123,7 @@ Titre et méta description (150-160 caractères) en tête :
 META_TITLE: <titre>\nMETA_DESCRIPTION: <description>
 `;
 
-      // 🔄 SYSTÈME DE FALLBACK IA: Lovable AI → OpenAI → Mistral
+      // 🔄 SYSTÈME DE FALLBACK IA: Lovable AI → OpenAI → Gemini → Mistral → Perplexity
       let content = '';
       let usedProvider = '';
 
