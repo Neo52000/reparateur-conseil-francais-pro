@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { fetchAllRepairers, PaginationProgress } from '@/services/supabase/paginate';
+import { detectEnseigne } from '@/constants/enseignes';
 
 interface SubscriptionData {
   id: string;
@@ -40,6 +41,8 @@ interface RepairerData {
   category_color?: string;
   lat: number | null;
   lng: number | null;
+  has_qualirepar_label?: boolean;
+  detected_enseigne?: string;
 }
 
 interface Stats {
@@ -111,6 +114,28 @@ export const useRepairersData = () => {
       // Compter les réparateurs avec GPS
       const repairersWithGps = repairersData.filter(r => r.lat != null && r.lng != null).length;
 
+      // Récupérer les labels QualiRépar depuis repairer_profiles
+      const repairerIds = repairersData.map(r => r.id);
+      let qualiReparMap: Record<string, boolean> = {};
+      
+      // Récupérer par batch pour éviter les limites d'URL
+      const batchSize = 100;
+      for (let i = 0; i < repairerIds.length; i += batchSize) {
+        const batch = repairerIds.slice(i, i + batchSize);
+        const { data: profilesData } = await supabase
+          .from('repairer_profiles')
+          .select('id, has_qualirepar_label')
+          .in('id', batch);
+        
+        if (profilesData) {
+          profilesData.forEach(p => {
+            if (p.has_qualirepar_label) {
+              qualiReparMap[p.id] = true;
+            }
+          });
+        }
+      }
+
       // Traiter les réparateurs SANS valeurs fictives
       const processedRepairers: RepairerData[] = repairersData.map((repairer) => ({
         id: repairer.id,
@@ -131,7 +156,9 @@ export const useRepairersData = () => {
         category_name: repairer.business_categories?.name || 'Non catégorisé',
         category_color: repairer.business_categories?.color || '#6b7280',
         lat: repairer.lat ?? null,
-        lng: repairer.lng ?? null
+        lng: repairer.lng ?? null,
+        has_qualirepar_label: qualiReparMap[repairer.id] || false,
+        detected_enseigne: detectEnseigne(repairer.name)
       }));
 
       setRepairers(processedRepairers);

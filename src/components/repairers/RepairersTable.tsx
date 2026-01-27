@@ -10,6 +10,7 @@ import RepairersTableHeader from './RepairersTableHeader';
 import RepairersFilters, { RepairersFiltersState } from './RepairersFilters';
 import { useRepairersTableActions } from './RepairersTableActions';
 import { useRepairersTableSelection } from './RepairersTableSelection';
+import { detectEnseigne } from '@/constants/enseignes';
 
 interface RepairerData {
   id: string;
@@ -31,6 +32,8 @@ interface RepairerData {
   category_color?: string;
   lat?: number | null;
   lng?: number | null;
+  has_qualirepar_label?: boolean;
+  detected_enseigne?: string;
 }
 
 interface RepairersTableProps {
@@ -49,7 +52,9 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
     department: '',
     city: '',
     hasGps: null,
-    isActive: 'all'
+    isActive: 'all',
+    hasQualiRepar: 'all',
+    enseigne: ''
   });
 
   const {
@@ -72,9 +77,17 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
 
   const { SelectAllCheckbox } = useRepairersTableSelection({ repairers: repairers, selectedIds });
 
+  // Enrichir les réparateurs avec l'enseigne détectée
+  const enrichedRepairers = useMemo(() => {
+    return repairers.map(repairer => ({
+      ...repairer,
+      detected_enseigne: repairer.detected_enseigne || detectEnseigne(repairer.name)
+    }));
+  }, [repairers]);
+
   // Filtrer les réparateurs selon les critères
   const filteredRepairers = useMemo(() => {
-    return repairers.filter(repairer => {
+    return enrichedRepairers.filter(repairer => {
       // Filtre région
       if (filters.region && repairer.region !== filters.region) {
         return false;
@@ -111,17 +124,42 @@ const RepairersTable: React.FC<RepairersTableProps> = ({ repairers, onViewProfil
           return false;
         }
       }
+
+      // Filtre QualiRépar
+      if (filters.hasQualiRepar !== 'all') {
+        const hasLabel = repairer.has_qualirepar_label === true;
+        if (filters.hasQualiRepar === 'yes' && !hasLabel) {
+          return false;
+        }
+        if (filters.hasQualiRepar === 'no' && hasLabel) {
+          return false;
+        }
+      }
+
+      // Filtre Enseigne
+      if (filters.enseigne) {
+        if (filters.enseigne === 'independant') {
+          if (repairer.detected_enseigne !== 'Indépendant') {
+            return false;
+          }
+        } else {
+          if (repairer.detected_enseigne !== filters.enseigne) {
+            return false;
+          }
+        }
+      }
       
       return true;
     });
-  }, [repairers, filters]);
+  }, [enrichedRepairers, filters]);
 
   // Stats pour les filtres
   const filterStats = useMemo(() => ({
-    total: repairers.length,
+    total: enrichedRepairers.length,
     filtered: filteredRepairers.length,
-    withGps: repairers.filter(r => r.lat != null && r.lng != null).length
-  }), [repairers, filteredRepairers]);
+    withGps: enrichedRepairers.filter(r => r.lat != null && r.lng != null).length,
+    withQualiRepar: enrichedRepairers.filter(r => r.has_qualirepar_label === true).length
+  }), [enrichedRepairers, filteredRepairers]);
 
   const handleAddSuccess = () => {
     onRefresh();
