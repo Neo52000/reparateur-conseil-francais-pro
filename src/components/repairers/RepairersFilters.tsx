@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, X, Filter, MapPin, CheckCircle, XCircle } from 'lucide-react';
+import { Search, X, Filter, MapPin, CheckCircle, XCircle, Award, Building2 } from 'lucide-react';
 import { useFrenchDepartments } from '@/hooks/useFrenchDepartments';
+import { ENSEIGNES_CONNUES } from '@/constants/enseignes';
 
 export interface RepairersFiltersState {
   region: string;
@@ -13,6 +14,8 @@ export interface RepairersFiltersState {
   city: string;
   hasGps: boolean | null;
   isActive: 'all' | 'active' | 'inactive';
+  hasQualiRepar: 'all' | 'yes' | 'no';
+  enseigne: string;
 }
 
 interface RepairersFiltersProps {
@@ -22,6 +25,7 @@ interface RepairersFiltersProps {
     total: number;
     filtered: number;
     withGps: number;
+    withQualiRepar?: number;
   };
 }
 
@@ -68,13 +72,29 @@ const RepairersFilters: React.FC<RepairersFiltersProps> = ({
     });
   };
 
+  const handleQualiReparFilter = (value: string) => {
+    onFiltersChange({
+      ...filters,
+      hasQualiRepar: value as 'all' | 'yes' | 'no'
+    });
+  };
+
+  const handleEnseigneFilter = (value: string) => {
+    onFiltersChange({
+      ...filters,
+      enseigne: value === 'all' ? '' : value
+    });
+  };
+
   const clearFilters = () => {
     onFiltersChange({
       region: '',
       department: '',
       city: '',
       hasGps: null,
-      isActive: 'all'
+      isActive: 'all',
+      hasQualiRepar: 'all',
+      enseigne: ''
     });
   };
 
@@ -83,7 +103,9 @@ const RepairersFilters: React.FC<RepairersFiltersProps> = ({
     filters.department,
     filters.city,
     filters.hasGps !== null,
-    filters.isActive !== 'all'
+    filters.isActive !== 'all',
+    filters.hasQualiRepar !== 'all',
+    filters.enseigne
   ].filter(Boolean).length;
 
   const availableDepartments = filters.region 
@@ -110,7 +132,7 @@ const RepairersFilters: React.FC<RepairersFiltersProps> = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
         {/* Région */}
         <div className="space-y-1">
           <label className="text-sm text-muted-foreground">Région</label>
@@ -224,11 +246,69 @@ const RepairersFilters: React.FC<RepairersFiltersProps> = ({
             </SelectContent>
           </Select>
         </div>
+
+        {/* Filtre QualiRépar */}
+        <div className="space-y-1">
+          <label className="text-sm text-muted-foreground">QualiRépar</label>
+          <Select 
+            value={filters.hasQualiRepar} 
+            onValueChange={handleQualiReparFilter}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous</SelectItem>
+              <SelectItem value="yes">
+                <span className="flex items-center gap-2">
+                  <Award className="h-3 w-3 text-green-500" />
+                  Avec label
+                </span>
+              </SelectItem>
+              <SelectItem value="no">
+                <span className="flex items-center gap-2">
+                  <Award className="h-3 w-3 text-muted-foreground" />
+                  Sans label
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Filtre Enseigne */}
+        <div className="space-y-1">
+          <label className="text-sm text-muted-foreground">Enseigne</label>
+          <Select 
+            value={filters.enseigne || 'all'} 
+            onValueChange={handleEnseigneFilter}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Toutes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les enseignes</SelectItem>
+              <SelectItem value="independant">
+                <span className="flex items-center gap-2">
+                  <Building2 className="h-3 w-3 text-muted-foreground" />
+                  Indépendants
+                </span>
+              </SelectItem>
+              {ENSEIGNES_CONNUES.map(enseigne => (
+                <SelectItem key={enseigne.id} value={enseigne.label}>
+                  <span className="flex items-center gap-2">
+                    <Building2 className="h-3 w-3 text-primary" />
+                    {enseigne.label}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Stats */}
       {stats && (
-        <div className="flex items-center gap-4 pt-2 border-t text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-4 pt-2 border-t text-sm text-muted-foreground">
           <span>
             <strong className="text-foreground">{stats.filtered}</strong> / {stats.total} réparateurs
           </span>
@@ -240,6 +320,12 @@ const RepairersFilters: React.FC<RepairersFiltersProps> = ({
             <MapPin className="h-3 w-3 text-red-500" />
             <strong className="text-foreground">{stats.total - stats.withGps}</strong> sans GPS
           </span>
+          {stats.withQualiRepar !== undefined && (
+            <span className="flex items-center gap-1">
+              <Award className="h-3 w-3 text-green-500" />
+              <strong className="text-foreground">{stats.withQualiRepar}</strong> QualiRépar
+            </span>
+          )}
         </div>
       )}
     </div>
