@@ -20,6 +20,12 @@ export const ENSEIGNES_CONNUES: Enseigne[] = [
   { id: 'leclerc', label: 'Leclerc', pattern: 'LECLERC' },
   { id: 'pixou', label: 'Pixou', pattern: 'PIXOU' },
   { id: 'apple-store', label: 'Apple Store', pattern: 'APPLE STORE' },
+  { id: '1001-piles', label: '1001 Piles', pattern: '1001 PILES' },
+  { id: 'avelis', label: 'Avelis', pattern: 'AVELIS' },
+  { id: 'mister-minit', label: 'Mister Minit', pattern: 'MISTER MINIT' },
+  { id: 'electro-depot', label: 'Electro Depot', pattern: 'ELECTRO DEPOT' },
+  { id: 'ldlc', label: 'LDLC', pattern: 'LDLC' },
+  { id: 'iriparo', label: 'iRiparo', pattern: 'IRIPARO' },
 ];
 
 /**
