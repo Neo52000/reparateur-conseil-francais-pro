@@ -99,22 +99,17 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className 
             </a>
           ),
           img: ({ src, alt }) => (
-            <figure className="my-10 -mx-4 sm:-mx-8">
+            <figure className="my-8 flex justify-center">
               <img 
                 src={src} 
                 alt={alt || 'Image'} 
-                className="w-full h-auto rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+                className="max-w-2xl w-full max-h-[400px] object-cover rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300"
                 loading="lazy"
                 onError={(e) => {
                   console.error('Image failed to load:', src);
                   e.currentTarget.style.display = 'none';
                 }}
               />
-              {alt && (
-                <figcaption className="text-center text-sm text-muted-foreground mt-3 italic px-4 sm:px-8">
-                  {alt}
-                </figcaption>
-              )}
             </figure>
           ),
           hr: () => (
