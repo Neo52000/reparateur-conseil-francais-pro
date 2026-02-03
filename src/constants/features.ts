@@ -60,6 +60,14 @@ export const FEATURES: Feature[] = [
   { key: "review_system", name: "Système de revues et notes", category: "Auth" },
   { key: "profiles_history", name: "Profils complets avec historique", category: "Auth" },
 
+  // Widgets de profil réparateur (visibilité par plan)
+  { key: "profile_photos_gallery", name: "Galerie photos complète", category: "Profil" },
+  { key: "profile_full_pricing", name: "Grille tarifaire détaillée", category: "Profil" },
+  { key: "profile_google_map", name: "Carte interactive", category: "Profil" },
+  { key: "profile_full_reviews", name: "Tous les avis clients", category: "Profil" },
+  { key: "profile_contact_info", name: "Informations de contact complètes", category: "Profil" },
+  { key: "profile_opening_hours", name: "Horaires d'ouverture détaillés", category: "Profil" },
+
   // Communication
   { key: "realtime_notifications", name: "Système de notifications en temps réel", category: "Communication" },
   { key: "integrated_chat", name: "Chat intégré entre clients et réparateurs", category: "Communication" },

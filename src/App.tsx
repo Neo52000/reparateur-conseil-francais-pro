@@ -47,6 +47,7 @@ import NotFound from "./pages/NotFound";
 import { useVisitorTracker } from "./hooks/useVisitorTracker";
 import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
 import StaticPagesManagerPage from "./pages/admin/StaticPagesManagerPage";
+import ProfileBuilderPage from "./pages/admin/ProfileBuilderPage";
 import AdminImportPage from "./components/admin/AdminImportPage";
 // Configuration production
 import { initializeProductionMode, performProductionHealthCheck } from './config/productionSetup';
@@ -117,6 +118,9 @@ const AppWithTracking = () => {
         <Route path="/admin/import" element={<AdminImportPage />} />
         <Route path="/admin/import/*" element={<AdminImportPage />} />
         <Route path="/admin/static-pages" element={<StaticPagesManagerPage />} />
+        <Route path="/admin/profile-builder" element={<ProfileBuilderPage />} />
+        <Route path="/admin/profile-builder/new" element={<ProfileBuilderPage />} />
+        <Route path="/admin/profile-builder/:templateId" element={<ProfileBuilderPage />} />
         {/* SEO pages dynamiques - LocalSeoRouter gère le parsing de l'URL */}
         <Route path="/reparateur-smartphone-*" element={<LocalSeoRouter />} />
         <Route path="/reparateur-tablette-*" element={<LocalSeoRouter />} />
