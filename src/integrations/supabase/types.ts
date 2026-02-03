@@ -8737,6 +8737,48 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_ai_generated: boolean
+          is_default: boolean
+          name: string
+          preview_image_url: string | null
+          theme_data: Json
+          updated_at: string
+          widgets: Json
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_ai_generated?: boolean
+          is_default?: boolean
+          name: string
+          preview_image_url?: string | null
+          theme_data?: Json
+          updated_at?: string
+          widgets?: Json
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_ai_generated?: boolean
+          is_default?: boolean
+          name?: string
+          preview_image_url?: string | null
+          theme_data?: Json
+          updated_at?: string
+          widgets?: Json
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
