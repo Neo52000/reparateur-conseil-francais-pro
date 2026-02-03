@@ -241,7 +241,7 @@ Deno.serve(async (req) => {
     console.log(`📋 Found ${allSchedules?.length || 0} schedules for today (day ${currentDay})`);
 
     const schedules = allSchedules?.filter(schedule => {
-      const inWindow = isTimeInWindow(currentTime, schedule.schedule_time, 5);
+      const inWindow = isTimeInWindow(currentTime, schedule.schedule_time, 2);
       if (inWindow) {
         console.log(`✅ Schedule "${schedule.name}" at ${schedule.schedule_time} is in window (current: ${currentTime})`);
       }
@@ -271,7 +271,19 @@ Deno.serve(async (req) => {
     for (const schedule of schedules) {
       if (schedule.last_run_at) {
         const lastRun = new Date(schedule.last_run_at);
-        const minutesSinceLastRun = (Date.now() - lastRun.getTime()) / (1000 * 60);
+        const now = new Date();
+        
+        // Vérifier si déjà exécuté AUJOURD'HUI (protection contre les doublons)
+        const lastRunDate = lastRun.toISOString().split('T')[0];
+        const todayDate = now.toISOString().split('T')[0];
+        
+        if (lastRunDate === todayDate) {
+          console.log(`⏭️ Skipping "${schedule.name}" - already ran today at ${lastRun.toISOString()}`);
+          continue;
+        }
+        
+        // Protection supplémentaire: 30 minutes minimum entre exécutions
+        const minutesSinceLastRun = (now.getTime() - lastRun.getTime()) / (1000 * 60);
         if (minutesSinceLastRun < 30) {
           console.log(`⏭️ Skipping schedule "${schedule.name}" - already ran ${Math.round(minutesSinceLastRun)} minutes ago`);
           continue;
