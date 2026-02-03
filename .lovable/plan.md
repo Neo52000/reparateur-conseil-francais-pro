@@ -1,156 +1,169 @@
 
-# Plan : Ajout des filtres "QualiRépar" et "Enseigne" + Diagnostic affichage carte
+# Plan : Correction des 3 problèmes du blog IA
 
-## Diagnostic : Pourquoi tous les réparateurs ne s'affichent pas sur la carte
+## Diagnostic des problèmes identifiés
 
-### Situation actuelle
-- **Backoffice** : 3140 réparateurs
-- **Carte (front)** : 3029 réparateurs affichés
-- **Différence** : 111 réparateurs sans coordonnées GPS
+### Probleme 1 : 3 articles generés a la meme date pour une seule automatisation
 
-La carte utilise intentionnellement `fetchRepairersWithGPS()` qui filtre uniquement les réparateurs ayant des coordonnées lat/lng valides. C'est un comportement normal car il est impossible d'afficher un point sur une carte sans coordonnées.
+**Cause identifiée** : Le CRON job s'exécute toutes les minutes et le scheduler a 2 planifications actives (15:00 et 15:15). Le 02 février 2026 :
+- 4 articles générés entre 13:55 et 14:10
+- Le système de protection `last_run_at < 30 minutes` ne bloque pas les exécutions multiples car chaque planification est traitée séparément
 
-### Solution pour les 111 réparateurs manquants
-Lancer le géocodage batch depuis l'admin pour récupérer les coordonnées des réparateurs sans GPS.
+Le problème vient du fait que :
+1. Le CRON s'exécute chaque minute avec une **fenêtre de 5 minutes** (`isTimeInWindow(..., 5)`)
+2. Si le CRON tourne à 15:00, 15:01, 15:02, etc., il peut déclencher plusieurs fois la meme planification avant que `last_run_at` ne soit mis à jour
+
+**Solution** : Réduire la fenêtre de temps de 5 minutes à 2 minutes ET ajouter une vérification plus stricte basée sur le jour.
 
 ---
 
-## Nouvelles fonctionnalités : Filtres "QualiRépar" et "Enseigne"
+### Probleme 2 : Description d'image affichée en dessous de chaque image
 
-### 1. Modifier le type `RepairersFiltersState`
-
-**Fichier** : `src/components/repairers/RepairersFilters.tsx`
-
-Ajouter deux nouveaux champs au type :
-```typescript
-export interface RepairersFiltersState {
-  region: string;
-  department: string;
-  city: string;
-  hasGps: boolean | null;
-  isActive: 'all' | 'active' | 'inactive';
-  // NOUVEAUX FILTRES
-  hasQualiRepar: 'all' | 'yes' | 'no';
-  enseigne: string; // 'all' ou nom de l'enseigne
-}
+**Cause identifiée** : Dans `MarkdownRenderer.tsx`, le composant `img` affiche un `<figcaption>` avec le texte `alt` :
+```tsx
+{alt && (
+  <figcaption className="text-center text-sm text-muted-foreground mt-3 italic px-4 sm:px-8">
+    {alt}
+  </figcaption>
+)}
 ```
 
-### 2. Créer une liste d'enseignes connues
-
-**Fichier** : `src/constants/enseignes.ts` (nouveau fichier)
-
-```typescript
-export const ENSEIGNES_CONNUES = [
-  { id: 'save', label: 'SAVE', pattern: 'SAVE' },
-  { id: 'point-service-mobiles', label: 'Point Service Mobiles', pattern: 'POINT SERVICE MOBIL' },
-  { id: 'cash-express', label: 'Cash Express', pattern: 'CASH EXPRESS' },
-  { id: 'cash-and-repair', label: 'Cash And Repair', pattern: 'CASH AND REPAIR' },
-  { id: 'wefix', label: 'WeFix', pattern: 'WEFIX' },
-  { id: 'docteur-it', label: 'Docteur IT', pattern: 'DOCTEUR IT' },
-  { id: 'bouygues', label: 'Bouygues Telecom', pattern: 'BOUYGUES' },
-  { id: 'sfr', label: 'SFR', pattern: 'SFR' },
-  { id: 'orange', label: 'Orange', pattern: 'ORANGE' },
-  { id: 'amplifon', label: 'Amplifon', pattern: 'AMPLIFON' },
-];
+De plus, le générateur crée des images Markdown avec description :
+```markdown
+![Description de l'image](url)
 ```
 
-### 3. Ajouter les filtres dans l'interface
+Le texte alt (description) est utilisé comme légende, ce qui n'est pas souhaité.
 
-**Fichier** : `src/components/repairers/RepairersFilters.tsx`
+**Solution** : Supprimer le `<figcaption>` du rendu Markdown pour ne plus afficher les descriptions sous les images.
 
-Ajouter deux nouveaux selects :
+---
 
-- **Filtre QualiRépar** :
-  - Tous
-  - Avec label QualiRépar (icône badge vert)
-  - Sans label QualiRépar
+### Probleme 3 : Images trop grandes (pas esthétiques)
 
-- **Filtre Enseigne** :
-  - Toutes les enseignes
-  - Indépendants
-  - SAVE
-  - Point Service Mobiles
-  - Cash Express
-  - etc.
+**Cause identifiée** : Dans `MarkdownRenderer.tsx`, les images utilisent :
+```tsx
+<figure className="my-10 -mx-4 sm:-mx-8">
+  <img className="w-full h-auto rounded-xl shadow-lg" />
+```
 
-### 4. Mettre à jour le hook useRepairersData
+- `w-full` : l'image prend 100% de la largeur
+- `-mx-4 sm:-mx-8` : marges négatives qui dépassent le conteneur
+- Pas de hauteur maximale définie
 
-**Fichier** : `src/hooks/useRepairersData.ts`
+**Solution** : Limiter la taille des images avec `max-w-2xl`, `max-h-[400px]` et centrer correctement.
 
-Enrichir les données du réparateur avec :
-- `has_qualirepar_label` : récupéré depuis `repairer_profiles` si existe
-- `detected_enseigne` : calculé à partir du nom via pattern matching
+---
 
-### 5. Appliquer les filtres dans RepairersTable
+## Modifications prévues
 
-**Fichier** : `src/components/repairers/RepairersTable.tsx`
+### Fichier 1 : `supabase/functions/blog-scheduler-cron/index.ts`
 
-Ajouter la logique de filtrage :
+Changer la fenêtre de temps de 5 minutes à 2 minutes pour éviter les déclenchements multiples :
+
 ```typescript
-// Filtre QualiRépar
-if (filters.hasQualiRepar !== 'all') {
-  const hasLabel = repairer.has_qualirepar_label === true;
-  if (filters.hasQualiRepar === 'yes' && !hasLabel) return false;
-  if (filters.hasQualiRepar === 'no' && hasLabel) return false;
-}
+// Avant
+const schedules = allSchedules?.filter(schedule => {
+  const inWindow = isTimeInWindow(currentTime, schedule.schedule_time, 5);
+  ...
 
-// Filtre Enseigne
-if (filters.enseigne && filters.enseigne !== 'all') {
-  if (filters.enseigne === 'independant') {
-    if (repairer.detected_enseigne !== 'Indépendant') return false;
-  } else {
-    if (repairer.detected_enseigne !== filters.enseigne) return false;
+// Après  
+const schedules = allSchedules?.filter(schedule => {
+  const inWindow = isTimeInWindow(currentTime, schedule.schedule_time, 2);
+  ...
+```
+
+Ajouter une vérification de date pour empêcher les exécutions multiples le meme jour :
+
+```typescript
+// Dans la boucle for
+if (schedule.last_run_at) {
+  const lastRun = new Date(schedule.last_run_at);
+  const now = new Date();
+  
+  // Vérifier si déjà exécuté AUJOURD'HUI
+  const lastRunDate = lastRun.toISOString().split('T')[0];
+  const todayDate = now.toISOString().split('T')[0];
+  
+  if (lastRunDate === todayDate) {
+    console.log(`⏭️ Skipping "${schedule.name}" - already ran today at ${lastRun.toISOString()}`);
+    continue;
   }
 }
 ```
 
-### 6. Mettre à jour les statistiques
+---
 
-Afficher dans le footer des filtres :
-- Nombre avec QualiRépar
-- Répartition par enseigne
+### Fichier 2 : `src/components/blog/MarkdownRenderer.tsx`
+
+Supprimer la légende (figcaption) et réduire la taille des images :
+
+```tsx
+// Avant
+img: ({ src, alt }) => (
+  <figure className="my-10 -mx-4 sm:-mx-8">
+    <img 
+      src={src} 
+      alt={alt || 'Image'} 
+      className="w-full h-auto rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+      loading="lazy"
+      ...
+    />
+    {alt && (
+      <figcaption className="...">
+        {alt}
+      </figcaption>
+    )}
+  </figure>
+)
+
+// Après
+img: ({ src, alt }) => (
+  <figure className="my-8 flex justify-center">
+    <img 
+      src={src} 
+      alt={alt || 'Image'} 
+      className="max-w-2xl w-full max-h-[400px] object-cover rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300"
+      loading="lazy"
+      ...
+    />
+  </figure>
+)
+```
+
+Changements :
+- **Suppression de figcaption** : Plus de description sous l'image
+- **`max-w-2xl`** : Largeur maximale de 672px (taille raisonnable)
+- **`max-h-[400px]`** : Hauteur maximale de 400px
+- **`object-cover`** : L'image garde ses proportions en rognant si nécessaire
+- **`flex justify-center`** : L'image est centrée
+- **Suppression de `-mx-4 sm:-mx-8`** : Plus de débordement du conteneur
+- **`shadow-md`** au lieu de `shadow-lg` : Ombre plus subtile
 
 ---
 
-## Résumé des fichiers à modifier
+## Résumé des fichiers a modifier
 
-| Fichier | Action |
-|---------|--------|
-| `src/constants/enseignes.ts` | Créer - liste des enseignes |
-| `src/components/repairers/RepairersFilters.tsx` | Modifier - ajouter 2 filtres |
-| `src/components/repairers/RepairersTable.tsx` | Modifier - logique de filtrage |
-| `src/hooks/useRepairersData.ts` | Modifier - enrichir données |
+| Fichier | Modification |
+|---------|-------------|
+| `supabase/functions/blog-scheduler-cron/index.ts` | Fenetre 5min → 2min, vérification "déja exécuté aujourd'hui" |
+| `src/components/blog/MarkdownRenderer.tsx` | Supprimer figcaption, réduire taille images |
 
 ---
 
 ## Section technique
 
-### Détection automatique des enseignes
-La détection se fait par pattern matching sur le champ `name` de la table `repairers` :
-```typescript
-const detectEnseigne = (name: string): string => {
-  const upperName = name.toUpperCase();
-  for (const enseigne of ENSEIGNES_CONNUES) {
-    if (upperName.includes(enseigne.pattern)) {
-      return enseigne.label;
-    }
-  }
-  return 'Indépendant';
-};
-```
+### Pourquoi la fenetre de 5 minutes pose probleme
 
-### Récupération du label QualiRépar
-Le champ `has_qualirepar_label` est dans la table `repairer_profiles`, pas dans `repairers`. Il faudra faire une jointure ou un lookup séparé pour enrichir les données.
+Le CRON pg_cron s'exécute typiquement toutes les minutes. Avec une fenêtre de 5 minutes :
+- 15:00 → Match (15:00 est dans [14:55, 15:05])
+- 15:01 → Match (15:01 est dans [14:56, 15:06])
+- 15:02 → Match encore...
 
-### Distribution actuelle des enseignes
-- Indépendant : 2937 (93.5%)
-- SAVE : 37
-- Point Service Mobiles : 30
-- Cash Express : 29
-- SFR : 23
-- Amplifon : 23
-- Cash And Repair : 23
-- Bouygues Telecom : 17
-- Docteur IT : 15
-- WeFix : 5
-- Orange : 1
+Meme avec la protection `minutesSinceLastRun < 30`, si les appels API sont lents, plusieurs instances peuvent passer la vérification avant que `last_run_at` soit mis à jour.
+
+La solution "déjà exécuté aujourd'hui" est plus robuste car elle empêche toute exécution multiple le meme jour pour une planification hebdomadaire.
+
+### Pourquoi supprimer figcaption
+
+Les descriptions générées par l'IA pour les images sont techniques (ex: "Photo d'un technicien réparant l'écran d'un iPhone dans un atelier moderne"). Ces textes sont utiles pour l'accessibilité (attribut alt) mais pas comme légende visuelle. L'attribut `alt` reste présent pour les lecteurs d'écran.
