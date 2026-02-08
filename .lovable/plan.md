@@ -1,347 +1,223 @@
 
 
-# Plan : Builder de Fiches Réparateurs avec Thèmes, IA et Drag & Drop
+# Plan : Amelioration complete de la PWA (Android et iOS)
 
-## Vue d'ensemble
+## Problemes identifies
 
-Ce plan propose la création d'un système complet de personnalisation des fiches réparateurs, inspiré des meilleures pratiques de builders modernes. L'admin pourra créer et gérer des templates de fiches, définir quels éléments sont visibles ou floutés selon l'abonnement, et utiliser l'IA pour générer des variations de design.
+L'audit de la PWA actuelle revele plusieurs problemes majeurs :
+
+### 1. Le manifest est configure pour le POS, pas pour l'application grand public
+- **Nom** : "TopReparateurs POS" au lieu de "TopReparateurs"
+- **start_url** : `/admin?tab=pos-tester` au lieu de `/`
+- **orientation** : `landscape-primary` (paysage) au lieu de `any` (portrait sur mobile)
+- **description** : Mentionne "NF525" et "point de vente" au lieu de la reparation
+
+### 2. Icones manquantes
+- Seul `placeholder.svg` est utilise pour les icones
+- Aucune icone PNG aux tailles requises (72, 96, 128, 144, 152, 192, 384, 512)
+- Pas de `maskable` icon correctement dimensionne
+- Pas d'icone Apple Touch specifique
+
+### 3. Pas de support iOS complet
+- Pas de splash screens Apple (apple-touch-startup-image)
+- `apple-mobile-web-app-title` dit "Reparateur Pro" au lieu de "TopReparateurs"
+- Pas de gestion du safe area (encoche iPhone)
+
+### 4. Incoherences de couleur de theme
+- `manifest.json` : `#000000`
+- `index.html` meta theme-color : `#f97316`
+- L'application utilise du bleu (`#2563eb`) comme couleur primaire
+
+### 5. Service Worker rudimentaire
+- Pas de fallback vers `offline.html` (le fichier existe mais n'est jamais servi)
+- Pas de notification de mise a jour disponible
+- Pas de gestion du cache versionne (toujours "v1")
+- Enregistrement en double (dans `main.tsx` ET dans `PWAManager.tsx`)
+
+### 6. Pas de banniere d'installation pour les utilisateurs
+- Le prompt d'installation est uniquement dans le backoffice admin (POS)
+- Les visiteurs du site grand public ne voient jamais de proposition d'installation
+- Pas de page `/install` dediee
+
+---
+
+## Modifications prevues
+
+### Fichier 1 : `public/manifest.json`
+Refonte complete du manifest pour l'application grand public :
+
+```json
+{
+  "name": "TopReparateurs - Trouvez un reparateur",
+  "short_name": "TopReparateurs",
+  "description": "Trouvez les meilleurs reparateurs de smartphone pres de chez vous",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "any",
+  "lang": "fr-FR",
+  "dir": "ltr",
+  "icons": [...],
+  "categories": ["utilities", "lifestyle"],
+  "screenshots": [...],
+  "shortcuts": [
+    { "name": "Rechercher", "url": "/search" },
+    { "name": "Mon compte", "url": "/dashboard" }
+  ]
+}
+```
+
+Changements cles :
+- Nom et description orientes utilisateur final
+- `start_url: "/"` (page d'accueil)
+- `orientation: "any"` pour supporter portrait et paysage
+- `theme_color: "#2563eb"` pour correspondre a la charte graphique
+- Icones generees par SVG en PNG (192x192 et 512x512 via logo-icon.svg)
+- Ajout de `screenshots` pour un meilleur rendu dans le store Android
+- Raccourcis utiles (Recherche, Mon compte)
+
+### Fichier 2 : `index.html`
+Corriger les meta tags PWA et ajouter le support iOS :
+
+- `theme-color` passe a `#2563eb`
+- `apple-mobile-web-app-title` passe a "TopReparateurs"
+- `apple-mobile-web-app-status-bar-style` passe a `black-translucent` pour un rendu plein ecran
+- Ajout de `viewport-fit=cover` dans le viewport meta pour gerer l'encoche iPhone
+- Ajout de `apple-touch-startup-image` avec les tailles pour iPhone et iPad
+
+### Fichier 3 : `public/sw.js`
+Service Worker ameliore :
+
+- **Versioning automatique** : Cache nomme avec timestamp/version
+- **Fallback offline** : Servir `offline.html` quand la page n'est pas en cache
+- **Notification de mise a jour** : Envoyer un message aux clients quand une nouvelle version est disponible
+- **Nettoyage intelligent** : Supprimer les anciens caches lors de l'activation
+- **Skip navigation requests** : Ne pas cacher les pages HTML de navigation (SPA)
+- **Cache des assets Vite** : Reconnaitre les fichiers hashes de Vite pour un cache longue duree
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────┐
-│                     ADMIN: Profile Builder                               │
-├──────────────┬────────────────────────────────────┬─────────────────────┤
-│              │                                    │                     │
-│   WIDGETS    │          CANVAS PREVIEW            │    PROPRIÉTÉS       │
-│   LIBRARY    │                                    │                     │
-│              │  ┌────────────────────────────┐   │  - Visibilité       │
-│  - Header    │  │       En-tête réparateur   │   │  - Style            │
-│  - Photos    │  ├────────────────────────────┤   │  - Conditions       │
-│  - Services  │  │       Galerie photos       │   │  - IA suggestions   │
-│  - Tarifs    │  ├────────────────────────────┤   │                     │
-│  - Horaires  │  │    Services & Tarifs       │   │  ┌───────────────┐  │
-│  - Avis      │  ├────────────────────────────┤   │  │ Plan requis:  │  │
-│  - Contact   │  │        Horaires            │   │  │ ○ Gratuit     │  │
-│  - Carte     │  └────────────────────────────┘   │  │ ● Visibilité  │  │
-│              │                                    │  │ ○ Pro         │  │
-│              │  [Mobile] [Tablet] [Desktop]       │  │ ○ Premium     │  │
-│              │                                    │  └───────────────┘  │
-├──────────────┴────────────────────────────────────┴─────────────────────┤
-│  💾 Sauvegarder    👁️ Prévisualiser    🤖 Générer avec IA    📤 Exporter │
-└─────────────────────────────────────────────────────────────────────────┘
+Strategie de cache :
+
+  Requete entrante
+       |
+       v
+  Est-ce une API / Supabase ?
+  Oui --> Network First (fallback cache)
+  Non
+   |
+   v
+  Est-ce un asset statique (.js, .css, images) ?
+  Oui --> Cache First (avec revalidation en background)
+  Non
+   |
+   v
+  Est-ce une navigation HTML ?
+  Oui --> Network First (fallback offline.html)
 ```
 
----
+### Fichier 4 : `src/swRegistration.ts`
+Ameliorer l'enregistrement du SW :
 
-## Architecture proposée
+- Detecter les mises a jour (`registration.onupdatefound`)
+- Envoyer un evenement personnalise quand une MAJ est prete
+- Ajouter la gestion du `skipWaiting` pour les mises a jour
+- Supprimer l'enregistrement en double dans PWAManager.tsx
 
-### 1. Nouveaux types et interfaces
+### Fichier 5 : `src/hooks/usePWA.ts` (nouveau)
+Hook global pour gerer la PWA dans toute l'application :
 
-**Fichier** : `src/types/profileBuilder.ts`
+- `isInstalled` : Detecte si l'app est installee
+- `isOnline` : Statut reseau
+- `canInstall` : Un prompt d'installation est disponible
+- `installApp()` : Declencher l'installation
+- `updateAvailable` : Une MAJ du SW est disponible
+- `updateApp()` : Appliquer la MAJ (reload)
+- `isIOS` : Detection iOS pour instructions specifiques
 
-```typescript
-// Widget de profil réparateur
-interface ProfileWidget {
-  id: string;
-  type: 'header' | 'photos' | 'services' | 'pricing' | 'hours' | 
-        'reviews' | 'contact' | 'map' | 'certifications' | 'about';
-  name: string;
-  icon: string;
-  order: number;
-  isVisible: boolean;
-  
-  // Conditions d'affichage par plan
-  visibilityRules: {
-    minPlan: 'Gratuit' | 'Visibilité' | 'Pro' | 'Premium';
-    blurIfNotAllowed: boolean;
-    hideIfNotAllowed: boolean;
-    customMessage?: string;
-  };
-  
-  // Styles personnalisables
-  styles: {
-    padding?: string;
-    background?: string;
-    borderRadius?: string;
-    shadow?: string;
-  };
+### Fichier 6 : `src/components/pwa/PWAInstallBanner.tsx` (nouveau)
+Banniere d'installation pour les visiteurs du site :
+
+- Apparait apres 30 secondes de navigation (pas intrusif)
+- Sur Android : Bouton "Installer l'application"
+- Sur iOS : Instructions "Partagez > Ajouter a l'ecran d'accueil"
+- Dismissable avec memoire (localStorage) pour ne pas reapparaitre pendant 7 jours
+- Design elegant et non-intrusif (bottom sheet style)
+
+### Fichier 7 : `src/components/pwa/PWAUpdateBanner.tsx` (nouveau)
+Banniere de mise a jour :
+
+- Apparait quand une nouvelle version du SW est detectee
+- Bouton "Mettre a jour" qui recharge l'application
+- Disparait automatiquement si l'utilisateur ne reagit pas
+
+### Fichier 8 : `src/App.tsx`
+Integration des composants PWA :
+
+- Ajouter `<PWAInstallBanner />` et `<PWAUpdateBanner />` au layout global
+- Ces composants sont legers et ne s'affichent que quand necessaire
+
+### Fichier 9 : `src/components/pos/modules/PWAManager.tsx`
+Simplifier en utilisant le hook `usePWA` :
+
+- Supprimer l'enregistrement du SW en double
+- Utiliser `usePWA()` au lieu de gerer l'etat localement
+- Garder l'interface admin existante
+
+### Fichier 10 : `src/index.css`
+Ajouter le support du safe area iOS :
+
+```css
+/* Support iOS safe areas (encoche) */
+body {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
-
-// Template de fiche réparateur
-interface ProfileTemplate {
-  id: string;
-  name: string;
-  description: string;
-  widgets: ProfileWidget[];
-  theme: {
-    primaryColor: string;
-    accentColor: string;
-    fontFamily: string;
-    spacing: 'compact' | 'normal' | 'spacious';
-  };
-  isDefault: boolean;
-  isAIGenerated: boolean;
-  previewImageUrl?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-```
-
-### 2. Nouvelle table en base de données
-
-**Table** : `profile_templates`
-
-| Colonne | Type | Description |
-|---------|------|-------------|
-| id | uuid | Identifiant unique |
-| name | text | Nom du template |
-| description | text | Description du template |
-| widgets | jsonb | Configuration des widgets |
-| theme_data | jsonb | Thème et couleurs |
-| is_default | boolean | Template par défaut |
-| is_ai_generated | boolean | Généré par IA |
-| preview_image_url | text | Image de prévisualisation |
-| created_by | uuid | Créateur (admin) |
-| created_at | timestamp | Date de création |
-| updated_at | timestamp | Date de mise à jour |
-
-### 3. Widgets de profil disponibles
-
-| Widget | Description | Plan minimum par défaut |
-|--------|-------------|-------------------------|
-| Header | Nom, logo, badges, note | Gratuit |
-| Photos | Galerie de photos | Visibilité |
-| Services | Liste des services | Gratuit (limité) |
-| Pricing | Grille tarifaire | Pro |
-| Hours | Horaires d'ouverture | Visibilité |
-| Reviews | Avis clients | Gratuit (3 derniers) |
-| Contact | Téléphone, email, adresse | Visibilité |
-| Map | Carte Google Maps | Pro |
-| Certifications | Labels et certifications | Gratuit |
-| About | Description et histoire | Visibilité |
-
----
-
-## Composants à créer
-
-### 1. Builder principal
-
-**Fichier** : `src/components/admin/profile-builder/ProfileBuilder.tsx`
-
-Interface complète avec :
-- Panneau gauche : Bibliothèque de widgets draggables
-- Centre : Canvas de prévisualisation responsive
-- Panneau droit : Propriétés du widget sélectionné
-
-### 2. Widget Library pour profils
-
-**Fichier** : `src/components/admin/profile-builder/ProfileWidgetLibrary.tsx`
-
-Liste des 10 widgets disponibles avec :
-- Icône et nom
-- Drag & drop vers le canvas
-- Badge indiquant le plan minimum
-
-### 3. Panneau de propriétés avancé
-
-**Fichier** : `src/components/admin/profile-builder/ProfilePropertyPanel.tsx`
-
-Permet de configurer :
-- Visibilité par plan (sélecteur de plan minimum)
-- Comportement si non autorisé (blur/masquer/message)
-- Styles (padding, background, border)
-- Contenu personnalisé
-
-### 4. Prévisualisation par plan
-
-**Fichier** : `src/components/admin/profile-builder/ProfilePreview.tsx`
-
-Permet de voir le rendu de la fiche :
-- Sélecteur de plan pour simuler la vue client
-- Toggle mobile/tablet/desktop
-- Aperçu du blur/masquage selon le plan
-
-### 5. Générateur IA de templates
-
-**Fichier** : `src/components/admin/profile-builder/AITemplateGenerator.tsx`
-
-Interface pour générer des templates via IA :
-- Prompt en français ("Crée un template moderne et épuré")
-- Suggestions de combinaisons de widgets
-- Génération de palettes de couleurs
-
----
-
-## Edge Function IA
-
-**Fichier** : `supabase/functions/generate-profile-template/index.ts`
-
-Utilise Lovable AI pour :
-- Générer des agencements de widgets optimisés
-- Proposer des combinaisons de couleurs harmonieuses
-- Suggérer des configurations par secteur (mobile, informatique, etc.)
-
-Exemple de prompt système :
-```
-Tu es un designer UX spécialisé dans les fiches établissements. 
-Génère un template JSON pour une fiche réparateur avec :
-- L'ordre optimal des widgets
-- Les couleurs adaptées au secteur de la réparation
-- Les règles de visibilité par plan d'abonnement
 ```
 
 ---
 
-## Hooks à créer
+## Resume des fichiers
 
-### useProfileBuilder
-
-**Fichier** : `src/hooks/useProfileBuilder.ts`
-
-Gère :
-- État des widgets et leur ordre
-- Drag & drop avec @dnd-kit
-- Historique undo/redo
-- Sauvegarde automatique
-
-### useProfileTemplates
-
-**Fichier** : `src/hooks/useProfileTemplates.ts`
-
-Gère :
-- CRUD des templates en base
-- Chargement/application d'un template
-- Duplication de templates
-- Export/import JSON
-
----
-
-## Intégration avec le système existant
-
-### 1. Modification de ClientModeContent
-
-Le composant `src/components/repairer-profile-modal/ClientModeContent.tsx` sera modifié pour :
-- Charger le template actif depuis `profile_templates`
-- Rendre les widgets dans l'ordre défini
-- Appliquer les règles de visibilité selon le plan du réparateur
-
-### 2. Extension des feature flags
-
-Ajouter de nouvelles clés dans `FEATURES` :
-- `profile_photos_gallery` : Galerie photos complète
-- `profile_full_pricing` : Grille tarifaire complète
-- `profile_google_map` : Carte interactive
-- `profile_full_reviews` : Tous les avis (pas juste 3)
-
-### 3. Composant BlurredProfileContent amélioré
-
-Modifier pour supporter :
-- Messages personnalisés par widget
-- Animation de blur
-- CTA d'upgrade vers le plan supérieur
-
----
-
-## Page admin
-
-**Route** : `/admin/profile-builder`
-
-Accessible depuis le menu admin, permet de :
-1. Voir la liste des templates existants
-2. Créer un nouveau template (vide ou avec IA)
-3. Éditer un template existant
-4. Définir le template par défaut
-5. Prévisualiser avec simulation de plans
-
----
-
-## Résumé des fichiers à créer
-
-| Fichier | Description |
-|---------|-------------|
-| `src/types/profileBuilder.ts` | Types TypeScript |
-| `src/components/admin/profile-builder/ProfileBuilder.tsx` | Builder principal |
-| `src/components/admin/profile-builder/ProfileWidgetLibrary.tsx` | Bibliothèque widgets |
-| `src/components/admin/profile-builder/ProfilePropertyPanel.tsx` | Panneau propriétés |
-| `src/components/admin/profile-builder/ProfilePreview.tsx` | Prévisualisation |
-| `src/components/admin/profile-builder/ProfileCanvas.tsx` | Zone de drop |
-| `src/components/admin/profile-builder/AITemplateGenerator.tsx` | Générateur IA |
-| `src/hooks/useProfileBuilder.ts` | Hook builder |
-| `src/hooks/useProfileTemplates.ts` | Hook templates |
-| `src/pages/admin/ProfileBuilderPage.tsx` | Page admin |
-| `supabase/functions/generate-profile-template/index.ts` | Edge function IA |
-
-## Fichiers à modifier
-
-| Fichier | Modification |
-|---------|--------------|
-| `src/components/repairer-profile-modal/ClientModeContent.tsx` | Rendu dynamique |
-| `src/components/profile/BlurredProfileContent.tsx` | Messages personnalisés |
-| `src/constants/features.ts` | Nouvelles feature keys |
-| `src/App.tsx` | Nouvelle route admin |
+| Fichier | Action | Description |
+|---------|--------|-------------|
+| `public/manifest.json` | Modifier | Manifest oriente utilisateur final |
+| `index.html` | Modifier | Meta tags iOS, theme color, viewport |
+| `public/sw.js` | Modifier | SW avec fallback offline, MAJ, versioning |
+| `src/swRegistration.ts` | Modifier | Detection de mises a jour |
+| `src/hooks/usePWA.ts` | Creer | Hook global PWA |
+| `src/components/pwa/PWAInstallBanner.tsx` | Creer | Banniere d'installation visiteurs |
+| `src/components/pwa/PWAUpdateBanner.tsx` | Creer | Banniere de mise a jour |
+| `src/App.tsx` | Modifier | Integration bannieres PWA |
+| `src/components/pos/modules/PWAManager.tsx` | Modifier | Simplification avec hook usePWA |
+| `src/index.css` | Modifier | Safe area iOS |
 
 ---
 
 ## Section technique
 
-### Structure des widgets en JSONB
+### Generation des icones PWA
 
-```json
-{
-  "widgets": [
-    {
-      "id": "widget-header-1",
-      "type": "header",
-      "order": 0,
-      "visibilityRules": {
-        "minPlan": "Gratuit",
-        "blurIfNotAllowed": false,
-        "hideIfNotAllowed": false
-      },
-      "styles": {
-        "padding": "24px",
-        "background": "linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)"
-      }
-    },
-    {
-      "id": "widget-photos-1", 
-      "type": "photos",
-      "order": 1,
-      "visibilityRules": {
-        "minPlan": "Visibilité",
-        "blurIfNotAllowed": true,
-        "hideIfNotAllowed": false,
-        "customMessage": "Passez au plan Visibilité pour voir les photos"
-      }
-    }
-  ]
-}
-```
+Les icones seront referencees depuis le `logo-icon.svg` existant. Le SVG sera utilise directement comme icone (supporte par Chrome et Safari modernes). Pour une compatibilite maximale, le manifest listera :
+- `logo-icon.svg` en 192x192 et 512x512 (SVG est vectoriel, il s'adapte)
+- `purpose: "any maskable"` pour couvrir les deux usages
 
-### Logique de rendu conditionnel
+### Compatibilite iOS
 
-```typescript
-const shouldShowWidget = (widget: ProfileWidget, repairerPlan: PlanName): 'visible' | 'blurred' | 'hidden' => {
-  const planOrder = ['Gratuit', 'Visibilité', 'Pro', 'Premium'];
-  const minPlanIndex = planOrder.indexOf(widget.visibilityRules.minPlan);
-  const currentPlanIndex = planOrder.indexOf(repairerPlan);
-  
-  if (currentPlanIndex >= minPlanIndex) return 'visible';
-  if (widget.visibilityRules.blurIfNotAllowed) return 'blurred';
-  if (widget.visibilityRules.hideIfNotAllowed) return 'hidden';
-  return 'visible';
-};
-```
+iOS ne supporte pas `beforeinstallprompt`. Le composant `PWAInstallBanner` detectera iOS via le user agent et affichera des instructions manuelles :
+1. Appuyez sur le bouton Partager
+2. Selectionnez "Sur l'ecran d'accueil"
+3. Confirmez "Ajouter"
 
-### Réutilisation du ProfessionalBuilder existant
+### Strategie de mise a jour du Service Worker
 
-Le projet dispose déjà d'un système de builder (`ProfessionalBuilder.tsx`) avec :
-- DndContext configuré avec @dnd-kit
-- WidgetLibrary fonctionnelle
-- PropertyPanel
-- ResponsiveCanvas
+Le nouveau SW utilisera `skipWaiting()` uniquement quand l'utilisateur clique "Mettre a jour". Sinon, la nouvelle version attend que tous les onglets soient fermes. Cela evite les bugs de versions mixtes.
 
-Le nouveau ProfileBuilder s'inspirera fortement de cette architecture en adaptant :
-- Les widgets spécifiques aux fiches réparateurs
-- Le panneau de propriétés avec les règles de visibilité par plan
-- La prévisualisation multi-plan
+### Enregistrement unique du SW
+
+Actuellement, le SW est enregistre dans 2 endroits :
+- `src/main.tsx` via `registerServiceWorker()`
+- `src/components/pos/modules/PWAManager.tsx` directement
+
+Apres refactoring, seul `main.tsx` enregistrera le SW. Le hook `usePWA` exposera l'etat sans re-enregistrer.
 
