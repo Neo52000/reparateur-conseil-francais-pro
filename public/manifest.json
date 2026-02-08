@@ -1,37 +1,48 @@
 {
-  "name": "TopReparateurs POS",
-  "short_name": "TR POS",
-  "description": "Système de point de vente TopReparateurs conforme NF525",
-  "start_url": "/admin?tab=pos-tester",
+  "name": "TopRéparateurs - Trouvez un réparateur",
+  "short_name": "TopRéparateurs",
+  "description": "Trouvez les meilleurs réparateurs de smartphone près de chez vous. Devis gratuits, avis vérifiés.",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
-  "orientation": "landscape-primary",
+  "theme_color": "#2563eb",
+  "orientation": "any",
+  "lang": "fr-FR",
+  "dir": "ltr",
   "icons": [
     {
-      "src": "/placeholder.svg",
+      "src": "/logo-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-icon.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "maskable"
     },
     {
-      "src": "/placeholder.svg", 
+      "src": "/logo-icon.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any"
     }
   ],
-  "categories": ["business", "productivity"],
+  "categories": ["utilities", "lifestyle"],
   "shortcuts": [
     {
-      "name": "Nouvelle vente",
-      "url": "/admin?tab=pos-tester&action=new-sale",
-      "description": "Démarrer une nouvelle transaction"
+      "name": "Rechercher un réparateur",
+      "short_name": "Rechercher",
+      "url": "/search",
+      "description": "Trouver un réparateur près de chez vous",
+      "icons": [{ "src": "/logo-icon.svg", "sizes": "96x96" }]
     },
     {
-      "name": "Rapports",
-      "url": "/admin?tab=pos-tester&action=reports", 
-      "description": "Voir les rapports de vente"
+      "name": "Mon compte",
+      "short_name": "Compte",
+      "url": "/client-dashboard",
+      "description": "Accéder à votre espace personnel"
     }
   ]
 }

@@ -54,6 +54,8 @@ import { initializeProductionMode, performProductionHealthCheck } from './config
 import { RuntimeDiagnostics } from "./components/dev/RuntimeDiagnostics";
 import { initializeSentry } from './config/sentry';
 import { MobileBottomNav } from './components/navigation/MobileBottomNav';
+import { PWAInstallBanner } from './components/pwa/PWAInstallBanner';
+import { PWAUpdateBanner } from './components/pwa/PWAUpdateBanner';
 
 const ModernLocalSeoPageLazy = lazy(() => import("./pages/ModernLocalSeoPage"));
 const ModelCityPageLazy = lazy(() => import("./components/seo/programmatic/ModelCityPage").then(m => ({ default: m.ModelCityPage })));
@@ -186,6 +188,10 @@ const AppWithTracking = () => {
       
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav />
+
+      {/* PWA Banners */}
+      <PWAInstallBanner />
+      <PWAUpdateBanner />
     </ChatbotLayout>
   );
 };
