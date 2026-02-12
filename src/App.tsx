@@ -23,7 +23,7 @@ import TabletRepairPage from "./pages/services/TabletRepairPage";
 import ComputerRepairPage from "./pages/services/ComputerRepairPage";
 import ConsoleRepairPage from "./pages/services/ConsoleRepairPage";
 import LocalSeoPage from "./components/LocalSeoPage";
-import LocalSeoRouter from "./components/LocalSeoRouter";
+import LocalSeoRouter, { isLocalSeoPath } from "./components/LocalSeoRouter";
 import RepairerSeoPage from "./pages/RepairerSeoPage";
 import DocumentationPage from "./pages/DocumentationPage";
 
@@ -57,7 +57,12 @@ import { MobileBottomNav } from './components/navigation/MobileBottomNav';
 import { PWAInstallBanner } from './components/pwa/PWAInstallBanner';
 import { PWAUpdateBanner } from './components/pwa/PWAUpdateBanner';
 
-const ModernLocalSeoPageLazy = lazy(() => import("./pages/ModernLocalSeoPage"));
+// Catch-all component: renders LocalSeoRouter for SEO paths, NotFound otherwise
+const LocalSeoCatchAll = () => {
+  const pathname = window.location.pathname;
+  if (isLocalSeoPath(pathname)) return <LocalSeoRouter />;
+  return <NotFound />;
+};
 const ModelCityPageLazy = lazy(() => import("./components/seo/programmatic/ModelCityPage").then(m => ({ default: m.ModelCityPage })));
 const HubCityPageLazy = lazy(() => import("./components/seo/programmatic/HubCityPage").then(m => ({ default: m.HubCityPage })));
 const SymptomPageLazy = lazy(() => import("./components/seo/programmatic/SymptomPage").then(m => ({ default: m.SymptomPage })));
@@ -123,13 +128,7 @@ const AppWithTracking = () => {
         <Route path="/admin/profile-builder" element={<ProfileBuilderPage />} />
         <Route path="/admin/profile-builder/new" element={<ProfileBuilderPage />} />
         <Route path="/admin/profile-builder/:templateId" element={<ProfileBuilderPage />} />
-        {/* SEO pages dynamiques - LocalSeoRouter gère le parsing de l'URL */}
-        <Route path="/reparateur-smartphone-*" element={<LocalSeoRouter />} />
-        <Route path="/reparateur-tablette-*" element={<LocalSeoRouter />} />
-        <Route path="/reparateur-ordinateur-*" element={<LocalSeoRouter />} />
-        <Route path="/modern-reparateur-smartphone-*" element={<ModernLocalSeoPageLazy />} />
-        <Route path="/modern-reparateur-tablette-*" element={<ModernLocalSeoPageLazy />} />
-        <Route path="/modern-reparateur-ordinateur-*" element={<ModernLocalSeoPageLazy />} />
+        {/* SEO pages dynamiques — handled by catch-all LocalSeoRouter before 404 */}
         {/* Pages SEO programmatiques V3 */}
         <Route path="/reparation/:model/:city" element={<ModelCityPageLazy />} />
         <Route path="/reparateurs/:city" element={<HubCityPageLazy />} />
@@ -181,8 +180,8 @@ const AppWithTracking = () => {
         <Route path="/mes-donnees" element={<MyDataPage />} />
         {/* Documentation */}
         <Route path="/documentation" element={<DocumentationPage />} />
-        {/* 404 fallback */}
-        <Route path="*" element={<NotFound />} />
+        {/* SEO local catch-all: /reparateur-smartphone-paris, /modern-reparateur-tablette-lyon, etc. */}
+        <Route path="*" element={<LocalSeoCatchAll />} />
         </Routes>
       </Suspense>
       
