@@ -1,223 +1,245 @@
 
 
-# Plan : Amelioration complete de la PWA (Android et iOS)
+# Plan Evolution TopReparateurs - Sprints 1 a 5
 
-## Problemes identifies
+## Vue d'ensemble
 
-L'audit de la PWA actuelle revele plusieurs problemes majeurs :
-
-### 1. Le manifest est configure pour le POS, pas pour l'application grand public
-- **Nom** : "TopReparateurs POS" au lieu de "TopReparateurs"
-- **start_url** : `/admin?tab=pos-tester` au lieu de `/`
-- **orientation** : `landscape-primary` (paysage) au lieu de `any` (portrait sur mobile)
-- **description** : Mentionne "NF525" et "point de vente" au lieu de la reparation
-
-### 2. Icones manquantes
-- Seul `placeholder.svg` est utilise pour les icones
-- Aucune icone PNG aux tailles requises (72, 96, 128, 144, 152, 192, 384, 512)
-- Pas de `maskable` icon correctement dimensionne
-- Pas d'icone Apple Touch specifique
-
-### 3. Pas de support iOS complet
-- Pas de splash screens Apple (apple-touch-startup-image)
-- `apple-mobile-web-app-title` dit "Reparateur Pro" au lieu de "TopReparateurs"
-- Pas de gestion du safe area (encoche iPhone)
-
-### 4. Incoherences de couleur de theme
-- `manifest.json` : `#000000`
-- `index.html` meta theme-color : `#f97316`
-- L'application utilise du bleu (`#2563eb`) comme couleur primaire
-
-### 5. Service Worker rudimentaire
-- Pas de fallback vers `offline.html` (le fichier existe mais n'est jamais servi)
-- Pas de notification de mise a jour disponible
-- Pas de gestion du cache versionne (toujours "v1")
-- Enregistrement en double (dans `main.tsx` ET dans `PWAManager.tsx`)
-
-### 6. Pas de banniere d'installation pour les utilisateurs
-- Le prompt d'installation est uniquement dans le backoffice admin (POS)
-- Les visiteurs du site grand public ne voient jamais de proposition d'installation
-- Pas de page `/install` dediee
+Ce plan organise toutes les corrections, optimisations et fonctionnalites manquantes en 5 sprints progressifs. Chaque sprint est concu pour livrer de la valeur incrementale sans casser l'existant.
 
 ---
 
-## Modifications prevues
+## Sprint 1 : Corrections TODO et Reactivation des Modules
 
-### Fichier 1 : `public/manifest.json`
-Refonte complete du manifest pour l'application grand public :
+### 1.1 Corriger les TODOs critiques (26 fichiers identifies)
 
-```json
-{
-  "name": "TopReparateurs - Trouvez un reparateur",
-  "short_name": "TopReparateurs",
-  "description": "Trouvez les meilleurs reparateurs de smartphone pres de chez vous",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
-  "orientation": "any",
-  "lang": "fr-FR",
-  "dir": "ltr",
-  "icons": [...],
-  "categories": ["utilities", "lifestyle"],
-  "screenshots": [...],
-  "shortcuts": [
-    { "name": "Rechercher", "url": "/search" },
-    { "name": "Mon compte", "url": "/dashboard" }
-  ]
-}
-```
+**RepairerQuotesTab.tsx** - Filtrer les devis par repairer_id de l'utilisateur connecte :
+- Chercher le repairer_id via la table `repairers` en utilisant `user.id`
+- Ajouter un filtre `.eq('repairer_id', repairerId)` a la requete
+- Creer un modal de reponse au devis (accepter/refuser avec prix et notes)
 
-Changements cles :
-- Nom et description orientes utilisateur final
-- `start_url: "/"` (page d'accueil)
-- `orientation: "any"` pour supporter portrait et paysage
-- `theme_color: "#2563eb"` pour correspondre a la charte graphique
-- Icones generees par SVG en PNG (192x192 et 512x512 via logo-icon.svg)
-- Ajout de `screenshots` pour un meilleur rendu dans le store Android
-- Raccourcis utiles (Recherche, Mon compte)
+**ClientInterestManagement.tsx** - Remplacer les donnees mock par des vraies requetes Supabase :
+- Creer une table `client_interests` si elle n'existe pas
+- Charger les interets depuis la base de donnees
+- Implementer l'approbation/rejet avec envoi de leads selon le niveau d'abonnement
 
-### Fichier 2 : `index.html`
-Corriger les meta tags PWA et ajouter le support iOS :
+**SavedSearchFilters.tsx** - Connecter au backend :
+- Creer une table `saved_search_filters` (user_id, name, filters jsonb, alerts_enabled, created_at)
+- Implementer le CRUD complet (charger, sauvegarder, supprimer)
+- Connecter le bouton "Rechercher" a la navigation vers `/search` avec les filtres en query params
 
-- `theme-color` passe a `#2563eb`
-- `apple-mobile-web-app-title` passe a "TopReparateurs"
-- `apple-mobile-web-app-status-bar-style` passe a `black-translucent` pour un rendu plein ecran
-- Ajout de `viewport-fit=cover` dans le viewport meta pour gerer l'encoche iPhone
-- Ajout de `apple-touch-startup-image` avec les tailles pour iPhone et iPad
+**useReviewsStats** - Completer les statistiques globales :
+- Calculer les top 10 reparateurs les mieux notes (GROUP BY repairer_id, ORDER BY avg(rating))
+- Recuperer les 10 avis les plus recents avec le nom du reparateur
 
-### Fichier 3 : `public/sw.js`
-Service Worker ameliore :
+**AlexChatWidget.tsx** - Implementer les actions :
+- `open_booking` : ouvrir le composant `AppointmentBookingModal` existant via un state
+- `open_faq` : naviguer vers `/repairer-faq` au lieu d'ouvrir `/faq` (qui n'existe pas)
 
-- **Versioning automatique** : Cache nomme avec timestamp/version
-- **Fallback offline** : Servir `offline.html` quand la page n'est pas en cache
-- **Notification de mise a jour** : Envoyer un message aux clients quand une nouvelle version est disponible
-- **Nettoyage intelligent** : Supprimer les anciens caches lors de l'activation
-- **Skip navigation requests** : Ne pas cacher les pages HTML de navigation (SPA)
-- **Cache des assets Vite** : Reconnaitre les fichiers hashes de Vite pour un cache longue duree
+**ChatbotLayout.tsx** - Reactiver le chatbot avec un feature flag :
+- Ajouter une variable d'environnement ou un flag dans `chatbot_configuration`
+- Reactiver `<BenChatWidget />` conditionnellement
 
-```text
-Strategie de cache :
+**AppointmentBookingModal.tsx** - Connecter au vrai systeme :
+- Remplacer le `setTimeout` par un insert dans la table `appointments`
+- Envoyer une notification au reparateur
 
-  Requete entrante
-       |
-       v
-  Est-ce une API / Supabase ?
-  Oui --> Network First (fallback cache)
-  Non
-   |
-   v
-  Est-ce un asset statique (.js, .css, images) ?
-  Oui --> Cache First (avec revalidation en background)
-  Non
-   |
-   v
-  Est-ce une navigation HTML ?
-  Oui --> Network First (fallback offline.html)
-```
+### 1.2 Reactiver les modules desactives
 
-### Fichier 4 : `src/swRegistration.ts`
-Ameliorer l'enregistrement du SW :
+**AdminPage.tsx - Sous-domaines et Landing Pages** :
+- Reimporter `SubdomainsManagement` et `LandingPagesManagement`
+- Remplacer les `DisabledFeaturePlaceholder` par les vrais composants
+- Ajouter un toggle dans la configuration admin pour activer/desactiver ces modules
 
-- Detecter les mises a jour (`registration.onupdatefound`)
-- Envoyer un evenement personnalise quand une MAJ est prete
-- Ajouter la gestion du `skipWaiting` pour les mises a jour
-- Supprimer l'enregistrement en double dans PWAManager.tsx
+### 1.3 Notifications dans invoiceAutomationService.ts
 
-### Fichier 5 : `src/hooks/usePWA.ts` (nouveau)
-Hook global pour gerer la PWA dans toute l'application :
-
-- `isInstalled` : Detecte si l'app est installee
-- `isOnline` : Statut reseau
-- `canInstall` : Un prompt d'installation est disponible
-- `installApp()` : Declencher l'installation
-- `updateAvailable` : Une MAJ du SW est disponible
-- `updateApp()` : Appliquer la MAJ (reload)
-- `isIOS` : Detection iOS pour instructions specifiques
-
-### Fichier 6 : `src/components/pwa/PWAInstallBanner.tsx` (nouveau)
-Banniere d'installation pour les visiteurs du site :
-
-- Apparait apres 30 secondes de navigation (pas intrusif)
-- Sur Android : Bouton "Installer l'application"
-- Sur iOS : Instructions "Partagez > Ajouter a l'ecran d'accueil"
-- Dismissable avec memoire (localStorage) pour ne pas reapparaitre pendant 7 jours
-- Design elegant et non-intrusif (bottom sheet style)
-
-### Fichier 7 : `src/components/pwa/PWAUpdateBanner.tsx` (nouveau)
-Banniere de mise a jour :
-
-- Apparait quand une nouvelle version du SW est detectee
-- Bouton "Mettre a jour" qui recharge l'application
-- Disparait automatiquement si l'utilisateur ne reagit pas
-
-### Fichier 8 : `src/App.tsx`
-Integration des composants PWA :
-
-- Ajouter `<PWAInstallBanner />` et `<PWAUpdateBanner />` au layout global
-- Ces composants sont legers et ne s'affichent que quand necessaire
-
-### Fichier 9 : `src/components/pos/modules/PWAManager.tsx`
-Simplifier en utilisant le hook `usePWA` :
-
-- Supprimer l'enregistrement du SW en double
-- Utiliser `usePWA()` au lieu de gerer l'etat localement
-- Garder l'interface admin existante
-
-### Fichier 10 : `src/index.css`
-Ajouter le support du safe area iOS :
-
-```css
-/* Support iOS safe areas (encoche) */
-body {
-  padding: env(safe-area-inset-top) env(safe-area-inset-right)
-           env(safe-area-inset-bottom) env(safe-area-inset-left);
-}
-```
+- Utiliser l'Edge Function `send-notification` existante pour :
+  - Rappels de paiement (3 jours avant echeance)
+  - Notification de generation de facture
+  - Alerte documents legaux manquants
+- Remplacer les `console.log` par des appels reels a l'Edge Function
 
 ---
 
-## Resume des fichiers
+## Sprint 2 : Performance et Qualite du Code
 
-| Fichier | Action | Description |
-|---------|--------|-------------|
-| `public/manifest.json` | Modifier | Manifest oriente utilisateur final |
-| `index.html` | Modifier | Meta tags iOS, theme color, viewport |
-| `public/sw.js` | Modifier | SW avec fallback offline, MAJ, versioning |
-| `src/swRegistration.ts` | Modifier | Detection de mises a jour |
-| `src/hooks/usePWA.ts` | Creer | Hook global PWA |
-| `src/components/pwa/PWAInstallBanner.tsx` | Creer | Banniere d'installation visiteurs |
-| `src/components/pwa/PWAUpdateBanner.tsx` | Creer | Banniere de mise a jour |
-| `src/App.tsx` | Modifier | Integration bannieres PWA |
-| `src/components/pos/modules/PWAManager.tsx` | Modifier | Simplification avec hook usePWA |
-| `src/index.css` | Modifier | Safe area iOS |
+### 2.1 Optimisation du cache et des requetes
+
+- Etendre le `TTLCache` de `useRepairersOptimized` a tous les hooks de donnees
+- Ajouter un cache React Query global avec `staleTime: 5 * 60 * 1000` dans le QueryClient
+- Implementer un prefetch sur les pages les plus visitees (accueil, recherche)
+
+### 2.2 Nettoyage du code
+
+- Supprimer les `console.log` de production (environ 150+ occurrences)
+- Ajouter le mode strict du logger (deja present dans `utils/logger.ts`)
+- Supprimer les imports inutilises et les composants wrappers vides
+- Migrer les derniers composants non-lazy vers `React.lazy()`
+
+### 2.3 Core Web Vitals
+
+- Ajouter des composants Skeleton pour les listes de reparateurs et le dashboard
+- Implementer `loading="lazy"` et `decoding="async"` sur toutes les images
+- Optimiser le bundle avec un `splitChunks` dans la config Vite
+- Mettre le composant `web-vitals` en production (deja installe mais peu utilise)
+
+### 2.4 Accessibilite (WCAG 2.1 AA)
+
+- Audit des contrastes de couleur sur les badges et boutons
+- Ajouter les attributs `aria-label` sur les boutons iconiques
+- Implementer la navigation clavier dans les modales et menus
+- Ajouter `role` et `aria-live` pour les notifications toast
+
+### 2.5 Monitoring
+
+- Configurer Sentry avec des breadcrumbs pour les actions utilisateur (deja installe)
+- Ajouter des metriques custom pour les temps de chargement des pages
+- Configurer des alertes pour les erreurs critiques (taux > 1%)
 
 ---
 
-## Section technique
+## Sprint 3 : Fonctionnalites Business
 
-### Generation des icones PWA
+### 3.1 Integration Stripe (Paiements et Abonnements)
 
-Les icones seront referencees depuis le `logo-icon.svg` existant. Le SVG sera utilise directement comme icone (supporte par Chrome et Safari modernes). Pour une compatibilite maximale, le manifest listera :
-- `logo-icon.svg` en 192x192 et 512x512 (SVG est vectoriel, il s'adapte)
-- `purpose: "any maskable"` pour couvrir les deux usages
+- Activer l'integration Stripe via l'outil Lovable
+- Creer les produits Stripe pour les plans : Visibilite (14.90EUR), Pro (49.90EUR), Premium (99.90EUR)
+- Implementer le checkout pour les abonnements reparateurs
+- Configurer les webhooks Stripe pour mettre a jour le statut d'abonnement
+- Generer les factures automatiques avec TVA
 
-### Compatibilite iOS
+### 3.2 Messagerie Client-Reparateur
 
-iOS ne supporte pas `beforeinstallprompt`. Le composant `PWAInstallBanner` detectera iOS via le user agent et affichera des instructions manuelles :
-1. Appuyez sur le bouton Partager
-2. Selectionnez "Sur l'ecran d'accueil"
-3. Confirmez "Ajouter"
+Le composant `IntegratedMessaging.tsx` existe deja avec une bonne structure. Il faut :
+- Creer la table `conversations` et `conversation_messages` si absentes
+- Ajouter un bouton "Envoyer un message" sur les fiches reparateurs (plans Visibilite+)
+- Integrer la messagerie dans le dashboard client et reparateur
+- Ajouter les notifications en temps reel via Supabase Realtime
 
-### Strategie de mise a jour du Service Worker
+### 3.3 Agenda et Prise de Rendez-vous
 
-Le nouveau SW utilisera `skipWaiting()` uniquement quand l'utilisateur clique "Mettre a jour". Sinon, la nouvelle version attend que tous les onglets soient fermes. Cela evite les bugs de versions mixtes.
+Le composant `AdvancedAppointmentBooking.tsx` existe. Il faut :
+- Connecter au backend : creneaux disponibles depuis la table `appointments`
+- Permettre aux reparateurs de definir leurs horaires disponibles
+- Implementer les confirmations et annulations avec notifications
+- Rendre accessible depuis le chatbot (action `open_booking`) et les fiches
 
-### Enregistrement unique du SW
+### 3.4 Gestion des Leads par Niveau
 
-Actuellement, le SW est enregistre dans 2 endroits :
-- `src/main.tsx` via `registerServiceWorker()`
-- `src/components/pos/modules/PWAManager.tsx` directement
+- Les leads gratuits voient uniquement les reparateurs proches
+- Niveau 1 : recoit les leads de sa zone (limites a 5/mois)
+- Niveau 2 : leads illimites + devis en ligne
+- Niveau 3 : leads prioritaires + exclusivite zone
 
-Apres refactoring, seul `main.tsx` enregistrera le SW. Le hook `usePWA` exposera l'etat sans re-enregistrer.
+---
+
+## Sprint 4 : Contenu et SEO
+
+### 4.1 Pages programmatiques "Ville + Modele + Panne"
+
+Le systeme de base existe (`ModelCityPage`, `SymptomPage`, `HubCityPage`). Il faut :
+- Generer automatiquement le contenu via l'Edge Function `blog-ai-generator`
+- Creer une table `programmatic_pages` pour stocker le contenu genere
+- Ajouter les FAQ dynamiques avec Schema.org FAQPage
+- Integrer les prix moyens et les CTA vers les reparateurs locaux
+
+### 4.2 Enrichissement des fiches non revendiquees (Niveau 0)
+
+- Generer automatiquement du contenu neutre (services detectes, zone de couverture)
+- Ajouter les balises Schema.org LocalBusiness sur toutes les fiches
+- Afficher les horaires generiques et la zone geographique estimee
+
+### 4.3 Pages institutionnelles
+
+Creer les pages suivantes via le StaticPagesManager existant :
+- "Qui sommes-nous ?" (`/a-propos`)
+- "Notre garantie" (`/garantie`)
+- "Comment choisir un reparateur" (`/guide-choix-reparateur`)
+
+### 4.4 Blog pedagogique
+
+- Programmer la publication automatique d'articles via `blog-auto-publish`
+- Themes : prix reparation par modele, indice reparabilite, conseils entretien
+- Ajouter les liens internes vers les pages programmatiques
+
+---
+
+## Sprint 5 : IA et Marketplace
+
+### 5.1 Matching IA Client-Reparateur
+
+Le systeme existe deja (`aiRepairerMatcher.ts`, `aiQueryParser.ts`). Il faut :
+- Affiner le scoring multi-criteres (pertinence 35%, distance 25%, note 20%, niveau 15%, delai 5%)
+- Afficher le score de matching et les raisons de la recommandation sur les resultats
+- Integrer le matching dans le chatbot pour les recommandations personnalisees
+
+### 5.2 Analytics Reparateurs
+
+- Creer un dashboard de statistiques pour les reparateurs (plan Pro+) :
+  - Nombre de vues de la fiche
+  - Nombre de demandes de devis recues
+  - Taux de conversion (vue -> devis -> RDV)
+  - Comparaison avec la moyenne locale
+- Stocker les metriques dans une table `repairer_analytics`
+
+### 5.3 POS NF525 et Exclusivite
+
+Le systeme POS et les zones d'exclusivite existent deja. Il faut :
+- Connecter le POS aux paiements Stripe
+- Synchroniser les transactions POS avec les factures electroniques
+- Finaliser le dashboard des revenus par zone
+
+### 5.4 Marketplace Accessoires (Preparation)
+
+- Creer la structure de base pour les produits (coques, batteries, protections)
+- Integrer avec les fiches reparateurs pour le cross-selling
+- Preparer l'integration Shopify pour les reparateurs Premium
+
+---
+
+## Fichiers a creer
+
+| Sprint | Fichier | Description |
+|--------|---------|-------------|
+| 1 | `src/components/quotes/QuoteResponseModal.tsx` | Modal de reponse aux devis |
+| 1 | `supabase/migrations/xxx_client_interests.sql` | Table client_interests |
+| 1 | `supabase/migrations/xxx_saved_filters.sql` | Table saved_search_filters |
+| 3 | `supabase/migrations/xxx_conversations.sql` | Tables messagerie |
+| 4 | `supabase/migrations/xxx_programmatic_pages.sql` | Table pages programmatiques |
+| 5 | `supabase/migrations/xxx_repairer_analytics.sql` | Table analytics reparateurs |
+
+## Fichiers a modifier (principaux)
+
+| Sprint | Fichier | Modification |
+|--------|---------|--------------|
+| 1 | `src/components/repairer-dashboard/RepairerQuotesTab.tsx` | Filtrage par repairer_id + modal reponse |
+| 1 | `src/components/ClientInterestManagement.tsx` | Remplacement mock par Supabase |
+| 1 | `src/components/search/SavedSearchFilters.tsx` | CRUD backend |
+| 1 | `src/hooks/useReviews.ts` | Completer useReviewsStats |
+| 1 | `src/components/chatbot/AlexChatWidget.tsx` | Actions open_booking et open_faq |
+| 1 | `src/components/ChatbotLayout.tsx` | Reactiver chatbot |
+| 1 | `src/pages/AdminPage.tsx` | Reactiver sous-domaines/landing pages |
+| 1 | `src/services/invoiceAutomationService.ts` | Vraies notifications |
+| 2 | `src/App.tsx` | QueryClient avec cache global |
+| 2 | Multiples composants | Skeleton loaders, lazy loading |
+| 3 | `src/components/messaging/IntegratedMessaging.tsx` | Connexion backend |
+| 3 | `src/components/appointments/AdvancedAppointmentBooking.tsx` | Backend creneaux |
+| 5 | `src/pages/RepairerDashboardPage.tsx` | Onglet analytics |
+
+---
+
+## Contraintes respectees
+
+- Aucune URL existante ne sera modifiee ou supprimee
+- Retrocompatibilite totale avec les routes SEO actuelles
+- Mobile-first : toutes les nouvelles interfaces sont responsive
+- Free tier Supabase : les Edge Functions restent sous le quota (environ 25 actives)
+- Fallback IA : Lovable AI -> OpenAI -> Gemini -> Mistral sur toutes les fonctions IA
+
+---
+
+## Recommandation d'execution
+
+Vu l'ampleur du plan, je recommande de commencer par le **Sprint 1** qui corrige les bugs et les TODOs, puis d'avancer sprint par sprint. Chaque sprint peut etre approuve et implemente independamment.
+
+Souhaitez-vous que je commence par le Sprint 1 (corrections TODO et reactivation des modules) ?
 
