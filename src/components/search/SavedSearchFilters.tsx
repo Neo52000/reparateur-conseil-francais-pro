@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Star, Trash2, Bell, BellOff, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { enhancedToast } from '@/components/ui/enhanced-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 interface SavedFilter {
   id: string;
@@ -16,51 +18,54 @@ interface SavedFilter {
     city?: string;
     maxPrice?: number;
   };
-  alertsEnabled: boolean;
-  lastUsed: string;
-  resultsCount: number;
+  alerts_enabled: boolean;
+  last_used: string;
+  results_count: number;
 }
 
 export const SavedSearchFilters: React.FC<{ userId?: string }> = ({ userId }) => {
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [newFilterName, setNewFilterName] = useState('');
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (userId) {
       loadSavedFilters();
+    } else {
+      setLoading(false);
     }
   }, [userId]);
 
-  const loadSavedFilters = () => {
-    // Mock data - TODO: Load from backend
-    setSavedFilters([
-      {
-        id: '1',
-        name: 'iPhone Paris',
-        filters: {
-          brand: 'Apple',
-          city: 'Paris',
-        },
-        alertsEnabled: true,
-        lastUsed: new Date().toISOString(),
-        resultsCount: 12,
-      },
-      {
-        id: '2',
-        name: 'Samsung budget',
-        filters: {
-          brand: 'Samsung',
-          maxPrice: 100,
-        },
-        alertsEnabled: false,
-        lastUsed: new Date(Date.now() - 86400000).toISOString(),
-        resultsCount: 8,
-      },
-    ]);
+  const loadSavedFilters = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('saved_search_filters')
+        .select('*')
+        .eq('user_id', userId!)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setSavedFilters(
+        (data || []).map((f: any) => ({
+          id: f.id,
+          name: f.name,
+          filters: f.filters || {},
+          alerts_enabled: f.alerts_enabled,
+          last_used: f.last_used || f.created_at,
+          results_count: f.results_count || 0,
+        }))
+      );
+    } catch (error) {
+      console.error('Erreur chargement filtres:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const saveCurrentFilters = () => {
+  const saveCurrentFilters = async () => {
     if (!newFilterName.trim()) {
       enhancedToast.error({
         title: 'Nom requis',
@@ -69,57 +74,97 @@ export const SavedSearchFilters: React.FC<{ userId?: string }> = ({ userId }) =>
       return;
     }
 
-    const newFilter: SavedFilter = {
-      id: Date.now().toString(),
-      name: newFilterName,
-      filters: {}, // TODO: Get from current filters
-      alertsEnabled: false,
-      lastUsed: new Date().toISOString(),
-      resultsCount: 0,
-    };
+    try {
+      const { data, error } = await supabase
+        .from('saved_search_filters')
+        .insert({
+          user_id: userId!,
+          name: newFilterName,
+          filters: {},
+          alerts_enabled: false,
+        })
+        .select()
+        .single();
 
-    setSavedFilters([...savedFilters, newFilter]);
-    setNewFilterName('');
-    setIsCreating(false);
+      if (error) throw error;
 
-    enhancedToast.success({
-      title: 'Recherche sauvegardée',
-      description: 'Vous pouvez maintenant la réutiliser rapidement',
-    });
-  };
+      setSavedFilters(prev => [{
+        id: data.id,
+        name: data.name,
+        filters: (data.filters || {}) as SavedFilter['filters'],
+        alerts_enabled: data.alerts_enabled,
+        last_used: data.created_at,
+        results_count: 0,
+      }, ...prev]);
 
-  const toggleAlerts = (id: string) => {
-    setSavedFilters(savedFilters.map(filter =>
-      filter.id === id
-        ? { ...filter, alertsEnabled: !filter.alertsEnabled }
-        : filter
-    ));
+      setNewFilterName('');
+      setIsCreating(false);
 
-    const filter = savedFilters.find(f => f.id === id);
-    if (filter) {
       enhancedToast.success({
-        title: filter.alertsEnabled ? 'Alertes désactivées' : 'Alertes activées',
-        description: filter.alertsEnabled
-          ? 'Vous ne recevrez plus de notifications'
-          : 'Vous serez notifié des nouveaux résultats',
+        title: 'Recherche sauvegardée',
+        description: 'Vous pouvez maintenant la réutiliser rapidement',
       });
+    } catch (error) {
+      console.error('Erreur sauvegarde filtre:', error);
+      enhancedToast.error({ title: 'Erreur', description: 'Impossible de sauvegarder' });
     }
   };
 
-  const deleteFilter = (id: string) => {
-    setSavedFilters(savedFilters.filter(f => f.id !== id));
-    enhancedToast.success({
-      title: 'Recherche supprimée',
-    });
+  const toggleAlerts = async (id: string) => {
+    const filter = savedFilters.find(f => f.id === id);
+    if (!filter) return;
+
+    const newValue = !filter.alerts_enabled;
+
+    try {
+      await supabase
+        .from('saved_search_filters')
+        .update({ alerts_enabled: newValue })
+        .eq('id', id);
+
+      setSavedFilters(prev =>
+        prev.map(f => f.id === id ? { ...f, alerts_enabled: newValue } : f)
+      );
+
+      enhancedToast.success({
+        title: newValue ? 'Alertes activées' : 'Alertes désactivées',
+        description: newValue
+          ? 'Vous serez notifié des nouveaux résultats'
+          : 'Vous ne recevrez plus de notifications',
+      });
+    } catch (error) {
+      console.error('Erreur toggle alertes:', error);
+    }
+  };
+
+  const deleteFilter = async (id: string) => {
+    try {
+      await supabase.from('saved_search_filters').delete().eq('id', id);
+      setSavedFilters(prev => prev.filter(f => f.id !== id));
+      enhancedToast.success({ title: 'Recherche supprimée' });
+    } catch (error) {
+      console.error('Erreur suppression filtre:', error);
+    }
   };
 
   const applyFilter = (filter: SavedFilter) => {
-    // TODO: Apply filters to search
-    enhancedToast.info({
-      title: 'Filtres appliqués',
-      description: `${filter.resultsCount} réparateurs trouvés`,
-    });
+    const params = new URLSearchParams();
+    if (filter.filters.brand) params.set('brand', filter.filters.brand);
+    if (filter.filters.city) params.set('city', filter.filters.city);
+    if (filter.filters.deviceType) params.set('type', filter.filters.deviceType);
+    if (filter.filters.maxPrice) params.set('maxPrice', String(filter.filters.maxPrice));
+
+    // Update last_used
+    supabase
+      .from('saved_search_filters')
+      .update({ last_used: new Date().toISOString() })
+      .eq('id', filter.id)
+      .then();
+
+    navigate(`/search?${params.toString()}`);
   };
+
+  if (loading) return null;
 
   return (
     <Card>
@@ -129,13 +174,15 @@ export const SavedSearchFilters: React.FC<{ userId?: string }> = ({ userId }) =>
             <Star className="h-5 w-5 text-primary" />
             Mes recherches favorites
           </CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsCreating(!isCreating)}
-          >
-            {isCreating ? 'Annuler' : 'Sauvegarder cette recherche'}
-          </Button>
+          {userId && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCreating(!isCreating)}
+            >
+              {isCreating ? 'Annuler' : 'Sauvegarder cette recherche'}
+            </Button>
+          )}
         </div>
       </CardHeader>
 
@@ -154,9 +201,7 @@ export const SavedSearchFilters: React.FC<{ userId?: string }> = ({ userId }) =>
                 onChange={(e) => setNewFilterName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && saveCurrentFilters()}
               />
-              <Button onClick={saveCurrentFilters}>
-                Sauvegarder
-              </Button>
+              <Button onClick={saveCurrentFilters}>Sauvegarder</Button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -182,7 +227,7 @@ export const SavedSearchFilters: React.FC<{ userId?: string }> = ({ userId }) =>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <h4 className="font-semibold">{filter.name}</h4>
-                          {filter.alertsEnabled && (
+                          {filter.alerts_enabled && (
                             <Badge variant="secondary" className="text-xs">
                               <Bell className="h-3 w-3 mr-1" />
                               Alertes ON
@@ -192,9 +237,11 @@ export const SavedSearchFilters: React.FC<{ userId?: string }> = ({ userId }) =>
                         
                         <div className="flex flex-wrap gap-2 mb-3">
                           {Object.entries(filter.filters).map(([key, value]) => (
-                            <Badge key={key} variant="outline" className="text-xs">
-                              {key}: {value}
-                            </Badge>
+                            value && (
+                              <Badge key={key} variant="outline" className="text-xs">
+                                {key}: {value}
+                              </Badge>
+                            )
                           ))}
                         </div>
 
@@ -205,15 +252,16 @@ export const SavedSearchFilters: React.FC<{ userId?: string }> = ({ userId }) =>
                             onClick={() => applyFilter(filter)}
                           >
                             <Search className="h-4 w-4 mr-2" />
-                            Rechercher ({filter.resultsCount})
+                            Rechercher
                           </Button>
 
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => toggleAlerts(filter.id)}
+                            aria-label={filter.alerts_enabled ? 'Désactiver les alertes' : 'Activer les alertes'}
                           >
-                            {filter.alertsEnabled ? (
+                            {filter.alerts_enabled ? (
                               <BellOff className="h-4 w-4" />
                             ) : (
                               <Bell className="h-4 w-4" />
@@ -224,6 +272,7 @@ export const SavedSearchFilters: React.FC<{ userId?: string }> = ({ userId }) =>
                             variant="ghost"
                             size="sm"
                             onClick={() => deleteFilter(filter.id)}
+                            aria-label="Supprimer la recherche"
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>

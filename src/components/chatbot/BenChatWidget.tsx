@@ -225,12 +225,9 @@ const BenChatWidget: React.FC = () => {
       if (data.actions) {
         data.actions.forEach((action: any) => {
           if (action.type === 'open_booking') {
-            toast({
-              title: "Prise de rendez-vous",
-              description: "Fonctionnalité en cours de développement",
-            });
+            window.dispatchEvent(new CustomEvent('open-booking-modal'));
           } else if (action.type === 'open_faq') {
-            window.open('/faq', '_blank');
+            window.location.href = '/repairer-faq';
           }
         });
       }

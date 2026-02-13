@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useAdminAuditIntegration } from '@/hooks/useAdminAuditIntegration';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { CheckCircle, XCircle, Clock, Mail, Phone, MessageSquare } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Mail, Phone, MessageSquare, Loader2 } from 'lucide-react';
 
 interface ClientInterest {
   id: string;
@@ -27,175 +27,130 @@ const ClientInterestManagement: React.FC = () => {
   const { toast } = useToast();
   const [interests, setInterests] = useState<ClientInterest[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
 
-  // Simuler le chargement des demandes d'intérêt
   useEffect(() => {
-    const mockInterests: ClientInterest[] = [
-      {
-        id: '1',
-        client_email: 'client1@example.com',
-        client_phone: '0123456789',
-        client_message: 'Bonjour, je souhaiterais réparer mon iPhone 12 qui a un écran cassé.',
-        repairer_profile_id: 'repairer-1',
-        status: 'pending',
-        created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: '2',
-        client_email: 'client2@example.com',
-        client_message: 'Mon Samsung Galaxy S21 ne charge plus, pouvez-vous m\'aider ?',
-        repairer_profile_id: 'repairer-2',
-        status: 'approved',
-        created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        approved_at: new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString(),
-        approved_by: 'admin-user-id'
-      },
-      {
-        id: '3',
-        client_email: 'client3@example.com',
-        client_phone: '0987654321',
-        client_message: 'Écran tactile de ma tablette iPad qui ne répond plus.',
-        repairer_profile_id: 'repairer-1',
-        status: 'sent',
-        created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        approved_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        sent_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString(),
-        approved_by: 'admin-user-id'
-      }
-    ];
-    setInterests(mockInterests);
+    loadInterests();
   }, []);
+
+  const loadInterests = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('client_interests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setInterests((data || []) as ClientInterest[]);
+    } catch (error) {
+      console.error('Erreur chargement intérêts:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les demandes',
+        variant: 'destructive',
+      });
+    } finally {
+      setInitialLoading(false);
+    }
+  };
 
   const handleApproveInterest = async (interest: ClientInterest) => {
     setLoading(interest.id);
     try {
-      // Simulate update for now (table doesn't exist yet)
-      console.log('Would update client interest:', interest.id, 'to approved');
-      // TODO: Implement real Supabase update when table is created
-      
+      const { error } = await supabase
+        .from('client_interests')
+        .update({
+          status: 'approved',
+          approved_at: new Date().toISOString(),
+          approved_by: (await supabase.auth.getUser()).data.user?.id,
+        })
+        .eq('id', interest.id);
+
+      if (error) throw error;
+
       logClientInterestAction('approve', interest.id, {
         client_email: interest.client_email,
-        client_phone: interest.client_phone,
         repairer_profile_id: interest.repairer_profile_id,
-        approval_time: new Date().toISOString(),
         previous_status: interest.status,
         new_status: 'approved',
-        client_message_preview: interest.client_message?.substring(0, 100)
       }, 'info');
 
-      setInterests(prev => 
-        prev.map(i => 
-          i.id === interest.id 
+      setInterests(prev =>
+        prev.map(i =>
+          i.id === interest.id
             ? { ...i, status: 'approved', approved_at: new Date().toISOString() }
             : i
         )
       );
 
-      toast({
-        title: "Demande approuvée",
-        description: `La demande de ${interest.client_email} a été approuvée`,
-      });
+      toast({ title: 'Demande approuvée', description: `La demande de ${interest.client_email} a été approuvée` });
     } catch (error: any) {
-      console.error('Error approving interest:', error);
-      toast({
-        title: "Erreur",
-        description: error.message || "Impossible d'approuver la demande",
-        variant: "destructive"
-      });
+      toast({ title: 'Erreur', description: error.message || "Impossible d'approuver", variant: 'destructive' });
     } finally {
       setLoading(null);
     }
   };
 
   const handleRejectInterest = async (interest: ClientInterest) => {
-    if (!confirm(`Êtes-vous sûr de vouloir rejeter la demande de ${interest.client_email} ?`)) {
-      return;
-    }
+    if (!confirm(`Rejeter la demande de ${interest.client_email} ?`)) return;
 
     setLoading(interest.id);
     try {
-      // Simulate update for now (table doesn't exist yet)
-      console.log('Would update client interest:', interest.id, 'to rejected');
-      // TODO: Implement real Supabase update when table is created
-      
+      const { error } = await supabase
+        .from('client_interests')
+        .update({ status: 'rejected' })
+        .eq('id', interest.id);
+
+      if (error) throw error;
+
       logClientInterestAction('reject', interest.id, {
         client_email: interest.client_email,
-        client_phone: interest.client_phone,
         repairer_profile_id: interest.repairer_profile_id,
-        rejection_time: new Date().toISOString(),
         previous_status: interest.status,
         new_status: 'rejected',
-        rejection_reason: 'Manual admin rejection',
-        client_message_preview: interest.client_message?.substring(0, 100)
       }, 'warning');
 
-      setInterests(prev => 
-        prev.map(i => 
-          i.id === interest.id 
-            ? { ...i, status: 'rejected' }
-            : i
-        )
+      setInterests(prev =>
+        prev.map(i => i.id === interest.id ? { ...i, status: 'rejected' } : i)
       );
 
-      toast({
-        title: "Demande rejetée",
-        description: `La demande de ${interest.client_email} a été rejetée`,
-        variant: "destructive"
-      });
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de rejeter la demande",
-        variant: "destructive"
-      });
+      toast({ title: 'Demande rejetée', variant: 'destructive' });
+    } catch {
+      toast({ title: 'Erreur', description: 'Impossible de rejeter', variant: 'destructive' });
     } finally {
       setLoading(null);
     }
   };
 
   const handleSendToRepairer = async (interest: ClientInterest) => {
-    if (interest.status !== 'approved') {
-      toast({
-        title: "Erreur",
-        description: "Seules les demandes approuvées peuvent être envoyées",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (interest.status !== 'approved') return;
 
     setLoading(interest.id);
     try {
-      // Simuler l'envoi au réparateur
-      // Process interest immediately - no artificial delay needed
-      
+      const { error } = await supabase
+        .from('client_interests')
+        .update({ status: 'sent', sent_at: new Date().toISOString() })
+        .eq('id', interest.id);
+
+      if (error) throw error;
+
       logClientInterestAction('update', interest.id, {
         client_email: interest.client_email,
         repairer_profile_id: interest.repairer_profile_id,
-        send_time: new Date().toISOString(),
-        previous_status: interest.status,
         new_status: 'sent',
-        notification_method: 'email',
-        repairer_notified: true
       }, 'info');
 
-      setInterests(prev => 
-        prev.map(i => 
-          i.id === interest.id 
+      setInterests(prev =>
+        prev.map(i =>
+          i.id === interest.id
             ? { ...i, status: 'sent', sent_at: new Date().toISOString() }
             : i
         )
       );
 
-      toast({
-        title: "Demande envoyée",
-        description: `La demande a été transmise au réparateur`,
-      });
-    } catch (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible d'envoyer la demande",
-        variant: "destructive"
-      });
+      toast({ title: 'Demande envoyée', description: 'La demande a été transmise au réparateur' });
+    } catch {
+      toast({ title: 'Erreur', description: "Impossible d'envoyer", variant: 'destructive' });
     } finally {
       setLoading(null);
     }
@@ -218,6 +173,14 @@ const ClientInterestManagement: React.FC = () => {
   const approvedCount = interests.filter(i => i.status === 'approved').length;
   const sentCount = interests.filter(i => i.status === 'sent').length;
 
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -230,7 +193,6 @@ const ClientInterestManagement: React.FC = () => {
             <div className="text-2xl font-bold">{pendingCount}</div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Approuvées</CardTitle>
@@ -240,7 +202,6 @@ const ClientInterestManagement: React.FC = () => {
             <div className="text-2xl font-bold">{approvedCount}</div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Envoyées</CardTitle>
@@ -257,90 +218,80 @@ const ClientInterestManagement: React.FC = () => {
           <CardTitle>Demandes d'intérêt clients</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Client</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Message</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {interests.map((interest) => (
-                <TableRow key={interest.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      {interest.client_email}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {interest.client_phone && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="h-3 w-3" />
-                        {interest.client_phone}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="max-w-xs">
-                    {interest.client_message && (
-                      <div className="flex items-start gap-2">
-                        <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                        <p className="text-sm truncate" title={interest.client_message}>
-                          {interest.client_message.length > 50 
-                            ? `${interest.client_message.substring(0, 50)}...`
-                            : interest.client_message
-                          }
-                        </p>
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(interest.created_at).toLocaleDateString('fr-FR')}
-                  </TableCell>
-                  <TableCell>
-                    {getStatusBadge(interest.status)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      {interest.status === 'pending' && (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={() => handleApproveInterest(interest)}
-                            disabled={loading === interest.id}
-                          >
-                            {loading === interest.id ? 'Traitement...' : 'Approuver'}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleRejectInterest(interest)}
-                            disabled={loading === interest.id}
-                          >
-                            Rejeter
-                          </Button>
-                        </>
-                      )}
-                      {interest.status === 'approved' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleSendToRepairer(interest)}
-                          disabled={loading === interest.id}
-                        >
-                          {loading === interest.id ? 'Envoi...' : 'Envoyer au réparateur'}
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
+          {interests.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Mail className="h-12 w-12 mx-auto mb-2 opacity-20" />
+              <p>Aucune demande d'intérêt</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Message</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {interests.map((interest) => (
+                  <TableRow key={interest.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        {interest.client_email}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {interest.client_phone && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Phone className="h-3 w-3" />
+                          {interest.client_phone}
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="max-w-xs">
+                      {interest.client_message && (
+                        <div className="flex items-start gap-2">
+                          <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                          <p className="text-sm truncate" title={interest.client_message}>
+                            {interest.client_message.length > 50
+                              ? `${interest.client_message.substring(0, 50)}...`
+                              : interest.client_message}
+                          </p>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(interest.created_at).toLocaleDateString('fr-FR')}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(interest.status)}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        {interest.status === 'pending' && (
+                          <>
+                            <Button size="sm" onClick={() => handleApproveInterest(interest)} disabled={loading === interest.id}>
+                              {loading === interest.id ? 'Traitement...' : 'Approuver'}
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleRejectInterest(interest)} disabled={loading === interest.id}>
+                              Rejeter
+                            </Button>
+                          </>
+                        )}
+                        {interest.status === 'approved' && (
+                          <Button size="sm" variant="outline" onClick={() => handleSendToRepairer(interest)} disabled={loading === interest.id}>
+                            {loading === interest.id ? 'Envoi...' : 'Envoyer au réparateur'}
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -10,7 +10,6 @@ const ChatbotLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   useEffect(() => {
     const onOpen = () => {
       // Custom event the widget can listen to
-      // If AlexChatWidget exposes an API, we could call it here.
     };
     window.addEventListener('open-chatbot', onOpen);
     return () => window.removeEventListener('open-chatbot', onOpen);
@@ -19,8 +18,7 @@ const ChatbotLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   return (
     <>
       {children}
-      {/* TODO: Réactiver quand plan Supabase upgradé - Chatbot désactivé temporairement */}
-      {/* <BenChatWidget /> */}
+      <BenChatWidget />
     </>
   );
 };

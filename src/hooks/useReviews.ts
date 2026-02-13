@@ -227,11 +227,29 @@ export const useReviewsStats = () => {
         const totalReviews = reviews.length;
         const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
 
+        // Calculate top rated repairers
+        const repairerMap = new Map<string, { total: number; count: number }>();
+        reviews.forEach(r => {
+          const existing = repairerMap.get(r.repairer_id) || { total: 0, count: 0 };
+          repairerMap.set(r.repairer_id, { total: existing.total + r.rating, count: existing.count + 1 });
+        });
+        const topRatedRepairers = Array.from(repairerMap.entries())
+          .map(([id, { total, count }]) => ({ repairer_id: id, avg_rating: total / count, review_count: count }))
+          .filter(r => r.review_count >= 3)
+          .sort((a, b) => b.avg_rating - a.avg_rating)
+          .slice(0, 10);
+
+        // Recent reviews (last 10)
+        const recentReviews = [...reviews]
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, 10)
+          .map(r => ({ ...r, repairer_id: r.repairer_id, rating: r.rating, created_at: r.created_at }));
+
         setGlobalStats({
           totalReviews,
           averageRating,
-          topRatedRepairers: [], // TODO: Implement top rated repairers logic
-          recentReviews: [] // TODO: Implement recent reviews logic
+          topRatedRepairers: topRatedRepairers as any,
+          recentReviews: recentReviews as any,
         });
       }
     } catch (error) {

@@ -8,6 +8,7 @@ import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { enhancedToast } from '@/lib/utils/enhancedToast';
+import { QuoteResponseModal } from '@/components/quotes/QuoteResponseModal';
 
 interface Quote {
   id: string;
@@ -29,20 +30,48 @@ export const RepairerQuotesTab: React.FC = () => {
   const { user } = useAuth();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
-  const [respondingTo, setRespondingTo] = useState<string | null>(null);
+  const [repairerId, setRepairerId] = useState<string | null>(null);
+  const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
 
   useEffect(() => {
     if (user) {
-      loadQuotes();
+      lookupRepairerId();
     }
   }, [user]);
 
+  useEffect(() => {
+    if (repairerId) {
+      loadQuotes();
+    }
+  }, [repairerId]);
+
+  const lookupRepairerId = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('repairer_profiles')
+        .select('id')
+        .eq('user_id', user!.id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setRepairerId(data.id);
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Erreur lookup repairer_id:', error);
+      setLoading(false);
+    }
+  };
+
   const loadQuotes = async () => {
     try {
-      // TODO: Replace with actual repairer_id lookup
       const { data, error } = await supabase
         .from('quotes')
         .select('*')
+        .eq('repairer_id', repairerId!)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -56,12 +85,6 @@ export const RepairerQuotesTab: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleRespond = async (quoteId: string) => {
-    setRespondingTo(quoteId);
-    // TODO: Open response modal or navigate to response form
-    setTimeout(() => setRespondingTo(null), 1000);
   };
 
   const getStatusBadge = (status: string) => {
@@ -88,6 +111,16 @@ export const RepairerQuotesTab: React.FC = () => {
       <div className="flex items-center justify-center py-12">
         <LoadingSpinner size="lg" />
       </div>
+    );
+  }
+
+  if (!repairerId) {
+    return (
+      <EnhancedEmptyState
+        icon={FileText}
+        title="Profil réparateur non trouvé"
+        description="Veuillez d'abord créer votre profil réparateur pour recevoir des demandes de devis"
+      />
     );
   }
 
@@ -150,21 +183,11 @@ export const RepairerQuotesTab: React.FC = () => {
             <div className="flex gap-2 pt-2">
               {quote.status === 'pending' && (
                 <Button 
-                  onClick={() => handleRespond(quote.id)}
-                  disabled={respondingTo === quote.id}
+                  onClick={() => setSelectedQuote(quote)}
                   className="flex-1"
                 >
-                  {respondingTo === quote.id ? (
-                    <>
-                      <LoadingSpinner size="sm" className="mr-2" />
-                      Réponse en cours...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4 mr-2" />
-                      Répondre
-                    </>
-                  )}
+                  <Send className="h-4 w-4 mr-2" />
+                  Répondre
                 </Button>
               )}
               <Button 
@@ -178,6 +201,15 @@ export const RepairerQuotesTab: React.FC = () => {
           </CardContent>
         </Card>
       ))}
+
+      {selectedQuote && (
+        <QuoteResponseModal
+          isOpen={!!selectedQuote}
+          onClose={() => setSelectedQuote(null)}
+          quote={selectedQuote}
+          onSuccess={loadQuotes}
+        />
+      )}
     </div>
   );
 };
