@@ -20,9 +20,8 @@ import { AdminReauthGate } from '@/components/admin/security/AdminReauthGate';
 import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdvertisingDashboard';
 import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement';
 import DisabledFeaturePlaceholder from '@/components/admin/DisabledFeaturePlaceholder';
-// TODO: Réactiver quand nécessaire
-// import SubdomainsManagement from '@/components/admin/SubdomainsManagement';
-// import LandingPagesManagement from '@/components/admin/landing-pages/LandingPagesManagement';
+import SubdomainsManagement from '@/components/admin/SubdomainsManagement';
+import LandingPagesManagement from '@/components/admin/landing-pages/LandingPagesManagement';
 import LocalSeoManagement from '@/components/admin/LocalSeoManagement';
 import SEOMonitoringDashboard from '@/components/admin/SEOMonitoringDashboard';
 import RepairContentGenerator from '@/components/blog/admin/RepairContentGenerator';
@@ -331,15 +330,9 @@ const AdminPage = () => {
       case 'subscriptions':
         return <SubscriptionsManagement />;
       case 'subdomains':
-        return <DisabledFeaturePlaceholder 
-          title="Sous-domaines" 
-          description="Création et gestion des sous-domaines personnalisés pour les réparateurs."
-        />;
+        return <SubdomainsManagement />;
       case 'landing-pages':
-        return <DisabledFeaturePlaceholder 
-          title="Landing Pages" 
-          description="Création de pages d'atterrissage personnalisées avec génération IA."
-        />;
+        return <LandingPagesManagement />;
       case 'repairers':
         return <RepairerList />;
       case 'quotes':

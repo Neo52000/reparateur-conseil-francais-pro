@@ -2929,6 +2929,48 @@ export type Database = {
         }
         Relationships: []
       }
+      client_interests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          client_email: string
+          client_message: string | null
+          client_phone: string | null
+          created_at: string
+          id: string
+          repairer_profile_id: string
+          sent_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_email: string
+          client_message?: string | null
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          repairer_profile_id: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_email?: string
+          client_message?: string | null
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          repairer_profile_id?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       client_reviews: {
         Row: {
           client_id: string
@@ -12055,6 +12097,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saved_search_filters: {
+        Row: {
+          alerts_enabled: boolean
+          created_at: string
+          filters: Json
+          id: string
+          last_used: string | null
+          name: string
+          results_count: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alerts_enabled?: boolean
+          created_at?: string
+          filters?: Json
+          id?: string
+          last_used?: string | null
+          name: string
+          results_count?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alerts_enabled?: boolean
+          created_at?: string
+          filters?: Json
+          id?: string
+          last_used?: string | null
+          name?: string
+          results_count?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       scraping_enhancement_config: {
         Row: {
