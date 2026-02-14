@@ -6,17 +6,10 @@ import { ENVIRONMENT } from "./environment";
  */
 export const initializeSentry = () => {
   // Ne pas initialiser Sentry en développement
-  if (!ENVIRONMENT.isProduction) {
-    console.log('🔧 Sentry désactivé en mode développement');
-    return;
-  }
+  if (!ENVIRONMENT.isProduction) return;
 
   const dsn = import.meta.env.VITE_SENTRY_DSN;
-  
-  if (!dsn) {
-    console.warn('⚠️ VITE_SENTRY_DSN non configuré - Monitoring Sentry désactivé');
-    return;
-  }
+  if (!dsn) return;
 
   Sentry.init({
     dsn,
@@ -54,15 +47,13 @@ export const initializeSentry = () => {
     
     // Configuration de la confidentialité
     beforeBreadcrumb(breadcrumb) {
-      // Ne pas enregistrer les données sensibles dans les breadcrumbs
-      if (breadcrumb.category === 'console') {
-        return null;
-      }
+      if (breadcrumb.category === 'console') return null;
+      // Add navigation & click breadcrumbs for debugging
       return breadcrumb;
     },
   });
 
-  console.log('✅ Sentry initialisé avec succès');
+  // Sentry initialized silently
 };
 
 /**

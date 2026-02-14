@@ -134,30 +134,28 @@ class OfflineService {
     if (this.syncInProgress || !navigator.onLine) return;
     
     this.syncInProgress = true;
-    console.log('🔄 Début de la synchronisation...');
     
     try {
       const pendingActions = await this.getPendingActions();
-      console.log(`📦 ${pendingActions.length} actions à synchroniser`);
       
-      for (const action of pendingActions) {
-        try {
-          await this.syncSingleAction(action);
-          await this.removePendingAction(action.id);
-          console.log(`✅ Action ${action.id} synchronisée`);
-        } catch (error) {
-          console.error(`❌ Erreur sync action ${action.id}:`, error);
+      if (pendingActions.length > 0) {
+        console.log(`🔄 Syncing ${pendingActions.length} pending actions...`);
+        for (const action of pendingActions) {
+          try {
+            await this.syncSingleAction(action);
+            await this.removePendingAction(action.id);
+          } catch (error) {
+            console.error(`❌ Sync error action ${action.id}:`, error);
+          }
         }
       }
       
-      // Mettre à jour la date de dernière sync
       await this.updateLastSyncTime();
       
     } catch (error) {
-      console.error('❌ Erreur synchronisation:', error);
+      console.error('❌ Sync error:', error);
     } finally {
       this.syncInProgress = false;
-      console.log('✅ Synchronisation terminée');
     }
   }
 

@@ -109,12 +109,23 @@ class LocalSeoService {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return false;
 
-      const { data, error } = await supabase.rpc('has_local_seo_access', {
-        user_id: user.user.id
-      });
+      // Check admin role from user metadata instead of profiles.role
+      const role = user.user.user_metadata?.role;
+      if (role === 'admin') return true;
 
-      if (error) throw error;
-      return data;
+      // Check if user has a repairer subscription
+      const { data: subscription } = await supabase
+        .from('repairer_subscriptions')
+        .select('subscription_tier')
+        .eq('repairer_id', user.user.id)
+        .eq('subscribed', true)
+        .maybeSingle();
+
+      if (subscription && ['visibility', 'pro', 'premium'].includes(subscription.subscription_tier || '')) {
+        return true;
+      }
+
+      return false;
     } catch (error) {
       console.error('Erreur vérification accès SEO:', error);
       return false;
