@@ -67,7 +67,16 @@ const ModelCityPageLazy = lazy(() => import("./components/seo/programmatic/Model
 const HubCityPageLazy = lazy(() => import("./components/seo/programmatic/HubCityPage").then(m => ({ default: m.HubCityPage })));
 const SymptomPageLazy = lazy(() => import("./components/seo/programmatic/SymptomPage").then(m => ({ default: m.SymptomPage })));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,      // 5 min — data stays fresh
+      gcTime: 10 * 60 * 1000,         // 10 min — keep in cache after unmount
+      refetchOnWindowFocus: false,     // avoid unnecessary refetches
+      retry: 1,                        // single retry on failure
+    },
+  },
+});
 
 const App = () => {
   useEffect(() => {

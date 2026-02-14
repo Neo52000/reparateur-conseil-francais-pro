@@ -14,24 +14,24 @@ export const useAuthSession = (
   clearState: () => void
 ) => {
   useEffect(() => {
-    console.log('🔧 Setting up auth listener');
+    // Auth listener setup
     let mounted = true;
     
     /**
      * Gestionnaire des changements d'état d'authentification
      */
     const handleAuthChange = async (event: string, session: Session | null) => {
-      console.log('🔄 Auth state changed:', { event, userEmail: session?.user?.email, sessionExists: !!session });
+      
       
       if (!mounted) {
-        console.log('⚠️ Component unmounted, skipping auth state change');
+        return;
         return;
       }
       
       if (session?.user) {
         await handleUserSession(session, mounted, updateAuthState);
       } else {
-        console.log('❌ No user session, clearing state');
+        
         if (mounted) {
           clearState();
         }
@@ -47,13 +47,13 @@ export const useAuthSession = (
     // Timeout de sécurité
     const timeoutId = setTimeout(() => {
       if (mounted && loading) {
-        console.log('⏰ Auth check timeout, forcing loading to false');
+        
         setLoading(false);
       }
     }, 5000);
 
     return () => {
-      console.log('🧹 Cleaning up auth subscription');
+      
       mounted = false;
       clearTimeout(timeoutId);
       subscription.unsubscribe();
@@ -70,12 +70,12 @@ const handleUserSession = async (
   updateAuthState: (session: Session | null, profile: any) => void
 ) => {
   try {
-    console.log('👤 User session found, fetching profile...');
+    
     
     const profilePromise = fetchOrCreateProfile(session);
     const timeoutPromise = new Promise<null>((resolve) => {
       setTimeout(() => {
-        console.log('⏰ Profile fetch timeout, using session data only');
+        
         resolve(null);
       }, 3000);
     });
@@ -85,7 +85,7 @@ const handleUserSession = async (
     if (mounted) {
       const finalProfile = profileData || createFallbackProfile(session);
       updateAuthState(session, finalProfile);
-      console.log('📝 Auth state updated with profile:', finalProfile);
+      
     }
   } catch (error) {
     console.error('💥 Error handling auth change:', error);
@@ -116,7 +116,7 @@ const checkExistingSession = async (
   setLoading: (loading: boolean) => void
 ) => {
   try {
-    console.log('🔍 Checking existing session...');
+    
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error) {

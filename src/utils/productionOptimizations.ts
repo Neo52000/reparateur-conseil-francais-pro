@@ -255,6 +255,5 @@ export const initProductionOptimizations = () => {
   // Nettoyer le cache périodiquement
   setInterval(() => {
     IntelligentCache.clear();
-    console.log('🧹 Cache nettoyé');
   }, 600000); // 10 minutes
 };

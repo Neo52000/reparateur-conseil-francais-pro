@@ -53,6 +53,8 @@ export const MobileBottomNav: React.FC = () => {
     <motion.nav
       initial={{ y: 100 }}
       animate={{ y: 0 }}
+      aria-label="Navigation principale mobile"
+      role="navigation"
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background border-t border-border shadow-lg"
     >
       <div className="flex justify-around items-center h-16 px-2">
@@ -64,6 +66,8 @@ export const MobileBottomNav: React.FC = () => {
             <Link
               key={index}
               to={item.path}
+              aria-label={item.label}
+              aria-current={active ? 'page' : undefined}
               className="relative flex flex-col items-center justify-center flex-1 h-full group"
             >
               {/* Active indicator */}

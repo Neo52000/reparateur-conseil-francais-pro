@@ -57,10 +57,10 @@ export const useOfflineSync = (options: UseOfflineSyncOptions = {}) => {
     return () => clearInterval(interval);
   }, [autoSync, isOnline, syncInProgress, user, syncInterval]);
 
-  // Charger les stats au montage et périodiquement
+  // Load stats on mount and periodically (every 60s instead of 10s)
   useEffect(() => {
     loadStats();
-    const interval = setInterval(loadStats, 10000);
+    const interval = setInterval(loadStats, 60000);
     return () => clearInterval(interval);
   }, []);
 

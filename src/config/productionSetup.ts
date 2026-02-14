@@ -60,29 +60,14 @@ export const FINAL_PRODUCTION_CONFIG = {
  * À appeler au démarrage de l'application
  */
 export const initializeProductionMode = () => {
-  console.log('🚀 Initialisation du mode production STRICT...');
-  
-  // 2. Configuration du logging minimal
+  // Configuration du logging minimal — suppress noisy logs in production
   if (!FINAL_PRODUCTION_CONFIG.features.enableConsoleReports) {
-    // Désactiver les console.log en production sauf erreurs
-    console.log = () => {};
-    console.info = () => {};
-    console.warn = console.warn; // Garder les warnings
-    console.error = console.error; // Garder les erreurs
+    const noop = () => {};
+    console.log = noop;
+    console.info = noop;
+    console.debug = noop;
+    // Keep warn and error for real issues
   }
-  
-  // 3. Service Worker pour le cache (géré centralement)
-  if (import.meta.env.PROD && FINAL_PRODUCTION_CONFIG.performance.enableServiceWorker) {
-    // L'enregistrement du SW est géré dans main.tsx pour éviter les doublons
-  }
-  
-  // 4. Configuration des headers de sécurité (si possible côté client)
-  if (FINAL_PRODUCTION_CONFIG.security.enableCSP) {
-    // Les headers CSP doivent être configurés côté serveur
-    console.warn('CSP headers should be configured server-side');
-  }
-  
-  console.log('✅ Mode production initialisé');
   
   return {
     config: FINAL_PRODUCTION_CONFIG,
