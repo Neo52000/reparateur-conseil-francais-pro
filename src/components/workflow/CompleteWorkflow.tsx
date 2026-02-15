@@ -315,6 +315,7 @@ const CompleteWorkflow: React.FC<CompleteWorkflowProps> = ({
             <div>
               <IntegratedMessaging
                 conversationId={`quote_${quoteId}`}
+                userType="client"
                 otherParticipant={{
                   id: workflowData.repairer_id,
                   name: "Réparateur",
