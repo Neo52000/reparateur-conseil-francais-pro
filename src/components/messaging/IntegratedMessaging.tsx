@@ -1,12 +1,10 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Send, Paperclip, Image, Phone, Video, MoreVertical } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Send, Paperclip, Phone, Video, MoreVertical } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -14,17 +12,16 @@ import { useToast } from '@/hooks/use-toast';
 interface Message {
   id: string;
   sender_id: string;
-  sender_type: 'client' | 'repairer';
-  message: string;
-  message_type: 'text' | 'image' | 'file';
-  file_url?: string;
+  content: string;
+  message_type: string;
   created_at: string;
   conversation_id: string;
 }
 
 interface IntegratedMessagingProps {
   conversationId: string;
-  otherParticipant: {
+  userType: 'client' | 'repairer';
+  otherParticipant?: {
     id: string;
     name: string;
     avatar?: string;
@@ -35,38 +32,40 @@ interface IntegratedMessagingProps {
 
 const IntegratedMessaging: React.FC<IntegratedMessagingProps> = ({
   conversationId,
+  userType,
   otherParticipant,
   quoteId
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
+  const [participantName, setParticipantName] = useState(otherParticipant?.name || 'Interlocuteur');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Charger les messages
   useEffect(() => {
     loadMessages();
-    
-    // S'abonner aux nouveaux messages en temps réel
+    loadConversationInfo();
+
+    // Subscribe to new messages in real-time
     const channel = supabase
-      .channel(`conversation_${conversationId}`)
+      .channel(`conv_messages_${conversationId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'chat_messages',
+          table: 'conversation_messages',
           filter: `conversation_id=eq.${conversationId}`
         },
         (payload) => {
-          const newMessage = payload.new as any;
-          // Validation des types avant d'ajouter le message
-          if (newMessage.sender_type === 'client' || newMessage.sender_type === 'repairer') {
-            setMessages(prev => [...prev, newMessage as Message]);
-            scrollToBottom();
+          const msg = payload.new as Message;
+          setMessages(prev => [...prev, msg]);
+          scrollToBottom();
+          // Mark as read if not our own message
+          if (msg.sender_id !== user?.id) {
+            markConversationRead();
           }
         }
       )
@@ -77,26 +76,57 @@ const IntegratedMessaging: React.FC<IntegratedMessagingProps> = ({
     };
   }, [conversationId]);
 
+  const loadConversationInfo = async () => {
+    if (otherParticipant?.name) return;
+    try {
+      const { data } = await supabase
+        .from('conversations')
+        .select('client_id, repairer_id')
+        .eq('id', conversationId)
+        .single();
+
+      if (data) {
+        const otherId = userType === 'client' ? data.repairer_id : data.client_id;
+        // Try to get the name from profiles
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('id', otherId)
+          .single();
+
+        if (profile) {
+          setParticipantName(`${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Interlocuteur');
+        }
+      }
+    } catch {
+      // Keep default name
+    }
+  };
+
   const loadMessages = async () => {
     try {
       const { data, error } = await supabase
-        .from('chat_messages')
+        .from('conversation_messages')
         .select('*')
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      
-      // Filtrer et valider les types
-      const validMessages = (data || []).filter((msg: any) => 
-        msg.sender_type === 'client' || msg.sender_type === 'repairer'
-      ) as Message[];
-      
-      setMessages(validMessages);
+      setMessages((data || []) as Message[]);
       scrollToBottom();
+      markConversationRead();
     } catch (error) {
       console.error('Erreur chargement messages:', error);
     }
+  };
+
+  const markConversationRead = async () => {
+    if (!user) return;
+    const updateField = userType === 'client' ? 'unread_count_client' : 'unread_count_repairer';
+    await supabase
+      .from('conversations')
+      .update({ [updateField]: 0 })
+      .eq('id', conversationId);
   };
 
   const sendMessage = async () => {
@@ -105,22 +135,39 @@ const IntegratedMessaging: React.FC<IntegratedMessagingProps> = ({
     try {
       setLoading(true);
       const { error } = await supabase
-        .from('chat_messages')
+        .from('conversation_messages')
         .insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          sender_type: otherParticipant.role === 'client' ? 'repairer' : 'client',
-          message: newMessage.trim(),
+          content: newMessage.trim(),
           message_type: 'text'
         });
 
       if (error) throw error;
+
+      // Update conversation last_message_at and unread count for the other party
+      const unreadField = userType === 'client' ? 'unread_count_repairer' : 'unread_count_client';
+      const { data: conv } = await supabase
+        .from('conversations')
+        .select(unreadField)
+        .eq('id', conversationId)
+        .single();
+
+      const currentUnread = (conv as any)?.[unreadField] || 0;
+      await supabase
+        .from('conversations')
+        .update({
+          last_message_at: new Date().toISOString(),
+          [unreadField]: currentUnread + 1
+        })
+        .eq('id', conversationId);
+
       setNewMessage('');
     } catch (error) {
       console.error('Erreur envoi message:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible d\'envoyer le message',
+        description: "Impossible d'envoyer le message",
         variant: 'destructive',
       });
     } finally {
@@ -136,7 +183,9 @@ const IntegratedMessaging: React.FC<IntegratedMessagingProps> = ({
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   const formatTime = (timestamp: string) => {
@@ -146,32 +195,31 @@ const IntegratedMessaging: React.FC<IntegratedMessagingProps> = ({
     });
   };
 
+  const initials = participantName.split(' ').map(n => n[0]).join('').toUpperCase();
+
   return (
     <Card className="h-[600px] flex flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Avatar>
-              <AvatarImage src={otherParticipant.avatar} />
-              <AvatarFallback>
-                {otherParticipant.name.split(' ').map(n => n[0]).join('')}
-              </AvatarFallback>
+              <AvatarFallback>{initials || '?'}</AvatarFallback>
             </Avatar>
             <div>
-              <CardTitle className="text-lg">{otherParticipant.name}</CardTitle>
+              <CardTitle className="text-lg">{participantName}</CardTitle>
               <Badge variant="outline" className="text-xs">
-                {otherParticipant.role === 'client' ? 'Client' : 'Réparateur'}
+                {userType === 'client' ? 'Réparateur' : 'Client'}
               </Badge>
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" aria-label="Appel téléphonique">
               <Phone className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" aria-label="Appel vidéo">
               <Video className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" aria-label="Plus d'options">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </div>
@@ -179,8 +227,13 @@ const IntegratedMessaging: React.FC<IntegratedMessagingProps> = ({
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col p-0">
-        {/* Zone des messages */}
+        {/* Messages area */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.length === 0 && (
+            <div className="text-center text-muted-foreground py-8">
+              Aucun message. Envoyez le premier !
+            </div>
+          )}
           {messages.map((message) => {
             const isOwn = message.sender_id === user?.id;
             return (
@@ -191,13 +244,13 @@ const IntegratedMessaging: React.FC<IntegratedMessagingProps> = ({
                 <div
                   className={`max-w-[70%] rounded-lg px-3 py-2 ${
                     isOwn
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-900'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-foreground'
                   }`}
                 >
-                  <p className="text-sm">{message.message}</p>
+                  <p className="text-sm">{message.content}</p>
                   <p className={`text-xs mt-1 ${
-                    isOwn ? 'text-blue-100' : 'text-gray-500'
+                    isOwn ? 'opacity-70' : 'text-muted-foreground'
                   }`}>
                     {formatTime(message.created_at)}
                   </p>
@@ -205,28 +258,14 @@ const IntegratedMessaging: React.FC<IntegratedMessagingProps> = ({
               </div>
             );
           })}
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="bg-gray-100 rounded-lg px-3 py-2">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                </div>
-              </div>
-            </div>
-          )}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Zone de saisie */}
+        {/* Input area */}
         <div className="border-t p-4">
           <div className="flex items-end gap-2">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" aria-label="Joindre un fichier">
               <Paperclip className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <Image className="h-4 w-4" />
             </Button>
             <div className="flex-1">
               <Textarea
@@ -242,6 +281,7 @@ const IntegratedMessaging: React.FC<IntegratedMessagingProps> = ({
               onClick={sendMessage}
               disabled={!newMessage.trim() || loading}
               size="sm"
+              aria-label="Envoyer"
             >
               <Send className="h-4 w-4" />
             </Button>
