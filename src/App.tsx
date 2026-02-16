@@ -26,6 +26,9 @@ import LocalSeoPage from "./components/LocalSeoPage";
 import LocalSeoRouter, { isLocalSeoPath } from "./components/LocalSeoRouter";
 import RepairerSeoPage from "./pages/RepairerSeoPage";
 import DocumentationPage from "./pages/DocumentationPage";
+import AProposPage from "./pages/AProposPage";
+import GarantiePage from "./pages/GarantiePage";
+import GuideChoixReparateurPage from "./pages/GuideChoixReparateurPage";
 
 import RepairerSettingsPage from "./pages/RepairerSettingsPage";
 import RepairTrackingPage from "./pages/RepairTrackingPage";
@@ -189,6 +192,10 @@ const AppWithTracking = () => {
         <Route path="/mes-donnees" element={<MyDataPage />} />
         {/* Documentation */}
         <Route path="/documentation" element={<DocumentationPage />} />
+        {/* Institutional pages */}
+        <Route path="/a-propos" element={<AProposPage />} />
+        <Route path="/garantie" element={<GarantiePage />} />
+        <Route path="/guide-choix-reparateur" element={<GuideChoixReparateurPage />} />
         {/* SEO local catch-all: /reparateur-smartphone-paris, /modern-reparateur-tablette-lyon, etc. */}
         <Route path="*" element={<LocalSeoCatchAll />} />
         </Routes>

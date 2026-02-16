@@ -118,6 +118,20 @@ class SeoProgrammaticGenerator {
         'Devis gratuit en ligne',
         'Garantie sur les réparations',
         'Pièces de qualité'
+      ],
+      faq: [
+        {
+          question: `Combien coûte la réparation d'un ${data.model} à ${capitalize(data.city)} ?`,
+          answer: `Le prix varie selon la panne. En moyenne, comptez entre 30€ et 250€. Demandez un devis gratuit à nos ${data.repairersCount} réparateurs à ${capitalize(data.city)}.`
+        },
+        {
+          question: `Combien de temps dure la réparation d'un ${data.model} ?`,
+          answer: `La plupart des réparations sont effectuées en moins d'une heure. Le remplacement d'écran ou de batterie prend généralement 30 à 60 minutes.`
+        },
+        {
+          question: `Les réparations ${data.model} sont-elles garanties ?`,
+          answer: `Oui, tous nos réparateurs certifiés offrent une garantie de 6 mois minimum sur les pièces et la main d'œuvre.`
+        }
       ]
     };
 
