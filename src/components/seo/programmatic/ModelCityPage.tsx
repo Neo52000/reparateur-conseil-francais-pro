@@ -19,6 +19,8 @@ interface PageContent {
   repairerIds?: string[];
   commonRepairs?: string[];
   benefits?: string[];
+  faq?: Array<{ question: string; answer: string }>;
+  averagePrice?: string;
 }
 
 /**
@@ -93,12 +95,43 @@ export function ModelCityPage() {
   const content = page.content as PageContent;
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
 
+  const defaultFaq = [
+    {
+      question: `Combien coûte la réparation d'un ${content.model} à ${content.city} ?`,
+      answer: `Le prix varie selon la panne. En moyenne, comptez entre 30€ et 250€ pour une réparation ${content.model}. Demandez un devis gratuit à nos ${repairers.length} réparateurs à ${content.city}.`
+    },
+    {
+      question: `Combien de temps dure la réparation d'un ${content.model} ?`,
+      answer: `La plupart des réparations sont effectuées en moins d'une heure. Le remplacement d'écran ou de batterie prend généralement 30 à 60 minutes.`
+    },
+    {
+      question: `Les réparations sont-elles garanties ?`,
+      answer: `Oui, tous nos réparateurs certifiés offrent une garantie de 6 mois minimum sur les pièces et la main d'œuvre.`
+    }
+  ];
+
+  // Combine page schema with FAQ schema
+  const combinedSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      page.schema_org,
+      {
+        '@type': 'FAQPage',
+        mainEntity: (content.faq || defaultFaq).map(item => ({
+          '@type': 'Question',
+          name: item.question,
+          acceptedAnswer: { '@type': 'Answer', text: item.answer }
+        }))
+      }
+    ]
+  };
+
   return (
     <ProgrammaticPageLayout
       title={page.title}
       h1Title={page.h1_title || page.title}
       metaDescription={page.meta_description || ''}
-      schemaOrg={page.schema_org as Record<string, unknown>}
+      schemaOrg={combinedSchema as Record<string, unknown>}
       canonicalUrl={`${baseUrl}/${page.slug}`}
       breadcrumbs={[
         { label: `Réparateurs ${content.city}`, href: `/reparateurs-${content.city?.toLowerCase()}` },
@@ -240,6 +273,25 @@ export function ModelCityPage() {
           </Card>
         </aside>
       </div>
+
+      {/* FAQ Section with Schema.org */}
+      {(content.faq || defaultFaq).length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-2xl font-bold mb-4">
+            Questions fréquentes - Réparation {content.model} à {content.city}
+          </h2>
+          <div className="space-y-4">
+            {(content.faq || defaultFaq).map((item, index) => (
+              <Card key={index}>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold mb-2">{item.question}</h3>
+                  <p className="text-muted-foreground text-sm">{item.answer}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Liens internes */}
       {page.internal_links && page.internal_links.length > 0 && (

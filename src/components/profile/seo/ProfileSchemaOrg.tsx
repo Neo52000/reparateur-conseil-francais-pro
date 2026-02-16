@@ -7,12 +7,21 @@ interface ProfileSchemaOrgProps {
 }
 
 const ProfileSchemaOrg: React.FC<ProfileSchemaOrgProps> = ({ profile, isPremium }) => {
+  // Auto-generate neutral description for unclaimed (Level 0) profiles
+  const autoDescription = !isPremium
+    ? `Réparateur de téléphones et smartphones à ${profile.city || 'votre ville'}. ${
+        (profile.repair_types || []).length > 0 
+          ? `Services détectés : ${(profile.repair_types as string[]).slice(0, 3).join(', ')}.` 
+          : ''
+      } Consultez les avis et demandez un devis gratuit sur TopRéparateurs.`
+    : profile.description || `Réparateur de téléphones et smartphones à ${profile.city}`;
+
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     "@id": `https://topreparateurs.fr/${profile.city?.toLowerCase().replace(/\s+/g, '-')}/${profile.business_name?.toLowerCase().replace(/\s+/g, '-')}`,
     "name": profile.business_name,
-    "description": profile.description || `Réparateur de téléphones et smartphones à ${profile.city}`,
+    "description": autoDescription,
     "image": profile.profile_image_url || "https://topreparateurs.fr/logo.png",
     "address": {
       "@type": "PostalAddress",
@@ -42,7 +51,7 @@ const ProfileSchemaOrg: React.FC<ProfileSchemaOrgProps> = ({ profile, isPremium 
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
       "name": "Services de réparation",
-      "itemListElement": (profile.repair_types || []).map((service: string, index: number) => ({
+      "itemListElement": (profile.repair_types || []).map((service: string) => ({
         "@type": "Offer",
         "itemOffered": {
           "@type": "Service",

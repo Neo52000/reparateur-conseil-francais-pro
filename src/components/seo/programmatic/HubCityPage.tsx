@@ -318,6 +318,27 @@ export function HubCityPage() {
         </section>
       )}
 
+      {/* FAQ Section */}
+      <section className="mt-12">
+        <h2 className="text-xl font-bold mb-4">
+          Questions fréquentes - Réparateurs à {content.city}
+        </h2>
+        <div className="space-y-4">
+          {[
+            { q: `Combien de réparateurs de téléphone à ${content.city} ?`, a: `Nous référençons ${repairers.length} réparateurs vérifiés à ${content.city}. Comparez les avis et obtenez un devis gratuit.` },
+            { q: `Comment trouver le meilleur réparateur à ${content.city} ?`, a: `Consultez les avis clients, vérifiez la garantie proposée et comparez les prix. Tous nos réparateurs sont vérifiés.` },
+            { q: `Quels appareils peut-on faire réparer à ${content.city} ?`, a: `Nos réparateurs à ${content.city} prennent en charge smartphones, tablettes et ordinateurs de toutes marques.` }
+          ].map((item, index) => (
+            <Card key={index}>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-1">{item.q}</h3>
+                <p className="text-sm text-muted-foreground">{item.a}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
       {/* Liens internes */}
       {page.internal_links && page.internal_links.length > 0 && (
         <section className="mt-12">
