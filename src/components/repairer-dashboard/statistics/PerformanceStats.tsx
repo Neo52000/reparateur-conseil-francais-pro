@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, TrendingDown, Users, Clock, Star, Euro, Wrench, Calendar } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, Clock, Star, Euro, Wrench, Calendar, Eye, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useRepairerAnalytics } from '@/hooks/useRepairerAnalytics';
 
 interface PerformanceData {
   totalRepairs: number;
@@ -26,6 +27,7 @@ interface ChartData {
 
 const PerformanceStats: React.FC = () => {
   const { profile } = useAuth();
+  const { data: analyticsData } = useRepairerAnalytics();
   const [loading, setLoading] = useState(true);
   const [performanceData, setPerformanceData] = useState<PerformanceData>({
     totalRepairs: 0,
@@ -162,6 +164,16 @@ const PerformanceStats: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Analytics réelles (30 derniers jours) */}
+      {analyticsData && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard title="Vues du profil" value={analyticsData.profileViews} unit="" icon={Eye} trend="up" trendValue={0} />
+          <StatCard title="Demandes de devis" value={analyticsData.quoteRequests} unit="" icon={MessageSquare} trend="up" trendValue={0} />
+          <StatCard title="Clics contact" value={analyticsData.contactClicks} unit="" icon={Users} trend="up" trendValue={0} />
+          <StatCard title="Taux de conversion" value={analyticsData.conversionRate} unit="%" icon={TrendingUp} trend={analyticsData.conversionRate > 5 ? 'up' : 'down'} trendValue={analyticsData.conversionRate} />
+        </div>
+      )}
+
       {/* KPIs principaux */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard

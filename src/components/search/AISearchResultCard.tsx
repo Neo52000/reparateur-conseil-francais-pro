@@ -99,15 +99,16 @@ export const AISearchResultCard: React.FC<AISearchResultCardProps> = ({
                 </div>
               </div>
               
-              {/* Match score */}
+              {/* Match score with breakdown tooltip */}
               {showMatchScore && (
-                <Badge 
-                  variant={repairer.matchScore >= 0.7 ? "default" : "secondary"}
-                  className="flex-shrink-0"
-                >
-                  <Zap className="h-3 w-3 mr-1" />
-                  {formatMatchScore(repairer.matchScore)}
-                </Badge>
+                <div className="flex items-center gap-1.5 flex-shrink-0" title={`Pertinence ${Math.round(repairer.relevanceScore * 100)}% · Distance ${Math.round(repairer.distanceScore * 100)}% · Note ${Math.round(repairer.ratingScore * 100)}%`}>
+                  <Badge 
+                    variant={repairer.matchScore >= 0.7 ? "default" : "secondary"}
+                  >
+                    <Zap className="h-3 w-3 mr-1" />
+                    {formatMatchScore(repairer.matchScore)}
+                  </Badge>
+                </div>
               )}
             </div>
             
