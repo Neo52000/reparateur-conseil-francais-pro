@@ -28,6 +28,7 @@ export interface MatchedRepairer {
   distanceScore: number;
   ratingScore: number;
   levelScore: number;
+  delayScore: number;
   
   // Distance en km (si localisation fournie)
   distance?: number;
@@ -45,13 +46,13 @@ export interface MatchingOptions {
   onlyClaimed?: boolean;
 }
 
-// Poids des différents critères
+// Poids des différents critères (total = 1.0)
 const WEIGHTS = {
   relevance: 0.35,    // Correspondance marque/modèle/réparation
-  distance: 0.25,     // Proximité
+  distance: 0.25,     // Proximité géographique
   rating: 0.20,       // Note moyenne
-  level: 0.15,        // Niveau réparateur
-  availability: 0.05, // Disponibilité
+  level: 0.15,        // Niveau réparateur (abonnement)
+  delay: 0.05,        // Délai de réponse / disponibilité
 };
 
 export class AIRepairerMatcher {
@@ -124,7 +125,7 @@ export class AIRepairerMatcher {
         return [];
       }
       
-      // Récupérer les niveaux des réparateurs depuis repairer_profiles
+      // Récupérer les niveaux et review counts des réparateurs
       const repairerIds = repairers.map(r => r.id);
       const { data: profiles } = await supabase
         .from('repairer_profiles')
@@ -132,6 +133,18 @@ export class AIRepairerMatcher {
         .in('id', repairerIds);
       
       const levelMap = new Map(profiles?.map(p => [p.id, p.repairer_level || 0]) || []);
+
+      // Récupérer le nombre d'avis pour chaque réparateur
+      const { data: reviewCounts } = await supabase
+        .from('client_reviews')
+        .select('repairer_id')
+        .eq('status', 'approved')
+        .in('repairer_id', repairerIds);
+      
+      const reviewCountMap = new Map<string, number>();
+      reviewCounts?.forEach(r => {
+        reviewCountMap.set(r.repairer_id, (reviewCountMap.get(r.repairer_id) || 0) + 1);
+      });
       
       // Scorer chaque réparateur
       const scoredRepairers = repairers.map(repairer => {
@@ -155,7 +168,7 @@ export class AIRepairerMatcher {
           phone: repairer.phone || '',
           email: repairer.email || undefined,
           rating: repairer.rating || 0,
-          reviewCount: 0, // À récupérer depuis les avis
+          reviewCount: reviewCountMap.get(repairer.id) || 0,
           lat: repairer.lat,
           lng: repairer.lng,
           isVerified: repairer.is_verified || false,
@@ -168,6 +181,7 @@ export class AIRepairerMatcher {
           distanceScore: scores.distance,
           ratingScore: scores.rating,
           levelScore: scores.level,
+          delayScore: scores.delay,
           
           distance,
           matchReasons,
@@ -204,7 +218,7 @@ export class AIRepairerMatcher {
     intent: ParsedSearchIntent,
     userLocation?: { lat: number; lng: number },
     repairerLevel: number = 0
-  ): { total: number; relevance: number; distance: number; rating: number; level: number } {
+  ): { total: number; relevance: number; distance: number; rating: number; level: number; delay: number } {
     
     // Score de pertinence (marque, modèle, type de réparation)
     let relevanceScore = 0;
@@ -259,12 +273,17 @@ export class AIRepairerMatcher {
     // Score de niveau (0-3 -> 0-1)
     const levelScore = repairerLevel / 3;
     
+    // Score de délai (bonus pour réparateurs ayant un bon historique de réponse)
+    // Les niveaux supérieurs répondent généralement plus vite
+    const delayScore = Math.min(1, 0.5 + (repairerLevel * 0.15) + (ratingScore * 0.1));
+    
     // Score total pondéré
     const total = 
       relevanceScore * WEIGHTS.relevance +
       distanceScore * WEIGHTS.distance +
       ratingScore * WEIGHTS.rating +
-      levelScore * WEIGHTS.level;
+      levelScore * WEIGHTS.level +
+      delayScore * WEIGHTS.delay;
     
     return {
       total: Math.min(total, 1),
@@ -272,13 +291,14 @@ export class AIRepairerMatcher {
       distance: distanceScore,
       rating: ratingScore,
       level: levelScore,
+      delay: delayScore,
     };
   }
   
   private static getMatchReasons(
     repairer: any, 
     intent: ParsedSearchIntent,
-    scores: { relevance: number; distance: number; rating: number; level: number }
+    scores: { relevance: number; distance: number; rating: number; level: number; delay: number }
   ): string[] {
     const reasons: string[] = [];
     

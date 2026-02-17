@@ -57,6 +57,7 @@ ${sitemaps.map(s => `  <sitemap>
       { loc: '/a-propos', changefreq: 'monthly', priority: 0.6 },
       { loc: '/garantie', changefreq: 'monthly', priority: 0.6 },
       { loc: '/guide-choix-reparateur', changefreq: 'monthly', priority: 0.7 },
+      { loc: '/marketplace', changefreq: 'weekly', priority: 0.7 },
       { loc: '/contact', changefreq: 'monthly', priority: 0.5 },
       { loc: '/cgv', changefreq: 'yearly', priority: 0.3 },
       { loc: '/politique-confidentialite', changefreq: 'yearly', priority: 0.3 },

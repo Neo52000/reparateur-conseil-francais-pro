@@ -47,6 +47,7 @@ import TermsOfSale from "./pages/TermsOfSale";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import MyDataPage from "./pages/MyDataPage";
 import NotFound from "./pages/NotFound";
+import MarketplacePage from "./pages/MarketplacePage";
 import { useVisitorTracker } from "./hooks/useVisitorTracker";
 import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
 import StaticPagesManagerPage from "./pages/admin/StaticPagesManagerPage";
@@ -192,6 +193,8 @@ const AppWithTracking = () => {
         <Route path="/mes-donnees" element={<MyDataPage />} />
         {/* Documentation */}
         <Route path="/documentation" element={<DocumentationPage />} />
+        {/* Marketplace */}
+        <Route path="/marketplace" element={<MarketplacePage />} />
         {/* Institutional pages */}
         <Route path="/a-propos" element={<AProposPage />} />
         <Route path="/garantie" element={<GarantiePage />} />
