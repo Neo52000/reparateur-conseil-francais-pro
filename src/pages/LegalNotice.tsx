@@ -27,10 +27,10 @@ const LegalNotice = () => {
                 <p><strong>Raison sociale :</strong> TopRéparateurs.fr</p>
                 <p><strong>Forme juridique :</strong> SAS (Société par Actions Simplifiée)</p>
                 <p><strong>Capital social :</strong> 10 000 €</p>
-                <p><strong>SIRET :</strong> XXX XXX XXX XXXXX</p>
-                <p><strong>RCS :</strong> Paris XXX XXX XXX</p>
-                <p><strong>TVA intracommunautaire :</strong> FR XX XXXXXXXXX</p>
-                <p><strong>Siège social :</strong> [Adresse à compléter]</p>
+                <p><strong>SIRET :</strong> 100 208 883</p>
+                <p><strong>RCS :</strong> Chaumont 100 208 883</p>
+                <p><strong>TVA intracommunautaire :</strong> FR 10 100208883</p>
+                <p><strong>Siège social :</strong> 10 rue Toupot de Béveaux, 52000 Chaumont</p>
               </div>
             </section>
 
@@ -41,7 +41,7 @@ const LegalNotice = () => {
                 <h2 className="text-2xl font-semibold">Directeur de publication</h2>
               </div>
               <div className="space-y-2 text-muted-foreground">
-                <p><strong>Nom :</strong> [Nom du directeur de publication]</p>
+                <p><strong>Nom :</strong> Elie REINE</p>
                 <p><strong>Fonction :</strong> Président</p>
               </div>
             </section>
@@ -62,7 +62,7 @@ const LegalNotice = () => {
                 <p className="flex items-center gap-2">
                   <Phone className="h-4 w-4" />
                   <a href="tel:+33XXXXXXXXX" className="text-primary hover:underline">
-                    +33 (0)X XX XX XX XX
+                    +33 (0)3 25 XX XX XX
                   </a>
                 </p>
               </div>
