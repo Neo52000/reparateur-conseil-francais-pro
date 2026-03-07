@@ -2,20 +2,29 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
-Disallow: /repairer-dashboard
-Disallow: /client-dashboard
-Disallow: /repairer-settings
+Disallow: /repairer-dashboard/
+Disallow: /client-dashboard/
+Disallow: /repairer-settings/
 Disallow: /api/
+Disallow: /auth/
+Disallow: /pos/
+Disallow: /super-admin/
+Disallow: /*?__lovable_token=*
 
 # Sitemaps
 Sitemap: https://topreparateurs.fr/sitemap.xml
 
-# Crawl-delay pour les bots
-Crawl-delay: 1
-
-# Spécifiques
+# Crawl-delay
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 0
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
+
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10

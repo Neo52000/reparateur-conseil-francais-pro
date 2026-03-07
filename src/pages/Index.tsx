@@ -4,43 +4,46 @@ import ModernHero from '@/components/modern/ModernHero';
 import TrustSignals from '@/components/modern/TrustSignals';
 import RepairerResultsGrid from '@/components/modern/RepairerResultsGrid';
 import BlogSection from '@/components/modern/BlogSection';
+import HomepageFAQSchema from '@/components/seo/HomepageFAQSchema';
+import InternalLinksSection from '@/components/seo/InternalLinksSection';
 import Footer from '@/components/Footer';
 import heroImage from '@/assets/hero-repair-workshop.jpg';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Helmet>
-        <title>TopRéparateurs - Trouvez le meilleur réparateur près de chez vous | Comparateur Gratuit</title>
+        {/* Meta Title < 60 chars, keyword "réparateur" en premier */}
+        <title>Réparateur près de chez vous | Comparateur gratuit - TopRéparateurs</title>
         <meta 
           name="description" 
-          content="Trouvez rapidement un réparateur certifié près de chez vous pour smartphone, tablette, ordinateur et console. Devis gratuit, intervention express et garantie incluse. Comparateur gratuit de professionnels vérifiés." 
+          content="Trouvez un réparateur certifié pour smartphone, tablette ou ordinateur. Comparez les prix, lisez les avis et obtenez un devis gratuit. Plus de 2000 pros en France." 
         />
-        <meta name="keywords" content="réparateur smartphone, réparation téléphone, réparateur tablette, réparation ordinateur, réparateur certifié, devis gratuit réparation, réparation express, réparateur près de moi, service réparation mobile, atelier réparation, dépannage smartphone" />
+        <meta name="keywords" content="réparateur smartphone, réparation téléphone, réparateur tablette, réparation ordinateur, réparateur certifié, devis gratuit réparation, réparation express, réparateur près de moi" />
         <link rel="canonical" href="https://topreparateurs.fr/" />
         
-        {/* Preload hero image for LCP optimization */}
+        {/* Preload hero image for LCP */}
         <link rel="preload" as="image" href={heroImage} fetchPriority="high" />
         
-        {/* Open Graph / Facebook */}
+        {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://topreparateurs.fr/" />
-        <meta property="og:title" content="TopRéparateurs - Le Doctolib de la réparation" />
-        <meta property="og:description" content="Trouvez un réparateur certifié près de chez vous en quelques clics. Devis gratuit et intervention rapide." />
+        <meta property="og:title" content="Trouvez le meilleur réparateur près de chez vous" />
+        <meta property="og:description" content="Comparateur gratuit de réparateurs certifiés. Smartphone, tablette, ordinateur, console. Devis gratuit et intervention rapide." />
         <meta property="og:image" content="https://topreparateurs.fr/og-image.jpg" />
         <meta property="og:locale" content="fr_FR" />
+        <meta property="og:site_name" content="TopRéparateurs" />
         
         {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://topreparateurs.fr/" />
-        <meta property="twitter:title" content="TopRéparateurs - Trouvez votre réparateur" />
-        <meta property="twitter:description" content="Comparateur gratuit de réparateurs certifiés" />
-        <meta property="twitter:image" content="https://topreparateurs.fr/og-image.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Trouvez le meilleur réparateur près de chez vous" />
+        <meta name="twitter:description" content="Comparateur gratuit de réparateurs certifiés en France" />
+        <meta name="twitter:image" content="https://topreparateurs.fr/og-image.jpg" />
         
-        {/* Additional SEO */}
+        {/* Technical SEO */}
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         <meta name="author" content="TopRéparateurs" />
-        <meta name="language" content="fr" />
+        <html lang="fr" />
         <meta name="geo.region" content="FR" />
         <meta name="geo.placename" content="France" />
         
@@ -51,8 +54,20 @@ const Index = () => {
             "@type": "Organization",
             "name": "TopRéparateurs",
             "url": "https://topreparateurs.fr",
-            "logo": "https://topreparateurs.fr/logo.png",
-            "description": "Plateforme de mise en relation avec des réparateurs professionnels certifiés",
+            "logo": "https://topreparateurs.fr/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png",
+            "description": "Plateforme de mise en relation avec des réparateurs professionnels certifiés en France",
+            "foundingDate": "2025",
+            "founder": {
+              "@type": "Person",
+              "name": "Elie REINE"
+            },
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "10 rue Toupot de Béveaux",
+              "addressLocality": "Chaumont",
+              "postalCode": "52000",
+              "addressCountry": "FR"
+            },
             "sameAs": [
               "https://www.facebook.com/topreparateurs",
               "https://www.linkedin.com/company/topreparateurs"
@@ -61,23 +76,44 @@ const Index = () => {
               "@type": "ContactPoint",
               "contactType": "customer service",
               "email": "contact@topreparateurs.fr",
+              "telephone": "+33745062162",
               "availableLanguage": ["French"]
             }
           })}
         </script>
         
-        {/* Structured Data - WebSite */}
+        {/* Structured Data - WebSite + SearchAction */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebSite",
             "name": "TopRéparateurs",
             "url": "https://topreparateurs.fr",
+            "description": "Comparateur gratuit de réparateurs certifiés en France",
             "potentialAction": {
               "@type": "SearchAction",
-              "target": "https://topreparateurs.fr/search?city={search_term_string}",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://topreparateurs.fr/search?city={search_term_string}"
+              },
               "query-input": "required name=search_term_string"
             }
+          })}
+        </script>
+
+        {/* Structured Data - BreadcrumbList */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Accueil",
+                "item": "https://topreparateurs.fr/"
+              }
+            ]
           })}
         </script>
         
@@ -86,12 +122,13 @@ const Index = () => {
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Service",
-            "name": "Service de mise en relation avec des réparateurs",
+            "name": "Comparateur de réparateurs d'appareils électroniques",
             "provider": {
               "@type": "Organization",
               "name": "TopRéparateurs"
             },
-            "serviceType": "Réparation d'appareils électroniques",
+            "serviceType": "Mise en relation avec des réparateurs professionnels",
+            "description": "Service gratuit de comparaison et mise en relation avec des réparateurs certifiés pour smartphones, tablettes, ordinateurs et consoles",
             "areaServed": {
               "@type": "Country",
               "name": "France"
@@ -100,30 +137,44 @@ const Index = () => {
               "@type": "Offer",
               "price": "0",
               "priceCurrency": "EUR",
-              "description": "Service de comparaison gratuit"
+              "description": "Comparaison et devis gratuits"
+            },
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "Services de réparation",
+              "itemListElement": [
+                { "@type": "OfferCatalog", "name": "Réparation smartphone" },
+                { "@type": "OfferCatalog", "name": "Réparation tablette" },
+                { "@type": "OfferCatalog", "name": "Réparation ordinateur" },
+                { "@type": "OfferCatalog", "name": "Réparation console de jeux" }
+              ]
             }
           })}
         </script>
       </Helmet>
 
-      {/* Header minimaliste sticky */}
       <Navigation />
 
       <main>
-        {/* Hero avec glassmorphism search */}
+        {/* Hero avec H1 optimisé et keyword dans les 100 premiers mots */}
         <ModernHero />
 
-        {/* Trust Signals */}
+        {/* Trust Signals - E-A-T */}
         <TrustSignals />
 
-        {/* Résultats réparateurs en grille */}
+        {/* Réparateurs populaires */}
         <RepairerResultsGrid />
 
-        {/* Section Blog */}
+        {/* Maillage interne : services + villes + ressources */}
+        <InternalLinksSection />
+
+        {/* FAQ optimisée Featured Snippets */}
+        <HomepageFAQSchema />
+
+        {/* Blog - Contenu frais */}
         <BlogSection />
       </main>
 
-      {/* Footer simple */}
       <Footer />
     </div>
   );
