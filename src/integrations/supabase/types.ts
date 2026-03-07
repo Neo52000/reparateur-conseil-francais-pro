@@ -11265,6 +11265,51 @@ export type Database = {
         }
         Relationships: []
       }
+      repairer_claims: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          notes: string | null
+          phone: string
+          repairer_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          siret: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          notes?: string | null
+          phone: string
+          repairer_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          siret?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          notes?: string | null
+          phone?: string
+          repairer_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          siret?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       repairer_custom_prices: {
         Row: {
           created_at: string
