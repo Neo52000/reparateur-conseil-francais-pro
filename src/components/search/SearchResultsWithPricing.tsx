@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, MapPin, Phone, Clock, Euro, MessageSquare } from 'lucide-react';
 import { SearchIntegrationService } from '@/services/pricing/searchIntegrationService';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import type { SearchStepData } from './AdvancedProductSearch';
 
 interface SearchResultsWithPricingProps {
@@ -125,13 +126,27 @@ const SearchResultsWithPricing: React.FC<SearchResultsWithPricingProps> = ({
 
   const handleRequestQuote = async (repairer: RepairerResult) => {
     try {
-      // Logique pour demander un devis (24h timer)
-      // TODO: Implémenter l'envoi de demande de devis avec délai 24h
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      
+      const { error } = await supabase
+        .from('quotes_with_timeline')
+        .insert({
+          repairer_id: repairer.repairer_id,
+          device_model: searchData.modelName || '',
+          repair_type: searchData.repairTypeName || '',
+          status: 'pending',
+          expires_at: expiresAt,
+          description: `Demande de devis pour ${searchData.brandName} ${searchData.modelName} - ${searchData.repairTypeName}`,
+        });
+
+      if (error) throw error;
+
       toast({
         title: "Demande envoyée",
         description: `Votre demande a été envoyée à ${repairer.business_name}. Ils ont 24h pour répondre.`,
       });
     } catch (error) {
+      console.error('Quote request error:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer la demande. Veuillez réessayer.",
