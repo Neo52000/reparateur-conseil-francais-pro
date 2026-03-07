@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, CheckCircle, Phone, Mail, Building } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface RepairerClaimModalProps {
   isOpen: boolean;
@@ -31,15 +33,25 @@ const RepairerClaimModal: React.FC<RepairerClaimModalProps> = ({
     siret: '',
   });
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // TODO: Implémenter la logique de demande de revendication
-      // Pour l'instant, on simule juste le succès
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const { error } = await supabase
+        .from('repairer_claims' as any)
+        .insert({
+          repairer_id: repairerId,
+          user_id: user?.id || null,
+          email: formData.email,
+          phone: formData.phone,
+          siret: formData.siret || null,
+          status: 'pending',
+        });
+      
+      if (error) throw error;
       
       setStep('success');
       toast({

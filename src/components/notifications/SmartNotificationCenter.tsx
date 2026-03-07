@@ -7,6 +7,7 @@ import { Bell, X, AlertCircle, Info, CheckCircle, Settings } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotifications } from '@/hooks/useNotifications';
 import { enhancedToast } from '@/components/ui/enhanced-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -78,13 +79,31 @@ export const SmartNotificationCenter: React.FC<{ userId?: string }> = ({ userId 
   };
 
   const markAsRead = async (id: string) => {
-    // TODO: Implement mark as read
-    enhancedToast.success({ title: 'Notification marquée comme lue' });
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', id);
+      if (error) throw error;
+      enhancedToast.success({ title: 'Notification marquée comme lue' });
+    } catch (err) {
+      console.error('Erreur markAsRead:', err);
+    }
   };
 
   const markAllAsRead = async () => {
-    // TODO: Implement mark all as read
-    enhancedToast.success({ title: 'Toutes les notifications marquées comme lues' });
+    if (!userId) return;
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', userId)
+        .eq('is_read', false);
+      if (error) throw error;
+      enhancedToast.success({ title: 'Toutes les notifications marquées comme lues' });
+    } catch (err) {
+      console.error('Erreur markAllAsRead:', err);
+    }
   };
 
   return (

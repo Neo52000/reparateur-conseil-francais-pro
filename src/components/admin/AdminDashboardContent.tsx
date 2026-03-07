@@ -1,8 +1,9 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import AdminStatsCards from './AdminStatsCards';
 import DashboardOverview from './DashboardOverview';
 import VisitorAnalytics from './VisitorAnalytics';
+import { supabase } from '@/integrations/supabase/client';
 
 
 interface AdminDashboardContentProps {
@@ -20,12 +21,28 @@ const AdminDashboardContent: React.FC<AdminDashboardContentProps> = ({
   onViewProfile,
   onRefresh
 }) => {
-  // Calculer les stats à partir des données disponibles
+  const [totalInterests, setTotalInterests] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [interestsRes, revenueRes] = await Promise.all([
+        supabase.from('client_interests').select('id', { count: 'exact', head: true }),
+        supabase.from('payments').select('amount').eq('status', 'completed'),
+      ]);
+      setTotalInterests(interestsRes.count || 0);
+      setTotalRevenue(
+        (revenueRes.data || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+      );
+    };
+    fetchStats();
+  }, []);
+
   const stats = {
     totalRepairers: repairers.length,
     totalSubscriptions: subscriptions.length,
-    totalInterests: 0, // TODO: À connecter avec les vraies données client_interests
-    totalRevenue: 0 // TODO: À connecter avec les vraies données de revenue
+    totalInterests,
+    totalRevenue,
   };
 
   return (
