@@ -175,18 +175,22 @@ const StripeConfiguration: React.FC = () => {
 
             <div>
               <Label htmlFor="secret_key">Clé secrète Stripe</Label>
+              <Alert variant="destructive" className="mb-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  La clé secrète Stripe ne doit jamais être stockée côté client.
+                  Configurez-la dans les variables d'environnement de votre serveur (Edge Functions Supabase).
+                </AlertDescription>
+              </Alert>
               <Input
                 id="secret_key"
                 type="password"
-                placeholder="sk_live_... ou sk_test_..."
-                value={config.stripe_secret_key || ''}
-                onChange={(e) => setConfig({
-                  ...config,
-                  stripe_secret_key: e.target.value
-                })}
+                placeholder="Configurez via les variables d'environnement serveur"
+                disabled
+                value={config.stripe_secret_key ? '••••••••••••••••' : ''}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Commence par sk_live_ (production) ou sk_test_ (test)
+                Pour des raisons de sécurité, la clé secrète doit être configurée dans les Supabase Edge Function Secrets.
               </p>
             </div>
 

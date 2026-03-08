@@ -25,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import ProductSelection from '@/components/repairer-dashboard/pricing/ProductSelection';
 import { useCatalog } from '@/hooks/useCatalog';
 import { useRepairerPrices } from '@/hooks/catalog/useRepairerPrices';
+import DOMPurify from 'dompurify';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -509,7 +510,7 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
     try {
       // Créer un élément temporaire avec le HTML
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = generateQuoteHTML();
+      tempDiv.innerHTML = DOMPurify.sanitize(generateQuoteHTML());
       tempDiv.style.position = 'absolute';
       tempDiv.style.left = '-9999px';
       tempDiv.style.top = '0';
@@ -572,7 +573,7 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
     try {
       // Générer le PDF en base64
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = generateQuoteHTML();
+      tempDiv.innerHTML = DOMPurify.sanitize(generateQuoteHTML());
       tempDiv.style.position = 'absolute';
       tempDiv.style.left = '-9999px';
       document.body.appendChild(tempDiv);
@@ -588,24 +589,19 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
       const pdfBase64 = pdf.output('datauristring').split(',')[1];
       document.body.removeChild(tempDiv);
 
-      // Envoyer via l'edge function avec l'URL complète
-      const supabaseUrl = 'https://nbugpbakfkyvvjzgfjmw.supabase.co';
-      const response = await fetch(`${supabaseUrl}/functions/v1/send-quote`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5idWdwYmFrZmt5dnZqemdmam13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4OTgyMjQsImV4cCI6MjA2NTQ3NDIyNH0.3D_IxWcSNpA2Xk5PtsJVyfjAk9kC1KbMG2n1FJ32tWc`
-        },
-        body: JSON.stringify({
+      // Envoyer via l'edge function Supabase
+      const { data: fnData, error: fnError } = await supabase.functions.invoke('send-quote', {
+        body: {
           repairOrderId: repairOrder.id,
           recipientEmail: repairOrder.device.customer_email,
           pdfBase64,
           sendMethod: 'email',
           quoteName: `Devis_${repairOrder.order_number}`
-        })
+        }
       });
 
-      const result = await response.json();
+      if (fnError) throw fnError;
+      const result = fnData;
       if (result.success) {
         toast({ 
           title: "📧 Email envoyé", 
@@ -638,23 +634,18 @@ const QuoteGenerator: React.FC<QuoteGeneratorProps> = ({
 
     setIsGenerating(true);
     try {
-      const supabaseUrl = 'https://nbugpbakfkyvvjzgfjmw.supabase.co';
-      const response = await fetch(`${supabaseUrl}/functions/v1/send-quote`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5idWdwYmFrZmt5dnZqemdmam13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4OTgyMjQsImV4cCI6MjA2NTQ3NDIyNH0.3D_IxWcSNpA2Xk5PtsJVyfjAk9kC1KbMG2n1FJ32tWc`
-        },
-        body: JSON.stringify({
+      const { data: fnData, error: fnError } = await supabase.functions.invoke('send-quote', {
+        body: {
           repairOrderId: repairOrder.id,
           recipientPhone: repairOrder.device.customer_phone,
-          pdfBase64: '', // Pas besoin du PDF pour SMS
+          pdfBase64: '',
           sendMethod: 'sms',
           quoteName: `Devis_${repairOrder.order_number}`
-        })
+        }
       });
 
-      const result = await response.json();
+      if (fnError) throw fnError;
+      const result = fnData;
       if (result.success) {
         toast({ 
           title: "📱 SMS envoyé", 

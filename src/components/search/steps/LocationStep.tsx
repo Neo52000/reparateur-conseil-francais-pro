@@ -59,8 +59,9 @@ const LocationStep: React.FC<LocationStepProps> = ({
         
         try {
           // Reverse geocoding pour obtenir la ville
+          const mapboxToken = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
           const response = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=pk.eyJ1IjoiaXJlcGFyLWZyIiwiYSI6ImNseWFqNGJ2czFkdTUya3B6dXNmc2hrYWUifQ.yJwNky1VqL2yefgKJk3CQw&types=place`
+            `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxToken}&types=place`
           );
           
           if (response.ok) {

@@ -8,6 +8,22 @@
     <meta name="description" content="TopRéparateurs.fr - La plateforme de référence pour trouver les meilleurs réparateurs qualifiés près de chez vous. Devis gratuits, services de qualité." />
     <meta name="author" content="TopRéparateurs.fr" />
 
+    <!-- Security: Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co https://api.mapbox.com https://*.tile.openstreetmap.org;
+      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mapbox.com https://www.google-analytics.com https://*.sentry.io;
+      frame-src 'none';
+      object-src 'none';
+      base-uri 'self';
+    " />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#2563eb">
