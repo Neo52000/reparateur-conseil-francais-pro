@@ -7,59 +7,86 @@ import { AuthProvider } from "./hooks/useAuth";
 import { PlanPreviewProvider } from "./hooks/usePlanPreview";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ChatbotLayout from "./components/ChatbotLayout";
+// Only Index is eagerly loaded for fast FCP
 import Index from "./pages/Index";
-import SearchPage from "./components/search/SearchPage";
-import { AISearchPage } from "./components/search/AISearchPage";
-import AdminPage from "./pages/AdminPage";
-import RepairerDashboardPage from "./pages/RepairerDashboardPage";
-import ClientDashboardPage from "./pages/ClientDashboardPage";
-import RepairerProfilePage from "./pages/RepairerProfilePage";
-import RepairerPublicProfilePage from "./pages/RepairerPublicProfilePage";
-import RepairerPlans from "./pages/RepairerPlans";
-import RepairerTestimonials from "./pages/RepairerTestimonials";
-import RepairerFAQ from "./pages/RepairerFAQ";
-import SmartphoneRepairPage from "./pages/services/SmartphoneRepairPage";
-import TabletRepairPage from "./pages/services/TabletRepairPage";
-import ComputerRepairPage from "./pages/services/ComputerRepairPage";
-import ConsoleRepairPage from "./pages/services/ConsoleRepairPage";
-import LocalSeoPage from "./components/LocalSeoPage";
-import LocalSeoRouter, { isLocalSeoPath } from "./components/LocalSeoRouter";
-import RepairerSeoPage from "./pages/RepairerSeoPage";
-import DocumentationPage from "./pages/DocumentationPage";
-import AProposPage from "./pages/AProposPage";
-import GarantiePage from "./pages/GarantiePage";
-import GuideChoixReparateurPage from "./pages/GuideChoixReparateurPage";
-
-import RepairerSettingsPage from "./pages/RepairerSettingsPage";
-import RepairTrackingPage from "./pages/RepairTrackingPage";
-import StaticPage from "./pages/StaticPage";
-import RepairerAuthPage from "./pages/RepairerAuthPage";
-import ClientAuthPage from "./pages/ClientAuthPage";
-import BlogPage from "./pages/BlogPage";
-import BlogArticlePage from "./pages/BlogArticlePage";
-import BlogRepairerPage from "./pages/BlogRepairerPage";
-import { SuppliersDirectoryPage } from "./pages/SuppliersDirectoryPage";
-import QuotesAndAppointments from "./pages/QuotesAndAppointments";
-import LegalNotice from "./pages/LegalNotice";
-import TermsOfService from "./pages/TermsOfService";
-import CookiesPolicy from "./pages/CookiesPolicy";
-import TermsOfSale from "./pages/TermsOfSale";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import MyDataPage from "./pages/MyDataPage";
-import NotFound from "./pages/NotFound";
-import MarketplacePage from "./pages/MarketplacePage";
-import { useVisitorTracker } from "./hooks/useVisitorTracker";
-import { GlobalVisitorTracker } from "./components/GlobalVisitorTracker";
-import StaticPagesManagerPage from "./pages/admin/StaticPagesManagerPage";
-import ProfileBuilderPage from "./pages/admin/ProfileBuilderPage";
-import AdminImportPage from "./components/admin/AdminImportPage";
+import { isLocalSeoPath } from "./components/LocalSeoRouter";
 // Configuration production
 import { initializeProductionMode, performProductionHealthCheck } from './config/productionSetup';
-import { RuntimeDiagnostics } from "./components/dev/RuntimeDiagnostics";
 import { initializeSentry } from './config/sentry';
 import { MobileBottomNav } from './components/navigation/MobileBottomNav';
 import { PWAInstallBanner } from './components/pwa/PWAInstallBanner';
 import { PWAUpdateBanner } from './components/pwa/PWAUpdateBanner';
+
+// --- Lazy-loaded pages (code-split for smaller initial bundle) ---
+
+// Search
+const SearchPage = lazy(() => import("./components/search/SearchPage"));
+const AISearchPage = lazy(() => import("./components/search/AISearchPage").then(m => ({ default: m.AISearchPage })));
+
+// Admin
+const AdminPage = lazy(() => import("./pages/AdminPage"));
+const AdminImportPage = lazy(() => import("./components/admin/AdminImportPage"));
+const StaticPagesManagerPage = lazy(() => import("./pages/admin/StaticPagesManagerPage"));
+const ProfileBuilderPage = lazy(() => import("./pages/admin/ProfileBuilderPage"));
+
+// Repairer
+const RepairerDashboardPage = lazy(() => import("./pages/RepairerDashboardPage"));
+const RepairerProfilePage = lazy(() => import("./pages/RepairerProfilePage"));
+const RepairerPublicProfilePage = lazy(() => import("./pages/RepairerPublicProfilePage"));
+const RepairerPlans = lazy(() => import("./pages/RepairerPlans"));
+const RepairerTestimonials = lazy(() => import("./pages/RepairerTestimonials"));
+const RepairerFAQ = lazy(() => import("./pages/RepairerFAQ"));
+const RepairerSettingsPage = lazy(() => import("./pages/RepairerSettingsPage"));
+const RepairerAuthPage = lazy(() => import("./pages/RepairerAuthPage"));
+const RepairerSeoPage = lazy(() => import("./pages/RepairerSeoPage"));
+const RepairTrackingPage = lazy(() => import("./pages/RepairTrackingPage"));
+
+// Client
+const ClientDashboardPage = lazy(() => import("./pages/ClientDashboardPage"));
+const ClientAuthPage = lazy(() => import("./pages/ClientAuthPage"));
+
+// Services
+const SmartphoneRepairPage = lazy(() => import("./pages/services/SmartphoneRepairPage"));
+const TabletRepairPage = lazy(() => import("./pages/services/TabletRepairPage"));
+const ComputerRepairPage = lazy(() => import("./pages/services/ComputerRepairPage"));
+const ConsoleRepairPage = lazy(() => import("./pages/services/ConsoleRepairPage"));
+
+// SEO
+const LocalSeoPage = lazy(() => import("./components/LocalSeoPage"));
+const LocalSeoRouter = lazy(() => import("./components/LocalSeoRouter"));
+const ModelCityPageLazy = lazy(() => import("./components/seo/programmatic/ModelCityPage").then(m => ({ default: m.ModelCityPage })));
+const HubCityPageLazy = lazy(() => import("./components/seo/programmatic/HubCityPage").then(m => ({ default: m.HubCityPage })));
+const SymptomPageLazy = lazy(() => import("./components/seo/programmatic/SymptomPage").then(m => ({ default: m.SymptomPage })));
+
+// Blog
+const BlogPage = lazy(() => import("./pages/BlogPage"));
+const BlogArticlePage = lazy(() => import("./pages/BlogArticlePage"));
+const BlogRepairerPage = lazy(() => import("./pages/BlogRepairerPage"));
+
+// Legal
+const LegalNotice = lazy(() => import("./pages/LegalNotice"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const CookiesPolicy = lazy(() => import("./pages/CookiesPolicy"));
+const TermsOfSale = lazy(() => import("./pages/TermsOfSale"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const MyDataPage = lazy(() => import("./pages/MyDataPage"));
+
+// Other pages
+const StaticPage = lazy(() => import("./pages/StaticPage"));
+const DocumentationPage = lazy(() => import("./pages/DocumentationPage"));
+const AProposPage = lazy(() => import("./pages/AProposPage"));
+const GarantiePage = lazy(() => import("./pages/GarantiePage"));
+const GuideChoixReparateurPage = lazy(() => import("./pages/GuideChoixReparateurPage"));
+const SuppliersDirectoryPage = lazy(() => import("./pages/SuppliersDirectoryPage").then(m => ({ default: m.SuppliersDirectoryPage })));
+const QuotesAndAppointments = lazy(() => import("./pages/QuotesAndAppointments"));
+const MarketplacePage = lazy(() => import("./pages/MarketplacePage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Dev tools (only in development)
+const RuntimeDiagnostics = lazy(() => import("./components/dev/RuntimeDiagnostics").then(m => ({ default: m.RuntimeDiagnostics })));
+
+// Lazy visitor tracker
+const GlobalVisitorTracker = lazy(() => import("./components/GlobalVisitorTracker").then(m => ({ default: m.GlobalVisitorTracker })));
 
 // Catch-all component: renders LocalSeoRouter for SEO paths, NotFound otherwise
 const LocalSeoCatchAll = () => {
@@ -67,9 +94,6 @@ const LocalSeoCatchAll = () => {
   if (isLocalSeoPath(pathname)) return <LocalSeoRouter />;
   return <NotFound />;
 };
-const ModelCityPageLazy = lazy(() => import("./components/seo/programmatic/ModelCityPage").then(m => ({ default: m.ModelCityPage })));
-const HubCityPageLazy = lazy(() => import("./components/seo/programmatic/HubCityPage").then(m => ({ default: m.HubCityPage })));
-const SymptomPageLazy = lazy(() => import("./components/seo/programmatic/SymptomPage").then(m => ({ default: m.SymptomPage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -86,15 +110,15 @@ const App = () => {
   useEffect(() => {
     // Initialiser Sentry en premier
     initializeSentry();
-    
+
     if (import.meta.env.PROD) {
       // Initialiser le mode production strict
       const prodConfig = initializeProductionMode();
-      
+
       // Vérification de santé
       const healthCheck = performProductionHealthCheck();
       if (!healthCheck.healthy) {
-        console.warn('⚠️ Problèmes détectés lors des vérifications de production');
+        console.warn('Production health check issues detected');
       }
     }
   }, []);
@@ -121,8 +145,14 @@ const App = () => {
 const AppWithTracking = () => {
   return (
     <ChatbotLayout>
-      <GlobalVisitorTracker />
-      {import.meta.env.DEV && <RuntimeDiagnostics />}
+      <Suspense fallback={null}>
+        <GlobalVisitorTracker />
+      </Suspense>
+      {import.meta.env.DEV && (
+        <Suspense fallback={null}>
+          <RuntimeDiagnostics />
+        </Suspense>
+      )}
       <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" /></div>}>
         <Routes>
         <Route path="/" element={<Index />} />
@@ -141,7 +171,6 @@ const AppWithTracking = () => {
         <Route path="/admin/profile-builder" element={<ProfileBuilderPage />} />
         <Route path="/admin/profile-builder/new" element={<ProfileBuilderPage />} />
         <Route path="/admin/profile-builder/:templateId" element={<ProfileBuilderPage />} />
-        {/* SEO pages dynamiques — handled by catch-all LocalSeoRouter before 404 */}
         {/* Pages SEO programmatiques V3 */}
         <Route path="/reparation/:model/:city" element={<ModelCityPageLazy />} />
         <Route path="/reparateurs/:city" element={<HubCityPageLazy />} />
@@ -199,11 +228,11 @@ const AppWithTracking = () => {
         <Route path="/a-propos" element={<AProposPage />} />
         <Route path="/garantie" element={<GarantiePage />} />
         <Route path="/guide-choix-reparateur" element={<GuideChoixReparateurPage />} />
-        {/* SEO local catch-all: /reparateur-smartphone-paris, /modern-reparateur-tablette-lyon, etc. */}
+        {/* SEO local catch-all */}
         <Route path="*" element={<LocalSeoCatchAll />} />
         </Routes>
       </Suspense>
-      
+
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav />
 
