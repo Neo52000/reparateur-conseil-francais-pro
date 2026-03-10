@@ -249,6 +249,8 @@ const AdminPage = () => {
         return 'Surveillance uptime, performance et métriques business exclusives';
       case 'blog':
         return 'Gestion du contenu éditorial';
+      case 'social-booster':
+        return 'Transformez vos articles de blog en publications sociales multi-réseaux';
       case 'chatbot':
         return 'Administration et configuration de l\'assistant intelligent';
       case 'local-seo':
