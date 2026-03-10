@@ -72,7 +72,7 @@ const AdminPage = () => {
   const validTabs = [
     'dashboard', 'subscriptions', 'subdomains', 'landing-pages', 'repairers', 'quotes',
     'catalog', 'interest', 'advertising', 'advertising-ai', 'analytics',
-    'scraping', 'automation', 'monitoring', 'blog', 'chatbot', 'local-seo', 'seo-tools',
+    'scraping', 'automation', 'monitoring', 'blog', 'social-booster', 'chatbot', 'local-seo', 'seo-tools',
     'repairer-seo', 'seo-monitoring', 'repair-generator', 'pagespeed-pro', 'performance',
     'documentation', 'features-manager', 'plans-tester', 'dashboard-tester', 'configuration',
     'suppliers', 'static-pages', 'system-diagnostics', 'system-optimization', 'chatbot-performance',
