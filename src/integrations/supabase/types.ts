@@ -12961,6 +12961,199 @@ export type Database = {
         }
         Relationships: []
       }
+      social_campaigns: {
+        Row: {
+          article_classification: Json | null
+          blog_post_id: string
+          created_at: string
+          id: string
+          match_reason: string | null
+          match_score: number | null
+          repairer_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          article_classification?: Json | null
+          blog_post_id: string
+          created_at?: string
+          id?: string
+          match_reason?: string | null
+          match_score?: number | null
+          repairer_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          article_classification?: Json | null
+          blog_post_id?: string
+          created_at?: string
+          id?: string
+          match_reason?: string | null
+          match_score?: number | null
+          repairer_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_campaigns_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: true
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_campaigns_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "nf203_admin_overview"
+            referencedColumns: ["repairer_id"]
+          },
+          {
+            foreignKeyName: "social_campaigns_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_campaigns_repairer_id_fkey"
+            columns: ["repairer_id"]
+            isOneToOne: false
+            referencedRelation: "repairer_profiles_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_posts: {
+        Row: {
+          campaign_id: string
+          content: string
+          created_at: string
+          cta_text: string | null
+          cta_url: string | null
+          error_message: string | null
+          external_post_id: string | null
+          hashtags: string[] | null
+          id: string
+          media_url: string | null
+          platform: string
+          published_at: string | null
+          scheduled_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          campaign_id: string
+          content?: string
+          created_at?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          error_message?: string | null
+          external_post_id?: string | null
+          hashtags?: string[] | null
+          id?: string
+          media_url?: string | null
+          platform: string
+          published_at?: string | null
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          campaign_id?: string
+          content?: string
+          created_at?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          error_message?: string | null
+          external_post_id?: string | null
+          hashtags?: string[] | null
+          id?: string
+          media_url?: string | null
+          platform?: string
+          published_at?: string | null
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_posts_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "social_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_publication_logs: {
+        Row: {
+          action: string
+          campaign_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          response_data: Json | null
+          social_post_id: string | null
+          status: string
+        }
+        Insert: {
+          action: string
+          campaign_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          response_data?: Json | null
+          social_post_id?: string | null
+          status: string
+        }
+        Update: {
+          action?: string
+          campaign_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          response_data?: Json | null
+          social_post_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_publication_logs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "social_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_publication_logs_social_post_id_fkey"
+            columns: ["social_post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_settings: {
+        Row: {
+          config: Json
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       spare_parts: {
         Row: {
           category: string | null
