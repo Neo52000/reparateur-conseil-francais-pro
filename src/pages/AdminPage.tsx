@@ -55,6 +55,7 @@ import ShopifyAdminSettings from '@/components/shopify/admin/ShopifyAdminSetting
 import { ExclusivityZonesAdmin } from '@/components/admin/exclusivity';
 import { AdminSeoProgrammaticPanel } from '@/components/admin/seo';
 import { AdminPOSOverview } from '@/components/admin/pos';
+import SocialBoosterDashboard from '@/components/admin/social-booster/SocialBoosterDashboard';
 
 const AdminPage = () => {
   const {
