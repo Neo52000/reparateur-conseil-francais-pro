@@ -55,6 +55,7 @@ import ShopifyAdminSettings from '@/components/shopify/admin/ShopifyAdminSetting
 import { ExclusivityZonesAdmin } from '@/components/admin/exclusivity';
 import { AdminSeoProgrammaticPanel } from '@/components/admin/seo';
 import { AdminPOSOverview } from '@/components/admin/pos';
+import SocialBoosterDashboard from '@/components/admin/social-booster/SocialBoosterDashboard';
 
 const AdminPage = () => {
   const {
@@ -71,7 +72,7 @@ const AdminPage = () => {
   const validTabs = [
     'dashboard', 'subscriptions', 'subdomains', 'landing-pages', 'repairers', 'quotes',
     'catalog', 'interest', 'advertising', 'advertising-ai', 'analytics',
-    'scraping', 'automation', 'monitoring', 'blog', 'chatbot', 'local-seo', 'seo-tools',
+    'scraping', 'automation', 'monitoring', 'blog', 'social-booster', 'chatbot', 'local-seo', 'seo-tools',
     'repairer-seo', 'seo-monitoring', 'repair-generator', 'pagespeed-pro', 'performance',
     'documentation', 'features-manager', 'plans-tester', 'dashboard-tester', 'configuration',
     'suppliers', 'static-pages', 'system-diagnostics', 'system-optimization', 'chatbot-performance',
@@ -156,6 +157,8 @@ const AdminPage = () => {
         return 'Monitoring Checkmate';
       case 'blog':
         return 'Blog & Contenu';
+      case 'social-booster':
+        return 'Blog Booster Social';
       case 'chatbot':
         return 'Chatbot';
       case 'local-seo':
@@ -246,6 +249,8 @@ const AdminPage = () => {
         return 'Surveillance uptime, performance et métriques business exclusives';
       case 'blog':
         return 'Gestion du contenu éditorial';
+      case 'social-booster':
+        return 'Transformez vos articles de blog en publications sociales multi-réseaux';
       case 'chatbot':
         return 'Administration et configuration de l\'assistant intelligent';
       case 'local-seo':
@@ -355,6 +360,8 @@ const AdminPage = () => {
         return <CheckmateMonitoring />;
       case 'blog':
         return <BlogManagement />;
+      case 'social-booster':
+        return <SocialBoosterDashboard />;
       case 'chatbot':
         return <ChatbotManagement />;
       case 'local-seo':

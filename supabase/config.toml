@@ -39,5 +39,7 @@ verify_jwt = false
 [functions.google-places-proxy]
 verify_jwt = false
 
-[functions.stop-scraping]
+# stop-scraping supprimé pour libérer un slot pour social-booster
+
+[functions.social-booster]
 verify_jwt = false
