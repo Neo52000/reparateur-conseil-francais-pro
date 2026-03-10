@@ -157,6 +157,8 @@ const AdminPage = () => {
         return 'Monitoring Checkmate';
       case 'blog':
         return 'Blog & Contenu';
+      case 'social-booster':
+        return 'Blog Booster Social';
       case 'chatbot':
         return 'Chatbot';
       case 'local-seo':
