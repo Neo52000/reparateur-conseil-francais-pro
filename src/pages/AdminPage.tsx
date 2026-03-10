@@ -360,6 +360,8 @@ const AdminPage = () => {
         return <CheckmateMonitoring />;
       case 'blog':
         return <BlogManagement />;
+      case 'social-booster':
+        return <SocialBoosterDashboard />;
       case 'chatbot':
         return <ChatbotManagement />;
       case 'local-seo':

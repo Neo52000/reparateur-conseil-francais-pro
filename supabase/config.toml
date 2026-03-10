@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.stop-scraping]
 verify_jwt = false
+
+[functions.social-booster]
+verify_jwt = false
