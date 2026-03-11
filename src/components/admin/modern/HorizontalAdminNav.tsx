@@ -120,6 +120,12 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
       icon: <Globe className="w-4 h-4" />,
     },
     {
+      id: 'social-booster',
+      label: 'Blog Booster Social',
+      icon: <Megaphone className="w-4 h-4" />,
+      isNew: true,
+    },
+    {
       id: 'chatbot',
       label: 'Chatbot (Bientôt)',
       icon: <Bot className="w-4 h-4" />,
