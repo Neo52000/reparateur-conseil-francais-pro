@@ -128,15 +128,18 @@ const SearchResultsWithPricing: React.FC<SearchResultsWithPricingProps> = ({
     try {
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       
+      const { data: { user } } = await supabase.auth.getUser();
       const { error } = await supabase
         .from('quotes_with_timeline')
         .insert({
           repairer_id: repairer.repairer_id,
+          device_brand: searchData.brandName || '',
           device_model: searchData.modelName || '',
           repair_type: searchData.repairTypeName || '',
+          client_email: user?.email || '',
+          client_id: user?.id || null,
           status: 'pending',
-          expires_at: expiresAt,
-          description: `Demande de devis pour ${searchData.brandName} ${searchData.modelName} - ${searchData.repairTypeName}`,
+          issue_description: `Demande de devis pour ${searchData.brandName} ${searchData.modelName} - ${searchData.repairTypeName}`,
         });
 
       if (error) throw error;
