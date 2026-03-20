@@ -28,10 +28,10 @@ export default function SeoToolsPanel() {
   const [geocodingProgress, setGeocodingProgress] = useState(0);
   const [results, setResults] = useState<ProcessResult[]>([]);
 
-  // Créer un client Supabase local avec types simples
+  // Utiliser le client Supabase centralisé (sans clés hardcodées)
   const supabase = createClient(
-    'https://nbugpbakfkyvvjzgfjmw.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5idWdwYmFrZmt5dnZqemdmam13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4OTgyMjQsImV4cCI6MjA2NTQ3NDIyNH0.3D_IxWcSNpA2Xk5PtsJVyfjAk9kC1KbMG2n1FJ32tWc'
+    import.meta.env.VITE_SUPABASE_URL,
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
   );
 
   const regenerateAllSeoPages = async () => {

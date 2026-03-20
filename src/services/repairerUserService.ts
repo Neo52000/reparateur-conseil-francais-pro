@@ -27,8 +27,9 @@ export class RepairerUserService {
       
       console.log('🔧 Creating user with data:', { email, first_name, phone });
       
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const res = await fetch(
-        "https://nbugpbakfkyvvjzgfjmw.functions.supabase.co/create-repairer-user",
+        `${supabaseUrl}/functions/v1/create-repairer-user`,
         {
           method: "POST",
           headers,

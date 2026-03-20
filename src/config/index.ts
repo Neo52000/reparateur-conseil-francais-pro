@@ -8,9 +8,9 @@ export const APP_CONFIG = {
   version: '1.0.0',
   description: 'Plateforme de mise en relation clients/réparateurs',
   
-  // URLs et endpoints
-  supabaseUrl: 'https://nbugpbakfkyvvjzgfjmw.supabase.co',
-  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5idWdwYmFrZmt5dnZqemdmam13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4OTgyMjQsImV4cCI6MjA2NTQ3NDIyNH0.3D_IxWcSNpA2Xk5PtsJVyfjAk9kC1KbMG2n1FJ32tWc',
+  // URLs et endpoints (loaded from environment variables)
+  supabaseUrl: import.meta.env.VITE_SUPABASE_URL || '',
+  supabaseAnonKey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
   
   // Configuration de performance
   cache: {

@@ -335,8 +335,8 @@ export const useAuth = () => {
 import { createClient } from '@supabase/supabase-js';
 
 export const supabase = createClient(
-  'https://nbugpbakfkyvvjzgfjmw.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 );
 \`\`\`
 
@@ -376,8 +376,8 @@ interface POSTransaction {
 
 ### Variables d'environnement
 \`\`\`bash
-VITE_SUPABASE_URL=https://nbugpbakfkyvvjzgfjmw.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGci...
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-anon-key
 STRIPE_PUBLIC_KEY=pk_live_...
 \`\`\`
 

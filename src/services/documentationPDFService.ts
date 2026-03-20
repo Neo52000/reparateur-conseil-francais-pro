@@ -5,6 +5,7 @@
 
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import DOMPurify from 'dompurify';
 
 export interface DocumentMetadata {
   title: string;
@@ -34,7 +35,7 @@ export class DocumentationPDFService {
     container.style.top = '0';
     container.style.width = '794px'; // A4 width
     container.style.minHeight = '1123px'; // A4 height minimum
-    container.innerHTML = this.createHTMLTemplate(content, metadata);
+    container.innerHTML = DOMPurify.sanitize(this.createHTMLTemplate(content, metadata));
     
     // Appliquer les styles
     this.applyPDFStyles(container);

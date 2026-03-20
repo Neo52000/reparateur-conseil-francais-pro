@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -385,7 +386,7 @@ const PlanVisualizationTester: React.FC = () => {
       if (plan) {
         return (
           <div style={style} className="p-2 sm:p-4 lg:p-6">
-            <div dangerouslySetInnerHTML={{ __html: customCSSOverrides }} />
+            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(customCSSOverrides, { ALLOWED_TAGS: ['style'], ALLOWED_ATTR: [] }) }} />
             <PlanCard
               plan={plan}
               isYearly={isYearly}
@@ -400,7 +401,7 @@ const PlanVisualizationTester: React.FC = () => {
 
     return (
       <div style={style} className="p-2 sm:p-4 lg:p-6">
-        <div dangerouslySetInnerHTML={{ __html: customCSSOverrides }} />
+        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(customCSSOverrides, { ALLOWED_TAGS: ['style'], ALLOWED_ATTR: [] }) }} />
         <PlansGrid
           plans={mockPlans}
           isYearly={isYearly}

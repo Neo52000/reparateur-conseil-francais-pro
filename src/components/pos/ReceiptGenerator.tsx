@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from 'dompurify';
 import { Button } from '@/components/ui/button';
 import { Printer, Download, Mail, Archive, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -257,7 +258,7 @@ const ReceiptGenerator: React.FC<ReceiptGeneratorProps> = ({
     <div className="space-y-4">
       {/* Aperçu du ticket */}
       <div className="bg-white border rounded-lg p-4 max-w-sm mx-auto shadow-sm">
-        <div dangerouslySetInnerHTML={{ __html: generateReceiptHTML() }} />
+        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generateReceiptHTML()) }} />
       </div>
 
       {/* Statut d'archivage NF-525 */}
