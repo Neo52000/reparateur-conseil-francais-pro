@@ -53,7 +53,7 @@ import ShopifyCommissionsManager from '@/components/shopify/admin/ShopifyCommiss
 import ShopifyGlobalAnalytics from '@/components/shopify/admin/ShopifyGlobalAnalytics';
 import ShopifyAdminSettings from '@/components/shopify/admin/ShopifyAdminSettings';
 import { ExclusivityZonesAdmin } from '@/components/admin/exclusivity';
-import { AdminSeoProgrammaticPanel } from '@/components/admin/seo';
+import { AdminSeoProgrammaticPanel, AdminSeoMachinePanel } from '@/components/admin/seo';
 import { AdminPOSOverview } from '@/components/admin/pos';
 import SocialBoosterDashboard from '@/components/admin/social-booster/SocialBoosterDashboard';
 
@@ -444,6 +444,8 @@ const AdminPage = () => {
         return <ExclusivityZonesAdmin />;
       case 'seo-programmatic':
         return <AdminSeoProgrammaticPanel />;
+      case 'seo-machine':
+        return <AdminSeoMachinePanel />;
       case 'pos-nf525':
       case 'pos-payments':
       case 'pos-integrations':
