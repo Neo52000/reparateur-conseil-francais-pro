@@ -444,6 +444,8 @@ const AdminPage = () => {
         return <ExclusivityZonesAdmin />;
       case 'seo-programmatic':
         return <AdminSeoProgrammaticPanel />;
+      case 'seo-machine':
+        return <AdminSeoMachinePanel />;
       case 'pos-nf525':
       case 'pos-payments':
       case 'pos-integrations':
