@@ -84,8 +84,6 @@ const AdminSidebar: React.FC = () => {
     
     // Monetization V3
     { path: '/admin?tab=exclusivity-zones', icon: MapPin, label: 'Zones Exclusivité N3', tab: 'exclusivity-zones', category: 'Monetization V3', isNew: true },
-    { path: '/admin?tab=seo-programmatic', icon: Globe, label: 'SEO Programmatique', tab: 'seo-programmatic', category: 'Monetization V3', isNew: true },
-    { path: '/admin?tab=seo-machine', icon: Zap, label: 'SEO Machine', tab: 'seo-machine', category: 'Monetization V3', isNew: true },
     { path: '/admin?tab=pos-nf525', icon: ShieldCheck, label: 'POS NF-525', tab: 'pos-nf525', category: 'Monetization V3', isNew: true },
     
     // Technical
