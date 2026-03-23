@@ -63,6 +63,8 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=local-seo', icon: MapPin, label: 'Local SEO', tab: 'local-seo', category: 'SEO & Performance' },
     { path: '/admin?tab=pagespeed-pro', icon: Gauge, label: 'PageSpeed Pro', tab: 'pagespeed-pro', category: 'SEO & Performance' },
     { path: '/admin?tab=performance', icon: Zap, label: 'Performance', tab: 'performance', category: 'SEO & Performance' },
+    { path: '/admin?tab=seo-programmatic', icon: Globe, label: 'SEO Programmatique', tab: 'seo-programmatic', category: 'SEO & Performance', isNew: true },
+    { path: '/admin?tab=seo-machine', icon: Zap, label: 'SEO Machine', tab: 'seo-machine', category: 'SEO & Performance', isNew: true },
     
     // Content & Marketing
     { path: '/admin?tab=blog', icon: PenTool, label: 'Blog', tab: 'blog', category: 'Content & Marketing' },
@@ -82,8 +84,6 @@ const AdminSidebar: React.FC = () => {
     
     // Monetization V3
     { path: '/admin?tab=exclusivity-zones', icon: MapPin, label: 'Zones Exclusivité N3', tab: 'exclusivity-zones', category: 'Monetization V3', isNew: true },
-    { path: '/admin?tab=seo-programmatic', icon: Globe, label: 'SEO Programmatique', tab: 'seo-programmatic', category: 'Monetization V3', isNew: true },
-    { path: '/admin?tab=seo-machine', icon: Zap, label: 'SEO Machine', tab: 'seo-machine', category: 'Monetization V3', isNew: true },
     { path: '/admin?tab=pos-nf525', icon: ShieldCheck, label: 'POS NF-525', tab: 'pos-nf525', category: 'Monetization V3', isNew: true },
     
     // Technical
