@@ -164,7 +164,7 @@ const AdminSidebar: React.FC = () => {
                       <Icon className="h-4 w-4" />
                       <span className="truncate flex-1 text-left">{item.label}</span>
                       {item.isNew && (
-                        <Badge variant="default" className="ml-auto text-[10px] px-1.5 py-0.5">NEW</Badge>
+                        <Badge variant="destructive" className="ml-auto text-[10px] px-1.5 py-0.5 animate-pulse">NEW</Badge>
                       )}
                     </Button>
                   );
