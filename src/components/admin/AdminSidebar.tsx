@@ -64,7 +64,7 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=pagespeed-pro', icon: Gauge, label: 'PageSpeed Pro', tab: 'pagespeed-pro', category: 'SEO & Performance' },
     { path: '/admin?tab=performance', icon: Zap, label: 'Performance', tab: 'performance', category: 'SEO & Performance' },
     { path: '/admin?tab=seo-programmatic', icon: Globe, label: 'SEO Programmatique', tab: 'seo-programmatic', category: 'SEO & Performance', isNew: true },
-    { path: '/admin?tab=seo-machine', icon: Zap, label: 'SEO Machine', tab: 'seo-machine', category: 'SEO & Performance', isNew: true },
+    { path: '/admin?tab=seo-machine', icon: Bot, label: 'SEO Machine', tab: 'seo-machine', category: 'SEO & Performance', isNew: true },
     
     // Content & Marketing
     { path: '/admin?tab=blog', icon: PenTool, label: 'Blog', tab: 'blog', category: 'Content & Marketing' },
@@ -164,7 +164,7 @@ const AdminSidebar: React.FC = () => {
                       <Icon className="h-4 w-4" />
                       <span className="truncate flex-1 text-left">{item.label}</span>
                       {item.isNew && (
-                        <Badge variant="default" className="ml-auto text-[10px] px-1.5 py-0.5">NEW</Badge>
+                        <Badge variant="destructive" className="ml-auto text-[10px] px-1.5 py-0.5 animate-pulse">NEW</Badge>
                       )}
                     </Button>
                   );
