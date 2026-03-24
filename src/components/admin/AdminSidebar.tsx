@@ -64,7 +64,7 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=pagespeed-pro', icon: Gauge, label: 'PageSpeed Pro', tab: 'pagespeed-pro', category: 'SEO & Performance' },
     { path: '/admin?tab=performance', icon: Zap, label: 'Performance', tab: 'performance', category: 'SEO & Performance' },
     { path: '/admin?tab=seo-programmatic', icon: Globe, label: 'SEO Programmatique', tab: 'seo-programmatic', category: 'SEO & Performance', isNew: true },
-    { path: '/admin?tab=seo-machine', icon: Zap, label: 'SEO Machine', tab: 'seo-machine', category: 'SEO & Performance', isNew: true },
+    { path: '/admin?tab=seo-machine', icon: Bot, label: 'SEO Machine', tab: 'seo-machine', category: 'SEO & Performance', isNew: true },
     
     // Content & Marketing
     { path: '/admin?tab=blog', icon: PenTool, label: 'Blog', tab: 'blog', category: 'Content & Marketing' },
