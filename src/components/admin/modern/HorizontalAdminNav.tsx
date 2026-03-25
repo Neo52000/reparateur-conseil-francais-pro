@@ -216,6 +216,12 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
       id: 'repair-generator',
       label: 'Générateur Contenu',
       icon: <Bot className="w-4 h-4" />,
+    },
+    {
+      id: 'seo-machine',
+      label: 'SEO Machine',
+      icon: <Bot className="w-4 h-4" />,
+      isNew: true,
     }
   ];
 
