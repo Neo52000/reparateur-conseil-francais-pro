@@ -78,7 +78,7 @@ const AdminPage = () => {
     'suppliers', 'static-pages', 'system-diagnostics', 'system-optimization', 'chatbot-performance',
     'shopify-dashboard', 'shopify-stores', 'shopify-orders', 'shopify-commissions',
     'shopify-analytics', 'shopify-settings',
-    'exclusivity-zones', 'seo-programmatic', 'pos-nf525', 'pos-payments', 'pos-integrations'
+    'exclusivity-zones', 'seo-programmatic', 'seo-machine', 'pos-nf525', 'pos-payments', 'pos-integrations'
   ];
 
   // Restore tab from sessionStorage if missing
