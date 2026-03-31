@@ -1,14 +1,12 @@
-# 🔧 RepairConnect
+# TopReparateurs.fr
 
-> La plateforme française de référence pour la réparation de smartphones
+> Plateforme francaise de mise en relation pour la reparation de smartphones
 
-[![Version](https://img.shields.io/badge/version-3.0-blue.svg)](https://github.com/RepairConnect/repairconnect)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://lovable.dev/projects/392875c8-c4e1-4f95-b40a-246008455c90)
 
-## 📱 À propos de RepairConnect
+## A propos
 
-RepairConnect est une plateforme SaaS innovante qui révolutionne la réparation de smartphones en France. Nous mettons en relation particuliers et réparateurs qualifiés via une solution transparente, fiable et accessible.
+TopReparateurs.fr est une plateforme SaaS qui met en relation particuliers et reparateurs qualifies en France, via une solution transparente, fiable et accessible.
 
 ### 🎯 Notre mission
 Démocratiser l'accès à la réparation mobile en créant un écosystème de confiance entre particuliers et professionnels.
@@ -161,13 +159,9 @@ npm run build
 # (Vercel, Netlify, Supabase Hosting...)
 ```
 
-## 📊 Métriques actuelles
+## Statut du projet
 
-- 🏪 **12 000+** réparateurs inscrits
-- 👥 **85 000** particuliers actifs
-- 📝 **35 000** devis/mois traités
-- ⚡ **99.8%** disponibilité plateforme
-- 🚀 **<2s** temps de chargement moyen
+Projet en phase de developpement actif (beta). Stack : React 18 + TypeScript + Vite + Supabase.
 
 ## 🤝 Contribution
 

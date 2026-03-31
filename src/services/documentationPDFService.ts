@@ -572,29 +572,23 @@ CREATE TABLE quotes (
 
 ## APIs et intégrations
 
-### API Mapbox
+### API Leaflet (OpenStreetMap)
 Configuration de la carte interactive :
 
 \`\`\`javascript
-import mapboxgl from 'mapbox-gl';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 
-const map = new mapboxgl.Map({
-  container: 'map',
-  style: 'mapbox://styles/mapbox/light-v10',
-  center: [2.3522, 48.8566], // Paris
-  zoom: 12
-});
-
-// Ajouter les marqueurs des réparateurs
-repairers.forEach(repairer => {
-  new mapboxgl.Marker()
-    .setLngLat([repairer.lng, repairer.lat])
-    .setPopup(new mapboxgl.Popup().setHTML(\`
-      <h3>\${repairer.name}</h3>
-      <p>Note: \${repairer.rating}/5</p>
-    \`))
-    .addTo(map);
-});
+<MapContainer center={[48.8566, 2.3522]} zoom={12}>
+  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+  {repairers.map(repairer => (
+    <Marker position={[repairer.lat, repairer.lng]}>
+      <Popup>
+        <h3>{repairer.name}</h3>
+        <p>Note: {repairer.rating}/5</p>
+      </Popup>
+    </Marker>
+  ))}
+</MapContainer>
 \`\`\`
 
 ### API Stripe

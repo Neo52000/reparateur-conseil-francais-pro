@@ -32,7 +32,7 @@
 
 #### PostgreSQL Upgrade
 ```bash
-🔗 https://supabase.com/dashboard/project/nbugpbakfkyvvjzgfjmw/settings/database
+🔗 https://supabase.com/dashboard/project/{SUPABASE_PROJECT_ID}/settings/database
 ```
 **Actions** :
 1. Cliquer sur "Upgrade PostgreSQL"
@@ -42,7 +42,7 @@
 
 #### Protection Mots de Passe Compromis
 ```bash
-🔗 https://supabase.com/dashboard/project/nbugpbakfkyvvjzgfjmw/settings/auth
+🔗 https://supabase.com/dashboard/project/{SUPABASE_PROJECT_ID}/settings/auth
 ```
 **Actions** :
 1. Naviguer vers Authentication → Password
@@ -51,7 +51,7 @@
 
 #### Clés API IA (P0 - Fonctionnalités IA)
 ```bash
-🔗 https://supabase.com/dashboard/project/nbugpbakfkyvvjzgfjmw/settings/functions
+🔗 https://supabase.com/dashboard/project/{SUPABASE_PROJECT_ID}/settings/functions
 ```
 **Secrets à configurer** :
 ```bash
@@ -567,7 +567,7 @@ serve(async (req) => {
 **Sécurité** : security@topreparateurs.fr  
 **DPO (RGPD)** : dpo@topreparateurs.fr
 
-**Dashboard Supabase** : https://supabase.com/dashboard/project/nbugpbakfkyvvjzgfjmw
+**Dashboard Supabase** : https://supabase.com/dashboard/project/{SUPABASE_PROJECT_ID}
 
 ---
 

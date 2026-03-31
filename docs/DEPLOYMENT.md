@@ -26,7 +26,7 @@ VITE_SUPABASE_ANON_KEY=staging-anon-key
 ```bash
 # Configuration production
 NODE_ENV=production
-VITE_SUPABASE_URL=https://nbugpbakfkyvvjzgfjmw.supabase.co
+VITE_SUPABASE_URL=https://{SUPABASE_PROJECT_ID}.supabase.co
 VITE_SUPABASE_ANON_KEY=production-anon-key
 ```
 
@@ -111,7 +111,7 @@ vercel --prod
   status = 200
 
 [context.production.environment]
-  VITE_SUPABASE_URL = "https://nbugpbakfkyvvjzgfjmw.supabase.co"
+  VITE_SUPABASE_URL = "https://{SUPABASE_PROJECT_ID}.supabase.co"
   VITE_SUPABASE_ANON_KEY = "production-key"
 ```
 
@@ -187,7 +187,7 @@ services:
 #### Variables d'environnement
 ```bash
 # Production
-SUPABASE_URL=https://nbugpbakfkyvvjzgfjmw.supabase.co
+SUPABASE_URL=https://{SUPABASE_PROJECT_ID}.supabase.co
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
@@ -214,7 +214,7 @@ supabase functions deploy ai-price-suggestion
 
 #### Avec secrets
 ```bash
-supabase functions deploy --project-ref nbugpbakfkyvvjzgfjmw
+supabase functions deploy --project-ref {SUPABASE_PROJECT_ID}
 ```
 
 ### 3. Migrations de base de données
@@ -226,7 +226,7 @@ supabase db push
 
 #### Générer les types TypeScript
 ```bash
-supabase gen types typescript --project-id nbugpbakfkyvvjzgfjmw > src/integrations/supabase/types.ts
+supabase gen types typescript --project-id {SUPABASE_PROJECT_ID} > src/integrations/supabase/types.ts
 ```
 
 ## Monitoring et Observabilité

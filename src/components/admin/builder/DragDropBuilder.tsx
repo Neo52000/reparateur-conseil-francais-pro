@@ -1,17 +1,32 @@
 import React, { useState } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  Grip, 
-  Plus, 
-  Copy, 
-  Trash2, 
-  Settings, 
-  Monitor, 
-  Smartphone, 
+import {
+  Grip,
+  Plus,
+  Copy,
+  Trash2,
+  Settings,
+  Monitor,
+  Smartphone,
   Tablet,
   Layout,
   Grid,
@@ -35,6 +50,95 @@ interface DragDropBuilderProps {
   initialLayout?: any;
 }
 
+function SortableItem({
+  item,
+  containerId,
+  index,
+  isPreviewMode,
+  isSelected,
+  onSelect,
+  onDuplicate,
+  onRemove,
+}: {
+  item: DragDropItem;
+  containerId: string;
+  index: number;
+  isPreviewMode: boolean;
+  isSelected: boolean;
+  onSelect: () => void;
+  onDuplicate: () => void;
+  onRemove: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: item.id,
+    data: { containerId, index },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    gridColumn: `span ${item.size.width}`,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`relative group ${isSelected ? 'ring-2 ring-primary' : ''}`}
+      onClick={onSelect}
+      {...attributes}
+    >
+      <div className="bg-card border rounded-lg p-4 h-full">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="font-medium text-sm">
+            {item.content.title || 'Widget'}
+          </h4>
+
+          {!isPreviewMode && (
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div {...listeners} className="cursor-grab">
+                <Grip className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDuplicate();
+                }}
+              >
+                <Copy className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+        </div>
+
+        <div className="text-xs text-muted-foreground">
+          Type: {item.type}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
   widgets,
   onSave,
@@ -43,13 +147,17 @@ const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
 }) => {
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
   const {
     containers,
     selectedItem,
     setSelectedItem,
     addContainer,
-    updateContainer,
     removeContainer,
     addItem,
     updateItem,
@@ -68,7 +176,6 @@ const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
     if (initialLayout) {
       importLayout(initialLayout);
     } else {
-      // Créer un container par défaut
       addContainer({
         name: 'Zone principale',
         items: [],
@@ -112,7 +219,11 @@ const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
   }, {} as Record<string, WidgetType[]>);
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
       <div className="flex h-screen bg-background">
         {/* Panel des widgets */}
         {!isPreviewMode && (
@@ -123,51 +234,35 @@ const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
                 Bibliothèque de widgets
               </h3>
             </div>
-            
+
             <ScrollArea className="flex-1 p-4">
-              <Droppable droppableId="widget-library" isDropDisabled={true}>
-                {(provided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="space-y-4"
-                  >
-                    {Object.entries(widgetsByCategory).map(([category, categoryWidgets]) => (
-                      <div key={category}>
-                        <h4 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-                          {category}
-                        </h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          {categoryWidgets.map((widget, index) => (
-                            <Draggable
-                              key={widget.id}
-                              draggableId={`widget-${widget.id}`}
-                              index={index}
-                            >
-                              {(provided, snapshot) => (
-                                <div
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  className={`p-3 border rounded-lg cursor-grab hover:bg-accent transition-colors ${
-                                    snapshot.isDragging ? 'shadow-lg' : ''
-                                  }`}
-                                >
-                                  <div className="text-center">
-                                    <widget.icon className="h-6 w-6 mx-auto mb-2 text-primary" />
-                                    <p className="text-xs font-medium">{widget.name}</p>
-                                  </div>
-                                </div>
-                              )}
-                            </Draggable>
-                          ))}
+              <div className="space-y-4">
+                {Object.entries(widgetsByCategory).map(([category, categoryWidgets]) => (
+                  <div key={category}>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                      {category}
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {categoryWidgets.map((widget) => (
+                        <div
+                          key={widget.id}
+                          className="p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors"
+                          onClick={() => {
+                            if (containers.length > 0) {
+                              addWidgetToContainer(containers[0].id, widget);
+                            }
+                          }}
+                        >
+                          <div className="text-center">
+                            <widget.icon className="h-6 w-6 mx-auto mb-2 text-primary" />
+                            <p className="text-xs font-medium">{widget.name}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                    {provided.placeholder}
+                      ))}
+                    </div>
                   </div>
-                )}
-              </Droppable>
+                ))}
+              </div>
             </ScrollArea>
           </div>
         )}
@@ -178,7 +273,7 @@ const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
           <div className="border-b p-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h2 className="text-xl font-semibold">Builder Interface</h2>
-              
+
               {/* Sélecteur d'appareil */}
               <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
                 <Button
@@ -236,14 +331,14 @@ const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
                             {container.items.length} éléments
                           </Badge>
                         </CardTitle>
-                        
+
                         {!isPreviewMode && (
                           <div className="flex items-center gap-1">
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={() => {
-                                const widget = widgets[0]; // Premier widget par défaut
+                                const widget = widgets[0];
                                 if (widget) addWidgetToContainer(container.id, widget);
                               }}
                             >
@@ -260,103 +355,43 @@ const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
                         )}
                       </div>
                     </CardHeader>
-                    
+
                     <CardContent>
-                      <Droppable droppableId={container.id}>
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.droppableProps}
-                            className={`grid gap-4 min-h-[200px] p-4 rounded-lg border-2 border-dashed transition-colors ${
-                              snapshot.isDraggingOver 
-                                ? 'border-primary bg-primary/5' 
-                                : 'border-muted'
-                            } ${
-                              container.layout === 'grid' 
-                                ? `grid-cols-${Math.min(container.columns || 12, 12)}` 
-                                : 'flex flex-wrap'
-                            }`}
-                          >
-                            {container.items.map((item, index) => (
-                              <Draggable
-                                key={item.id}
-                                draggableId={item.id}
-                                index={index}
-                              >
-                                {(provided, snapshot) => (
-                                  <div
-                                    ref={provided.innerRef}
-                                    {...provided.draggableProps}
-                                    className={`relative group ${
-                                      snapshot.isDragging ? 'opacity-75' : ''
-                                    } ${
-                                      selectedItem?.id === item.id ? 'ring-2 ring-primary' : ''
-                                    }`}
-                                    onClick={() => setSelectedItem(item)}
-                                    style={{
-                                      gridColumn: `span ${item.size.width}`,
-                                      ...provided.draggableProps.style
-                                    }}
-                                  >
-                                    {/* Widget Component */}
-                                    <div className="bg-card border rounded-lg p-4 h-full">
-                                      <div className="flex items-center justify-between mb-2">
-                                        <h4 className="font-medium text-sm">
-                                          {item.content.title || 'Widget'}
-                                        </h4>
-                                        
-                                        {!isPreviewMode && (
-                                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <div {...provided.dragHandleProps}>
-                                              <Grip className="h-4 w-4 text-muted-foreground cursor-grab" />
-                                            </div>
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                duplicateItem(item.id);
-                                              }}
-                                            >
-                                              <Copy className="h-3 w-3" />
-                                            </Button>
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                removeItem(item.id);
-                                              }}
-                                            >
-                                              <Trash2 className="h-3 w-3" />
-                                            </Button>
-                                          </div>
-                                        )}
-                                      </div>
-                                      
-                                      {/* Contenu du widget simulé */}
-                                      <div className="text-xs text-muted-foreground">
-                                        Type: {item.type}
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-                              </Draggable>
-                            ))}
-                            
-                            {container.items.length === 0 && (
-                              <div className="col-span-full flex items-center justify-center py-12 text-muted-foreground">
-                                <div className="text-center">
-                                  <Grid className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                  <p>Glissez des widgets ici</p>
-                                </div>
+                      <SortableContext
+                        items={container.items.map(i => i.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div
+                          className={`grid gap-4 min-h-[200px] p-4 rounded-lg border-2 border-dashed border-muted ${
+                            container.layout === 'grid'
+                              ? `grid-cols-${Math.min(container.columns || 12, 12)}`
+                              : 'flex flex-wrap'
+                          }`}
+                        >
+                          {container.items.map((item, index) => (
+                            <SortableItem
+                              key={item.id}
+                              item={item}
+                              containerId={container.id}
+                              index={index}
+                              isPreviewMode={isPreviewMode}
+                              isSelected={selectedItem?.id === item.id}
+                              onSelect={() => setSelectedItem(item)}
+                              onDuplicate={() => duplicateItem(item.id)}
+                              onRemove={() => removeItem(item.id)}
+                            />
+                          ))}
+
+                          {container.items.length === 0 && (
+                            <div className="col-span-full flex items-center justify-center py-12 text-muted-foreground">
+                              <div className="text-center">
+                                <Grid className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                <p>Glissez des widgets ici</p>
                               </div>
-                            )}
-                            
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
+                            </div>
+                          )}
+                        </div>
+                      </SortableContext>
                     </CardContent>
                   </Card>
                 ))}
@@ -374,7 +409,7 @@ const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
                 Propriétés
               </h3>
             </div>
-            
+
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4">
                 <div>
@@ -388,7 +423,7 @@ const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
                     className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium">Largeur (colonnes)</label>
                   <input
@@ -402,7 +437,7 @@ const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
                     className="w-full mt-1 px-3 py-2 border rounded-md text-sm"
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium">Hauteur</label>
                   <input
@@ -421,7 +456,7 @@ const DragDropBuilder: React.FC<DragDropBuilderProps> = ({
           </div>
         )}
       </div>
-    </DragDropContext>
+    </DndContext>
   );
 };
 
