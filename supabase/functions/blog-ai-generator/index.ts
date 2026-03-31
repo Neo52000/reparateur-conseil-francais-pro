@@ -525,8 +525,8 @@ Contenu...
             console.log('   → Rate limited');
           }
         }
-      } catch (error) {
-        console.log('⚠️ Lovable AI exception:', error.message);
+      } catch (error: unknown) {
+        console.log('⚠️ Lovable AI exception:', (error as Error).message);
       }
     } else {
       console.log('⚠️ LOVABLE_API_KEY not set, skipping Lovable AI...');
