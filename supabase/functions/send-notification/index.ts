@@ -147,19 +147,22 @@ serve(async (req) => {
       });
 
     // 🔒 Log de sécurité
-    await supabase
-      .from('admin_audit_logs')
-      .insert({
-        user_id: user.id,
-        action: 'notification_sent',
-        resource: `notification/${notification.type}`,
-        details: { 
-          recipient: notification.userId, 
-          channels: notification.channels 
-        }
-      })
-      .then(() => { console.log('🔒 Audit log créé'); })
-      .catch((err: unknown) => console.warn('⚠️ Erreur audit log:', err));
+    try {
+      await supabase
+        .from('admin_audit_logs')
+        .insert({
+          user_id: user.id,
+          action: 'notification_sent',
+          resource: `notification/${notification.type}`,
+          details: { 
+            recipient: notification.userId, 
+            channels: notification.channels 
+          }
+        });
+      console.log('🔒 Audit log créé');
+    } catch (auditErr) {
+      console.warn('⚠️ Erreur audit log:', auditErr);
+    }
 
     if (dbError) {
       console.error("Erreur sauvegarde notification:", dbError);
