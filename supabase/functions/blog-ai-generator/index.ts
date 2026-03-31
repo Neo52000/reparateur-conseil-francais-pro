@@ -648,8 +648,8 @@ Contenu...
           const errorText = await aiResponse.text();
           console.log(`⚠️ Mistral failed (${aiResponse.status}): ${errorText.substring(0, 200)}`);
         }
-      } catch (error) {
-        console.log('⚠️ Mistral exception:', error.message);
+      } catch (error: unknown) {
+        console.log('⚠️ Mistral exception:', (error as Error).message);
       }
     } else if (!articleData && !MISTRAL_API_KEY) {
       console.log('⚠️ CLE_API_MISTRAL not set, skipping Mistral...');
