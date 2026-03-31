@@ -1,8 +1,21 @@
-import React, { useEffect, useRef } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import React from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { Card } from '@/components/ui/card';
 import { MapPin, Star } from 'lucide-react';
+
+// Fix default marker icon for Leaflet in bundled environments
+const defaultIcon = L.icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+L.Marker.prototype.options.icon = defaultIcon;
 
 interface Repairer {
   id: string;
@@ -19,55 +32,40 @@ interface LocalRepairerMapProps {
 }
 
 export default function LocalRepairerMap({ city, repairers }: LocalRepairerMapProps) {
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+  if (repairers.length === 0) return null;
 
-  useEffect(() => {
-    if (!mapContainer.current || repairers.length === 0 || map.current) return;
-
-    const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN || '';
-    
-    if (!MAPBOX_TOKEN) {
-      console.error('⚠️ Token Mapbox non configuré (VITE_MAPBOX_PUBLIC_TOKEN)');
-      return;
-    }
-    
-    mapboxgl.accessToken = MAPBOX_TOKEN;
-
-    const centerLat = repairers.reduce((sum, r) => sum + r.latitude, 0) / repairers.length;
-    const centerLng = repairers.reduce((sum, r) => sum + r.longitude, 0) / repairers.length;
-
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [centerLng, centerLat],
-      zoom: 12
-    });
-
-    repairers.forEach((repairer) => {
-      new mapboxgl.Marker({ color: '#2563EB' })
-        .setLngLat([repairer.longitude, repairer.latitude])
-        .setPopup(
-          new mapboxgl.Popup({ offset: 25 }).setHTML(`
-            <div class="p-2">
-              <h3 class="font-bold">${repairer.name}</h3>
-              <p class="text-sm">${repairer.rating}/5 ⭐</p>
-              <p class="text-xs text-gray-600">${repairer.address}</p>
-            </div>
-          `)
-        )
-        .addTo(map.current!);
-    });
-
-    return () => map.current?.remove();
-  }, [city, repairers]);
+  const centerLat = repairers.reduce((sum, r) => sum + r.latitude, 0) / repairers.length;
+  const centerLng = repairers.reduce((sum, r) => sum + r.longitude, 0) / repairers.length;
 
   return (
     <section className="space-y-8">
       <h2 className="text-3xl font-bold text-center">Nos réparateurs à {city}</h2>
       <div className="grid lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3">
-          <div ref={mapContainer} className="w-full h-[500px] rounded-lg shadow-lg" />
+          <MapContainer
+            center={[centerLat, centerLng]}
+            zoom={12}
+            className="w-full h-[500px] rounded-lg shadow-lg"
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {repairers.map((repairer) => (
+              <Marker
+                key={repairer.id}
+                position={[repairer.latitude, repairer.longitude]}
+              >
+                <Popup>
+                  <div className="p-2">
+                    <h3 className="font-bold">{repairer.name}</h3>
+                    <p className="text-sm">{repairer.rating}/5 ⭐</p>
+                    <p className="text-xs text-gray-600">{repairer.address}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
         </div>
         <div className="lg:col-span-2 space-y-4">
           {repairers.slice(0, 3).map((repairer) => (

@@ -58,15 +58,15 @@ const LocationStep: React.FC<LocationStepProps> = ({
         const { latitude, longitude } = position.coords;
         
         try {
-          // Reverse geocoding pour obtenir la ville
-          const mapboxToken = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
+          // Reverse geocoding pour obtenir la ville (Nominatim / OpenStreetMap)
           const response = await fetch(
-            `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxToken}&types=place`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+            { headers: { 'Accept-Language': 'fr' } }
           );
-          
+
           if (response.ok) {
             const data = await response.json();
-            const city = data.features[0]?.place_name || 'Position actuelle';
+            const city = data.address?.city || data.address?.town || data.address?.village || data.display_name || 'Position actuelle';
             
             onDataChange({
               location: {

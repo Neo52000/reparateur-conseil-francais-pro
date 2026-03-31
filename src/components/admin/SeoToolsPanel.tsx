@@ -304,33 +304,18 @@ export default function SeoToolsPanel() {
         </CardContent>
       </Card>
 
-      {/* Instructions Mapbox */}
-      <Card className="border-amber-200 bg-amber-50">
+      {/* Info cartographie */}
+      <Card className="border-green-200 bg-green-50">
         <CardHeader>
-          <CardTitle className="text-amber-900 text-lg">
-            ⚠️ Configuration Mapbox requise
+          <CardTitle className="text-green-900 text-lg">
+            Cartographie Leaflet / OpenStreetMap
           </CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-amber-800 space-y-3">
-          <p><strong>Pour que les cartes fonctionnent, vous devez :</strong></p>
-          <ol className="list-decimal list-inside space-y-2 ml-2">
-            <li>Créer un compte gratuit sur <a href="https://www.mapbox.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">mapbox.com</a></li>
-            <li>Copier votre <strong>Public Token</strong> depuis le dashboard</li>
-            <li>
-              Ajouter le token dans <strong>Supabase Edge Functions Secrets</strong>:
-              <code className="block mt-1 p-2 bg-white rounded text-xs">
-                MAPBOX_PUBLIC_TOKEN = pk.eyJ...
-              </code>
-            </li>
-            <li>
-              Mettre à jour le fichier <code>.env</code> local:
-              <code className="block mt-1 p-2 bg-white rounded text-xs">
-                VITE_MAPBOX_PUBLIC_TOKEN=pk.eyJ...
-              </code>
-            </li>
-          </ol>
+        <CardContent className="text-sm text-green-800 space-y-3">
+          <p>Les cartes utilisent <strong>Leaflet</strong> avec les tuiles <strong>OpenStreetMap</strong>.</p>
+          <p>Aucune configuration ni token requis. Les cartes fonctionnent directement.</p>
           <Badge variant="outline" className="bg-white mt-3">
-            Gratuit jusqu'à 50 000 vues/mois
+            Gratuit et open source
           </Badge>
         </CardContent>
       </Card>
