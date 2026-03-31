@@ -194,9 +194,9 @@ async function checkGemini(apiKey: string): Promise<ProviderStatus> {
       result.status = 'error';
       result.message = `Erreur HTTP ${response.status}`;
     }
-  } catch (error) {
+  } catch (error: unknown) {
     result.status = 'error';
-    result.message = `Erreur de connexion: ${error.message}`;
+    result.message = `Erreur de connexion: ${(error as Error).message}`;
   }
 
   result.lastCheck = new Date().toISOString();
