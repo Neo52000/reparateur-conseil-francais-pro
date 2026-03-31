@@ -259,7 +259,7 @@ serve(async (req) => {
         results.push({
           channel: 'email',
           status: 'error',
-          error: error.message
+          error: (error as Error).message
         });
       }
     }
