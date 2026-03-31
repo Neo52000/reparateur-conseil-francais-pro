@@ -32,9 +32,10 @@ export class AIService {
           confidence: result.confidence,
           model_used: 'deepseek'
         };
-      } catch (error) {
-        console.warn('🔄 DeepSeek failed, trying fallback:', error.message);
-        this.fallbackLogs.push(`DeepSeek: ${error.message}`);
+      } catch (error: unknown) {
+        const msg = (error as Error).message;
+        console.warn('🔄 DeepSeek failed, trying fallback:', msg);
+        this.fallbackLogs.push(`DeepSeek: ${msg}`);
       }
     }
 
