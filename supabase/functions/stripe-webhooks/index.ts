@@ -78,8 +78,8 @@ serve(async (req) => {
                 payment_id: payment.id,
                 repairer_id: payment.repairer_id,
                 transaction_amount: payment.amount,
-                commission_rate: commissionData.commission_rate,
-                commission_amount: commissionData.commission_amount,
+                commission_rate: (commissionData as any).commission_rate,
+                commission_amount: (commissionData as any).commission_amount,
                 tier_applied: commissionData.tier_id,
                 status: 'pending'
               });
@@ -160,7 +160,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Webhook error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as Error).message }),
       { 
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

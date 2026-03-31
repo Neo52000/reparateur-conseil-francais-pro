@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const features = featuresData?.map(f => f.available_features.feature_name) || [];
+      const features = featuresData?.map((f: any) => f.available_features.feature_name) || [];
       
       console.log(`Plan ${plan.name}: ${features.length} features found:`, features);
       

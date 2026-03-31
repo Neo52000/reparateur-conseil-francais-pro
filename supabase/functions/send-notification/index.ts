@@ -147,19 +147,22 @@ serve(async (req) => {
       });
 
     // 🔒 Log de sécurité
-    await supabase
-      .from('admin_audit_logs')
-      .insert({
-        user_id: user.id,
-        action: 'notification_sent',
-        resource: `notification/${notification.type}`,
-        details: { 
-          recipient: notification.userId, 
-          channels: notification.channels 
-        }
-      })
-      .then(() => console.log('🔒 Audit log créé'))
-      .catch(err => console.warn('⚠️ Erreur audit log:', err));
+    try {
+      await supabase
+        .from('admin_audit_logs')
+        .insert({
+          user_id: user.id,
+          action: 'notification_sent',
+          resource: `notification/${notification.type}`,
+          details: { 
+            recipient: notification.userId, 
+            channels: notification.channels 
+          }
+        });
+      console.log('🔒 Audit log créé');
+    } catch (auditErr) {
+      console.warn('⚠️ Erreur audit log:', auditErr);
+    }
 
     if (dbError) {
       console.error("Erreur sauvegarde notification:", dbError);
@@ -194,7 +197,7 @@ serve(async (req) => {
         results.push({
           channel: 'browser',
           status: 'error',
-          error: error.message
+          error: (error as Error).message
         });
       }
     }
@@ -259,7 +262,7 @@ serve(async (req) => {
         results.push({
           channel: 'email',
           status: 'error',
-          error: error.message
+          error: (error as Error).message
         });
       }
     }
@@ -315,7 +318,7 @@ serve(async (req) => {
         results.push({
           channel: 'sms',
           status: 'error',
-          error: error.message
+          error: (error as Error).message
         });
       }
     }
@@ -334,7 +337,7 @@ serve(async (req) => {
     
     return new Response(JSON.stringify({
       success: false,
-      error: error.message
+      error: (error as Error).message
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

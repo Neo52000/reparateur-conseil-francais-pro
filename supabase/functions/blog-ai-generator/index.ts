@@ -110,9 +110,9 @@ async function checkLovableAI(apiKey: string): Promise<ProviderStatus> {
       result.status = 'error';
       result.message = `Erreur HTTP ${response.status}`;
     }
-  } catch (error) {
+  } catch (error: unknown) {
     result.status = 'error';
-    result.message = `Erreur de connexion: ${error.message}`;
+    result.message = `Erreur de connexion: ${(error as Error).message}`;
   }
 
   result.lastCheck = new Date().toISOString();
@@ -153,9 +153,9 @@ async function checkOpenAI(apiKey: string): Promise<ProviderStatus> {
       result.status = 'error';
       result.message = `Erreur HTTP ${response.status}`;
     }
-  } catch (error) {
+  } catch (error: unknown) {
     result.status = 'error';
-    result.message = `Erreur de connexion: ${error.message}`;
+    result.message = `Erreur de connexion: ${(error as Error).message}`;
   }
 
   result.lastCheck = new Date().toISOString();
@@ -194,9 +194,9 @@ async function checkGemini(apiKey: string): Promise<ProviderStatus> {
       result.status = 'error';
       result.message = `Erreur HTTP ${response.status}`;
     }
-  } catch (error) {
+  } catch (error: unknown) {
     result.status = 'error';
-    result.message = `Erreur de connexion: ${error.message}`;
+    result.message = `Erreur de connexion: ${(error as Error).message}`;
   }
 
   result.lastCheck = new Date().toISOString();
@@ -237,9 +237,9 @@ async function checkMistral(apiKey: string): Promise<ProviderStatus> {
       result.status = 'error';
       result.message = `Erreur HTTP ${response.status}`;
     }
-  } catch (error) {
+  } catch (error: unknown) {
     result.status = 'error';
-    result.message = `Erreur de connexion: ${error.message}`;
+    result.message = `Erreur de connexion: ${(error as Error).message}`;
   }
 
   result.lastCheck = new Date().toISOString();
@@ -525,8 +525,8 @@ Contenu...
             console.log('   → Rate limited');
           }
         }
-      } catch (error) {
-        console.log('⚠️ Lovable AI exception:', error.message);
+      } catch (error: unknown) {
+        console.log('⚠️ Lovable AI exception:', (error as Error).message);
       }
     } else {
       console.log('⚠️ LOVABLE_API_KEY not set, skipping Lovable AI...');
@@ -570,8 +570,8 @@ Contenu...
           const errorText = await aiResponse.text();
           console.log(`⚠️ OpenAI failed (${aiResponse.status}): ${errorText.substring(0, 200)}`);
         }
-      } catch (error) {
-        console.log('⚠️ OpenAI exception:', error.message);
+      } catch (error: unknown) {
+        console.log('⚠️ OpenAI exception:', (error as Error).message);
       }
     } else if (!articleData && !OPENAI_API_KEY) {
       console.log('⚠️ OPENAI_API_KEY not set, skipping OpenAI...');
@@ -605,8 +605,8 @@ Contenu...
         } else {
           console.log(`⚠️ Gemini Pro failed (${geminiResponse.status})`);
         }
-      } catch (error) {
-        console.log('⚠️ Gemini Pro exception:', error.message);
+      } catch (error: unknown) {
+        console.log('⚠️ Gemini Pro exception:', (error as Error).message);
       }
     }
 
@@ -648,8 +648,8 @@ Contenu...
           const errorText = await aiResponse.text();
           console.log(`⚠️ Mistral failed (${aiResponse.status}): ${errorText.substring(0, 200)}`);
         }
-      } catch (error) {
-        console.log('⚠️ Mistral exception:', error.message);
+      } catch (error: unknown) {
+        console.log('⚠️ Mistral exception:', (error as Error).message);
       }
     } else if (!articleData && !MISTRAL_API_KEY) {
       console.log('⚠️ CLE_API_MISTRAL not set, skipping Mistral...');
@@ -690,8 +690,8 @@ Contenu...
         } else {
           console.log(`⚠️ Perplexity failed (${aiResponse.status})`);
         }
-      } catch (error) {
-        console.log('⚠️ Perplexity exception:', error.message);
+      } catch (error: unknown) {
+        console.log('⚠️ Perplexity exception:', (error as Error).message);
       }
     }
 

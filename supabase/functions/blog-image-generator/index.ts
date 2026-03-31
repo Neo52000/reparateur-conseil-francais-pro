@@ -85,12 +85,13 @@ serve(async (req) => {
     }
 
     // Styles prédéfinis pour améliorer la qualité des images
-    const stylePrompts = {
+    const stylePrompts: Record<string, string> = {
       realistic: 'photorealistic, high quality photography, professional lighting, 8K resolution',
       illustration: 'digital illustration, vibrant colors, modern design, vector style',
       minimalist: 'minimalist design, clean lines, simple composition, professional',
       corporate: 'corporate style, business professional, clean and modern, high quality',
-      modern: 'modern design, trendy, contemporary style, professional photography'
+      modern: 'modern design, trendy, contemporary style, professional photography',
+      'digital-art': 'digital art, creative, colorful, high quality digital illustration'
     };
 
     const enhancedPrompt = `Create a professional blog header image: ${prompt}. 
@@ -144,8 +145,8 @@ horizontal format 16:9, high quality, attention-grabbing but professional.`;
             console.log('   → Rate limited');
           }
         }
-      } catch (error) {
-        console.log('⚠️ Lovable AI exception:', error.message);
+      } catch (error: unknown) {
+        console.log('⚠️ Lovable AI exception:', (error as Error).message);
       }
     }
 
@@ -178,8 +179,8 @@ horizontal format 16:9, high quality, attention-grabbing but professional.`;
               console.log('✅ OpenAI DALL-E succeeded');
             }
           }
-        } catch (error) {
-          console.log('⚠️ OpenAI DALL-E failed:', error.message);
+        } catch (error: unknown) {
+          console.log('⚠️ OpenAI DALL-E failed:', (error as Error).message);
         }
       }
     }
@@ -236,8 +237,8 @@ horizontal format 16:9, high quality, attention-grabbing but professional.`;
             console.log('⚠️ Storage upload failed, keeping base64:', uploadError?.message);
           }
         }
-      } catch (storageError) {
-        console.log('⚠️ Storage error, keeping original URL:', storageError.message);
+      } catch (storageError: unknown) {
+        console.log('⚠️ Storage error, keeping original URL:', (storageError as Error).message);
       }
     }
 

@@ -32,9 +32,10 @@ export class AIService {
           confidence: result.confidence,
           model_used: 'deepseek'
         };
-      } catch (error) {
-        console.warn('🔄 DeepSeek failed, trying fallback:', error.message);
-        this.fallbackLogs.push(`DeepSeek: ${error.message}`);
+      } catch (error: unknown) {
+        const msg = (error as Error).message;
+        console.warn('🔄 DeepSeek failed, trying fallback:', msg);
+        this.fallbackLogs.push(`DeepSeek: ${msg}`);
       }
     }
 
@@ -48,9 +49,10 @@ export class AIService {
           confidence: result.confidence,
           model_used: 'openai'
         };
-      } catch (error) {
-        console.warn('🔄 OpenAI failed, trying Mistral:', error.message);
-        this.fallbackLogs.push(`OpenAI: ${error.message}`);
+      } catch (error: unknown) {
+        const msg = (error as Error).message;
+        console.warn('🔄 OpenAI failed, trying Mistral:', msg);
+        this.fallbackLogs.push(`OpenAI: ${msg}`);
       }
     }
 
@@ -64,9 +66,10 @@ export class AIService {
           confidence: result.confidence,
           model_used: 'mistral'
         };
-      } catch (error) {
-        console.warn('🔄 Mistral failed:', error.message);
-        this.fallbackLogs.push(`Mistral: ${error.message}`);
+      } catch (error: unknown) {
+        const msg = (error as Error).message;
+        console.warn('🔄 Mistral failed:', msg);
+        this.fallbackLogs.push(`Mistral: ${msg}`);
       }
     }
 
