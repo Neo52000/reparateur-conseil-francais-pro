@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { DropResult } from 'react-beautiful-dnd';
+import { DragEndEvent } from '@dnd-kit/core';
 
 export interface DragDropItem {
   id: string;
@@ -82,7 +82,7 @@ export function useDragAndDropBuilder(options: UseDragAndDropBuilderOptions = {}
       ...container,
       items: container.items.filter(item => item.id !== itemId)
     })));
-    
+
     if (selectedItem?.id === itemId) {
       setSelectedItem(null);
     }
@@ -96,57 +96,59 @@ export function useDragAndDropBuilder(options: UseDragAndDropBuilderOptions = {}
   ) => {
     setContainers(prev => {
       const newContainers = [...prev];
-      
+
       const sourceContainer = newContainers.find(c => c.id === sourceContainerId);
       const destinationContainer = newContainers.find(c => c.id === destinationContainerId);
-      
+
       if (!sourceContainer || !destinationContainer) return prev;
-      
+
       const [movedItem] = sourceContainer.items.splice(sourceIndex, 1);
       destinationContainer.items.splice(destinationIndex, 0, movedItem);
-      
+
       options.onLayoutChange?.(newContainers);
       return newContainers;
     });
   }, [options]);
 
-  const handleDragEnd = useCallback((result: DropResult) => {
-    const { destination, source, draggableId } = result;
-    
-    if (!destination) return;
-    
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
-      return;
-    }
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
 
-    moveItem(
-      source.droppableId,
-      destination.droppableId,
-      source.index,
-      destination.index
-    );
+    if (!over) return;
+
+    const activeContainerId = active.data.current?.containerId as string | undefined;
+    const overContainerId = over.data.current?.containerId as string | undefined;
+    const activeIndex = active.data.current?.index as number | undefined;
+    const overIndex = over.data.current?.index as number | undefined;
+
+    if (
+      activeContainerId == null ||
+      overContainerId == null ||
+      activeIndex == null ||
+      overIndex == null
+    ) return;
+
+    if (activeContainerId === overContainerId && activeIndex === overIndex) return;
+
+    moveItem(activeContainerId, overContainerId, activeIndex, overIndex);
   }, [moveItem]);
 
   const duplicateItem = useCallback((itemId: string) => {
     const container = containers.find(c => c.items.some(item => item.id === itemId));
     const item = container?.items.find(item => item.id === itemId);
-    
+
     if (container && item) {
       const duplicatedItem = {
         ...item,
         id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         position: { ...item.position, x: item.position.x + 20, y: item.position.y + 20 }
       };
-      
+
       setContainers(prev => prev.map(c =>
         c.id === container.id
           ? { ...c, items: [...c.items, duplicatedItem] }
           : c
       ));
-      
+
       return duplicatedItem.id;
     }
   }, [containers]);
