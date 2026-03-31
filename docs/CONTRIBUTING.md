@@ -453,7 +453,7 @@ Paramètres configurables
 
 ### Liens de développement
 - 🏠 [Projet Lovable](https://lovable.dev/projects/392875c8-c4e1-4f95-b40a-246008455c90)
-- 📊 [Dashboard Supabase](https://supabase.com/dashboard/project/nbugpbakfkyvvjzgfjmw)
+- 📊 [Dashboard Supabase](https://supabase.com/dashboard/project/{SUPABASE_PROJECT_ID})
 - 📚 [Documentation Supabase](https://supabase.com/docs)
 - 🎨 [Shadcn/ui](https://ui.shadcn.com/)
 

@@ -51,7 +51,7 @@
 
 Pour activer la protection contre les mots de passe compromis :
 
-1. Aller sur le Dashboard Supabase : https://supabase.com/dashboard/project/nbugpbakfkyvvjzgfjmw
+1. Aller sur le Dashboard Supabase : https://supabase.com/dashboard/project/{SUPABASE_PROJECT_ID}
 2. Naviguer vers **Authentication** → **Password**
 3. Activer **"Leaked Password Protection"**
 
@@ -62,7 +62,7 @@ Cette fonctionnalité vérifie automatiquement les mots de passe contre la base 
 
 Pour mettre à jour PostgreSQL :
 
-1. Aller sur le Dashboard Supabase : https://supabase.com/dashboard/project/nbugpbakfkyvvjzgfjmw/settings/database
+1. Aller sur le Dashboard Supabase : https://supabase.com/dashboard/project/{SUPABASE_PROJECT_ID}/settings/database
 2. Cliquer sur **"Upgrade PostgreSQL"**
 3. Sélectionner la dernière version stable (PostgreSQL 15.x)
 4. **Prévoir une fenêtre de maintenance de 5-10 minutes**
@@ -101,7 +101,7 @@ Obtenir la clé : https://platform.deepseek.com/api-keys
 
 Pour configurer les secrets dans Supabase :
 
-1. Aller sur : https://supabase.com/dashboard/project/nbugpbakfkyvvjzgfjmw/settings/functions
+1. Aller sur : https://supabase.com/dashboard/project/{SUPABASE_PROJECT_ID}/settings/functions
 2. Section **"Secrets"**
 3. Ajouter chaque clé API
 4. **Redéployer les Edge Functions** après ajout des secrets
@@ -359,7 +359,7 @@ Localisation : `src/components/gdpr/DataAccessRequest.tsx`
 - **DPO** : dpo@topreparateurs.fr
 
 ### Ressources
-- [Supabase Dashboard](https://supabase.com/dashboard/project/nbugpbakfkyvvjzgfjmw)
+- [Supabase Dashboard](https://supabase.com/dashboard/project/{SUPABASE_PROJECT_ID})
 - [Documentation RLS](https://supabase.com/docs/guides/auth/row-level-security)
 - [Guide RGPD](https://www.cnil.fr/fr/reglement-europeen-protection-donnees)
 

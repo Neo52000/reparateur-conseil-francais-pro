@@ -80,7 +80,7 @@ SELECT cron.schedule(
   $$
   SELECT
     net.http_post(
-        url:='https://nbugpbakfkyvvjzgfjmw.supabase.co/functions/v1/weekly-blog-automation',
+        url:='https://{SUPABASE_PROJECT_ID}.supabase.co/functions/v1/weekly-blog-automation',
         headers:='{"Content-Type": "application/json"}'::jsonb,
         body:='{"auto_publish": false, "test_mode": true}'::jsonb
     ) as request_id;
@@ -105,7 +105,7 @@ SELECT cron.schedule(
 ### Depuis curl
 
 ```bash
-curl -X POST https://nbugpbakfkyvvjzgfjmw.supabase.co/functions/v1/weekly-blog-automation \
+curl -X POST https://{SUPABASE_PROJECT_ID}.supabase.co/functions/v1/weekly-blog-automation \
   -H "Content-Type: application/json" \
   -d '{"auto_publish": false, "test_mode": true}'
 ```

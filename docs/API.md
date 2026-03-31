@@ -421,8 +421,8 @@ repairers = client.repairers.search(
 ```typescript
 const config = {
   production: {
-    supabaseUrl: 'https://nbugpbakfkyvvjzgfjmw.supabase.co',
-    functionsUrl: 'https://nbugpbakfkyvvjzgfjmw.functions.supabase.co'
+    supabaseUrl: 'https://{SUPABASE_PROJECT_ID}.supabase.co',
+    functionsUrl: 'https://{SUPABASE_PROJECT_ID}.functions.supabase.co'
   },
   staging: {
     supabaseUrl: 'https://staging-project.supabase.co',
