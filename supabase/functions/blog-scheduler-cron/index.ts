@@ -353,7 +353,8 @@ Deno.serve(async (req) => {
           success: true,
           post_id: generatedPost?.id,
         });
-      } catch (error) {
+      } catch (error: unknown) {
+        const err = error as Error;
         console.error(`❌ Exception for schedule ${schedule.id}:`, error);
         
         // Send error notification directly for exceptions
@@ -361,10 +362,10 @@ Deno.serve(async (req) => {
           type: 'error',
           schedule_name: schedule.name,
           schedule_id: schedule.id,
-          error_message: `Exception lors de la génération: ${error.message}`,
+          error_message: `Exception lors de la génération: ${err.message}`,
           error_details: {
             provider: 'unknown',
-            api_response: error.stack || error.message
+            api_response: err.stack || err.message
           }
         });
         
@@ -372,7 +373,7 @@ Deno.serve(async (req) => {
           schedule_id: schedule.id,
           schedule_name: schedule.name,
           success: false,
-          error: error.message,
+          error: err.message,
         });
       }
     }
