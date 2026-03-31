@@ -101,8 +101,8 @@ serve(async (req) => {
               console.log('✅ OpenAI succeeded');
             }
           }
-        } catch (error) {
-          console.log('⚠️ OpenAI failed:', error.message);
+        } catch (error: unknown) {
+          console.log('⚠️ OpenAI failed:', (error as Error).message);
         }
       }
     }
