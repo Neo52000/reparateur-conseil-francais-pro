@@ -570,8 +570,8 @@ Contenu...
           const errorText = await aiResponse.text();
           console.log(`⚠️ OpenAI failed (${aiResponse.status}): ${errorText.substring(0, 200)}`);
         }
-      } catch (error) {
-        console.log('⚠️ OpenAI exception:', error.message);
+      } catch (error: unknown) {
+        console.log('⚠️ OpenAI exception:', (error as Error).message);
       }
     } else if (!articleData && !OPENAI_API_KEY) {
       console.log('⚠️ OPENAI_API_KEY not set, skipping OpenAI...');
