@@ -161,8 +161,8 @@ META_TITLE: <titre>\nMETA_DESCRIPTION: <description>
           } else if (aiResp.status === 429) {
             console.log('⚠️ Lovable AI: Rate limited, trying fallback...');
           }
-        } catch (error) {
-          console.log('⚠️ Lovable AI failed:', error.message);
+        } catch (error: unknown) {
+          console.log('⚠️ Lovable AI failed:', (error as Error).message);
         }
       }
 
