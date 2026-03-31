@@ -138,8 +138,8 @@ serve(async (req) => {
               console.log('✅ Mistral succeeded');
             }
           }
-        } catch (error) {
-          console.log('⚠️ Mistral failed:', error.message);
+        } catch (error: unknown) {
+          console.log('⚠️ Mistral failed:', (error as Error).message);
         }
       }
     }
