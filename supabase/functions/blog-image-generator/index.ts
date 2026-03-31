@@ -145,8 +145,8 @@ horizontal format 16:9, high quality, attention-grabbing but professional.`;
             console.log('   → Rate limited');
           }
         }
-      } catch (error) {
-        console.log('⚠️ Lovable AI exception:', error.message);
+      } catch (error: unknown) {
+        console.log('⚠️ Lovable AI exception:', (error as Error).message);
       }
     }
 
