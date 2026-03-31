@@ -179,8 +179,8 @@ horizontal format 16:9, high quality, attention-grabbing but professional.`;
               console.log('✅ OpenAI DALL-E succeeded');
             }
           }
-        } catch (error) {
-          console.log('⚠️ OpenAI DALL-E failed:', error.message);
+        } catch (error: unknown) {
+          console.log('⚠️ OpenAI DALL-E failed:', (error as Error).message);
         }
       }
     }
