@@ -605,8 +605,8 @@ Contenu...
         } else {
           console.log(`⚠️ Gemini Pro failed (${geminiResponse.status})`);
         }
-      } catch (error) {
-        console.log('⚠️ Gemini Pro exception:', error.message);
+      } catch (error: unknown) {
+        console.log('⚠️ Gemini Pro exception:', (error as Error).message);
       }
     }
 
