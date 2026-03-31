@@ -158,8 +158,8 @@ serve(async (req) => {
           channels: notification.channels 
         }
       })
-      .then(() => console.log('🔒 Audit log créé'))
-      .catch(err => console.warn('⚠️ Erreur audit log:', err));
+      .then(() => { console.log('🔒 Audit log créé'); })
+      .catch((err: unknown) => console.warn('⚠️ Erreur audit log:', err));
 
     if (dbError) {
       console.error("Erreur sauvegarde notification:", dbError);
