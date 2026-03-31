@@ -237,8 +237,8 @@ horizontal format 16:9, high quality, attention-grabbing but professional.`;
             console.log('⚠️ Storage upload failed, keeping base64:', uploadError?.message);
           }
         }
-      } catch (storageError) {
-        console.log('⚠️ Storage error, keeping original URL:', storageError.message);
+      } catch (storageError: unknown) {
+        console.log('⚠️ Storage error, keeping original URL:', (storageError as Error).message);
       }
     }
 

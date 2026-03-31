@@ -232,8 +232,8 @@ META_TITLE: <titre>\nMETA_DESCRIPTION: <description>
                 console.log('✅ Mistral succeeded');
               }
             }
-          } catch (error) {
-            console.log('⚠️ Mistral failed:', error.message);
+          } catch (error: unknown) {
+            console.log('⚠️ Mistral failed:', (error as Error).message);
           }
         }
       }

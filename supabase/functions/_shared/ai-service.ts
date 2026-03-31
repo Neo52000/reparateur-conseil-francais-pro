@@ -66,9 +66,10 @@ export class AIService {
           confidence: result.confidence,
           model_used: 'mistral'
         };
-      } catch (error) {
-        console.warn('🔄 Mistral failed:', error.message);
-        this.fallbackLogs.push(`Mistral: ${error.message}`);
+      } catch (error: unknown) {
+        const msg = (error as Error).message;
+        console.warn('🔄 Mistral failed:', msg);
+        this.fallbackLogs.push(`Mistral: ${msg}`);
       }
     }
 

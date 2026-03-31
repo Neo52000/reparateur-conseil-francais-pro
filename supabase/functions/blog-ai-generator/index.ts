@@ -690,8 +690,8 @@ Contenu...
         } else {
           console.log(`⚠️ Perplexity failed (${aiResponse.status})`);
         }
-      } catch (error) {
-        console.log('⚠️ Perplexity exception:', error.message);
+      } catch (error: unknown) {
+        console.log('⚠️ Perplexity exception:', (error as Error).message);
       }
     }
 
