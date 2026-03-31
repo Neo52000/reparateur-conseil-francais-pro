@@ -49,9 +49,10 @@ export class AIService {
           confidence: result.confidence,
           model_used: 'openai'
         };
-      } catch (error) {
-        console.warn('🔄 OpenAI failed, trying Mistral:', error.message);
-        this.fallbackLogs.push(`OpenAI: ${error.message}`);
+      } catch (error: unknown) {
+        const msg = (error as Error).message;
+        console.warn('🔄 OpenAI failed, trying Mistral:', msg);
+        this.fallbackLogs.push(`OpenAI: ${msg}`);
       }
     }
 
