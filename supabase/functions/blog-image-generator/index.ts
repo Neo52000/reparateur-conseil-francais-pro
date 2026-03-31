@@ -85,12 +85,13 @@ serve(async (req) => {
     }
 
     // Styles prédéfinis pour améliorer la qualité des images
-    const stylePrompts = {
+    const stylePrompts: Record<string, string> = {
       realistic: 'photorealistic, high quality photography, professional lighting, 8K resolution',
       illustration: 'digital illustration, vibrant colors, modern design, vector style',
       minimalist: 'minimalist design, clean lines, simple composition, professional',
       corporate: 'corporate style, business professional, clean and modern, high quality',
-      modern: 'modern design, trendy, contemporary style, professional photography'
+      modern: 'modern design, trendy, contemporary style, professional photography',
+      'digital-art': 'digital art, creative, colorful, high quality digital illustration'
     };
 
     const enhancedPrompt = `Create a professional blog header image: ${prompt}. 
