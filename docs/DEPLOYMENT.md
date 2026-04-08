@@ -198,6 +198,14 @@ supabase secrets set MISTRAL_API_KEY=your-key
 supabase secrets set FIRECRAWL_API_KEY=your-key
 supabase secrets set SERPER_API_KEY=your-key
 supabase secrets set RESEND_API_KEY=your-key
+
+# SMS Gateway (Android SMS Gateway - https://github.com/capcom6/android-sms-gateway)
+# Pour l'API Cloud : SMS_GATEWAY_URL=https://api.sms-gate.app/3rdparty/v1
+# Pour l'API locale : SMS_GATEWAY_URL=http://<device_ip>:8080
+# Note : L'API locale nécessite que le serveur Supabase puisse atteindre le réseau du téléphone
+supabase secrets set SMS_GATEWAY_URL=https://api.sms-gate.app/3rdparty/v1
+supabase secrets set SMS_GATEWAY_USERNAME=your-gateway-username
+supabase secrets set SMS_GATEWAY_PASSWORD=your-gateway-password
 ```
 
 ### 2. Déploiement des Edge Functions

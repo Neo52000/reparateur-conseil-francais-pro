@@ -19,6 +19,31 @@ interface NotificationRequest {
   data?: Record<string, any>;
 }
 
+/**
+ * Normalise un numéro de téléphone français au format international E.164 (+33XXXXXXXXX)
+ * Accepte: "06 12 34 56 78", "0612345678", "+33612345678", "+33 6 12 34 56 78"
+ */
+function normalizePhoneToE164(phone: string): string | null {
+  const cleaned = phone.replace(/[^\d+]/g, '');
+
+  // Déjà au format +33
+  if (/^\+33[1-9]\d{8}$/.test(cleaned)) {
+    return cleaned;
+  }
+
+  // Format local français: 0XXXXXXXXX (10 chiffres commençant par 0)
+  if (/^0[1-9]\d{8}$/.test(cleaned)) {
+    return '+33' + cleaned.substring(1);
+  }
+
+  // 33XXXXXXXXX sans le + (11 chiffres commençant par 33)
+  if (/^33[1-9]\d{8}$/.test(cleaned)) {
+    return '+' + cleaned;
+  }
+
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -267,49 +292,96 @@ serve(async (req) => {
       }
     }
 
-    // 4. Notification SMS
+    // 4. Notification SMS via Android SMS Gateway
     if (notification.channels.sms) {
       try {
-        // Récupérer le numéro de téléphone
-        const { data: profile } = await supabase
-          .from('profiles')
+        // Récupérer le numéro de téléphone (depuis repairer_profiles ou quote_requests)
+        let phoneNumber: string | null = null;
+
+        // D'abord essayer repairer_profiles (si c'est un réparateur)
+        const { data: repairerProfile } = await supabase
+          .from('repairer_profiles')
           .select('phone')
-          .eq('id', notification.userId)
-          .single();
+          .eq('user_id', notification.userId)
+          .maybeSingle();
 
-        if (profile && profile.phone) {
-          // Utiliser Twilio pour envoyer le SMS
-          const twilioAccountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
-          const twilioAuthToken = Deno.env.get("TWILIO_AUTH_TOKEN");
-          const twilioPhoneNumber = Deno.env.get("TWILIO_PHONE_NUMBER");
+        if (repairerProfile?.phone) {
+          phoneNumber = repairerProfile.phone;
+        } else {
+          // Sinon, chercher dans les dernières demandes de devis (pour les clients)
+          const { data: latestQuote } = await supabase
+            .from('quote_requests')
+            .select('client_phone')
+            .eq('client_id', notification.userId)
+            .not('client_phone', 'is', null)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
 
-          if (twilioAccountSid && twilioAuthToken && twilioPhoneNumber) {
+          if (latestQuote?.client_phone) {
+            phoneNumber = latestQuote.client_phone;
+          }
+        }
+
+        const smsGatewayUrl = Deno.env.get("SMS_GATEWAY_URL");
+        const smsGatewayUsername = Deno.env.get("SMS_GATEWAY_USERNAME");
+        const smsGatewayPassword = Deno.env.get("SMS_GATEWAY_PASSWORD");
+
+        if (!smsGatewayUrl || !smsGatewayUsername || !smsGatewayPassword) {
+          console.warn("⚠️ Configuration SMS Gateway manquante");
+          results.push({
+            channel: 'sms',
+            status: 'error',
+            error: 'Configuration SMS Gateway incomplète'
+          });
+        } else if (!phoneNumber) {
+          console.warn("⚠️ Aucun numéro de téléphone trouvé pour l'utilisateur:", notification.userId);
+          results.push({
+            channel: 'sms',
+            status: 'skipped',
+            error: 'Pas de numéro de téléphone pour cet utilisateur'
+          });
+        } else {
+          const normalizedPhone = normalizePhoneToE164(phoneNumber);
+
+          if (!normalizedPhone) {
+            console.warn("⚠️ Numéro de téléphone invalide, impossible de normaliser:", phoneNumber);
+            results.push({
+              channel: 'sms',
+              status: 'error',
+              error: `Format de numéro invalide: ${phoneNumber}`
+            });
+          } else {
             const smsBody = `${notification.title}\n\n${notification.message}`;
-            
+
             const smsResponse = await fetch(
-              `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`,
+              `${smsGatewayUrl.replace(/\/$/, '')}/message`,
               {
                 method: 'POST',
                 headers: {
-                  'Authorization': `Basic ${btoa(`${twilioAccountSid}:${twilioAuthToken}`)}`,
-                  'Content-Type': 'application/x-www-form-urlencoded',
+                  'Authorization': `Basic ${btoa(`${smsGatewayUsername}:${smsGatewayPassword}`)}`,
+                  'Content-Type': 'application/json',
                 },
-                body: new URLSearchParams({
-                  From: twilioPhoneNumber,
-                  To: profile.phone,
-                  Body: smsBody
+                body: JSON.stringify({
+                  phoneNumbers: [normalizedPhone],
+                  message: smsBody,
                 })
               }
             );
 
             if (smsResponse.ok) {
+              const responseData = await smsResponse.json();
+              console.log("✅ SMS envoyé via Android SMS Gateway:", responseData);
               results.push({
                 channel: 'sms',
                 status: 'sent',
-                phone: profile.phone
+                phone: normalizedPhone,
+                gatewayMessageId: responseData.id || null
               });
             } else {
-              throw new Error('Erreur envoi SMS');
+              const errorText = await smsResponse.text();
+              console.error("❌ Erreur Android SMS Gateway:", smsResponse.status, errorText);
+              throw new Error(`Erreur envoi SMS (${smsResponse.status}): ${errorText}`);
             }
           }
         }
