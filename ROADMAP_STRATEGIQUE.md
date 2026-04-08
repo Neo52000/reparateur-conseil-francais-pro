@@ -219,34 +219,38 @@ CREATE TABLE escrow_transactions (
 
 ### 📞 Communications
 
-#### Twilio (SMS & WhatsApp)
+#### Android SMS Gateway (SMS)
 **Priorité** : P1
 **Use Cases** :
 - Notifications devis acceptés
 - Rappels rendez-vous
-- Codes OTP authentification
-- WhatsApp Business messaging
+- Notifications système aux réparateurs et clients
+
+**Solution** : [Android SMS Gateway](https://github.com/capcom6/android-sms-gateway) - Transforme un smartphone Android en passerelle SMS via API REST. Utilise le forfait SIM du téléphone au lieu d'un service payant par message.
 
 **Implémentation** :
 ```typescript
-// supabase/functions/send-sms/index.ts
-import twilio from "https://esm.sh/twilio@4.0.0";
-
-serve(async (req) => {
-  const client = twilio(
-    Deno.env.get('TWILIO_ACCOUNT_SID'),
-    Deno.env.get('TWILIO_AUTH_TOKEN')
-  );
-  
-  const { to, message } = await req.json();
-  
-  await client.messages.create({
-    body: message,
-    from: Deno.env.get('TWILIO_PHONE_NUMBER'),
-    to: to
-  });
-});
+// supabase/functions/send-notification/index.ts
+// Intégré dans la fonction send-notification existante (canal SMS)
+const smsResponse = await fetch(
+  `${Deno.env.get('SMS_GATEWAY_URL')}/message`,
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': `Basic ${btoa(`${username}:${password}`)}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      phoneNumbers: [normalizedPhone],
+      message: smsBody,
+    })
+  }
+);
 ```
+
+**Configuration** :
+- `SMS_GATEWAY_URL` : URL de l'API (cloud ou locale)
+- `SMS_GATEWAY_USERNAME` / `SMS_GATEWAY_PASSWORD` : Identifiants générés par l'app Android
 
 #### SendGrid (Emails Transactionnels)
 **Priorité** : P1
