@@ -219,7 +219,7 @@ export function useAiCmo() {
 
       if (result.error) throw result.error;
       await fetchProfile();
-      toast({ title: 'Succes', description: 'Profil AI-CMO sauvegarde' });
+      toast({ title: 'Succès', description: 'Profil AI-CMO sauvegardé' });
     } catch (err: any) {
       toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
     } finally {
@@ -257,7 +257,7 @@ export function useAiCmo() {
       }
 
       await fetchCompetitors();
-      toast({ title: 'Succes', description: 'Concurrents sauvegardes' });
+      toast({ title: 'Succès', description: 'Concurrents sauvegardés' });
     } catch (err: any) {
       toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
     } finally {
@@ -309,7 +309,7 @@ export function useAiCmo() {
       }
 
       await fetchQuestions();
-      toast({ title: 'Succes', description: 'Questions sauvegardees' });
+      toast({ title: 'Succès', description: 'Questions sauvegardées' });
     } catch (err: any) {
       toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
     } finally {
