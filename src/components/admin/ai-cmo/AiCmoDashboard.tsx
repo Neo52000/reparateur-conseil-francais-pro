@@ -101,6 +101,7 @@ const AiCmoDashboard: React.FC = () => {
             costs={hook.llmCosts}
             loading={hook.loadingStats}
             loadingCosts={hook.loadingCosts}
+            onRefresh={() => hook.fetchDashboardStats()}
           />
         </TabsContent>
 

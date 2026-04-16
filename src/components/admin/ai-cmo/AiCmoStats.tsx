@@ -1,17 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BarChart3, Eye, Globe, Activity } from 'lucide-react';
-import { AiCmoDashboardStats, AiCmoLlmCost, ShareOfVoiceEntry } from './types';
+import { BarChart3, Eye, Globe, Activity, Play, RefreshCw } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { AiCmoDashboardStats, AiCmoLlmCost, ShareOfVoiceEntry, DEFAULT_SITE_ID } from './types';
 
 interface AiCmoStatsProps {
   stats: AiCmoDashboardStats | null;
   costs: AiCmoLlmCost[];
   loading: boolean;
   loadingCosts: boolean;
+  onRefresh?: () => void;
 }
 
-const AiCmoStats: React.FC<AiCmoStatsProps> = ({ stats, costs, loading, loadingCosts }) => {
+const AiCmoStats: React.FC<AiCmoStatsProps> = ({ stats, costs, loading, loadingCosts, onRefresh }) => {
+  const { toast } = useToast();
+  const [triggering, setTriggering] = useState(false);
+
+  const handleTriggerRun = async (forceAll = false) => {
+    setTriggering(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-cmo-worker', {
+        body: { site_id: DEFAULT_SITE_ID, force_all: forceAll },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Analyse lancee',
+        description: `${data?.runs_created || 0} analyse(s) executee(s) sur ${data?.questions_processed || 0} question(s)${data?.errors?.length ? ` — ${data.errors.length} erreur(s)` : ''}`,
+      });
+
+      // Refresh dashboard data
+      if (onRefresh) onRefresh();
+    } catch (err: any) {
+      toast({
+        title: 'Erreur',
+        description: err.message || 'Impossible de lancer l\'analyse',
+        variant: 'destructive',
+      });
+    } finally {
+      setTriggering(false);
+    }
+  };
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -29,6 +62,12 @@ const AiCmoStats: React.FC<AiCmoStatsProps> = ({ stats, costs, loading, loadingC
           <p className="text-sm text-muted-foreground mt-1">
             Les statistiques apparaitront une fois le service de monitoring actif
           </p>
+          <div className="flex justify-center gap-3 mt-4">
+            <Button onClick={() => handleTriggerRun(true)} disabled={triggering}>
+              <Play className="w-4 h-4 mr-2" />
+              {triggering ? 'Analyse en cours...' : 'Lancer une analyse maintenant'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -51,11 +90,23 @@ const AiCmoStats: React.FC<AiCmoStatsProps> = ({ stats, costs, loading, loadingC
 
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold">Tableau de bord AI-CMO</h3>
-        <p className="text-sm text-muted-foreground">
-          Vue d'ensemble de votre visibilite dans les IA conversationnelles
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Tableau de bord AI-CMO</h3>
+          <p className="text-sm text-muted-foreground">
+            Vue d'ensemble de votre visibilite dans les IA conversationnelles
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => handleTriggerRun(false)} disabled={triggering}>
+            <Play className="w-4 h-4 mr-2" />
+            {triggering ? 'En cours...' : 'Lancer les questions dues'}
+          </Button>
+          <Button variant="outline" onClick={() => handleTriggerRun(true)} disabled={triggering}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Forcer toutes
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}
