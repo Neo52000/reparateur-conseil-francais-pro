@@ -23,7 +23,8 @@ import {
   Euro,
   TrendingUp,
   Settings2,
-  FileText
+  FileText,
+  Eye
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -130,6 +131,12 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
       label: 'Chatbot (Bientôt)',
       icon: <Bot className="w-4 h-4" />,
       disabled: true,
+    },
+    {
+      id: 'ai-cmo',
+      label: 'AI-CMO',
+      icon: <Eye className="w-4 h-4" />,
+      isNew: true,
     }
   ];
 

@@ -56,6 +56,7 @@ import { ExclusivityZonesAdmin } from '@/components/admin/exclusivity';
 import { AdminSeoProgrammaticPanel, AdminSeoMachinePanel } from '@/components/admin/seo';
 import { AdminPOSOverview } from '@/components/admin/pos';
 import SocialBoosterDashboard from '@/components/admin/social-booster/SocialBoosterDashboard';
+import { AiCmoDashboard } from '@/components/admin/ai-cmo';
 
 const AdminPage = () => {
   const {
@@ -78,7 +79,8 @@ const AdminPage = () => {
     'suppliers', 'static-pages', 'system-diagnostics', 'system-optimization', 'chatbot-performance',
     'shopify-dashboard', 'shopify-stores', 'shopify-orders', 'shopify-commissions',
     'shopify-analytics', 'shopify-settings',
-    'exclusivity-zones', 'seo-programmatic', 'seo-machine', 'pos-nf525', 'pos-payments', 'pos-integrations'
+    'exclusivity-zones', 'seo-programmatic', 'seo-machine', 'pos-nf525', 'pos-payments', 'pos-integrations',
+    'ai-cmo'
   ];
 
   // Restore tab from sessionStorage if missing
@@ -205,6 +207,8 @@ const AdminPage = () => {
         return 'Configuration Shopify';
       case 'exclusivity-zones':
         return 'Zones Exclusivité N3';
+      case 'ai-cmo':
+        return 'AI-CMO';
       case 'seo-programmatic':
         return 'SEO Programmatique';
       case 'pos-nf525':
@@ -297,6 +301,8 @@ const AdminPage = () => {
         return 'Paramètres API et configuration globale Shopify';
       case 'exclusivity-zones':
         return 'Gestion des zones d\'exclusivité géographique pour les réparateurs Niveau 3';
+      case 'ai-cmo':
+        return 'Monitoring de visibilité IA et prompts marketing';
       case 'seo-programmatic':
         return 'Génération automatique de pages SEO et sitemap dynamique';
       case 'pos-nf525':
@@ -442,6 +448,8 @@ const AdminPage = () => {
         return <ShopifyAdminSettings />;
       case 'exclusivity-zones':
         return <ExclusivityZonesAdmin />;
+      case 'ai-cmo':
+        return <AiCmoDashboard />;
       case 'seo-programmatic':
         return <AdminSeoProgrammaticPanel />;
       case 'seo-machine':
