@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Save, Plus, Trash2, ChevronUp, ChevronDown, Swords } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Save, Plus, Trash2, ChevronUp, ChevronDown, Swords, Globe } from 'lucide-react';
 import { AiCmoCompetitor, CompetitorFormData } from './types';
 
 interface AiCmoCompetitorsProps {
@@ -13,6 +14,22 @@ interface AiCmoCompetitorsProps {
   saving: boolean;
   onSave: (items: CompetitorFormData[]) => Promise<void>;
 }
+
+const extractHost = (url: string): string | null => {
+  if (!url) return null;
+  try {
+    const u = new URL(url.startsWith('http') ? url : `https://${url}`);
+    return u.hostname;
+  } catch {
+    return null;
+  }
+};
+
+const weightLabel = (w: number) => {
+  if (w >= 8) return { text: 'Tres fort', tone: 'text-rose-600' };
+  if (w >= 5) return { text: 'Moyen', tone: 'text-amber-600' };
+  return { text: 'Faible', tone: 'text-emerald-600' };
+};
 
 const AiCmoCompetitors: React.FC<AiCmoCompetitorsProps> = ({ competitors, loading, saving, onSave }) => {
   const [items, setItems] = useState<CompetitorFormData[]>([]);
@@ -31,7 +48,7 @@ const AiCmoCompetitors: React.FC<AiCmoCompetitorsProps> = ({ competitors, loadin
   }, [competitors]);
 
   const handleAdd = () => {
-    setItems((prev) => [...prev, { name: '', website: '', weight: 1 }]);
+    setItems((prev) => [...prev, { name: '', website: '', weight: 5 }]);
     setDirty(true);
   };
 
@@ -41,9 +58,7 @@ const AiCmoCompetitors: React.FC<AiCmoCompetitorsProps> = ({ competitors, loadin
   };
 
   const handleChange = (index: number, field: keyof CompetitorFormData, value: string | number) => {
-    setItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
-    );
+    setItems((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
     setDirty(true);
   };
 
@@ -119,67 +134,106 @@ const AiCmoCompetitors: React.FC<AiCmoCompetitorsProps> = ({ competitors, loadin
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {items.map((item, index) => (
-              <div key={index} className="flex items-end gap-3 p-4 border rounded-lg bg-muted/30">
-                <div className="flex-1 space-y-2">
-                  <Label>Nom</Label>
-                  <Input
-                    placeholder="Nom du concurrent"
-                    value={item.name}
-                    onChange={(e) => handleChange(index, 'name', e.target.value)}
-                  />
-                </div>
-                <div className="flex-1 space-y-2">
-                  <Label>Site web</Label>
-                  <Input
-                    type="url"
-                    placeholder="https://concurrent.com"
-                    value={item.website}
-                    onChange={(e) => handleChange(index, 'website', e.target.value)}
-                  />
-                </div>
-                <div className="w-24 space-y-2">
-                  <Label>Poids</Label>
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={item.weight}
-                    onChange={(e) => handleChange(index, 'weight', parseInt(e.target.value))}
-                  >
-                    {Array.from({ length: 10 }, (_, i) => i + 1).map((w) => (
-                      <option key={w} value={w}>{w}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => handleMove(index, 'up')}
-                    disabled={index === 0}
-                  >
-                    <ChevronUp className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => handleMove(index, 'down')}
-                    disabled={index === items.length - 1}
-                  >
-                    <ChevronDown className="w-4 h-4" />
-                  </Button>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 text-destructive hover:text-destructive"
-                  onClick={() => handleRemove(index)}
+            {items.map((item, index) => {
+              const host = extractHost(item.website);
+              const label = weightLabel(item.weight);
+              return (
+                <div
+                  key={index}
+                  className="flex items-start gap-3 p-4 border rounded-lg bg-muted/30"
                 >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
+                  <div className="flex flex-col items-center justify-center gap-0.5 pt-6 w-6 shrink-0">
+                    <span className="text-xs text-muted-foreground font-medium">#{index + 1}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleMove(index, 'up')}
+                      disabled={index === 0}
+                      aria-label="Monter"
+                    >
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => handleMove(index, 'down')}
+                      disabled={index === items.length - 1}
+                      aria-label="Descendre"
+                    >
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+
+                  <div className="flex-1 space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label>Nom</Label>
+                        <Input
+                          placeholder="Nom du concurrent"
+                          value={item.name}
+                          onChange={(e) => handleChange(index, 'name', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Site web</Label>
+                        <div className="relative">
+                          {host ? (
+                            <img
+                              src={`https://www.google.com/s2/favicons?sz=32&domain=${host}`}
+                              alt=""
+                              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-sm"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          )}
+                          <Input
+                            type="url"
+                            placeholder="https://concurrent.com"
+                            value={item.website}
+                            onChange={(e) => handleChange(index, 'website', e.target.value)}
+                            className="pl-8"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label>Poids strategique</Label>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-medium ${label.tone}`}>{label.text}</span>
+                          <Badge variant="outline" className="font-mono text-xs min-w-[2rem] justify-center">
+                            {item.weight}
+                          </Badge>
+                        </div>
+                      </div>
+                      <Slider
+                        min={1}
+                        max={10}
+                        step={1}
+                        value={[item.weight]}
+                        onValueChange={(v) => handleChange(index, 'weight', v[0])}
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 text-destructive hover:text-destructive shrink-0 mt-5"
+                    onClick={() => handleRemove(index)}
+                    aria-label="Supprimer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              );
+            })}
           </CardContent>
         </Card>
       )}
