@@ -1,14 +1,19 @@
-import { useState } from 'react';
-import { Search, MapPin, Sparkles, Star, ShieldCheck } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Search, MapPin, Sparkles, Star, ShieldCheck, Loader2, Navigation as NavigationIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
+import { useGeolocation } from '@/hooks/useGeolocation';
+import { useToast } from '@/hooks/use-toast';
 import heroImage from '@/assets/hero-repair-workshop.jpg';
 
 const ModernHero = () => {
   const [device, setDevice] = useState('');
   const [city, setCity] = useState('');
   const navigate = useNavigate();
+  const { userLocation, isLocating, getUserLocation } = useGeolocation();
+  const { toast } = useToast();
+  const geolocRequestedRef = useRef(false);
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -21,6 +26,35 @@ const ModernHero = () => {
   const handleKey = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleSearch();
   };
+
+  const handleNearMe = () => {
+    if (!navigator.geolocation) {
+      toast({
+        title: 'Géolocalisation non disponible',
+        description: 'Votre navigateur ne supporte pas la géolocalisation. Affichage de la carte générale.',
+      });
+      navigate('/search?view=map');
+      return;
+    }
+    geolocRequestedRef.current = true;
+    getUserLocation();
+  };
+
+  useEffect(() => {
+    if (!geolocRequestedRef.current) return;
+    if (isLocating) return;
+    geolocRequestedRef.current = false;
+    if (userLocation) {
+      const [lat, lng] = userLocation;
+      navigate(`/search?view=map&lat=${lat}&lng=${lng}`);
+    } else {
+      toast({
+        title: 'Position introuvable',
+        description: 'Impossible de récupérer votre position. Affichage de la carte générale.',
+      });
+      navigate('/search?view=map');
+    }
+  }, [isLocating, userLocation, navigate, toast]);
 
   return (
     <section
@@ -114,8 +148,24 @@ const ModernHero = () => {
             </div>
 
             {/* Secondary CTA */}
-            <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3 text-sm">
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-3 text-sm">
               <button
+                type="button"
+                onClick={handleNearMe}
+                disabled={isLocating}
+                aria-busy={isLocating}
+                aria-label="Rechercher les réparateurs autour de ma position actuelle"
+                className="inline-flex items-center gap-1.5 text-primary font-medium hover:underline disabled:opacity-60 disabled:cursor-wait"
+              >
+                {isLocating ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <NavigationIcon className="h-4 w-4" aria-hidden />
+                )}
+                {isLocating ? 'Localisation…' : 'Autour de moi'}
+              </button>
+              <button
+                type="button"
                 onClick={() => navigate('/ai-search')}
                 className="inline-flex items-center gap-1.5 text-primary font-medium hover:underline"
               >

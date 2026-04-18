@@ -17,13 +17,16 @@ import RepairersList from '@/components/RepairersList';
 import EnhancedRepairersMap from './EnhancedRepairersMap';
 import { useRepairers } from '@/hooks/useRepairers';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { useMapStore } from '@/stores/mapStore';
 import { useSeoIntegration } from '@/hooks/useSeoIntegration';
 import SeoPageIntegration from '@/components/seo/SeoPageIntegration';
 import type { SearchFilters as SearchFiltersType } from '@/types/searchFilters';
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'map'>(
+    searchParams.get('view') === 'map' ? 'map' : 'list'
+  );
   const [showFilters, setShowFilters] = useState(false);
 
   // Search inputs (controlled)
@@ -43,6 +46,7 @@ const SearchPage = () => {
   });
 
   const { userLocation } = useGeolocation();
+  const setUserLocation = useMapStore(state => state.setUserLocation);
   const { repairers, loading, error } = useRepairers(appliedFilters, userLocation);
   const { hasSeoPage, hasAccess } = useSeoIntegration({
     city: appliedFilters.city || 'Paris',
@@ -55,7 +59,21 @@ const SearchPage = () => {
     setDevice(q);
     setCity(c);
     setAppliedFilters(prev => ({ ...prev, searchTerm: q || undefined, city: c || undefined }));
-  }, [searchParams]);
+
+    if (searchParams.get('view') === 'map') {
+      setViewMode('map');
+    }
+
+    const latParam = searchParams.get('lat');
+    const lngParam = searchParams.get('lng');
+    if (latParam && lngParam) {
+      const lat = Number(latParam);
+      const lng = Number(lngParam);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        setUserLocation([lat, lng]);
+      }
+    }
+  }, [searchParams, setUserLocation]);
 
   const submitSearch = () => {
     const params = new URLSearchParams(searchParams);

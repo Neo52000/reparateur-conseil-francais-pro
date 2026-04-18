@@ -135,6 +135,24 @@ Utiliser les utilitaires Tailwind correspondants (`p-4`, `gap-6`, `mt-12`, …).
 - [x] Phase 6 — Sticky CTA mobile sur fiche publique réparateur
 - [x] Phase 7 — Suppression des composants orphelins (NewSearchPage, ModernHeader,
       ModernFooter, SearchPageOptimized)
+- [x] Phase 10 — Recherche par carte sur la home : bouton « Autour de moi » dans
+      le hero + aperçu interactif lazy (IntersectionObserver + React.lazy) avec
+      CTA plein écran vers `/search?view=map`
 - [ ] Fusion complète `AISearchPage` dans `/search?mode=ai` (option future)
 - [ ] Storybook / catalogue de composants isolés
 - [ ] Audit accessibilité WCAG AA complet
+
+## 6. Règles de performance
+
+- **Leaflet hors `/search`** : toute page autre que `/search` qui intègre une
+  carte doit charger `leaflet` / `react-leaflet` via `React.lazy` + montage
+  différé (IntersectionObserver). Exemple : `HomepageMapSection` charge
+  `HomepageMapPreview` uniquement à l'entrée dans le viewport. Objectif :
+  préserver le chunk `vendor-map` hors du bundle initial de la home et protéger
+  le LCP.
+- **Géolocalisation** : utiliser le hook `useGeolocation` partagé
+  (`src/hooks/useGeolocation.ts`) qui synchronise la position avec `useMapStore`.
+  Ne jamais appeler `navigator.geolocation` directement dans un composant.
+- **Paramètres d'URL carte** : `/search` accepte `?view=map` pour ouvrir en mode
+  carte et `?lat=<n>&lng=<n>` pour centrer la carte. Toute redirection
+  cartographique depuis une page tierce doit passer par ces paramètres.
