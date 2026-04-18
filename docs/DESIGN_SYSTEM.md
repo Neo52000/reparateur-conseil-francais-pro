@@ -95,9 +95,17 @@ Utiliser les utilitaires Tailwind correspondants (`p-4`, `gap-6`, `mt-12`, …).
 ## 3. Règles d'usage
 
 ### Accessibilité
-- Focus visible sur tout élément interactif (`focus-ring` utility)
-- Contraste texte ≥ 4.5:1 (AA) sur background et surface-1
-- `aria-label` sur icônes seules · `aria-current` sur liens actifs
+- Focus clavier global automatique sur `a`, `button`, `input`, `[role="tab"]`, etc.
+  via `:focus-visible` dans `src/index.css` (contour `hsl(var(--ring))`, offset 2 px)
+- `focus-ring` utility disponible pour les cas particuliers
+- Skip link "Aller au contenu principal" dans `index.html` (href `#main-content`)
+- Landmarks : `<Navigation>` = `<nav aria-label="Navigation principale">`,
+  barre de recherche = `role="search" aria-label="..."`, résultats annoncés via
+  `role="status" aria-live="polite"`
+- Contraste texte ≥ 4.5:1 (AA) sur `background` et `surface-1` (primary #0A6CFF
+  validé sur blanc)
+- `aria-label` sur icônes seules · `aria-current="page"` sur liens actifs
+- `aria-selected` sur les onglets (`SearchModeTabs`)
 - Respect de `prefers-reduced-motion` (voir `src/index.css`)
 
 ### Responsive

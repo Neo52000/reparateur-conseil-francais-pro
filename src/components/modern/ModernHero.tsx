@@ -62,7 +62,11 @@ const ModernHero = () => {
 
           {/* Search card */}
           <div className="max-w-2xl mx-auto pt-2">
-            <div className="flex flex-col sm:flex-row gap-2 bg-card rounded-2xl shadow-elev-3 p-2 border border-border">
+            <div
+              className="flex flex-col sm:flex-row gap-2 bg-card rounded-2xl shadow-elev-3 p-2 border border-border"
+              role="search"
+              aria-label="Recherche de réparateur"
+            >
               <label htmlFor="hero-device" className="sr-only">
                 Appareil ou panne
               </label>

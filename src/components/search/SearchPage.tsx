@@ -102,7 +102,11 @@ const SearchPage = () => {
           <div className="flex justify-center md:justify-start">
             <SearchModeTabs />
           </div>
-          <div className="flex flex-col md:flex-row gap-2 md:gap-3 items-stretch">
+          <div
+            className="flex flex-col md:flex-row gap-2 md:gap-3 items-stretch"
+            role="search"
+            aria-label="Recherche de réparateur"
+          >
             <div className="flex flex-1 gap-2 bg-card rounded-xl shadow-elev-1 border border-border p-1.5">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" aria-hidden />
@@ -219,7 +223,7 @@ const SearchPage = () => {
 
           {/* Result count + AI suggestion */}
           <div className="flex flex-wrap items-center justify-between gap-2 mt-3 text-sm">
-            <div className="text-muted-foreground">
+            <div className="text-muted-foreground" role="status" aria-live="polite">
               {loading ? (
                 'Recherche en cours…'
               ) : (
