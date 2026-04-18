@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Facebook, Linkedin, Twitter, MessageCircle, UserPlus, Clock, Shield, Star, Users, Smartphone, Laptop, Tablet, Gamepad2 } from 'lucide-react';
+import { Mail, MapPin, Facebook, Linkedin, Twitter, MessageCircle, UserPlus, Shield, Smartphone, Laptop, Tablet, Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFooterConfig } from '@/hooks/useFooterConfig';
 import { supabase } from '@/integrations/supabase/client';
@@ -94,13 +94,6 @@ const Footer = () => {
                           <p className="text-gray-300 mb-6 leading-relaxed">
                             {section.content}
                           </p>
-                          
-                          {/* Avantages clés */}
-                          <div className="space-y-2 text-sm">
-                            
-                            
-                            
-                          </div>
                         </div> : section.section_key === 'services' ? <nav aria-label="Services de réparation">
                           <ul className="space-y-3">
                             {section.links.map((link, index) => {
