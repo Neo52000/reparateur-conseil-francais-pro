@@ -1,6 +1,10 @@
 import { Helmet } from 'react-helmet-async';
 import Navigation from '@/components/Navigation';
 import ModernHero from '@/components/modern/ModernHero';
+import TrustBar from '@/components/common/TrustBar';
+import CategoryShowcase from '@/components/modern/CategoryShowcase';
+import HomepageMapSection from '@/components/modern/HomepageMapSection';
+import HowItWorks from '@/components/modern/HowItWorks';
 import TrustSignals from '@/components/modern/TrustSignals';
 import RepairerResultsGrid from '@/components/modern/RepairerResultsGrid';
 import BlogSection from '@/components/modern/BlogSection';
@@ -158,6 +162,18 @@ const Index = () => {
       <main>
         {/* Hero avec H1 optimisé et keyword dans les 100 premiers mots */}
         <ModernHero />
+
+        {/* Trust strip inline - sous le hero */}
+        <TrustBar />
+
+        {/* Catégories d'appareils */}
+        <CategoryShowcase />
+
+        {/* Aperçu cartographique (lazy-loaded à l'entrée dans le viewport) */}
+        <HomepageMapSection />
+
+        {/* Comment ça marche - 3 étapes */}
+        <HowItWorks />
 
         {/* Trust Signals - E-A-T */}
         <TrustSignals />

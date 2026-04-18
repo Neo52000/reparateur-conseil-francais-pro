@@ -20,6 +20,7 @@ import SimplifiedQuoteModal from '@/components/profile/seo/SimplifiedQuoteModal'
 import PremiumAppointmentModal from '@/components/profile/seo/PremiumAppointmentModal';
 import ProfileSchemaOrg from '@/components/profile/seo/ProfileSchemaOrg';
 import ProfileBreadcrumbs from '@/components/profile/seo/ProfileBreadcrumbs';
+import RepairerStickyCTA from '@/components/profile/seo/RepairerStickyCTA';
 
 const RepairerPublicProfilePage: React.FC = () => {
   const { city, repairerSlug } = useParams<{ city: string; repairerSlug: string }>();
@@ -225,9 +226,9 @@ const RepairerPublicProfilePage: React.FC = () => {
 
       <ProfileSchemaOrg profile={profile} isPremium={isPremium} />
 
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pb-32 md:pb-0">
         {/* Header avec navigation */}
-        <ProfilePageHeader 
+        <ProfilePageHeader
           profile={profile}
           isPremium={isPremium}
           onBack={() => navigate(-1)}
@@ -282,6 +283,14 @@ const RepairerPublicProfilePage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Sticky CTA mobile (devis + appel) */}
+      <RepairerStickyCTA
+        businessName={profile.business_name}
+        hasPhone={!!profile.phone}
+        onCall={handleCallRepairer}
+        onQuote={handleRequestQuote}
+      />
 
       {/* Modal de devis simplifié */}
       <SimplifiedQuoteModal

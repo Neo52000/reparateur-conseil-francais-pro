@@ -81,6 +81,7 @@ const SuppliersDirectoryPage = lazy(() => import("./pages/SuppliersDirectoryPage
 const QuotesAndAppointments = lazy(() => import("./pages/QuotesAndAppointments"));
 const MarketplacePage = lazy(() => import("./pages/MarketplacePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const DesignSystemPage = lazy(() => import("./pages/DesignSystemPage"));
 
 // Dev tools (only in development)
 const RuntimeDiagnostics = lazy(() => import("./components/dev/RuntimeDiagnostics").then(m => ({ default: m.RuntimeDiagnostics })));
@@ -228,6 +229,8 @@ const AppWithTracking = () => {
         <Route path="/a-propos" element={<AProposPage />} />
         <Route path="/garantie" element={<GarantiePage />} />
         <Route path="/guide-choix-reparateur" element={<GuideChoixReparateurPage />} />
+        {/* Internal design system reference */}
+        <Route path="/design-system" element={<DesignSystemPage />} />
         {/* SEO local catch-all */}
         <Route path="*" element={<LocalSeoCatchAll />} />
         </Routes>
