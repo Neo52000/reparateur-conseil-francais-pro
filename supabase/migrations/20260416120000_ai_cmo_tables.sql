@@ -34,17 +34,11 @@ ALTER TABLE public.ai_cmo_profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "ai_cmo_profiles_select" ON public.ai_cmo_profiles
   FOR SELECT USING (true);
 CREATE POLICY "ai_cmo_profiles_insert" ON public.ai_cmo_profiles
-  FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  );
+  FOR INSERT WITH CHECK (public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "ai_cmo_profiles_update" ON public.ai_cmo_profiles
-  FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  );
+  FOR UPDATE USING (public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "ai_cmo_profiles_delete" ON public.ai_cmo_profiles
-  FOR DELETE USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  );
+  FOR DELETE USING (public.has_role(auth.uid(), 'admin'));
 
 CREATE TRIGGER trg_ai_cmo_profiles_updated
   BEFORE UPDATE ON public.ai_cmo_profiles
@@ -71,17 +65,11 @@ ALTER TABLE public.ai_cmo_competitors ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "ai_cmo_competitors_select" ON public.ai_cmo_competitors
   FOR SELECT USING (true);
 CREATE POLICY "ai_cmo_competitors_insert" ON public.ai_cmo_competitors
-  FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  );
+  FOR INSERT WITH CHECK (public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "ai_cmo_competitors_update" ON public.ai_cmo_competitors
-  FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  );
+  FOR UPDATE USING (public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "ai_cmo_competitors_delete" ON public.ai_cmo_competitors
-  FOR DELETE USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  );
+  FOR DELETE USING (public.has_role(auth.uid(), 'admin'));
 
 CREATE TRIGGER trg_ai_cmo_competitors_updated
   BEFORE UPDATE ON public.ai_cmo_competitors
@@ -112,17 +100,11 @@ ALTER TABLE public.ai_cmo_questions ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "ai_cmo_questions_select" ON public.ai_cmo_questions
   FOR SELECT USING (true);
 CREATE POLICY "ai_cmo_questions_insert" ON public.ai_cmo_questions
-  FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  );
+  FOR INSERT WITH CHECK (public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "ai_cmo_questions_update" ON public.ai_cmo_questions
-  FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  );
+  FOR UPDATE USING (public.has_role(auth.uid(), 'admin'));
 CREATE POLICY "ai_cmo_questions_delete" ON public.ai_cmo_questions
-  FOR DELETE USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid() AND profiles.role = 'admin')
-  );
+  FOR DELETE USING (public.has_role(auth.uid(), 'admin'));
 
 CREATE TRIGGER trg_ai_cmo_questions_updated
   BEFORE UPDATE ON public.ai_cmo_questions
