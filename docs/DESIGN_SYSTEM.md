@@ -123,7 +123,10 @@ Utiliser les utilitaires Tailwind correspondants (`p-4`, `gap-6`, `mt-12`, …).
 - [x] Phase 1 — Tokens consolidés + page `/design-system`
 - [x] Phase 2 — Navigation unifiée (desktop + mobile via Sheet)
 - [x] Phase 3 — Home refondue (hero double champ, catégories, how-it-works)
-- [ ] Fusionner `SearchPage` / `AISearchPage` / `NewSearchPage` en une seule expérience
-- [ ] Refonte fiche publique réparateur (sticky CTA devis mobile)
-- [ ] Supprimer les variantes `Modern*` devenues redondantes
+- [x] Phase 5 — `SearchPage` refondue (sticky search, filtres Sheet, lien IA)
+- [x] Phase 6 — Sticky CTA mobile sur fiche publique réparateur
+- [x] Phase 7 — Suppression des composants orphelins (NewSearchPage, ModernHeader,
+      ModernFooter, SearchPageOptimized)
+- [ ] Fusion complète `AISearchPage` dans `/search?mode=ai` (option future)
 - [ ] Storybook / catalogue de composants isolés
+- [ ] Audit accessibilité WCAG AA complet
