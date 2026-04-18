@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useToast } from '@/hooks/use-toast';
+import Logo from '@/components/Logo';
 import heroImage from '@/assets/hero-repair-workshop.jpg';
 
 const ModernHero = () => {
@@ -73,12 +74,17 @@ const ModernHero = () => {
           height={1080}
           className="absolute inset-0 w-full h-full object-cover scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/85 to-background/95" />
+        <div className="absolute inset-0 bg-gradient-to-b from-electric-blue-light/70 via-background/85 to-electric-blue-light/50" />
+        <div className="absolute inset-0 bg-gradient-to-br from-electric-blue/10 via-transparent to-electric-blue/5" />
       </div>
 
       {/* Content */}
       <div className="container relative z-10 py-16 md:py-24">
         <div className="max-w-3xl mx-auto text-center space-y-6">
+          <div className="flex justify-center">
+            <Logo variant="compact" size="xl" className="drop-shadow-sm" />
+          </div>
+
           <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
             <Sparkles className="h-3.5 w-3.5" aria-hidden />
             Plus de 2 000 réparateurs certifiés en France
@@ -90,8 +96,9 @@ const ModernHero = () => {
           </h1>
 
           <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-            Comparez les <strong className="text-foreground">réparateurs certifiés</strong> de smartphones, tablettes,
-            ordinateurs et consoles. Devis gratuit, intervention rapide, garantie incluse.
+            Comparez <strong className="text-foreground">gratuitement</strong> les{' '}
+            <strong className="text-foreground">réparateurs certifiés</strong> de smartphones, tablettes,
+            ordinateurs et consoles dans votre ville. Devis gratuit, intervention rapide, garantie incluse.
           </p>
 
           {/* Search card */}
