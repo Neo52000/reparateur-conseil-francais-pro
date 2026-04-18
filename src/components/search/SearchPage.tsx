@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Navigation from '@/components/Navigation';
+import SearchModeTabs from './SearchModeTabs';
 import RepairersList from '@/components/RepairersList';
 import EnhancedRepairersMap from './EnhancedRepairersMap';
 import { useRepairers } from '@/hooks/useRepairers';
@@ -97,7 +98,10 @@ const SearchPage = () => {
 
       {/* Sticky search bar */}
       <div className="sticky top-16 md:top-20 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85">
-        <div className="container py-3 md:py-4">
+        <div className="container py-3 md:py-4 space-y-3">
+          <div className="flex justify-center md:justify-start">
+            <SearchModeTabs />
+          </div>
           <div className="flex flex-col md:flex-row gap-2 md:gap-3 items-stretch">
             <div className="flex flex-1 gap-2 bg-card rounded-xl shadow-elev-1 border border-border p-1.5">
               <div className="relative flex-1">
