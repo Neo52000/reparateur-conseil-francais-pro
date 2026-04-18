@@ -130,7 +130,18 @@ export default {
 					DEFAULT: 'hsl(var(--info-badge))',
 					foreground: 'hsl(var(--info-badge-foreground))',
 					light: 'hsl(var(--info-badge-light))'
+				},
+				surface: {
+					0: 'hsl(var(--surface-0))',
+					1: 'hsl(var(--surface-1))',
+					2: 'hsl(var(--surface-2))',
+					3: 'hsl(var(--surface-3))'
 				}
+			},
+			boxShadow: {
+				'elev-1': 'var(--elev-1)',
+				'elev-2': 'var(--elev-2)',
+				'elev-3': 'var(--elev-3)'
 			},
 			fontFamily: {
 				sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif'],
