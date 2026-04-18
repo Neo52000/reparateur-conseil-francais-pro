@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useToast } from '@/hooks/use-toast';
-import Logo from '@/components/Logo';
 import heroImage from '@/assets/hero-repair-workshop.jpg';
 
 const ModernHero = () => {
@@ -81,10 +80,6 @@ const ModernHero = () => {
       {/* Content */}
       <div className="container relative z-10 py-16 md:py-24">
         <div className="max-w-3xl mx-auto text-center space-y-6">
-          <div className="flex justify-center">
-            <Logo variant="compact" size="xl" className="drop-shadow-sm" />
-          </div>
-
           <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
             <Sparkles className="h-3.5 w-3.5" aria-hidden />
             Plus de 2 000 réparateurs certifiés en France

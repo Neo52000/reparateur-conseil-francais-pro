@@ -135,9 +135,10 @@ Utiliser les utilitaires Tailwind correspondants (`p-4`, `gap-6`, `mt-12`, …).
 - [x] Phase 6 — Sticky CTA mobile sur fiche publique réparateur
 - [x] Phase 7 — Suppression des composants orphelins (NewSearchPage, ModernHeader,
       ModernFooter, SearchPageOptimized)
-- [x] Phase 10 — Recherche par carte sur la home : bouton « Autour de moi » dans
-      le hero + aperçu interactif lazy (IntersectionObserver + React.lazy) avec
-      CTA plein écran vers `/search?view=map`
+- [x] Phase 10 — Recherche par carte depuis la home via bouton « Autour de moi »
+      dans le hero (géolocalisation → `/search?view=map&lat=&lng=`). Section
+      d'aperçu cartographique retirée de la home : `/search` reste le seul
+      point d'entrée cartographique.
 - [ ] Fusion complète `AISearchPage` dans `/search?mode=ai` (option future)
 - [ ] Storybook / catalogue de composants isolés
 - [ ] Audit accessibilité WCAG AA complet
