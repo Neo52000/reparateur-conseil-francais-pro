@@ -36,7 +36,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Monitor } from 'lucide-react';
 import { CheckmateMonitoring } from '@/components/admin/monitoring/CheckmateMonitoring';
 import StaticPagesManager from '@/components/admin/StaticPagesManager';
-import RealTimeQuotesManager from '@/components/admin/quotes/RealTimeQuotesManager';
 import CatalogManagement from '@/components/admin/catalog/CatalogManagement';
 import SeoToolsPanel from '@/components/admin/SeoToolsPanel';
 import RepairerSeoPanel from '@/components/admin/RepairerSeoPanel';
@@ -46,15 +45,8 @@ import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizatio
 import { SuppliersDirectoryManagement } from '@/components/admin/SuppliersDirectoryManagement';
 import { SystemDiagnosticsPanel } from '@/components/admin/SystemDiagnosticsPanel';
 import ChatbotPerformancePanel from '@/components/admin/ChatbotPerformancePanel';
-import AdminShopifyDashboard from '@/components/shopify/admin/AdminShopifyDashboard';
-import ShopifyStoresManager from '@/components/shopify/admin/ShopifyStoresManager';
-import ShopifyGlobalOrders from '@/components/shopify/admin/ShopifyGlobalOrders';
-import ShopifyCommissionsManager from '@/components/shopify/admin/ShopifyCommissionsManager';
-import ShopifyGlobalAnalytics from '@/components/shopify/admin/ShopifyGlobalAnalytics';
-import ShopifyAdminSettings from '@/components/shopify/admin/ShopifyAdminSettings';
 import { ExclusivityZonesAdmin } from '@/components/admin/exclusivity';
 import { AdminSeoProgrammaticPanel, AdminSeoMachinePanel } from '@/components/admin/seo';
-import { AdminPOSOverview } from '@/components/admin/pos';
 import SocialBoosterDashboard from '@/components/admin/social-booster/SocialBoosterDashboard';
 import { AiCmoDashboard } from '@/components/admin/ai-cmo';
 
@@ -71,16 +63,13 @@ const AdminPage = () => {
 
   // List of valid tabs
   const validTabs = [
-    'dashboard', 'subscriptions', 'subdomains', 'landing-pages', 'repairers', 'quotes',
+    'dashboard', 'subscriptions', 'subdomains', 'landing-pages', 'repairers',
     'catalog', 'interest', 'advertising', 'advertising-ai', 'analytics',
     'scraping', 'automation', 'monitoring', 'blog', 'social-booster', 'chatbot', 'local-seo', 'seo-tools',
     'repairer-seo', 'seo-monitoring', 'repair-generator', 'pagespeed-pro', 'performance',
     'documentation', 'features-manager', 'plans-tester', 'dashboard-tester', 'configuration',
     'suppliers', 'static-pages', 'system-diagnostics', 'system-optimization', 'chatbot-performance',
-    'shopify-dashboard', 'shopify-stores', 'shopify-orders', 'shopify-commissions',
-    'shopify-analytics', 'shopify-settings',
-    'exclusivity-zones', 'seo-programmatic', 'seo-machine', 'pos-nf525', 'pos-payments', 'pos-integrations',
-    'ai-cmo'
+    'exclusivity-zones', 'seo-programmatic', 'seo-machine', 'ai-cmo',
   ];
 
   // Restore tab from sessionStorage if missing
@@ -139,8 +128,6 @@ const AdminPage = () => {
         return 'Landing Pages';
       case 'repairers':
         return 'Réparateurs';
-      case 'quotes':
-        return 'Gestion des Devis';
       case 'catalog':
         return 'Catalogue Produits';
       case 'interest':
@@ -193,30 +180,12 @@ const AdminPage = () => {
         return 'Diagnostics Système';
       case 'chatbot-performance':
         return 'Performance Chatbot';
-      case 'shopify-dashboard':
-        return 'Dashboard Shopify';
-      case 'shopify-stores':
-        return 'Boutiques Réparateurs';
-      case 'shopify-orders':
-        return 'Commandes Globales';
-      case 'shopify-commissions':
-        return 'Commissions & Payouts';
-      case 'shopify-analytics':
-        return 'Analytics Shopify';
-      case 'shopify-settings':
-        return 'Configuration Shopify';
       case 'exclusivity-zones':
         return 'Zones Exclusivité N3';
       case 'ai-cmo':
         return 'AI-CMO';
       case 'seo-programmatic':
         return 'SEO Programmatique';
-      case 'pos-nf525':
-        return 'Conformité NF525';
-      case 'pos-payments':
-        return 'Paiements POS';
-      case 'pos-integrations':
-        return 'Intégrations Paiement';
       default:
         return 'Dashboard';
     }
@@ -233,8 +202,6 @@ const AdminPage = () => {
         return 'Création et gestion des landing pages personnalisées';
       case 'repairers':
         return 'Liste et gestion des réparateurs';
-      case 'quotes':
-        return 'Suivi et modération des demandes de devis clients';
       case 'catalog':
         return 'Gestion du catalogue de la recherche en 5 étapes (types, marques, modèles, réparations)';
       case 'interest':
@@ -287,30 +254,12 @@ const AdminPage = () => {
         return 'Surveillance en temps réel des services IA et état du chatbot';
       case 'chatbot-performance':
         return 'Métriques de performance et analyse du comportement du chatbot IA';
-      case 'shopify-dashboard':
-        return 'Vue d\'ensemble des boutiques e-commerce réparateurs';
-      case 'shopify-stores':
-        return 'Gestion et modération de toutes les boutiques Shopify';
-      case 'shopify-orders':
-        return 'Toutes les commandes Shopify de la plateforme';
-      case 'shopify-commissions':
-        return 'Gestion des commissions et paiements réparateurs';
-      case 'shopify-analytics':
-        return 'Analyses avancées et métriques e-commerce';
-      case 'shopify-settings':
-        return 'Paramètres API et configuration globale Shopify';
       case 'exclusivity-zones':
         return 'Gestion des zones d\'exclusivité géographique pour les réparateurs Niveau 3';
       case 'ai-cmo':
         return 'Monitoring de visibilité IA et prompts marketing';
       case 'seo-programmatic':
         return 'Génération automatique de pages SEO et sitemap dynamique';
-      case 'pos-nf525':
-        return 'Tableau de bord conformité fiscale NF525 pour les caisses enregistreuses';
-      case 'pos-payments':
-        return 'Gestion des paiements et moyens de paiement du POS';
-      case 'pos-integrations':
-        return 'Configuration des intégrations de paiement (Stripe, Apple Pay, etc.)';
       default:
         return 'Administration de RepairHub';
     }
@@ -346,8 +295,6 @@ const AdminPage = () => {
         return <LandingPagesManagement />;
       case 'repairers':
         return <RepairerList />;
-      case 'quotes':
-        return <RealTimeQuotesManager />;
       case 'catalog':
         return <CatalogManagement />;
       case 'interest':
@@ -434,18 +381,6 @@ const AdminPage = () => {
         return <SystemDiagnosticsPanel />;
       case 'chatbot-performance':
         return <ChatbotPerformancePanel />;
-      case 'shopify-dashboard':
-        return <AdminShopifyDashboard />;
-      case 'shopify-stores':
-        return <ShopifyStoresManager />;
-      case 'shopify-orders':
-        return <ShopifyGlobalOrders />;
-      case 'shopify-commissions':
-        return <ShopifyCommissionsManager />;
-      case 'shopify-analytics':
-        return <ShopifyGlobalAnalytics />;
-      case 'shopify-settings':
-        return <ShopifyAdminSettings />;
       case 'exclusivity-zones':
         return <ExclusivityZonesAdmin />;
       case 'ai-cmo':
@@ -454,10 +389,6 @@ const AdminPage = () => {
         return <AdminSeoProgrammaticPanel />;
       case 'seo-machine':
         return <AdminSeoMachinePanel />;
-      case 'pos-nf525':
-      case 'pos-payments':
-      case 'pos-integrations':
-        return <AdminPOSOverview repairerId={user?.id || ''} />;
       default:
         return <AdminDashboardContent activeTab={activeTab} subscriptions={[]} repairers={[]} onViewProfile={() => {}} onRefresh={async () => {}} />;
     }

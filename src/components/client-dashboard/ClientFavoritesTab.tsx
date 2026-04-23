@@ -3,12 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, Star, Trash2, Phone, MapPin } from 'lucide-react';
 import { useFavorites } from '@/hooks/useFavorites';
-import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
 import { ClientFavoritesEmpty } from './ClientFavoritesEmpty';
 
 const ClientFavoritesTab: React.FC = () => {
   const { favorites, loading, removeFromFavorites } = useFavorites();
-  const { handleRequestQuote } = useQuoteAndAppointment();
 
   const handleCall = (phone: string) => {
     window.open(`tel:${phone}`, '_self');
@@ -82,15 +80,7 @@ const ClientFavoritesTab: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <Button 
-                    onClick={() => handleRequestQuote(favorite.repairer_id)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                    size="sm"
-                  >
-                    Demander un devis
-                  </Button>
-                  
-                  <Button 
+                  <Button
                     onClick={() => handleCall(favorite.repairer.phone)}
                     variant="outline"
                     size="sm"

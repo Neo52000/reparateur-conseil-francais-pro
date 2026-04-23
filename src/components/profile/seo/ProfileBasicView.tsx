@@ -2,31 +2,27 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Phone, 
-  FileText, 
-  MapPin, 
-  Star, 
-  Clock, 
+import {
+  Phone,
+  MapPin,
+  Star,
+  Clock,
   Shield,
   Lock,
   Eye,
   Image,
   DollarSign,
-  Award
 } from 'lucide-react';
 import { getRepairTypeLabel } from '@/types/repairerProfile';
 
 interface ProfileBasicViewProps {
   profile: any;
-  onRequestQuote: () => void;
   onCallRepairer: () => void;
 }
 
 const ProfileBasicView: React.FC<ProfileBasicViewProps> = ({
   profile,
-  onRequestQuote,
-  onCallRepairer
+  onCallRepairer,
 }) => {
   // Masquer partiellement le téléphone
   const maskedPhone = profile.phone 
@@ -90,18 +86,8 @@ const ProfileBasicView: React.FC<ProfileBasicViewProps> = ({
 
             {/* Actions */}
             <div className="flex flex-col gap-3 sm:flex-row md:flex-col lg:min-w-[200px]">
-              <Button 
-                onClick={onRequestQuote}
-                className="w-full"
-                size="lg"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Demander un devis
-              </Button>
-              
-              <Button 
+              <Button
                 onClick={onCallRepairer}
-                variant="secondary"
                 className="w-full"
                 size="lg"
               >
@@ -255,9 +241,9 @@ const ProfileBasicView: React.FC<ProfileBasicViewProps> = ({
                 Fiche non encore revendiquée
               </p>
               <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                Ce réparateur n'a pas encore validé sa fiche sur TopRéparateurs. 
+                Ce réparateur n'a pas encore validé sa fiche sur TopRéparateurs.
                 Les informations affichées proviennent de sources publiques.
-                Vous pouvez tout de même demander un devis ou appeler directement.
+                Vous pouvez tout de même l'appeler directement.
               </p>
             </div>
           </div>

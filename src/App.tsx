@@ -39,7 +39,6 @@ const RepairerFAQ = lazy(() => import("./pages/RepairerFAQ"));
 const RepairerSettingsPage = lazy(() => import("./pages/RepairerSettingsPage"));
 const RepairerAuthPage = lazy(() => import("./pages/RepairerAuthPage"));
 const RepairerSeoPage = lazy(() => import("./pages/RepairerSeoPage"));
-const RepairTrackingPage = lazy(() => import("./pages/RepairTrackingPage"));
 
 // Client
 const ClientDashboardPage = lazy(() => import("./pages/ClientDashboardPage"));
@@ -78,8 +77,6 @@ const AProposPage = lazy(() => import("./pages/AProposPage"));
 const GarantiePage = lazy(() => import("./pages/GarantiePage"));
 const GuideChoixReparateurPage = lazy(() => import("./pages/GuideChoixReparateurPage"));
 const SuppliersDirectoryPage = lazy(() => import("./pages/SuppliersDirectoryPage").then(m => ({ default: m.SuppliersDirectoryPage })));
-const QuotesAndAppointments = lazy(() => import("./pages/QuotesAndAppointments"));
-const MarketplacePage = lazy(() => import("./pages/MarketplacePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const DesignSystemPage = lazy(() => import("./pages/DesignSystemPage"));
 
@@ -192,7 +189,6 @@ const AppWithTracking = () => {
         <Route path="/reparation-console" element={<ConsoleRepairPage />} />
         <Route path="/local-seo" element={<LocalSeoPage />} />
         <Route path="/repairer-settings" element={<RepairerSettingsPage />} />
-        <Route path="/repair-tracking" element={<RepairTrackingPage />} />
         <Route path="/static/:slug" element={<StaticPage />} />
         <Route path="/repairer-auth" element={<RepairerAuthPage />} />
         <Route path="/client-auth" element={<ClientAuthPage />} />
@@ -206,9 +202,8 @@ const AppWithTracking = () => {
         <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
         <Route path="/blog/repairers" element={<BlogRepairerPage />} />
         <Route path="/blog/repairers/article/:slug" element={<BlogArticlePage />} />
-        {/* Suppliers & quotes */}
+        {/* Suppliers directory (gated Premium) */}
         <Route path="/suppliers-directory" element={<SuppliersDirectoryPage />} />
-        <Route path="/quotes-appointments" element={<QuotesAndAppointments />} />
         {/* Legal pages */}
         <Route path="/legal-notice" element={<LegalNotice />} />
         <Route path="/mentions-legales" element={<Navigate to="/legal-notice" replace />} />
@@ -223,8 +218,6 @@ const AppWithTracking = () => {
         <Route path="/mes-donnees" element={<MyDataPage />} />
         {/* Documentation */}
         <Route path="/documentation" element={<DocumentationPage />} />
-        {/* Marketplace */}
-        <Route path="/marketplace" element={<MarketplacePage />} />
         {/* Institutional pages */}
         <Route path="/a-propos" element={<AProposPage />} />
         <Route path="/garantie" element={<GarantiePage />} />

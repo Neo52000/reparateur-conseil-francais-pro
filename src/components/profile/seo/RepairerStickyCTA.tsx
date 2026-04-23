@@ -1,14 +1,13 @@
-import { Phone, FileText } from 'lucide-react';
+import { Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface RepairerStickyCTAProps {
   businessName?: string;
   hasPhone: boolean;
   onCall: () => void;
-  onQuote: () => void;
 }
 
-const RepairerStickyCTA = ({ businessName, hasPhone, onCall, onQuote }: RepairerStickyCTAProps) => (
+const RepairerStickyCTA = ({ businessName, hasPhone, onCall }: RepairerStickyCTAProps) => (
   <div
     className="fixed bottom-16 left-0 right-0 z-40 md:hidden border-t border-border bg-background/95 backdrop-blur shadow-elev-3"
     role="region"
@@ -20,26 +19,16 @@ const RepairerStickyCTA = ({ businessName, hasPhone, onCall, onQuote }: Repairer
           Contacter <span className="font-medium text-foreground">{businessName}</span>
         </p>
       )}
-      <div className="flex gap-2">
+      {hasPhone && (
         <Button
-          onClick={onQuote}
-          className="flex-1 h-11 shadow-elev-1"
-          aria-label="Demander un devis gratuit"
+          onClick={onCall}
+          className="w-full h-11 shadow-elev-1"
+          aria-label="Appeler le réparateur"
         >
-          <FileText className="h-4 w-4 mr-2" aria-hidden />
-          Devis gratuit
+          <Phone className="h-4 w-4 mr-2" aria-hidden />
+          Appeler
         </Button>
-        {hasPhone && (
-          <Button
-            onClick={onCall}
-            variant="outline"
-            className="h-11 px-4"
-            aria-label="Appeler le réparateur"
-          >
-            <Phone className="h-4 w-4" aria-hidden />
-          </Button>
-        )}
-      </div>
+      )}
     </div>
   </div>
 );
