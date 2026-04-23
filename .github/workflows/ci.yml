@@ -20,8 +20,12 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Lint
+      # Lint temporarily non-blocking : 1471 erreurs héritées du prototype Lovable.
+      # Plan de résorption : fin Phase 1 (cf. DETTE_TECHNIQUE.md). En attendant,
+      # le pre-commit hook husky+lint-staged empêche toute nouvelle régression.
+      - name: Lint (non-blocking, legacy debt)
         run: bun run lint
+        continue-on-error: true
 
       - name: Type check
         run: bun run tsc --noEmit

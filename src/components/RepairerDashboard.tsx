@@ -1,128 +1,74 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  BarChart3, 
-  Package, 
-  Calendar, 
-  MessageSquare, 
-  FileText, 
+import {
+  Calendar,
   Euro,
   TrendingUp,
-  Users,
   Clock,
   Star,
   LogOut,
   Crown,
   ArrowUp,
-  Calculator
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useUpgradeModal } from '@/hooks/useUpgradeModal';
 import UpgradeModal from '@/components/UpgradeModal';
 import AdBannerDisplay from '@/components/advertising/AdBannerDisplay';
-import OverviewTabSection from "./repairer-dashboard/OverviewTabSection";
-import OrdersTabSection from "./repairer-dashboard/OrdersTabSection";
-import RepairerAppointmentsCalendar from "./repairer-dashboard/RepairerAppointmentsCalendar";
-import InventoryTabSection from "./repairer-dashboard/InventoryTabSection";
-import AnalyticsTabSection from "./repairer-dashboard/AnalyticsTabSection";
-import ElectronicBillingSection from "./repairer-dashboard/ElectronicBillingSection";
-import ProfileTabSection from "./repairer-dashboard/ProfileTabSection";
-import PricingTabSection from "./repairer-dashboard/PricingTabSection";
-import { RepairerOnboardingTour } from "./repairer-dashboard/RepairerOnboardingTour";
+import OverviewTabSection from './repairer-dashboard/OverviewTabSection';
+import RepairerAppointmentsCalendar from './repairer-dashboard/RepairerAppointmentsCalendar';
+import AnalyticsTabSection from './repairer-dashboard/AnalyticsTabSection';
+import ProfileTabSection from './repairer-dashboard/ProfileTabSection';
+import PricingTabSection from './repairer-dashboard/PricingTabSection';
+import { RepairerOnboardingTour } from './repairer-dashboard/RepairerOnboardingTour';
 import { useRepairerPlan } from '@/hooks/useRepairerPlan';
-import { MessageThread } from './messaging/MessageThread';
-import { RepairTimeline } from './repair/RepairTimeline';
-import { RepairerQuotesTab } from './repairer-dashboard/RepairerQuotesTab';
 
 const RepairerDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const { currentPlan } = useRepairerPlan();
-  
-  // Hook pour gérer le popup d'upgrade
+
   const { shouldShowModal, isModalOpen, closeModal } = useUpgradeModal(user?.email || null);
 
-  // Données mockées pour la démo
   const repairerData = {
     profile: {
       name: 'top reparateurs.fr',
       rating: 4.9,
       totalRepairs: 156,
-      joinDate: '2023-03-15'
+      joinDate: '2023-03-15',
     },
     stats: {
       monthlyRevenue: 3450,
-      pendingOrders: 8,
       completedThisMonth: 24,
-      avgRepairTime: 2.5
+      avgRepairTime: 2.5,
     },
-    orders: [
-      {
-        id: '1',
-        client: 'Jean Dupont',
-        device: 'iPhone 14 Pro',
-        issue: 'Écran cassé',
-        status: 'En cours',
-        priority: 'Urgente',
-        estimatedPrice: 180
-      },
-      {
-        id: '2',
-        client: 'Marie Martin',
-        device: 'Samsung Galaxy S23',
-        issue: 'Batterie',
-        status: 'Diagnostic',
-        priority: 'Normale',
-        estimatedPrice: 85
-      }
-    ],
-    inventory: [
-      {
-        id: '1',
-        part: 'Écran iPhone 14 Pro',
-        stock: 5,
-        minStock: 2,
-        price: 150
-      },
-      {
-        id: '2',
-        part: 'Batterie Samsung S23',
-        stock: 1,
-        minStock: 3,
-        price: 65
-      }
-    ],
     appointments: [
       {
         id: '1',
         client: 'Paul Durand',
         time: '14:00',
         service: 'Diagnostic iPhone',
-        phone: '+33 6 12 34 56 78'
+        phone: '+33 6 12 34 56 78',
       },
       {
         id: '2',
         client: 'Sophie Legrand',
         time: '16:30',
         service: 'Réparation écran',
-        phone: '+33 6 98 76 54 32'
-      }
-    ]
+        phone: '+33 6 98 76 54 32',
+      },
+    ],
   };
 
   const handleLogout = async () => {
-    console.log('🔄 Starting logout process...');
     try {
       await signOut();
-      console.log('✅ Logout completed, redirecting to home...');
       navigate('/', { replace: true });
     } catch (error) {
-      console.error('❌ Logout error:', error);
+      console.error('Logout error:', error);
       navigate('/', { replace: true });
     }
   };
@@ -160,9 +106,8 @@ const RepairerDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <RepairerOnboardingTour />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Upgrade Modal */}
         {shouldShowModal && user?.email && (
           <UpgradeModal
             isOpen={isModalOpen}
@@ -171,7 +116,6 @@ const RepairerDashboard = () => {
           />
         )}
 
-        {/* Top bar with logo, title and logout button */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
             <img
@@ -193,7 +137,6 @@ const RepairerDashboard = () => {
           </Button>
         </div>
 
-        {/* Plan actuel et bandeau d'upgrade avec debug info */}
         <Card className={`mb-6 border-l-4 ${getPlanColor(currentPlan)}`}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -204,16 +147,10 @@ const RepairerDashboard = () => {
                     Plan actuel : {getPlanDisplayName(currentPlan)}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {currentPlan === 'free' 
+                    {currentPlan === 'free'
                       ? 'Passez à un plan payant pour accéder à plus de fonctionnalités'
-                      : 'Vous bénéficiez des fonctionnalités avancées'
-                    }
+                      : 'Vous bénéficiez des fonctionnalités avancées'}
                   </p>
-                  {user?.email === 'demo@demo.fr' && (
-                    <p className="text-xs text-blue-600 mt-1">
-                      Debug: User ID = {user.id} | Email = {user.email} | Plan = {currentPlan}
-                    </p>
-                  )}
                 </div>
               </div>
               {currentPlan === 'free' && (
@@ -226,34 +163,20 @@ const RepairerDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Bannière publicitaire pour les réparateurs - sous l'affichage du plan */}
         <div className="mb-6">
-          <AdBannerDisplay 
-            placement="repairer_dashboard" 
-            className="mb-4"
-          />
+          <AdBannerDisplay placement="repairer_dashboard" className="mb-4" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">
                 <Euro className="h-8 w-8 text-green-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">CA mensuel</p>
-                  <p className="text-2xl font-bold text-gray-900">{repairerData.stats.monthlyRevenue}€</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Clock className="h-8 w-8 text-orange-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Commandes en attente</p>
-                  <p className="text-2xl font-bold text-gray-900">{repairerData.stats.pendingOrders}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {repairerData.stats.monthlyRevenue}€
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -265,7 +188,9 @@ const RepairerDashboard = () => {
                 <TrendingUp className="h-8 w-8 text-blue-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Réparations ce mois</p>
-                  <p className="text-2xl font-bold text-gray-900">{repairerData.stats.completedThisMonth}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {repairerData.stats.completedThisMonth}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -277,7 +202,9 @@ const RepairerDashboard = () => {
                 <Star className="h-8 w-8 text-yellow-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Note moyenne</p>
-                  <p className="text-2xl font-bold text-gray-900">{repairerData.profile.rating}/5</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {repairerData.profile.rating}/5
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -285,33 +212,19 @@ const RepairerDashboard = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-11" data-tour="dashboard-tabs">
+          <TabsList className="grid w-full grid-cols-5" data-tour="dashboard-tabs">
             <TabsTrigger value="overview" data-tour="overview-tab">Aperçu</TabsTrigger>
-            <TabsTrigger value="quotes">Devis</TabsTrigger>
-            <TabsTrigger value="orders">Commandes</TabsTrigger>
             <TabsTrigger value="calendar">Planning</TabsTrigger>
-            <TabsTrigger value="messages">Messages</TabsTrigger>
-            <TabsTrigger value="repairs">Réparations</TabsTrigger>
-            <TabsTrigger value="inventory">Stock</TabsTrigger>
             <TabsTrigger value="pricing">Tarifs</TabsTrigger>
             <TabsTrigger value="analytics" data-tour="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="billing">Facturation</TabsTrigger>
             <TabsTrigger value="profile" data-tour="profile-progress">Profil</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
             <OverviewTabSection
-              orders={repairerData.orders}
+              orders={[]}
               appointments={repairerData.appointments}
             />
-          </TabsContent>
-
-          <TabsContent value="quotes">
-            <RepairerQuotesTab />
-          </TabsContent>
-
-          <TabsContent value="orders">
-            <OrdersTabSection orders={repairerData.orders} />
           </TabsContent>
 
           <TabsContent value="calendar">
@@ -328,38 +241,12 @@ const RepairerDashboard = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="messages">
-            <div className="grid gap-6">
-              <MessageThread
-                quoteId="demo_quote_id"
-                senderType="repairer"
-                recipientName="Client Demo"
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="repairs">
-            <div className="grid gap-6">
-              <RepairTimeline
-                quoteId="demo_quote_id"
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="inventory">
-            <InventoryTabSection inventory={repairerData.inventory} />
-          </TabsContent>
-
           <TabsContent value="pricing">
             <PricingTabSection />
           </TabsContent>
 
           <TabsContent value="analytics">
             <AnalyticsTabSection avgRepairTime={repairerData.stats.avgRepairTime} />
-          </TabsContent>
-
-          <TabsContent value="billing">
-            <ElectronicBillingSection />
           </TabsContent>
 
           <TabsContent value="profile">

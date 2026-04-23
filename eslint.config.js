@@ -5,7 +5,11 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  {
+    // Code en quarantaine Phase 0 (Edge Functions Stripe à refondre Phase 3).
+    // Cf. supabase/functions/_disabled/README.md
+    ignores: ["dist", "supabase/functions/_disabled/**"],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

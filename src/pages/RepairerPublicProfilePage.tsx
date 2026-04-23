@@ -4,7 +4,6 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useProfileAnalytics } from '@/hooks/analytics/useProfileAnalytics';
-import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
 
 // Components
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,6 @@ import ProfileBasicView from '@/components/profile/seo/ProfileBasicView';
 import ProfilePremiumView from '@/components/profile/seo/ProfilePremiumView';
 import ProfileSidebar from '@/components/profile/seo/ProfileSidebar';
 import ProfileClaimBanner from '@/components/profile/seo/ProfileClaimBanner';
-import SimplifiedQuoteModal from '@/components/profile/seo/SimplifiedQuoteModal';
 import PremiumAppointmentModal from '@/components/profile/seo/PremiumAppointmentModal';
 import ProfileSchemaOrg from '@/components/profile/seo/ProfileSchemaOrg';
 import ProfileBreadcrumbs from '@/components/profile/seo/ProfileBreadcrumbs';
@@ -34,7 +32,6 @@ const RepairerPublicProfilePage: React.FC = () => {
   const [isPremium, setIsPremium] = useState(false);
   
   // Modals
-  const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
 
   useEffect(() => {
@@ -153,10 +150,6 @@ const RepairerPublicProfilePage: React.FC = () => {
     }
   };
 
-  const handleRequestQuote = () => {
-    setShowQuoteModal(true);
-  };
-
   const handleBookAppointment = () => {
     if (isPremium) {
       setShowAppointmentModal(true);
@@ -250,14 +243,12 @@ const RepairerPublicProfilePage: React.FC = () => {
               {isPremium ? (
                 <ProfilePremiumView
                   profile={profile}
-                  onRequestQuote={handleRequestQuote}
                   onCallRepairer={handleCallRepairer}
                   onBookAppointment={handleBookAppointment}
                 />
               ) : (
                 <ProfileBasicView
                   profile={profile}
-                  onRequestQuote={handleRequestQuote}
                   onCallRepairer={handleCallRepairer}
                 />
               )}
@@ -284,20 +275,11 @@ const RepairerPublicProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Sticky CTA mobile (devis + appel) */}
+      {/* Sticky CTA mobile (appel) */}
       <RepairerStickyCTA
         businessName={profile.business_name}
         hasPhone={!!profile.phone}
         onCall={handleCallRepairer}
-        onQuote={handleRequestQuote}
-      />
-
-      {/* Modal de devis simplifié */}
-      <SimplifiedQuoteModal
-        isOpen={showQuoteModal}
-        onClose={() => setShowQuoteModal(false)}
-        profile={profile}
-        isPremium={isPremium}
       />
 
       {/* Modal de RDV (Premium uniquement) */}
