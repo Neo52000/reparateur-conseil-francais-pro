@@ -3,7 +3,22 @@
  * Mesure LCP, FID, CLS en temps réel
  */
 
-import { onCLS, onINP, onLCP } from 'web-vitals';
+import { onCLS, onINP, onLCP, type Metric } from 'web-vitals';
+import * as Sentry from '@sentry/react';
+
+function reportToSentry(metric: Metric) {
+  Sentry.setMeasurement(metric.name, metric.value, metric.name === 'CLS' ? '' : 'millisecond');
+  if (
+    (metric.name === 'LCP' && metric.value > 4000) ||
+    (metric.name === 'CLS' && metric.value > 0.25) ||
+    (metric.name === 'INP' && metric.value > 500)
+  ) {
+    Sentry.captureMessage(`Poor ${metric.name}: ${metric.value}`, {
+      level: 'warning',
+      tags: { metric: metric.name, rating: metric.rating },
+    });
+  }
+}
 
 export interface WebVitalsMetrics {
   lcp: number;
@@ -33,18 +48,21 @@ export class WebVitalsTracker {
       this.metrics.timestamp = new Date().toISOString();
       this.notifyCallbacks();
       this.optimizeLCP(metric);
+      reportToSentry(metric);
     });
 
     onINP((metric) => {
       this.metrics.inp = metric.value;
       this.metrics.timestamp = new Date().toISOString();
       this.notifyCallbacks();
+      reportToSentry(metric);
     });
 
     onCLS((metric) => {
       this.metrics.cls = metric.value;
       this.metrics.timestamp = new Date().toISOString();
       this.notifyCallbacks();
+      reportToSentry(metric);
     });
   }
 
@@ -96,7 +114,7 @@ export class WebVitalsTracker {
     }
   }
 
-  private optimizeLCP(metric: any): void {
+  private optimizeLCP(metric: Metric): void {
     // Envoyer au Web Worker pour optimisation non-bloquante
     if (this.worker) {
       this.worker.postMessage({
@@ -148,7 +166,7 @@ export class WebVitalsTracker {
     });
   }
 
-  private handleLCPOptimization(optimization: any): void {
+  private handleLCPOptimization(optimization: { priority: string; recommendations: string[]; estimatedImprovement: number }): void {
     
     if (optimization.priority === 'high') {
       // Appliquer les optimisations critiques

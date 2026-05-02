@@ -175,7 +175,7 @@ const AppWithTracking = () => {
         <Route path="/probleme/:symptom" element={<SymptomPageLazy />} />
         {/* Pages SEO individuelles des réparateurs */}
         <Route path="/reparateur/:city/:repairerSlug" element={<RepairerPublicProfilePage />} />
-        <Route path="/:city/:repairerName" element={<RepairerSeoPage />} />
+        <Route path="/seo/:city/:repairerName" element={<RepairerSeoPage />} />
         <Route path="/404" element={<NotFound />} />
         <Route path="/repairer-dashboard" element={<RepairerDashboardPage />} />
         <Route path="/client-dashboard" element={<ClientDashboardPage />} />
@@ -199,9 +199,8 @@ const AppWithTracking = () => {
         {/* Blog */}
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogArticlePage />} />
-        <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
         <Route path="/blog/repairers" element={<BlogRepairerPage />} />
-        <Route path="/blog/repairers/article/:slug" element={<BlogArticlePage />} />
+        <Route path="/blog/repairers/:slug" element={<BlogArticlePage />} />
         {/* Suppliers directory (gated Premium) */}
         <Route path="/suppliers-directory" element={<SuppliersDirectoryPage />} />
         {/* Legal pages */}

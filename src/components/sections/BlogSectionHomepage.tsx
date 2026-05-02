@@ -82,7 +82,7 @@ const BlogSectionHomepage: React.FC = () => {
       .replace(/^-|-$/g, ''); // Supprimer les tirets en début et fin
 
       console.log('🔧 Generated fallback slug:', fallbackSlug);
-      return fallbackSlug ? `/blog/article/${fallbackSlug}` : '#';
+      return fallbackSlug ? `/blog/${fallbackSlug}` : '#';
     }
 
     // Utiliser le service de navigation pour nettoyer le slug
@@ -102,7 +102,7 @@ const BlogSectionHomepage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">Le Blog</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">Guides pratiques, conseils d'experts et actualités </p>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">Guides pratiques, conseils d'experts et actualités </p>
           
           {/* Rubriques spécialisées */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

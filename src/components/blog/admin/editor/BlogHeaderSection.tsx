@@ -74,7 +74,7 @@ const BlogHeaderSection: React.FC<BlogHeaderSectionProps> = ({
             className="font-mono text-sm"
           />
           <p className="text-xs text-gray-500 mt-1">
-            L'URL sera: /blog/article/{slug}
+            L'URL sera: /blog/{slug}
           </p>
         </div>
 

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { BreadcrumbSchema } from '@/components/seo/BreadcrumbSchema';
 
 interface BreadcrumbItem {
   label: string;
@@ -40,7 +41,9 @@ export function ProgrammaticPageLayout({
         <title>{title}</title>
         <meta name="description" content={metaDescription} />
         {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
-        
+        {canonicalUrl && <link rel="alternate" hrefLang="fr-FR" href={canonicalUrl} />}
+        {canonicalUrl && <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />}
+
         {/* Open Graph */}
         <meta property="og:title" content={title} />
         <meta property="og:description" content={metaDescription} />
@@ -59,6 +62,15 @@ export function ProgrammaticPageLayout({
           </script>
         )}
       </Helmet>
+
+      {breadcrumbs.length > 0 && (
+        <BreadcrumbSchema
+          items={[
+            { name: 'Accueil', url: '/' },
+            ...breadcrumbs.map((b) => ({ name: b.label, url: b.href ?? '' })),
+          ].filter((item) => item.url)}
+        />
+      )}
 
       <div className="min-h-screen bg-background">
         {/* Breadcrumbs */}

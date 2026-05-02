@@ -67,7 +67,7 @@ const BlogSection = () => {
           {posts.map((post) => (
             <Link
               key={post.id}
-              to={`/blog/article/${post.slug}`}
+              to={`/blog/${post.slug}`}
               className="group bg-card rounded-xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg"
             >
               {/* Image */}

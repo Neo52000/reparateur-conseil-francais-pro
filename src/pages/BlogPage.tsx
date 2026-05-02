@@ -28,7 +28,7 @@ const BlogPage: React.FC = () => {
   const loadPosts = useCallback(async (reset: boolean = false) => {
     try {
       const currentOffset = reset ? 0 : offset;
-      const filters: any = {
+      const filters: { status: string; limit: number; offset: number; category?: string } = {
         status: 'published',
         limit: POSTS_PER_PAGE,
         offset: currentOffset
@@ -152,7 +152,7 @@ const BlogPage: React.FC = () => {
                   )}
                   
                   <h3 className="text-xl font-bold text-foreground mb-3 line-clamp-2">
-                    <Link to={`/blog/article/${post.slug}`} className="hover:text-primary transition-colors">
+                    <Link to={`/blog/${post.slug}`} className="hover:text-primary transition-colors">
                       {post.title}
                     </Link>
                   </h3>
@@ -184,7 +184,7 @@ const BlogPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <Link to={`/blog/article/${post.slug}`}>
+                  <Link to={`/blog/${post.slug}`}>
                     <Button size="sm" className="w-full">
                       Lire l'article
                     </Button>

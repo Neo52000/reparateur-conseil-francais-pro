@@ -91,7 +91,7 @@ const BlogWidget: React.FC = () => {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <Link to={`/blog/article/${post.slug}`}>
+                    <Link to={`/blog/${post.slug}`}>
                       <h4 className="font-medium text-sm hover:text-primary transition-colors line-clamp-2 mb-1">
                         {post.title}
                       </h4>

@@ -2,6 +2,20 @@
   command = "bun run build"
   publish = "dist"
 
+# SEO 301 redirects (must come BEFORE the SPA catch-all)
+[[redirects]]
+  from = "/blog/article/:slug"
+  to = "/blog/:slug"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/blog/repairers/article/:slug"
+  to = "/blog/repairers/:slug"
+  status = 301
+  force = true
+
+# SPA fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"

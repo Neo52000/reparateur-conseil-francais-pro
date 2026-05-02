@@ -60,7 +60,7 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
         </div>
         
         <h3 className="text-xl font-semibold line-clamp-2 hover:text-blue-600 transition-colors">
-          <Link to={`/blog/article/${post.slug}`}>
+          <Link to={`/blog/${post.slug}`}>
             {post.title}
           </Link>
         </h3>
@@ -105,7 +105,7 @@ const BlogPostCard: React.FC<BlogPostCardProps> = ({
         </div>
 
         <div className="flex space-x-2">
-          <Link to={`/blog/article/${post.slug}`}>
+          <Link to={`/blog/${post.slug}`}>
             <Button size="sm" variant="outline">
               Lire la suite
             </Button>

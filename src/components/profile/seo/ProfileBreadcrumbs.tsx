@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Home } from 'lucide-react';
+import { BreadcrumbSchema } from '@/components/seo/BreadcrumbSchema';
 
 interface ProfileBreadcrumbsProps {
   city: string;
@@ -8,9 +9,16 @@ interface ProfileBreadcrumbsProps {
 }
 
 const ProfileBreadcrumbs: React.FC<ProfileBreadcrumbsProps> = ({ city, businessName }) => {
-  const citySlug = city?.toLowerCase().replace(/\s+/g, '-').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  
   return (
+    <>
+      <BreadcrumbSchema
+        items={[
+          { name: 'Accueil', url: '/' },
+          { name: 'R\u00e9parateurs', url: '/search' },
+          { name: city, url: `/search?city=${encodeURIComponent(city)}` },
+          { name: businessName, url: '' },
+        ].filter((item) => item.url || item.name === businessName)}
+      />
     <nav aria-label="Fil d'Ariane" className="text-sm">
       <ol className="flex items-center flex-wrap gap-1 text-muted-foreground">
         <li className="flex items-center">
@@ -51,6 +59,7 @@ const ProfileBreadcrumbs: React.FC<ProfileBreadcrumbsProps> = ({ city, businessN
         </li>
       </ol>
     </nav>
+    </>
   );
 };
 

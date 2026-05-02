@@ -48,7 +48,7 @@ const BlogArticlePage: React.FC = () => {
         
         // Si toujours pas trouvé, essayer avec le slug nettoyé
         if (!postData) {
-          const cleanSlug = slug.replace(/[^a-zA-Z0-9\-]/g, '-').replace(/-+/g, '-');
+          const cleanSlug = slug.replace(/[^a-zA-Z0-9-]/g, '-').replace(/-+/g, '-');
           console.log('🔄 Trying with clean slug:', cleanSlug);
           postData = await fetchPostBySlug(cleanSlug);
         }
@@ -139,7 +139,36 @@ const BlogArticlePage: React.FC = () => {
 
   const pageTitle = post?.meta_title || post?.title || 'Article du blog - TopRéparateurs';
   const pageDescription = post?.meta_description || post?.excerpt || 'Conseils et actualités sur la réparation.';
-  const canonicalUrl = `https://topreparateurs.fr/blog/article/${post?.slug || slug}`;
+  const canonicalUrl = `https://topreparateurs.fr/blog/${post?.slug || slug}`;
+
+  const articleSchema = post
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: post.title,
+        description: pageDescription,
+        image: post.featured_image_url ? [post.featured_image_url] : undefined,
+        author: {
+          '@type': 'Organization',
+          name: 'TopRéparateurs',
+          url: 'https://topreparateurs.fr',
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'TopRéparateurs',
+          logo: {
+            '@type': 'ImageObject',
+            url: 'https://topreparateurs.fr/lovable-uploads/cb472069-06d7-49a5-bfb1-eb7674f92f49.png',
+          },
+        },
+        datePublished: post.published_at || post.created_at,
+        dateModified: post.updated_at || post.published_at || post.created_at,
+        mainEntityOfPage: {
+          '@type': 'WebPage',
+          '@id': canonicalUrl,
+        },
+      }
+    : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -148,6 +177,19 @@ const BlogArticlePage: React.FC = () => {
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
         <link rel="canonical" href={canonicalUrl} />
+        <link rel="alternate" hrefLang="fr-FR" href={canonicalUrl} />
+        <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        {post?.featured_image_url && (
+          <meta property="og:image" content={post.featured_image_url} />
+        )}
+        <meta name="twitter:card" content="summary_large_image" />
+        {articleSchema && (
+          <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>
+        )}
       </Helmet>
       {/* Header avec navigation */}
       <div className="bg-white border-b">
