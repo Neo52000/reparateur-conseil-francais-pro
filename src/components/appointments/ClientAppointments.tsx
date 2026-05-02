@@ -95,7 +95,7 @@ export const ClientAppointments: React.FC = () => {
           device_model: apt.quotes_with_timeline.device_model,
           repair_type: apt.quotes_with_timeline.repair_type,
           estimated_price: apt.quotes_with_timeline.estimated_price,
-          repairer_name: 'Réparateur' // TODO: récupérer le nom du réparateur
+          repairer_name: 'Réparateur' // Phase 4 : jointure repairer_profiles pour le vrai nom
         }
       })) || [];
 

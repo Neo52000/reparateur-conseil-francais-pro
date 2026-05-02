@@ -100,7 +100,7 @@ const AppointmentBookingModal: React.FC<AppointmentBookingModalProps> = ({
         // Simulation d'un délai de traitement
         await new Promise(resolve => setTimeout(resolve, 2000));
         
-        // TODO: Intégrer avec le vrai système de paiement
+        // Phase 5 : intégrer avec Stripe (paiement réel) une fois Edge Functions sorties de quarantaine
         console.log('Réservation confirmée:', {
           slot: selectedSlot,
           formData,

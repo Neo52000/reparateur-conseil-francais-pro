@@ -112,9 +112,7 @@ const RepairerTableActions = ({
 
     setLoading(true);
     try {
-      // Log action for audit trail - actual deletion will be implemented carefully
-      console.log('Would delete repairer:', repairer.id);
-      // TODO: Implement real deletion with proper constraints handling
+      // Phase 4 : implémenter la vraie suppression réparateur avec gestion des FK constraints (audit trail conservé)
       
       logRepairerAction('delete', repairer.id, {
         repairer_email: repairer.email,
