@@ -90,7 +90,7 @@ const SlugConflictModal: React.FC<SlugConflictModalProps> = ({
               placeholder="nouveau-slug-article"
             />
             <p className="text-xs text-gray-500">
-              L'URL sera : /blog/article/{newSlug}
+              L'URL sera : /blog/{newSlug}
             </p>
           </div>
         </div>

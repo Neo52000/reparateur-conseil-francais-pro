@@ -42,7 +42,9 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
-      
+      {canonicalUrl && <link rel="alternate" hrefLang="fr-FR" href={canonicalUrl} />}
+      {canonicalUrl && <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />}
+
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
       <meta property="og:title" content={title} />

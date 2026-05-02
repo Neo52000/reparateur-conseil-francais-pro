@@ -26,8 +26,8 @@ const RepairerPublicProfilePage: React.FC = () => {
   const { toast } = useToast();
   const { trackProfileView, trackClaimClick, trackContactClick } = useProfileAnalytics();
   
-  const [profile, setProfile] = useState<any>(null);
-  const [repairer, setRepairer] = useState<any>(null);
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
+  const [repairer, setRepairer] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
   
@@ -214,7 +214,9 @@ const RepairerPublicProfilePage: React.FC = () => {
         <meta property="og:description" content={pageDescription} />
         <meta property="og:type" content="business.business" />
         <meta name="twitter:card" content="summary" />
-        <link rel="canonical" href={`https://topreparateurs.fr/${city}/${repairerSlug}`} />
+        <link rel="canonical" href={`https://topreparateurs.fr/reparateur/${city}/${repairerSlug}`} />
+        <link rel="alternate" hrefLang="fr-FR" href={`https://topreparateurs.fr/reparateur/${city}/${repairerSlug}`} />
+        <link rel="alternate" hrefLang="x-default" href={`https://topreparateurs.fr/reparateur/${city}/${repairerSlug}`} />
       </Helmet>
 
       <ProfileSchemaOrg profile={profile} isPremium={isPremium} />
