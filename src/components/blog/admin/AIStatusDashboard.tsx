@@ -48,36 +48,28 @@ const AIStatusDashboard: React.FC = () => {
 
       if (error) {
         console.error('Erreur vérification API:', error);
-        // Fallback: show basic status
         setProviders([
           {
-            name: 'Lovable AI',
-            key: 'LOVABLE_API_KEY',
+            name: 'Google Gemini',
+            key: 'GEMINI_API_KEY',
             status: 'unknown',
-            message: 'Impossible de vérifier - fonction non disponible',
-            docsUrl: 'https://docs.lovable.dev/features/ai'
+            message: 'Impossible de vérifier',
+            docsUrl: 'https://aistudio.google.com/apikey',
           },
           {
             name: 'OpenAI',
             key: 'OPENAI_API_KEY',
             status: 'unknown',
             message: 'Impossible de vérifier',
-            docsUrl: 'https://platform.openai.com/api-keys'
-          },
-          {
-            name: 'Google Gemini',
-            key: 'GEMINI_API_KEY',
-            status: 'unknown',
-            message: 'Impossible de vérifier',
-            docsUrl: 'https://aistudio.google.com/apikey'
+            docsUrl: 'https://platform.openai.com/api-keys',
           },
           {
             name: 'Mistral AI',
-            key: 'CLE_API_MISTRAL',
+            key: 'MISTRAL_API_KEY',
             status: 'unknown',
             message: 'Impossible de vérifier',
-            docsUrl: 'https://console.mistral.ai/api-keys'
-          }
+            docsUrl: 'https://console.mistral.ai/api-keys',
+          },
         ]);
         return;
       }
@@ -263,7 +255,7 @@ const AIStatusDashboard: React.FC = () => {
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Système de fallback intelligent</AlertTitle>
           <AlertDescription className="text-sm">
-            L'automatisation essaie les APIs dans l'ordre : <strong>Lovable AI → Gemini Pro → OpenAI → Mistral</strong>. 
+            L'automatisation essaie les APIs dans l'ordre : <strong>Gemini → OpenAI → Mistral</strong>.
             Si une API échoue, la suivante est automatiquement utilisée.
           </AlertDescription>
         </Alert>

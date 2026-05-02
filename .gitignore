@@ -34,3 +34,10 @@ dist-ssr
 bun.lockb
 package-lock.json
 yarn.lock
+
+# Supabase CLI artifacts
+supabase/.temp/
+supabase/.branches/
+
+# Build artifacts not needed in repo
+.netlify/

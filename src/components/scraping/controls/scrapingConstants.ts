@@ -1,7 +1,7 @@
 
 export const SOURCES = [
   { id: 'serper', name: 'Google Places (Serper)', icon: '🔍', description: 'Recherche réelle via Serper API - Données Google Places' },
-  { id: 'ai-generation', name: 'Génération IA Multi-Provider', icon: '🤖', description: 'Génère des données réalistes via Lovable AI, Gemini, OpenAI ou Mistral' },
+  { id: 'ai-generation', name: 'Génération IA Multi-Provider', icon: '🤖', description: 'Génère des données réalistes via Gemini, OpenAI ou Mistral' },
   { id: 'google-places-direct', name: 'Google Places Direct', icon: '📍', description: 'API Google Places officielle avec clé API' },
 ];
 

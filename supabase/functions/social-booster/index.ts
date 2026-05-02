@@ -1,53 +1,24 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
+import { callAIWithFallback } from "../_shared/ai-text.ts";
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-// AI provider fallback chain
 async function callAI(prompt: string, systemPrompt: string): Promise<string> {
-  const providers = [
-    { name: 'lovable', url: 'https://ai.gateway.lovable.dev/v1/chat/completions', key: Deno.env.get('LOVABLE_API_KEY'), model: 'google/gemini-3-flash-preview' },
-    { name: 'openai', url: 'https://api.openai.com/v1/chat/completions', key: Deno.env.get('OPENAI_API_KEY'), model: 'gpt-4o-mini' },
-    { name: 'gemini', url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', key: Deno.env.get('GEMINI_API_KEY'), model: 'gemini-2.5-flash' },
-  ];
-
-  for (const provider of providers) {
-    if (!provider.key) continue;
-    try {
-      const response = await fetch(provider.url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${provider.key}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: provider.model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: prompt },
-          ],
-          temperature: 0.8,
-        }),
-      });
-      if (response.status === 402 || response.status === 429) continue;
-      if (!response.ok) continue;
-      const data = await response.json();
-      return data.choices?.[0]?.message?.content || '';
-    } catch (e) {
-      console.error(`AI provider ${provider.name} failed:`, e);
-      continue;
-    }
+  const result = await callAIWithFallback({
+    systemPrompt,
+    userPrompt: prompt,
+    temperature: 0.8,
+  });
+  if (!result.success || !result.content) {
+    throw new Error(result.error || 'All AI providers failed');
   }
-  throw new Error('All AI providers failed');
+  return result.content;
 }
 
 // SCAN: Find published blog posts without campaigns
@@ -56,7 +27,7 @@ async function handleScan() {
     .from('social_campaigns')
     .select('blog_post_id');
 
-  const existingIds = (existingCampaigns || []).map((c: any) => c.blog_post_id);
+  const existingIds = (existingCampaigns || []).map((c: { blog_post_id: string }) => c.blog_post_id);
 
   let query = supabaseAdmin
     .from('blog_posts')
@@ -93,17 +64,34 @@ async function handleGenerate(campaignId: string) {
     .eq('id', campaignId)
     .single();
 
+  interface BlogPost {
+    id: string;
+    title: string;
+    slug: string;
+    excerpt?: string;
+    content?: string;
+    featured_image_url?: string;
+    published_at?: string;
+    category_id?: string;
+    keywords?: string[];
+  }
+  interface SocialSettings {
+    base_url?: string;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign_prefix?: string;
+  }
+
   if (error || !campaign) throw new Error('Campaign not found');
-  const post = (campaign as any).blog_post;
+  const post = (campaign as { blog_post?: BlogPost }).blog_post;
   if (!post) throw new Error('Blog post not found');
 
-  // Get settings
   const { data: settingsRow } = await supabaseAdmin
     .from('social_settings')
     .select('config')
     .limit(1)
     .single();
-  const settings = settingsRow?.config as any || {};
+  const settings = (settingsRow?.config as SocialSettings) || {};
   const baseUrl = settings.base_url || 'https://topreparateurs.fr';
   const utmSource = settings.utm_source || 'social';
   const utmMedium = settings.utm_medium || 'post';
@@ -128,7 +116,14 @@ async function handleGenerate(campaignId: string) {
     if (repairers && repairers.length > 0) {
       // Simple keyword matching from article content
       const contentLower = (title + ' ' + cleanContent).toLowerCase();
-      let bestMatch: any = null;
+      type RepairerMatch = {
+        id: string;
+        business_name: string;
+        city?: string;
+        specialties?: string[];
+        description?: string;
+      };
+      let bestMatch: RepairerMatch | null = null;
       let bestScore = 0;
 
       for (const r of repairers) {
@@ -270,13 +265,14 @@ Règles:
         response_data: { platform, content_length: content.length },
       });
 
-    } catch (e: any) {
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
       console.error(`Generation failed for ${platform}:`, e);
       await supabaseAdmin.from('social_publication_logs').insert({
         campaign_id: campaignId,
         action: 'generate',
         status: 'failed',
-        error_message: e.message,
+        error_message: message,
         response_data: { platform },
       });
     }
@@ -306,7 +302,7 @@ async function handleStatus() {
     .select('status');
 
   const breakdown: Record<string, number> = {};
-  for (const c of (statusBreakdown || [])) {
+  for (const c of ((statusBreakdown || []) as { status: string }[])) {
     breakdown[c.status] = (breakdown[c.status] || 0) + 1;
   }
 
@@ -314,9 +310,9 @@ async function handleStatus() {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflight = handlePreflight(req);
+  if (preflight) return preflight;
+  const corsHeaders = buildCorsHeaders(req);
 
   try {
     const { action, ...payload } = await req.json();
@@ -340,9 +336,10 @@ serve(async (req) => {
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (e: any) {
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
     console.error('Social booster error:', e);
-    return new Response(JSON.stringify({ error: e.message }), {
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
