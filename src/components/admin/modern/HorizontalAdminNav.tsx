@@ -79,7 +79,7 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
     }
   ];
 
-  // Navigation items pour les outils (dropdown) - TODO: Réactiver selon plan Supabase
+  // Navigation items pour les outils (dropdown) — Phase 4 : réactiver selon plan Supabase
   const toolsItems: NavItem[] = [
     {
       id: 'catalog',
@@ -147,52 +147,6 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
       label: 'Documentation & PDFs',
       icon: <FileText className="w-4 h-4" />,
       isNew: true
-    }
-  ];
-
-  // Navigation items pour Shopify (dropdown) - TODO: Réactiver quand plan Supabase upgradé
-  const shopifyItems: NavItem[] = [
-    {
-      id: 'shopify-dashboard',
-      label: 'Dashboard Shopify (Bientôt)',
-      icon: <Store className="w-4 h-4" />,
-      isNew: true,
-      disabled: true,
-    },
-    {
-      id: 'shopify-stores',
-      label: 'Boutiques (Bientôt)',
-      icon: <ShoppingBag className="w-4 h-4" />,
-      isNew: true,
-      disabled: true,
-    },
-    {
-      id: 'shopify-orders',
-      label: 'Commandes (Bientôt)',
-      icon: <Package className="w-4 h-4" />,
-      isNew: true,
-      disabled: true,
-    },
-    {
-      id: 'shopify-commissions',
-      label: 'Commissions (Bientôt)',
-      icon: <Euro className="w-4 h-4" />,
-      isNew: true,
-      disabled: true,
-    },
-    {
-      id: 'shopify-analytics',
-      label: 'Analytics (Bientôt)',
-      icon: <TrendingUp className="w-4 h-4" />,
-      isNew: true,
-      disabled: true,
-    },
-    {
-      id: 'shopify-settings',
-      label: 'Configuration (Bientôt)',
-      icon: <Settings2 className="w-4 h-4" />,
-      isNew: true,
-      disabled: true,
     }
   ];
 
@@ -396,13 +350,6 @@ const HorizontalAdminNav = ({ className }: HorizontalAdminNavProps) => {
           icon={<Search className="w-4 h-4" />}
           items={seoItems}
           hasActiveItem={seoItems.some(item => item.id === activeTab)}
-        />
-        
-        <DropdownNavMenu 
-          label="Shopify"
-          icon={<Store className="w-4 h-4" />}
-          items={shopifyItems}
-          hasActiveItem={shopifyItems.some(item => item.id === activeTab)}
         />
         
         {/* Tests menu supprimé pour réduire les fonctions */}

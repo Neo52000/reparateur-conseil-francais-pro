@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -119,7 +119,7 @@ const RepairerResultsGrid = () => {
               {repairers.map((repairer) => (
                 <RepairerCardEnhanced
                   key={repairer.id}
-                  repairer={repairer as any}
+                  repairer={repairer as Parameters<typeof RepairerCardEnhanced>[0]['repairer']}
                   onClick={() => setSelectedRepairerId(repairer.id)}
                   onClaim={() => setClaimRepairer(repairer)}
                 />

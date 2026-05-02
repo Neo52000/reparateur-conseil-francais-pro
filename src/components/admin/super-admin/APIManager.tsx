@@ -297,7 +297,7 @@ const APIManager: React.FC = () => {
         title: "Clé API créée",
         description: "La nouvelle clé API a été générée avec succès",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erreur lors de la création de la clé:', error);
       toast({
         title: "Erreur",
@@ -318,7 +318,7 @@ const APIManager: React.FC = () => {
         title: "Clé supprimée",
         description: "La clé API a été supprimée avec succès",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erreur lors de la suppression:', error);
       toast({
         title: "Erreur",
@@ -332,14 +332,14 @@ const APIManager: React.FC = () => {
     try {
       const newStatus = currentStatus === 'active' ? 'disabled' : 'active';
       setApiKeys(prev => prev.map(key => 
-        key.id === keyId ? { ...key, status: newStatus as any } : key
+        key.id === keyId ? { ...key, status: newStatus as 'active' | 'disabled' } : key
       ));
 
       toast({
         title: `Clé ${newStatus === 'active' ? 'activée' : 'désactivée'}`,
         description: "Le statut de la clé a été mis à jour",
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erreur lors du changement de statut:', error);
       toast({
         title: "Erreur",
@@ -388,7 +388,7 @@ const APIManager: React.FC = () => {
       title: "Configuration",
       description: `Configuration de l'intégration ${integration.name}`,
     });
-    // TODO: Ouvrir une modale de configuration spécifique
+    // Phase 4 : ouvrir une modale de configuration spécifique (admin UX)
   };
 
   const handleTestIntegration = async (integration: Integration) => {

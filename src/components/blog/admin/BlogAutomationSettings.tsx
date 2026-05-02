@@ -109,7 +109,7 @@ export const BlogAutomationSettings = () => {
     }
   };
 
-  // TODO: Réactiver quand blog-update-images sera actif
+  // Phase 4 : réactiver quand l'edge function blog-update-images sera déployée
   const handleUpdateImages = async () => {
     toast({
       title: "Fonction désactivée",
