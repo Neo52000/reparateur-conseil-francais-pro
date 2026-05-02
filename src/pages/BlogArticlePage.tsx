@@ -15,6 +15,8 @@ import MarkdownRenderer from '@/components/blog/MarkdownRenderer';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import { Helmet } from 'react-helmet-async';
+import { ShareButtons } from '@/components/blog/ShareButtons';
+import { TableOfContents } from '@/components/blog/TableOfContents';
 
 const BlogArticlePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -228,30 +230,38 @@ const BlogArticlePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Article */}
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          {/* Image de une */}
-          {post.featured_image_url && (
-            <div className="aspect-video overflow-hidden">
-              <img
-                src={post.featured_image_url}
-                alt={post.title}
-                className="w-full h-full object-cover"
-              />
+      {/* Layout magazine : TOC sticky | article (max-w-prose) | share sticky */}
+      <article className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-[14rem_minmax(0,1fr)_4rem] gap-8 lg:gap-12">
+          {/* TOC desktop sticky */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-24">
+              <TableOfContents content={post.content} />
             </div>
-          )}
+          </aside>
 
-          <div className="p-6 sm:p-10 lg:p-12">
-            {/* Métadonnées */}
-            <div className="flex flex-wrap items-center gap-4 mb-8 pb-6 border-b border-border/40">
+          {/* Article central */}
+          <div className="min-w-0">
+            <header className="mb-10">
               {post.category && (
-                <Badge variant="outline" className="text-sm">{post.category.name}</Badge>
+                <Badge variant="outline" className="mb-4 text-sm">
+                  {post.category.name}
+                </Badge>
               )}
-              <div className="flex items-center text-sm text-muted-foreground space-x-4 flex-wrap">
+              <h1 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight">
+                {post.title}
+              </h1>
+              {post.excerpt && (
+                <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed">
+                  {post.excerpt}
+                </p>
+              )}
+              <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <Calendar className="h-4 w-4" />
-                  <span>{formatDate(post.published_at || post.created_at)}</span>
+                  <time dateTime={post.published_at || post.created_at}>
+                    {formatDate(post.published_at || post.created_at)}
+                  </time>
                 </div>
                 {post.author && (
                   <div className="flex items-center gap-1.5">
@@ -268,25 +278,44 @@ const BlogArticlePage: React.FC = () => {
                   <span>{post.comment_count} commentaires</span>
                 </div>
               </div>
-            </div>
 
-            {/* Titre */}
-            <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6 leading-tight">
-              {post.title}
-            </h1>
-
-            {/* Extrait */}
-            {post.excerpt && (
-              <div className="text-xl sm:text-2xl text-muted-foreground mb-12 leading-relaxed font-light border-l-4 border-primary pl-6 py-2">
-                {post.excerpt}
+              {/* Share mobile (en haut, sous les méta) */}
+              <div className="mt-6 flex items-center gap-3 lg:hidden">
+                <span className="text-sm font-medium text-muted-foreground">Partager :</span>
+                <ShareButtons url={canonicalUrl} title={post.title} />
               </div>
+            </header>
+
+            {/* Image de une */}
+            {post.featured_image_url && (
+              <figure className="mb-10 -mx-4 sm:mx-0 sm:rounded-2xl overflow-hidden bg-muted">
+                <img
+                  src={post.featured_image_url}
+                  alt={post.title}
+                  className="w-full h-auto aspect-video object-cover"
+                  loading="eager"
+                />
+              </figure>
             )}
 
             {/* Contenu */}
             <div className="prose-custom">
               <MarkdownRenderer content={post.content} />
             </div>
+
+            {/* Share footer */}
+            <div className="mt-12 border-t pt-8 flex flex-wrap items-center gap-4">
+              <span className="text-sm font-medium">Partager cet article :</span>
+              <ShareButtons url={canonicalUrl} title={post.title} />
+            </div>
           </div>
+
+          {/* Share desktop sticky */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-24">
+              <ShareButtons url={canonicalUrl} title={post.title} layout="sticky" />
+            </div>
+          </aside>
         </div>
       </article>
       <Footer />
