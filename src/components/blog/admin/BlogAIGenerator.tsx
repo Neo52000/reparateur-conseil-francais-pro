@@ -26,7 +26,7 @@ const BlogAIGenerator: React.FC<BlogAIGeneratorProps> = ({ onArticleGenerated })
   const [tone, setTone] = useState<'professional' | 'casual' | 'technical' | 'educational'>('professional');
   const [autoPublish, setAutoPublish] = useState(false);
   const [scheduledAt, setScheduledAt] = useState('');
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string; slug?: string }[]>([]);
 
   useEffect(() => {
     loadCategories();
@@ -70,7 +70,7 @@ const BlogAIGenerator: React.FC<BlogAIGeneratorProps> = ({ onArticleGenerated })
           Générateur IA d'Articles
         </CardTitle>
         <CardDescription>
-          Créez des articles de blog complets automatiquement avec Lovable AI (Gemini 2.5)
+          Créez des articles de blog complets automatiquement avec Google Gemini 2.5 (fallback OpenAI / Mistral)
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -118,7 +118,7 @@ const BlogAIGenerator: React.FC<BlogAIGeneratorProps> = ({ onArticleGenerated })
 
           <div className="space-y-2">
             <Label htmlFor="audience">Audience cible</Label>
-            <Select value={targetAudience} onValueChange={(v: any) => setTargetAudience(v)}>
+            <Select value={targetAudience} onValueChange={(v) => setTargetAudience(v as typeof targetAudience)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -133,7 +133,7 @@ const BlogAIGenerator: React.FC<BlogAIGeneratorProps> = ({ onArticleGenerated })
 
         <div className="space-y-2">
           <Label htmlFor="tone">Tonalité</Label>
-          <Select value={tone} onValueChange={(v: any) => setTone(v)}>
+          <Select value={tone} onValueChange={(v) => setTone(v as typeof tone)}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>

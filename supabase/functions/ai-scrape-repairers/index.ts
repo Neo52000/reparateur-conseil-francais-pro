@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
+import { callAIWithFallback, parseJsonFromContent, type AIProvider } from "../_shared/ai-text.ts";
 
 // Départements avec noms pour le prompt
 const DEPARTMENT_NAMES: Record<string, string> = {
@@ -57,210 +54,29 @@ const PARIS_ARRONDISSEMENTS = [
   { code: '75020', name: 'Paris 20e', zone: 'est' },
 ];
 
-// Fonction pour appeler Lovable AI
-async function callLovableAI(prompt: string, systemPrompt: string, maxTokens: number = 8000): Promise<{ success: boolean; content?: string; error?: string }> {
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  if (!LOVABLE_API_KEY) {
-    return { success: false, error: 'LOVABLE_API_KEY non configurée' };
-  }
-
-  console.log('🤖 Tentative avec Lovable AI...');
-  
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt }
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('❌ Erreur Lovable AI:', response.status, errorText);
-    return { success: false, error: `Lovable AI error: ${response.status}` };
-  }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-  return content ? { success: true, content } : { success: false, error: 'Réponse vide' };
+interface RawRepairer {
+  name?: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  services?: string[];
+  description?: string;
 }
 
-// Fonction pour appeler OpenAI
-async function callOpenAI(prompt: string, systemPrompt: string, maxTokens: number = 8000): Promise<{ success: boolean; content?: string; error?: string }> {
-  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-  if (!OPENAI_API_KEY) {
-    return { success: false, error: 'OPENAI_API_KEY non configurée' };
-  }
-
-  console.log('🤖 Tentative avec OpenAI...');
-  
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: maxTokens,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('❌ Erreur OpenAI:', response.status, errorText);
-    return { success: false, error: `OpenAI error: ${response.status}` };
-  }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-  return content ? { success: true, content } : { success: false, error: 'Réponse vide' };
-}
-
-// Fonction pour appeler Mistral
-async function callMistral(prompt: string, systemPrompt: string, maxTokens: number = 8000): Promise<{ success: boolean; content?: string; error?: string }> {
-  const MISTRAL_API_KEY = Deno.env.get('CLE_API_MISTRAL');
-  if (!MISTRAL_API_KEY) {
-    return { success: false, error: 'CLE_API_MISTRAL non configurée' };
-  }
-
-  console.log('🤖 Tentative avec Mistral...');
-  
-  const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${MISTRAL_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'mistral-small-latest',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: maxTokens,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('❌ Erreur Mistral:', response.status, errorText);
-    return { success: false, error: `Mistral error: ${response.status}` };
-  }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-  return content ? { success: true, content } : { success: false, error: 'Réponse vide' };
-}
-
-// Fonction pour appeler Gemini Pro directement
-async function callGeminiPro(prompt: string, systemPrompt: string): Promise<{ success: boolean; content?: string; error?: string }> {
-  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-  if (!GEMINI_API_KEY) {
-    return { success: false, error: 'GEMINI_API_KEY non configurée' };
-  }
-
-  console.log('🤖 Tentative avec Gemini Pro...');
-  
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      contents: [{
-        parts: [{ text: `${systemPrompt}\n\n${prompt}` }]
-      }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 8000,
-      }
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('❌ Erreur Gemini Pro:', response.status, errorText);
-    return { success: false, error: `Gemini Pro error: ${response.status}` };
-  }
-
-  const data = await response.json();
-  const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  return content ? { success: true, content } : { success: false, error: 'Réponse vide' };
-}
-
-// Fonction avec provider spécifique ou fallback automatique
-async function callAIWithFallback(prompt: string, systemPrompt: string, maxTokens: number = 8000, preferredProvider?: string): Promise<{ success: boolean; content?: string; provider?: string; error?: string }> {
-  // Si un provider spécifique est demandé
-  if (preferredProvider) {
-    let result;
-    switch (preferredProvider) {
-      case 'gemini':
-        result = await callGeminiPro(prompt, systemPrompt);
-        if (result.success) return { ...result, provider: 'gemini-pro' };
-        break;
-      case 'openai':
-        result = await callOpenAI(prompt, systemPrompt, maxTokens);
-        if (result.success) return { ...result, provider: 'openai' };
-        break;
-      case 'mistral':
-        result = await callMistral(prompt, systemPrompt, maxTokens);
-        if (result.success) return { ...result, provider: 'mistral' };
-        break;
-      case 'lovable':
-      default:
-        result = await callLovableAI(prompt, systemPrompt, maxTokens);
-        if (result.success) return { ...result, provider: 'lovable-ai' };
-        break;
-    }
-    console.log(`⚠️ Provider ${preferredProvider} échec, tentative fallback...`);
-  }
-
-  // Fallback automatique
-  let result = await callLovableAI(prompt, systemPrompt, maxTokens);
-  if (result.success) return { ...result, provider: 'lovable-ai' };
-  console.log('⚠️ Lovable AI échec, tentative Gemini Pro...');
-
-  result = await callGeminiPro(prompt, systemPrompt);
-  if (result.success) return { ...result, provider: 'gemini-pro' };
-  console.log('⚠️ Gemini Pro échec, tentative OpenAI...');
-
-  result = await callOpenAI(prompt, systemPrompt, maxTokens);
-  if (result.success) return { ...result, provider: 'openai' };
-  console.log('⚠️ OpenAI échec, tentative Mistral...');
-
-  result = await callMistral(prompt, systemPrompt, maxTokens);
-  if (result.success) return { ...result, provider: 'mistral' };
-
-  return { success: false, error: 'Tous les providers AI ont échoué' };
-}
-
-// Parser JSON de manière sécurisée
-function parseAIResponse(content: string): any[] {
-  let cleanContent = content.trim();
-  if (cleanContent.startsWith('```json')) cleanContent = cleanContent.slice(7);
-  if (cleanContent.startsWith('```')) cleanContent = cleanContent.slice(3);
-  if (cleanContent.endsWith('```')) cleanContent = cleanContent.slice(0, -3);
-  cleanContent = cleanContent.trim();
-  
-  const parsed = JSON.parse(cleanContent);
-  
+function parseAIResponse(content: string): RawRepairer[] {
+  const parsed = parseJsonFromContent(content);
   if (!Array.isArray(parsed)) {
-    throw new Error('La réponse n\'est pas un tableau');
+    throw new Error("La réponse n'est pas un tableau");
   }
-  
-  return parsed;
+  return parsed as RawRepairer[];
+}
+
+function normalizeProvider(value?: string): AIProvider | undefined {
+  if (value === 'gemini' || value === 'openai' || value === 'mistral') return value;
+  return undefined;
 }
 
 // Générer le prompt pour une zone spécifique
@@ -290,11 +106,9 @@ RETOURNE UNIQUEMENT un tableau JSON valide avec ${count} éléments UNIQUES, san
 }
 
 serve(async (req) => {
-  console.log('🚀 ai-scrape-repairers function called');
-  
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflight = handlePreflight(req);
+  if (preflight) return preflight;
+  const corsHeaders = buildCorsHeaders(req);
 
   try {
     const body = await req.json();
@@ -316,8 +130,7 @@ serve(async (req) => {
     const departmentName = DEPARTMENT_NAMES[department_code] || department_code;
     const isParis = department_code === '75';
     
-    // Déterminer le nombre de résultats
-    let count = requestedCount || (test_mode ? 5 : 30); // Augmenté de 15 à 30 par défaut
+    const count = requestedCount || (test_mode ? 5 : 30);
 
     console.log(`🚀 Génération IA pour ${departmentName} (${department_code}), mode test: ${test_mode}, count: ${count}`);
 
@@ -347,7 +160,21 @@ serve(async (req) => {
     const logId = logData.id;
     const systemPrompt = 'Tu es un assistant qui génère uniquement du JSON valide sans aucun texte supplémentaire. Ne mets jamais de balises markdown comme ```json. Retourne directement le tableau JSON.';
     
-    let allRepairers: any[] = [];
+    interface EnrichedRepairer {
+      name: string;
+      address: string;
+      city: string;
+      postal_code: string;
+      phone: string;
+      email: string;
+      website: string;
+      services: string[];
+      description: string;
+      source: string;
+      arrondissement?: string;
+      logo_url: string;
+    }
+    let allRepairers: EnrichedRepairer[] = [];
 
     // Pour Paris avec scraping par arrondissement
     if (isParis && scrape_by_arrondissement) {
@@ -357,18 +184,21 @@ serve(async (req) => {
       const selectedArrondissements = PARIS_ARRONDISSEMENTS.filter((_, i) => i % 2 === 0); // 10 arrondissements
       
       for (const arr of selectedArrondissements) {
-        console.log(`📍 Scraping ${arr.name}...`);
-        
         const prompt = generatePrompt(arr.name, arr.code, countPerArrondissement, arr.zone);
-        const aiResult = await callAIWithFallback(prompt, systemPrompt, 8000, ai_provider);
-        
-        if (aiResult.success) {
+        const aiResult = await callAIWithFallback({
+          systemPrompt,
+          userPrompt: prompt,
+          maxTokens: 8000,
+          preferredProvider: normalizeProvider(ai_provider),
+        });
+
+        if (aiResult.success && aiResult.content) {
           try {
             const repairers = parseAIResponse(aiResult.content!);
             console.log(`✅ ${repairers.length} réparateurs générés pour ${arr.name} via ${aiResult.provider}`);
             
             // Enrichir avec les infos de l'arrondissement
-            const enriched = repairers.map((r: any, index: number) => ({
+            const enriched = repairers.map((r: RawRepairer, index: number) => ({
               name: r.name || `Réparateur ${arr.name} ${index + 1}`,
               address: r.address || '',
               city: arr.name,
@@ -395,11 +225,15 @@ serve(async (req) => {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
     } else {
-      // Mode normal : un seul appel AI
       const prompt = generatePrompt(departmentName, `${department_code}000`, count);
-      const aiResult = await callAIWithFallback(prompt, systemPrompt, 8000, ai_provider);
+      const aiResult = await callAIWithFallback({
+        systemPrompt,
+        userPrompt: prompt,
+        maxTokens: 8000,
+        preferredProvider: normalizeProvider(ai_provider),
+      });
 
-      if (!aiResult.success) {
+      if (!aiResult.success || !aiResult.content) {
         await supabase
           .from('scraping_logs')
           .update({ status: 'failed', error_message: aiResult.error, completed_at: new Date().toISOString() })
@@ -413,7 +247,7 @@ serve(async (req) => {
       try {
         const repairers = parseAIResponse(aiResult.content!);
         
-        allRepairers = repairers.map((r: any, index: number) => ({
+        allRepairers = repairers.map((r: RawRepairer, index: number) => ({
           name: r.name || `Réparateur ${index + 1}`,
           address: r.address || '',
           city: r.city || departmentName,

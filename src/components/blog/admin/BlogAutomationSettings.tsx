@@ -23,17 +23,18 @@ export const BlogAutomationSettings = () => {
   const [updatingImages, setUpdatingImages] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string; slug: string }[]>([]);
 
   const loadCronStatus = async () => {
     try {
-      const { data, error }: any = await supabase
-        .rpc('get_blog_automation_status' as any)
+      const { data, error } = await supabase
+        // @ts-expect-error RPC may not be in types yet
+        .rpc('get_blog_automation_status')
         .single();
 
       if (error) throw error;
-      setCronStatus(data);
-    } catch (error: any) {
+      setCronStatus(data as CronStatus);
+    } catch {
       // Silent fallback: RPC function may not exist yet
       setCronStatus({
         enabled: true,
@@ -95,11 +96,12 @@ export const BlogAutomationSettings = () => {
       } else {
         throw new Error(data?.error || 'Article non créé');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Test error:', error);
+      const message = error instanceof Error ? error.message : "Le test a échoué.";
       toast({
         title: "Erreur de test",
-        description: error.message || "Le test a échoué.",
+        description: message,
         variant: "destructive"
       });
     } finally {
@@ -213,7 +215,7 @@ export const BlogAutomationSettings = () => {
                   <ul className="list-disc list-inside space-y-1">
                     <li>Extensions <code className="text-xs">pg_cron</code> et <code className="text-xs">pg_net</code> activées</li>
                     <li>Edge Function <code className="text-xs">weekly-blog-automation</code> déployée</li>
-                    <li>Secret <code className="text-xs">LOVABLE_API_KEY</code> configuré</li>
+                    <li>Au moins un secret AI configuré (<code className="text-xs">GEMINI_API_KEY</code>, <code className="text-xs">OPENAI_API_KEY</code> ou <code className="text-xs">MISTRAL_API_KEY</code>)</li>
                   </ul>
                   <p className="pt-2">
                     <a 

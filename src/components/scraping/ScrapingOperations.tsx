@@ -20,7 +20,7 @@ const ScrapingOperations: React.FC<ScrapingOperationsProps> = ({ onRefresh }) =>
   const [loading, setLoading] = useState<string | null>(null);
   const [scrapingStatus, setScrapingStatus] = useState<'idle' | 'running' | 'stopped'>('idle');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('75');
-  const [aiProvider, setAiProvider] = useState<string>('lovable');
+  const [aiProvider, setAiProvider] = useState<string>('gemini');
 
   // Scraping via Serper (Google Places) - Fonctionne bien!
   const handleSerperScraping = async (testMode: boolean = false) => {
@@ -50,10 +50,10 @@ const ScrapingOperations: React.FC<ScrapingOperationsProps> = ({ onRefresh }) =>
       });
 
       onRefresh();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erreur Serper",
-        description: error.message || "Impossible de lancer le scraping Serper",
+        description: (error instanceof Error ? error.message : null) || "Impossible de lancer le scraping Serper",
         variant: "destructive"
       });
     } finally {
@@ -93,10 +93,10 @@ const ScrapingOperations: React.FC<ScrapingOperationsProps> = ({ onRefresh }) =>
       });
 
       onRefresh();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erreur Génération IA",
-        description: error.message || "Impossible de générer les données",
+        description: (error instanceof Error ? error.message : null) || "Impossible de générer les données",
         variant: "destructive"
       });
     } finally {
@@ -124,10 +124,10 @@ const ScrapingOperations: React.FC<ScrapingOperationsProps> = ({ onRefresh }) =>
       });
 
       onRefresh();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erreur Google Places",
-        description: error.message || "Clé API Google non configurée ou invalide",
+        description: (error instanceof Error ? error.message : null) || "Clé API Google non configurée ou invalide",
         variant: "destructive"
       });
     } finally {
@@ -180,10 +180,10 @@ const ScrapingOperations: React.FC<ScrapingOperationsProps> = ({ onRefresh }) =>
       });
 
       onRefresh();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de géocoder les réparateurs",
+        description: (error instanceof Error ? error.message : null) || "Impossible de géocoder les réparateurs",
         variant: "destructive"
       });
     } finally {
@@ -270,8 +270,7 @@ const ScrapingOperations: React.FC<ScrapingOperationsProps> = ({ onRefresh }) =>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="lovable">🤖 Lovable AI (Gemini)</SelectItem>
-                  <SelectItem value="gemini">💎 Gemini Pro Direct</SelectItem>
+                  <SelectItem value="gemini">💎 Google Gemini</SelectItem>
                   <SelectItem value="openai">🧠 OpenAI GPT-4o</SelectItem>
                   <SelectItem value="mistral">🇫🇷 Mistral AI</SelectItem>
                 </SelectContent>
@@ -329,7 +328,7 @@ const ScrapingOperations: React.FC<ScrapingOperationsProps> = ({ onRefresh }) =>
                 <Badge variant="secondary" className="bg-purple-200 text-purple-800">Multi-Provider</Badge>
               </div>
               <p className="text-sm text-purple-700 dark:text-purple-300">
-                Génère des données réalistes via {aiProvider === 'lovable' ? 'Lovable AI' : aiProvider}.
+                Génère des données réalistes via {aiProvider}.
               </p>
               <div className="flex flex-col gap-2">
                 <Button

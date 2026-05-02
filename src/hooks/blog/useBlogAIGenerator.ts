@@ -38,14 +38,15 @@ export const useBlogAIGenerator = () => {
       });
 
       return data.post;
-    } catch (error: any) {
+    } catch (error) {
+      const errorObj = error as { message?: string };
       console.error('Error generating article:', error);
       
       let errorMessage = 'Impossible de générer l\'article';
-      if (error.message?.includes('Rate limit')) {
+      if (errorObj.message?.includes('Rate limit')) {
         errorMessage = 'Limite de requêtes atteinte. Veuillez réessayer plus tard.';
-      } else if (error.message?.includes('Payment required')) {
-        errorMessage = 'Crédits insuffisants. Veuillez ajouter des crédits à votre workspace Lovable AI.';
+      } else if (errorObj.message?.includes('Payment required')) {
+        errorMessage = 'Crédits insuffisants ou clé API invalide. Vérifiez vos secrets AI dans Supabase.';
       }
 
       toast({
@@ -75,13 +76,14 @@ export const useBlogAIGenerator = () => {
       }
 
       return data.image_url;
-    } catch (error: any) {
+    } catch (error) {
+      const errorObj = error as { message?: string };
       console.error('Error generating image:', error);
       
       let errorMessage = 'Impossible de générer l\'image';
-      if (error.message?.includes('Rate limit')) {
+      if (errorObj.message?.includes('Rate limit')) {
         errorMessage = 'Limite de requêtes atteinte pour la génération d\'images.';
-      } else if (error.message?.includes('Payment required')) {
+      } else if (errorObj.message?.includes('Payment required')) {
         errorMessage = 'Crédits insuffisants pour la génération d\'images.';
       }
 
