@@ -16,6 +16,7 @@ import { initializeSentry } from './config/sentry';
 import { MobileBottomNav } from './components/navigation/MobileBottomNav';
 import { PWAInstallBanner } from './components/pwa/PWAInstallBanner';
 import { PWAUpdateBanner } from './components/pwa/PWAUpdateBanner';
+import { Toaster } from './components/ui/sonner';
 
 // --- Lazy-loaded pages (code-split for smaller initial bundle) ---
 
@@ -130,6 +131,7 @@ const App = () => {
               <GlobalStoreProvider>
                 <PlanPreviewProvider>
                   <AppWithTracking />
+                  <Toaster />
                 </PlanPreviewProvider>
               </GlobalStoreProvider>
             </AuthProvider>

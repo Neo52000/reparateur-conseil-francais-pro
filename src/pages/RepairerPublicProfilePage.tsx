@@ -18,7 +18,7 @@ import ProfileClaimBanner from '@/components/profile/seo/ProfileClaimBanner';
 import PremiumAppointmentModal from '@/components/profile/seo/PremiumAppointmentModal';
 import ProfileSchemaOrg from '@/components/profile/seo/ProfileSchemaOrg';
 import ProfileBreadcrumbs from '@/components/profile/seo/ProfileBreadcrumbs';
-import RepairerStickyCTA from '@/components/profile/seo/RepairerStickyCTA';
+import MobileStickyCTA from '@/components/profile/MobileStickyCTA';
 
 const RepairerPublicProfilePage: React.FC = () => {
   const { city, repairerSlug } = useParams<{ city: string; repairerSlug: string }>();
@@ -277,11 +277,12 @@ const RepairerPublicProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Sticky CTA mobile (appel) */}
-      <RepairerStickyCTA
-        businessName={profile.business_name}
-        hasPhone={!!profile.phone}
+      {/* Sticky CTA mobile (appel + RDV/devis) */}
+      <MobileStickyCTA
+        phone={profile.phone}
         onCall={handleCallRepairer}
+        onBookAppointment={handleBookAppointment}
+        isPremium={isPremium}
       />
 
       {/* Modal de RDV (Premium uniquement) */}
