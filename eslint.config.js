@@ -6,9 +6,9 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    // Code en quarantaine Phase 0 (Edge Functions Stripe à refondre Phase 3).
-    // Cf. supabase/functions/_disabled/README.md
-    ignores: ["dist", "supabase/functions/_disabled/**"],
+    // Edge Functions Deno : ESLint ne peut pas les lint correctement
+    // (URL imports, Deno globals). Elles sont vérifiées via supabase functions deploy.
+    ignores: ["dist", "supabase/functions/**"],
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
