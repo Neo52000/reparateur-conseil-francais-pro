@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Eye, MessageCircle, Search, Filter, Loader2 } from 'lucide-react';
+import { Calendar, Eye, MessageCircle, Search, Filter, Loader2, ArrowRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useBlog } from '@/hooks/useBlog';
 import { BlogPost, BlogCategory } from '@/types/blog';
 import { format } from 'date-fns';
@@ -87,33 +88,80 @@ const BlogPage: React.FC = () => {
     return format(new Date(dateString), 'dd MMMM yyyy', { locale: fr });
   };
 
+  // Hero (premier article featured) + grid (les suivants) — uniquement si pas de filtre/recherche actif
+  const showHero = filteredPosts.length > 0 && categoryFilter === 'all' && searchQuery === '';
+  const heroPost = showHero ? filteredPosts[0] : null;
+  const gridPosts = showHero ? filteredPosts.slice(1) : filteredPosts;
+
   return (
     <BlogLayout title="Blog" subtitle="Nos derniers articles et conseils">
-      {/* Filtres */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <div className="relative flex-1">
+      {/* Recherche */}
+      <div className="mb-6">
+        <div className="relative max-w-xl">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             placeholder="Rechercher des articles..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
+            aria-label="Rechercher dans les articles"
           />
         </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-full sm:w-48">
-            <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Catégorie" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Toutes les catégories</SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      </div>
+
+      {/* Filtres catégorie en pills (desktop+tablet) + select (mobile) */}
+      <div className="mb-10">
+        {/* Desktop pills */}
+        <div className="hidden sm:flex flex-wrap gap-2" role="tablist" aria-label="Catégories">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={categoryFilter === 'all'}
+            onClick={() => setCategoryFilter('all')}
+            className={cn(
+              'rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
+              categoryFilter === 'all'
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-background hover:bg-muted border-border text-foreground',
+            )}
+          >
+            Tous
+          </button>
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              type="button"
+              role="tab"
+              aria-selected={categoryFilter === category.id}
+              onClick={() => setCategoryFilter(category.id)}
+              className={cn(
+                'rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
+                categoryFilter === category.id
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background hover:bg-muted border-border text-foreground',
+              )}
+            >
+              {category.name}
+            </button>
+          ))}
+        </div>
+        {/* Mobile select */}
+        <div className="sm:hidden">
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-full">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Catégorie" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les catégories</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Articles */}
@@ -132,8 +180,54 @@ const BlogPage: React.FC = () => {
         </div>
       ) : (
         <>
+          {heroPost && (
+            <Link
+              to={`/blog/${heroPost.slug}`}
+              className="group mb-10 block overflow-hidden rounded-2xl border bg-card shadow-sm transition-shadow hover:shadow-lg"
+              aria-label={`Lire l'article featured : ${heroPost.title}`}
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-2">
+                {heroPost.featured_image_url && (
+                  <div className="aspect-video lg:aspect-auto lg:h-full overflow-hidden bg-muted">
+                    <img
+                      src={heroPost.featured_image_url}
+                      alt={heroPost.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="eager"
+                    />
+                  </div>
+                )}
+                <div className="p-6 lg:p-10 flex flex-col justify-center">
+                  <div className="mb-4 flex items-center gap-3">
+                    <Badge className="bg-primary/10 text-primary hover:bg-primary/15 border-0">
+                      À la une
+                    </Badge>
+                    {heroPost.category && (
+                      <Badge variant="outline">{heroPost.category.name}</Badge>
+                    )}
+                  </div>
+                  <h2 className="font-heading text-2xl lg:text-3xl font-bold mb-3 leading-tight group-hover:text-primary transition-colors">
+                    {heroPost.title}
+                  </h2>
+                  {heroPost.excerpt && (
+                    <p className="text-muted-foreground mb-6 line-clamp-3">{heroPost.excerpt}</p>
+                  )}
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="h-4 w-4" />
+                      <span>{formatDate(heroPost.published_at || heroPost.created_at)}</span>
+                    </div>
+                    <span aria-hidden className="inline-flex items-center text-primary font-medium ml-auto">
+                      Lire l'article <ArrowRight className="ml-1 h-4 w-4" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPosts.map((post) => (
+            {gridPosts.map((post) => (
               <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
                 {post.featured_image_url && (
                   <div className="h-48 overflow-hidden">
