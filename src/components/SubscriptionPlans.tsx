@@ -95,62 +95,55 @@ const SubscriptionPlans = ({
     }
   };
 
-  const handleSubscribe = async (planId: string, selectedModules: { pos: boolean; ecommerce: boolean }, totalPrice: number) => {
-    console.log('handleSubscribe called with planId:', planId);
-    console.log('selectedModules:', selectedModules);
-    console.log('totalPrice:', totalPrice);
-    console.log('isYearly:', isYearly);
-    console.log('repairerId:', repairerId);
-    console.log('effectiveUserEmail:', effectiveUserEmail);
-    
+  const handleSubscribe = async (
+    planId: string,
+    selectedModules: { pos: boolean; ecommerce: boolean },
+    totalPrice: number,
+  ) => {
+    if (!user) {
+      navigate('/repairer-auth');
+      return;
+    }
+
     setLoading(true);
-    
     try {
-      console.log('Calling supabase function create-subscription...');
-      
       const { data, error } = await supabase.functions.invoke('create-subscription', {
         body: {
           planId,
           billingCycle: isYearly ? 'yearly' : 'monthly',
-          repairerId,
-          email: effectiveUserEmail,
           selectedModules,
           totalPrice,
         },
       });
 
-      console.log('Supabase function response:', { data, error });
-
       if (error) {
-        console.error('Supabase function error:', error);
         toast({
-          title: "Erreur",
-          description: "Une erreur est survenue lors de la création de la souscription. Veuillez contacter le support.",
-          variant: "destructive"
+          title: 'Erreur',
+          description:
+            "Création de la souscription impossible. Réessayez ou contactez le support à contact@topreparateurs.fr",
+          variant: 'destructive',
         });
         return;
       }
 
       if (data?.url) {
-        console.log('Opening payment URL:', data.url);
-        window.open(data.url, '_blank');
-        toast({
-          title: "Redirection vers le paiement",
-          description: "Vous êtes redirigé vers la page de paiement sécurisée.",
-        });
-      } else {
-        console.error('No payment URL received from function');
-        toast({
-          title: "Information",
-          description: "Contactez-nous au 07 45 06 21 62 pour finaliser votre abonnement.",
-        });
+        // Redirection directe (pas window.open) — meilleure UX et évite les
+        // bloqueurs de popup. Stripe nous renverra sur /subscription-success.
+        window.location.href = data.url;
+        return;
       }
-    } catch (error) {
-      console.error('Error in handleSubscribe:', error);
+
       toast({
-        title: "Erreur technique",
-        description: "Une erreur technique est survenue. Contactez le support au contact@topreparateurs.fr",
-        variant: "destructive"
+        title: 'Information',
+        description:
+          'Contactez-nous au 07 45 06 21 62 pour finaliser votre abonnement.',
+      });
+    } catch {
+      toast({
+        title: 'Erreur technique',
+        description:
+          "Une erreur technique est survenue. Contactez le support à contact@topreparateurs.fr",
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
