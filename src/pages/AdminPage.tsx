@@ -1,285 +1,149 @@
-import React, { useEffect } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import Navigation from '@/components/Navigation';
-import AdminSidebar from '@/components/admin/AdminSidebar';
-import AdminDashboardContent from '@/components/admin/AdminDashboardContent';
+import { Card, CardContent } from '@/components/ui/card';
+import { Monitor } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { AdminReauthGate } from '@/components/admin/security/AdminReauthGate';
+import AdminAuthForm from '@/components/AdminAuthForm';
+
+// Eager : navigation + dashboard initial (rendu de FCP admin)
 import AdminTopBar from '@/components/admin/modern/AdminTopBar';
 import HorizontalAdminNav from '@/components/admin/modern/HorizontalAdminNav';
 import ModernDashboardCards from '@/components/admin/modern/ModernDashboardCards';
 import QuickActions from '@/components/admin/modern/QuickActions';
 import RecentActivity from '@/components/admin/modern/RecentActivity';
-import RepairerList from '@/components/admin/RepairerList';
-import ClientInterestManagement from '@/components/ClientInterestManagement';
-import ScrapingHub from '@/components/admin/scraping/ScrapingHub';
-import AutomatedRelaunchDashboard from '@/components/admin/automation/AutomatedRelaunchDashboard';
-import BlogManagement from '@/components/blog/admin/BlogManagement';
-import ChatbotManagement from '@/components/admin/ChatbotManagement';
-import AdminAuthForm from '@/components/AdminAuthForm';
-import { useAuth } from '@/hooks/useAuth';
-import { AdminReauthGate } from '@/components/admin/security/AdminReauthGate';
-import AdvancedAdvertisingDashboard from '@/components/advertising/AdvancedAdvertisingDashboard';
-import SubscriptionsManagement from '@/components/admin/SubscriptionsManagement';
-import DisabledFeaturePlaceholder from '@/components/admin/DisabledFeaturePlaceholder';
-import SubdomainsManagement from '@/components/admin/SubdomainsManagement';
-import LandingPagesManagement from '@/components/admin/landing-pages/LandingPagesManagement';
-import LocalSeoManagement from '@/components/admin/LocalSeoManagement';
-import SEOMonitoringDashboard from '@/components/admin/SEOMonitoringDashboard';
-import RepairContentGenerator from '@/components/blog/admin/RepairContentGenerator';
-import PerformanceManagement from '@/components/admin/PerformanceManagement';
-import EnhancedDocumentationManager from '@/components/admin/EnhancedDocumentationManager';
-import { AdvertisingAIDashboard } from '@/components/admin/advertising/AdvertisingAIDashboard';
-import { AnalyticsDashboard } from '@/components/admin/dashboard/AnalyticsDashboard';
-import AdminFeaturesManager from '@/components/admin/AdminFeaturesManager';
-import AdminConfigurationPage from '@/components/admin/AdminConfigurationPage';
-import ComprehensiveFeaturesManager from '@/components/admin/ComprehensiveFeaturesManager';
-import { Card, CardContent } from '@/components/ui/card';
-import { Monitor } from 'lucide-react';
-import { CheckmateMonitoring } from '@/components/admin/monitoring/CheckmateMonitoring';
-import StaticPagesManager from '@/components/admin/StaticPagesManager';
-import CatalogManagement from '@/components/admin/catalog/CatalogManagement';
-import SeoToolsPanel from '@/components/admin/SeoToolsPanel';
-import RepairerSeoPanel from '@/components/admin/RepairerSeoPanel';
-import { EnhancedPlanVisualizationTester } from '@/components/admin/plans/EnhancedPlanVisualizationTester';
-import { EnhancedDashboardTester } from '@/components/admin/dashboard/EnhancedDashboardTester';
-import SystemOptimizationPanel from '@/components/admin/system/SystemOptimizationPanel';
-import { SuppliersDirectoryManagement } from '@/components/admin/SuppliersDirectoryManagement';
-import { SystemDiagnosticsPanel } from '@/components/admin/SystemDiagnosticsPanel';
-import ChatbotPerformancePanel from '@/components/admin/ChatbotPerformancePanel';
-import { ExclusivityZonesAdmin } from '@/components/admin/exclusivity';
-import { AdminSeoProgrammaticPanel, AdminSeoMachinePanel } from '@/components/admin/seo';
-import SocialBoosterDashboard from '@/components/admin/social-booster/SocialBoosterDashboard';
-import { AiCmoDashboard } from '@/components/admin/ai-cmo';
+
+// Lazy : un chunk par tab (chargé à la demande). Permet de descendre
+// le chunk principal AdminPage de ~2.7 MB à <500 KB.
+const SubscriptionsManagement = lazy(() => import('@/components/admin/SubscriptionsManagement'));
+const SubdomainsManagement = lazy(() => import('@/components/admin/SubdomainsManagement'));
+const LandingPagesManagement = lazy(() => import('@/components/admin/landing-pages/LandingPagesManagement'));
+const RepairerList = lazy(() => import('@/components/admin/RepairerList'));
+const CatalogManagement = lazy(() => import('@/components/admin/catalog/CatalogManagement'));
+const ClientInterestManagement = lazy(() => import('@/components/ClientInterestManagement'));
+const AdvancedAdvertisingDashboard = lazy(() => import('@/components/advertising/AdvancedAdvertisingDashboard'));
+const AdvertisingAIDashboard = lazy(() =>
+  import('@/components/admin/advertising/AdvertisingAIDashboard').then((m) => ({ default: m.AdvertisingAIDashboard })),
+);
+const AnalyticsDashboard = lazy(() =>
+  import('@/components/admin/dashboard/AnalyticsDashboard').then((m) => ({ default: m.AnalyticsDashboard })),
+);
+const ScrapingHub = lazy(() => import('@/components/admin/scraping/ScrapingHub'));
+const AutomatedRelaunchDashboard = lazy(() => import('@/components/admin/automation/AutomatedRelaunchDashboard'));
+const CheckmateMonitoring = lazy(() =>
+  import('@/components/admin/monitoring/CheckmateMonitoring').then((m) => ({ default: m.CheckmateMonitoring })),
+);
+const BlogManagement = lazy(() => import('@/components/blog/admin/BlogManagement'));
+const SocialBoosterDashboard = lazy(() => import('@/components/admin/social-booster/SocialBoosterDashboard'));
+const ChatbotManagement = lazy(() => import('@/components/admin/ChatbotManagement'));
+const LocalSeoManagement = lazy(() => import('@/components/admin/LocalSeoManagement'));
+const SeoToolsPanel = lazy(() => import('@/components/admin/SeoToolsPanel'));
+const RepairerSeoPanel = lazy(() => import('@/components/admin/RepairerSeoPanel'));
+const SEOMonitoringDashboard = lazy(() => import('@/components/admin/SEOMonitoringDashboard'));
+const RepairContentGenerator = lazy(() => import('@/components/blog/admin/RepairContentGenerator'));
+const PerformanceManagement = lazy(() => import('@/components/admin/PerformanceManagement'));
+const EnhancedDocumentationManager = lazy(() => import('@/components/admin/EnhancedDocumentationManager'));
+const ComprehensiveFeaturesManager = lazy(() => import('@/components/admin/ComprehensiveFeaturesManager'));
+const EnhancedPlanVisualizationTester = lazy(() =>
+  import('@/components/admin/plans/EnhancedPlanVisualizationTester').then((m) => ({ default: m.EnhancedPlanVisualizationTester })),
+);
+const EnhancedDashboardTester = lazy(() =>
+  import('@/components/admin/dashboard/EnhancedDashboardTester').then((m) => ({ default: m.EnhancedDashboardTester })),
+);
+const AdminConfigurationPage = lazy(() => import('@/components/admin/AdminConfigurationPage'));
+const StaticPagesManager = lazy(() => import('@/components/admin/StaticPagesManager'));
+const SuppliersDirectoryManagement = lazy(() =>
+  import('@/components/admin/SuppliersDirectoryManagement').then((m) => ({ default: m.SuppliersDirectoryManagement })),
+);
+const SystemOptimizationPanel = lazy(() => import('@/components/admin/system/SystemOptimizationPanel'));
+const SystemDiagnosticsPanel = lazy(() =>
+  import('@/components/admin/SystemDiagnosticsPanel').then((m) => ({ default: m.SystemDiagnosticsPanel })),
+);
+const ChatbotPerformancePanel = lazy(() => import('@/components/admin/ChatbotPerformancePanel'));
+const ExclusivityZonesAdmin = lazy(() =>
+  import('@/components/admin/exclusivity').then((m) => ({ default: m.ExclusivityZonesAdmin })),
+);
+const AiCmoDashboard = lazy(() =>
+  import('@/components/admin/ai-cmo').then((m) => ({ default: m.AiCmoDashboard })),
+);
+const AdminSeoProgrammaticPanel = lazy(() =>
+  import('@/components/admin/seo').then((m) => ({ default: m.AdminSeoProgrammaticPanel })),
+);
+const AdminSeoMachinePanel = lazy(() =>
+  import('@/components/admin/seo').then((m) => ({ default: m.AdminSeoMachinePanel })),
+);
+
+const TabFallback = () => (
+  <div className="flex items-center justify-center py-16">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+  </div>
+);
+
+const VALID_TABS = [
+  'dashboard', 'subscriptions', 'subdomains', 'landing-pages', 'repairers',
+  'catalog', 'interest', 'advertising', 'advertising-ai', 'analytics',
+  'scraping', 'automation', 'monitoring', 'blog', 'social-booster', 'chatbot',
+  'local-seo', 'seo-tools', 'repairer-seo', 'seo-monitoring', 'repair-generator',
+  'pagespeed-pro', 'performance', 'documentation', 'features-manager',
+  'plans-tester', 'dashboard-tester', 'configuration', 'suppliers',
+  'static-pages', 'system-diagnostics', 'system-optimization',
+  'chatbot-performance', 'exclusivity-zones', 'seo-programmatic',
+  'seo-machine', 'ai-cmo',
+];
 
 const AdminPage = () => {
-  const {
-    user,
-    profile,
-    isAdmin,
-    loading
-  } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const activeTab = searchParams.get('tab') || 'dashboard';
 
-  // List of valid tabs
-  const validTabs = [
-    'dashboard', 'subscriptions', 'subdomains', 'landing-pages', 'repairers',
-    'catalog', 'interest', 'advertising', 'advertising-ai', 'analytics',
-    'scraping', 'automation', 'monitoring', 'blog', 'social-booster', 'chatbot', 'local-seo', 'seo-tools',
-    'repairer-seo', 'seo-monitoring', 'repair-generator', 'pagespeed-pro', 'performance',
-    'documentation', 'features-manager', 'plans-tester', 'dashboard-tester', 'configuration',
-    'suppliers', 'static-pages', 'system-diagnostics', 'system-optimization', 'chatbot-performance',
-    'exclusivity-zones', 'seo-programmatic', 'seo-machine', 'ai-cmo',
-  ];
-
-  // Restore tab from sessionStorage if missing
   useEffect(() => {
     const currentTab = searchParams.get('tab');
-    
     if (!currentTab) {
       const lastTab = sessionStorage.getItem('lastAdminTab') || 'dashboard';
       setSearchParams({ tab: lastTab }, { replace: true });
-    } else if (!validTabs.includes(currentTab)) {
-      // Invalid tab, redirect to dashboard
+    } else if (!VALID_TABS.includes(currentTab)) {
       setSearchParams({ tab: 'dashboard' }, { replace: true });
     }
   }, [searchParams, setSearchParams]);
 
-  // Persist current tab to sessionStorage
   useEffect(() => {
-    if (activeTab && validTabs.includes(activeTab)) {
+    if (activeTab && VALID_TABS.includes(activeTab)) {
       sessionStorage.setItem('lastAdminTab', activeTab);
     }
   }, [activeTab]);
 
-  // Callback after re-authentication to restore tab
   const handleVerified = () => {
     const lastTab = sessionStorage.getItem('lastAdminTab');
     const currentTab = searchParams.get('tab');
-    
     if (!currentTab && lastTab) {
       setSearchParams({ tab: lastTab }, { replace: true });
     }
   };
 
-  // Si on est en cours de chargement, afficher un loading optimisé
   if (loading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Vérification des autorisations...</p>
-        </div>
-      </div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    );
   }
 
-  // Si pas d'utilisateur ou pas admin, afficher le formulaire de connexion
   if (!user || !isAdmin) {
-    return <AdminAuthForm />;
+    return <AdminAuthForm onSuccess={() => navigate('/admin')} />;
   }
-  const getPageTitle = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return 'Dashboard Administrateur';
-      case 'subscriptions':
-        return 'Gestion Abonnements';
-      case 'subdomains':
-        return 'Sous-domaines';
-      case 'landing-pages':
-        return 'Landing Pages';
-      case 'repairers':
-        return 'Réparateurs';
-      case 'catalog':
-        return 'Catalogue Produits';
-      case 'interest':
-        return 'Demandes d\'intérêt';
-      case 'advertising':
-        return 'Publicités';
-      case 'advertising-ai':
-        return 'Publicité IA';
-      case 'analytics':
-        return 'Analytics';
-      case 'scraping':
-        return 'Scraping';
-      case 'automation':
-        return 'Relances Automatiques';
-      case 'monitoring':
-        return 'Monitoring Checkmate';
-      case 'blog':
-        return 'Blog & Contenu';
-      case 'social-booster':
-        return 'Blog Booster Social';
-      case 'chatbot':
-        return 'Chatbot';
-      case 'local-seo':
-        return 'SEO Local';
-      case 'seo-tools':
-        return 'Outils SEO';
-      case 'repairer-seo':
-        return 'Pages SEO Réparateurs';
-      case 'seo-monitoring':
-        return 'Monitoring SEO';
-      case 'repair-generator':
-        return 'Générateur Contenu';
-      case 'pagespeed-pro':
-        return 'PageSpeed Pro';
-      case 'performance':
-        return 'Performance';
-      case 'documentation':
-        return 'Documentation';
-      case 'features-manager':
-        return 'Gestion Fonctionnalités';
-      case 'plans-tester':
-        return 'Test Interface Plans';
-      case 'dashboard-tester':
-        return 'Test Interface Réparateur';
-      case 'configuration':
-        return 'Configuration';
-      case 'suppliers':
-        return 'Annuaire Fournisseurs';
-      case 'system-diagnostics':
-        return 'Diagnostics Système';
-      case 'chatbot-performance':
-        return 'Performance Chatbot';
-      case 'exclusivity-zones':
-        return 'Zones Exclusivité N3';
-      case 'ai-cmo':
-        return 'AI-CMO';
-      case 'seo-programmatic':
-        return 'SEO Programmatique';
-      default:
-        return 'Dashboard';
-    }
-  };
-  const getPageSubtitle = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return 'Vue d\'ensemble de la plateforme RepairHub';
-      case 'subscriptions':
-        return 'Gestion des abonnements réparateurs';
-      case 'subdomains':
-        return 'Configuration des sous-domaines et landing pages';
-      case 'landing-pages':
-        return 'Création et gestion des landing pages personnalisées';
-      case 'repairers':
-        return 'Liste et gestion des réparateurs';
-      case 'catalog':
-        return 'Gestion du catalogue de la recherche en 5 étapes (types, marques, modèles, réparations)';
-      case 'interest':
-        return 'Demandes d\'intérêt clients';
-      case 'advertising':
-        return 'Bannières publicitaires';
-      case 'advertising-ai':
-        return 'Campagnes publicitaires intelligentes avec IA';
-      case 'analytics':
-        return 'Analyses détaillées et métriques de performance';
-      case 'scraping':
-        return 'Outils de collecte de données';
-      case 'automation':
-        return 'Système automatisé de relance client et réactivation des comptes inactifs';
-      case 'monitoring':
-        return 'Surveillance uptime, performance et métriques business exclusives';
-      case 'blog':
-        return 'Gestion du contenu éditorial';
-      case 'social-booster':
-        return 'Transformez vos articles de blog en publications sociales multi-réseaux';
-      case 'chatbot':
-        return 'Administration et configuration de l\'assistant intelligent';
-      case 'local-seo':
-        return 'Génération automatique de pages SEO locales optimisées';
-      case 'seo-tools':
-        return 'Outils de maintenance et régénération du contenu SEO';
-      case 'seo-monitoring':
-        return 'Monitoring SEO et surveillance technique en temps réel';
-      case 'repair-generator':
-        return 'Générateur de contenu pour réparation mobile';
-      case 'pagespeed-pro':
-        return 'Analyses PageSpeed avancées et optimisation performance';
-      case 'performance':
-        return 'Optimisation et surveillance des performances globales';
-      case 'documentation':
-        return 'Gestion de la documentation technique et utilisateur';
-      case 'features-manager':
-        return 'Gestionnaire centralisé de toutes les fonctionnalités et modules';
-      case 'plans-tester':
-        return 'Interface de test et configuration pour l\'affichage des plans réparateurs';
-      case 'dashboard-tester':
-        return 'Interface de test et configuration pour le tableau de bord réparateur';
-      case 'configuration':
-        return 'Configuration générale de l\'application';
-      case 'suppliers':
-        return 'Gestion de l\'annuaire des fournisseurs et modération des avis';
-      case 'static-pages':
-        return 'Gestion des pages statiques (mentions légales, CGU, etc.)';
-      case 'system-diagnostics':
-        return 'Surveillance en temps réel des services IA et état du chatbot';
-      case 'chatbot-performance':
-        return 'Métriques de performance et analyse du comportement du chatbot IA';
-      case 'exclusivity-zones':
-        return 'Gestion des zones d\'exclusivité géographique pour les réparateurs Niveau 3';
-      case 'ai-cmo':
-        return 'Monitoring de visibilité IA et prompts marketing';
-      case 'seo-programmatic':
-        return 'Génération automatique de pages SEO et sitemap dynamique';
-      default:
-        return 'Administration de RepairHub';
-    }
-  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
         return (
           <div className="space-y-8">
-            {/* Modern Dashboard Overview */}
             <div className="space-y-6">
               <div>
                 <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-                <p className="text-muted-foreground">Vue d'ensemble de votre plateforme RepairHub</p>
+                <p className="text-muted-foreground">Vue d'ensemble de votre plateforme TopRéparateurs</p>
               </div>
-              
-              {/* Stats Cards */}
               <ModernDashboardCards />
-              
-              {/* Activity & Quick Actions */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <RecentActivity />
                 <QuickActions />
@@ -287,48 +151,29 @@ const AdminPage = () => {
             </div>
           </div>
         );
-      case 'subscriptions':
-        return <SubscriptionsManagement />;
-      case 'subdomains':
-        return <SubdomainsManagement />;
-      case 'landing-pages':
-        return <LandingPagesManagement />;
-      case 'repairers':
-        return <RepairerList />;
-      case 'catalog':
-        return <CatalogManagement />;
-      case 'interest':
-        return <ClientInterestManagement />;
-      case 'advertising':
-        return <AdvancedAdvertisingDashboard />;
-      case 'advertising-ai':
-        return <AdvertisingAIDashboard />;
-      case 'analytics':
-        return <AnalyticsDashboard />;
-        case 'scraping':
-          return <ScrapingHub />;
-        case 'automation':
-          return <AutomatedRelaunchDashboard />;
-      case 'monitoring':
-        return <CheckmateMonitoring />;
-      case 'blog':
-        return <BlogManagement />;
-      case 'social-booster':
-        return <SocialBoosterDashboard />;
-      case 'chatbot':
-        return <ChatbotManagement />;
-      case 'local-seo':
-        return <LocalSeoManagement />;
-      case 'seo-tools':
-        return <SeoToolsPanel />;
-      case 'repairer-seo':
-        return <RepairerSeoPanel />;
-      case 'seo-monitoring':
-        return <SEOMonitoringDashboard />;
-      case 'repair-generator':
-        return <RepairContentGenerator />;
+      case 'subscriptions': return <SubscriptionsManagement />;
+      case 'subdomains': return <SubdomainsManagement />;
+      case 'landing-pages': return <LandingPagesManagement />;
+      case 'repairers': return <RepairerList />;
+      case 'catalog': return <CatalogManagement />;
+      case 'interest': return <ClientInterestManagement />;
+      case 'advertising': return <AdvancedAdvertisingDashboard />;
+      case 'advertising-ai': return <AdvertisingAIDashboard />;
+      case 'analytics': return <AnalyticsDashboard />;
+      case 'scraping': return <ScrapingHub />;
+      case 'automation': return <AutomatedRelaunchDashboard />;
+      case 'monitoring': return <CheckmateMonitoring />;
+      case 'blog': return <BlogManagement />;
+      case 'social-booster': return <SocialBoosterDashboard />;
+      case 'chatbot': return <ChatbotManagement />;
+      case 'local-seo': return <LocalSeoManagement />;
+      case 'seo-tools': return <SeoToolsPanel />;
+      case 'repairer-seo': return <RepairerSeoPanel />;
+      case 'seo-monitoring': return <SEOMonitoringDashboard />;
+      case 'repair-generator': return <RepairContentGenerator />;
       case 'pagespeed-pro':
-        return <Card>
+        return (
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <Monitor className="h-8 w-8 text-blue-500" />
@@ -358,51 +203,43 @@ const AdminPage = () => {
                 </Card>
               </div>
             </CardContent>
-          </Card>;
-      case 'performance':
-        return <PerformanceManagement />;
-      case 'documentation':
-        return <EnhancedDocumentationManager />;
-      case 'features-manager':
-        return <ComprehensiveFeaturesManager />;
-      case 'plans-tester':
-        return <EnhancedPlanVisualizationTester />;
-      case 'dashboard-tester':
-        return <EnhancedDashboardTester />;
-      case 'configuration':
-        return <AdminConfigurationPage />;
-      case 'static-pages':
-        return <StaticPagesManager />;
-      case 'suppliers':
-        return <SuppliersDirectoryManagement />;
-      case 'system-optimization':
-        return <SystemOptimizationPanel />;
-      case 'system-diagnostics':
-        return <SystemDiagnosticsPanel />;
-      case 'chatbot-performance':
-        return <ChatbotPerformancePanel />;
-      case 'exclusivity-zones':
-        return <ExclusivityZonesAdmin />;
-      case 'ai-cmo':
-        return <AiCmoDashboard />;
-      case 'seo-programmatic':
-        return <AdminSeoProgrammaticPanel />;
-      case 'seo-machine':
-        return <AdminSeoMachinePanel />;
+          </Card>
+        );
+      case 'performance': return <PerformanceManagement />;
+      case 'documentation': return <EnhancedDocumentationManager />;
+      case 'features-manager': return <ComprehensiveFeaturesManager />;
+      case 'plans-tester': return <EnhancedPlanVisualizationTester />;
+      case 'dashboard-tester': return <EnhancedDashboardTester />;
+      case 'configuration': return <AdminConfigurationPage />;
+      case 'static-pages': return <StaticPagesManager />;
+      case 'suppliers': return <SuppliersDirectoryManagement />;
+      case 'system-optimization': return <SystemOptimizationPanel />;
+      case 'system-diagnostics': return <SystemDiagnosticsPanel />;
+      case 'chatbot-performance': return <ChatbotPerformancePanel />;
+      case 'exclusivity-zones': return <ExclusivityZonesAdmin />;
+      case 'ai-cmo': return <AiCmoDashboard />;
+      case 'seo-programmatic': return <AdminSeoProgrammaticPanel />;
+      case 'seo-machine': return <AdminSeoMachinePanel />;
       default:
-        return <AdminDashboardContent activeTab={activeTab} subscriptions={[]} repairers={[]} onViewProfile={() => {}} onRefresh={async () => {}} />;
+        return (
+          <div className="p-6 text-center text-muted-foreground">
+            Onglet inconnu : {activeTab}
+          </div>
+        );
     }
   };
+
   return (
     <AdminReauthGate onVerified={handleVerified}>
       <div className="min-h-screen bg-background">
         <AdminTopBar userName={user?.email || 'Admin'} />
         <HorizontalAdminNav />
         <main className="p-6">
-          {renderContent()}
+          <Suspense fallback={<TabFallback />}>{renderContent()}</Suspense>
         </main>
       </div>
     </AdminReauthGate>
   );
 };
+
 export default AdminPage;
