@@ -12,6 +12,9 @@
 -- Helper : fonction public.is_admin(uuid)
 -- STABLE + SECURITY DEFINER pour usage direct dans les policies RLS.
 -- ----------------------------------------------------------------------------
+-- NOTE : la prod techrepair utilise public.user_roles(user_id, role, is_active)
+-- — pas une colonne `role` dans `profiles` comme la migration originale supposait.
+-- Cf. cohérence avec les Edge Functions qui appellent public.has_role() RPC.
 CREATE OR REPLACE FUNCTION public.is_admin(user_id uuid)
 RETURNS boolean
 LANGUAGE sql
@@ -21,14 +24,15 @@ SET search_path = public
 AS $$
   SELECT EXISTS (
     SELECT 1
-    FROM public.profiles
-    WHERE profiles.id = user_id
-      AND profiles.role = 'admin'
+    FROM public.user_roles ur
+    WHERE ur.user_id = is_admin.user_id
+      AND ur.role = 'admin'
+      AND COALESCE(ur.is_active, true) = true
   );
 $$;
 
 COMMENT ON FUNCTION public.is_admin(uuid) IS
-  'Retourne true si l''utilisateur a le rôle admin dans public.profiles. Utilisé dans les policies RLS.';
+  'Retourne true si user_roles.role = admin et is_active. Utilisé dans les policies RLS.';
 
 -- ----------------------------------------------------------------------------
 -- D1 — public.payments : remplacer "Edge functions can manage payments" USING(true)
