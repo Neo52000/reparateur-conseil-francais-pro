@@ -41,3 +41,8 @@ supabase/.branches/
 
 # Build artifacts not needed in repo
 .netlify/
+
+# Playwright artifacts
+test-results/
+playwright-report/
+playwright/.cache/
