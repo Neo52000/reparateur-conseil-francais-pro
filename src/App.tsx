@@ -71,6 +71,10 @@ const TermsOfSale = lazy(() => import("./pages/TermsOfSale"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const MyDataPage = lazy(() => import("./pages/MyDataPage"));
 
+// Subscription (Stripe checkout return URLs)
+const SubscriptionSuccessPage = lazy(() => import("./pages/SubscriptionSuccessPage"));
+const SubscriptionCanceledPage = lazy(() => import("./pages/SubscriptionCanceledPage"));
+
 // Other pages
 const StaticPage = lazy(() => import("./pages/StaticPage"));
 const DocumentationPage = lazy(() => import("./pages/DocumentationPage"));
@@ -183,6 +187,8 @@ const AppWithTracking = () => {
         <Route path="/client-dashboard" element={<ClientDashboardPage />} />
         <Route path="/repairer-profile" element={<RepairerProfilePage />} />
         <Route path="/repairer-plans" element={<RepairerPlans />} />
+        <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
+        <Route path="/subscription-canceled" element={<SubscriptionCanceledPage />} />
         <Route path="/repairer-testimonials" element={<RepairerTestimonials />} />
         <Route path="/repairer-faq" element={<RepairerFAQ />} />
         <Route path="/reparation-smartphone" element={<SmartphoneRepairPage />} />
