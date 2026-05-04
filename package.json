@@ -15,6 +15,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "post-deploy:check": "tsx scripts/post-deploy-check.ts",
     "prepare": "husky || true"
   },
   "lint-staged": {
