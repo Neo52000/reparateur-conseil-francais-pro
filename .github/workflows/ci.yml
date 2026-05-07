@@ -27,8 +27,14 @@ jobs:
         run: bun run lint
         continue-on-error: true
 
-      - name: Type check (full project, lenient)
+      # `tsc -b` actually walks the project references (the previous bare
+      # `tsc --noEmit` on the solution-style root config was a no-op).
+      # Currently surfaces hundreds of pre-existing errors in legacy code,
+      # so this step is non-blocking like the lint backlog. The strict
+      # ratchet below is the real type-safety gate.
+      - name: Type check (full project, lenient, non-blocking)
         run: bun run typecheck
+        continue-on-error: true
 
       # Strict mode ratchet — covers a curated set of leaf modules
       # (cf. tsconfig.strict.json `include`). Expand the include list as
