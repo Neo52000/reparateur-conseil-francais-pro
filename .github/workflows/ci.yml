@@ -27,8 +27,17 @@ jobs:
         run: bun run lint
         continue-on-error: true
 
-      - name: Type check
-        run: bun run tsc --noEmit
+      - name: Type check (full project, lenient)
+        run: bun run typecheck
+
+      # Strict mode ratchet — covers a curated set of leaf modules
+      # (cf. tsconfig.strict.json `include`). Expand the include list as
+      # we fix typing in the rest of the codebase.
+      - name: Type check (strict, critical paths)
+        run: bun run typecheck:strict
+
+      - name: Test
+        run: bun run test
 
       - name: Build
         run: bun run build
