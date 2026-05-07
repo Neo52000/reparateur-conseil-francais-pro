@@ -20,24 +20,24 @@ export type BuildFlagKey =
   | 'QUALIREPAR_V1'
   | 'QUALIREPAR_V2';
 
-const ENV_PREFIX = 'VITE_FEATURE_';
-
-function readEnvFlag(key: BuildFlagKey, fallback: boolean): boolean {
-  const raw = (import.meta.env as Record<string, string | undefined>)[`${ENV_PREFIX}${key}`];
-  if (raw === undefined || raw === '') return fallback;
-  return raw === 'true' || raw === '1';
+// Vite only inlines literal `import.meta.env.VITE_*` accesses at build time.
+// Dynamic access (`import.meta.env[someKey]`) loses constant folding and
+// breaks DCE in production — keep these references static.
+function parseFlag(value: unknown, fallback: boolean): boolean {
+  if (typeof value !== 'string' || value === '') return fallback;
+  return value === 'true' || value === '1';
 }
 
 const isDev: boolean = Boolean(import.meta.env.DEV);
 
 export const BUILD_FLAGS: Record<BuildFlagKey, boolean> = {
-  AI_CMO: readEnvFlag('AI_CMO', isDev),
-  BLOG_AUTO: readEnvFlag('BLOG_AUTO', isDev),
-  SOCIAL_BOOSTER: readEnvFlag('SOCIAL_BOOSTER', isDev),
-  LANDING_BUILDER: readEnvFlag('LANDING_BUILDER', isDev),
-  GAMIFICATION: readEnvFlag('GAMIFICATION', isDev),
-  QUALIREPAR_V1: readEnvFlag('QUALIREPAR_V1', false),
-  QUALIREPAR_V2: readEnvFlag('QUALIREPAR_V2', false),
+  AI_CMO: parseFlag(import.meta.env.VITE_FEATURE_AI_CMO, isDev),
+  BLOG_AUTO: parseFlag(import.meta.env.VITE_FEATURE_BLOG_AUTO, isDev),
+  SOCIAL_BOOSTER: parseFlag(import.meta.env.VITE_FEATURE_SOCIAL_BOOSTER, isDev),
+  LANDING_BUILDER: parseFlag(import.meta.env.VITE_FEATURE_LANDING_BUILDER, isDev),
+  GAMIFICATION: parseFlag(import.meta.env.VITE_FEATURE_GAMIFICATION, isDev),
+  QUALIREPAR_V1: parseFlag(import.meta.env.VITE_FEATURE_QUALIREPAR_V1, false),
+  QUALIREPAR_V2: parseFlag(import.meta.env.VITE_FEATURE_QUALIREPAR_V2, false),
 };
 
 export function isModuleEnabled(key: BuildFlagKey): boolean {
