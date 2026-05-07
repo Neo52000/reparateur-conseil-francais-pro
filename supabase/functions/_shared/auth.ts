@@ -1,12 +1,19 @@
 /**
  * Shared auth helpers for Supabase Edge Functions.
  *
- * - `requireAdmin(req)` validates a Supabase JWT and checks `has_role(_, 'admin')`.
+ * - `requireAdmin(req)` verifies the JWT signature via Supabase Auth then
+ *   checks `has_role(_, 'admin')`.
  * - `requireCronSecret(req)` validates the `x-cron-secret` header against the
  *   `CRON_SECRET` env var — used by scheduled jobs that don't have a user.
  *
  * Both return either `{ ok: true, ... }` or `{ ok: false, response }` so the
  * caller can `return result.response` immediately.
+ *
+ * Why we always re-verify the JWT here: functions with `verify_jwt = false`
+ * (e.g. dual-caller endpoints like `ai-cmo-worker`) bypass the Supabase
+ * gateway. A naive `atob(payload).sub` lets an attacker forge an admin JWT.
+ * `supabase.auth.getUser(token)` validates the signature against the project
+ * JWT secret.
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -25,34 +32,21 @@ function jsonError(req: Request, status: number, error: string, message: string)
   );
 }
 
-function decodeJwtSub(authHeader: string): string | null {
-  if (!authHeader.startsWith("Bearer ")) return null;
-  const token = authHeader.slice(7);
-  const parts = token.split(".");
-  if (parts.length !== 3) return null;
-  try {
-    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
-    return typeof payload?.sub === "string" ? payload.sub : null;
-  } catch {
-    return null;
-  }
-}
-
 /**
  * Require the caller to be an authenticated admin.
- * Uses the server-side `has_role` RPC — never trusts JWT metadata.
+ * Verifies the JWT signature via `supabase.auth.getUser(token)` then calls
+ * the server-side `has_role` RPC — never trusts unsigned JWT metadata.
  */
 export async function requireAdmin(
   req: Request,
 ): Promise<AuthOk<{ userId: string }> | AuthFail> {
   const authHeader = req.headers.get("Authorization");
-  if (!authHeader) {
-    return { ok: false, response: jsonError(req, 401, "missing_auth", "Authorization header required") };
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return { ok: false, response: jsonError(req, 401, "missing_auth", "Bearer token required") };
   }
-
-  const userId = decodeJwtSub(authHeader);
-  if (!userId) {
-    return { ok: false, response: jsonError(req, 401, "invalid_token", "Bearer token is invalid") };
+  const token = authHeader.slice(7).trim();
+  if (!token) {
+    return { ok: false, response: jsonError(req, 401, "missing_auth", "Bearer token required") };
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -62,14 +56,25 @@ export async function requireAdmin(
   }
 
   const supabase = createClient(supabaseUrl, serviceKey);
-  const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
 
-  if (error) {
-    console.error("requireAdmin: has_role RPC error", error);
+  // Verifies JWT signature + expiry against the project's JWT secret.
+  const { data: userData, error: userError } = await supabase.auth.getUser(token);
+  if (userError || !userData?.user) {
+    return { ok: false, response: jsonError(req, 401, "invalid_token", "Bearer token is invalid or expired") };
+  }
+  const userId = userData.user.id;
+
+  const { data: hasRole, error: roleError } = await supabase.rpc("has_role", {
+    _user_id: userId,
+    _role: "admin",
+  });
+
+  if (roleError) {
+    console.error("requireAdmin: has_role RPC error", roleError);
     return { ok: false, response: jsonError(req, 500, "auth_check_failed", "Could not verify admin role") };
   }
 
-  if (!data) {
+  if (!hasRole) {
     return { ok: false, response: jsonError(req, 403, "forbidden", "Admin role required") };
   }
 
