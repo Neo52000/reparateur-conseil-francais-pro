@@ -1,5 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
+import { requireAdmin, requireCronSecret } from "../_shared/auth.ts";
+import { enforceRateLimit } from "../_shared/rate-limit.ts";
 
 // Default site_id for single-tenant platform
 const DEFAULT_SITE_ID = '00000000-0000-0000-0000-000000000001';
@@ -438,6 +440,19 @@ Deno.serve(async (req) => {
   const preflight = handlePreflight(req);
   if (preflight) return preflight;
   const corsHeaders = buildCorsHeaders(req);
+
+  // AI-driven endpoint with two callers (pg_cron + admin UI). Accept either
+  // the cron shared secret (`x-cron-secret`) or an admin JWT.
+  const limited = enforceRateLimit(req, { namespace: 'ai-cmo-worker', limit: 5, windowMs: 60_000 });
+  if (limited) return limited;
+
+  if (req.headers.get("x-cron-secret")) {
+    const cron = requireCronSecret(req);
+    if (!cron.ok) return cron.response;
+  } else {
+    const auth = await requireAdmin(req);
+    if (!auth.ok) return auth.response;
+  }
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;

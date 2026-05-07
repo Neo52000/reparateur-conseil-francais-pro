@@ -7,10 +7,14 @@
 -- les heures pour executer les questions de monitoring actives.
 --
 -- ⚠️ IMPORTANT :
--- 1. Allez dans Supabase Dashboard > SQL Editor
--- 2. Remplacez YOUR_SERVICE_ROLE_KEY_HERE par votre vraie cle
---    (Supabase Dashboard > Settings > API > service_role key)
--- 3. Executez le script
+-- 1. Generez un secret aleatoire fort, par exemple :
+--      openssl rand -hex 32
+-- 2. Configurez-le comme variable Supabase :
+--      supabase secrets set CRON_SECRET=<le-secret>
+--    (ou via Dashboard > Edge Functions > Secrets)
+-- 3. Allez dans Supabase Dashboard > SQL Editor
+-- 4. Remplacez YOUR_CRON_SECRET_HERE par la meme valeur
+-- 5. Executez le script
 -- =====================================================
 
 -- 1. S'assurer que les extensions necessaires sont activees
@@ -33,7 +37,7 @@ SELECT cron.schedule(
         url:='https://nbugpbakfkyvvjzgfjmw.supabase.co/functions/v1/ai-cmo-worker',
         headers:=jsonb_build_object(
           'Content-Type', 'application/json',
-          'Authorization', 'Bearer YOUR_SERVICE_ROLE_KEY_HERE'
+          'x-cron-secret', 'YOUR_CRON_SECRET_HERE'
         ),
         body:='{"site_id": "00000000-0000-0000-0000-000000000001"}'::jsonb
     ) as request_id;
