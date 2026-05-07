@@ -1,6 +1,7 @@
 /**
  * Gestionnaire d'erreurs centralisé pour les Edge Functions
  */
+import { corsHeaders } from "./cors.ts";
 
 export interface EdgeFunctionError {
   code: string;
@@ -38,9 +39,8 @@ export class EdgeErrorHandler {
       {
         status: this.getHttpStatus(processedError.code),
         headers: {
+          ...corsHeaders,
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
         }
       }
     );
@@ -204,9 +204,8 @@ export class EdgeErrorHandler {
       {
         status: 200,
         headers: {
+          ...corsHeaders,
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
         }
       }
     );
