@@ -13,7 +13,10 @@
 --      supabase secrets set CRON_SECRET=<le-secret>
 --    (ou via Dashboard > Edge Functions > Secrets)
 -- 3. Allez dans Supabase Dashboard > SQL Editor
--- 4. Remplacez YOUR_CRON_SECRET_HERE par la meme valeur
+-- 4. Remplacez les deux placeholders ci-dessous :
+--      YOUR_PROJECT_REF      -> votre project ref Supabase
+--                              (Dashboard > Settings > General)
+--      YOUR_CRON_SECRET_HERE -> la valeur du secret de l'etape 1
 -- 5. Executez le script
 -- =====================================================
 
@@ -34,7 +37,7 @@ SELECT cron.schedule(
   $$
   SELECT
     net.http_post(
-        url:='https://nbugpbakfkyvvjzgfjmw.supabase.co/functions/v1/ai-cmo-worker',
+        url:='https://YOUR_PROJECT_REF.supabase.co/functions/v1/ai-cmo-worker',
         headers:=jsonb_build_object(
           'Content-Type', 'application/json',
           'x-cron-secret', 'YOUR_CRON_SECRET_HERE'

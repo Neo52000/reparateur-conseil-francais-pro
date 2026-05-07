@@ -21,6 +21,17 @@ interface Bucket {
 
 const buckets = new Map<string, Bucket>(); // namespace -> bucket
 
+// Worker-process budget for tracked IPs per bucket. Once exceeded we evict
+// expired windows so the Map cannot grow unbounded across reused workers.
+const PRUNE_THRESHOLD = 1000;
+
+function pruneExpired(bucket: Bucket, now: number, windowMs: number): void {
+  const cutoff = now - windowMs;
+  for (const [ip, w] of bucket.windows) {
+    if (w.start < cutoff) bucket.windows.delete(ip);
+  }
+}
+
 interface RateLimitOptions {
   /** Logical bucket name (e.g. function name). */
   namespace: string;
@@ -57,6 +68,8 @@ export function checkRateLimit(req: Request, opts: RateLimitOptions): RateLimitR
   if (!bucket) {
     bucket = { windows: new Map() };
     buckets.set(opts.namespace, bucket);
+  } else if (bucket.windows.size > PRUNE_THRESHOLD) {
+    pruneExpired(bucket, now, opts.windowMs);
   }
 
   const w = bucket.windows.get(ip);
