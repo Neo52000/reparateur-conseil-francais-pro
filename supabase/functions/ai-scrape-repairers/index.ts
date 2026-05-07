@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
+import { requireAdmin } from "../_shared/auth.ts";
+import { enforceRateLimit } from "../_shared/rate-limit.ts";
 import { callAIWithFallback, parseJsonFromContent, type AIProvider } from "../_shared/ai-text.ts";
 
 // Départements avec noms pour le prompt
@@ -110,10 +112,17 @@ serve(async (req) => {
   if (preflight) return preflight;
   const corsHeaders = buildCorsHeaders(req);
 
+  // AI-driven endpoint: rate-limit harder + admin-only to protect IA budget.
+  const limited = enforceRateLimit(req, { namespace: 'ai-scrape-repairers', limit: 3, windowMs: 60_000 });
+  if (limited) return limited;
+
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
+
   try {
     const body = await req.json();
-    const { 
-      department_code, 
+    const {
+      department_code,
       test_mode = false,
       count: requestedCount,
       scrape_by_arrondissement = false,

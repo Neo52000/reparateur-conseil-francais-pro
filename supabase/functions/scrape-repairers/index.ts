@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
+import { requireAdmin } from "../_shared/auth.ts";
+import { enforceRateLimit } from "../_shared/rate-limit.ts";
 
 interface ScrapingRequest {
   department_code: string;
@@ -349,6 +351,12 @@ serve(async (req) => {
   const preflight = handlePreflight(req);
   if (preflight) return preflight;
   const corsHeaders = buildCorsHeaders(req);
+
+  const limited = enforceRateLimit(req, { namespace: 'scrape-repairers', limit: 5, windowMs: 60_000 });
+  if (limited) return limited;
+
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
