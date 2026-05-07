@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { slugify, entriesToXml, indexXml } from './generate-sitemap';
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe('slugify', () => {
   it('lowercases and replaces spaces with hyphens', () => {
@@ -83,8 +87,13 @@ describe('indexXml', () => {
   });
 
   it('stamps the entries with today’s date', () => {
+    // Mock the system clock so the assertion is deterministic — without
+    // this the test could flake if midnight UTC ticks between indexXml()
+    // and the local `new Date()` below.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-07T12:00:00Z'));
+
     const xml = indexXml(['static']);
-    const today = new Date().toISOString().split('T')[0];
-    expect(xml).toContain(`<lastmod>${today}</lastmod>`);
+    expect(xml).toContain('<lastmod>2026-05-07</lastmod>');
   });
 });

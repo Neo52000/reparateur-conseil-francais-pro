@@ -152,7 +152,7 @@ describe('validateRepairerData', () => {
     expect(validateRepairerData(validData).isValid).toBe(true);
   });
 
-  it('aggregates multiple errors', () => {
+  it('aggregates errors from each invalid field', () => {
     const r = validateRepairerData({
       name: 'A',
       email: 'bad',
@@ -162,7 +162,16 @@ describe('validateRepairerData', () => {
       address: '',
     });
     expect(r.isValid).toBe(false);
-    expect(r.errors.length).toBeGreaterThan(3);
+    expect(r.errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('nom'),
+        expect.stringContaining('email'),
+        expect.stringContaining('téléphone'),
+        expect.stringContaining('ville'),
+        expect.stringContaining('code postal'),
+        expect.stringContaining('adresse'),
+      ]),
+    );
   });
 
   it('rejects names shorter than 2 chars', () => {
