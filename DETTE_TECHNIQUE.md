@@ -105,7 +105,7 @@ supabase db diff --schema public    # doit être vide
 
 | Réf | Issue d'origine | Statut 2026-05-07 |
 |---|---|---|
-| D3 | `create-subscription` sans JWT | Actif. `verify_jwt = true` (default), client front passe le JWT via `supabase.functions.invoke`. |
+| D3 | `create-subscription` sans JWT | Actif. `verify_jwt = true` (default Supabase) **et** la fonction vérifie explicitement le JWT en appelant `supabaseAdmin.auth.getUser(token)` (cf. `supabase/functions/create-subscription/index.ts:34`) avant toute opération. |
 | D4 | CORS wildcard sur endpoint paiement | Migré vers `_shared/cors.ts` allowlist (PR #21). |
 | D6 | Stripe webhook sans `constructEvent()` | Implémente `stripe.webhooks.constructEventAsync()` + idempotence via `stripe_event_id` unique sur la table `stripe_webhooks`. |
 
