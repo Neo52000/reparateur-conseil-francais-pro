@@ -115,10 +115,10 @@ se configurent via `supabase secrets set` ou le dashboard Supabase.
 bun run dev          # Serveur de dev (Vite)
 bun run build        # Build de production
 bun run preview      # Prévisualisation du build
-bun run typecheck    # tsc --noEmit
 bun run lint         # ESLint
-bun test             # Vitest
-bun run e2e          # Playwright (smoke tests)
+bun run test         # Vitest (single run)
+bun run test:watch   # Vitest (watch)
+bun run test:e2e     # Playwright (smoke tests)
 ```
 
 ## Données
@@ -150,7 +150,6 @@ Production sur **Netlify** (continuous deploy depuis `main`). Headers de sécuri
 ## Développement et contributions
 
 - Branche par défaut : `main`
-- Branche de session active : `claude/new-session-LvMm6`
 - Hooks Husky : `pre-commit` (lint-staged) + `commit-msg`
 - CI GitHub Actions : lint (non-bloquant pour l'instant), `tsc --noEmit`, build
 - Workflow recommandé : fork → branche `feat/...` ou `fix/...` → PR (draft) → review → merge
