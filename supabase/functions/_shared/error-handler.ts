@@ -1,7 +1,13 @@
 /**
  * Gestionnaire d'erreurs centralisé pour les Edge Functions
  */
-import { corsHeaders } from "./cors.ts";
+import { buildCorsHeaders, corsHeaders } from "./cors.ts";
+
+// Returns request-aware CORS headers when a Request is available, otherwise
+// falls back to the static allowlist (first allowed origin).
+function resolveCorsHeaders(req?: Request): HeadersInit {
+  return req ? buildCorsHeaders(req) : corsHeaders;
+}
 
 export interface EdgeFunctionError {
   code: string;
@@ -20,11 +26,12 @@ export class EdgeErrorHandler {
   }
 
   /**
-   * Traite une erreur et retourne une réponse HTTP appropriée
+   * Traite une erreur et retourne une réponse HTTP appropriée.
+   * Pass `req` to honour the dynamic CORS allowlist (recommended).
    */
-  static handleError(error: unknown, requestId?: string): Response {
+  static handleError(error: unknown, requestId?: string, req?: Request): Response {
     const processedError = this.processError(error, requestId);
-    
+
     console.error(`❌ [${this.functionName}] Erreur:`, {
       ...processedError,
       originalError: error
@@ -39,7 +46,7 @@ export class EdgeErrorHandler {
       {
         status: this.getHttpStatus(processedError.code),
         headers: {
-          ...corsHeaders,
+          ...resolveCorsHeaders(req),
           'Content-Type': 'application/json',
         }
       }
@@ -191,9 +198,10 @@ export class EdgeErrorHandler {
   }
 
   /**
-   * Crée une réponse de succès standardisée
+   * Crée une réponse de succès standardisée.
+   * Pass `req` to honour the dynamic CORS allowlist (recommended).
    */
-  static successResponse(data: any, message?: string): Response {
+  static successResponse(data: any, message?: string, req?: Request): Response {
     return new Response(
       JSON.stringify({
         success: true,
@@ -204,7 +212,7 @@ export class EdgeErrorHandler {
       {
         status: 200,
         headers: {
-          ...corsHeaders,
+          ...resolveCorsHeaders(req),
           'Content-Type': 'application/json',
         }
       }
@@ -239,7 +247,7 @@ export function withErrorHandling(
       
       return response;
     } catch (error) {
-      return EdgeErrorHandler.handleError(error, requestId);
+      return EdgeErrorHandler.handleError(error, requestId, req);
     }
   };
 }
