@@ -116,7 +116,7 @@ export const useRepairersData = () => {
 
       // Récupérer les labels QualiRépar depuis repairer_profiles
       const repairerIds = repairersData.map(r => r.id);
-      let qualiReparMap: Record<string, boolean> = {};
+      const qualiReparMap: Record<string, boolean> = {};
       
       // Récupérer par batch pour éviter les limites d'URL
       const batchSize = 100;
@@ -212,7 +212,7 @@ export const useRepairersData = () => {
       console.log('✅ useRepairersData - Raw subscriptions data:', data?.length || 0);
       
       const mappedSubscriptions: SubscriptionData[] = (data || []).map(sub => {
-        let actualTier = sub.subscription_tier || 'free';
+        const actualTier = sub.subscription_tier || 'free';
 
         return {
           id: sub.id,

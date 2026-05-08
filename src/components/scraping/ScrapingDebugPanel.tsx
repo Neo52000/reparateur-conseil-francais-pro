@@ -28,7 +28,7 @@ const ScrapingDebugPanel: React.FC<ScrapingDebugPanelProps> = ({
         .select('id')
         .limit(1);
 
-      let permissionResult = { success: !selectError, error: selectError?.message };
+      const permissionResult = { success: !selectError, error: selectError?.message };
 
       // Test des catégories disponibles
       const { data: categories, error: categoriesError } = await supabase

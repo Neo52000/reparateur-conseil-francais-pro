@@ -16,7 +16,7 @@ export const generateRepairerProfilePath = (repairerId: string, businessName?: s
 };
 
 export const parseRepairerProfilePath = (pathname: string) => {
-  const match = pathname.match(/^\/repairer\/([^\/]+)(?:\/(.+))?$/);
+  const match = pathname.match(/^\/repairer\/([^/]+)(?:\/(.+))?$/);
   if (match) {
     return {
       repairerId: match[1],
