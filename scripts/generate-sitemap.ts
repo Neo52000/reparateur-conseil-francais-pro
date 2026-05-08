@@ -29,7 +29,7 @@ interface SitemapEntry {
   priority?: number;
 }
 
-function slugify(value: string): string {
+export function slugify(value: string): string {
   return value
     .toLowerCase()
     .normalize('NFD')
@@ -40,7 +40,7 @@ function slugify(value: string): string {
     .replace(/-+/g, '-');
 }
 
-function entriesToXml(entries: SitemapEntry[]): string {
+export function entriesToXml(entries: SitemapEntry[]): string {
   const items = entries
     .map((e) => {
       const lastmod = e.lastmod
@@ -54,7 +54,7 @@ function entriesToXml(entries: SitemapEntry[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${items}\n</urlset>\n`;
 }
 
-function indexXml(names: string[]): string {
+export function indexXml(names: string[]): string {
   const today = new Date().toISOString().split('T')[0];
   const items = names
     .map(
@@ -159,9 +159,14 @@ async function main() {
   writeXml('sitemap.xml', indexXml(['static', 'repairers', 'cities', 'blog']));
 }
 
-main().catch((err) => {
-  console.error('Sitemap generation failed:', err);
-  // Fallback statique pour ne pas casser le build
-  writeXml('sitemap.xml', entriesToXml(STATIC_PAGES));
-  process.exit(0);
-});
+// Don't auto-run when imported as a module (tests).
+// `tsx scripts/generate-sitemap.ts` sets `process.argv[1]` to the script path.
+const argv1 = process.argv[1] ?? '';
+if (argv1.endsWith('generate-sitemap.ts') || argv1.endsWith('generate-sitemap.js')) {
+  main().catch((err) => {
+    console.error('Sitemap generation failed:', err);
+    // Fallback statique pour ne pas casser le build
+    writeXml('sitemap.xml', entriesToXml(STATIC_PAGES));
+    process.exit(0);
+  });
+}
