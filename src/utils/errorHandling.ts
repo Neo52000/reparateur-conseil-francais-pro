@@ -4,10 +4,24 @@
 
 import { logger } from './logger';
 
+interface SupabaseLikeError {
+  message?: string;
+  code?: string;
+  hint?: string;
+  details?: unknown;
+  error?: {
+    code?: string;
+    message?: string;
+    details?: unknown;
+    timestamp?: string;
+    functionName?: string;
+  };
+}
+
 export interface AppError {
   code: string;
   message: string;
-  details?: any;
+  details?: unknown;
   severity: 'low' | 'medium' | 'high' | 'critical';
   timestamp?: string;
   functionName?: string;
@@ -16,13 +30,13 @@ export interface AppError {
 export class CustomError extends Error {
   public code: string;
   public severity: 'low' | 'medium' | 'high' | 'critical';
-  public details?: any;
+  public details?: unknown;
 
   constructor(
     message: string,
     code: string = 'UNKNOWN_ERROR',
     severity: 'low' | 'medium' | 'high' | 'critical' = 'medium',
-    details?: any
+    details?: unknown
   ) {
     super(message);
     this.name = 'CustomError';
@@ -96,7 +110,7 @@ export class ErrorHandler {
 
     // Erreur Supabase/Edge Function
     if (this.isSupabaseError(error)) {
-      return this.handleSupabaseError(error as any);
+      return this.handleSupabaseError(error as SupabaseLikeError);
     }
 
     // Erreur de géolocalisation
@@ -154,7 +168,7 @@ export class ErrorHandler {
   /**
    * Gestion des erreurs Supabase/Edge Functions
    */
-  private static handleSupabaseError(error: any): AppError {
+  private static handleSupabaseError(error: SupabaseLikeError): AppError {
     const timestamp = new Date().toISOString();
     const message = error.message || 'Erreur de service';
     
@@ -330,7 +344,7 @@ export class ErrorHandler {
 /**
  * Wrapper pour les fonctions async avec gestion d'erreur
  */
-export const withErrorHandling = <T extends any[], R>(
+export const withErrorHandling = <T extends unknown[], R>(
   fn: (...args: T) => Promise<R>,
   context?: string
 ) => {
