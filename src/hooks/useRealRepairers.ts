@@ -2,6 +2,24 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchRepairersWithGPS } from '@/services/supabase/paginate';
 
+interface ScrapedSuggestionData {
+  name?: string;
+  business_name?: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  description?: string;
+  services?: string[];
+  rating?: number;
+  lat?: number;
+  lng?: number;
+  latitude?: number;
+  longitude?: number;
+}
+
 export interface RealRepairer {
   id: string;
   name: string;
@@ -87,7 +105,7 @@ export const useRealRepairers = () => {
         
         suggestions.forEach(suggestion => {
           // Extraire les données du JSON scraped_data
-          const data = suggestion.scraped_data as any;
+          const data = suggestion.scraped_data as ScrapedSuggestionData | null;
           const businessName = data?.name || data?.business_name || `Business ${suggestion.id}`;
           
           if (!existingNames.has(businessName.toLowerCase())) {
@@ -116,9 +134,9 @@ export const useRealRepairers = () => {
       }
 
       setRepairers(allRepairers);
-    } catch (err: any) {
+    } catch (err) {
       console.error('❌ Erreur lors du chargement des réparateurs:', err);
-      setError(err.message || 'Erreur lors du chargement des données');
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement des données');
     } finally {
       setLoading(false);
     }
@@ -144,7 +162,7 @@ export const useRealRepairers = () => {
       await loadRepairers();
       
       return data;
-    } catch (err: any) {
+    } catch (err) {
       console.error('❌ Erreur lors de l\'ajout du réparateur:', err);
       throw err;
     }
@@ -169,7 +187,7 @@ export const useRealRepairers = () => {
       }
 
       return addedRepairer;
-    } catch (err: any) {
+    } catch (err) {
       console.error('❌ Erreur lors de l\'approbation:', err);
       throw err;
     }
@@ -189,7 +207,7 @@ export const useRealRepairers = () => {
 
       // Recharger la liste
       await loadRepairers();
-    } catch (err: any) {
+    } catch (err) {
       console.error('❌ Erreur lors du rejet:', err);
       throw err;
     }

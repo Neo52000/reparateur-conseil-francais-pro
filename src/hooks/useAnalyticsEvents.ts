@@ -6,13 +6,18 @@
 
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { useConnectionAnalytics } from "@/hooks/analytics/useConnectionAnalytics";
+
+// Matches the `event_data` JSON column shape; metadata helpers below pass
+// through to this same column so they share the type.
+export type AnalyticsEventData = { [key: string]: Json | undefined };
 
 export interface AnalyticsEvent {
   id: string;
   user_id: string | null;
   event_type: string;
-  event_data: any;
+  event_data: AnalyticsEventData;
   created_at: string;
 }
 
@@ -27,7 +32,7 @@ export const useAnalyticsEvents = (userId?: string) => {
   /**
    * Enregistre un événement analytics générique
    */
-  const logEvent = useCallback(async (event_type: string, event_data: any) => {
+  const logEvent = useCallback(async (event_type: string, event_data: AnalyticsEventData) => {
     setSaving(true);
     try {
       await supabase.from("analytics_events").insert([{ 
@@ -45,19 +50,19 @@ export const useAnalyticsEvents = (userId?: string) => {
   /**
    * Méthodes raccourcis pour les événements courants
    */
-  const logPageView = useCallback((page: string, metadata?: any) => {
+  const logPageView = useCallback((page: string, metadata?: AnalyticsEventData) => {
     return logEvent('page_view', { page, ...metadata });
   }, [logEvent]);
 
-  const logUserAction = useCallback((action: string, target: string, metadata?: any) => {
+  const logUserAction = useCallback((action: string, target: string, metadata?: AnalyticsEventData) => {
     return logEvent('user_action', { action, target, ...metadata });
   }, [logEvent]);
 
-  const logError = useCallback((error: string, context?: any) => {
+  const logError = useCallback((error: string, context?: AnalyticsEventData) => {
     return logEvent('error', { error, context });
   }, [logEvent]);
 
-  const logFeatureUsage = useCallback((feature: string, metadata?: any) => {
+  const logFeatureUsage = useCallback((feature: string, metadata?: AnalyticsEventData) => {
     return logEvent('feature_usage', { feature, ...metadata });
   }, [logEvent]);
 
