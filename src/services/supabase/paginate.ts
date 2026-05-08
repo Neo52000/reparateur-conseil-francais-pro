@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
 
 const PAGE_SIZE = 1000;
 
@@ -7,14 +8,20 @@ export interface PaginationProgress {
   total: number | null;
 }
 
+type Repairer = Tables<'repairers'>;
+// `business_categories.color` is nullable in the DB schema (cf. types.ts).
+type RepairerWithCategory = Repairer & {
+  business_categories?: { name: string; color: string | null } | null;
+};
+
 /**
  * Fetches all repairers with pagination, bypassing the 1000 row limit.
  * Includes related business_categories.
  */
 export async function fetchAllRepairers(
   onProgress?: (progress: PaginationProgress) => void
-): Promise<{ data: any[]; error: Error | null; total: number }> {
-  const allData: any[] = [];
+): Promise<{ data: RepairerWithCategory[]; error: Error | null; total: number }> {
+  const allData: RepairerWithCategory[] = [];
   let from = 0;
   let hasMore = true;
   let totalCount: number | null = null;
@@ -76,8 +83,8 @@ export async function fetchAllRepairers(
  */
 export async function fetchRepairersWithGPS(
   onProgress?: (progress: PaginationProgress) => void
-): Promise<{ data: any[]; error: Error | null; total: number }> {
-  const allData: any[] = [];
+): Promise<{ data: Repairer[]; error: Error | null; total: number }> {
+  const allData: Repairer[] = [];
   let from = 0;
   let hasMore = true;
   let totalCount: number | null = null;
