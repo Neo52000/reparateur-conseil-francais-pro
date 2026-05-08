@@ -1,0 +1,32 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": [
+    "src/vite-env.d.ts",
+    "src/integrations/**/*.ts",
+    "src/integrations/**/*.tsx",
+    "src/utils/subscriptionDisplay.ts",
+    "src/utils/subscriptionTiers.ts",
+    "src/utils/htmlSanitizer.ts",
+    "src/utils/validation.ts",
+    "src/lib/utils.ts"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/__tests__/**"
+  ]
+}
