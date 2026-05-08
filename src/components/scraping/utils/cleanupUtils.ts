@@ -5,17 +5,20 @@ export const getCleanupQuery = (filter: string): CleanupQuery | null => {
   const now = new Date();
   
   switch (filter) {
-    case 'older_than_day':
+    case 'older_than_day': {
       const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
       return { column: 'started_at', operator: 'lt', value: oneDayAgo.toISOString() };
-    
-    case 'older_than_week':
+    }
+
+    case 'older_than_week': {
       const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       return { column: 'started_at', operator: 'lt', value: oneWeekAgo.toISOString() };
-    
-    case 'older_than_month':
+    }
+
+    case 'older_than_month': {
       const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       return { column: 'started_at', operator: 'lt', value: oneMonthAgo.toISOString() };
+    }
     
     case 'failed_only':
       return { column: 'status', operator: 'eq', value: 'failed' };
