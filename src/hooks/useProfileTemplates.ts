@@ -38,7 +38,9 @@ export const useProfileTemplates = () => {
       setTemplates(parsed);
     } catch (err) {
       console.error('Error fetching templates:', err);
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      // Supabase PostgrestError is a plain object with a `message` field,
+      // so a strict `instanceof Error` check would miss the real message.
+      setError((err as { message?: string })?.message || 'Erreur inconnue');
     } finally {
       setLoading(false);
     }
@@ -121,8 +123,11 @@ export const useProfileTemplates = () => {
         .from('profile_templates')
         .update({
           ...updates,
-          widgets: updates.widgets as unknown as Json,
-          theme_data: updates.theme_data as unknown as Json,
+          // Partial updates: these JSONB fields may be `undefined` when
+          // the caller omits them. The Supabase `Json` type doesn't allow
+          // `undefined` at the top level, so widen the cast accordingly.
+          widgets: updates.widgets as unknown as Json | undefined,
+          theme_data: updates.theme_data as unknown as Json | undefined,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id);
