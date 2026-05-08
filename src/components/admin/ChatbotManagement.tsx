@@ -941,7 +941,7 @@ const ChatbotManagement = () => {
                 <div>
                   <Label htmlFor="escalation_keywords">Mots-clés d'escalation</Label>
                   <Textarea
-                    value={JSON.stringify(config.escalation_keywords || []).replace(/[\[\]"]/g, '').split(',').join(', ')}
+                    value={JSON.stringify(config.escalation_keywords || []).replace(/[[\]"]/g, '').split(',').join(', ')}
                     onChange={(e) => {
                       const keywords = e.target.value.split(',').map(k => k.trim()).filter(k => k);
                       updateConfig('escalation_keywords', JSON.stringify(keywords));

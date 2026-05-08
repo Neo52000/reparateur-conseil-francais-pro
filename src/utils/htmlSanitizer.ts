@@ -14,7 +14,7 @@ export const sanitizeHtmlContent = (html: string): string => {
     ],
     ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'target', 'rel'],
     ALLOW_DATA_ATTR: false,
-    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i
   });
 };
 

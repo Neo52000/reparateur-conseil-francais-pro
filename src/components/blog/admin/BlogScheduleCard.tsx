@@ -21,7 +21,7 @@ const getNextExecutionDates = (scheduleDay: number, scheduleTime: string, count:
   const now = new Date();
   const [hours, minutes] = scheduleTime.split(':').map(Number);
   
-  let currentDate = new Date(now);
+  const currentDate = new Date(now);
   currentDate.setHours(hours, minutes, 0, 0);
   
   // Si l'heure est déjà passée aujourd'hui, commencer demain
