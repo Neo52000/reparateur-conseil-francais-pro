@@ -92,18 +92,27 @@ supabase db diff --schema public    # doit être vide
 
 ---
 
-## 3. Audit sécurité — restes Phase 3 (MOYENNE)
+## 3. Audit sécurité — Stripe (résolu en Phase 0+, à vérifier en Phase 3)
 
-Issues non critiques reportées à la refonte billing Phase 3 :
+> ⚠️ **Note 2026-05-07** : la version précédente de cette section disait que
+> `create-subscription`, `create-payment-intent` et `stripe-webhooks` étaient
+> en quarantaine dans `supabase/functions/_disabled/`. **Ce n'est plus le
+> cas.** Les trois fonctions sont actives dans `supabase/functions/` et
+> déployées en prod. Le répertoire `_disabled/` n'existe plus. Cf.
+> `AUDIT_20260507.md` § 2 (delta positif vs mars).
 
-| Réf | Issue | Fichier | Phase |
-|---|---|---|---|
-| D3 | `create-subscription` sans JWT | `supabase/functions/_disabled/create-subscription` | Phase 3 |
-| D4 | CORS wildcard sur endpoint paiement | `supabase/functions/_disabled/create-payment-intent` | Phase 3 |
-| D6 | Stripe webhook sans `constructEvent()` | `supabase/functions/_disabled/stripe-webhooks` | Phase 3 |
+État actuel des trois fonctions :
 
-Les 3 fonctions sont **en quarantaine** (répertoire `_disabled/`) et non
-déployables en l'état. Cf. `supabase/functions/_disabled/README.md`.
+| Réf | Issue d'origine | Statut 2026-05-07 |
+|---|---|---|
+| D3 | `create-subscription` sans JWT | Actif. `verify_jwt = true` (default Supabase) **et** la fonction vérifie explicitement le JWT en appelant `supabaseAdmin.auth.getUser(token)` (cf. `supabase/functions/create-subscription/index.ts:34`) avant toute opération. |
+| D4 | CORS wildcard sur endpoint paiement | Migré vers `_shared/cors.ts` allowlist (PR #21). |
+| D6 | Stripe webhook sans `constructEvent()` | Implémente `stripe.webhooks.constructEventAsync()` + idempotence via `stripe_event_id` unique sur la table `stripe_webhooks`. |
+
+Restes Phase 3 (à valider quand le flow checkout passe en prod réel) :
+- Test e2e : 1 paiement test live de bout en bout
+- Couverture Vitest sur la fonction `stripe-webhooks` (mocks Stripe SDK ou
+  test Deno) — voir backlog PR-6.
 
 ---
 
