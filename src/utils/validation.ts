@@ -218,7 +218,7 @@ export const sanitizeString = (input: string): string => {
  */
 export type ValidationRule<T> = {
   field: keyof T;
-  validate: (value: any) => string | null;
+  validate: (value: unknown) => string | null;
   required?: boolean;
 };
 
