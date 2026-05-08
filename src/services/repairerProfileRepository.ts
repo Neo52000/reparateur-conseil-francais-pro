@@ -1,6 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { RepairerProfile } from '@/types/repairerProfile';
+
+type RepairerProfileInsert = TablesInsert<'repairer_profiles'>;
+type RepairerProfileUpdate = TablesUpdate<'repairer_profiles'>;
 
 /**
  * Repository pour la gestion des profils réparateurs dans la base de données
@@ -27,7 +31,7 @@ export class RepairerProfileRepository {
   /**
    * Crée un nouveau profil réparateur
    */
-  static async createProfile(profileData: any) {
+  static async createProfile(profileData: RepairerProfileInsert) {
     console.log('🆕 Creating new profile...');
     const result = await supabase
       .from('repairer_profiles')
@@ -51,7 +55,7 @@ export class RepairerProfileRepository {
   /**
    * Met à jour un profil réparateur existant
    */
-  static async updateProfile(profileId: string, profileData: any) {
+  static async updateProfile(profileId: string, profileData: RepairerProfileUpdate) {
     console.log('🔄 Updating existing profile with ID:', profileId);
     const result = await supabase
       .from('repairer_profiles')
@@ -76,7 +80,7 @@ export class RepairerProfileRepository {
   /**
    * Synchronise les données du profil avec la table repairers
    */
-  static async syncWithRepairersTable(profileData: any) {
+  static async syncWithRepairersTable(profileData: RepairerProfileInsert | RepairerProfileUpdate) {
     console.log('🔄 Synchronizing with repairers table...');
     
     try {
