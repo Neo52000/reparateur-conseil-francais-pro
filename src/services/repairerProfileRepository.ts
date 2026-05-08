@@ -1,8 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
+import type { Tables, TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
 import { RepairerProfile } from '@/types/repairerProfile';
 
+type RepairerProfileRow = Tables<'repairer_profiles'>;
 type RepairerProfileInsert = TablesInsert<'repairer_profiles'>;
 type RepairerProfileUpdate = TablesUpdate<'repairer_profiles'>;
 
@@ -44,9 +45,12 @@ export class RepairerProfileRepository {
       throw new Error(result.error.message || "Erreur lors de la création");
     }
 
-    // Synchroniser avec la table repairers
+    // Synchroniser avec la table repairers — pass the full row from
+    // Supabase, not the partial input, so all required fields are present
+    // (notably `email` for the lookup and `repair_types`/`services_offered`
+    // for the array merge).
     if (result.data) {
-      await this.syncWithRepairersTable(profileData);
+      await this.syncWithRepairersTable(result.data);
     }
 
     return result;
@@ -69,18 +73,21 @@ export class RepairerProfileRepository {
       throw new Error(result.error.message || "Erreur lors de la mise à jour");
     }
 
-    // Synchroniser avec la table repairers
+    // Synchroniser avec la table repairers (full row, see createProfile)
     if (result.data) {
-      await this.syncWithRepairersTable(profileData);
+      await this.syncWithRepairersTable(result.data);
     }
 
     return result;
   }
 
   /**
-   * Synchronise les données du profil avec la table repairers
+   * Synchronise les données du profil avec la table repairers.
+   * Accepte uniquement la ligne complète retournée par Supabase — passer
+   * une mise à jour partielle ferait un lookup avec un email undefined et
+   * écraserait les tableaux specialties/services avec [].
    */
-  static async syncWithRepairersTable(profileData: RepairerProfileInsert | RepairerProfileUpdate) {
+  static async syncWithRepairersTable(profileData: RepairerProfileRow) {
     console.log('🔄 Synchronizing with repairers table...');
     
     try {

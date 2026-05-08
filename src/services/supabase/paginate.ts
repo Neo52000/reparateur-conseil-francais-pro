@@ -9,8 +9,9 @@ export interface PaginationProgress {
 }
 
 type Repairer = Tables<'repairers'>;
+// `business_categories.color` is nullable in the DB schema (cf. types.ts).
 type RepairerWithCategory = Repairer & {
-  business_categories?: { name: string; color: string } | null;
+  business_categories?: { name: string; color: string | null } | null;
 };
 
 /**
