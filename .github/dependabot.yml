@@ -10,7 +10,7 @@
 #     drown in 20 separate Radix-UI bumps.
 #   - Security updates run independently (immediate) so CVEs aren't gated
 #     on the weekly schedule.
-#   - GitHub Actions ecosystem (CI workflow) updated quarterly.
+#   - GitHub Actions ecosystem (CI workflow) updated monthly.
 
 version: 2
 
