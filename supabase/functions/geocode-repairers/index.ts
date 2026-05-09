@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
 import { requireAdmin } from "../_shared/auth.ts";
 import { enforceRateLimit } from "../_shared/rate-limit.ts";
+import { withSentry } from "../_shared/sentry.ts";
 
 async function geocodeAddress(address: string, city: string, postalCode: string): Promise<{ lat: number; lng: number } | null> {
   // Essayer plusieurs formats de requête pour améliorer la précision
@@ -56,7 +57,7 @@ async function geocodeAddress(address: string, city: string, postalCode: string)
   return null;
 }
 
-serve(async (req) => {
+serve(withSentry("geocode-repairers", async (req) => {
   const preflight = handlePreflight(req);
   if (preflight) return preflight;
   const corsHeaders = buildCorsHeaders(req);
@@ -151,4 +152,4 @@ serve(async (req) => {
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-});
+}));

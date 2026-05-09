@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
 import { requireAdmin } from "../_shared/auth.ts";
 import { enforceRateLimit } from "../_shared/rate-limit.ts";
+import { withSentry } from "../_shared/sentry.ts";
 import { callAIWithFallback } from "../_shared/ai-text.ts";
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -311,7 +312,7 @@ async function handleStatus() {
   return { totalCampaigns, totalPosts, statusBreakdown: breakdown };
 }
 
-serve(async (req) => {
+serve(withSentry("social-booster", async (req) => {
   const preflight = handlePreflight(req);
   if (preflight) return preflight;
   const corsHeaders = buildCorsHeaders(req);
@@ -352,4 +353,4 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
-});
+}));

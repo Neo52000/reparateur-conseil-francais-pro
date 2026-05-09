@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
+import { withSentry } from "../_shared/sentry.ts";
 
 /**
  * Stripe webhook handler.
@@ -15,7 +16,7 @@ import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
  *   refuse les rejouages via une contrainte unique sur `stripe_event_id`.
  */
 
-serve(async (req) => {
+serve(withSentry("stripe-webhooks", async (req) => {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
   }
@@ -229,4 +230,4 @@ serve(async (req) => {
       { status: 500, headers: { 'Content-Type': 'application/json' } },
     );
   }
-});
+}));

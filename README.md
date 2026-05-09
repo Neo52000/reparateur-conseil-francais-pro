@@ -141,6 +141,18 @@ Une refonte critique des policies a été appliquée en avril 2026 (cf. migratio
 
 CORS allowlist commune dans `supabase/functions/_shared/cors.ts`.
 
+### Monitoring Edge Functions
+
+Les 7 fonctions critiques (`stripe-webhooks`, `ai-cmo-worker`,
+`ai-scrape-repairers`, `scrape-repairers`, `validate-scraping`,
+`geocode-repairers`, `social-booster`) sont instrumentées via
+`supabase/functions/_shared/sentry.ts` (`@sentry/deno`). Toute exception
+non capturée est envoyée à Sentry avec le tag `function_name` et un
+`request_id` court.
+
+Configuration : `supabase secrets set SENTRY_DSN=<dsn>`. Sans la variable,
+les fonctions tournent normalement (capture désactivée).
+
 ## Déploiement
 
 Production sur **Netlify** (continuous deploy depuis `main`). Headers de sécurité
