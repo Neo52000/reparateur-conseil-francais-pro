@@ -1,7 +1,7 @@
 
 import { useAdminAudit } from '@/hooks/useAdminAudit';
 import { useAuth } from '@/hooks/useAuth';
-import { AdminAuditLogEntry } from '@/services/adminAuditService';
+import type { AdminAuditLogEntry, JsonObject } from '@/services/adminAuditService';
 
 /**
  * Hook pour intégrer facilement l'audit dans les actions d'administration
@@ -16,7 +16,7 @@ export const useAdminAuditIntegration = () => {
   const logSubscriptionAction = (
     action: AdminAuditLogEntry['action_type'],
     subscriptionId: string,
-    details: Record<string, any>,
+    details: JsonObject,
     severity: AdminAuditLogEntry['severity_level'] = 'info'
   ) => {
     logAction(action, 'subscription', subscriptionId, {
@@ -32,7 +32,7 @@ export const useAdminAuditIntegration = () => {
   const logRepairerAction = (
     action: AdminAuditLogEntry['action_type'],
     repairerId: string,
-    details: Record<string, any>,
+    details: JsonObject,
     severity: AdminAuditLogEntry['severity_level'] = 'info'
   ) => {
     logAction(action, 'repairer', repairerId, {
@@ -48,7 +48,7 @@ export const useAdminAuditIntegration = () => {
   const logPromoCodeAction = (
     action: AdminAuditLogEntry['action_type'],
     promoCodeId: string,
-    details: Record<string, any>,
+    details: JsonObject,
     severity: AdminAuditLogEntry['severity_level'] = 'info'
   ) => {
     logAction(action, 'promo_code', promoCodeId, {
@@ -64,7 +64,7 @@ export const useAdminAuditIntegration = () => {
   const logAdvertisingAction = (
     action: AdminAuditLogEntry['action_type'],
     bannerId: string,
-    details: Record<string, any>,
+    details: JsonObject,
     severity: AdminAuditLogEntry['severity_level'] = 'info'
   ) => {
     logAction(action, 'ad_banner', bannerId, {
@@ -80,7 +80,7 @@ export const useAdminAuditIntegration = () => {
   const logScrapingAction = (
     action: AdminAuditLogEntry['action_type'],
     scrapingId: string,
-    details: Record<string, any>,
+    details: JsonObject,
     severity: AdminAuditLogEntry['severity_level'] = 'info'
   ) => {
     logAction(action, 'scraping', scrapingId, {
@@ -96,7 +96,7 @@ export const useAdminAuditIntegration = () => {
   const logBlogAction = (
     action: AdminAuditLogEntry['action_type'],
     postId: string,
-    details: Record<string, any>,
+    details: JsonObject,
     severity: AdminAuditLogEntry['severity_level'] = 'info'
   ) => {
     logAction(action, 'blog_post', postId, {
@@ -112,7 +112,7 @@ export const useAdminAuditIntegration = () => {
   const logChatbotAction = (
     action: AdminAuditLogEntry['action_type'],
     configId: string,
-    details: Record<string, any>,
+    details: JsonObject,
     severity: AdminAuditLogEntry['severity_level'] = 'info'
   ) => {
     logAction(action, 'chatbot', configId, {
@@ -128,7 +128,7 @@ export const useAdminAuditIntegration = () => {
   const logClientInterestAction = (
     action: AdminAuditLogEntry['action_type'],
     interestId: string,
-    details: Record<string, any>,
+    details: JsonObject,
     severity: AdminAuditLogEntry['severity_level'] = 'info'
   ) => {
     logAction(action, 'client_interest', interestId, {
@@ -145,9 +145,9 @@ export const useAdminAuditIntegration = () => {
     action: AdminAuditLogEntry['action_type'],
     resourceType: string,
     resourceId: string,
-    beforeData: Record<string, any>,
-    afterData: Record<string, any>,
-    details?: Record<string, any>
+    beforeData: JsonObject,
+    afterData: JsonObject,
+    details?: JsonObject
   ) => {
     if (!user) return;
     
@@ -165,7 +165,7 @@ export const useAdminAuditIntegration = () => {
     action: AdminAuditLogEntry['action_type'],
     resourceType: string,
     resourceId: string,
-    details: Record<string, any>
+    details: JsonObject
   ) => {
     logCriticalAction(action, resourceType, resourceId, {
       ...details,
