@@ -121,19 +121,26 @@ export class AdminAuditService {
   }
 
   /**
-   * Convertit les données JSON de Supabase en JsonObject
+   * Convertit les données JSON de Supabase en JsonObject.
+   * Le `jsonb` peut techniquement contenir un tableau ou un primitif —
+   * on ne veut que des objets-clé/valeur ici, donc on filtre.
    */
   private static parseJsonField(jsonData: unknown): JsonObject {
     if (!jsonData) return {};
-    if (typeof jsonData === 'object' && jsonData !== null) return jsonData as JsonObject;
+    if (this.isJsonObject(jsonData)) return jsonData;
     if (typeof jsonData === 'string') {
       try {
-        return JSON.parse(jsonData);
+        const parsed: unknown = JSON.parse(jsonData);
+        return this.isJsonObject(parsed) ? parsed : {};
       } catch {
         return {};
       }
     }
     return {};
+  }
+
+  private static isJsonObject(value: unknown): value is JsonObject {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
   }
 
   /**
