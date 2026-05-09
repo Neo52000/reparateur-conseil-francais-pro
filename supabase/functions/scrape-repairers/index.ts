@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
 import { requireAdmin } from "../_shared/auth.ts";
 import { enforceRateLimit } from "../_shared/rate-limit.ts";
+import { withSentry } from "../_shared/sentry.ts";
 
 interface ScrapingRequest {
   department_code: string;
@@ -347,7 +348,7 @@ function extractServices(place: any): string[] {
   return Array.from(services);
 }
 
-serve(async (req) => {
+serve(withSentry("scrape-repairers", async (req) => {
   const preflight = handlePreflight(req);
   if (preflight) return preflight;
   const corsHeaders = buildCorsHeaders(req);
@@ -483,4 +484,4 @@ serve(async (req) => {
       }
     );
   }
-});
+}));

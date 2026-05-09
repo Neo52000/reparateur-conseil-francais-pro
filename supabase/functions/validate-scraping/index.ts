@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
 import { requireAdmin } from "../_shared/auth.ts";
 import { enforceRateLimit } from "../_shared/rate-limit.ts";
+import { withSentry } from "../_shared/sentry.ts";
 
 interface ValidateRequest {
   log_id?: string;
@@ -42,7 +43,7 @@ async function geocodeAddress(address: string, city: string, postalCode: string)
   }
 }
 
-serve(async (req) => {
+serve(withSentry("validate-scraping", async (req) => {
   const preflight = handlePreflight(req);
   if (preflight) return preflight;
   const corsHeaders = buildCorsHeaders(req);
@@ -247,4 +248,4 @@ serve(async (req) => {
       }
     );
   }
-});
+}));
