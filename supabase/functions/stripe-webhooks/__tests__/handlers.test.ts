@@ -154,6 +154,22 @@ describe("markEventProcessed", () => {
     expect(updateArg.processed_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(eqSpy).toHaveBeenCalledWith("stripe_event_id", "evt_xyz");
   });
+
+  it("throws when Supabase update fails so Sentry can record it", async () => {
+    const { supabase } = makeSupabase({
+      updateResult: { error: { code: "42501", message: "permission denied for table stripe_webhooks" } },
+    });
+
+    await expect(markEventProcessed(supabase, "evt_perm")).rejects.toThrow(
+      /Failed to mark event evt_perm as processed: permission denied/,
+    );
+  });
+
+  it("falls back to 'unknown error' when the postgrest error has no message", async () => {
+    const { supabase } = makeSupabase({ updateResult: { error: { code: "08000" } } });
+
+    await expect(markEventProcessed(supabase, "evt_x")).rejects.toThrow(/unknown error/);
+  });
 });
 
 // ----- markEventFailed -------------------------------------------------
@@ -169,5 +185,15 @@ describe("markEventFailed", () => {
       error_message: "RPC blew up",
     });
     expect(eqSpy).toHaveBeenCalledWith("stripe_event_id", "evt_zzz");
+  });
+
+  it("throws when Supabase update fails (caller must wrap in try/catch)", async () => {
+    const { supabase } = makeSupabase({
+      updateResult: { error: { code: "53300", message: "too many connections" } },
+    });
+
+    await expect(markEventFailed(supabase, "evt_qq", "biz error")).rejects.toThrow(
+      /Failed to mark event evt_qq as failed: too many connections/,
+    );
   });
 });

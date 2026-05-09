@@ -214,11 +214,18 @@ serve(withSentry("stripe-webhooks", async (req) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    await markEventFailed(
-      supabase,
-      event.id,
-      error instanceof Error ? error.message : String(error),
-    );
+    // Best-effort secondary write: never let a markEventFailed crash mask
+    // the original business error in the response. If the audit row write
+    // also fails, the wrapping `withSentry` still captures the original.
+    try {
+      await markEventFailed(
+        supabase,
+        event.id,
+        error instanceof Error ? error.message : String(error),
+      );
+    } catch (markErr) {
+      console.error('markEventFailed itself failed:', markErr);
+    }
 
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Webhook processing failed' }),

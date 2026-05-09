@@ -94,34 +94,49 @@ export async function recordWebhookEvent(
 /**
  * Mark an event as successfully processed (called after the business
  * logic for the event type completes without throwing).
+ *
+ * Throws on Supabase update failure so the caller (and Sentry) sees the
+ * problem instead of resolving silently.
  */
 export async function markEventProcessed(
   supabase: SupabaseClientLike,
   eventId: string,
 ): Promise<void> {
-  await supabase
+  const { error } = await supabase
     .from("stripe_webhooks")
     .update({
       processed: true,
       processed_at: new Date().toISOString(),
     })
     .eq("stripe_event_id", eventId);
+
+  if (error) {
+    throw new Error(`Failed to mark event ${eventId} as processed: ${error.message ?? "unknown error"}`);
+  }
 }
 
 /**
  * Mark an event as failed (called from the catch block when business
  * logic throws). Preserves the error text so operators can investigate.
+ *
+ * Throws on Supabase update failure. Callers in a catch block should
+ * wrap this in their own try/catch so the original (business) error is
+ * still surfaced to the user — see `index.ts` for the pattern.
  */
 export async function markEventFailed(
   supabase: SupabaseClientLike,
   eventId: string,
   errorMessage: string,
 ): Promise<void> {
-  await supabase
+  const { error } = await supabase
     .from("stripe_webhooks")
     .update({
       processed: false,
       error_message: errorMessage,
     })
     .eq("stripe_event_id", eventId);
+
+  if (error) {
+    throw new Error(`Failed to mark event ${eventId} as failed: ${error.message ?? "unknown error"}`);
+  }
 }
