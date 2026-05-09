@@ -31,15 +31,18 @@
 // `@sentry/deno` exposes the same surface as `@sentry/node`.
 import * as Sentry from "https://esm.sh/@sentry/deno@8.55.0";
 
-let initialized = false;
+// `null` = not yet checked; `false` = checked, no DSN; `true` = initialized.
+// Tri-state because using `boolean` collapses "no DSN" and "ready" into the
+// same value on subsequent calls.
+let initialized: boolean | null = null;
 
 function initSentryOnce(): boolean {
-  if (initialized) return true;
+  if (initialized !== null) return initialized;
 
   const dsn = Deno.env.get("SENTRY_DSN");
   if (!dsn) {
     // Operator hasn't configured Sentry — silently skip.
-    initialized = true;
+    initialized = false;
     return false;
   }
 
@@ -86,32 +89,42 @@ export function captureEdgeError(err: unknown, ctx: CaptureContext): void {
   });
 }
 
-type Handler = (req: Request) => Promise<Response> | Response;
+// `Deno.serve` and the Supabase Edge runtime may pass extra positional
+// args (e.g. `ConnInfo` for the client IP, or `context.waitUntil`).
+// Forward whatever's passed verbatim so wrapping stays transparent.
+type Handler = (req: Request, ...args: unknown[]) => Promise<Response> | Response;
 
 /**
- * Wrap a Deno serve handler so any uncaught throw is captured to Sentry
- * with `function_name` + `request_id` tags before being rethrown.
+ * Wrap a Deno serve handler so:
+ *   - any uncaught throw is captured to Sentry with `function_name` +
+ *     `request_id` tags (and rethrown — the edge function's own catch
+ *     still owns the 500 response).
+ *   - any manual `captureEdgeError(err, …)` calls inside the handler
+ *     are flushed before the response leaves, even on the success path.
  *
- * The wrapper intentionally rethrows: each edge function already has its
- * own error handling that returns a JSON 500. We just want the trace in
- * Sentry on top of that.
+ * Without the success-path flush, manually captured handled-error events
+ * (e.g. on a 400 response) get dropped when the isolate is suspended
+ * before the async send completes.
  */
 export function withSentry(functionName: string, handler: Handler): Handler {
-  return async (req: Request) => {
-    initSentryOnce();
+  return async (req: Request, ...args: unknown[]) => {
+    const isEnabled = initSentryOnce();
     const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID().slice(0, 8);
 
     try {
-      return await handler(req);
+      return await handler(req, ...args);
     } catch (err) {
-      captureEdgeError(err, { functionName, requestId });
-      // Best-effort flush before the Edge Function worker is recycled.
-      try {
-        await Sentry.flush(2000);
-      } catch {
-        // ignore
+      if (isEnabled) {
+        captureEdgeError(err, { functionName, requestId });
       }
       throw err;
+    } finally {
+      if (isEnabled) {
+        // Best-effort flush — runs on both success and error paths so
+        // explicit `captureEdgeError` calls inside the handler aren't
+        // lost when the isolate is recycled.
+        await Sentry.flush(2000).catch(() => {});
+      }
     }
   };
 }
