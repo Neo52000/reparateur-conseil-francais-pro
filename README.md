@@ -116,9 +116,12 @@ bun run dev          # Serveur de dev (Vite)
 bun run build        # Build de production
 bun run preview      # Prévisualisation du build
 bun run lint         # ESLint
-bun run test         # Vitest (single run)
+bun run test         # Vitest (single run, frontend + Edge Function helpers)
 bun run test:watch   # Vitest (watch)
 bun run test:e2e     # Playwright (smoke tests)
+
+# Tests SQL (RLS) — nécessite la Supabase CLI installée + Docker
+supabase test db     # Exécute supabase/tests/db/*.test.sql via pgTAP
 ```
 
 ## Données
@@ -140,6 +143,20 @@ Une refonte critique des policies a été appliquée en avril 2026 (cf. migratio
 - `send-notification` — multi-canal (push, email Resend, SMS gateway)
 
 CORS allowlist commune dans `supabase/functions/_shared/cors.ts`.
+
+### Tests RLS (pgTAP)
+
+Les politiques RLS critiques sont gardées par des tests pgTAP dans
+`supabase/tests/db/` :
+
+| Fichier | Couverture |
+|---|---|
+| `payments_rls.test.sql` | 7 tests sur la politique `payments_owner_access` (client/repairer owner, anon, admin bypass, INSERT WITH CHECK) |
+| `repairers_public_rls.test.sql` | 6 tests sur la vue `repairers_public` (anon SELECT autorisé, table `repairers` protégée contre INSERT/UPDATE/DELETE anon) |
+
+Exécution : `supabase test db` (nécessite Supabase CLI + Docker
+local). Chaque fichier installe pgTAP au début et fait `BEGIN;
+... ROLLBACK;` — pas de pollution de la DB de test.
 
 ### Monitoring Edge Functions
 
