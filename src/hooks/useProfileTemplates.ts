@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 import { ProfileTemplate, ProfileWidget, ProfileTheme, DEFAULT_THEME } from '@/types/profileBuilder';
 import { useToast } from '@/hooks/use-toast';
 
@@ -35,9 +36,11 @@ export const useProfileTemplates = () => {
       }));
 
       setTemplates(parsed);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error fetching templates:', err);
-      setError(err.message);
+      // Supabase PostgrestError is a plain object with a `message` field,
+      // so a strict `instanceof Error` check would miss the real message.
+      setError((err as { message?: string })?.message || 'Erreur inconnue');
     } finally {
       setLoading(false);
     }
@@ -73,8 +76,8 @@ export const useProfileTemplates = () => {
         .insert({
           name,
           description,
-          widgets: widgets as any,
-          theme_data: themeData as any,
+          widgets: widgets as unknown as Json,
+          theme_data: themeData as unknown as Json,
           is_default: false,
           is_ai_generated: isAIGenerated,
         })
@@ -97,7 +100,7 @@ export const useProfileTemplates = () => {
       });
 
       return newTemplate;
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error creating template:', err);
       toast({
         title: "Erreur",
@@ -120,8 +123,11 @@ export const useProfileTemplates = () => {
         .from('profile_templates')
         .update({
           ...updates,
-          widgets: updates.widgets as any,
-          theme_data: updates.theme_data as any,
+          // Partial updates: these JSONB fields may be `undefined` when
+          // the caller omits them. The Supabase `Json` type doesn't allow
+          // `undefined` at the top level, so widen the cast accordingly.
+          widgets: updates.widgets as unknown as Json | undefined,
+          theme_data: updates.theme_data as unknown as Json | undefined,
           updated_at: new Date().toISOString(),
         })
         .eq('id', id);
@@ -140,7 +146,7 @@ export const useProfileTemplates = () => {
       });
 
       return true;
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error updating template:', err);
       toast({
         title: "Erreur",
@@ -181,7 +187,7 @@ export const useProfileTemplates = () => {
       });
 
       return true;
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error setting default template:', err);
       toast({
         title: "Erreur",
@@ -239,7 +245,7 @@ export const useProfileTemplates = () => {
       });
 
       return true;
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error deleting template:', err);
       toast({
         title: "Erreur",
@@ -286,7 +292,7 @@ export const useProfileTemplates = () => {
         data.theme_data || DEFAULT_THEME,
         false
       );
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error importing template:', err);
       toast({
         title: "Erreur d'import",
