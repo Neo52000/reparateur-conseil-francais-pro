@@ -77,7 +77,7 @@ export class NominatimGeocoder {
     }
   }
 
-  private determineAccuracy(result: any): 'precise' | 'approximate' | 'fallback' {
+  private determineAccuracy(result: { type?: string; osm_type?: string }): 'precise' | 'approximate' | 'fallback' {
     const type = result.type || '';
     const osmType = result.osm_type || '';
     
