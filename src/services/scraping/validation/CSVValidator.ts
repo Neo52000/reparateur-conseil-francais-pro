@@ -8,19 +8,40 @@ export interface ValidationResult {
   errors: string[];
 }
 
+// Free-form CSV row — every cell may be string|number|null after PapaParse;
+// callers narrow per-field as needed.
+export type CsvRow = Record<string, string | number | null | undefined>;
+
+export interface ProcessedRepairerRow {
+  name: string;
+  address: string;
+  city: string;
+  postal_code: string;
+  phone: string;
+  email: string;
+  website: string;
+  services: string[];
+  specialties: string[];
+  price_range: 'low' | 'medium' | 'high';
+  lat: number | null;
+  lng: number | null;
+}
+
 export class CSVValidator {
   /**
    * Validate required fields for repairer data
    */
-  static validateRepairerRow(row: any, index: number): ValidationResult {
+  static validateRepairerRow(row: CsvRow, index: number): ValidationResult {
     const errors: string[] = [];
-    
+    const asTrimmed = (v: string | number | null | undefined): string =>
+      v == null ? '' : String(v).trim();
+
     // Check required fields
-    if (!row.name || row.name.trim().length === 0) {
+    if (asTrimmed(row.name).length === 0) {
       errors.push(`Ligne ${index + 1}: Le nom est obligatoire`);
     }
 
-    if (!row.city || row.city.trim().length === 0) {
+    if (asTrimmed(row.city).length === 0) {
       errors.push(`Ligne ${index + 1}: La ville est obligatoire`);
     }
 
@@ -33,26 +54,33 @@ export class CSVValidator {
   /**
    * Clean and process row data
    */
-  static processRow(row: any): any {
+  static processRow(row: CsvRow): ProcessedRepairerRow {
+    const splitList = (val: string | number | null | undefined): string[] => {
+      if (typeof val !== 'string') return [];
+      return val.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+    };
+    const trimStr = (val: string | number | null | undefined): string =>
+      val == null ? '' : String(val).trim();
+
+    const priceRangeRaw = typeof row.price_range === 'string'
+      ? row.price_range.toLowerCase()
+      : '';
+    const price_range: 'low' | 'medium' | 'high' =
+      priceRangeRaw === 'low' || priceRangeRaw === 'high' ? priceRangeRaw : 'medium';
+
     return {
-      name: row.name ? row.name.trim() : '',
-      address: row.address ? row.address.trim() : '',
-      city: row.city ? row.city.trim() : '',
-      postal_code: row.postal_code ? row.postal_code.toString().trim() : '',
-      phone: row.phone ? row.phone.toString().trim() : '',
-      email: row.email ? row.email.trim() : '',
-      website: row.website ? row.website.trim() : '',
-      services: row.services ? 
-        row.services.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0) : 
-        [],
-      specialties: row.specialties ? 
-        row.specialties.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0) : 
-        [],
-      price_range: row.price_range && ['low', 'medium', 'high'].includes(row.price_range.toString().toLowerCase()) 
-        ? row.price_range.toString().toLowerCase() 
-        : 'medium',
-      lat: row.lat ? parseFloat(row.lat.toString()) : null,
-      lng: row.lng ? parseFloat(row.lng.toString()) : null
+      name: trimStr(row.name),
+      address: trimStr(row.address),
+      city: trimStr(row.city),
+      postal_code: trimStr(row.postal_code),
+      phone: trimStr(row.phone),
+      email: trimStr(row.email),
+      website: trimStr(row.website),
+      services: splitList(row.services),
+      specialties: splitList(row.specialties),
+      price_range,
+      lat: row.lat == null ? null : parseFloat(String(row.lat)),
+      lng: row.lng == null ? null : parseFloat(String(row.lng)),
     };
   }
 }

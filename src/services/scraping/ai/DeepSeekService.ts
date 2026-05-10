@@ -12,13 +12,28 @@ interface DeepSeekResponse {
   }>;
 }
 
+// Caller-supplied scraped repairer (free-form, varies by source).
+export type RawRepairerData = Record<string, unknown>;
+
+// Output shape from the DeepSeek classification prompt.
+export interface ClassifiedRepairer {
+  id?: string;
+  name: string;
+  is_valid_repairer: boolean;
+  services: string[];
+  specialties: string[];
+  price_range: 'low' | 'medium' | 'high';
+  confidence_score: number;
+  [key: string]: unknown;
+}
+
 export class DeepSeekService {
   private static config: DeepSeekConfig = {
     model: 'deepseek-chat',
     baseUrl: 'https://api.deepseek.com/chat/completions'
   };
 
-  static async classifyRepairers(repairersData: any[]): Promise<any[]> {
+  static async classifyRepairers(repairersData: RawRepairerData[]): Promise<ClassifiedRepairer[]> {
     const prompt = `
 Tu es un expert en classification de données d'entreprises de réparation de téléphones et smartphones.
 
@@ -73,7 +88,7 @@ Format de réponse:
     }
   }
 
-  static async enhanceRepairerData(repairer: any): Promise<any> {
+  static async enhanceRepairerData(repairer: RawRepairerData): Promise<RawRepairerData> {
     const prompt = `
 Analyse ce réparateur et améliore ses données:
 ${JSON.stringify(repairer, null, 2)}
