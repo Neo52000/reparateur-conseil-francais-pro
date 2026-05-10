@@ -1,10 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
+import { requireAdmin } from "../_shared/auth.ts";
+import { enforceRateLimit } from "../_shared/rate-limit.ts";
+import { withSentry } from "../_shared/sentry.ts";
 
 interface ValidateRequest {
   log_id?: string;
@@ -44,10 +43,16 @@ async function geocodeAddress(address: string, city: string, postalCode: string)
   }
 }
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+serve(withSentry("validate-scraping", async (req) => {
+  const preflight = handlePreflight(req);
+  if (preflight) return preflight;
+  const corsHeaders = buildCorsHeaders(req);
+
+  const limited = enforceRateLimit(req, { namespace: 'validate-scraping', limit: 10, windowMs: 60_000 });
+  if (limited) return limited;
+
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -243,4 +248,4 @@ serve(async (req) => {
       }
     );
   }
-});
+}));

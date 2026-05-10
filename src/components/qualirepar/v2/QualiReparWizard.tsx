@@ -62,7 +62,7 @@ const QualiReparWizard: React.FC<QualiReparWizardProps> = ({
     setLoading(true);
     try {
       switch (currentStep) {
-        case 1:
+        case 1: {
           // Étape 1: Créer le dossier et l'initialiser via l'API
           let newDossier;
           if (!dossier) {
@@ -86,6 +86,7 @@ const QualiReparWizard: React.FC<QualiReparWizardProps> = ({
           setCurrentStep(2);
           await loadDossier(dossier?.id || newDossier?.id);
           break;
+        }
 
         case 2:
           // Étape 2: Vérifier que tous les documents sont uploadés
@@ -108,7 +109,7 @@ const QualiReparWizard: React.FC<QualiReparWizardProps> = ({
           }
           break;
 
-        case 3:
+        case 3: {
           // Étape 3: Confirmer et soumettre via l'API
           const confirmResponse = await supabase.functions.invoke('qualirepar-confirm', {
             body: { dossierId: dossier!.id }
@@ -123,6 +124,7 @@ const QualiReparWizard: React.FC<QualiReparWizardProps> = ({
             onComplete();
           }
           break;
+        }
       }
     } catch (error) {
       console.error('Error in step completion:', error);

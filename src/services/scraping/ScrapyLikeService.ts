@@ -25,7 +25,7 @@ export class DataCleaningPipeline implements ScrapingPipeline {
     return text
       .trim()
       .replace(/\s+/g, ' ')
-      .replace(/[^\w\s\-\.,]/g, '')
+      .replace(/[^\w\s\-.,]/g, '')
       .substring(0, 200);
   }
 
@@ -40,7 +40,7 @@ export class DataCleaningPipeline implements ScrapingPipeline {
 
   private cleanPhone(phone: string): string {
     if (!phone) return '';
-    const cleaned = phone.replace(/[^\d\+]/g, '');
+    const cleaned = phone.replace(/[^\d+]/g, '');
     if (cleaned.match(/^(\+33|0)[1-9]\d{8}$/)) {
       return cleaned;
     }

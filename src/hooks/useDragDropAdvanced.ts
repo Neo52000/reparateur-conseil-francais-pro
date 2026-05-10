@@ -10,12 +10,12 @@ export interface WidgetData {
   id: string;
   type: string;
   category: string;
-  props: Record<string, any>;
-  styles: Record<string, any>;
+  props: Record<string, unknown>;
+  styles: Record<string, unknown>;
   responsiveStyles: {
-    mobile?: Record<string, any>;
-    tablet?: Record<string, any>;
-    desktop?: Record<string, any>;
+    mobile?: Record<string, unknown>;
+    tablet?: Record<string, unknown>;
+    desktop?: Record<string, unknown>;
   };
   position?: { x: number; y: number };
   size?: { width: number; height: number };

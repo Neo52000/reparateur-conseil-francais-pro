@@ -110,7 +110,7 @@ const RepairCategoryDeviceLinks: React.FC = () => {
       // Charger les données réelles depuis Supabase (fallback to mocks)
       let categoriesData = null;
       let deviceTypesData = null;
-      let linksData = null;
+      const linksData = null;
       
       try {
         // Tentative de chargement des données réelles

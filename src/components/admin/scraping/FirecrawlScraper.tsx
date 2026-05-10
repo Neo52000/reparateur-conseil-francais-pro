@@ -64,7 +64,7 @@ const FirecrawlScraper: React.FC = () => {
       }
       
       // Look for phone numbers
-      const phoneMatch = line.match(/(?:Tel|Tél|Phone|☎|📞)?:?\s*([0-9\s\.]{10,})/i);
+      const phoneMatch = line.match(/(?:Tel|Tél|Phone|☎|📞)?:?\s*([0-9\s.]{10,})/i);
       if (phoneMatch && currentRepairer.name) {
         currentRepairer.phone = phoneMatch[1].replace(/\D/g, '');
       }

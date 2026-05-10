@@ -173,7 +173,7 @@ export const validateSensitiveData = (data: any): { valid: boolean; errors: stri
     errors.push('Mot de passe trop faible');
   }
   
-  if (data.phone && !/^[\d\s\-\.\+\(\)]+$/.test(data.phone)) {
+  if (data.phone && !/^[\d\s\-.+()]+$/.test(data.phone)) {
     errors.push('Format de téléphone invalide');
   }
   

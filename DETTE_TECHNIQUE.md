@@ -3,7 +3,7 @@
 Registre des dettes techniques connues, leur impact, leur priorité et
 leur plan de résorption.
 
-Dernière mise à jour : **2026-04-23** (fin Phase 0).
+Dernière mise à jour : **2026-05-09** (fin sprint S+1).
 
 ---
 
@@ -36,6 +36,8 @@ bun run lint 2>&1 | grep -oP '\d+ problems \(\K\d+' | head -1
 | Date | Phase | Erreurs | Warnings |
 |---|---|---|---|
 | 2026-04-23 | Début Phase 0 | 1 471 | 292 |
+| 2026-05-07 | Début sprint S+1 | 1 065 | 1 223 |
+| 2026-05-09 | Fin sprint S+1 (PRs #29, #30, #31, #32, #33, #34, #35) | 946 | 1 223 |
 | _TBD_ | Fin Phase 1 | cible < 50 | cible < 100 |
 
 ---
@@ -44,7 +46,7 @@ bun run lint 2>&1 | grep -oP '\d+ problems \(\K\d+' | head -1
 
 ### Snapshot
 
-- `supabase/migrations/` : **335 fichiers SQL** accumulés (prototype Lovable)
+- `supabase/migrations/` : **337 fichiers SQL** accumulés (prototype Lovable)
 - Volume rend `supabase db reset` lent et `db diff` bruité
 
 ### Plan de résorption
@@ -92,18 +94,27 @@ supabase db diff --schema public    # doit être vide
 
 ---
 
-## 3. Audit sécurité — restes Phase 3 (MOYENNE)
+## 3. Audit sécurité — Stripe (résolu en Phase 0+, à vérifier en Phase 3)
 
-Issues non critiques reportées à la refonte billing Phase 3 :
+> ⚠️ **Note 2026-05-07** : la version précédente de cette section disait que
+> `create-subscription`, `create-payment-intent` et `stripe-webhooks` étaient
+> en quarantaine dans `supabase/functions/_disabled/`. **Ce n'est plus le
+> cas.** Les trois fonctions sont actives dans `supabase/functions/` et
+> déployées en prod. Le répertoire `_disabled/` n'existe plus. Cf.
+> `AUDIT_20260507.md` § 2 (delta positif vs mars).
 
-| Réf | Issue | Fichier | Phase |
-|---|---|---|---|
-| D3 | `create-subscription` sans JWT | `supabase/functions/_disabled/create-subscription` | Phase 3 |
-| D4 | CORS wildcard sur endpoint paiement | `supabase/functions/_disabled/create-payment-intent` | Phase 3 |
-| D6 | Stripe webhook sans `constructEvent()` | `supabase/functions/_disabled/stripe-webhooks` | Phase 3 |
+État actuel des trois fonctions :
 
-Les 3 fonctions sont **en quarantaine** (répertoire `_disabled/`) et non
-déployables en l'état. Cf. `supabase/functions/_disabled/README.md`.
+| Réf | Issue d'origine | Statut 2026-05-07 |
+|---|---|---|
+| D3 | `create-subscription` sans JWT | Actif. `verify_jwt = true` (default Supabase) **et** la fonction vérifie explicitement le JWT en appelant `supabaseAdmin.auth.getUser(token)` (cf. `supabase/functions/create-subscription/index.ts:34`) avant toute opération. |
+| D4 | CORS wildcard sur endpoint paiement | Migré vers `_shared/cors.ts` allowlist (PR #21). |
+| D6 | Stripe webhook sans `constructEvent()` | Implémente `stripe.webhooks.constructEventAsync()` + idempotence via `stripe_event_id` unique sur la table `stripe_webhooks`. |
+
+Restes Phase 3 (à valider quand le flow checkout passe en prod réel) :
+- Test e2e : 1 paiement test live de bout en bout
+- Couverture Vitest sur la fonction `stripe-webhooks` (mocks Stripe SDK ou
+  test Deno) — voir backlog PR-6.
 
 ---
 
@@ -119,3 +130,37 @@ Fix 1-ligne à appliquer au passage :
 bun add -D caniuse-lite@latest
 ```
 Non-bloquant, pas de CVE. À faire Phase 1.
+
+---
+
+## 5. Sprint S+1 — Acquis (2026-05-07 → 2026-05-09)
+
+Sprint déclenché par `AUDIT_20260507.md`. **14 PRs mergées** sur la branche
+`claude/new-session-LvMm6` :
+
+| PR | Sujet | Audit ref |
+|---|---|---|
+| #21 | CORS allowlist sur 10 Edge Functions + `_shared/cors.ts` | P0 #5 |
+| #22 | README rewrite (alignement `topreparateurs.fr`) | P1 #8 |
+| #23 | Build-time feature flags (`buildFlags.ts` + `<FeatureGate>`) | P1 #7 |
+| #25 | 78 nouveaux tests Vitest (validation, sitemap, cn) | P0 #6 (partiel) |
+| #26 | TypeScript strict ratchet (`tsconfig.strict.json` + CI step) | P0 #3 |
+| #27 | DETTE_TECHNIQUE refresh (Stripe quarantine désactualisée) | P1 #9 |
+| #28 | Auth + rate-limit sur 7 Edge Functions sensibles | P0 #2, #4 |
+| #29 | ESLint burndown v1 (1065 → 1036) + lint-staged relaxé | P1 #9 |
+| #30 | Élimination des 13 `no-case-declarations` | P1 #9 |
+| #31 | -9 `no-explicit-any` dans `src/utils/` | P1 #9 |
+| #32 | -7 `no-explicit-any` dans `src/services/` (paginate, repository) | P1 #9 |
+| #33 | -11 `no-explicit-any` dans `src/hooks/` (useRealRepairers, useAnalyticsEvents) | P1 #9 |
+| #34 | -23 `no-explicit-any` dans 3 hooks UI (useUIConfigurations, useProfileTemplates, useDragDropAdvanced) | P1 #9 |
+| #35 | -27 `no-explicit-any` dans la chaîne admin-audit + `JsonObject` standardisé | P1 #9 |
+
+Score audit estimé : **6/10 → ~8/10** (P0 #1 et P1 #10/#12 restent).
+
+### Restants déférés
+
+| Item | Raison du report |
+|---|---|
+| **P0 #1** Purge `.env` git history + rotation Supabase/Mapbox | Bloqué : rotation manuelle dashboards (utilisateur), puis force-push destructif |
+| **P1 #10** Squash 337 migrations | Bloqué : backup DB prod obligatoire |
+| **P1 #12** CSP nonce-based | Multi-jours, risque casser Stripe Elements / Sentry |

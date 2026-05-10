@@ -1,6 +1,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
+import { withSentry } from "../_shared/sentry.ts";
+import {
+  markEventFailed,
+  markEventProcessed,
+  recordWebhookEvent,
+  verifyStripeSignature,
+} from "./handlers.ts";
 
 /**
  * Stripe webhook handler.
@@ -15,7 +22,7 @@ import Stripe from "https://esm.sh/stripe@14.21.0?target=deno";
  *   refuse les rejouages via une contrainte unique sur `stripe_event_id`.
  */
 
-serve(async (req) => {
+serve(withSentry("stripe-webhooks", async (req) => {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
   }
@@ -43,7 +50,7 @@ serve(async (req) => {
   // 🔐 Vérification cryptographique de la signature : OBLIGATOIRE.
   let event: Stripe.Event;
   try {
-    event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
+    event = (await verifyStripeSignature(stripe, body, signature, webhookSecret)) as Stripe.Event;
   } catch (err) {
     return new Response(
       JSON.stringify({ error: `Webhook signature verification failed: ${(err as Error).message}` }),
@@ -58,25 +65,22 @@ serve(async (req) => {
 
   // Idempotence : insérer dans stripe_webhooks ; si l'event est déjà présent,
   // on ignore (ne pas le retraiter).
-  const { error: insertError } = await supabase
-    .from('stripe_webhooks')
-    .insert({
-      stripe_event_id: event.id,
-      event_type: event.type,
-      payload: event,
-      processed: false,
-    });
+  const recordResult = await recordWebhookEvent(supabase, {
+    id: event.id,
+    type: event.type,
+    payload: event,
+  });
 
-  if (insertError && insertError.code === '23505') {
-    // Duplicate key : déjà traité, on retourne 200 pour stopper les retries Stripe.
+  if (recordResult.status === 'duplicate') {
+    // Déjà traité, on retourne 200 pour stopper les retries Stripe.
     return new Response(JSON.stringify({ received: true, duplicate: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   }
-  if (insertError) {
+  if (recordResult.status === 'error') {
     return new Response(
-      JSON.stringify({ error: `Failed to log webhook: ${insertError.message}` }),
+      JSON.stringify({ error: `Failed to log webhook: ${recordResult.message}` }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },
     );
   }
@@ -203,30 +207,29 @@ serve(async (req) => {
       }
     }
 
-    await supabase
-      .from('stripe_webhooks')
-      .update({
-        processed: true,
-        processed_at: new Date().toISOString(),
-      })
-      .eq('stripe_event_id', event.id);
+    await markEventProcessed(supabase, event.id);
 
     return new Response(JSON.stringify({ received: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    await supabase
-      .from('stripe_webhooks')
-      .update({
-        processed: false,
-        error_message: error instanceof Error ? error.message : String(error),
-      })
-      .eq('stripe_event_id', event.id);
+    // Best-effort secondary write: never let a markEventFailed crash mask
+    // the original business error in the response. If the audit row write
+    // also fails, the wrapping `withSentry` still captures the original.
+    try {
+      await markEventFailed(
+        supabase,
+        event.id,
+        error instanceof Error ? error.message : String(error),
+      );
+    } catch (markErr) {
+      console.error('markEventFailed itself failed:', markErr);
+    }
 
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Webhook processing failed' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } },
     );
   }
-});
+}));

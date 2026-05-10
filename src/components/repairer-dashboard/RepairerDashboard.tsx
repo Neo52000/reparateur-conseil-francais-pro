@@ -174,7 +174,7 @@ const RepairerDashboard = () => {
         console.log('🔄 RepairerDashboard - User email:', user.email);
         
         // Première tentative : chercher par user_id
-        let { data, error } = await supabase
+        const { data, error } = await supabase
           .from('repairer_subscriptions')
           .select('subscription_tier, subscribed, email, billing_cycle')
           .eq('user_id', user.id)

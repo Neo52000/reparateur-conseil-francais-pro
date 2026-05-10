@@ -17,6 +17,7 @@ import { MobileBottomNav } from './components/navigation/MobileBottomNav';
 import { PWAInstallBanner } from './components/pwa/PWAInstallBanner';
 import { PWAUpdateBanner } from './components/pwa/PWAUpdateBanner';
 import { Toaster } from './components/ui/sonner';
+import { FeatureGate } from './components/FeatureGate';
 
 // --- Lazy-loaded pages (code-split for smaller initial bundle) ---
 
@@ -172,9 +173,30 @@ const AppWithTracking = () => {
         <Route path="/admin/import" element={<AdminImportPage />} />
         <Route path="/admin/import/*" element={<AdminImportPage />} />
         <Route path="/admin/static-pages" element={<StaticPagesManagerPage />} />
-        <Route path="/admin/profile-builder" element={<ProfileBuilderPage />} />
-        <Route path="/admin/profile-builder/new" element={<ProfileBuilderPage />} />
-        <Route path="/admin/profile-builder/:templateId" element={<ProfileBuilderPage />} />
+        <Route
+          path="/admin/profile-builder"
+          element={
+            <FeatureGate flag="LANDING_BUILDER" redirectTo="/404">
+              <ProfileBuilderPage />
+            </FeatureGate>
+          }
+        />
+        <Route
+          path="/admin/profile-builder/new"
+          element={
+            <FeatureGate flag="LANDING_BUILDER" redirectTo="/404">
+              <ProfileBuilderPage />
+            </FeatureGate>
+          }
+        />
+        <Route
+          path="/admin/profile-builder/:templateId"
+          element={
+            <FeatureGate flag="LANDING_BUILDER" redirectTo="/404">
+              <ProfileBuilderPage />
+            </FeatureGate>
+          }
+        />
         {/* Pages SEO programmatiques V3 */}
         <Route path="/reparation/:model/:city" element={<ModelCityPageLazy />} />
         <Route path="/reparateurs/:city" element={<HubCityPageLazy />} />

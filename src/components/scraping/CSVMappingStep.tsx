@@ -249,9 +249,10 @@ const CSVMappingStep: React.FC<CSVMappingStepProps> = ({
     if (!sampleValue) return '';
     
     switch (mapping.transform) {
-      case 'split_postal_city':
+      case 'split_postal_city': {
         const match = sampleValue.toString().match(/^(\d{5})\s+(.+)$/);
         return match ? `${match[1]} → ${match[2]}` : 'Pas de match';
+      }
       default:
         return sampleValue.toString().substring(0, 30);
     }

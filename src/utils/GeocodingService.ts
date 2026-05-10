@@ -84,15 +84,15 @@ export class GeocodingService {
     return results;
   }
 
-  private static determineAccuracy(result: any): 'precise' | 'approximate' {
+  private static determineAccuracy(result: { type?: string; osm_type?: string }): 'precise' | 'approximate' {
     // Détermine la précision basée sur le type de résultat
     const type = result.type || '';
     const osm_type = result.osm_type || '';
-    
+
     if (type.includes('house') || type.includes('building') || osm_type === 'way') {
       return 'precise';
     }
-    
+
     return 'approximate';
   }
 
