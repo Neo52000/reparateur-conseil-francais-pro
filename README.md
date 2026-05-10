@@ -166,6 +166,93 @@ Production sur **Netlify** (continuous deploy depuis `main`). Headers de sécuri
 - CI GitHub Actions : lint (non-bloquant pour l'instant), `tsc --noEmit`, build
 - Workflow recommandé : fork → branche `feat/...` ou `fix/...` → PR (draft) → review → merge
 
+
+# Optionnel
+VITE_MAPBOX_TOKEN=<token>
+VITE_SENTRY_DSN=<dsn>
+```
+
+> ⚠️ La clé Supabase utilisée côté front est la **publishable key** (préfixe `pk_`),
+> pas l'ancienne `anon key`. Le client `src/integrations/supabase/client.ts` lit
+> `VITE_SUPABASE_PUBLISHABLE_KEY`.
+
+Les secrets côté Edge Functions (Stripe, OpenAI, Gemini, Resend, SMS gateway, etc.)
+se configurent via `supabase secrets set` ou le dashboard Supabase.
+
+### Scripts
+
+```bash
+bun run dev          # Serveur de dev (Vite)
+bun run build        # Build de production
+bun run preview      # Prévisualisation du build
+bun run lint         # ESLint
+bun run test         # Vitest (single run, frontend + Edge Function helpers)
+bun run test:watch   # Vitest (watch)
+bun run test:e2e     # Playwright (smoke tests)
+
+# Tests SQL (RLS) — nécessite la Supabase CLI installée + Docker
+supabase test db     # Exécute supabase/tests/db/*.test.sql via pgTAP
+```
+
+## Données
+
+Tables principales : `profiles`, `repairers`, `repairer_profiles`, `quote_requests`,
+`appointments`, `subscription_plans`, `payments`, `stripe_webhooks`, `scraping_logs`,
+`notifications`, `repairer_reviews`.
+
+Toutes les tables sensibles sont protégées par **Row Level Security (RLS)**.
+Une refonte critique des policies a été appliquée en avril 2026 (cf. migration
+`20260423120000_phase0_fix_rls_critical.sql`).
+
+### Edge Functions notables
+
+- `stripe-webhooks` — webhooks Stripe (signature HMAC + idempotence sur `stripe_event_id`)
+- `create-payment-intent` / `create-subscription` — paiements
+- `geocode-repairers` / `validate-scraping` / `scrape-repairers` — back-office scraping
+- `generate-repairer-seo-page` — génération de pages SEO programmatiques
+- `send-notification` — multi-canal (push, email Resend, SMS gateway)
+
+CORS allowlist commune dans `supabase/functions/_shared/cors.ts`.
+
+### Tests RLS (pgTAP)
+
+Les politiques RLS critiques sont gardées par des tests pgTAP dans
+`supabase/tests/db/` :
+
+| Fichier | Couverture |
+|---|---|
+| `payments_rls.test.sql` | 7 tests sur la politique `payments_owner_access` (client/repairer owner, anon, admin bypass, INSERT WITH CHECK) |
+| `repairers_public_rls.test.sql` | 6 tests sur la vue `repairers_public` (anon SELECT autorisé, table `repairers` protégée contre INSERT/UPDATE/DELETE anon) |
+
+Exécution : `supabase test db` (nécessite Supabase CLI + Docker
+local). Chaque fichier installe pgTAP au début et fait `BEGIN;
+... ROLLBACK;` — pas de pollution de la DB de test.
+
+### Monitoring Edge Functions
+
+Les 7 fonctions critiques (`stripe-webhooks`, `ai-cmo-worker`,
+`ai-scrape-repairers`, `scrape-repairers`, `validate-scraping`,
+`geocode-repairers`, `social-booster`) sont instrumentées via
+`supabase/functions/_shared/sentry.ts` (`@sentry/deno`). Toute exception
+non capturée est envoyée à Sentry avec le tag `function_name` et un
+`request_id` court.
+
+Configuration : `supabase secrets set SENTRY_DSN=<dsn>`. Sans la variable,
+les fonctions tournent normalement (capture désactivée).
+
+## Déploiement
+
+Production sur **Netlify** (continuous deploy depuis `main`). Headers de sécurité
+(HSTS, CSP, COOP, COEP, X-Frame-Options) configurés dans `netlify.toml`. Le plugin
+`@netlify/plugin-lighthouse` audite chaque preview.
+
+## Développement et contributions
+
+- Branche par défaut : `main`
+- Hooks Husky : `pre-commit` (lint-staged) + `commit-msg`
+- CI GitHub Actions : lint (non-bloquant pour l'instant), `tsc --noEmit`, build
+- Workflow recommandé : fork → branche `feat/...` ou `fix/...` → PR (draft) → review → merge
+
 Lecture utile avant contribution :
 - [`AUDIT_20260507.md`](AUDIT_20260507.md) — état sécurité / qualité / dette
 - [`DETTE_TECHNIQUE.md`](DETTE_TECHNIQUE.md) — backlog priorisé
