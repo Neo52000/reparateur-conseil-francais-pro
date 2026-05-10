@@ -28,20 +28,29 @@ export interface ProcessedRepairerRow {
 }
 
 export class CSVValidator {
+  // Single helper for trimming a CSV cell — handles null/undefined/number too.
+  private static trimCell(val: string | number | null | undefined): string {
+    return val == null ? '' : String(val).trim();
+  }
+
+  // Split a comma-separated cell into a non-empty trimmed list.
+  private static splitList(val: string | number | null | undefined): string[] {
+    if (typeof val !== 'string') return [];
+    return val.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+  }
+
   /**
    * Validate required fields for repairer data
    */
   static validateRepairerRow(row: CsvRow, index: number): ValidationResult {
     const errors: string[] = [];
-    const asTrimmed = (v: string | number | null | undefined): string =>
-      v == null ? '' : String(v).trim();
 
     // Check required fields
-    if (asTrimmed(row.name).length === 0) {
+    if (CSVValidator.trimCell(row.name).length === 0) {
       errors.push(`Ligne ${index + 1}: Le nom est obligatoire`);
     }
 
-    if (asTrimmed(row.city).length === 0) {
+    if (CSVValidator.trimCell(row.city).length === 0) {
       errors.push(`Ligne ${index + 1}: La ville est obligatoire`);
     }
 
@@ -55,32 +64,34 @@ export class CSVValidator {
    * Clean and process row data
    */
   static processRow(row: CsvRow): ProcessedRepairerRow {
-    const splitList = (val: string | number | null | undefined): string[] => {
-      if (typeof val !== 'string') return [];
-      return val.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
-    };
-    const trimStr = (val: string | number | null | undefined): string =>
-      val == null ? '' : String(val).trim();
+    const trim = CSVValidator.trimCell;
+    const split = CSVValidator.splitList;
 
-    const priceRangeRaw = typeof row.price_range === 'string'
-      ? row.price_range.toLowerCase()
-      : '';
+    // price_range: accept string OR number (some CSVs serialize "1"/"2"/"3");
+    // we normalize via trimCell so a numeric cell still comes out as text we
+    // can lower-case match on.
+    const priceRangeRaw = trim(row.price_range).toLowerCase();
     const price_range: 'low' | 'medium' | 'high' =
       priceRangeRaw === 'low' || priceRangeRaw === 'high' ? priceRangeRaw : 'medium';
 
+    // lat/lng: empty cells must be null (parseFloat('') === NaN, which would
+    // poison the DB). Only call parseFloat when the trimmed cell is non-empty.
+    const latStr = trim(row.lat);
+    const lngStr = trim(row.lng);
+
     return {
-      name: trimStr(row.name),
-      address: trimStr(row.address),
-      city: trimStr(row.city),
-      postal_code: trimStr(row.postal_code),
-      phone: trimStr(row.phone),
-      email: trimStr(row.email),
-      website: trimStr(row.website),
-      services: splitList(row.services),
-      specialties: splitList(row.specialties),
+      name: trim(row.name),
+      address: trim(row.address),
+      city: trim(row.city),
+      postal_code: trim(row.postal_code),
+      phone: trim(row.phone),
+      email: trim(row.email),
+      website: trim(row.website),
+      services: split(row.services),
+      specialties: split(row.specialties),
       price_range,
-      lat: row.lat == null ? null : parseFloat(String(row.lat)),
-      lng: row.lng == null ? null : parseFloat(String(row.lng)),
+      lat: latStr === '' ? null : parseFloat(latStr),
+      lng: lngStr === '' ? null : parseFloat(lngStr),
     };
   }
 }

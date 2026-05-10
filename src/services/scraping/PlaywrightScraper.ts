@@ -42,8 +42,8 @@ export class PlaywrightScraper {
       await this.page.goto(url, { waitUntil: 'networkidle' });
       await this.page.waitForTimeout(2000);
 
-      const results = await this.page.evaluate(() => {
-        const items: unknown[] = [];
+      const results = await this.page.evaluate<ScrapingResult[]>(() => {
+        const items: ScrapingResult[] = [];
         const listings = document.querySelectorAll('[data-pj-list-item]');
         
         listings.forEach(listing => {
@@ -76,7 +76,7 @@ export class PlaywrightScraper {
       });
 
       console.log(`Pages Jaunes: ${results.length} résultats trouvés pour ${searchTerm} à ${location}`);
-      return results as ScrapingResult[];
+      return results;
     } catch (error) {
       console.error('Erreur scraping Pages Jaunes:', error);
       return [];
@@ -103,8 +103,8 @@ export class PlaywrightScraper {
       
       await this.page.waitForTimeout(2000);
 
-      const results = await this.page.evaluate(() => {
-        const items: unknown[] = [];
+      const results = await this.page.evaluate<ScrapingResult[]>(() => {
+        const items: ScrapingResult[] = [];
         const listings = document.querySelectorAll('[data-result-index]');
         
         listings.forEach(listing => {
@@ -140,7 +140,7 @@ export class PlaywrightScraper {
       });
 
       console.log(`Google Maps: ${results.length} résultats trouvés pour ${query}`);
-      return results as ScrapingResult[];
+      return results;
     } catch (error) {
       console.error('Erreur scraping Google Maps:', error);
       return [];
