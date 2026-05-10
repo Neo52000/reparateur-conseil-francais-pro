@@ -20,7 +20,7 @@ export interface ApiConfig {
 
 export interface ApiCallResult {
   success: boolean;
-  data?: any;
+  data?: unknown;
   error?: string;
   responseTime: number;
   apiUsed: string;

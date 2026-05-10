@@ -72,7 +72,14 @@ export class ScrapingOrchestrator {
       }
 
       // Phase 2: Classification IA (si disponible)
-      let classifications: any[] = [];
+      interface ClassificationResult {
+        isRepairer: boolean;
+        confidence: number;
+        services?: string[];
+        specialties?: string[];
+        priceRange?: 'low' | 'medium' | 'high';
+      }
+      let classifications: ClassificationResult[] = [];
       if (this.aiService && !config.testMode) {
         console.log('🤖 Classification IA avec Mistral...');
         classifications = await this.aiService.batchClassify(
