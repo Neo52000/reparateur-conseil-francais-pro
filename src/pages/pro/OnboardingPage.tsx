@@ -99,6 +99,14 @@ const OnboardingPage = () => {
       });
       return;
     }
+    if (siret && !/^\d{14}$/.test(siret)) {
+      toast({
+        title: "SIRET invalide",
+        description: "Le SIRET doit comporter exactement 14 chiffres (ou être laissé vide).",
+        variant: "destructive",
+      });
+      return;
+    }
     setSubmitting(true);
     const { error } = await supabaseMvpd.from("repairers").insert({
       user_id: user.id,
@@ -168,7 +176,14 @@ const OnboardingPage = () => {
               </div>
               <div>
                 <Label htmlFor="siret">SIRET</Label>
-                <Input id="siret" value={siret} onChange={(e) => setSiret(e.target.value.replace(/\D/g, "").slice(0, 14))} />
+                <Input
+                  id="siret"
+                  value={siret}
+                  onChange={(e) => setSiret(e.target.value.replace(/\D/g, "").slice(0, 14))}
+                  pattern="\d{14}"
+                  title="Le SIRET doit comporter exactement 14 chiffres"
+                  inputMode="numeric"
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

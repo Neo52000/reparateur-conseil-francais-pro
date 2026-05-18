@@ -74,10 +74,16 @@ serve(withSentry("match-and-distribute", async (req: Request) => {
     );
   }
 
-  // Caller is either a verified user (via verify_jwt = true in config) OR an
-  // internal trigger using service-role/cron secret. We let verify_jwt do the
-  // first gate; for extra safety against future config drift we also accept
-  // the cron secret path.
+  // `verify_jwt = false` dans config.toml → on doit AUTH NOUS-MÊMES.
+  // Seuls les appels avec CRON_SECRET ou service-role sont acceptés —
+  // jamais le SPA directement.
+  if (!authorized(req)) {
+    return new Response(
+      JSON.stringify({ success: false, error: "unauthorized" }),
+      { status: 401, headers: { ...buildCorsHeaders(req), "Content-Type": "application/json" } },
+    );
+  }
+
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -178,10 +184,13 @@ serve(withSentry("match-and-distribute", async (req: Request) => {
   const deliveries: { repairer_id: string; lead_id: string; notified: boolean }[] = [];
 
   for (const target of targets) {
+    // Pré-génère l'UUID pour relier la transaction de crédit au lead.
+    const leadId = crypto.randomUUID();
+
     const { data: newBalance, error: debitErr } = await supabase.rpc("debit_credits", {
       p_repairer: target.id,
       p_amount: 1,
-      p_lead: null,
+      p_lead: leadId,
     });
 
     if (debitErr) {
@@ -200,6 +209,7 @@ serve(withSentry("match-and-distribute", async (req: Request) => {
     const { data: lead, error: insertErr } = await supabase
       .from("lead_deliveries")
       .insert({
+        id: leadId,
         issue_request_id: issue.id,
         repairer_id: target.id,
         credits_spent: 1,

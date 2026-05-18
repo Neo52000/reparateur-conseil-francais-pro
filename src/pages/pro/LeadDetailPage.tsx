@@ -86,8 +86,9 @@ const LeadDetailPage = () => {
   const updateStatus = async (status: Status) => {
     if (!lead) return;
     setSaving(true);
-    const conversion = status === "converted" && conversionValue
-      ? Math.round(parseFloat(conversionValue.replace(",", ".")) * 100)
+    const parsed = parseFloat(conversionValue.replace(",", "."));
+    const conversion = status === "converted" && Number.isFinite(parsed)
+      ? Math.round(parsed * 100)
       : undefined;
     const { data, error } = await supabase.functions.invoke("lead-status-update", {
       body: {
