@@ -63,3 +63,25 @@ verify_jwt = false
 
 [functions.ai-cmo-worker]
 verify_jwt = false
+
+# --- MVP D : lead-gen + IA diagnostic --------------------------------------
+
+# Public, no auth (rate-limit IP enforced in body).
+[functions.diagnose-issue]
+verify_jwt = false
+
+# Internal: triggered by diagnose-issue with service-role, or by cron secret.
+[functions.match-and-distribute]
+verify_jwt = false
+
+# Repairer-authenticated.
+[functions.stripe-checkout-credits]
+verify_jwt = true
+
+# Repairer-authenticated (RLS scopes lead ownership).
+[functions.lead-status-update]
+verify_jwt = true
+
+# Cron-only (CRON_SECRET via x-cron-secret header).
+[functions.generate-seo-page]
+verify_jwt = false

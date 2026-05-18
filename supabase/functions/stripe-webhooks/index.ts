@@ -182,6 +182,33 @@ serve(withSentry("stripe-webhooks", async (req) => {
         break;
       }
 
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        // MVP D : achat de pack de crédits réparateur.
+        if (
+          session.metadata?.kind === 'credits_purchase'
+          && session.payment_status === 'paid'
+        ) {
+          const repairerId = session.metadata.repairer_id;
+          const credits = parseInt(session.metadata.credits ?? '0', 10);
+          if (!repairerId || !Number.isFinite(credits) || credits <= 0) {
+            console.error('checkout.session.completed: invalid credits metadata', session.id);
+            break;
+          }
+          const { error: rpcError } = await supabase.rpc('credit_credits', {
+            p_repairer: repairerId,
+            p_amount: credits,
+            p_session: session.id,
+            p_kind: 'purchase',
+          });
+          if (rpcError) {
+            // Laisse le webhook retomber en échec → Stripe va retry.
+            throw new Error(`credit_credits failed: ${rpcError.message}`);
+          }
+        }
+        break;
+      }
+
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
