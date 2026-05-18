@@ -76,6 +76,14 @@ const MyDataPage = lazy(() => import("./pages/MyDataPage"));
 const SubscriptionSuccessPage = lazy(() => import("./pages/SubscriptionSuccessPage"));
 const SubscriptionCanceledPage = lazy(() => import("./pages/SubscriptionCanceledPage"));
 
+// MVP D — Lead-gen tunnel
+const DiagnosticPage = lazy(() => import("./pages/DiagnosticPage"));
+const BonusReparationPage = lazy(() => import("./pages/BonusReparationPage"));
+const ProOnboardingPage = lazy(() => import("./pages/pro/OnboardingPage"));
+const ProLeadsListPage = lazy(() => import("./pages/pro/LeadsListPage"));
+const ProLeadDetailPage = lazy(() => import("./pages/pro/LeadDetailPage"));
+const ProWalletPage = lazy(() => import("./pages/pro/WalletPage"));
+
 // Other pages
 const StaticPage = lazy(() => import("./pages/StaticPage"));
 const DocumentationPage = lazy(() => import("./pages/DocumentationPage"));
@@ -222,6 +230,13 @@ const AppWithTracking = () => {
         <Route path="/static/:slug" element={<StaticPage />} />
         <Route path="/repairer-auth" element={<RepairerAuthPage />} />
         <Route path="/client-auth" element={<ClientAuthPage />} />
+        {/* MVP D — tunnel diagnostic + espace pro lead-gen */}
+        <Route path="/diagnostic" element={<DiagnosticPage />} />
+        <Route path="/bonus-reparation" element={<BonusReparationPage />} />
+        <Route path="/pro/onboarding" element={<ProOnboardingPage />} />
+        <Route path="/pro/leads" element={<ProLeadsListPage />} />
+        <Route path="/pro/leads/:id" element={<ProLeadDetailPage />} />
+        <Route path="/pro/wallet" element={<ProWalletPage />} />
         {/* Aliases to avoid blank pages */}
         <Route path="/client" element={<Navigate to="/client-auth" replace />} />
         <Route path="/repairer" element={<Navigate to="/repairer-auth" replace />} />
