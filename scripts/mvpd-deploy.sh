@@ -48,7 +48,7 @@ echo "→ Applying migrations (push to remote)…"
 supabase db push
 
 # --- 4. Edge Functions -----------------------------------------------------
-for fn in diagnose-issue match-and-distribute lead-status-update \
+for fn in diagnose-issue submit-contact match-and-distribute lead-status-update \
           stripe-checkout-credits generate-seo-page; do
   echo "→ Deploying function: $fn"
   supabase functions deploy "$fn"
