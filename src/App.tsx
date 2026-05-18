@@ -83,6 +83,7 @@ const ProOnboardingPage = lazy(() => import("./pages/pro/OnboardingPage"));
 const ProLeadsListPage = lazy(() => import("./pages/pro/LeadsListPage"));
 const ProLeadDetailPage = lazy(() => import("./pages/pro/LeadDetailPage"));
 const ProWalletPage = lazy(() => import("./pages/pro/WalletPage"));
+const AdminMvpdRepairersPage = lazy(() => import("./pages/admin/AdminMvpdRepairersPage"));
 
 // Other pages
 const StaticPage = lazy(() => import("./pages/StaticPage"));
@@ -237,6 +238,7 @@ const AppWithTracking = () => {
         <Route path="/pro/leads" element={<ProLeadsListPage />} />
         <Route path="/pro/leads/:id" element={<ProLeadDetailPage />} />
         <Route path="/pro/wallet" element={<ProWalletPage />} />
+        <Route path="/admin/mvpd-repairers" element={<AdminMvpdRepairersPage />} />
         {/* Aliases to avoid blank pages */}
         <Route path="/client" element={<Navigate to="/client-auth" replace />} />
         <Route path="/repairer" element={<Navigate to="/repairer-auth" replace />} />
