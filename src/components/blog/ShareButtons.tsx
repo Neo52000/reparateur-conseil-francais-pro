@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Check, Copy, Linkedin, Share2, Twitter } from 'lucide-react';
+import { Check, Copy, Globe, Share2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ShareButtonsProps {
@@ -19,12 +19,12 @@ export function ShareButtons({ url, title, className = '', layout = 'horizontal'
   const targets = [
     {
       name: 'X (Twitter)',
-      icon: Twitter,
+      icon: X,
       href: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`,
     },
     {
       name: 'LinkedIn',
-      icon: Linkedin,
+      icon: Globe,
       href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
     },
     {
