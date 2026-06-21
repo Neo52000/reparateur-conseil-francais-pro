@@ -278,14 +278,6 @@ const RepairContentGenerator: React.FC = () => {
     const selectedTemplate = templates.find(t => t.id === config.template);
     if (!selectedTemplate) throw new Error('Template non trouvé');
 
-    // Construire le prompt avec les variables
-    const prompt = selectedTemplate.prompt
-      .replace('{city}', config.city)
-      .replace('{deviceType}', config.deviceType)
-      .replace('{repairType}', config.repairType)
-      .replace('{repairerCount}', localData.repairerCount.toString())
-      .replace('{averagePrice}', localData.averagePrice.toFixed(0));
-
     const response = await supabase.functions.invoke('generate-mobile-content', {
       body: {
         city: config.city,
