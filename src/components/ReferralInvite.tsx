@@ -35,7 +35,7 @@ const ReferralInvite = () => {
         </Button>
       </div>
       {success && <div className="mb-2 text-xs">{success}</div>}
-      <h3 className="font-semibold mb-1">Vos invitations :</h3>
+      <h3 className="font-semibold mb-1">Vos invitations :</h3>
       {loading ? (
         <div>Chargement…</div>
       ) : (

@@ -58,7 +58,7 @@ export const useRepairerPrices = () => {
         description: 'Erreur lors de la création du prix personnalisé',
         variant: 'destructive',
       });
-      throw new Error('Erreur lors de la création du prix personnalisé');
+      throw new Error('Erreur lors de la création du prix personnalisé', { cause: err });
     }
   };
 
@@ -79,7 +79,7 @@ export const useRepairerPrices = () => {
         description: 'Erreur lors de la mise à jour du prix personnalisé',
         variant: 'destructive',
       });
-      throw new Error('Erreur lors de la mise à jour du prix personnalisé');
+      throw new Error('Erreur lors de la mise à jour du prix personnalisé', { cause: err });
     }
   };
 
@@ -100,7 +100,7 @@ export const useRepairerPrices = () => {
         description: 'Erreur lors de la suppression du prix personnalisé',
         variant: 'destructive',
       });
-      throw new Error('Erreur lors de la suppression du prix personnalisé');
+      throw new Error('Erreur lors de la suppression du prix personnalisé', { cause: err });
     }
   };
 
@@ -128,7 +128,7 @@ export const useRepairerPrices = () => {
         description: 'Erreur lors de l\'application de la marge',
         variant: 'destructive',
       });
-      throw new Error('Erreur lors de l\'application de la marge');
+      throw new Error('Erreur lors de l\'application de la marge', { cause: err });
     }
   };
 

@@ -179,7 +179,7 @@ export class DocumentationManagerService {
       return content;
     } catch (error) {
       console.error(`Erreur chargement ${docType}:`, error);
-      throw new Error(`Document ${docType} indisponible`);
+      throw new Error(`Document ${docType} indisponible`, { cause: error });
     }
   }
 

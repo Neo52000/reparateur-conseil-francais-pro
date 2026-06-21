@@ -141,22 +141,22 @@ export class IntelligentScrapingService {
       
       // Provide more specific error information
       if (error.message?.includes('Edge function failed')) {
-        throw new Error(`Erreur du service de scraping: ${error.message}`);
+        throw new Error(`Erreur du service de scraping: ${error.message}`, { cause: error });
       } else if (error.message?.includes('No data returned')) {
-        throw new Error('Le service de scraping n\'a retourné aucune donnée');
+        throw new Error('Le service de scraping n\'a retourné aucune donnée', { cause: error });
       } else {
-        throw new Error(`Erreur de scraping: ${error.message || 'Erreur inconnue'}`);
+        throw new Error(`Erreur de scraping: ${error.message || 'Erreur inconnue'}`, { cause: error });
       }
     }
   }
 
   private async classifyAndEnrich(rawData: any, target: ScrapingTarget): Promise<ScrapedRepairer> {
-    let aiClassification = {
-      is_repairer: false,
-      confidence: 0.1,
-      specialties: [] as string[],
-      services: [] as string[],
-      quality_score: 0
+    let aiClassification: {
+      is_repairer: boolean;
+      confidence: number;
+      specialties: string[];
+      services: string[];
+      quality_score: number;
     };
 
     // Use AI classification if available
