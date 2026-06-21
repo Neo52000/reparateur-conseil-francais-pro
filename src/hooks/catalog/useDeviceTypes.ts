@@ -47,7 +47,7 @@ export const useDeviceTypes = () => {
         description: 'Erreur lors de la création du type d\'appareil',
         variant: 'destructive',
       });
-      throw new Error('Erreur lors de la création du type d\'appareil');
+      throw new Error('Erreur lors de la création du type d\'appareil', { cause: err });
     }
   };
 
@@ -69,7 +69,7 @@ export const useDeviceTypes = () => {
         description: 'Erreur lors de la mise à jour du type d\'appareil',
         variant: 'destructive',
       });
-      throw new Error('Erreur lors de la mise à jour du type d\'appareil');
+      throw new Error('Erreur lors de la mise à jour du type d\'appareil', { cause: err });
     }
   };
 
@@ -90,7 +90,7 @@ export const useDeviceTypes = () => {
         description: 'Erreur lors de la suppression du type d\'appareil',
         variant: 'destructive',
       });
-      throw new Error('Erreur lors de la suppression du type d\'appareil');
+      throw new Error('Erreur lors de la suppression du type d\'appareil', { cause: err });
     }
   };
 

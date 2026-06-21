@@ -112,8 +112,8 @@ const JarvisAssistant: React.FC<JarvisAssistantProps> = ({ repairerId, context }
 
   const handleCommand = async (command: string) => {
     const cmd = command.toLowerCase();
-    let response = '';
-    let metadata = {};
+    let response: string;
+    let metadata: Record<string, unknown> = {};
 
     switch (true) {
       case cmd.startsWith('/price'):

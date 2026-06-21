@@ -279,21 +279,12 @@ const RepairContentGenerator: React.FC = () => {
     if (!selectedTemplate) throw new Error('Template non trouvé');
 
     // Construire le prompt avec les variables
-    let prompt = selectedTemplate.prompt
+    const prompt = selectedTemplate.prompt
       .replace('{city}', config.city)
       .replace('{deviceType}', config.deviceType)
       .replace('{repairType}', config.repairType)
       .replace('{repairerCount}', localData.repairerCount.toString())
       .replace('{averagePrice}', localData.averagePrice.toFixed(0));
-
-    // Ajouter les instructions SEO
-    prompt += `\n\nExigences SEO:
-    - Titre H1 optimisé avec mots-clés locaux
-    - 3-4 sections H2 structurées
-    - Méta-titre et description uniques
-    - 5-8 mots-clés pertinents
-    - Call-to-action "Trouvez un réparateur près de chez vous"
-    - Ton ${config.tone} et ${config.wordCount} mots environ`;
 
     const response = await supabase.functions.invoke('generate-mobile-content', {
       body: {
