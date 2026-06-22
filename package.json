@@ -98,7 +98,7 @@
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^4.11.2",
     "react-router-dom": "^7.15.1",
-    "recharts": "^2.15.4",
+    "recharts": "^3.8.1",
     "rehype-highlight": "^7.0.2",
     "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.1",
