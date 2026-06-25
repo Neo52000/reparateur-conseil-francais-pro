@@ -44,6 +44,8 @@ export class PlaywrightScraper {
 
       const results = await this.page.evaluate(() => {
         const items: unknown[] = [];
+      const results = await this.page.evaluate<ScrapingResult[]>(() => {
+        const items: ScrapingResult[] = [];
         const listings = document.querySelectorAll('[data-pj-list-item]');
         
         listings.forEach(listing => {
@@ -105,6 +107,8 @@ export class PlaywrightScraper {
 
       const results = await this.page.evaluate(() => {
         const items: unknown[] = [];
+      const results = await this.page.evaluate<ScrapingResult[]>(() => {
+        const items: ScrapingResult[] = [];
         const listings = document.querySelectorAll('[data-result-index]');
         
         listings.forEach(listing => {

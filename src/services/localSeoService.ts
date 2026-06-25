@@ -260,13 +260,13 @@ class LocalSeoService {
       // Améliorer les messages d'erreur
       if (error instanceof Error) {
         if (error.message.includes('fetch')) {
-          throw new Error('Erreur de connexion à l\'API IA - Vérifiez votre connexion internet');
+          throw new Error('Erreur de connexion à l\'API IA - Vérifiez votre connexion internet', { cause: error });
         }
         if (error.message.includes('401') || error.message.includes('unauthorized')) {
-          throw new Error('Aucune clé API IA configurée (MISTRAL_API_KEY ou OPENAI_API_KEY)');
+          throw new Error('Aucune clé API IA configurée (MISTRAL_API_KEY ou OPENAI_API_KEY)', { cause: error });
         }
         if (error.message.includes('429')) {
-          throw new Error('Limite de requêtes dépassée - Veuillez réessayer dans quelques minutes');
+          throw new Error('Limite de requêtes dépassée - Veuillez réessayer dans quelques minutes', { cause: error });
         }
       }
       

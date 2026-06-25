@@ -56,7 +56,7 @@ const RepairersAnalytics: React.FC<RepairersAnalyticsProps> = ({ repairers, subs
     repairers.forEach(repairer => {
       const date = new Date(repairer.created_at);
       const key = date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
-      if (monthsData.hasOwnProperty(key)) {
+      if (Object.hasOwn(monthsData, key)) {
         monthsData[key]++;
       }
     });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, MapPin, Facebook, Linkedin, Twitter, MessageCircle, UserPlus, Shield, Smartphone, Laptop, Tablet, Gamepad2 } from 'lucide-react';
+import { Mail, MapPin, Globe, X, MessageCircle, UserPlus, Shield, Smartphone, Laptop, Tablet, Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useFooterConfig } from '@/hooks/useFooterConfig';
 import { supabase } from '@/integrations/supabase/client';
@@ -222,13 +222,13 @@ const Footer = () => {
               <span className="text-sm text-gray-300">Suivez-nous :</span>
               <div className="flex space-x-4">
                 <a href="https://facebook.com/topreparateurs.fr" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-600 transition-colors" aria-label="Suivre TopRéparateurs sur Facebook">
-                  <Facebook className="h-5 w-5" />
+                  <Globe className="h-5 w-5" />
                 </a>
                 <a href="https://linkedin.com/company/topreparateurs" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-700 transition-colors" aria-label="Suivre TopRéparateurs sur LinkedIn">
-                  <Linkedin className="h-5 w-5" />
+                  <Globe className="h-5 w-5" />
                 </a>
-                <a href="https://twitter.com/topreparateurs" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 transition-colors" aria-label="Suivre TopRéparateurs sur Twitter">
-                  <Twitter className="h-5 w-5" />
+                <a href="https://twitter.com/topreparateurs" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 transition-colors" aria-label="Suivre TopRéparateurs sur X (Twitter)">
+                  <X className="h-5 w-5" />
                 </a>
                 <button onClick={handleWhatsApp} className="text-gray-300 hover:text-green-500 transition-colors" aria-label="Contacter via WhatsApp">
                   <MessageCircle className="h-5 w-5" />

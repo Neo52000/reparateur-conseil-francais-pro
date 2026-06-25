@@ -1,11 +1,10 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Facebook, 
-  Instagram, 
-  Linkedin, 
-  Twitter,
+import {
+  Globe,
+  Camera,
+  X,
   MessageCircle,
   Send
 } from 'lucide-react';
@@ -34,7 +33,7 @@ const HoursAndSocialCard: React.FC<HoursAndSocialCardProps> = ({ profile }) => {
               rel="noopener noreferrer"
               className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
             >
-              <Facebook className="h-5 w-5" />
+              <Globe className="h-5 w-5" />
             </a>
           )}
           {profile.instagram_url && (
@@ -44,7 +43,7 @@ const HoursAndSocialCard: React.FC<HoursAndSocialCardProps> = ({ profile }) => {
               rel="noopener noreferrer"
               className="p-2 bg-pink-100 text-pink-600 rounded-lg hover:bg-pink-200 transition-colors"
             >
-              <Instagram className="h-5 w-5" />
+              <Camera className="h-5 w-5" />
             </a>
           )}
           {profile.linkedin_url && (
@@ -54,7 +53,7 @@ const HoursAndSocialCard: React.FC<HoursAndSocialCardProps> = ({ profile }) => {
               rel="noopener noreferrer"
               className="p-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors"
             >
-              <Linkedin className="h-5 w-5" />
+              <Globe className="h-5 w-5" />
             </a>
           )}
           {profile.twitter_url && (
@@ -64,7 +63,7 @@ const HoursAndSocialCard: React.FC<HoursAndSocialCardProps> = ({ profile }) => {
               rel="noopener noreferrer"
               className="p-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              <Twitter className="h-5 w-5" />
+              <X className="h-5 w-5" />
             </a>
           )}
           {profile.whatsapp_url && (

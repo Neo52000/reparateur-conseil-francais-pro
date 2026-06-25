@@ -21,10 +21,6 @@ Sitemap: https://topreparateurs.fr/sitemap-index.xml
 Sitemap: https://topreparateurs.fr/sitemap.xml
 
 # Crawl-delay
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 0
-
 User-agent: Bingbot
 Allow: /
 Crawl-delay: 1

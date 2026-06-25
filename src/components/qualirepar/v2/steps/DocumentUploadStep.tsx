@@ -168,6 +168,7 @@ const DocumentUploadStep: React.FC<DocumentUploadStepProps> = ({
   };
 
   const createDropzone = (documentType: string, multiple = false) => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- REQUIRED_DOCUMENTS is a fixed-length constant, safe to call here
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
       onDrop: (files, rejected) => onDrop(files, rejected, documentType),
       accept: {
