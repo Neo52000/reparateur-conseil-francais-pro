@@ -44,6 +44,15 @@ export class CSVValidator {
    */
   static validateRepairerRow(row: CsvRow, index: number): ValidationResult {
     const errors: string[] = [];
+    const asTrimmed = (v: string | number | null | undefined): string =>
+      v == null ? '' : String(v).trim();
+
+    // Check required fields
+    if (asTrimmed(row.name).length === 0) {
+      errors.push(`Ligne ${index + 1}: Le nom est obligatoire`);
+    }
+
+    if (asTrimmed(row.city).length === 0) {
 
     // Check required fields
     if (CSVValidator.trimCell(row.name).length === 0) {
@@ -64,6 +73,32 @@ export class CSVValidator {
    * Clean and process row data
    */
   static processRow(row: CsvRow): ProcessedRepairerRow {
+    const splitList = (val: string | number | null | undefined): string[] => {
+      if (typeof val !== 'string') return [];
+      return val.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+    };
+    const trimStr = (val: string | number | null | undefined): string =>
+      val == null ? '' : String(val).trim();
+
+    const priceRangeRaw = typeof row.price_range === 'string'
+      ? row.price_range.toLowerCase()
+      : '';
+    const price_range: 'low' | 'medium' | 'high' =
+      priceRangeRaw === 'low' || priceRangeRaw === 'high' ? priceRangeRaw : 'medium';
+
+    return {
+      name: trimStr(row.name),
+      address: trimStr(row.address),
+      city: trimStr(row.city),
+      postal_code: trimStr(row.postal_code),
+      phone: trimStr(row.phone),
+      email: trimStr(row.email),
+      website: trimStr(row.website),
+      services: splitList(row.services),
+      specialties: splitList(row.specialties),
+      price_range,
+      lat: row.lat == null ? null : parseFloat(String(row.lat)),
+      lng: row.lng == null ? null : parseFloat(String(row.lng)),
     const trim = CSVValidator.trimCell;
     const split = CSVValidator.splitList;
 

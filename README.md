@@ -159,6 +159,69 @@ Production sur **Netlify** (continuous deploy depuis `main`). Headers de sécuri
 (HSTS, CSP, COOP, COEP, X-Frame-Options) configurés dans `netlify.toml`. Le plugin
 `@netlify/plugin-lighthouse` audite chaque preview.
 
+
+# Optionnel
+VITE_MAPBOX_TOKEN=<token>
+VITE_SENTRY_DSN=<dsn>
+```
+
+> ⚠️ La clé Supabase utilisée côté front est la **publishable key** (préfixe `pk_`),
+> pas l'ancienne `anon key`. Le client `src/integrations/supabase/client.ts` lit
+> `VITE_SUPABASE_PUBLISHABLE_KEY`.
+
+Les secrets côté Edge Functions (Stripe, OpenAI, Gemini, Resend, SMS gateway, etc.)
+se configurent via `supabase secrets set` ou le dashboard Supabase.
+
+### Scripts
+
+```bash
+bun run dev          # Serveur de dev (Vite)
+bun run build        # Build de production
+bun run preview      # Prévisualisation du build
+bun run lint         # ESLint
+bun run test         # Vitest (single run)
+bun run test:watch   # Vitest (watch)
+bun run test:e2e     # Playwright (smoke tests)
+```
+
+## Données
+
+Tables principales : `profiles`, `repairers`, `repairer_profiles`, `quote_requests`,
+`appointments`, `subscription_plans`, `payments`, `stripe_webhooks`, `scraping_logs`,
+`notifications`, `repairer_reviews`.
+
+Toutes les tables sensibles sont protégées par **Row Level Security (RLS)**.
+Une refonte critique des policies a été appliquée en avril 2026 (cf. migration
+`20260423120000_phase0_fix_rls_critical.sql`).
+
+### Edge Functions notables
+
+- `stripe-webhooks` — webhooks Stripe (signature HMAC + idempotence sur `stripe_event_id`)
+- `create-payment-intent` / `create-subscription` — paiements
+- `geocode-repairers` / `validate-scraping` / `scrape-repairers` — back-office scraping
+- `generate-repairer-seo-page` — génération de pages SEO programmatiques
+- `send-notification` — multi-canal (push, email Resend, SMS gateway)
+
+CORS allowlist commune dans `supabase/functions/_shared/cors.ts`.
+
+### Monitoring Edge Functions
+
+Les 7 fonctions critiques (`stripe-webhooks`, `ai-cmo-worker`,
+`ai-scrape-repairers`, `scrape-repairers`, `validate-scraping`,
+`geocode-repairers`, `social-booster`) sont instrumentées via
+`supabase/functions/_shared/sentry.ts` (`@sentry/deno`). Toute exception
+non capturée est envoyée à Sentry avec le tag `function_name` et un
+`request_id` court.
+
+Configuration : `supabase secrets set SENTRY_DSN=<dsn>`. Sans la variable,
+les fonctions tournent normalement (capture désactivée).
+
+## Déploiement
+
+Production sur **Netlify** (continuous deploy depuis `main`). Headers de sécurité
+(HSTS, CSP, COOP, COEP, X-Frame-Options) configurés dans `netlify.toml`. Le plugin
+`@netlify/plugin-lighthouse` audite chaque preview.
+
 ## Développement et contributions
 
 - Branche par défaut : `main`
