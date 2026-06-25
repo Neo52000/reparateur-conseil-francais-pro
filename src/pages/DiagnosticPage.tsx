@@ -106,6 +106,19 @@ const DiagnosticPage = () => {
     }
     setLoading(true);
     try {
+      const { data, error } = await supabase.functions.invoke("submit-contact", {
+        body: {
+          issue_request_id: requestId,
+          contact_name: contactName.trim() || undefined,
+          contact_email: contactEmail.trim(),
+          contact_phone: contactPhone.trim(),
+          postal_code: postalCode.trim(),
+        },
+      });
+      if (error) throw error;
+      if (!data?.success && !data?.already_distributed) {
+        throw new Error(data?.error ?? "submit_failed");
+      }
       const { error: updateError } = await supabaseMvpd
         .from("issue_requests")
         .update({

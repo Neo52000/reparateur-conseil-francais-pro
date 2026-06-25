@@ -86,6 +86,9 @@ const LeadDetailPage = () => {
   const updateStatus = async (status: Status) => {
     if (!lead) return;
     setSaving(true);
+    const parsed = parseFloat(conversionValue.replace(",", "."));
+    const conversion = status === "converted" && Number.isFinite(parsed)
+      ? Math.round(parsed * 100)
     const conversion = status === "converted" && conversionValue
       ? Math.round(parseFloat(conversionValue.replace(",", ".")) * 100)
       : undefined;

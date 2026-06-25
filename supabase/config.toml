@@ -70,6 +70,13 @@ verify_jwt = false
 [functions.diagnose-issue]
 verify_jwt = false
 
+# Public bridge: SPA → submit-contact → (service-role) → match-and-distribute.
+# match-and-distribute is NEVER called from the SPA directly to avoid
+# credit-drain attacks (UUID leak scenario).
+[functions.submit-contact]
+verify_jwt = false
+
+# Internal: invoked by submit-contact with service-role, or by cron secret.
 # Internal: triggered by diagnose-issue with service-role, or by cron secret.
 [functions.match-and-distribute]
 verify_jwt = false
