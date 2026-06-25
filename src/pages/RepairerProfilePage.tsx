@@ -6,24 +6,20 @@ import { RepairerProfile } from '@/types/repairerProfile';
 import { Repairer } from '@/types/repairer';
 import { useToast } from '@/hooks/use-toast';
 import { useProfileAnalytics } from '@/hooks/analytics/useProfileAnalytics';
-import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
 
 // Components
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Star, 
-  Shield, 
-  Phone, 
+import {
+  ArrowLeft,
+  MapPin,
+  Star,
+  Shield,
+  Phone,
   Clock,
   Award,
-  MessageSquare,
-  Calendar,
-  FileText
 } from 'lucide-react';
 
 // Enhanced profile components
@@ -40,17 +36,8 @@ const RepairerProfilePage: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { trackProfileView, trackClaimClick, trackContactClick } = useProfileAnalytics();
-  const {
-    isQuoteModalOpen,
-    isAppointmentModalOpen,
-    selectedRepairerId,
-    selectedQuoteId,
-    handleRequestQuote,
-    handleBookAppointment,
-    closeQuoteModal,
-    closeAppointmentModal
-  } = useQuoteAndAppointment();
-  
+
+
   const [profile, setProfile] = useState<any>(null);
   const [repairer, setRepairer] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -249,27 +236,12 @@ const RepairerProfilePage: React.FC = () => {
                   </div>
                   
                   <div className="flex flex-wrap gap-2">
-                    <Button 
+                    <Button
                       onClick={handleCallRepairer}
                       className="bg-green-600 hover:bg-green-700"
                     >
                       <Phone className="h-4 w-4 mr-2" />
                       Appeler
-                    </Button>
-                    <Button 
-                      onClick={() => handleRequestQuote(id!)}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Demander un devis
-                    </Button>
-                    <Button 
-                      onClick={() => handleBookAppointment(id!)}
-                      variant="outline"
-                      className="border-blue-600 text-blue-600 hover:bg-blue-50"
-                    >
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Prendre RDV
                     </Button>
                   </div>
                 </div>
@@ -429,43 +401,6 @@ const RepairerProfilePage: React.FC = () => {
         )}
       </div>
 
-      {/* Note pour plan gratuit */}
-      {isQuoteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Fonctionnalité Premium</h3>
-            <p className="text-gray-600 mb-4">
-              Les demandes de devis sont réservées aux réparateurs avec un abonnement payant.
-              Cette fonctionnalité sera disponible prochainement.
-            </p>
-            <div className="flex gap-3">
-              <Button onClick={closeQuoteModal} variant="outline">Fermer</Button>
-              <Button onClick={handleCallRepairer} className="bg-green-600 hover:bg-green-700">
-                Appeler directement
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Note pour rendez-vous */}
-      {isAppointmentModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Fonctionnalité Premium</h3>
-            <p className="text-gray-600 mb-4">
-              La prise de rendez-vous en ligne est réservée aux réparateurs avec un abonnement payant.
-              Cette fonctionnalité sera disponible prochainement.
-            </p>
-            <div className="flex gap-3">
-              <Button onClick={closeAppointmentModal} variant="outline">Fermer</Button>
-              <Button onClick={handleCallRepairer} className="bg-green-600 hover:bg-green-700">
-                Appeler directement
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

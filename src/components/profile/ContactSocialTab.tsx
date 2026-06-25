@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MessageCircle, Mail, Globe, Facebook, Instagram, Linkedin, Twitter, Send } from 'lucide-react';
+import { MessageCircle, Mail, Globe, Camera, X, Send } from 'lucide-react';
 import { RepairerProfile } from '@/types/repairerProfile';
 
 interface ContactSocialTabProps {
@@ -48,7 +48,7 @@ const ContactSocialTab: React.FC<ContactSocialTabProps> = ({ profile }) => {
         <h3 className="font-semibold text-lg mb-4">Réseaux sociaux</h3>
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
-            <Facebook className="h-4 w-4 text-blue-600" />
+            <Globe className="h-4 w-4 text-blue-600" />
             <a 
               href="https://facebook.com/topreparateurs.fr" 
               target="_blank" 
@@ -60,7 +60,7 @@ const ContactSocialTab: React.FC<ContactSocialTabProps> = ({ profile }) => {
           </div>
           {profile.instagram_url && (
             <div className="flex items-center space-x-2">
-              <Instagram className="h-4 w-4 text-pink-600" />
+              <Camera className="h-4 w-4 text-pink-600" />
               <a 
                 href={profile.instagram_url} 
                 target="_blank" 
@@ -73,7 +73,7 @@ const ContactSocialTab: React.FC<ContactSocialTabProps> = ({ profile }) => {
           )}
           {profile.linkedin_url && (
             <div className="flex items-center space-x-2">
-              <Linkedin className="h-4 w-4 text-blue-700" />
+              <Globe className="h-4 w-4 text-blue-700" />
               <a 
                 href={profile.linkedin_url} 
                 target="_blank" 
@@ -86,7 +86,7 @@ const ContactSocialTab: React.FC<ContactSocialTabProps> = ({ profile }) => {
           )}
           {profile.twitter_url && (
             <div className="flex items-center space-x-2">
-              <Twitter className="h-4 w-4 text-blue-400" />
+              <X className="h-4 w-4 text-blue-400" />
               <a 
                 href={profile.twitter_url} 
                 target="_blank" 

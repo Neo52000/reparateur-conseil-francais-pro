@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { seoProgrammaticService, SeoProgrammaticPage } from '@/services/seoProgrammaticService';
 import { ProgrammaticPageLayout } from './ProgrammaticPageLayout';
 import { RepairerCard } from './RepairerCard';
+import { repairerUrl } from '@/lib/utils/repairerUrl';
 
 interface PageContent {
   city?: string;
@@ -32,8 +33,8 @@ interface PageContent {
 export function HubCityPage() {
   const { slug } = useParams<{ slug: string }>();
   const [page, setPage] = useState<SeoProgrammaticPage | null>(null);
-  const [repairers, setRepairers] = useState<any[]>([]);
-  const [filteredRepairers, setFilteredRepairers] = useState<any[]>([]);
+  const [repairers, setRepairers] = useState<Record<string, unknown>[]>([]);
+  const [filteredRepairers, setFilteredRepairers] = useState<Record<string, unknown>[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -254,7 +255,7 @@ export function HubCityPage() {
                   <Card key={repairer.id} className="overflow-hidden">
                     <CardContent className="p-4 flex items-center gap-4">
                       <div className="flex-1">
-                        <Link to={`/reparateur/${repairer.id}`}>
+                        <Link to={repairerUrl(repairer)}>
                           <h3 className="font-semibold hover:text-primary">
                             {repairer.name}
                           </h3>
@@ -271,7 +272,7 @@ export function HubCityPage() {
                         </div>
                       )}
                       <Button asChild size="sm">
-                        <Link to={`/reparateur/${repairer.id}`}>Voir</Link>
+                        <Link to={repairerUrl(repairer)}>Voir</Link>
                       </Button>
                     </CardContent>
                   </Card>

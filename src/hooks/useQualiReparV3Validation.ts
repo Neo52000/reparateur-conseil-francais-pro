@@ -375,7 +375,7 @@ export const useQualiReparV3Validation = () => {
       errors.push(...financialErrors);
 
       // 7. Validation du téléphone client
-      if (claimData.Customer.PhoneNumber && !/^[0-9\s\-\+\(\)]{10,}$/.test(claimData.Customer.PhoneNumber)) {
+      if (claimData.Customer.PhoneNumber && !/^[0-9\s\-+()]{10,}$/.test(claimData.Customer.PhoneNumber)) {
         warnings.push({
           field: 'Customer.PhoneNumber',
           message: 'Format de téléphone potentiellement invalide',
@@ -425,7 +425,7 @@ export const useQualiReparV3Validation = () => {
     const errors: ValidationError[] = [];
 
     switch (field) {
-      case 'RepairerId':
+      case 'RepairerId': {
         const repairerValidation = await validateRepairer(value);
         if (!repairerValidation.isValid) {
           errors.push({
@@ -436,11 +436,13 @@ export const useQualiReparV3Validation = () => {
           });
         }
         break;
+      }
 
-      case 'Product.IrisCode':
+      case 'Product.IrisCode': {
         const irisErrors = await validateIrisCode(value);
         errors.push(...irisErrors);
         break;
+      }
 
       case 'Customer.Email':
         if (value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {

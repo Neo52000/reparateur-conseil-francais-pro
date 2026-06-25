@@ -29,7 +29,7 @@ export const useBrands = () => {
       return newBrand;
     } catch (err) {
       console.error('Error creating brand:', err);
-      throw new Error('Erreur lors de la création de la marque');
+      throw new Error('Erreur lors de la création de la marque', { cause: err });
     }
   };
 
@@ -40,7 +40,7 @@ export const useBrands = () => {
       return updatedBrand;
     } catch (err) {
       console.error('Error updating brand:', err);
-      throw new Error('Erreur lors de la mise à jour de la marque');
+      throw new Error('Erreur lors de la mise à jour de la marque', { cause: err });
     }
   };
 
@@ -50,7 +50,7 @@ export const useBrands = () => {
       await fetchBrands();
     } catch (err) {
       console.error('Error deleting brand:', err);
-      throw new Error('Erreur lors de la suppression de la marque');
+      throw new Error('Erreur lors de la suppression de la marque', { cause: err });
     }
   };
 

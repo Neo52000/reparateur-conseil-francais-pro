@@ -24,7 +24,7 @@ interface BusinessCategory {
   icon: string;
   color: string;
   search_keywords: string[];
-  scraping_prompts: any;
+  scraping_prompts: Record<string, unknown>;
 }
 
 interface ImportExportSectionProps {
@@ -49,7 +49,7 @@ const ImportExportSection: React.FC<ImportExportSectionProps> = ({
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [mappings, setMappings] = useState<ColumnMapping[]>([]);
-  const [preview, setPreview] = useState<any[]>([]);
+  const [preview, setPreview] = useState<Record<string, string>[]>([]);
   const [importStep, setImportStep] = useState<'upload' | 'mapping' | 'import'>('upload');
 
   // Colonnes de la base de données repairers
@@ -123,7 +123,7 @@ const ImportExportSection: React.FC<ImportExportSectionProps> = ({
     // Créer un aperçu des données
     const previewData = lines.slice(1, 6).map(line => {
       const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-      const obj: any = {};
+      const obj: Record<string, string> = {};
       headers.forEach((header, index) => {
         obj[header] = values[index] || '';
       });
@@ -193,11 +193,11 @@ const ImportExportSection: React.FC<ImportExportSectionProps> = ({
       setPreview([]);
       setImportStep('upload');
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erreur import:', error);
       toast({
         title: "Erreur d'import",
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: "destructive"
       });
     } finally {
@@ -243,11 +243,11 @@ const ImportExportSection: React.FC<ImportExportSectionProps> = ({
         description: `${data.length} réparateurs exportés`
       });
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erreur export:', error);
       toast({
         title: "Erreur d'export",
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: "destructive"
       });
     }
@@ -359,7 +359,7 @@ const ImportExportSection: React.FC<ImportExportSectionProps> = ({
                 </div>
               )}
 
-              {/* TODO: Réactiver quand plan Supabase upgradé */}
+              {/* Phase 4 : réactiver quand le plan Supabase sera upgradé */}
               <div className="flex space-x-2">
                 <Button 
                   onClick={() => setImportStep('upload')}

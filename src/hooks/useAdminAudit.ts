@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { AdminAuditService, AdminAuditLogEntry, AdminAuditFilters } from '@/services/adminAuditService';
+import { AdminAuditService, type AdminAuditLogEntry, type AdminAuditFilters, type JsonObject } from '@/services/adminAuditService';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,7 +15,7 @@ export const useAdminAudit = () => {
     actionType: AdminAuditLogEntry['action_type'],
     resourceType: string,
     resourceId?: string,
-    details?: Record<string, any>,
+    details?: JsonObject,
     severityLevel: AdminAuditLogEntry['severity_level'] = 'info'
   ) => {
     if (!user) {
@@ -44,9 +44,9 @@ export const useAdminAudit = () => {
     actionType: AdminAuditLogEntry['action_type'],
     resourceType: string,
     resourceId: string,
-    beforeData: Record<string, any>,
-    afterData: Record<string, any>,
-    details?: Record<string, any>
+    beforeData: JsonObject,
+    afterData: JsonObject,
+    details?: JsonObject
   ) => {
     if (!user) return;
 
@@ -72,7 +72,7 @@ export const useAdminAudit = () => {
     actionType: AdminAuditLogEntry['action_type'],
     resourceType: string,
     resourceId?: string,
-    details?: Record<string, any>
+    details?: JsonObject
   ) => {
     if (!user) return;
 

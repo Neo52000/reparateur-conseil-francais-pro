@@ -1,15 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import type { Database } from '@/integrations/supabase/types';
+import type { Database, Json } from '@/integrations/supabase/types';
 
 type Tables = Database['public']['Tables'];
+
+// JSON object shape compatible with Supabase jsonb columns
+type JsonObject = { [key: string]: Json | undefined };
 
 export interface UIConfiguration {
   id: string;
   name: string;
   type: 'plan_visualization' | 'repairer_dashboard' | 'pos_interface';
-  configuration: Record<string, any>;
+  configuration: JsonObject;
   is_active: boolean;
   created_by?: string | null;
   created_at: string;
@@ -23,7 +26,7 @@ export interface UITemplate {
   id: string;
   name: string;
   category: string;
-  template_data: Record<string, any>;
+  template_data: JsonObject;
   preview_image_url?: string | null;
   usage_count: number;
   is_featured: boolean;
@@ -37,9 +40,9 @@ export interface UITheme {
   id: string;
   name: string;
   type: string;
-  theme_data: Record<string, any>;
-  css_variables?: Record<string, any> | null;
-  tailwind_config?: Record<string, any> | null;
+  theme_data: JsonObject;
+  css_variables?: JsonObject | null;
+  tailwind_config?: JsonObject | null;
   is_default: boolean;
   created_at: string;
   updated_at: string;
@@ -58,8 +61,8 @@ export interface UIABTest {
   start_date?: string | null;
   end_date?: string | null;
   traffic_split: number;
-  target_audience: Record<string, any>;
-  success_metrics: Record<string, any>;
+  target_audience: JsonObject;
+  success_metrics: JsonObject;
   created_at: string;
   updated_at: string;
 }
@@ -308,7 +311,7 @@ export const useUIConfigurations = () => {
   // Track analytics event
   const trackAnalyticsEvent = useCallback(async (
     eventType: string,
-    eventData: Record<string, any>,
+    eventData: JsonObject,
     configurationId?: string,
     abTestId?: string
   ) => {

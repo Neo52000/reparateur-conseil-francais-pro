@@ -4,6 +4,7 @@ import { MapPin, Star, Phone, Clock, Shield, Award } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { repairerUrl } from '@/lib/utils/repairerUrl';
 
 interface RepairerCardProps {
   id: string;
@@ -63,7 +64,7 @@ export function RepairerCard({
             </div>
 
             {/* Nom */}
-            <Link to={`/reparateur/${id}`}>
+            <Link to={repairerUrl({ city, name })}>
               <h3 className="font-semibold text-lg text-foreground hover:text-primary transition-colors line-clamp-1">
                 {name}
               </h3>
@@ -122,7 +123,7 @@ export function RepairerCard({
         {/* Actions */}
         <div className="flex gap-2 mt-4">
           <Button asChild variant="default" className="flex-1">
-            <Link to={`/reparateur/${id}`}>
+            <Link to={repairerUrl({ city, name })}>
               Voir le profil
             </Link>
           </Button>

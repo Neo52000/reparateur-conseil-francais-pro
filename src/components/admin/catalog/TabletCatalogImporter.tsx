@@ -121,9 +121,9 @@ export const TabletCatalogImporter: React.FC = () => {
 
     try {
       let deviceType;
-      let newBrands: any[] = [];
-      let newModels: any[] = [];
-      let errors: string[] = [];
+      const newBrands: any[] = [];
+      const newModels: any[] = [];
+      const errors: string[] = [];
 
       // 1. Créer ou récupérer le device type "Tablette"
       setProgress(10);

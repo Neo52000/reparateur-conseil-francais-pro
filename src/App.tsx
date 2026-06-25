@@ -16,6 +16,8 @@ import { initializeSentry } from './config/sentry';
 import { MobileBottomNav } from './components/navigation/MobileBottomNav';
 import { PWAInstallBanner } from './components/pwa/PWAInstallBanner';
 import { PWAUpdateBanner } from './components/pwa/PWAUpdateBanner';
+import { Toaster } from './components/ui/sonner';
+import { FeatureGate } from './components/FeatureGate';
 
 // --- Lazy-loaded pages (code-split for smaller initial bundle) ---
 
@@ -39,7 +41,6 @@ const RepairerFAQ = lazy(() => import("./pages/RepairerFAQ"));
 const RepairerSettingsPage = lazy(() => import("./pages/RepairerSettingsPage"));
 const RepairerAuthPage = lazy(() => import("./pages/RepairerAuthPage"));
 const RepairerSeoPage = lazy(() => import("./pages/RepairerSeoPage"));
-const RepairTrackingPage = lazy(() => import("./pages/RepairTrackingPage"));
 
 // Client
 const ClientDashboardPage = lazy(() => import("./pages/ClientDashboardPage"));
@@ -71,6 +72,18 @@ const TermsOfSale = lazy(() => import("./pages/TermsOfSale"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const MyDataPage = lazy(() => import("./pages/MyDataPage"));
 
+// Subscription (Stripe checkout return URLs)
+const SubscriptionSuccessPage = lazy(() => import("./pages/SubscriptionSuccessPage"));
+const SubscriptionCanceledPage = lazy(() => import("./pages/SubscriptionCanceledPage"));
+
+// MVP D — Lead-gen tunnel
+const DiagnosticPage = lazy(() => import("./pages/DiagnosticPage"));
+const BonusReparationPage = lazy(() => import("./pages/BonusReparationPage"));
+const ProOnboardingPage = lazy(() => import("./pages/pro/OnboardingPage"));
+const ProLeadsListPage = lazy(() => import("./pages/pro/LeadsListPage"));
+const ProLeadDetailPage = lazy(() => import("./pages/pro/LeadDetailPage"));
+const ProWalletPage = lazy(() => import("./pages/pro/WalletPage"));
+
 // Other pages
 const StaticPage = lazy(() => import("./pages/StaticPage"));
 const DocumentationPage = lazy(() => import("./pages/DocumentationPage"));
@@ -78,8 +91,6 @@ const AProposPage = lazy(() => import("./pages/AProposPage"));
 const GarantiePage = lazy(() => import("./pages/GarantiePage"));
 const GuideChoixReparateurPage = lazy(() => import("./pages/GuideChoixReparateurPage"));
 const SuppliersDirectoryPage = lazy(() => import("./pages/SuppliersDirectoryPage").then(m => ({ default: m.SuppliersDirectoryPage })));
-const QuotesAndAppointments = lazy(() => import("./pages/QuotesAndAppointments"));
-const MarketplacePage = lazy(() => import("./pages/MarketplacePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const DesignSystemPage = lazy(() => import("./pages/DesignSystemPage"));
 
@@ -133,6 +144,7 @@ const App = () => {
               <GlobalStoreProvider>
                 <PlanPreviewProvider>
                   <AppWithTracking />
+                  <Toaster />
                 </PlanPreviewProvider>
               </GlobalStoreProvider>
             </AuthProvider>
@@ -169,21 +181,44 @@ const AppWithTracking = () => {
         <Route path="/admin/import" element={<AdminImportPage />} />
         <Route path="/admin/import/*" element={<AdminImportPage />} />
         <Route path="/admin/static-pages" element={<StaticPagesManagerPage />} />
-        <Route path="/admin/profile-builder" element={<ProfileBuilderPage />} />
-        <Route path="/admin/profile-builder/new" element={<ProfileBuilderPage />} />
-        <Route path="/admin/profile-builder/:templateId" element={<ProfileBuilderPage />} />
+        <Route
+          path="/admin/profile-builder"
+          element={
+            <FeatureGate flag="LANDING_BUILDER" redirectTo="/404">
+              <ProfileBuilderPage />
+            </FeatureGate>
+          }
+        />
+        <Route
+          path="/admin/profile-builder/new"
+          element={
+            <FeatureGate flag="LANDING_BUILDER" redirectTo="/404">
+              <ProfileBuilderPage />
+            </FeatureGate>
+          }
+        />
+        <Route
+          path="/admin/profile-builder/:templateId"
+          element={
+            <FeatureGate flag="LANDING_BUILDER" redirectTo="/404">
+              <ProfileBuilderPage />
+            </FeatureGate>
+          }
+        />
         {/* Pages SEO programmatiques V3 */}
         <Route path="/reparation/:model/:city" element={<ModelCityPageLazy />} />
         <Route path="/reparateurs/:city" element={<HubCityPageLazy />} />
         <Route path="/probleme/:symptom" element={<SymptomPageLazy />} />
         {/* Pages SEO individuelles des réparateurs */}
         <Route path="/reparateur/:city/:repairerSlug" element={<RepairerPublicProfilePage />} />
-        <Route path="/:city/:repairerName" element={<RepairerSeoPage />} />
+        <Route path="/seo/:city/:repairerName" element={<RepairerSeoPage />} />
         <Route path="/404" element={<NotFound />} />
         <Route path="/repairer-dashboard" element={<RepairerDashboardPage />} />
         <Route path="/client-dashboard" element={<ClientDashboardPage />} />
         <Route path="/repairer-profile" element={<RepairerProfilePage />} />
         <Route path="/repairer-plans" element={<RepairerPlans />} />
+        <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
+        <Route path="/subscription-canceled" element={<SubscriptionCanceledPage />} />
         <Route path="/repairer-testimonials" element={<RepairerTestimonials />} />
         <Route path="/repairer-faq" element={<RepairerFAQ />} />
         <Route path="/reparation-smartphone" element={<SmartphoneRepairPage />} />
@@ -192,10 +227,16 @@ const AppWithTracking = () => {
         <Route path="/reparation-console" element={<ConsoleRepairPage />} />
         <Route path="/local-seo" element={<LocalSeoPage />} />
         <Route path="/repairer-settings" element={<RepairerSettingsPage />} />
-        <Route path="/repair-tracking" element={<RepairTrackingPage />} />
         <Route path="/static/:slug" element={<StaticPage />} />
         <Route path="/repairer-auth" element={<RepairerAuthPage />} />
         <Route path="/client-auth" element={<ClientAuthPage />} />
+        {/* MVP D — tunnel diagnostic + espace pro lead-gen */}
+        <Route path="/diagnostic" element={<DiagnosticPage />} />
+        <Route path="/bonus-reparation" element={<BonusReparationPage />} />
+        <Route path="/pro/onboarding" element={<ProOnboardingPage />} />
+        <Route path="/pro/leads" element={<ProLeadsListPage />} />
+        <Route path="/pro/leads/:id" element={<ProLeadDetailPage />} />
+        <Route path="/pro/wallet" element={<ProWalletPage />} />
         {/* Aliases to avoid blank pages */}
         <Route path="/client" element={<Navigate to="/client-auth" replace />} />
         <Route path="/repairer" element={<Navigate to="/repairer-auth" replace />} />
@@ -203,12 +244,10 @@ const AppWithTracking = () => {
         {/* Blog */}
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogArticlePage />} />
-        <Route path="/blog/article/:slug" element={<BlogArticlePage />} />
         <Route path="/blog/repairers" element={<BlogRepairerPage />} />
-        <Route path="/blog/repairers/article/:slug" element={<BlogArticlePage />} />
-        {/* Suppliers & quotes */}
+        <Route path="/blog/repairers/:slug" element={<BlogArticlePage />} />
+        {/* Suppliers directory (gated Premium) */}
         <Route path="/suppliers-directory" element={<SuppliersDirectoryPage />} />
-        <Route path="/quotes-appointments" element={<QuotesAndAppointments />} />
         {/* Legal pages */}
         <Route path="/legal-notice" element={<LegalNotice />} />
         <Route path="/mentions-legales" element={<Navigate to="/legal-notice" replace />} />
@@ -223,8 +262,6 @@ const AppWithTracking = () => {
         <Route path="/mes-donnees" element={<MyDataPage />} />
         {/* Documentation */}
         <Route path="/documentation" element={<DocumentationPage />} />
-        {/* Marketplace */}
-        <Route path="/marketplace" element={<MarketplacePage />} />
         {/* Institutional pages */}
         <Route path="/a-propos" element={<AProposPage />} />
         <Route path="/garantie" element={<GarantiePage />} />

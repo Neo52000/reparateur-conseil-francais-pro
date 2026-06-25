@@ -10,6 +10,28 @@ interface MarkdownRendererProps {
   className?: string;
 }
 
+function slugifyAnchor(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .substring(0, 80);
+}
+
+function nodeToText(node: React.ReactNode): string {
+  if (typeof node === 'string') return node;
+  if (typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(nodeToText).join('');
+  if (node && typeof node === 'object' && 'props' in node) {
+    return nodeToText((node as { props: { children: React.ReactNode } }).props.children);
+  }
+  return '';
+}
+
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className = "" }) => {
   if (!content?.trim()) {
     return (
@@ -29,10 +51,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className 
             <h1 className="text-4xl font-bold text-foreground mb-8 mt-12 first:mt-0 leading-tight">{children}</h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-3xl font-semibold text-foreground mb-6 mt-12 pt-4 border-t border-border/40 leading-tight">{children}</h2>
+            <h2 id={slugifyAnchor(nodeToText(children))} className="scroll-mt-24 text-3xl font-semibold text-foreground mb-6 mt-12 pt-4 border-t border-border/40 leading-tight">{children}</h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-2xl font-medium text-foreground mb-4 mt-8 leading-snug">{children}</h3>
+            <h3 id={slugifyAnchor(nodeToText(children))} className="scroll-mt-24 text-2xl font-medium text-foreground mb-4 mt-8 leading-snug">{children}</h3>
           ),
           h4: ({ children }) => (
             <h4 className="text-xl font-medium text-foreground mb-3 mt-6">{children}</h4>

@@ -76,14 +76,6 @@ const AdminSidebar: React.FC = () => {
     { path: '/admin?tab=advertising-ai', icon: Megaphone, label: 'Publicité IA', tab: 'advertising-ai', category: 'Content & Marketing' },
     { path: '/admin?tab=ai-cmo', icon: Eye, label: 'AI-CMO', tab: 'ai-cmo', category: 'Content & Marketing', isNew: true },
     
-    // Shopify Management
-  { path: '/admin?tab=shopify-dashboard', icon: Store, label: 'Dashboard Shopify', tab: 'shopify-dashboard', category: 'Shopify Management', isNew: true },
-  { path: '/admin?tab=shopify-stores', icon: ShoppingBag, label: 'Boutiques Réparateurs', tab: 'shopify-stores', category: 'Shopify Management', isNew: true },
-  { path: '/admin?tab=shopify-orders', icon: Package, label: 'Commandes Globales', tab: 'shopify-orders', category: 'Shopify Management', isNew: true },
-  { path: '/admin?tab=shopify-commissions', icon: Euro, label: 'Commissions & Payouts', tab: 'shopify-commissions', category: 'Shopify Management', isNew: true },
-  { path: '/admin?tab=shopify-analytics', icon: TrendingUp, label: 'Analytics Shopify', tab: 'shopify-analytics', category: 'Shopify Management', isNew: true },
-  { path: '/admin?tab=shopify-settings', icon: Settings2, label: 'Configuration API', tab: 'shopify-settings', category: 'Shopify Management', isNew: true },
-    
     // Monetization V3
     { path: '/admin?tab=exclusivity-zones', icon: MapPin, label: 'Zones Exclusivité N3', tab: 'exclusivity-zones', category: 'Monetization V3', isNew: true },
     { path: '/admin?tab=pos-nf525', icon: ShieldCheck, label: 'POS NF-525', tab: 'pos-nf525', category: 'Monetization V3', isNew: true },
@@ -121,7 +113,6 @@ const AdminSidebar: React.FC = () => {
     'Core',
     'SEO & Performance',
     'Content & Marketing',
-    'Shopify Management',
     'Monetization V3',
     'Technical'
   ];

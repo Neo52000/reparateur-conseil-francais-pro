@@ -34,8 +34,8 @@ interface DossierStats {
 
 const QualiReparDashboard: React.FC = () => {
   const { dossiers, loading, reload } = useQualiReparDossiers();
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [apiLogs, setApiLogs] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Record<string, unknown>[]>([]);
+  const [apiLogs, setApiLogs] = useState<Record<string, unknown>[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
 
   useEffect(() => {
@@ -136,7 +136,7 @@ const QualiReparDashboard: React.FC = () => {
     const Icon = config.icon;
 
     return (
-      <Badge variant={config.variant as any} className="flex items-center gap-1">
+      <Badge variant={config.variant as 'default' | 'secondary' | 'destructive' | 'outline'} className="flex items-center gap-1">
         <Icon className="h-3 w-3" />
         {config.label}
       </Badge>
@@ -150,8 +150,8 @@ const QualiReparDashboard: React.FC = () => {
     toast.success('Données actualisées');
   };
 
-  const handleViewDossier = (dossier: QualiReparDossier) => {
-    // TODO: Navigation vers le détail du dossier
+  const handleViewDossier = (_dossier: QualiReparDossier) => {
+    // Phase 4 : navigation vers le détail du dossier QualiRépar
   };
 
   const stats = getStats();

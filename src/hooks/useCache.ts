@@ -14,12 +14,12 @@ interface CacheEntry<T> {
 
 class CacheManager {
   private db: IDBPDatabase | null = null;
-  private memoryCache = new Map<string, CacheEntry<any>>();
+  private memoryCache = new Map<string, CacheEntry<unknown>>();
 
   async init() {
     if (this.db) return;
     
-    this.db = await openDB('RepairConnectCache', 1, {
+    this.db = await openDB('TopReparateursCache', 1, {
       upgrade(db) {
         if (!db.objectStoreNames.contains('cache')) {
           db.createObjectStore('cache');

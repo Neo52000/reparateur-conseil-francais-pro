@@ -65,8 +65,8 @@ export class ContentValidator {
     }
     
     // Détecter les transformations de callouts
-    const originalCallouts = (original.match(/[💡⚠️📝✅❌🔍]/g) || []).length;
-    const processedCallouts = (processed.match(/[💡⚠️📝✅❌🔍]/g) || []).length;
+    const originalCallouts = (original.match(/💡|⚠️|📝|✅|❌|🔍/gu) || []).length;
+    const processedCallouts = (processed.match(/💡|⚠️|📝|✅|❌|🔍/gu) || []).length;
     if (originalCallouts !== processedCallouts) {
       majorChanges.push('Callouts/émojis modifiés');
     }

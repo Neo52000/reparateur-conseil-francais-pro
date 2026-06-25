@@ -1,22 +1,28 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
+
+// Shape used by every JSON column of `admin_audit_logs` (action_details,
+// before_data, after_data). Compatible with the Supabase `Json` type for
+// inserts.
+export type JsonObject = { [key: string]: Json | undefined };
 
 export interface AdminAuditLogEntry {
   id?: string;
   timestamp?: string;
   admin_user_id: string;
-  action_type: 'login' | 'logout' | 'create' | 'update' | 'delete' | 
+  action_type: 'login' | 'logout' | 'create' | 'update' | 'delete' |
                'approve' | 'reject' | 'activate' | 'deactivate' |
                'scraping_start' | 'scraping_stop' | 'export' |
                'configuration_change' | 'user_management';
   resource_type: string;
   resource_id?: string;
-  action_details?: Record<string, any>;
+  action_details?: JsonObject;
   ip_address?: string;
   user_agent?: string;
   session_id?: string;
-  before_data?: Record<string, any>;
-  after_data?: Record<string, any>;
+  before_data?: JsonObject;
+  after_data?: JsonObject;
   severity_level?: 'info' | 'warning' | 'critical';
   created_at?: string;
 }
@@ -78,9 +84,9 @@ export class AdminAuditService {
     actionType: AdminAuditLogEntry['action_type'],
     resourceType: string,
     resourceId: string,
-    beforeData: Record<string, any>,
-    afterData: Record<string, any>,
-    details?: Record<string, any>
+    beforeData: JsonObject,
+    afterData: JsonObject,
+    details?: JsonObject
   ): Promise<void> {
     await this.logAction({
       admin_user_id: adminUserId,
@@ -102,7 +108,7 @@ export class AdminAuditService {
     actionType: AdminAuditLogEntry['action_type'],
     resourceType: string,
     resourceId?: string,
-    details?: Record<string, any>
+    details?: JsonObject
   ): Promise<void> {
     await this.logAction({
       admin_user_id: adminUserId,
@@ -115,14 +121,17 @@ export class AdminAuditService {
   }
 
   /**
-   * Convertit les données JSON de Supabase en Record<string, any>
+   * Convertit les données JSON de Supabase en JsonObject.
+   * Le `jsonb` peut techniquement contenir un tableau ou un primitif —
+   * on ne veut que des objets-clé/valeur ici, donc on filtre.
    */
-  private static parseJsonField(jsonData: any): Record<string, any> {
+  private static parseJsonField(jsonData: unknown): JsonObject {
     if (!jsonData) return {};
-    if (typeof jsonData === 'object' && jsonData !== null) return jsonData;
+    if (this.isJsonObject(jsonData)) return jsonData;
     if (typeof jsonData === 'string') {
       try {
-        return JSON.parse(jsonData);
+        const parsed: unknown = JSON.parse(jsonData);
+        return this.isJsonObject(parsed) ? parsed : {};
       } catch {
         return {};
       }
@@ -130,10 +139,14 @@ export class AdminAuditService {
     return {};
   }
 
+  private static isJsonObject(value: unknown): value is JsonObject {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+
   /**
    * Convertit l'adresse IP en string
    */
-  private static parseIpAddress(ipData: any): string | undefined {
+  private static parseIpAddress(ipData: unknown): string | undefined {
     if (!ipData) return undefined;
     if (typeof ipData === 'string') return ipData;
     return String(ipData);

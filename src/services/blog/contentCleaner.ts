@@ -169,7 +169,7 @@ export class ContentCleaner {
     // Améliorer les autres éléments de formatage
     processed = processed
       // Améliorer les listes à puces
-      .replace(/^\s*[\*\+\-]\s+/gm, '- ')
+      .replace(/^\s*[*+-]\s+/gm, '- ')
       .replace(/```(\w+)?\n([\s\S]*?)\n```/g, (match, lang, code) => {
         return `\`\`\`${lang || ''}\n${code}\n\`\`\``;
       })

@@ -50,7 +50,7 @@ export const useDeviceModels = () => {
         description: 'Erreur lors de la création du modèle',
         variant: 'destructive',
       });
-      throw new Error('Erreur lors de la création du modèle');
+      throw new Error('Erreur lors de la création du modèle', { cause: err });
     }
   };
 
@@ -72,7 +72,7 @@ export const useDeviceModels = () => {
         description: 'Erreur lors de la mise à jour du modèle',
         variant: 'destructive',
       });
-      throw new Error('Erreur lors de la mise à jour du modèle');
+      throw new Error('Erreur lors de la mise à jour du modèle', { cause: err });
     }
   };
 
@@ -93,7 +93,7 @@ export const useDeviceModels = () => {
         description: 'Erreur lors de la suppression du modèle',
         variant: 'destructive',
       });
-      throw new Error('Erreur lors de la suppression du modèle');
+      throw new Error('Erreur lors de la suppression du modèle', { cause: err });
     }
   };
 

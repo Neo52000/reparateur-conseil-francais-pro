@@ -1,16 +1,27 @@
 project_id = "nbugpbakfkyvvjzgfjmw"
 
+# ===========================================================================
+# Edge Function authentication policy (cf. AUDIT_20260507 P0 #2)
+#
+# `verify_jwt = true` means Supabase checks for a valid JWT before invoking
+# the function. Functions that need stricter checks call `requireAdmin(req)`
+# from `_shared/auth.ts` to ensure the caller has the `admin` role.
+#
+# `verify_jwt = false` is reserved for cron / webhook entrypoints that have
+# no user context — those MUST call `requireCronSecret(req)` to validate the
+# `x-cron-secret` header against the `CRON_SECRET` env var.
+# ===========================================================================
+
+# --- Admin-only functions (verify_jwt + requireAdmin in body) -------------
+
 [functions.ai-scrape-repairers]
-verify_jwt = false
+verify_jwt = true
 
 [functions.scrape-repairers]
-verify_jwt = false
+verify_jwt = true
 
 [functions.validate-scraping]
-verify_jwt = false
-
-[functions.blog-scheduler-cron]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-notification]
 verify_jwt = true
@@ -19,30 +30,58 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.blog-ai-generator]
-verify_jwt = false
-
-[functions.blog-auto-publish]
-verify_jwt = false
+verify_jwt = true
 
 [functions.blog-image-generator]
 verify_jwt = true
 
 [functions.generate-repairer-seo-page]
-verify_jwt = false
+verify_jwt = true
 
 [functions.blog-schedules]
-verify_jwt = false
+verify_jwt = true
 
 [functions.geocode-repairers]
-verify_jwt = false
+verify_jwt = true
 
 [functions.google-places-proxy]
-verify_jwt = false
-
-# stop-scraping supprimé pour libérer un slot pour social-booster
+verify_jwt = true
 
 [functions.social-booster]
+verify_jwt = true
+
+[functions.stop-scraping]
+verify_jwt = true
+
+# --- Cron / scheduled jobs (no user JWT — protected by CRON_SECRET) -------
+
+[functions.blog-scheduler-cron]
+verify_jwt = false
+
+[functions.blog-auto-publish]
 verify_jwt = false
 
 [functions.ai-cmo-worker]
+verify_jwt = false
+
+# --- MVP D : lead-gen + IA diagnostic --------------------------------------
+
+# Public, no auth (rate-limit IP enforced in body).
+[functions.diagnose-issue]
+verify_jwt = false
+
+# Internal: triggered by diagnose-issue with service-role, or by cron secret.
+[functions.match-and-distribute]
+verify_jwt = false
+
+# Repairer-authenticated.
+[functions.stripe-checkout-credits]
+verify_jwt = true
+
+# Repairer-authenticated (RLS scopes lead ownership).
+[functions.lead-status-update]
+verify_jwt = true
+
+# Cron-only (CRON_SECRET via x-cron-secret header).
+[functions.generate-seo-page]
 verify_jwt = false

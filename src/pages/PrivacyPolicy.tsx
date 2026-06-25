@@ -106,7 +106,7 @@ const PrivacyPolicy = () => {
                 </p>
                 <ul className="list-disc list-inside space-y-2 text-muted-foreground ml-4">
                   <li><strong>Réparateurs :</strong> informations nécessaires pour le service</li>
-                  <li><strong>Prestataires techniques :</strong> hébergement, maintenance (Supabase, Lovable)</li>
+                  <li><strong>Prestataires techniques :</strong> hébergement, maintenance (Netlify, Supabase)</li>
                   <li><strong>Autorités légales :</strong> sur demande légale ou judiciaire</li>
                 </ul>
                 <p className="text-muted-foreground mt-4">

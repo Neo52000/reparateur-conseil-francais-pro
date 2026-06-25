@@ -1,0 +1,75 @@
+# Dependabot configuration — keeps dependencies fresh + flags CVEs early.
+# Refs: AUDIT_20260507 § 7 quick-wins.
+#
+# Strategy:
+#   - Weekly schedule on Monday 06:00 Europe/Paris (early enough for the
+#     team to triage before standup).
+#   - npm only (the only ecosystem we ship). Bun reads `package.json` so
+#     Dependabot's npm updates are picked up by `bun install`.
+#   - Group large vendor families into a single PR each so reviewers don't
+#     drown in 20 separate Radix-UI bumps.
+#   - Security updates run independently (immediate) so CVEs aren't gated
+#     on the weekly schedule.
+#   - GitHub Actions ecosystem (CI workflow) updated monthly.
+
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Paris
+    open-pull-requests-limit: 8
+    labels:
+      - dependencies
+      - automated
+    groups:
+      radix-ui:
+        patterns:
+          - "@radix-ui/*"
+      sentry:
+        patterns:
+          - "@sentry/*"
+      supabase:
+        patterns:
+          - "@supabase/*"
+      tiptap:
+        patterns:
+          - "@tiptap/*"
+      dnd-kit:
+        patterns:
+          - "@dnd-kit/*"
+      fontsource:
+        patterns:
+          - "@fontsource/*"
+      tanstack:
+        patterns:
+          - "@tanstack/*"
+      eslint:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
+          - "typescript-eslint"
+          - "globals"
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "@testing-library/*"
+          - "jsdom"
+      types:
+        patterns:
+          - "@types/*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels:
+      - dependencies
+      - automated
+      - github-actions

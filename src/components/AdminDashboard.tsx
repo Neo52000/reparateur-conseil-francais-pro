@@ -38,8 +38,6 @@ import PerformanceManagement from './admin/PerformanceManagement';
 import SEOMonitoringDashboard from './admin/SEOMonitoringDashboard';
 import LocalSeoManagement from './admin/LocalSeoManagement';
 import EnhancedDocumentationManager from './admin/EnhancedDocumentationManager';
-import AdminQuoteAssignments from './admin/AdminQuoteAssignments';
-import AllQuotesManager from './admin/AllQuotesManager';
 
 interface StatCardProps {
   title: string;
@@ -62,7 +60,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon }) => (
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<Record<string, unknown> | null>(null);
   const [favoriteTab, setFavoriteTab] = useState<string | null>(null);
   const [tabsScrollPosition, setTabsScrollPosition] = useState(0);
   const { signOut } = useAuth();
@@ -111,8 +109,6 @@ const AdminDashboard = () => {
     core: [
       { id: 'dashboard', label: 'Tableau de bord', icon: BarChart3, priority: 'high', hasAlert: false },
       { id: 'repairers', label: 'Réparateurs', icon: Users, priority: 'high', hasAlert: false },
-      { id: 'quotes', label: 'Tous les Devis', icon: FileText, priority: 'high', hasAlert: false },
-      { id: 'quote-assignments', label: 'Attribution Devis', icon: FileText, priority: 'high', hasAlert: false },
       { id: 'analytics', label: 'Analytics', icon: TrendingUp, priority: 'medium', hasAlert: false }
     ],
     seoPerformance: [
@@ -390,14 +386,6 @@ const AdminDashboard = () => {
           <TabsContent value="repairers">
             <h2 className="text-2xl font-bold mb-4">Gestion des réparateurs</h2>
             <RepairerList />
-          </TabsContent>
-
-          <TabsContent value="quotes">
-            <AllQuotesManager />
-          </TabsContent>
-
-          <TabsContent value="quote-assignments">
-            <AdminQuoteAssignments />
           </TabsContent>
 
           {/* Core Tabs */}

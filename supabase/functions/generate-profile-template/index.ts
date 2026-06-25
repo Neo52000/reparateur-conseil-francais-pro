@@ -1,9 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
+import { callAIWithFallback, parseJsonFromContent } from "../_shared/ai-text.ts";
 
 interface GeneratedSuggestion {
   name: string;
@@ -17,18 +14,38 @@ interface GeneratedSuggestion {
   };
 }
 
+const DEFAULT_SUGGESTIONS: GeneratedSuggestion[] = [
+  {
+    name: "Template Moderne",
+    description: "Template équilibré pour réparateurs professionnels",
+    widgetOrder: ["header", "about", "contact", "photos", "services", "pricing", "hours", "reviews", "certifications", "map"],
+    theme: {
+      primaryColor: "217 91% 60%",
+      accentColor: "142 76% 36%",
+      fontFamily: "Inter",
+      spacing: "normal",
+    },
+  },
+  {
+    name: "Template Compact",
+    description: "Essentiel avec focus sur le contact",
+    widgetOrder: ["header", "contact", "services", "pricing", "reviews"],
+    theme: {
+      primaryColor: "262 83% 58%",
+      accentColor: "24 95% 53%",
+      fontFamily: "Poppins",
+      spacing: "compact",
+    },
+  },
+];
+
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflight = handlePreflight(req);
+  if (preflight) return preflight;
+  const corsHeaders = buildCorsHeaders(req);
 
   try {
     const { prompt } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
 
     const systemPrompt = `Tu es un expert UX/UI spécialisé dans la conception de fiches d'établissements.
 Tu dois générer des templates JSON pour des fiches de réparateurs de smartphones.
@@ -66,106 +83,38 @@ Réponds UNIQUEMENT avec un JSON valide de cette structure:
   ]
 }`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: prompt || "Crée un template moderne et professionnel pour un réparateur de smartphones." },
-        ],
-      }),
+    const userPrompt = prompt || "Crée un template moderne et professionnel pour un réparateur de smartphones.";
+
+    const aiResult = await callAIWithFallback({
+      systemPrompt,
+      userPrompt,
+      temperature: 0.7,
+      maxTokens: 2000,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limits exceeded, please try again later." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required, please add funds." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    let suggestions: GeneratedSuggestion[] = DEFAULT_SUGGESTIONS;
 
-      throw new Error(`AI gateway error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-
-    if (!content) {
-      throw new Error("No content in AI response");
-    }
-
-    // Parse le JSON de la réponse
-    let suggestions: GeneratedSuggestion[];
-    try {
-      // Nettoyer le contenu si nécessaire (enlever les backticks markdown)
-      let cleanContent = content.trim();
-      if (cleanContent.startsWith("```json")) {
-        cleanContent = cleanContent.slice(7);
+    if (aiResult.success && aiResult.content) {
+      try {
+        const parsed = parseJsonFromContent(aiResult.content) as { suggestions?: GeneratedSuggestion[] };
+        if (Array.isArray(parsed?.suggestions) && parsed.suggestions.length > 0) {
+          suggestions = parsed.suggestions;
+        }
+      } catch {
+        // fallback to default suggestions
       }
-      if (cleanContent.startsWith("```")) {
-        cleanContent = cleanContent.slice(3);
-      }
-      if (cleanContent.endsWith("```")) {
-        cleanContent = cleanContent.slice(0, -3);
-      }
-      
-      const parsed = JSON.parse(cleanContent.trim());
-      suggestions = parsed.suggestions || [];
-    } catch (parseError) {
-      console.error("Failed to parse AI response:", content);
-      // Retourner des suggestions par défaut en cas d'erreur de parsing
-      suggestions = [
-        {
-          name: "Template Moderne",
-          description: "Template équilibré pour réparateurs professionnels",
-          widgetOrder: ["header", "about", "contact", "photos", "services", "pricing", "hours", "reviews", "certifications", "map"],
-          theme: {
-            primaryColor: "217 91% 60%",
-            accentColor: "142 76% 36%",
-            fontFamily: "Inter",
-            spacing: "normal",
-          },
-        },
-        {
-          name: "Template Compact",
-          description: "Essentiel avec focus sur le contact",
-          widgetOrder: ["header", "contact", "services", "pricing", "reviews"],
-          theme: {
-            primaryColor: "262 83% 58%",
-            accentColor: "24 95% 53%",
-            fontFamily: "Poppins",
-            spacing: "compact",
-          },
-        },
-      ];
     }
 
     return new Response(JSON.stringify({ suggestions }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("generate-profile-template error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
     );
   }
 });

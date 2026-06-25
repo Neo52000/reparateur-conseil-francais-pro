@@ -42,8 +42,8 @@ export class PlaywrightScraper {
       await this.page.goto(url, { waitUntil: 'networkidle' });
       await this.page.waitForTimeout(2000);
 
-      const results = await this.page.evaluate(() => {
-        const items: any[] = [];
+      const results = await this.page.evaluate<ScrapingResult[]>(() => {
+        const items: ScrapingResult[] = [];
         const listings = document.querySelectorAll('[data-pj-list-item]');
         
         listings.forEach(listing => {
@@ -103,8 +103,8 @@ export class PlaywrightScraper {
       
       await this.page.waitForTimeout(2000);
 
-      const results = await this.page.evaluate(() => {
-        const items: any[] = [];
+      const results = await this.page.evaluate<ScrapingResult[]>(() => {
+        const items: ScrapingResult[] = [];
         const listings = document.querySelectorAll('[data-result-index]');
         
         listings.forEach(listing => {

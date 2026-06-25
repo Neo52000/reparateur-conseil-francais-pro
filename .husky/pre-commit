@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+# Pre-commit hook : lint uniquement les fichiers staged.
+# Objectif : geler la dette lint héritée du prototype Lovable tout en empêchant
+# toute nouvelle régression sur le code ajouté ou modifié.
+#
+# Cf. DETTE_TECHNIQUE.md § 1 "Lint legacy".
+
+if command -v bunx >/dev/null 2>&1; then
+  bunx lint-staged
+else
+  npx --no-install lint-staged
+fi

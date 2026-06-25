@@ -80,16 +80,14 @@ ${sitemaps.map(s => `  <sitemap>
 
     if (!repairers) return this.generateSitemapXml([]);
 
-    // Générer un slug à partir du nom et de la ville
-    const entries: SitemapEntry[] = repairers.map(r => {
-      const slug = this.slugify(`${r.name}-${r.city}`);
-      return {
-        loc: `/reparateur/${r.id}`,
+    const entries: SitemapEntry[] = repairers
+      .filter((r) => r.city && r.name)
+      .map((r) => ({
+        loc: `/reparateur/${this.slugify(r.city!)}/${this.slugify(r.name!)}`,
         lastmod: r.updated_at,
         changefreq: 'weekly' as const,
-        priority: 0.8
-      };
-    });
+        priority: 0.8,
+      }));
 
     return this.generateSitemapXml(entries);
   }

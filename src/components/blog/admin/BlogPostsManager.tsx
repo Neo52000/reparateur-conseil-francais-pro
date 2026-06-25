@@ -55,7 +55,7 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
   }, [statusFilter, categoryFilter]);
 
   const loadPosts = async () => {
-    const filters: any = {
+    const filters: Record<string, unknown> = {
       // Sécurise la perf de l'admin : on charge une liste paginée et sans `content`
       limit: 50,
       offset: 0,
@@ -109,7 +109,7 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
   const handlePreviewPost = async (post: BlogPost) => {
     if (post.status === 'published') {
       // Si l'article est publié, ouvrir la page publique
-      window.open(`/blog/article/${post.slug}`, '_blank');
+      window.open(`/blog/${post.slug}`, '_blank');
       return;
     }
 
@@ -335,7 +335,7 @@ const BlogPostsManager: React.FC<BlogPostsManagerProps> = ({
                     <TableCell>
                       <Select 
                         value={post.status} 
-                        onValueChange={(value: any) => handleStatusChange(post.id, value)}
+                        onValueChange={(value) => handleStatusChange(post.id, value as 'draft' | 'pending' | 'published' | 'archived' | 'scheduled')}
                       >
                         <SelectTrigger className="w-32">
                           <SelectValue />

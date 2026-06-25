@@ -1,9 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
 
 const GOOGLE_PLACES_API = "https://maps.googleapis.com/maps/api/place";
 const FIRECRAWL_API = "https://api.firecrawl.dev/v1";
@@ -137,10 +133,9 @@ function delay(ms: number): Promise<void> {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflight = handlePreflight(req);
+  if (preflight) return preflight;
+  const corsHeaders = buildCorsHeaders(req);
 
   try {
     const body = await req.json();

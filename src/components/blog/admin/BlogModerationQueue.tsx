@@ -34,7 +34,7 @@ export const BlogModerationQueue = () => {
 
       if (error) throw error;
       setPosts((data || []) as BlogPost[]);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error loading posts:', error);
       toast({
         title: "Erreur",
@@ -46,7 +46,7 @@ export const BlogModerationQueue = () => {
     }
   };
 
-  // TODO: Réactiver quand blog-ai-moderation sera actif
+  // Phase 4 : réactiver quand l'edge function blog-ai-moderation sera déployée
   const runModeration = async (postId: string) => {
     toast({
       title: "Fonction désactivée",
@@ -73,10 +73,10 @@ export const BlogModerationQueue = () => {
       });
 
       await loadPendingPosts();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erreur",
-        description: error.message || "Impossible d'approuver l'article",
+        description: (error instanceof Error ? error.message : null) || "Impossible d'approuver l'article",
         variant: "destructive"
       });
     }
@@ -97,10 +97,10 @@ export const BlogModerationQueue = () => {
       });
 
       await loadPendingPosts();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de rejeter l'article",
+        description: (error instanceof Error ? error.message : null) || "Impossible de rejeter l'article",
         variant: "destructive"
       });
     }

@@ -5,7 +5,6 @@ import { useRepairerSearch } from '@/hooks/useRepairerSearch';
 import { useMapStore } from '@/stores/mapStore';
 import type { Repairer } from '@/types/repairer';
 import RepairersMapContainer from '../map/MapContainer';
-import QuoteRequestModal from '@/components/modals/QuoteRequestModal';
 import AppointmentModal from '@/components/modals/AppointmentModal';
 import RepairerProfileModal from '@/components/RepairerProfileModal';
 import RepairerBottomPanel from './RepairerBottomPanel';
@@ -26,7 +25,6 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
   repairers: overrideRepairers,
 }) => {
   const [selectedRepairerId, setSelectedRepairerId] = useState<string | null>(null);
-  const [showQuoteModal, setShowQuoteModal] = useState(false);
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [selectedRepairer, setSelectedRepairer] = useState<any>(null);
@@ -69,10 +67,6 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
     setShowProfileModal(true);
   };
 
-  const handleQuoteRequest = () => {
-    setShowQuoteModal(true);
-  };
-
   const handleAppointmentRequest = () => {
     setShowAppointmentModal(true);
   };
@@ -108,7 +102,6 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
           repairer={selectedRepairer}
           onClose={closeRepairer}
           onViewProfile={handleViewProfile}
-          onQuoteRequest={handleQuoteRequest}
           onAppointmentRequest={handleAppointmentRequest}
           userLocation={userLocation}
         />
@@ -119,14 +112,6 @@ const EnhancedRepairersMap: React.FC<EnhancedRepairersMapProps> = ({
         <RepairerProfileModal
           isOpen={showProfileModal}
           onClose={() => setShowProfileModal(false)}
-          repairerId={selectedRepairer.id}
-        />
-      )}
-
-      {showQuoteModal && selectedRepairer && (
-        <QuoteRequestModal
-          isOpen={showQuoteModal}
-          onClose={() => setShowQuoteModal(false)}
           repairerId={selectedRepairer.id}
         />
       )}

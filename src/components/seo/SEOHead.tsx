@@ -8,11 +8,11 @@ interface SEOHeadProps {
   canonicalUrl?: string;
   image?: string;
   type?: 'website' | 'article' | 'product';
-  structuredData?: any;
+  structuredData?: Record<string, unknown>;
 }
 
 const SEOHead: React.FC<SEOHeadProps> = ({
-  title = 'RepairConnect - Trouvez le meilleur réparateur près de chez vous',
+  title = 'TopRéparateurs - Trouvez le meilleur réparateur près de chez vous',
   description = 'Plateforme de mise en relation entre particuliers et réparateurs professionnels. Trouvez rapidement un réparateur de confiance pour vos appareils électroniques.',
   keywords = 'réparation, smartphone, tablette, réparateur, service après-vente, electronics',
   canonicalUrl,
@@ -23,7 +23,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
   const defaultStructuredData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "RepairConnect",
+    "name": "TopRéparateurs",
     "description": description,
     "url": canonicalUrl || window.location.href,
     "applicationCategory": "BusinessApplication",
@@ -42,7 +42,9 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta name="description" content={description} />
       <meta name="keywords" content={keywords} />
       {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
-      
+      {canonicalUrl && <link rel="alternate" hrefLang="fr-FR" href={canonicalUrl} />}
+      {canonicalUrl && <link rel="alternate" hrefLang="x-default" href={canonicalUrl} />}
+
       {/* Open Graph / Facebook */}
       <meta property="og:type" content={type} />
       <meta property="og:title" content={title} />
@@ -60,7 +62,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta name="robots" content="index, follow" />
       <meta name="language" content="French" />
       <meta name="revisit-after" content="7 days" />
-      <meta name="author" content="RepairConnect" />
+      <meta name="author" content="TopRéparateurs" />
       
       {/* Mobile Optimization */}
       <meta name="viewport" content="width=device-width, initial-scale=1" />

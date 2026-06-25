@@ -1,40 +1,29 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
+import { callAIWithFallback, type AITool } from "../_shared/ai-text.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-  'Access-Control-Max-Age': '86400',
-};
+type SbClient = ReturnType<typeof createClient>;
 
-async function checkAdminRole(supabase: any, authHeader: string | null): Promise<string | null> {
+async function checkAdminRole(supabase: SbClient, authHeader: string | null): Promise<string | null> {
   try {
     if (!authHeader?.startsWith("Bearer ")) return null;
-    
+
     const token = authHeader.slice(7);
     const parts = token.split(".");
     if (parts.length !== 3) return null;
-    
+
     const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
     const userId = payload?.sub;
-    
     if (!userId) return null;
-    
-    // SECURITY: Use server-side has_role() function instead of trusting JWT metadata
+
     const { data, error } = await supabase.rpc('has_role', {
       _user_id: userId,
       _role: 'admin'
     });
-    
-    if (error) {
-      console.error("❌ has_role RPC error:", error);
-      return null;
-    }
-    
+    if (error) return null;
     return data ? userId : null;
-  } catch (e) {
-    console.error("❌ Admin check error:", e);
+  } catch {
     return null;
   }
 }
@@ -56,67 +45,7 @@ interface ProviderStatus {
   status: 'active' | 'error' | 'warning' | 'unknown';
   message: string;
   lastCheck?: string;
-  credits?: {
-    used: number;
-    limit: number;
-    unlimited: boolean;
-  };
   docsUrl?: string;
-}
-
-async function checkLovableAI(apiKey: string): Promise<ProviderStatus> {
-  const result: ProviderStatus = {
-    name: 'Lovable AI',
-    key: 'LOVABLE_API_KEY',
-    status: 'unknown',
-    message: 'Non vérifié',
-    docsUrl: 'https://docs.lovable.dev/features/ai'
-  };
-
-  if (!apiKey) {
-    result.status = 'error';
-    result.message = 'Clé API non configurée';
-    return result;
-  }
-
-  try {
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [{ role: 'user', content: 'test' }],
-        max_tokens: 1
-      })
-    });
-
-    if (response.ok) {
-      result.status = 'active';
-      result.message = 'API fonctionnelle';
-    } else if (response.status === 402) {
-      result.status = 'warning';
-      result.message = 'Crédits épuisés - Rechargez votre compte';
-      result.credits = { used: 100, limit: 100, unlimited: false };
-    } else if (response.status === 429) {
-      result.status = 'warning';
-      result.message = 'Rate limit atteint - Réessayez plus tard';
-    } else if (response.status === 401) {
-      result.status = 'error';
-      result.message = 'Clé API invalide';
-    } else {
-      result.status = 'error';
-      result.message = `Erreur HTTP ${response.status}`;
-    }
-  } catch (error: unknown) {
-    result.status = 'error';
-    result.message = `Erreur de connexion: ${(error as Error).message}`;
-  }
-
-  result.lastCheck = new Date().toISOString();
-  return result;
 }
 
 async function checkOpenAI(apiKey: string): Promise<ProviderStatus> {
@@ -125,24 +54,20 @@ async function checkOpenAI(apiKey: string): Promise<ProviderStatus> {
     key: 'OPENAI_API_KEY',
     status: 'unknown',
     message: 'Non vérifié',
-    docsUrl: 'https://platform.openai.com/api-keys'
+    docsUrl: 'https://platform.openai.com/api-keys',
   };
-
   if (!apiKey) {
     result.status = 'error';
     result.message = 'Clé API non configurée';
     return result;
   }
-
   try {
     const response = await fetch('https://api.openai.com/v1/models', {
-      headers: { 'Authorization': `Bearer ${apiKey}` }
+      headers: { 'Authorization': `Bearer ${apiKey}` },
     });
-
     if (response.ok) {
       result.status = 'active';
       result.message = 'API fonctionnelle';
-      result.credits = { used: 0, limit: 0, unlimited: true };
     } else if (response.status === 401) {
       result.status = 'error';
       result.message = 'Clé API invalide ou expirée';
@@ -157,7 +82,6 @@ async function checkOpenAI(apiKey: string): Promise<ProviderStatus> {
     result.status = 'error';
     result.message = `Erreur de connexion: ${(error as Error).message}`;
   }
-
   result.lastCheck = new Date().toISOString();
   return result;
 }
@@ -168,25 +92,21 @@ async function checkGemini(apiKey: string): Promise<ProviderStatus> {
     key: 'GEMINI_API_KEY',
     status: 'unknown',
     message: 'Non vérifié',
-    docsUrl: 'https://aistudio.google.com/apikey'
+    docsUrl: 'https://aistudio.google.com/apikey',
   };
-
   if (!apiKey) {
     result.status = 'error';
     result.message = 'Clé API non configurée';
     return result;
   }
-
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-
     if (response.ok) {
       result.status = 'active';
       result.message = 'API fonctionnelle';
-      result.credits = { used: 0, limit: 0, unlimited: true };
     } else if (response.status === 400 || response.status === 403) {
       result.status = 'error';
-      result.message = 'Clé API invalide ou restrictions d\'accès';
+      result.message = "Clé API invalide ou restrictions d'accès";
     } else if (response.status === 404) {
       result.status = 'error';
       result.message = 'Clé API invalide';
@@ -198,7 +118,6 @@ async function checkGemini(apiKey: string): Promise<ProviderStatus> {
     result.status = 'error';
     result.message = `Erreur de connexion: ${(error as Error).message}`;
   }
-
   result.lastCheck = new Date().toISOString();
   return result;
 }
@@ -206,27 +125,23 @@ async function checkGemini(apiKey: string): Promise<ProviderStatus> {
 async function checkMistral(apiKey: string): Promise<ProviderStatus> {
   const result: ProviderStatus = {
     name: 'Mistral AI',
-    key: 'CLE_API_MISTRAL',
+    key: 'MISTRAL_API_KEY',
     status: 'unknown',
     message: 'Non vérifié',
-    docsUrl: 'https://console.mistral.ai/api-keys'
+    docsUrl: 'https://console.mistral.ai/api-keys',
   };
-
   if (!apiKey) {
     result.status = 'error';
     result.message = 'Clé API non configurée';
     return result;
   }
-
   try {
     const response = await fetch('https://api.mistral.ai/v1/models', {
-      headers: { 'Authorization': `Bearer ${apiKey}` }
+      headers: { 'Authorization': `Bearer ${apiKey}` },
     });
-
     if (response.ok) {
       result.status = 'active';
       result.message = 'API fonctionnelle';
-      result.credits = { used: 0, limit: 0, unlimited: true };
     } else if (response.status === 401) {
       result.status = 'error';
       result.message = 'Clé API invalide';
@@ -241,15 +156,14 @@ async function checkMistral(apiKey: string): Promise<ProviderStatus> {
     result.status = 'error';
     result.message = `Erreur de connexion: ${(error as Error).message}`;
   }
-
   result.lastCheck = new Date().toISOString();
   return result;
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflight = handlePreflight(req);
+  if (preflight) return preflight;
+  const corsHeaders = buildCorsHeaders(req);
 
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
   const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -258,55 +172,38 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
     const authHeader = req.headers.get("Authorization");
 
-    // 🔐 HYBRID AUTHENTICATION: Accept SERVICE_ROLE_KEY for internal calls OR verify admin JWT for external calls
     let isInternalCall = false;
     let userId: string | null = null;
 
-    // Check if this is an internal service-to-service call using SERVICE_ROLE_KEY
     if (authHeader === `Bearer ${SERVICE_ROLE}`) {
-      console.log("✅ Internal service call detected (SERVICE_ROLE_KEY) - skipping admin check");
       isInternalCall = true;
-      userId = null; // Les appels internes n'ont pas d'auteur - author_id sera NULL
+      userId = null;
     } else {
-      // External call - verify admin role
       userId = await checkAdminRole(supabase, authHeader);
-      
       if (!userId) {
-        console.log("❌ Access denied: user is not admin");
         return new Response(
           JSON.stringify({ success: false, error: "forbidden", message: "Admin required" }),
-          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
     }
 
-    console.log(`✅ Access authorized: ${isInternalCall ? 'Internal service call' : `Admin user ${userId}`}`);
-
     const requestData: GenerateArticleRequest = await req.json();
     const { action, topic, category_id, keywords, target_audience, tone, auto_publish, scheduled_at } = requestData;
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    const MISTRAL_API_KEY = Deno.env.get('CLE_API_MISTRAL');
+    const MISTRAL_API_KEY = Deno.env.get('MISTRAL_API_KEY') ?? Deno.env.get('CLE_API_MISTRAL');
 
-    // 🔍 ACTION: CHECK STATUS - Return AI provider statuses
     if (action === 'check-status') {
-      console.log('🔍 Checking AI provider statuses...');
-      
-      const [lovable, openai, gemini, mistral] = await Promise.all([
-        checkLovableAI(LOVABLE_API_KEY || ''),
+      const [openai, gemini, mistral] = await Promise.all([
         checkOpenAI(OPENAI_API_KEY || ''),
         checkGemini(GEMINI_API_KEY || ''),
-        checkMistral(MISTRAL_API_KEY || '')
+        checkMistral(MISTRAL_API_KEY || ''),
       ]);
-
-      const providers = [lovable, openai, gemini, mistral];
-      const activeCount = providers.filter(p => p.status === 'active').length;
-      const errorCount = providers.filter(p => p.status === 'error').length;
-
-      console.log(`✅ Check complete: ${activeCount} active, ${errorCount} errors`);
-
+      const providers = [gemini, openai, mistral];
+      const activeCount = providers.filter((p) => p.status === 'active').length;
+      const errorCount = providers.filter((p) => p.status === 'error').length;
       return new Response(
         JSON.stringify({
           success: true,
@@ -314,24 +211,21 @@ serve(async (req) => {
           summary: {
             active: activeCount,
             errors: errorCount,
-            warnings: providers.filter(p => p.status === 'warning').length,
-            hasWorkingProvider: activeCount > 0
-          }
+            warnings: providers.filter((p) => p.status === 'warning').length,
+            hasWorkingProvider: activeCount > 0,
+          },
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
-    // 📝 ACTION: GENERATE ARTICLE (default)
-    // Vérifier qu'au moins une clé API est disponible
-    if (!LOVABLE_API_KEY && !GEMINI_API_KEY && !OPENAI_API_KEY && !MISTRAL_API_KEY) {
-      throw new Error('Aucune clé API IA configurée (LOVABLE_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY ou CLE_API_MISTRAL requis)');
+    if (!GEMINI_API_KEY && !OPENAI_API_KEY && !MISTRAL_API_KEY) {
+      throw new Error('Aucune clé API IA configurée (GEMINI_API_KEY, OPENAI_API_KEY ou MISTRAL_API_KEY requis)');
     }
 
-    // Récupérer la catégorie si fournie
     let categoryName = '';
     let customPrompt = '';
-    
+
     if (category_id) {
       const { data: category } = await supabase
         .from('blog_categories')
@@ -340,7 +234,6 @@ serve(async (req) => {
         .single();
       categoryName = category?.name || '';
 
-      // Récupérer le prompt personnalisé pour cette catégorie
       const { data: template } = await supabase
         .from('blog_generation_templates')
         .select('prompt_template, ai_model')
@@ -350,24 +243,20 @@ serve(async (req) => {
 
       if (template) {
         customPrompt = template.prompt_template;
-        console.log('✅ Prompt personnalisé trouvé pour la catégorie:', categoryName);
       }
     }
 
-    // Remplacer les variables dynamiques dans le prompt
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.toLocaleDateString('fr-FR', { month: 'long' });
-    const formattedDate = currentDate.toLocaleDateString('fr-FR', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const formattedDate = currentDate.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
     const season = ['hiver', 'printemps', 'été', 'automne'][Math.floor((currentDate.getMonth() % 12) / 3)];
-    
-    console.log(`📅 Date context: ${formattedDate} (${currentYear}, ${season})`);
-    
+
     if (customPrompt) {
       customPrompt = customPrompt
         .replace(/\{categorie\}/g, categoryName)
@@ -378,7 +267,6 @@ serve(async (req) => {
         .replace(/\{longueur\}/g, '600-800');
     }
 
-    // Construire le prompt système avec contexte temporel explicite
     const systemPrompt = `Tu es un expert en rédaction d'articles de blog pour une plateforme de réparation de smartphones.
 Ton objectif est de créer des articles optimisés SEO, informatifs et engageants.
 
@@ -388,7 +276,7 @@ Ton objectif est de créer des articles optimisés SEO, informatifs et engageant
 - Mois: ${currentMonth}
 - Saison: ${season}
 
-⚠️ RÈGLE CRITIQUE: Tous les contenus, références temporelles, tendances et statistiques mentionnées DOIVENT être pertinents pour ${currentYear}. 
+⚠️ RÈGLE CRITIQUE: Tous les contenus, références temporelles, tendances et statistiques mentionnées DOIVENT être pertinents pour ${currentYear}.
 NE JAMAIS mentionner 2024 ou des années passées comme étant "actuelles", "récentes" ou "cette année".
 Si tu mentionnes une année, utilise UNIQUEMENT ${currentYear}.
 
@@ -396,7 +284,6 @@ Audience cible: ${target_audience === 'repairers' ? 'professionnels réparateurs
 Ton: ${tone || 'professionnel'}
 ${categoryName ? `Catégorie: ${categoryName}` : ''}`;
 
-    // Utiliser le prompt personnalisé ou le prompt par défaut
     const userPrompt = customPrompt || `📅 Date de rédaction: ${formattedDate} (Année ${currentYear})
 
 Crée un article de blog complet sur le sujet suivant: ${topic || 'Les dernières tendances en réparation de smartphones'}
@@ -419,36 +306,9 @@ L'article doit:
 - Une meta_description engageante (150-160 caractères)
 - 5-7 mots-clés pertinents pour le SEO
 
-⚠️ IMPORTANT: Toutes les références temporelles (tendances, statistiques, "en ${currentYear}") doivent utiliser l'année ${currentYear}. NE PAS mentionner 2024 ou années antérieures comme actuelles.
+⚠️ IMPORTANT: Toutes les références temporelles (tendances, statistiques, "en ${currentYear}") doivent utiliser l'année ${currentYear}. NE PAS mentionner 2024 ou années antérieures comme actuelles.`;
 
-STRUCTURE RECOMMANDÉE:
-## Introduction (avec {{IMAGE_1}})
-Paragraphes d'introduction...
-
-## Section principale 1
-Contenu...
-
-{{IMAGE_2}}
-
-## Section principale 2
-Contenu...
-
-## Conseils pratiques (avec liste à puces)
-- Conseil 1
-- Conseil 2
-
-{{IMAGE_3}}
-
-## Conclusion`;
-
-    console.log('📝 Prompt utilisé:', customPrompt ? 'Personnalisé' : 'Par défaut');
-
-    // 🔄 SYSTÈME DE FALLBACK IA: Lovable AI → OpenAI → Gemini → Mistral → Perplexity
-    let aiData: any = null;
-    let articleData: any = null;
-    let usedProvider = '';
-
-    const toolDefinition = {
+    const tool: AITool = {
       type: 'function',
       function: {
         name: 'create_blog_article',
@@ -456,7 +316,7 @@ Contenu...
         parameters: {
           type: 'object',
           properties: {
-            title: { type: 'string', description: `Article title (50-60 chars). If mentioning year/trends, use current year ${currentDate.getFullYear()} only.` },
+            title: { type: 'string', description: `Article title (50-60 chars). Use current year ${currentYear} only.` },
             slug: { type: 'string', description: 'URL-friendly slug (lowercase, hyphens)' },
             excerpt: { type: 'string', description: 'Short excerpt (150-160 chars)' },
             content: { type: 'string', description: 'Full article content in Markdown format with H2/H3 headings' },
@@ -468,386 +328,127 @@ Contenu...
               items: {
                 type: 'object',
                 properties: {
-                  placeholder: { type: 'string', description: 'Placeholder format: {{IMAGE_1}}, {{IMAGE_2}}, etc.' },
-                  description: { type: 'string', description: 'Detailed description of the image to generate' }
+                  placeholder: { type: 'string' },
+                  description: { type: 'string' },
                 },
-                required: ['placeholder', 'description']
+                required: ['placeholder', 'description'],
               },
-              description: 'List of 2-3 image placeholders to insert in the content with their descriptions'
-            }
+            },
           },
           required: ['title', 'slug', 'excerpt', 'content', 'meta_title', 'meta_description', 'keywords', 'image_placeholders'],
-          additionalProperties: false
-        }
-      }
+        },
+      },
     };
 
-    // 1️⃣ Essayer Lovable AI (Gemini)
-    if (LOVABLE_API_KEY) {
-      try {
-        console.log('🔹 Trying Lovable AI (Gemini)...');
-        console.log('   LOVABLE_API_KEY present:', LOVABLE_API_KEY ? 'Yes' : 'No');
-        console.log('   LOVABLE_API_KEY length:', LOVABLE_API_KEY?.length || 0);
-        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt }
-            ],
-            tools: [toolDefinition],
-            tool_choice: { type: 'function', function: { name: 'create_blog_article' } }
-          })
-        });
+    const aiResult = await callAIWithFallback({
+      systemPrompt,
+      userPrompt,
+      tools: [tool],
+      toolChoice: { type: 'function', function: { name: 'create_blog_article' } },
+    });
 
-        if (aiResponse.ok) {
-          aiData = await aiResponse.json();
-          console.log('   Response status: 200 OK');
-          const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
-          if (toolCall) {
-            articleData = JSON.parse(toolCall.function.arguments);
-            usedProvider = 'Lovable AI (Gemini)';
-            console.log('✅ Lovable AI succeeded');
-          } else {
-            console.log('⚠️ Lovable AI: No tool call in response');
-          }
-        } else {
-          const errorText = await aiResponse.text();
-          console.log(`⚠️ Lovable AI failed (${aiResponse.status}): ${errorText.substring(0, 200)}`);
-          if (aiResponse.status === 402) {
-            console.log('   → No credits available');
-          } else if (aiResponse.status === 429) {
-            console.log('   → Rate limited');
-          }
-        }
-      } catch (error: unknown) {
-        console.log('⚠️ Lovable AI exception:', (error as Error).message);
-      }
-    } else {
-      console.log('⚠️ LOVABLE_API_KEY not set, skipping Lovable AI...');
+    if (!aiResult.success || !aiResult.toolCallArguments) {
+      throw new Error(aiResult.error || 'Aucune API IA disponible. Vérifiez vos clés API et crédits.');
     }
 
-    // 2️⃣ Fallback OpenAI
-    if (!articleData && OPENAI_API_KEY) {
-      try {
-        console.log('🔹 Trying OpenAI (GPT-4o-mini)...');
-        console.log('   OPENAI_API_KEY present:', OPENAI_API_KEY ? 'Yes' : 'No');
-        console.log('   OPENAI_API_KEY length:', OPENAI_API_KEY?.length || 0);
-        const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt }
-            ],
-            tools: [toolDefinition],
-            tool_choice: { type: 'function', function: { name: 'create_blog_article' } }
-          })
-        });
+    const articleData = aiResult.toolCallArguments as {
+      title: string;
+      slug: string;
+      excerpt: string;
+      content: string;
+      meta_title: string;
+      meta_description: string;
+      keywords: string[];
+      image_placeholders?: { placeholder: string; description: string }[];
+    };
+    const usedProvider = aiResult.provider ?? 'unknown';
 
-        if (aiResponse.ok) {
-          aiData = await aiResponse.json();
-          console.log('   Response status: 200 OK');
-          const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
-          if (toolCall) {
-            articleData = JSON.parse(toolCall.function.arguments);
-            usedProvider = 'OpenAI (GPT-4o-mini)';
-            console.log('✅ OpenAI succeeded');
-          } else {
-            console.log('⚠️ OpenAI: No tool call in response');
-          }
-        } else {
-          const errorText = await aiResponse.text();
-          console.log(`⚠️ OpenAI failed (${aiResponse.status}): ${errorText.substring(0, 200)}`);
-        }
-      } catch (error: unknown) {
-        console.log('⚠️ OpenAI exception:', (error as Error).message);
-      }
-    } else if (!articleData && !OPENAI_API_KEY) {
-      console.log('⚠️ OPENAI_API_KEY not set, skipping OpenAI...');
-    }
-
-    // 3️⃣ Fallback Gemini Pro (direct API)
-    if (!articleData && GEMINI_API_KEY) {
-      try {
-        console.log('🔹 Trying Gemini Pro (direct)...');
-        const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: `${systemPrompt}\n\n${userPrompt}\n\nRéponds UNIQUEMENT avec un JSON valide au format: {"title":"...", "slug":"...", "excerpt":"...", "content":"...", "meta_title":"...", "meta_description":"...", "keywords":["..."], "image_placeholders":[{"placeholder":"{{IMAGE_1}}", "description":"..."}]}` }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 8000 }
-          })
-        });
-
-        if (geminiResponse.ok) {
-          const geminiData = await geminiResponse.json();
-          const content = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (content) {
-            let cleanContent = content.trim();
-            if (cleanContent.startsWith('```json')) cleanContent = cleanContent.slice(7);
-            if (cleanContent.startsWith('```')) cleanContent = cleanContent.slice(3);
-            if (cleanContent.endsWith('```')) cleanContent = cleanContent.slice(0, -3);
-            articleData = JSON.parse(cleanContent.trim());
-            usedProvider = 'Gemini Pro (Direct)';
-            console.log('✅ Gemini Pro succeeded');
-          }
-        } else {
-          console.log(`⚠️ Gemini Pro failed (${geminiResponse.status})`);
-        }
-      } catch (error: unknown) {
-        console.log('⚠️ Gemini Pro exception:', (error as Error).message);
-      }
-    }
-
-    // 4️⃣ Fallback Mistral
-    if (!articleData && MISTRAL_API_KEY) {
-      try {
-        console.log('🔹 Trying Mistral (Large)...');
-        console.log('   CLE_API_MISTRAL present:', MISTRAL_API_KEY ? 'Yes' : 'No');
-        console.log('   CLE_API_MISTRAL length:', MISTRAL_API_KEY?.length || 0);
-        const aiResponse = await fetch('https://api.mistral.ai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${MISTRAL_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'mistral-large-latest',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt }
-            ],
-            tools: [toolDefinition],
-            tool_choice: 'any'
-          })
-        });
-
-        if (aiResponse.ok) {
-          aiData = await aiResponse.json();
-          console.log('   Response status: 200 OK');
-          const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
-          if (toolCall) {
-            articleData = JSON.parse(toolCall.function.arguments);
-            usedProvider = 'Mistral (Large)';
-            console.log('✅ Mistral succeeded');
-          } else {
-            console.log('⚠️ Mistral: No tool call in response');
-          }
-        } else {
-          const errorText = await aiResponse.text();
-          console.log(`⚠️ Mistral failed (${aiResponse.status}): ${errorText.substring(0, 200)}`);
-        }
-      } catch (error: unknown) {
-        console.log('⚠️ Mistral exception:', (error as Error).message);
-      }
-    } else if (!articleData && !MISTRAL_API_KEY) {
-      console.log('⚠️ CLE_API_MISTRAL not set, skipping Mistral...');
-    }
-
-    // 5️⃣ Fallback Perplexity (si configuré)
-    const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY');
-    if (!articleData && PERPLEXITY_API_KEY) {
-      try {
-        console.log('🔹 Trying Perplexity...');
-        const aiResponse = await fetch('https://api.perplexity.ai/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'sonar',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: `${userPrompt}\n\nRéponds UNIQUEMENT avec un JSON valide au format: {"title":"...", "slug":"...", "excerpt":"...", "content":"...", "meta_title":"...", "meta_description":"...", "keywords":["..."], "image_placeholders":[{"placeholder":"{{IMAGE_1}}", "description":"..."}]}` }
-            ]
-          })
-        });
-
-        if (aiResponse.ok) {
-          const perplexityData = await aiResponse.json();
-          const content = perplexityData.choices?.[0]?.message?.content;
-          if (content) {
-            let cleanContent = content.trim();
-            if (cleanContent.startsWith('```json')) cleanContent = cleanContent.slice(7);
-            if (cleanContent.startsWith('```')) cleanContent = cleanContent.slice(3);
-            if (cleanContent.endsWith('```')) cleanContent = cleanContent.slice(0, -3);
-            articleData = JSON.parse(cleanContent.trim());
-            usedProvider = 'Perplexity (Sonar)';
-            console.log('✅ Perplexity succeeded');
-          }
-        } else {
-          console.log(`⚠️ Perplexity failed (${aiResponse.status})`);
-        }
-      } catch (error: unknown) {
-        console.log('⚠️ Perplexity exception:', (error as Error).message);
-      }
-    }
-
-    if (!articleData) {
-      throw new Error('Aucune API IA disponible. Vérifiez vos clés API et crédits.');
-    }
-
-    console.log(`✅ Article généré avec: ${usedProvider}`);
-
-    // 🖼️ EXTRACTION ET GÉNÉRATION DES IMAGES INLINE
-    
-    // Fonction pour extraire les placeholders directement du contenu (fallback)
     function extractImagePlaceholders(content: string): { placeholder: string; description: string }[] {
       const placeholders: { placeholder: string; description: string }[] = [];
-      
-      // Pattern pour capturer {{IMAGE_X}} suivi d'une description optionnelle (avec -, –, —, ou :)
       const regex = /(\{\{IMAGE_(\d+)\}\})(?:\s*[-–—:]\s*([^\n]+))?/gi;
       let match;
-      
       while ((match = regex.exec(content)) !== null) {
         placeholders.push({
-          placeholder: match[1], // {{IMAGE_1}}
-          description: match[3]?.trim() || `Image illustrative pour la section ${match[2]}`
+          placeholder: match[1],
+          description: match[3]?.trim() || `Image illustrative pour la section ${match[2]}`,
         });
       }
-      
       return placeholders;
     }
-    
-    // Si l'IA n'a pas retourné de placeholders ou tableau vide, les extraire du contenu
+
     let imagePlaceholders = articleData.image_placeholders;
     if (!imagePlaceholders || !Array.isArray(imagePlaceholders) || imagePlaceholders.length === 0) {
-      console.log('⚠️ No image_placeholders from AI response, extracting from content...');
       imagePlaceholders = extractImagePlaceholders(articleData.content);
-      console.log(`📸 Extracted ${imagePlaceholders.length} placeholders from content`);
     }
-    
+
     if (imagePlaceholders.length > 0) {
-      console.log(`🖼️ Processing ${imagePlaceholders.length} inline images...`);
-      console.log('📝 Placeholders found:', JSON.stringify(imagePlaceholders, null, 2));
-      
       let updatedContent = articleData.content;
-      
+
       for (const placeholder of imagePlaceholders) {
         let inlineImageUrl: string | null = null;
-        
-        // Retry jusqu'à 2 fois pour chaque image inline
+
         for (let attempt = 1; attempt <= 2 && !inlineImageUrl; attempt++) {
           try {
-            console.log(`  → Generating ${placeholder.placeholder} (attempt ${attempt}/2): "${placeholder.description?.substring(0, 60)}..."`);
-            
             const imageResponse = await fetch(`${SUPABASE_URL}/functions/v1/blog-image-generator`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${SERVICE_ROLE}`,
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ 
+              body: JSON.stringify({
                 prompt: placeholder.description,
-                style: 'modern'
-              })
+                style: 'modern',
+              }),
             });
-            
             if (imageResponse.ok) {
               const imageData = await imageResponse.json();
               inlineImageUrl = imageData?.image_url || imageData?.imageUrl;
-              
-              if (inlineImageUrl) {
-                console.log(`  ✅ ${placeholder.placeholder} generated successfully`);
-              } else {
-                console.error(`  ⚠️ No URL in response for ${placeholder.placeholder} (attempt ${attempt})`);
-                console.error(`     Response:`, JSON.stringify(imageData).substring(0, 200));
-              }
-            } else {
-              const errorText = await imageResponse.text();
-              console.error(`  ⚠️ Failed for ${placeholder.placeholder} (attempt ${attempt}):`, imageResponse.status, errorText.substring(0, 200));
             }
-          } catch (imgError) {
-            console.error(`  ⚠️ Error for ${placeholder.placeholder} (attempt ${attempt}):`, imgError);
+          } catch {
+            // retry handled by loop
           }
-          
-          // Pause entre les tentatives
           if (!inlineImageUrl && attempt < 2) {
-            await new Promise(r => setTimeout(r, 1500));
+            await new Promise((r) => setTimeout(r, 1500));
           }
         }
-        
-        // Pattern pour remplacer {{IMAGE_X}} ET sa description éventuelle sur la même ligne
-        // Capture: {{IMAGE_1}} suivi optionnellement de " - description" ou " : description"
+
         const escapedPlaceholder = placeholder.placeholder.replace(/[{}]/g, '\\$&');
-        const patternWithDesc = new RegExp(
-          escapedPlaceholder + '(?:\\s*[-–—:]\\s*[^\\n]*)?',
-          'g'
-        );
-        
-        // Si image générée ou utiliser placeholder
-        const imageMarkdown = inlineImageUrl 
+        const patternWithDesc = new RegExp(escapedPlaceholder + '(?:\\s*[-–—:]\\s*[^\\n]*)?', 'g');
+        const imageMarkdown = inlineImageUrl
           ? `\n\n![${placeholder.description}](${inlineImageUrl})\n\n`
           : `\n\n![${placeholder.description}](https://images.unsplash.com/photo-1556656793-08538906a9f8?w=1200&h=800&fit=crop&q=80)\n\n`;
-        
-        const beforeReplace = updatedContent.length;
+
         updatedContent = updatedContent.replace(patternWithDesc, imageMarkdown);
-        const afterReplace = updatedContent.length;
-        
-        if (beforeReplace === afterReplace && !updatedContent.includes(imageMarkdown)) {
-          console.log(`  ⚠️ Pattern not found in content for ${placeholder.placeholder}`);
-        } else {
-          console.log(`  ✅ Replaced ${placeholder.placeholder} in content`);
-        }
-        
-        if (!inlineImageUrl) {
-          console.log(`  ⚠️ Using fallback for ${placeholder.placeholder}`);
-        }
       }
-      
+
       articleData.content = updatedContent;
-      console.log('✅ All inline images processed');
-    } else {
-      console.log('ℹ️ No image placeholders to process');
     }
 
-    // Enregistrer l'analytics
     await supabase.from('ai_analytics').insert({
       function_name: 'blog-ai-generator',
       model_used: usedProvider,
-      prompt_tokens: aiData?.usage?.prompt_tokens || 0,
-      completion_tokens: aiData?.usage?.completion_tokens || 0,
+      prompt_tokens: aiResult.usage?.prompt_tokens ?? 0,
+      completion_tokens: aiResult.usage?.completion_tokens ?? 0,
       total_cost: 0,
       response_time_ms: 0,
-      success: true
+      success: true,
     });
 
-    // Créer l'article dans la base de données
     const status = auto_publish ? 'published' : (scheduled_at ? 'scheduled' : 'draft');
-    
-    // Vérifier et générer un slug unique si nécessaire
+
     let uniqueSlug = articleData.slug;
     let slugCounter = 1;
-    
     while (true) {
       const { data: existingPost } = await supabase
         .from('blog_posts')
         .select('id')
         .eq('slug', uniqueSlug)
         .maybeSingle();
-      
       if (!existingPost) break;
-      
-      // Slug existe déjà, ajouter un suffixe numérique
       slugCounter++;
       uniqueSlug = `${articleData.slug}-${slugCounter}`;
-      console.log(`⚠️ Slug conflict detected, trying: ${uniqueSlug}`);
     }
-    
-    console.log(`✅ Using unique slug: ${uniqueSlug}`);
-    
+
     const { data: newPost, error: insertError } = await supabase
       .from('blog_posts')
       .insert({
@@ -869,85 +470,56 @@ Contenu...
         scheduled_at: scheduled_at || null,
         view_count: 0,
         comment_count: 0,
-        share_count: 0
+        share_count: 0,
       })
       .select()
       .single();
 
-    if (insertError) {
-      console.error('Insert error:', insertError);
-      throw insertError;
-    }
+    if (insertError) throw insertError;
 
-    // Générer automatiquement une image pour l'article avec retry
-    console.log('🖼️ Generating featured image for article...');
     let featuredImageUrl: string | null = null;
-    
     const imagePrompt = `Professional blog header for article: "${articleData.title}". Modern smartphone repair, technology, professional service. Clean design, realistic style.`;
-    
-    // Retry jusqu'à 2 fois si l'image échoue
+
     for (let attempt = 1; attempt <= 2 && !featuredImageUrl; attempt++) {
       try {
-        console.log(`  → Attempt ${attempt}/2 for featured image`);
-        
         const imageResponse = await fetch(`${SUPABASE_URL}/functions/v1/blog-image-generator`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${SERVICE_ROLE}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             prompt: imagePrompt,
             style: 'realistic',
-            size: '1792x1024'
-          })
+            size: '1792x1024',
+          }),
         });
-
         if (imageResponse.ok) {
           const imageData = await imageResponse.json();
           featuredImageUrl = imageData?.image_url || imageData?.imageUrl;
-          
-          if (featuredImageUrl) {
-            console.log(`  ✅ Featured image generated successfully`);
-          } else {
-            console.error(`  ⚠️ No image URL in response (attempt ${attempt})`);
-          }
-        } else {
-          const errorText = await imageResponse.text();
-          console.error(`  ⚠️ Image generation failed (attempt ${attempt}):`, imageResponse.status, errorText);
         }
-      } catch (imgError) {
-        console.error(`  ⚠️ Error generating featured image (attempt ${attempt}):`, imgError);
+      } catch {
+        // retry handled by loop
       }
-      
-      // Pause entre les tentatives
       if (!featuredImageUrl && attempt < 2) {
-        console.log('  ⏳ Waiting 2s before retry...');
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise((r) => setTimeout(r, 2000));
       }
     }
-    
-    // Si échec après retries, utiliser une image placeholder
+
     if (!featuredImageUrl) {
       featuredImageUrl = 'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=1792&h=1024&fit=crop&q=80';
-      console.log('  ⚠️ Using fallback placeholder image');
     }
-    
-    // Mettre à jour l'article avec l'image (générée ou placeholder)
+
     try {
       await supabase
         .from('blog_posts')
         .update({ featured_image_url: featuredImageUrl })
         .eq('id', newPost.id);
-      
       newPost.featured_image_url = featuredImageUrl;
-      console.log('✅ Featured image attached to article');
-    } catch (updateError) {
-      console.error('⚠️ Failed to update article with image:', updateError);
+    } catch {
+      // non-critical, continue
     }
 
-    // Modération automatique de l'article généré
-    console.log('🔍 Running automatic moderation...');
     let moderationResult = null;
     try {
       const moderationResponse = await fetch(`${SUPABASE_URL}/functions/v1/blog-ai-moderation`, {
@@ -956,25 +528,17 @@ Contenu...
           'Authorization': `Bearer ${SERVICE_ROLE}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ post_id: newPost.id })
+        body: JSON.stringify({ post_id: newPost.id }),
       });
-
       if (moderationResponse.ok) {
         const moderationData = await moderationResponse.json();
         moderationResult = moderationData.moderation;
-        console.log(`✅ Moderation completed - Score: ${moderationResult?.score}/100, Status: ${moderationResult?.status}`);
-        
-        // Mettre à jour le statut si la modération a changé le statut
         if (moderationData.new_status !== newPost.status) {
           newPost.status = moderationData.new_status;
-          console.log(`  → Article status updated to: ${moderationData.new_status}`);
         }
-      } else {
-        console.error('⚠️ Moderation failed:', await moderationResponse.text());
       }
-    } catch (moderationError) {
-      console.error('⚠️ Moderation error:', moderationError);
-      // Continue même si la modération échoue
+    } catch {
+      // moderation failures are non-blocking
     }
 
     return new Response(
@@ -983,28 +547,26 @@ Contenu...
         post: newPost,
         ai_model: usedProvider,
         moderation: moderationResult,
-        message: auto_publish 
-          ? 'Article généré, modéré et publié avec succès' 
-          : scheduled_at 
+        message: auto_publish
+          ? 'Article généré, modéré et publié avec succès'
+          : scheduled_at
           ? 'Article généré, modéré et programmé avec succès'
           : moderationResult?.status === 'approved'
           ? 'Article généré et approuvé automatiquement'
-          : 'Article généré et en attente de validation'
+          : 'Article généré et en attente de validation',
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
-
   } catch (error) {
-    console.error('Error in blog-ai-generator:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error instanceof Error ? error.message : 'Unknown error',
-        success: false
+        success: false,
       }),
-      { 
+      {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
     );
   }
 });

@@ -62,7 +62,7 @@ export class SecureDataAccess {
    */
   static async createRepairersQuery() {
     const table = await this.getRepairersTable();
-    // @ts-ignore - Vue créée dynamiquement, types seront regénérés
+    // @ts-expect-error - Vue créée dynamiquement, types seront regénérés
     return supabase.from(table);
   }
 
@@ -71,7 +71,7 @@ export class SecureDataAccess {
    */
   static async createRepairerProfilesQuery() {
     const table = await this.getRepairerProfilesTable();
-    // @ts-ignore - Vue créée dynamiquement, types seront regénérés
+    // @ts-expect-error - Vue créée dynamiquement, types seront regénérés
     return supabase.from(table);
   }
 }

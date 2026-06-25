@@ -1,11 +1,8 @@
-
-import React from 'react';
-import QuoteRequestModal from '@/components/modals/QuoteRequestModal';
+import React, { useState } from 'react';
 import AppointmentModal from '@/components/modals/AppointmentModal';
 import EditModeContent from './EditModeContent';
 import AdminModeContent from './AdminModeContent';
 import ClientModeContent from './ClientModeContent';
-import { useQuoteAndAppointment } from '@/hooks/useQuoteAndAppointment';
 import { RepairerProfile } from '@/types/repairerProfile';
 
 interface RepairerProfileModalContentProps {
@@ -20,10 +17,6 @@ interface RepairerProfileModalContentProps {
   saving?: boolean;
 }
 
-/**
- * Contenu de la modal du profil réparateur
- * Affiche différentes vues selon le mode (édition, admin, client)
- */
 const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = ({
   profile,
   isEditing,
@@ -33,24 +26,9 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
   onSave,
   onCancel,
   onClose,
-  saving = false
+  saving = false,
 }) => {
-  const {
-    isQuoteModalOpen,
-    isAppointmentModalOpen,
-    selectedRepairerId,
-    handleRequestQuote,
-    handleBookAppointment,
-    closeQuoteModal,
-    closeAppointmentModal
-  } = useQuoteAndAppointment();
-
-  /**
-   * Actions pour les clients
-   */
-  const handleQuoteRequest = () => {
-    handleRequestQuote(profile.id);
-  };
+  const [isAppointmentModalOpen, setAppointmentModalOpen] = useState(false);
 
   const handleCallRepairer = () => {
     if (profile.phone) {
@@ -58,11 +36,6 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
     }
   };
 
-  const handleAppointmentBooking = () => {
-    handleBookAppointment(profile.id);
-  };
-
-  // Vue d'édition
   if (isEditing) {
     return (
       <EditModeContent
@@ -75,7 +48,6 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
     );
   }
 
-  // Vue administrateur
   if (isAdmin && canEdit) {
     return (
       <AdminModeContent
@@ -87,32 +59,20 @@ const RepairerProfileModalContent: React.FC<RepairerProfileModalContentProps> = 
     );
   }
 
-  // Vue client - design amélioré
   return (
     <>
       <ClientModeContent
         profile={profile}
-        onRequestQuote={handleQuoteRequest}
         onCallRepairer={handleCallRepairer}
-        onBookAppointment={handleAppointmentBooking}
+        onBookAppointment={() => setAppointmentModalOpen(true)}
         onClose={onClose}
       />
 
-      {/* Modals pour devis et rendez-vous */}
-      {selectedRepairerId && (
-        <>
-          <QuoteRequestModal
-            isOpen={isQuoteModalOpen}
-            onClose={closeQuoteModal}
-            repairerId={selectedRepairerId}
-          />
-          <AppointmentModal
-            isOpen={isAppointmentModalOpen}
-            onClose={closeAppointmentModal}
-            repairerId={selectedRepairerId}
-          />
-        </>
-      )}
+      <AppointmentModal
+        isOpen={isAppointmentModalOpen}
+        onClose={() => setAppointmentModalOpen(false)}
+        repairerId={profile.id}
+      />
     </>
   );
 };

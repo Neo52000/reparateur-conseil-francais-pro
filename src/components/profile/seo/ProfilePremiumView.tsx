@@ -2,12 +2,11 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Phone, 
-  FileText, 
-  MapPin, 
-  Star, 
-  Clock, 
+import {
+  Phone,
+  MapPin,
+  Star,
+  Clock,
   Calendar,
   Award,
   CheckCircle,
@@ -15,22 +14,20 @@ import {
   MessageCircle,
   CreditCard,
   Languages,
-  Image
+  Image,
 } from 'lucide-react';
 import { getRepairTypeLabel, PAYMENT_METHODS, LANGUAGES } from '@/types/repairerProfile';
 
 interface ProfilePremiumViewProps {
   profile: any;
-  onRequestQuote: () => void;
   onCallRepairer: () => void;
   onBookAppointment: () => void;
 }
 
 const ProfilePremiumView: React.FC<ProfilePremiumViewProps> = ({
   profile,
-  onRequestQuote,
   onCallRepairer,
-  onBookAppointment
+  onBookAppointment,
 }) => {
   return (
     <div className="space-y-6">
@@ -107,7 +104,7 @@ const ProfilePremiumView: React.FC<ProfilePremiumViewProps> = ({
 
             {/* Actions */}
             <div className="flex flex-col gap-3 sm:flex-row md:flex-col lg:min-w-[220px]">
-              <Button 
+              <Button
                 onClick={onBookAppointment}
                 className="w-full"
                 size="lg"
@@ -115,20 +112,10 @@ const ProfilePremiumView: React.FC<ProfilePremiumViewProps> = ({
                 <Calendar className="h-4 w-4 mr-2" />
                 Prendre RDV en ligne
               </Button>
-              
-              <Button 
-                onClick={onRequestQuote}
-                variant="secondary"
-                className="w-full"
-                size="lg"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Demander un devis
-              </Button>
-              
-              <Button 
+
+              <Button
                 onClick={onCallRepairer}
-                variant="outline"
+                variant="secondary"
                 className="w-full"
                 size="lg"
               >

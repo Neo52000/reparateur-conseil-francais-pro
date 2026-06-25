@@ -310,7 +310,7 @@ class SeoMachineAnalyzer {
    * Analyse de lisibilité (adaptation Flesch-Kincaid pour le français)
    */
   analyzeReadability(content: string): ReadabilityScore {
-    const cleanContent = content.replace(/<[^>]*>/g, '').replace(/[#*_\[\]()]/g, '');
+    const cleanContent = content.replace(/<[^>]*>/g, '').replace(/[#*_[\]()]/g, '');
     const sentences = cleanContent.split(/[.!?]+/).filter(s => s.trim().length > 0);
     const words = cleanContent.split(/\s+/).filter(w => w.length > 0);
     const paragraphs = cleanContent.split(/\n\n+/).filter(p => p.trim().length > 0);
@@ -350,7 +350,7 @@ class SeoMachineAnalyzer {
     internalLinks?: string[];
     imageCount?: number;
   }): ContentMetrics {
-    const cleanContent = params.content.replace(/<[^>]*>/g, '').replace(/[#*_\[\]()]/g, '');
+    const cleanContent = params.content.replace(/<[^>]*>/g, '').replace(/[#*_[\]()]/g, '');
     const words = cleanContent.split(/\s+/).filter(w => w.length > 0);
     const sentences = cleanContent.split(/[.!?]+/).filter(s => s.trim().length > 0);
     const paragraphs = cleanContent.split(/\n\n+/).filter(p => p.trim().length > 0);
@@ -561,7 +561,7 @@ class SeoMachineAnalyzer {
       if (page.slug === params.currentSlug) return;
       
       let relevance = 0;
-      let anchor = page.title;
+      const anchor = page.title;
 
       // Same city = high relevance
       if (params.currentCity && page.city && page.city === params.currentCity) {

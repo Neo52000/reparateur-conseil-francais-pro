@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export async function logConversationEvent(eventType: string, data: any, userId?: string) {
+export async function logConversationEvent(eventType: string, data: Record<string, unknown>, userId?: string) {
   try {
     // Lightweight aggregate metric
     await supabase.rpc('increment_chatbot_metric', {

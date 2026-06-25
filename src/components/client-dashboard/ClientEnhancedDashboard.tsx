@@ -4,16 +4,12 @@ import { useAuth } from '@/hooks/useAuth';
 import ClientDashboardHeader from './ClientDashboardHeader';
 import ClientDashboardOverview from './ClientDashboardOverview';
 import ClientFavoritesTab from './ClientFavoritesTab';
-import ClientMessagingTab from './ClientMessagingTab';
 import ClientReviewsTab from './ClientReviewsTab';
 import ClientAppointmentsTab from './ClientAppointmentsTab';
-import { ClientQuotesTab } from './ClientQuotesTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useOnboardingTour } from '@/hooks/useOnboardingTour';
 import { OnboardingTourTooltip } from '@/components/onboarding/OnboardingTourTooltip';
 import { SavedSearchFilters } from '@/components/search/SavedSearchFilters';
-import { ClientRepairsTab } from './ClientRepairsTab';
-import { MessageThread } from '@/components/messaging/MessageThread';
 import { AnimatePresence } from 'framer-motion';
 import DataAccessRequest from '@/components/gdpr/DataAccessRequest';
 
@@ -117,11 +113,9 @@ const ClientEnhancedDashboard: React.FC = () => {
         />
 
         <Tabs defaultValue="overview" className="mt-8">
-          <TabsList className="grid w-full grid-cols-7" data-tour="dashboard-tabs">
+          <TabsList className="grid w-full grid-cols-5" data-tour="dashboard-tabs">
             <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
             <TabsTrigger value="appointments">Rendez-vous</TabsTrigger>
-            <TabsTrigger value="quotes">Devis</TabsTrigger>
-            <TabsTrigger value="messaging">Messages</TabsTrigger>
             <TabsTrigger value="reviews">Mes avis</TabsTrigger>
             <TabsTrigger value="favorites">Favoris</TabsTrigger>
             <TabsTrigger value="data">Mes données</TabsTrigger>
@@ -141,32 +135,12 @@ const ClientEnhancedDashboard: React.FC = () => {
             <ClientAppointmentsTab appointments={clientData.appointments} />
           </TabsContent>
 
-          <TabsContent value="quotes" className="mt-6">
-            <ClientQuotesTab />
-          </TabsContent>
-
-          <TabsContent value="messaging" className="mt-6">
-            <ClientMessagingTab />
-          </TabsContent>
-
           <TabsContent value="reviews" className="mt-6">
             <ClientReviewsTab />
           </TabsContent>
 
           <TabsContent value="favorites" className="mt-6">
             <ClientFavoritesTab />
-          </TabsContent>
-
-          <TabsContent value="repairs" className="mt-6">
-            <ClientRepairsTab />
-          </TabsContent>
-
-          <TabsContent value="messages" className="mt-6">
-            <MessageThread
-              quoteId="quote_demo"
-              senderType="client"
-              recipientName="TechRepair Pro"
-            />
           </TabsContent>
 
           <TabsContent value="data" className="mt-6">

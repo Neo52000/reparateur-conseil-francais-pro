@@ -9,12 +9,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Play, RefreshCw, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Eye, Save, Phone, Globe, Building2, Trash2, Settings2, ChevronDown, Brain, Zap, Star, Sparkles } from 'lucide-react';
+import { Play, RefreshCw, MapPin, Clock, CheckCircle, XCircle, AlertCircle, Eye, Save, Phone, Globe, Building2, Trash2, Settings2, ChevronDown, Brain, Zap, Star } from 'lucide-react';
 
 // Options d'IA disponibles pour le scraping
 const AI_OPTIONS = [
-  { id: 'lovable', name: 'Lovable AI (Gemini Flash)', icon: Sparkles, description: 'IA par défaut, rapide' },
-  { id: 'gemini', name: 'Gemini Pro (Direct)', icon: Zap, description: 'API Google directe' },
+  { id: 'gemini', name: 'Google Gemini', icon: Zap, description: 'Provider principal (Gemini 2.5 Flash)' },
   { id: 'openai', name: 'OpenAI GPT', icon: Star, description: 'Très précis' },
   { id: 'mistral', name: 'Mistral AI', icon: Brain, description: 'IA française' },
 ];
@@ -217,7 +216,7 @@ const RealScrapingDashboard: React.FC = () => {
   const [deletingHistory, setDeletingHistory] = useState(false);
   const [customPrompt, setCustomPrompt] = useState(DEFAULT_PROMPT);
   const [promptOpen, setPromptOpen] = useState(false);
-  const [selectedAI, setSelectedAI] = useState('lovable');
+  const [selectedAI, setSelectedAI] = useState('gemini');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -303,7 +302,7 @@ const RealScrapingDashboard: React.FC = () => {
         setPreviewResults(data.results || []);
         setCurrentLogId(data.log_id);
         // Sélectionner tous par défaut
-        setSelectedItems(new Set(data.results?.map((_: any, i: number) => i) || []));
+        setSelectedItems(new Set<number>(data.results?.map((_: unknown, i: number) => i) || []));
         
         toast({
           title: "Scraping terminé",
@@ -313,11 +312,11 @@ const RealScrapingDashboard: React.FC = () => {
       } else {
         throw new Error(data?.error || 'Erreur inconnue');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Erreur lors du scraping:', error);
       toast({
         title: "Erreur de scraping",
-        description: error.message || 'Impossible de démarrer le scraping',
+        description: (error instanceof Error ? error.message : null) || 'Impossible de démarrer le scraping',
         variant: "destructive"
       });
     } finally {
@@ -377,11 +376,11 @@ const RealScrapingDashboard: React.FC = () => {
       } else {
         throw new Error(data?.error || 'Erreur lors de la validation');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Erreur validation:', error);
       toast({
         title: "Erreur de validation",
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: "destructive"
       });
     } finally {
@@ -402,10 +401,10 @@ const RealScrapingDashboard: React.FC = () => {
         title: "Géocodage terminé",
         description: data?.message || `${data?.geocoded || 0} réparateurs géocodés`,
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de géocoder les réparateurs",
+        description: (error instanceof Error ? error.message : null) || "Impossible de géocoder les réparateurs",
         variant: "destructive"
       });
     } finally {
@@ -432,10 +431,10 @@ const RealScrapingDashboard: React.FC = () => {
         title: "Historique supprimé",
         description: "Tout l'historique des scrapings a été supprimé",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de supprimer l'historique",
+        description: (error instanceof Error ? error.message : null) || "Impossible de supprimer l'historique",
         variant: "destructive"
       });
     } finally {
@@ -491,7 +490,7 @@ const RealScrapingDashboard: React.FC = () => {
             Génération de réparateurs avec l'IA
           </CardTitle>
           <CardDescription>
-            Génération automatisée via Lovable AI avec prévisualisation avant insertion
+            Génération automatisée multi-provider (Gemini, OpenAI, Mistral) avec prévisualisation avant insertion
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

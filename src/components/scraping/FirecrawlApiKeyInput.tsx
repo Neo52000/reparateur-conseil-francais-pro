@@ -36,7 +36,7 @@ const FirecrawlApiKeyInput = () => {
             <div>
               <h4 className="font-medium text-sm">Génération IA Multi-Provider</h4>
               <p className="text-xs text-muted-foreground">
-                Lovable AI, Gemini Pro, OpenAI GPT-4o, Mistral AI - Données réalistes générées
+                Gemini, OpenAI GPT-4o-mini, Mistral - Données réalistes générées
               </p>
             </div>
           </div>
@@ -56,9 +56,9 @@ const FirecrawlApiKeyInput = () => {
           <p className="font-medium mb-1">Secrets requis (Supabase) :</p>
           <ul className="list-disc list-inside space-y-0.5">
             <li>SERPER_API_KEY - Pour Google Places via Serper</li>
-            <li>LOVABLE_API_KEY - Auto-configuré pour Lovable AI</li>
+            <li>GEMINI_API_KEY - Provider IA principal (Gemini 2.5 Flash)</li>
             <li>OPENAI_API_KEY - (Optionnel) Pour fallback OpenAI</li>
-            <li>CLE_API_MISTRAL - (Optionnel) Pour fallback Mistral</li>
+            <li>MISTRAL_API_KEY - (Optionnel) Pour fallback Mistral</li>
           </ul>
         </div>
       </CardContent>

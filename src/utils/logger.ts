@@ -5,18 +5,11 @@
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-interface LogEntry {
-  level: LogLevel;
-  message: string;
-  data?: any;
-  timestamp: string;
-}
-
 class Logger {
   private isDevelopment = import.meta.env.DEV;
   private isDebugEnabled = import.meta.env.VITE_DEBUG === 'true';
 
-  private formatMessage(level: LogLevel, message: string, data?: any): string {
+  private formatMessage(level: LogLevel, message: string, data?: unknown): string {
     const timestamp = new Date().toISOString();
     const emoji = this.getEmoji(level);
     const prefix = `${emoji} [${level.toUpperCase()}] ${timestamp}`;
@@ -39,25 +32,25 @@ class Logger {
     return true;
   }
 
-  debug(message: string, data?: any): void {
+  debug(message: string, data?: unknown): void {
     if (this.shouldLog('debug')) {
       console.debug(this.formatMessage('debug', message), data || '');
     }
   }
 
-  info(message: string, data?: any): void {
+  info(message: string, data?: unknown): void {
     if (this.shouldLog('info')) {
       console.info(this.formatMessage('info', message), data || '');
     }
   }
 
-  warn(message: string, data?: any): void {
+  warn(message: string, data?: unknown): void {
     if (this.shouldLog('warn')) {
       console.warn(this.formatMessage('warn', message), data || '');
     }
   }
 
-  error(message: string, error?: any): void {
+  error(message: string, error?: unknown): void {
     if (this.shouldLog('error')) {
       console.error(this.formatMessage('error', message), error || '');
     }
@@ -93,7 +86,7 @@ class Logger {
 export const logger = new Logger();
 
 // Convenience exports for common patterns
-export const debugLog = (message: string, data?: any) => logger.debug(message, data);
-export const infoLog = (message: string, data?: any) => logger.info(message, data);
-export const warnLog = (message: string, data?: any) => logger.warn(message, data);
-export const errorLog = (message: string, error?: any) => logger.error(message, error);
+export const debugLog = (message: string, data?: unknown) => logger.debug(message, data);
+export const infoLog = (message: string, data?: unknown) => logger.info(message, data);
+export const warnLog = (message: string, data?: unknown) => logger.warn(message, data);
+export const errorLog = (message: string, error?: unknown) => logger.error(message, error);

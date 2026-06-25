@@ -634,7 +634,7 @@ CREATE POLICY "Repairers can view their quotes" ON quotes
 
 ### Authentification
 \`\`\`typescript
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 // Inscription
 const signUp = async (email: string, password: string) => {
@@ -1126,11 +1126,11 @@ RepairHub simplifie et modernise l'expérience de réparation mobile pour tous l
     html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
     
     // Images avec styles
-    html = html.replace(/!\[([^\]]*)\]\(([^\)]*)\)/gim, 
+    html = html.replace(/!\[([^\]]*)\]\(([^)]*)\)/gim,
       '<img alt="$1" src="$2" style="max-width: 100%; height: auto; margin: 16px 0; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />');
-    
+
     // Liens
-    html = html.replace(/\[([^\]]*)\]\(([^\)]*)\)/gim, '<a href="$2" class="pdf-link">$1</a>');
+    html = html.replace(/\[([^\]]*)\]\(([^)]*)\)/gim, '<a href="$2" class="pdf-link">$1</a>');
     
     // Listes numérotées
     html = html.replace(/^\d+\.\s+(.*$)/gim, '<oli>$1</oli>');

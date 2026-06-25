@@ -164,14 +164,15 @@ class OfflineService {
     const { type, table, data } = action;
     
     switch (type) {
-      case 'create':
+      case 'create': {
         const { error: createError } = await supabase
           .from(table as any)
           .insert(data);
         if (createError) throw createError;
         break;
-        
-      case 'update':
+      }
+
+      case 'update': {
         const { id, ...updateData } = data;
         const { error: updateError } = await supabase
           .from(table as any)
@@ -179,14 +180,16 @@ class OfflineService {
           .eq('id', id);
         if (updateError) throw updateError;
         break;
-        
-      case 'delete':
+      }
+
+      case 'delete': {
         const { error: deleteError } = await supabase
           .from(table as any)
           .delete()
           .eq('id', data.id);
         if (deleteError) throw deleteError;
         break;
+      }
     }
   }
 

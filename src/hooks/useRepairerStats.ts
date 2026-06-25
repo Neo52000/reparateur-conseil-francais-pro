@@ -56,7 +56,7 @@ export const useRepairerStats = () => {
         .eq('repairer_id', user.id);
 
       // Calculer les stats en temps réel si pas de données sauvegardées
-      let calculatedStats = {
+      const calculatedStats = {
         monthlyRevenue: 0,
         pendingOrders: 0,
         completedThisMonth: 0,

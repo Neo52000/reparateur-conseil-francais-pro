@@ -54,11 +54,11 @@ const BlogPostList: React.FC<BlogPostListProps> = ({
       navigator.share({
         title: post.title,
         text: post.excerpt,
-        url: `${window.location.origin}/blog/article/${post.slug}`
+        url: `${window.location.origin}/blog/${post.slug}`
       });
     } else {
       // Fallback: copier le lien
-      navigator.clipboard.writeText(`${window.location.origin}/blog/article/${post.slug}`);
+      navigator.clipboard.writeText(`${window.location.origin}/blog/${post.slug}`);
     }
   };
 
@@ -129,7 +129,7 @@ const BlogPostList: React.FC<BlogPostListProps> = ({
           )}
 
           {/* Tri */}
-          <Select value={sortBy} onValueChange={(value: string) => setSortBy(value as any)}>
+          <Select value={sortBy} onValueChange={(value: string) => setSortBy(value as 'newest' | 'popular' | 'mostViewed')}>
             <SelectTrigger className="w-full md:w-48">
               <SelectValue />
             </SelectTrigger>

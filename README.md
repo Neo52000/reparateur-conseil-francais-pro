@@ -1,198 +1,262 @@
 # TopReparateurs.fr
 
-> Plateforme francaise de mise en relation pour la reparation de smartphones
+> Plateforme française de mise en relation entre particuliers et réparateurs de smartphones, tablettes et consoles.
 
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![CI](https://github.com/Neo52000/reparateur-conseil-francais-pro/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Neo52000/reparateur-conseil-francais-pro/actions/workflows/ci.yml)
 
-## A propos
-
-TopReparateurs.fr est une plateforme SaaS qui met en relation particuliers et reparateurs qualifies en France, via une solution transparente, fiable et accessible.
-
-### 🎯 Notre mission
-Démocratiser l'accès à la réparation mobile en créant un écosystème de confiance entre particuliers et professionnels.
-
-## ✨ Fonctionnalités principales
-
-### 👥 Pour les particuliers
-- 🗺️ **Recherche géolocalisée** de réparateurs
-- 🤖 **Diagnostic IA** instantané et devis automatique
-- ⚖️ **Comparaison d'offres** transparente
-- 📅 **Prise de RDV** en ligne simplifiée
-- 📊 **Suivi temps réel** des réparations
-- ⭐ **Système d'avis** et notation
-
-### 🔨 Pour les réparateurs
-- 👤 **Profil professionnel** avec certifications
-- 💰 **Gestion devis** et tarifications
-- 📅 **Agenda intelligent** de planification
-- 📊 **Analytics avancées** de performance
-- 💳 **Facturation automatisée**
-- 🎓 **Formation** et support technique
-
-### 👑 Administration
-- ✅ **Validation automatisée** des réparateurs
-- 🛡️ **Modération IA** des avis
-- 📈 **Analytics globales** temps réel
-- 💼 **Gestion abonnements** et facturation
-- 🎮 **Interface admin** complète
-
-## 🚀 Technologies utilisées
-
-### Frontend
-- ⚛️ **React 18** avec TypeScript
-- 🎨 **Tailwind CSS** + Shadcn/ui
-- 📱 **Progressive Web App** (PWA)
-- 🔄 **Framer Motion** pour les animations
-- 🗺️ **Leaflet** pour la cartographie
-
-### Backend & Base de données
-- 🗄️ **Supabase** (PostgreSQL + Auth + Real-time)
-- ⚡ **Edge Functions** pour la logique métier
-- 🔐 **Row Level Security** (RLS)
-- 🔄 **Real-time subscriptions**
-
-### Intelligence Artificielle
-- 🧠 **Mistral AI** pour le diagnostic
-- 🎯 **DeepSeek** pour l'amélioration continue
-- 🤖 **Chatbot IA** intégré
-- 📝 **Génération automatique** de contenu
-
-### Services externes
-- 🕷️ **Scraping** : Firecrawl, Apify
-- 📧 **Email** : Resend
-- 💳 **Paiement** : Stripe (prévu)
-- 📊 **Analytics** : Système propriétaire
-
-## 🏗️ Architecture du projet
-
-```
-src/
-├── components/          # Composants React réutilisables
-│   ├── ui/             # Composants Shadcn/ui
-│   ├── admin/          # Interface administration
-│   ├── repairer/       # Interface réparateur
-│   └── customer/       # Interface client
-├── hooks/              # Hooks React personnalisés
-├── pages/              # Pages principales de l'app
-├── services/           # Services et API calls
-├── integrations/       # Intégrations externes (Supabase)
-├── types/              # Types TypeScript
-└── utils/              # Utilitaires et helpers
-
-supabase/
-├── functions/          # Edge Functions
-├── migrations/         # Migrations de base de données
-└── config.toml        # Configuration Supabase
-```
-
-## 🛠️ Installation et développement
-
-### Prérequis
-- **Node.js** 18+ ([installer avec nvm](https://github.com/nvm-sh/nvm))
-- **npm** ou **yarn**
-- Compte **Supabase**
-
-### Installation locale
-
-```bash
-# 1. Cloner le projet
-git clone https://github.com/RepairConnect/repairconnect.git
-cd repairconnect
-
-# 2. Installer les dépendances
-npm install
-
-# 3. Configuration Supabase
-cp .env.example .env.local
-# Remplir les variables Supabase
-
-# 4. Démarrer le serveur de développement
-npm run dev
-```
-
-### Variables d'environnement
-
-```env
-VITE_SUPABASE_URL=your-supabase-url
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
-
-### Scripts disponibles
-
-```bash
-npm run dev          # Serveur de développement
-npm run build        # Build de production
-npm run preview      # Prévisualisation du build
-npm run type-check   # Vérification TypeScript
-npm run lint         # Linting ESLint
-```
-
-## 🗄️ Base de données
-
-### Tables principales
-- `profiles` - Profils utilisateurs étendus
-- `repairers` - Données des réparateurs
-- `quotes` - Devis et demandes
-- `appointments` - Rendez-vous
-- `subscriptions` - Abonnements
-- `visitor_analytics` - Analytics de trafic
-
-### Edge Functions
-- `ai-price-suggestion` - Suggestions de prix IA
-- `create-repairer-user` - Création compte réparateur
-- `scrape-repairers` - Scraping automatisé
-- `send-notification` - Système de notifications
-
-## 🚀 Déploiement
-
-### Via Lovable (Recommandé)
-1. Ouvrir [Lovable Project](https://lovable.dev/projects/392875c8-c4e1-4f95-b40a-246008455c90)
-2. Cliquer sur **Share → Publish**
-3. Configurer le domaine personnalisé
-
-### Déploiement manuel
-```bash
-# Build de production
-npm run build
-
-# Déployer sur votre plateforme favorite
-# (Vercel, Netlify, Supabase Hosting...)
-```
-
-## Statut du projet
-
-Projet en phase de developpement actif (beta). Stack : React 18 + TypeScript + Vite + Supabase.
-
-## 🤝 Contribution
-
-Nous accueillons les contributions ! Consultez notre [Guide de contribution](docs/CONTRIBUTING.md).
-
-### Workflow de développement
-1. Fork le projet
-2. Créer une branche feature (`git checkout -b feature/amazing-feature`)
-3. Commit vos changements (`git commit -m 'Add amazing feature'`)
-4. Push vers la branche (`git push origin feature/amazing-feature`)
-5. Ouvrir une Pull Request
-
-## 📚 Documentation
-
-- 📋 [PRD - Product Requirements](docs/PRD.md)
-- 🔧 [Documentation technique](docs/TECHNICAL.md)
-- 🚀 [Guide de déploiement](docs/DEPLOYMENT.md)
-- 🌐 [Documentation API](docs/API.md)
-
-## 📞 Support
-
-- 📧 Email : support@repairconnect.fr
-- 💬 Discord : [Rejoindre la communauté](https://discord.gg/repairconnect)
-- 📖 Documentation : [docs.repairconnect.fr](https://docs.repairconnect.fr)
-
-## 📄 Licence
-
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+Site en production : **https://topreparateurs.fr**
 
 ---
 
-**Développé avec ❤️ par l'équipe RepairConnect**
+## À propos
 
-*Le Doctolib de la réparation mobile* 📱✨
+TopReparateurs.fr met en relation des particuliers et des réparateurs qualifiés en France. La plateforme couvre la recherche géolocalisée, la demande de devis, la prise de rendez-vous, le paiement en ligne, et un back-office complet pour les réparateurs et l'administration.
+
+## Fonctionnalités
+
+### Pour les particuliers
+- Recherche géolocalisée (carte Leaflet, filtres par services, marques, certification QualiRépar)
+- Devis comparatifs et prise de RDV en ligne
+- Suivi temps réel des demandes via Supabase Realtime
+- Avis et notation des réparateurs
+
+### Pour les réparateurs
+- Profil professionnel (services, marques, certifications, photos)
+- Gestion des devis et abonnement Stripe (mensuel ou annuel)
+- Pages SEO programmatiques par ville et par appareil
+
+### Administration
+- Validation et modération des réparateurs
+- Scraping ciblé (Google Places via Serper, géocodage Nominatim)
+- Audit, analytics et rapports
+
+## Stack
+
+- **Frontend** : React 18 + TypeScript + Vite + Tailwind CSS + Shadcn/ui
+- **Backend** : Supabase (Postgres + Auth + Realtime + Storage)
+- **Edge Functions** : Deno (Supabase Functions) — auth, paiement, scraping, IA
+- **Paiement** : Stripe (Subscriptions, webhooks signés HMAC, idempotence)
+- **IA** : OpenAI / Gemini / Mistral (selon contexte) pour le diagnostic et la génération SEO
+- **Email** : Resend
+- **SMS** : Android SMS Gateway
+- **Cartographie** : Leaflet + OpenStreetMap (Nominatim)
+- **CDN / Hosting** : Netlify
+- **Monitoring** : Sentry + plugin Lighthouse Netlify
+
+## Arborescence
+
+```
+src/
+├── components/          # Composants React (ui/, admin/, repairer/, customer/)
+├── hooks/               # Hooks React personnalisés
+├── pages/               # Pages (routes React Router)
+├── services/            # Clients API
+├── integrations/        # Intégration Supabase générée
+├── types/               # Types TypeScript partagés
+└── utils/               # Helpers
+
+supabase/
+├── functions/           # Edge Functions (Deno)
+│   └── _shared/         # CORS allowlist, error handler, etc.
+├── migrations/          # Migrations SQL
+└── config.toml          # Configuration Supabase
+```
+
+## Installation locale
+
+### Prérequis
+- **Bun** ≥ 1.0 (lockfile actif : `bun.lock`)
+- **Node.js** ≥ 18 (compatible npm en fallback)
+- Un projet **Supabase** (clé `publishable` + URL)
+- Stripe (compte test/live) si vous touchez aux flows paiement
+- Optionnel : Mapbox token, Serper API key, Resend API key
+
+### Étapes
+
+```bash
+# 1. Cloner
+git clone https://github.com/Neo52000/reparateur-conseil-francais-pro.git
+cd reparateur-conseil-francais-pro
+
+# 2. Installer les dépendances
+bun install
+
+# 3. Configurer l'environnement
+cp .env.example .env.local
+# Renseigner les variables ci-dessous
+
+# 4. Démarrer en dev
+bun run dev
+```
+
+### Variables d'environnement (`.env.local`)
+
+```env
+# Supabase (obligatoire)
+VITE_SUPABASE_URL=https://<your-project>.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=<your-publishable-key>
+
+# Optionnel
+VITE_MAPBOX_TOKEN=<token>
+VITE_SENTRY_DSN=<dsn>
+```
+
+> ⚠️ La clé Supabase utilisée côté front est la **publishable key** (préfixe `pk_`),
+> pas l'ancienne `anon key`. Le client `src/integrations/supabase/client.ts` lit
+> `VITE_SUPABASE_PUBLISHABLE_KEY`.
+
+Les secrets côté Edge Functions (Stripe, OpenAI, Gemini, Resend, SMS gateway, etc.)
+se configurent via `supabase secrets set` ou le dashboard Supabase.
+
+### Scripts
+
+```bash
+bun run dev          # Serveur de dev (Vite)
+bun run build        # Build de production
+bun run preview      # Prévisualisation du build
+bun run lint         # ESLint
+bun run test         # Vitest (single run)
+bun run test:watch   # Vitest (watch)
+bun run test:e2e     # Playwright (smoke tests)
+```
+
+## Données
+
+Tables principales : `profiles`, `repairers`, `repairer_profiles`, `quote_requests`,
+`appointments`, `subscription_plans`, `payments`, `stripe_webhooks`, `scraping_logs`,
+`notifications`, `repairer_reviews`.
+
+Toutes les tables sensibles sont protégées par **Row Level Security (RLS)**.
+Une refonte critique des policies a été appliquée en avril 2026 (cf. migration
+`20260423120000_phase0_fix_rls_critical.sql`).
+
+### Edge Functions notables
+
+- `stripe-webhooks` — webhooks Stripe (signature HMAC + idempotence sur `stripe_event_id`)
+- `create-payment-intent` / `create-subscription` — paiements
+- `geocode-repairers` / `validate-scraping` / `scrape-repairers` — back-office scraping
+- `generate-repairer-seo-page` — génération de pages SEO programmatiques
+- `send-notification` — multi-canal (push, email Resend, SMS gateway)
+
+CORS allowlist commune dans `supabase/functions/_shared/cors.ts`.
+
+### Monitoring Edge Functions
+
+Les 7 fonctions critiques (`stripe-webhooks`, `ai-cmo-worker`,
+`ai-scrape-repairers`, `scrape-repairers`, `validate-scraping`,
+`geocode-repairers`, `social-booster`) sont instrumentées via
+`supabase/functions/_shared/sentry.ts` (`@sentry/deno`). Toute exception
+non capturée est envoyée à Sentry avec le tag `function_name` et un
+`request_id` court.
+
+Configuration : `supabase secrets set SENTRY_DSN=<dsn>`. Sans la variable,
+les fonctions tournent normalement (capture désactivée).
+
+## Déploiement
+
+Production sur **Netlify** (continuous deploy depuis `main`). Headers de sécurité
+(HSTS, CSP, COOP, COEP, X-Frame-Options) configurés dans `netlify.toml`. Le plugin
+`@netlify/plugin-lighthouse` audite chaque preview.
+
+## Développement et contributions
+
+- Branche par défaut : `main`
+- Hooks Husky : `pre-commit` (lint-staged) + `commit-msg`
+- CI GitHub Actions : lint (non-bloquant pour l'instant), `tsc --noEmit`, build
+- Workflow recommandé : fork → branche `feat/...` ou `fix/...` → PR (draft) → review → merge
+
+
+# Optionnel
+VITE_MAPBOX_TOKEN=<token>
+VITE_SENTRY_DSN=<dsn>
+```
+
+> ⚠️ La clé Supabase utilisée côté front est la **publishable key** (préfixe `pk_`),
+> pas l'ancienne `anon key`. Le client `src/integrations/supabase/client.ts` lit
+> `VITE_SUPABASE_PUBLISHABLE_KEY`.
+
+Les secrets côté Edge Functions (Stripe, OpenAI, Gemini, Resend, SMS gateway, etc.)
+se configurent via `supabase secrets set` ou le dashboard Supabase.
+
+### Scripts
+
+```bash
+bun run dev          # Serveur de dev (Vite)
+bun run build        # Build de production
+bun run preview      # Prévisualisation du build
+bun run lint         # ESLint
+bun run test         # Vitest (single run, frontend + Edge Function helpers)
+bun run test:watch   # Vitest (watch)
+bun run test:e2e     # Playwright (smoke tests)
+
+# Tests SQL (RLS) — nécessite la Supabase CLI installée + Docker
+supabase test db     # Exécute supabase/tests/db/*.test.sql via pgTAP
+```
+
+## Données
+
+Tables principales : `profiles`, `repairers`, `repairer_profiles`, `quote_requests`,
+`appointments`, `subscription_plans`, `payments`, `stripe_webhooks`, `scraping_logs`,
+`notifications`, `repairer_reviews`.
+
+Toutes les tables sensibles sont protégées par **Row Level Security (RLS)**.
+Une refonte critique des policies a été appliquée en avril 2026 (cf. migration
+`20260423120000_phase0_fix_rls_critical.sql`).
+
+### Edge Functions notables
+
+- `stripe-webhooks` — webhooks Stripe (signature HMAC + idempotence sur `stripe_event_id`)
+- `create-payment-intent` / `create-subscription` — paiements
+- `geocode-repairers` / `validate-scraping` / `scrape-repairers` — back-office scraping
+- `generate-repairer-seo-page` — génération de pages SEO programmatiques
+- `send-notification` — multi-canal (push, email Resend, SMS gateway)
+
+CORS allowlist commune dans `supabase/functions/_shared/cors.ts`.
+
+### Tests RLS (pgTAP)
+
+Les politiques RLS critiques sont gardées par des tests pgTAP dans
+`supabase/tests/db/` :
+
+| Fichier | Couverture |
+|---|---|
+| `payments_rls.test.sql` | 7 tests sur la politique `payments_owner_access` (client/repairer owner, anon, admin bypass, INSERT WITH CHECK) |
+| `repairers_public_rls.test.sql` | 6 tests sur la vue `repairers_public` (anon SELECT autorisé, table `repairers` protégée contre INSERT/UPDATE/DELETE anon) |
+
+Exécution : `supabase test db` (nécessite Supabase CLI + Docker
+local). Chaque fichier installe pgTAP au début et fait `BEGIN;
+... ROLLBACK;` — pas de pollution de la DB de test.
+
+### Monitoring Edge Functions
+
+Les 7 fonctions critiques (`stripe-webhooks`, `ai-cmo-worker`,
+`ai-scrape-repairers`, `scrape-repairers`, `validate-scraping`,
+`geocode-repairers`, `social-booster`) sont instrumentées via
+`supabase/functions/_shared/sentry.ts` (`@sentry/deno`). Toute exception
+non capturée est envoyée à Sentry avec le tag `function_name` et un
+`request_id` court.
+
+Configuration : `supabase secrets set SENTRY_DSN=<dsn>`. Sans la variable,
+les fonctions tournent normalement (capture désactivée).
+
+## Déploiement
+
+Production sur **Netlify** (continuous deploy depuis `main`). Headers de sécurité
+(HSTS, CSP, COOP, COEP, X-Frame-Options) configurés dans `netlify.toml`. Le plugin
+`@netlify/plugin-lighthouse` audite chaque preview.
+
+## Développement et contributions
+
+- Branche par défaut : `main`
+- Hooks Husky : `pre-commit` (lint-staged) + `commit-msg`
+- CI GitHub Actions : lint (non-bloquant pour l'instant), `tsc --noEmit`, build
+- Workflow recommandé : fork → branche `feat/...` ou `fix/...` → PR (draft) → review → merge
+
+Lecture utile avant contribution :
+- [`AUDIT_20260507.md`](AUDIT_20260507.md) — état sécurité / qualité / dette
+- [`DETTE_TECHNIQUE.md`](DETTE_TECHNIQUE.md) — backlog priorisé
+
+## Licence
+
+MIT — voir [`LICENSE`](LICENSE).

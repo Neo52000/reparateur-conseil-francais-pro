@@ -1,82 +1,65 @@
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import Stripe from 'https://esm.sh/stripe@14.21.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno';
+import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflight = handlePreflight(req);
+  if (preflight) return preflight;
+  const corsHeaders = buildCorsHeaders(req);
 
   try {
-    // ✅ SECURITY FIX: Verify authentication
+    // 🔐 Authentification : vérification du JWT
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized - Missing authentication' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Unauthorized — authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
-    // Initialiser Supabase
-    const supabase = createClient(
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    // ✅ SECURITY FIX: Verify user identity
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(
+      authHeader.replace('Bearer ', ''),
     );
 
     if (authError || !user) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized - Invalid token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Unauthorized — invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
-    // Parse and validate request body
     const requestData = await req.json();
-    const { 
-      quoteId, 
-      repairerId, 
-      clientId, 
-      amount, 
-      description,
-      holdFunds = true 
-    } = requestData;
+    const { quoteId, repairerId, clientId, amount, description, holdFunds = true } = requestData;
 
-    // ✅ SECURITY FIX: Input validation
+    // Validation entrée
     if (!quoteId || typeof quoteId !== 'string') {
       return new Response(
         JSON.stringify({ error: 'Invalid quoteId' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
-
     if (!repairerId || typeof repairerId !== 'string') {
       return new Response(
         JSON.stringify({ error: 'Invalid repairerId' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
-
     if (!clientId || typeof clientId !== 'string') {
       return new Response(
         JSON.stringify({ error: 'Invalid clientId' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
-    // ✅ SECURITY FIX: Verify user authorization - must be the client or an admin
+    // 🔐 Autorisation : seul le client concerné ou un admin peut créer le paiement
     if (clientId !== user.id) {
-      const { data: roleData } = await supabase
+      const { data: roleData } = await supabaseAdmin
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
@@ -85,38 +68,39 @@ serve(async (req) => {
 
       if (roleData?.role !== 'admin') {
         return new Response(
-          JSON.stringify({ error: 'Forbidden - Not authorized to create payment for this client' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Forbidden — not authorized to create payment for this client' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         );
       }
     }
 
-    // ✅ SECURITY FIX: Validate amount
-    if (typeof amount !== 'number' || amount <= 0 || amount > 100000000) {
+    // Validation montant (en centimes : 100 = 1€, max 1 000 000€ = 100 000 000 centimes)
+    if (typeof amount !== 'number' || amount <= 0 || amount > 100_000_000) {
       return new Response(
-        JSON.stringify({ error: 'Invalid amount - must be positive number and less than 1,000,000€' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Invalid amount — must be > 0 and < 1 000 000€' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
-    // ✅ SECURITY FIX: Sanitize description
-    const sanitizedDescription = description ? 
-      String(description).substring(0, 500).replace(/[<>]/g, '') : 
-      'Payment for quote';
+    const sanitizedDescription = description
+      ? String(description).substring(0, 500).replace(/[<>]/g, '')
+      : 'Paiement devis TopRéparateurs';
 
-    console.log(`[CreatePaymentIntent] User ${user.id} creating payment for quote ${quoteId}`);
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
+    if (!stripeKey) {
+      return new Response(
+        JSON.stringify({ error: 'Stripe not configured (STRIPE_SECRET_KEY missing)' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
 
-    // Initialiser Stripe avec la vraie clé
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-      apiVersion: '2023-10-16',
-    });
+    const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' });
 
-    // Calculer la commission (1%)
+    // Commission plateforme : 1%
     const applicationFeeAmount = Math.round(amount * 0.01);
 
-    // Créer un vrai payment intent Stripe avec rétention
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount, // montant en centimes
+      amount,
       currency: 'eur',
       application_fee_amount: applicationFeeAmount,
       capture_method: holdFunds ? 'manual' : 'automatic',
@@ -124,32 +108,30 @@ serve(async (req) => {
         quote_id: quoteId,
         repairer_id: repairerId,
         client_id: clientId,
-        hold_funds: holdFunds.toString(),
-        created_by: user.id
+        hold_funds: String(holdFunds),
+        created_by: user.id,
       },
-      description: sanitizedDescription
+      description: sanitizedDescription,
     });
 
-    // Enregistrer l'intention de paiement
-    const { error } = await supabase
+    // Cohérence avec la table : champ stripe_payment_intent_id (pas payment_intent_id)
+    const { error: insertError } = await supabaseAdmin
       .from('payments')
       .insert({
-        payment_intent_id: paymentIntent.id,
+        stripe_payment_intent_id: paymentIntent.id,
         quote_id: quoteId,
         repairer_id: repairerId,
         client_id: clientId,
-        amount: amount,
+        amount,
         currency: 'eur',
         status: 'pending',
         hold_funds: holdFunds,
         description: sanitizedDescription,
         commission_amount: applicationFeeAmount,
-        commission_rate: 1.0
+        commission_rate: 1.0,
       });
 
-    if (error) {
-      throw error;
-    }
+    if (insertError) throw insertError;
 
     return new Response(
       JSON.stringify({
@@ -157,26 +139,14 @@ serve(async (req) => {
         client_secret: paymentIntent.client_secret,
         amount: paymentIntent.amount,
         currency: paymentIntent.currency,
-        status: paymentIntent.status
+        status: paymentIntent.status,
       }),
-      { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
-
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { 
-        status: 400,
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
-      }
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 });

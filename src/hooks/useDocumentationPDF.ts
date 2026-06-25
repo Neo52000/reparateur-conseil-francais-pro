@@ -76,7 +76,7 @@ Démocratiser la réparation d'appareils électroniques en France en offrant :
 ### 4.1 Stack technologique
 - **Frontend** : React + TypeScript + Tailwind CSS
 - **Backend** : Supabase (PostgreSQL + Auth + Storage)
-- **Hébergement** : Lovable Platform
+- **Hébergement** : Netlify
 - **Paiements** : Stripe integration
 - **Maps** : Leaflet + OpenStreetMap
 
@@ -223,7 +223,7 @@ R : Oui, tous les profils sont **vérifiés** (SIRET, assurance, certifications)
 ## Architecture Système
 
 ### Vue d'ensemble
-ReparMobile est construit sur une architecture moderne **React + Supabase**, déployée sur la plateforme Lovable.
+TopRéparateurs.fr est construit sur une architecture moderne **React + Supabase**, déployée sur Netlify.
 
 \`\`\`
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
@@ -371,8 +371,8 @@ interface POSTransaction {
 
 ### Environnements
 - **Développement** : Localhost + Supabase dev
-- **Staging** : Lovable preview
-- **Production** : Lovable deployment
+- **Staging** : Netlify deploy preview (par PR)
+- **Production** : Netlify (branche main)
 
 ### Variables d'environnement
 \`\`\`bash
@@ -382,7 +382,7 @@ STRIPE_PUBLIC_KEY=pk_live_...
 \`\`\`
 
 ### CI/CD
-Le déploiement est automatique via Lovable :
+Le déploiement est automatique via Netlify :
 1. **Push** sur main
 2. **Build** automatique  
 3. **Tests** unitaires
@@ -399,7 +399,7 @@ Le déploiement est automatique via Lovable :
 ### Sauvegarde
 - **Base de données** : Quotidienne automatique
 - **Storage** : Réplication multi-zones
-- **Code** : Git + Lovable versioning
+- **Code** : Git + GitHub versioning
 
 ## Guide développeur
 

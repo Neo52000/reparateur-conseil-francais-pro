@@ -61,7 +61,7 @@ export const useBlogPosts = () => {
       
       // Si c'est un conflit de slug, on le relance pour que le composant puisse le gérer
       if (errorMessage === 'DUPLICATE_SLUG') {
-        throw new Error('DUPLICATE_SLUG');
+        throw new Error('DUPLICATE_SLUG', { cause: error });
       }
       
       toast({

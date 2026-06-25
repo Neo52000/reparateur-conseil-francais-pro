@@ -1,9 +1,8 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { buildCorsHeaders, handlePreflight } from "../_shared/cors.ts";
+import { requireAdmin, requireCronSecret } from "../_shared/auth.ts";
+import { enforceRateLimit } from "../_shared/rate-limit.ts";
+import { withSentry } from "../_shared/sentry.ts";
 
 // Default site_id for single-tenant platform
 const DEFAULT_SITE_ID = '00000000-0000-0000-0000-000000000001';
@@ -438,9 +437,22 @@ async function trackCost(supabase: any, siteId: string, llmResponse: LlmResponse
 // Main Handler
 // ============================================================
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+Deno.serve(withSentry("ai-cmo-worker", async (req) => {
+  const preflight = handlePreflight(req);
+  if (preflight) return preflight;
+  const corsHeaders = buildCorsHeaders(req);
+
+  // AI-driven endpoint with two callers (pg_cron + admin UI). Accept either
+  // the cron shared secret (`x-cron-secret`) or an admin JWT.
+  const limited = enforceRateLimit(req, { namespace: 'ai-cmo-worker', limit: 5, windowMs: 60_000 });
+  if (limited) return limited;
+
+  if (req.headers.get("x-cron-secret")) {
+    const cron = requireCronSecret(req);
+    if (!cron.ok) return cron.response;
+  } else {
+    const auth = await requireAdmin(req);
+    if (!auth.ok) return auth.response;
   }
 
   try {
@@ -611,4 +623,4 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
-});
+}));

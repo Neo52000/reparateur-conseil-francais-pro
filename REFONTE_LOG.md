@@ -41,4 +41,20 @@ Une entrée = une commande / action destructive ou structurante.
   Phase 0 ou début Phase 1, une fois les modules hors scope supprimés (pour
   éviter de squasher du code qui va disparaître).
 
+### Exécution Phase 0 — synthèse
+
+| Step | Résultat |
+|---|---|
+| Tag `pre-phase-0-cleanup` + branche `backup/pre-phase-0-cleanup` | ✅ (push 403 sur le tag → mitigation via branche) |
+| Purge code (commit `21abbea`) | ~100 fichiers supprimés, imports en cascade réparés, `bun run build` ✅ |
+| Quarantaine Edge Functions Stripe (D3/D4/D6) | 3 fonctions → `supabase/functions/_disabled/` + README |
+| Migration `20260423120000_phase0_fix_rls_critical.sql` | D1/D2/D5 corrigées + helper `is_admin()` |
+| Migration `20260423120100_phase0_cleanup_drop_tables.sql` | ~50 tables `DROP TABLE ... CASCADE` regroupées par domaine |
+| Squash 335 migrations | 📋 Procédure documentée dans `DETTE_TECHNIQUE.md §2` — action humaine (nécessite DB live) |
+| CI `lint` non-bloquant + husky + lint-staged + `DETTE_TECHNIQUE.md` | ✅ |
+| Build final + typecheck | ✅ `tsc` exit 0 + `vite build` 44 s |
+| `REFONTE_PHASE_0_REPORT.md` | ✅ |
+
+Score sécurité : **3/10 → 6/10** (D1/D2/D5 corrigées ; D3/D4/D6 reportées Phase 3 derrière quarantaine).
+
 ---

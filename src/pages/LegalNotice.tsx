@@ -75,15 +75,15 @@ const LegalNotice = () => {
                 <h2 className="text-2xl font-semibold">Hébergement</h2>
               </div>
               <div className="space-y-2 text-muted-foreground">
-                <p><strong>Hébergeur :</strong> Supabase Inc.</p>
-                <p><strong>Adresse :</strong> 970 Toa Payoh North, #07-04, Singapore 318992</p>
-                <p><strong>Site web :</strong> <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">supabase.com</a></p>
-                
+                <p><strong>Hébergeur frontend :</strong> Netlify, Inc.</p>
+                <p><strong>Adresse :</strong> 44 Montgomery Street, Suite 300, San Francisco, CA 94104, États-Unis</p>
+                <p><strong>Site web :</strong> <a href="https://www.netlify.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">netlify.com</a></p>
+
                 <div className="mt-4">
-                  <p className="font-semibold mb-2">Infrastructure Lovable :</p>
-                  <p><strong>Plateforme de développement :</strong> Lovable (GPT Vibe Inc.)</p>
-                  <p><strong>Adresse :</strong> 340 S Lemon Ave, Walnut, CA 91789, États-Unis</p>
-                  <p><strong>Site web :</strong> <a href="https://lovable.dev" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">lovable.dev</a></p>
+                  <p className="font-semibold mb-2">Base de données et services back-end :</p>
+                  <p><strong>Hébergeur :</strong> Supabase Inc.</p>
+                  <p><strong>Adresse :</strong> 970 Toa Payoh North, #07-04, Singapore 318992</p>
+                  <p><strong>Site web :</strong> <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">supabase.com</a></p>
                 </div>
               </div>
             </section>

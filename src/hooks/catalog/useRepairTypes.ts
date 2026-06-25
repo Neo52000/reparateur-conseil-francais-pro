@@ -56,7 +56,7 @@ export const useRepairTypes = () => {
         description: 'Erreur lors de la création du type de réparation',
         variant: 'destructive',
       });
-      throw new Error('Erreur lors de la création du type de réparation');
+      throw new Error('Erreur lors de la création du type de réparation', { cause: err });
     }
   };
 
@@ -78,7 +78,7 @@ export const useRepairTypes = () => {
         description: 'Erreur lors de la mise à jour du type de réparation',
         variant: 'destructive',
       });
-      throw new Error('Erreur lors de la mise à jour du type de réparation');
+      throw new Error('Erreur lors de la mise à jour du type de réparation', { cause: err });
     }
   };
 
@@ -99,7 +99,7 @@ export const useRepairTypes = () => {
         description: 'Erreur lors de la suppression du type de réparation',
         variant: 'destructive',
       });
-      throw new Error('Erreur lors de la suppression du type de réparation');
+      throw new Error('Erreur lors de la suppression du type de réparation', { cause: err });
     }
   };
 

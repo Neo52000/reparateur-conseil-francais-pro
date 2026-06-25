@@ -8,20 +8,7 @@
     <meta name="description" content="TopRéparateurs.fr - La plateforme de référence pour trouver les meilleurs réparateurs qualifiés près de chez vous. Devis gratuits, services de qualité." />
     <meta name="author" content="TopRéparateurs.fr" />
 
-    <!-- Security: Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="
-      default-src 'self';
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com;
-      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-      font-src 'self' https://fonts.gstatic.com;
-      img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co https://api.mapbox.com https://*.tile.openstreetmap.org;
-      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mapbox.com https://www.google-analytics.com https://*.sentry.io;
-      frame-src 'none';
-      object-src 'none';
-      base-uri 'self';
-    " />
-    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <!-- Security headers are set via netlify.toml (HTTP headers) -->
     <meta name="referrer" content="strict-origin-when-cross-origin" />
 
     <!-- PWA Manifest -->
@@ -34,6 +21,12 @@
     <link rel="icon" href="/logo-icon.svg" type="image/svg+xml">
     <link rel="alternate icon" href="/favicon.png" type="image/png">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+    <!-- Default canonical (overridden per-route by react-helmet). Présent
+         dans le HTML statique pour les crawlers qui n'exécutent pas le JS. -->
+    <link rel="canonical" href="https://topreparateurs.fr/">
+    <link rel="alternate" hreflang="fr-FR" href="https://topreparateurs.fr/">
+    <link rel="alternate" hreflang="x-default" href="https://topreparateurs.fr/">
 
     <meta property="og:title" content="TopRéparateurs.fr - Trouvez les meilleurs réparateurs" />
     <meta property="og:description" content="La plateforme de référence pour trouver les meilleurs réparateurs qualifiés près de chez vous" />
@@ -48,68 +41,9 @@
     <meta name="twitter:image" content="https://topreparateurs.fr/og-image.png" />
 
     <!-- Performance Optimizations -->
-    <!-- NO synchronous font loading - everything is inlined -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Critical font files preloaded but NOT loaded synchronously -->
-    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_KU7NShXUEKi4Rw.woff2" as="font" type="font/woff2" crossorigin>
-    
-    <!-- All fonts completely inlined to prevent ANY render blocking -->
-    <style>
-      @font-face {
-        font-family: 'Inter';
-        font-style: normal;
-        font-weight: 400;
-        font-display: swap;
-        src: url('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2') format('woff2');
-      }
-      @font-face {
-        font-family: 'Inter';
-        font-style: normal;
-        font-weight: 500;
-        font-display: swap;
-        src: url('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2') format('woff2');
-      }
-      @font-face {
-        font-family: 'Inter';
-        font-style: normal;
-        font-weight: 600;
-        font-display: swap;
-        src: url('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hiA.woff2') format('woff2');
-      }
-      @font-face {
-        font-family: 'Inter';
-        font-style: normal;
-        font-weight: 700;
-        font-display: swap;
-        src: url('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiA.woff2') format('woff2');
-      }
-      @font-face {
-        font-family: 'Plus Jakarta Sans';
-        font-style: normal;
-        font-weight: 600;
-        font-display: swap;
-        src: url('https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_KU7NShXUEKi4Rw.woff2') format('woff2');
-      }
-      @font-face {
-        font-family: 'Plus Jakarta Sans';
-        font-style: normal;
-        font-weight: 700;
-        font-display: swap;
-        src: url('https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_KU7NShXUEKi4Rw.woff2') format('woff2');
-      }
-      @font-face {
-        font-family: 'Plus Jakarta Sans';
-        font-style: normal;
-        font-weight: 800;
-        font-display: swap;
-        src: url('https://fonts.gstatic.com/s/plusjakartasans/v8/LDIbaomQNQcsA88c7O9yZ4KMCoOg4IA6-91aHEjcWuA_KU7NShXUEKi4Rw.woff2') format('woff2');
-      }
-    </style>
-    
+    <!-- Fonts are loaded via @fontsource (self-hosted, RGPD-compliant) imported in main.tsx -->
+    <!-- During the initial paint we use system fonts; @fontsource takes over once React mounts -->
+
     <!-- Critical CSS inlined for faster rendering -->
     <style>
       /* Critical above-the-fold CSS - Comprehensive coverage */
