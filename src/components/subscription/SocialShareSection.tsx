@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Share2, Facebook, Twitter, Linkedin, MessageCircle, Mail } from 'lucide-react';
+import { Share2, Globe, X, MessageCircle, Mail } from 'lucide-react';
 
 const SocialShareSection: React.FC = () => {
   const shareUrl = window.location.href;
@@ -67,7 +67,7 @@ const SocialShareSection: React.FC = () => {
                 className="bg-blue-600 hover:bg-blue-700"
                 size="lg"
               >
-                <Facebook className="h-5 w-5 mr-2" />
+                <Globe className="h-5 w-5 mr-2" />
                 Facebook
               </Button>
               
@@ -76,7 +76,7 @@ const SocialShareSection: React.FC = () => {
                 className="bg-sky-500 hover:bg-sky-600"
                 size="lg"
               >
-                <Twitter className="h-5 w-5 mr-2" />
+                <X className="h-5 w-5 mr-2" />
                 Twitter
               </Button>
               
@@ -85,7 +85,7 @@ const SocialShareSection: React.FC = () => {
                 className="bg-blue-700 hover:bg-blue-800"
                 size="lg"
               >
-                <Linkedin className="h-5 w-5 mr-2" />
+                <Globe className="h-5 w-5 mr-2" />
                 LinkedIn
               </Button>
               

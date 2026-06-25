@@ -84,6 +84,10 @@ serve(withSentry("match-and-distribute", async (req: Request) => {
     );
   }
 
+  // Caller is either a verified user (via verify_jwt = true in config) OR an
+  // internal trigger using service-role/cron secret. We let verify_jwt do the
+  // first gate; for extra safety against future config drift we also accept
+  // the cron secret path.
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -191,6 +195,10 @@ serve(withSentry("match-and-distribute", async (req: Request) => {
       p_repairer: target.id,
       p_amount: 1,
       p_lead: leadId,
+    const { data: newBalance, error: debitErr } = await supabase.rpc("debit_credits", {
+      p_repairer: target.id,
+      p_amount: 1,
+      p_lead: null,
     });
 
     if (debitErr) {

@@ -77,6 +77,7 @@ verify_jwt = false
 verify_jwt = false
 
 # Internal: invoked by submit-contact with service-role, or by cron secret.
+# Internal: triggered by diagnose-issue with service-role, or by cron secret.
 [functions.match-and-distribute]
 verify_jwt = false
 

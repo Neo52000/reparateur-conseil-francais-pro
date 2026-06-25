@@ -46,7 +46,7 @@ export const useRepairersOptimized = (filters?: SearchFilters, userLocation?: [n
       });
 
       // Transform data
-      // @ts-ignore - Types will be regenerated after views are created
+      // @ts-expect-error - Types will be regenerated after views are created
       let processedData = RepairersDataTransformer.transformSupabaseData(validData);
 
       // Apply distance filter if user location is available

@@ -141,7 +141,7 @@ export const useBusinessModules = () => {
 
     try {
       // Vérifier si le client existe
-      let { data: customer, error: fetchError } = await supabase
+      const { data: customer, error: fetchError } = await supabase
         .from('loyalty_points')
         .select('*')
         .eq('repairer_id', user.id)

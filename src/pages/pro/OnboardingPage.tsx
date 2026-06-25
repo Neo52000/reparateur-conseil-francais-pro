@@ -184,6 +184,7 @@ const OnboardingPage = () => {
                   title="Le SIRET doit comporter exactement 14 chiffres"
                   inputMode="numeric"
                 />
+                <Input id="siret" value={siret} onChange={(e) => setSiret(e.target.value.replace(/\D/g, "").slice(0, 14))} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

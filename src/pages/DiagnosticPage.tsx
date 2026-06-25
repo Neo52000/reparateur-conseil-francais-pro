@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { supabaseMvpd } from "@/integrations/supabase/mvpd";
 
 interface DiagnosisResult {
   diagnostic_probable: string;
@@ -118,6 +119,22 @@ const DiagnosticPage = () => {
       if (!data?.success && !data?.already_distributed) {
         throw new Error(data?.error ?? "submit_failed");
       }
+      const { error: updateError } = await supabaseMvpd
+        .from("issue_requests")
+        .update({
+          contact_name: contactName.trim() || null,
+          contact_email: contactEmail.trim(),
+          contact_phone: contactPhone.trim(),
+          postal_code: postalCode.trim(),
+          status: "awaiting_contact",
+        })
+        .eq("id", requestId);
+      if (updateError) throw updateError;
+
+      const { error: matchError } = await supabase.functions.invoke("match-and-distribute", {
+        body: { issue_request_id: requestId },
+      });
+      if (matchError) throw matchError;
 
       setStep("done");
       toast({

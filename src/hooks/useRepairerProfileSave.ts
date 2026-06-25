@@ -109,7 +109,7 @@ export const useRepairerProfileSave = () => {
       
     } catch (error: any) {
       console.error('❌ Error in saveProfile:', error);
-      throw new Error(error.message || "Erreur lors de la sauvegarde du profil");
+      throw new Error(error.message || "Erreur lors de la sauvegarde du profil", { cause: error });
     }
   };
 

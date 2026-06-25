@@ -112,7 +112,7 @@ export const useQualiReparValidation = () => {
       }
 
       // Validation du téléphone (optionnel mais si présent doit être valide)
-      if (dossier.client_phone && !/^[0-9\s\-\+\(\)]{10,}$/.test(dossier.client_phone)) {
+      if (dossier.client_phone && !/^[0-9\s\-+()]{10,}$/.test(dossier.client_phone)) {
         warnings.push({
           field: 'client_phone',
           message: 'Format de téléphone potentiellement invalide',
